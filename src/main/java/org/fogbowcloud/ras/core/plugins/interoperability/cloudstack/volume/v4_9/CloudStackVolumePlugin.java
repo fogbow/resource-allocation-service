@@ -21,7 +21,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackSt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse.DiskOffering;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.io.File;
 import java.util.*;
@@ -34,7 +34,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     private static final String FOGBOW_TAG_SEPARATOR = ":";
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private boolean diskOfferingCompatible;
     private String zoneId;
     private Properties properties;
@@ -44,7 +44,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     public CloudStackVolumePlugin() {
@@ -52,7 +52,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override
@@ -254,7 +254,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
         return volumeInstance;
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

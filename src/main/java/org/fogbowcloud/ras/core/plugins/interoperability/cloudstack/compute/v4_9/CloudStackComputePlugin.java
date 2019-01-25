@@ -3,9 +3,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
@@ -23,9 +21,8 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.
 import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
-import java.io.File;
 import java.util.*;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY;
@@ -46,7 +43,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     private String expungeOnDestroy;
     private String defaultNetworkId;
 
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private LaunchCommandGenerator launchCommandGenerator;
     private Properties properties;
 
@@ -58,7 +55,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         this.expungeOnDestroy = this.properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
         this.defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
 
@@ -326,7 +323,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     }
 
     // Methods below are used for testing only
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

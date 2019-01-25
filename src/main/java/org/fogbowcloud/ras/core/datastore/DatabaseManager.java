@@ -1,9 +1,8 @@
 package org.fogbowcloud.ras.core.datastore;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.datastore.orderstorage.AuditService;
-import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.auditing.AuditableSyncRequest;
 import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
@@ -12,6 +11,7 @@ public class DatabaseManager implements StableStorage {
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
 
     private static DatabaseManager instance;
+
     private RecoveryService recoveryService;
     private AuditService auditService;
 
@@ -28,14 +28,14 @@ public class DatabaseManager implements StableStorage {
     @Override
     public void add(Order order) throws UnexpectedException {
         this.recoveryService.save(order);
-        this.auditService.updateStateTimestamp(order);
+        this.auditService.registerStateChange(order);
     }
 
     @Override
     public void update(Order order, boolean orderStateChanged) throws UnexpectedException {
         this.recoveryService.update(order);
         if (orderStateChanged) {
-            this.auditService.updateStateTimestamp(order);
+            this.auditService.registerStateChange(order);
         }
     }
 
@@ -60,5 +60,9 @@ public class DatabaseManager implements StableStorage {
 
     public void setAuditService(AuditService auditService) {
         this.auditService = auditService;
+    }
+
+    public void auditRequest(AuditableSyncRequest request) {
+        this.auditService.registerSyncRequest(request);
     }
 }

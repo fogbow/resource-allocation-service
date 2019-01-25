@@ -7,7 +7,7 @@ import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 
 import java.util.Map;
@@ -26,7 +26,7 @@ public class OpenStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin
     }
 
     @Override
-    protected void setClient(HttpRequestClientUtil httpRequestClientUtil) {
-        super.setClient(httpRequestClientUtil);
+    protected void setClient(AuditableHttpRequestClient auditableHttpRequestClient) {
+        super.setClient(auditableHttpRequestClient);
     }
 }

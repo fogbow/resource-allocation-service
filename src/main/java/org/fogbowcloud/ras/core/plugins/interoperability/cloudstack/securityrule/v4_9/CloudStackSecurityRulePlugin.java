@@ -27,7 +27,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import static org.fogbowcloud.ras.core.constants.Messages.Error.UNEXPECTED_JOB_STATUS;
 import static org.fogbowcloud.ras.core.constants.Messages.Exception.JOB_HAS_FAILED;
@@ -43,13 +43,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
     private String cloudStackUrl;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private Properties properties;
 
     public CloudStackSecurityRulePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override
@@ -124,7 +124,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         waitForDeleteResult(this.client, response.getJobId(), localUserAttributes);
     }
 
-    protected String waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+    protected String waitForDeleteResult(AuditableHttpRequestClient client, String jobId, CloudStackToken token)
             throws FogbowRasException, UnexpectedException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
@@ -209,7 +209,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 		}
 	}
 
-    protected String waitForJobResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+    protected String waitForJobResult(AuditableHttpRequestClient client, String jobId, CloudStackToken token)
             throws FogbowRasException, UnexpectedException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
@@ -244,13 +244,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-    protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(HttpRequestClientUtil client, String jobId, Token token)
+    protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(AuditableHttpRequestClient client, String jobId, Token token)
             throws FogbowRasException {
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, jobId, token);
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 }

@@ -18,7 +18,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGeneratorPlugin.class);
@@ -34,7 +34,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     private String tokenProviderId;
     private String cloudStackUrl;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 	private RASAuthenticationHolder rasAuthenticationHolder;
     private Properties properties;
 
@@ -42,7 +42,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
         
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
     }
@@ -55,7 +55,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
 
         LoginRequest request = createLoginRequest(credentials);
-        HttpRequestClientUtil.Response jsonResponse = null;
+        AuditableHttpRequestClient.Response jsonResponse = null;
         try {
             // NOTE(pauloewerton): since all cloudstack requests params are passed via url args, we do not need to
             // send a valid json body in the post request
@@ -126,7 +126,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     }
 
     // Used for testing
-    public void setClient(HttpRequestClientUtil client) {
+    public void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 }

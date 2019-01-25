@@ -16,7 +16,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusResponse.Volume;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.util.Properties;
 
@@ -32,18 +32,18 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
     private static final String FAILURE_STATE = "failure";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private Properties properties;
     private String cloudStackUrl;
     
     public CloudStackAttachmentPlugin() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     public CloudStackAttachmentPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override
@@ -167,7 +167,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         return attachmentInstance;
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

@@ -5,7 +5,6 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-//import org.hibernate.annotations.CollectionOfElements;
 
 import javax.persistence.*;
 import java.io.Serializable;

@@ -15,7 +15,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3.OpenStackIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class OpenStackOneToOneMapperTest {
 
     private OpenStackOneToOneMapper mapper;
     private HttpClient client;
-    private HttpRequestClientUtil httpRequestClientUtil;
+    private AuditableHttpRequestClient auditableHttpRequestClient;
     private OpenStackTokenGeneratorPlugin keystoneV3TokenGenerator;
     private OpenStackIdentityPlugin openStackIdentityPlugin;
     private String memberId;
@@ -54,9 +54,9 @@ public class OpenStackOneToOneMapperTest {
                 + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
         this.mapper = new OpenStackOneToOneMapper(cloudConfPath, mapperConfPath);
         this.client = Mockito.spy(HttpClient.class);
-        this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
+        this.auditableHttpRequestClient = Mockito.spy(new AuditableHttpRequestClient(this.client));
         this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(cloudConfPath));
-        this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
+        this.keystoneV3TokenGenerator.setClient(this.auditableHttpRequestClient);
         this.openStackIdentityPlugin = new OpenStackIdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }

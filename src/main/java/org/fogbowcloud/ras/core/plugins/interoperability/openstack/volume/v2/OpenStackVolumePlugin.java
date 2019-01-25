@@ -2,9 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.volume.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -15,7 +13,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 
 import java.util.List;
@@ -31,7 +29,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
     protected static final String SUFIX_ENDPOINT_VOLUME_TYPES = "/types";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private String volumeV2APIEndpoint;
 
     public OpenStackVolumePlugin(String confFilePath) throws FatalErrorException {
@@ -203,10 +201,10 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
     }
 
     private void initClient() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
 
     }
-    public void setClient(HttpRequestClientUtil client) {
+    public void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 }

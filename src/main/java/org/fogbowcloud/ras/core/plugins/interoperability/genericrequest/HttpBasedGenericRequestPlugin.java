@@ -1,22 +1,20 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.genericrequest;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.util.Map;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 public abstract class HttpBasedGenericRequestPlugin<T> implements GenericRequestPlugin<T> {
 
-    private HttpRequestClientUtil client = new HttpRequestClientUtil();
+    private AuditableHttpRequestClient client = new AuditableHttpRequestClient();
 
     @Override
     public abstract GenericRequestResponse redirectGenericRequest(GenericRequest genericRequest, T token) throws FogbowRasException;
 
-    protected HttpRequestClientUtil getClient() {
+    protected AuditableHttpRequestClient getClient() {
         return client;
     }
 
-    protected void setClient(HttpRequestClientUtil httpRequestClientUtil) {
-        this.client = httpRequestClientUtil;
+    protected void setClient(AuditableHttpRequestClient auditableHttpRequestClient) {
+        this.client = auditableHttpRequestClient;
     }
 }

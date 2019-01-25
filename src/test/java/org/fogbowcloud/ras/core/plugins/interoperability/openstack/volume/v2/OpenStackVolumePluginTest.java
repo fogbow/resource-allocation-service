@@ -1,6 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.volume.v2;
 
-import com.google.gson.Gson;
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
@@ -12,7 +11,7 @@ import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -48,7 +47,7 @@ public class OpenStackVolumePluginTest {
 
     private OpenStackVolumePlugin openStackVolumePlugin;
     private OpenStackV3Token openStackV3Token;
-    private HttpRequestClientUtil httpRequestClientUtil;
+    private AuditableHttpRequestClient auditableHttpRequestClient;
 
     @Before
     public void setUp() throws Exception {
@@ -58,8 +57,8 @@ public class OpenStackVolumePluginTest {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.openStackVolumePlugin = Mockito.spy(new OpenStackVolumePlugin(cloudConfPath));
-        this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
-        this.openStackVolumePlugin.setClient(this.httpRequestClientUtil);
+        this.auditableHttpRequestClient = Mockito.mock(AuditableHttpRequestClient.class);
+        this.openStackVolumePlugin.setClient(this.auditableHttpRequestClient);
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, 
         			FAKE_NAME, FAKE_PROJECT_ID, null);
     }
@@ -70,14 +69,14 @@ public class OpenStackVolumePluginTest {
         // set up
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
-        Mockito.doReturn(FAKE_VOLUME_JSON).when(this.httpRequestClientUtil).doPostRequest(
+        Mockito.doReturn(FAKE_VOLUME_JSON).when(this.auditableHttpRequestClient).doPostRequest(
                 Mockito.anyString(), Mockito.any(Token.class), Mockito.any());
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.httpRequestClientUtil).doPostRequest(Mockito.anyString(), Mockito.any(Token.class),
+        Mockito.verify(this.auditableHttpRequestClient).doPostRequest(Mockito.anyString(), Mockito.any(Token.class),
                 Mockito.any());
         Assert.assertEquals(FAKE_VOLUME_ID, instanceString);
     }
@@ -92,17 +91,17 @@ public class OpenStackVolumePluginTest {
         requirements.put("fake-capabilities", "fake-value");
         volumeOrder.setRequirements(requirements);
 
-        Mockito.doReturn(FAKE_TYPES_JSON).when(this.httpRequestClientUtil).doGetRequest(
+        Mockito.doReturn(FAKE_TYPES_JSON).when(this.auditableHttpRequestClient).doGetRequest(
                 Mockito.anyString(), Mockito.any(Token.class));
-        Mockito.doReturn(FAKE_VOLUME_JSON).when(this.httpRequestClientUtil).doPostRequest(
+        Mockito.doReturn(FAKE_VOLUME_JSON).when(this.auditableHttpRequestClient).doPostRequest(
                 Mockito.anyString(), Mockito.any(Token.class), Mockito.any());
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.httpRequestClientUtil).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
-        Mockito.verify(this.httpRequestClientUtil).doPostRequest(Mockito.anyString(), Mockito.any(Token.class),
+        Mockito.verify(this.auditableHttpRequestClient).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+        Mockito.verify(this.auditableHttpRequestClient).doPostRequest(Mockito.anyString(), Mockito.any(Token.class),
                 Mockito.any());
         Assert.assertEquals(FAKE_VOLUME_ID, instanceString);
     }
@@ -117,14 +116,14 @@ public class OpenStackVolumePluginTest {
         requirements.put("additional-fake-capabilities", "additional-fake-value");
         volumeOrder.setRequirements(requirements);
 
-        Mockito.doReturn(FAKE_TYPES_JSON).when(this.httpRequestClientUtil).doGetRequest(
+        Mockito.doReturn(FAKE_TYPES_JSON).when(this.auditableHttpRequestClient).doGetRequest(
                 Mockito.anyString(), Mockito.any(Token.class));
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.httpRequestClientUtil).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+        Mockito.verify(this.auditableHttpRequestClient).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
     }
 
     // test case: Tests if generateJsonEntityToCreateInstance is returning the volume Json properly.
@@ -154,14 +153,14 @@ public class OpenStackVolumePluginTest {
     public void testGetInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
         // set up
         Mockito.doReturn(FAKE_VOLUME_JSON).when(
-                this.httpRequestClientUtil).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+                this.auditableHttpRequestClient).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
 
         // exercise
         VolumeInstance volumeInstance = this.openStackVolumePlugin.getInstance(FAKE_INSTANCE_ID,
                 this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.httpRequestClientUtil).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+        Mockito.verify(this.auditableHttpRequestClient).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
         Assert.assertEquals(FAKE_NAME, volumeInstance.getName());
         Assert.assertEquals(Integer.parseInt(FAKE_SIZE), volumeInstance.getVolumeSize());
     }
@@ -170,14 +169,14 @@ public class OpenStackVolumePluginTest {
     @Test
     public void removeInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
         // set up
-        Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(Mockito.anyString(),
+        Mockito.doNothing().when(this.auditableHttpRequestClient).doDeleteRequest(Mockito.anyString(),
                 Mockito.any(Token.class));
 
         // exercise
         this.openStackVolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.httpRequestClientUtil).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
+        Mockito.verify(this.auditableHttpRequestClient).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
     }
 
     // test case: Deleting an instance without a project ID must raise FogbowRasException.

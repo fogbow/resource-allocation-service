@@ -18,7 +18,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.util.List;
 import java.util.Properties;
@@ -35,7 +35,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     protected String zoneId = null;
     protected String cloudStackUrl;
 
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private Properties properties;
 
     public CloudStackNetworkPlugin(String confFilePath) {
@@ -45,7 +45,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
         this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
         this.zoneId = properties.getProperty(ZONE_ID);
 
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override
@@ -154,7 +154,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
                 null, null, null);
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

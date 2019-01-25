@@ -19,8 +19,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.*;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.CreateFloatingIpResponse.FloatingIp;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.GetNetworkPortsResponse.Port;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.net.URISyntaxException;
 import java.util.List;
@@ -53,7 +52,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
 
     private Properties properties;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 
     public OpenStackPublicIpPlugin(String confFilePath) {
         this(confFilePath, true);
@@ -373,10 +372,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     }
 
     private void initClient() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 
