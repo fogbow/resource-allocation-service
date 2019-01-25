@@ -18,7 +18,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataB
 import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -84,7 +84,7 @@ public class CloudStackComputePluginTest {
     private String fakeZoneId;
 
     private CloudStackComputePlugin plugin;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private Properties properties;
 
@@ -98,7 +98,7 @@ public class CloudStackComputePluginTest {
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
-        this.client = Mockito.mock(HttpRequestClientUtil.class);
+        this.client = Mockito.mock(AuditableHttpRequestClient.class);
         this.plugin = new CloudStackComputePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);

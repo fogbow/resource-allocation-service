@@ -12,7 +12,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.util.List;
 import java.util.Properties;
@@ -21,7 +21,7 @@ import java.util.Properties;
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputeQuotaPlugin.class);
 
-    private HttpRequestClientUtil client = new HttpRequestClientUtil();
+    private AuditableHttpRequestClient client = new AuditableHttpRequestClient();
 
     private static final String LIMIT_TYPE_INSTANCES = "0";
     private static final String LIMIT_TYPE_MEMORY = "9";
@@ -139,7 +139,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         return resourceLimit;
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

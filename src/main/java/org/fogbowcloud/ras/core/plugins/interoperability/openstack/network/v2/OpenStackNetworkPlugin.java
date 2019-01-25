@@ -14,7 +14,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,7 +63,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
 
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pn-";
 
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private String networkV2APIEndpoint;
     private String[] dnsList;
 
@@ -373,10 +373,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     }
 
     private void initClient() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

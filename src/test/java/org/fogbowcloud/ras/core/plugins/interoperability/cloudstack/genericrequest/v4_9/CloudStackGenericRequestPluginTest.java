@@ -9,17 +9,14 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStack
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
-import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.Map;
 
 public class CloudStackGenericRequestPluginTest {
 
@@ -33,12 +30,12 @@ public class CloudStackGenericRequestPluginTest {
 
     private CloudStackToken fakeToken;
     private CloudStackGenericRequestPlugin plugin;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 
     @Before
     public void setUp() {
         this.fakeToken = new CloudStackToken(FAKE_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USER_NAME, FAKE_SIGNATURE);
-        this.client = Mockito.mock(HttpRequestClientUtil.class);
+        this.client = Mockito.mock(AuditableHttpRequestClient.class);
 
         this.plugin = new CloudStackGenericRequestPlugin();
         this.plugin.setClient(client);

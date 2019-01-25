@@ -12,7 +12,7 @@ import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,7 +64,7 @@ public class CloudStackAttachmentPluginTest {
     private static final int DEVICE_ID = 1;
 
     private CloudStackAttachmentPlugin plugin;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private CloudStackToken token;
     private Properties properties;
 
@@ -76,7 +76,7 @@ public class CloudStackAttachmentPluginTest {
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
-        this.client = Mockito.mock(HttpRequestClientUtil.class);
+        this.client = Mockito.mock(AuditableHttpRequestClient.class);
         this.plugin = new CloudStackAttachmentPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);

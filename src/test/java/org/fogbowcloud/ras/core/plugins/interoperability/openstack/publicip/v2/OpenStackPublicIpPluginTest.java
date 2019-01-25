@@ -15,7 +15,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import java.util.*;
 public class OpenStackPublicIpPluginTest {
 
 	private OpenStackPublicIpPlugin openStackPublicIpPlugin;
-	private HttpRequestClientUtil httpClient;
+	private AuditableHttpRequestClient httpClient;
 	private OpenStackV3Token openStackV3Token;
 	
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
@@ -40,7 +40,7 @@ public class OpenStackPublicIpPluginTest {
 	@Before
 	public void setUp() {
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
-        this.httpClient = Mockito.mock(HttpRequestClientUtil.class);
+        this.httpClient = Mockito.mock(AuditableHttpRequestClient.class);
         
         boolean notCheckProperties = false;
 		String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator

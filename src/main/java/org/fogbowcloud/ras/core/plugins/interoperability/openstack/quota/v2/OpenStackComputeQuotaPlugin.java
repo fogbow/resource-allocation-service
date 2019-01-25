@@ -2,8 +2,6 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -13,7 +11,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.util.Properties;
 
@@ -24,12 +22,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final String SUFFIX = "limits";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     private Properties properties;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 
     public OpenStackComputeQuotaPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
 
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override

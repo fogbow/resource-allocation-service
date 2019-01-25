@@ -12,10 +12,9 @@ import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -33,7 +32,7 @@ public class OpenStackComputePluginTest {
     private OpenStackComputePlugin computePlugin;
     private OpenStackV3Token openStackV3Token;
     private LaunchCommandGenerator launchCommandGeneratorMock;
-    private HttpRequestClientUtil httpRequestClientUtilMock;
+    private AuditableHttpRequestClient auditableHttpRequestClientMock;
     private Properties propertiesMock;
     private PropertiesHolder propertiesHolderMock;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
@@ -82,7 +81,7 @@ public class OpenStackComputePluginTest {
     public void setUp() throws Exception {
         this.propertiesHolderMock = Mockito.mock(PropertiesHolder.class);
         this.propertiesMock = Mockito.mock(Properties.class);
-        this.httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
+        this.auditableHttpRequestClientMock = Mockito.mock(AuditableHttpRequestClient.class);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.networksId.add(privateNetworkId);
         this.responseNetworkIds.add(defaultNetworkId);
@@ -94,7 +93,7 @@ public class OpenStackComputePluginTest {
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
 
         this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
-                this.launchCommandGeneratorMock, this.httpRequestClientUtilMock));
+                this.launchCommandGeneratorMock, this.auditableHttpRequestClientMock));
         this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
                 + this.openStackV3Token.getProjectId()
                 + OpenStackComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
@@ -128,11 +127,11 @@ public class OpenStackComputePluginTest {
                 bestCpu, bestMemory, bestDisk, imageId, null, publicKey, networksId);
         JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
                 idInstanceName);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argBodyString.capture());
 
         // exercise
@@ -163,11 +162,11 @@ public class OpenStackComputePluginTest {
         computeOrder.setRequirements(requirements);
         JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
                 idInstanceName);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argBodyString.capture());
 
         // exercise
@@ -196,11 +195,11 @@ public class OpenStackComputePluginTest {
         requirements.put(requirementTag, requirementValue);
         requirements.put("additionalReqTag", "additionalReqValue");
         computeOrder.setRequirements(requirements);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argBodyString.capture());
 
         // exercise
@@ -219,7 +218,7 @@ public class OpenStackComputePluginTest {
 
         ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, ipAddresses);
 
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
 
         // exercise
@@ -240,7 +239,7 @@ public class OpenStackComputePluginTest {
     public void testDeleteInstance() throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
         String deleteEndpoint = this.computeEndpoint + "/" + instanceId;
-        Mockito.doNothing().when(this.httpRequestClientUtilMock).doDeleteRequest(this.argString.capture(),
+        Mockito.doNothing().when(this.auditableHttpRequestClientMock).doDeleteRequest(this.argString.capture(),
                 this.argToken.capture());
 
         // exercise
@@ -256,7 +255,7 @@ public class OpenStackComputePluginTest {
     public void testGetInstanceOnForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token))
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newComputeEndpoint, this.openStackV3Token))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, ""));
 
         // exercise/verify
@@ -268,7 +267,7 @@ public class OpenStackComputePluginTest {
     public void testDeleteInstanceTestOnForbidden() throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
         String deleteEndpoint = this.computeEndpoint + "/" + instanceId;
-        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.httpRequestClientUtilMock)
+        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.auditableHttpRequestClientMock)
                 .doDeleteRequest(deleteEndpoint, this.openStackV3Token);
 
         // exercise
@@ -283,10 +282,10 @@ public class OpenStackComputePluginTest {
                 null);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any())).thenReturn("");
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, ""));
 
         // exercise
@@ -307,7 +306,7 @@ public class OpenStackComputePluginTest {
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn(expectedInstanceIdJson);
 
         // exercise
@@ -328,7 +327,7 @@ public class OpenStackComputePluginTest {
                 "default", null, bestCpu, bestMemory, bestDisk, imageId, null, publicKey, null);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, ""));
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
@@ -345,13 +344,13 @@ public class OpenStackComputePluginTest {
                 "default", null, bestCpu, bestMemory, bestDisk, imageId, null, publicKey, null);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(argString.capture(), argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(argString.capture(), argToken.capture(),
                 argString.capture())).thenReturn(expectedInstanceIdJson);
-        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, "")).when(this.httpRequestClientUtilMock)
+        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, "")).when(this.auditableHttpRequestClientMock)
                 .doDeleteRequest(Mockito.any(), Mockito.any());
 
         // exercise
@@ -368,11 +367,11 @@ public class OpenStackComputePluginTest {
                 idInstanceName);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argBodyString.capture());
 
         //exercise 1
@@ -412,7 +411,7 @@ public class OpenStackComputePluginTest {
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         String computeInstanceJson = generateComputeInstanceJson(instanceId, hostName, localIpAddress, flavorId,
                 openstackStateActive);
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token))
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newComputeEndpoint, this.openStackV3Token))
                 .thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId + "wrong", vCPU, ram, disk);
 
@@ -429,7 +428,7 @@ public class OpenStackComputePluginTest {
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, new ArrayList());
         String computeInstanceJson = generateComputeInstanceJsonWithoutAddressField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
 
         // exercise
@@ -454,7 +453,7 @@ public class OpenStackComputePluginTest {
         String computeInstanceJson = generateComputeInstanceJsonWithoutProviderNetworkField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
         ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, new ArrayList());
 
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
 
         // exercise
@@ -479,11 +478,11 @@ public class OpenStackComputePluginTest {
                 publicKey, null);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu + worst, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argString.capture());
 
         // exercise
@@ -499,11 +498,11 @@ public class OpenStackComputePluginTest {
                 publicKey, null);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory + worst, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argString.capture());
 
         // exercise
@@ -519,11 +518,11 @@ public class OpenStackComputePluginTest {
                 publicKey, null);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk + worst);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argString.capture());
 
         // exercise
@@ -537,13 +536,13 @@ public class OpenStackComputePluginTest {
         ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
                 publicKey, networksId);
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
         JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
                 idInstanceName);
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argBodyString.capture());
 
         // exercise
@@ -574,11 +573,11 @@ public class OpenStackComputePluginTest {
                 idInstanceName);
 
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argBodyString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argBodyString.capture());
 
         // exercise
@@ -603,13 +602,13 @@ public class OpenStackComputePluginTest {
         // set up
         ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
                 publicKey, networksId);
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(Mockito.any(), Mockito.any()))
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(Mockito.any(), Mockito.any()))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, ""));
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argString.capture());
 
         // exercise
@@ -625,14 +624,14 @@ public class OpenStackComputePluginTest {
         ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
                 publicKey, networksId);
         mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "")).when(this.httpRequestClientUtilMock)
+        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "")).when(this.auditableHttpRequestClientMock)
                 .doGetRequest(newEndpoint, this.openStackV3Token);
 
-        Mockito.when(this.httpRequestClientUtilMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
+        Mockito.when(this.auditableHttpRequestClientMock.doPostRequest(this.argString.capture(), this.argToken.capture(),
                 this.argString.capture())).thenReturn("");
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
         Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.httpRequestClientUtilMock).doPostRequest(argString.capture(),
+        Mockito.doReturn(expectedInstanceIdJson).when(this.auditableHttpRequestClientMock).doPostRequest(argString.capture(),
                 argToken.capture(), argString.capture());
 
         // exercise
@@ -648,7 +647,7 @@ public class OpenStackComputePluginTest {
 
         int qtdFlavors = 100;
 
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(flavorEndpoint, this.openStackV3Token))
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(flavorEndpoint, this.openStackV3Token))
                 .thenReturn(generateJsonFlavors(qtdFlavors, bestFlavorId));
 
         for (int i = 0; i < qtdFlavors - 1; i++) {
@@ -662,10 +661,10 @@ public class OpenStackComputePluginTest {
                     Integer.toString(Math.max(1, bestMemory - 1 - i)),
                     Integer.toString(Math.max(1, bestDisk - 1 - i)));
             String flavorSpecJson = generateJsonFlavorExtraSpecs("tag" + i, "value" + i);
-            Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newEndpoint, this.openStackV3Token))
+            Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newEndpoint, this.openStackV3Token))
                     .thenReturn(flavorJson);
             // Mocks /flavors/{flavor_id}/os-extra_specs
-            Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newSpecsEndpoint, this.openStackV3Token))
+            Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newSpecsEndpoint, this.openStackV3Token))
                     .thenReturn(flavorSpecJson);
         }
 
@@ -679,9 +678,9 @@ public class OpenStackComputePluginTest {
         String bestflavorSpecJson = generateJsonFlavorExtraSpecs(this.requirementTag, this.requirementValue);
         String newSpecsEndpoint = String.format(this.flavorExtraSpecsEndpoint, bestFlavorId);
 
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newEndpoint, this.openStackV3Token))
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newEndpoint, this.openStackV3Token))
                 .thenReturn(flavorJson);
-        Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newSpecsEndpoint, this.openStackV3Token))
+        Mockito.when(this.auditableHttpRequestClientMock.doGetRequest(newSpecsEndpoint, this.openStackV3Token))
                 .thenReturn(bestflavorSpecJson);
     }
 

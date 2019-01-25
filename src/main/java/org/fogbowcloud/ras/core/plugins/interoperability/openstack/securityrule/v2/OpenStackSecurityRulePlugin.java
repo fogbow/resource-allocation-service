@@ -2,9 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securityrule
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -17,7 +15,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 
 import javax.ws.rs.core.UriBuilder;
@@ -42,7 +40,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     protected static final String SECURITY_GROUPS_ENDPOINT = "security-groups";
 
     private String networkV2APIEndpoint;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 
     public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
@@ -209,10 +207,10 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     }
 
     private void initClient() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 }

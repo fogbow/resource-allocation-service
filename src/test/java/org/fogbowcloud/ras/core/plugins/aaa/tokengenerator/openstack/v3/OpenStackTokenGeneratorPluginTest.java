@@ -24,7 +24,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,18 +39,18 @@ public class OpenStackTokenGeneratorPluginTest {
     private static final String UTF_8 = "UTF-8";
 
     private HttpClient client;
-    private HttpRequestClientUtil httpRequestClientUtil;
+    private AuditableHttpRequestClient auditableHttpRequestClient;
     private OpenStackTokenGeneratorPlugin keystoneV3TokenGenerator;
     private String memberId;
 
     @Before
     public void setUp() {
         this.client = Mockito.spy(HttpClient.class);
-        this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
+        this.auditableHttpRequestClient = Mockito.spy(new AuditableHttpRequestClient(this.client));
         String confFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(confFilePath));
-        this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
+        this.keystoneV3TokenGenerator.setClient(this.auditableHttpRequestClient);
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 

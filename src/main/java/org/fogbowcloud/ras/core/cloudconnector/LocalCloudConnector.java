@@ -13,15 +13,16 @@ import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
+import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.*;
-import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -152,6 +153,7 @@ public class LocalCloudConnector implements CloudConnector {
         if (requestInstance == null) {
             throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
         }
+
         return requestInstance;
     }
 
@@ -251,7 +253,8 @@ public class LocalCloudConnector implements CloudConnector {
         Token token = this.mapperPlugin.map(federationUserToken);
         switch (resourceType) {
             case COMPUTE:
-                return this.computeQuotaPlugin.getUserQuota(token);
+                ComputeQuota userQuota = this.computeQuotaPlugin.getUserQuota(token);
+                return userQuota;
             default:
                 throw new UnexpectedException(String.format(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED, resourceType));
         }
@@ -440,6 +443,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     // Used only in tests
+
     protected void setMapperPlugin(FederationToLocalMapperPlugin mapperPlugin) {
         this.mapperPlugin = mapperPlugin;
     }

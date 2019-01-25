@@ -2,8 +2,6 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.image.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -13,7 +11,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.io.File;
 import java.util.*;
@@ -29,11 +27,11 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
     public static final String IMAGE_V2_API_SUFFIX = "images";
     public static final String IMAGE_V2_API_ENDPOINT = "/v2/";
     private Properties properties;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 
     public OpenStackImagePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override
@@ -156,7 +154,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
         return filteredImages;
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

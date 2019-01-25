@@ -10,10 +10,9 @@ import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -58,7 +57,7 @@ public class CloudStackImagePluginTest {
     public static final long FAKE_SIZE = 1000L;
 
     private CloudStackImagePlugin plugin;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private Properties properties;
 
     @Before
@@ -72,7 +71,7 @@ public class CloudStackImagePluginTest {
 
         this.plugin = new CloudStackImagePlugin(cloudStackConfFilePath);
 
-        this.client = Mockito.mock(HttpRequestClientUtil.class);
+        this.client = Mockito.mock(AuditableHttpRequestClient.class);
         this.plugin.setClient(this.client);
     }
 

@@ -14,7 +14,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack.CloudStackIdenti
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class CloudStackTokenGeneratorPluginTest {
     private static final String FAKE_SECRET_KEY = "fake-secret-key";
     private static final String FAKE_TOKEN_VALUE = FAKE_API_KEY + ":" + FAKE_SECRET_KEY;
 
-    private HttpRequestClientUtil httpRequestClientUtil;
+    private AuditableHttpRequestClient auditableHttpRequestClient;
     private CloudStackTokenGeneratorPlugin cloudStackTokenGenerator;
     private CloudStackIdentityPlugin cloudStackIdentityPlugin;
     private CloudStackAuthenticationPlugin cloudStackAuthenticationPlugin;
@@ -73,9 +73,9 @@ public class CloudStackTokenGeneratorPluginTest {
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.auditableHttpRequestClient = Mockito.mock(AuditableHttpRequestClient.class);
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
-        this.cloudStackTokenGenerator.setClient(this.httpRequestClientUtil);
+        this.cloudStackTokenGenerator.setClient(this.auditableHttpRequestClient);
         this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin(this.memberId);
@@ -109,11 +109,11 @@ public class CloudStackTokenGeneratorPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        HttpRequestClientUtil.Response httpResponse = Mockito.mock(HttpRequestClientUtil.Response.class);
+        AuditableHttpRequestClient.Response httpResponse = Mockito.mock(AuditableHttpRequestClient.Response.class);
         Mockito.when(httpResponse.getContent()).thenReturn(loginJsonResponse);
-        Mockito.when(this.httpRequestClientUtil.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
+        Mockito.when(this.auditableHttpRequestClient.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
                 .thenReturn(httpResponse);
-        Mockito.when(this.httpRequestClientUtil.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any(Token.class)))
+        Mockito.when(this.auditableHttpRequestClient.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any(Token.class)))
                 .thenReturn(accountJsonResponse);
 
         Map<String, String> userCredentials = new HashMap<String, String>();
@@ -172,11 +172,11 @@ public class CloudStackTokenGeneratorPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        HttpRequestClientUtil.Response httpResponse = Mockito.mock(HttpRequestClientUtil.Response.class);
+        AuditableHttpRequestClient.Response httpResponse = Mockito.mock(AuditableHttpRequestClient.Response.class);
         Mockito.when(httpResponse.getContent()).thenReturn(loginJsonResponse);
-        Mockito.when(this.httpRequestClientUtil.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
+        Mockito.when(this.auditableHttpRequestClient.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
                 .thenReturn(httpResponse);
-        Mockito.when(this.httpRequestClientUtil.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any()))
+        Mockito.when(this.auditableHttpRequestClient.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any()))
                 .thenThrow(new HttpResponseException(503, "service unavailable"));
 
         //exercise

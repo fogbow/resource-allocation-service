@@ -2,9 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.attachment.v
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
@@ -15,8 +13,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 
 import java.util.Properties;
@@ -30,7 +27,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
     private Properties properties;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
 
     public OpenStackAttachmentPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
@@ -148,10 +145,10 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
     }
 
     private void initClient() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 

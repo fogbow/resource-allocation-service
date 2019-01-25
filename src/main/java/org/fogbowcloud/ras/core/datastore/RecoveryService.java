@@ -1,7 +1,8 @@
-package org.fogbowcloud.ras.core.datastore.orderstorage;
+package org.fogbowcloud.ras.core.datastore;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.datastore.orderstorage.OrderRepository;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;

@@ -15,7 +15,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.LoginReque
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class CloudStackOneToOneMapperTest {
     private static final String FAKE_SECRET_KEY = "fake-secret-key";
 
     private CloudStackOneToOneMapper mapper;
-    private HttpRequestClientUtil httpRequestClientUtil;
+    private AuditableHttpRequestClient auditableHttpRequestClient;
     private CloudStackTokenGeneratorPlugin cloudStackTokenGeneratorPlugin;
     private CloudStackIdentityPlugin cloudStackIdentityPlugin;
     private Properties properties;
@@ -74,9 +74,9 @@ public class CloudStackOneToOneMapperTest {
 
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.mapper = new CloudStackOneToOneMapper(cloudStackConfFilePath, cloudStackMapperFilePath);
-        this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.auditableHttpRequestClient = Mockito.mock(AuditableHttpRequestClient.class);
         this.cloudStackTokenGeneratorPlugin = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
-        this.cloudStackTokenGeneratorPlugin.setClient(this.httpRequestClientUtil);
+        this.cloudStackTokenGeneratorPlugin.setClient(this.auditableHttpRequestClient);
         this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
@@ -109,11 +109,11 @@ public class CloudStackOneToOneMapperTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        HttpRequestClientUtil.Response httpResponse = Mockito.mock(HttpRequestClientUtil.Response.class);
+        AuditableHttpRequestClient.Response httpResponse = Mockito.mock(AuditableHttpRequestClient.Response.class);
         Mockito.when(httpResponse.getContent()).thenReturn(loginJsonResponse);
-        Mockito.when(this.httpRequestClientUtil.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
+        Mockito.when(this.auditableHttpRequestClient.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
                 .thenReturn(httpResponse);
-        Mockito.when(this.httpRequestClientUtil.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any()))
+        Mockito.when(this.auditableHttpRequestClient.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any()))
                 .thenReturn(accountJsonResponse1)
                 .thenReturn(accountJsonResponse2);
 

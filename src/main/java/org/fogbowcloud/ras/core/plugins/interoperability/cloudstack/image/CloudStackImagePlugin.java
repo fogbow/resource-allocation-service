@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,13 +22,13 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackToken> {
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     private String cloudStackUrl;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private Properties properties;
 
     public CloudStackImagePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override
@@ -81,7 +81,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackToken> {
         }
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    protected void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 }

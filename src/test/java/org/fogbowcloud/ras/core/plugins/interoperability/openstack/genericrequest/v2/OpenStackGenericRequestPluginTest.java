@@ -4,7 +4,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,14 +22,14 @@ public class OpenStackGenericRequestPluginTest {
     public static final String FAKE_URL = "fake-url";
 
     private OpenStackGenericRequestPlugin plugin;
-    private HttpRequestClientUtil httpRequestClientUtilMock;
+    private AuditableHttpRequestClient auditableHttpRequestClientMock;
     private GenericRequest genericRequest;
 
     @Before
     public void setUp() {
-        httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
+        auditableHttpRequestClientMock = Mockito.mock(AuditableHttpRequestClient.class);
         plugin = Mockito.spy(new OpenStackGenericRequestPlugin());
-        plugin.setClient(httpRequestClientUtilMock);
+        plugin.setClient(auditableHttpRequestClientMock);
         genericRequest = createGenericRequest();
     }
 
@@ -55,7 +55,7 @@ public class OpenStackGenericRequestPluginTest {
     public void testGenericRequestPlugin() throws FogbowRasException {
         // set up
         ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
-        Mockito.doReturn(null).when(httpRequestClientUtilMock).doGenericRequest(Mockito.anyString(),
+        Mockito.doReturn(null).when(auditableHttpRequestClientMock).doGenericRequest(Mockito.anyString(),
                 Mockito.anyString(), argumentCaptor.capture(), Mockito.anyMap());
 
         // exercise
@@ -63,7 +63,7 @@ public class OpenStackGenericRequestPluginTest {
         // verify
         Assert.assertTrue(argumentCaptor.getValue().size() == 2);
         Assert.assertTrue(argumentCaptor.getValue().containsKey(HttpRequestUtil.X_AUTH_TOKEN_KEY));
-        Mockito.verify(httpRequestClientUtilMock, Mockito.times(1)).doGenericRequest(
+        Mockito.verify(auditableHttpRequestClientMock, Mockito.times(1)).doGenericRequest(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap());
     }
 

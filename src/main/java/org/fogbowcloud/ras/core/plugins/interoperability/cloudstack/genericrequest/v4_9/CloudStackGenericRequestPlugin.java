@@ -3,20 +3,17 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.genericrequ
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.HTTP;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
-import java.util.Map;
 
 public class CloudStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin<CloudStackToken> {
 
@@ -42,7 +39,7 @@ public class CloudStackGenericRequestPlugin extends HttpBasedGenericRequestPlugi
     }
 
     @Override
-    protected void setClient(HttpRequestClientUtil httpRequestClientUtil) {
-        super.setClient(httpRequestClientUtil);
+    protected void setClient(AuditableHttpRequestClient auditableHttpRequestClient) {
+        super.setClient(auditableHttpRequestClient);
     }
 }

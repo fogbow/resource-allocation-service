@@ -2,9 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -17,9 +15,8 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -37,7 +34,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
     private String cloudStackUrl;
     private final String defaultNetworkId;
 
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private Properties properties;
 
     // since the ip creation and association involves multiple synchronous and asynchronous requests,
@@ -50,7 +47,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     @Override

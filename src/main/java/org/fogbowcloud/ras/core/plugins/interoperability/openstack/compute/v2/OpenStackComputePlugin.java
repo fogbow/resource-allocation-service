@@ -2,10 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.compute.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.api.http.Compute;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -21,9 +18,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.Op
 import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
-import sun.reflect.generics.tree.Tree;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 import java.util.*;
 
@@ -67,7 +62,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String ADDR_FIELD = "addr";
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private LaunchCommandGenerator launchCommandGenerator;
 
     public OpenStackComputePlugin(String confFilePath) throws FatalErrorException {
@@ -80,7 +75,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
      * Constructor used for testing only
      */
     protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
-                                     HttpRequestClientUtil client) {
+                                     AuditableHttpRequestClient client) {
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
         this.client = client;
@@ -183,7 +178,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private void initClient() {
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     private String getProjectId(OpenStackV3Token openStackV3Token) throws InvalidParameterException {

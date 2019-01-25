@@ -18,7 +18,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.connectivity.AuditableHttpRequestClient;
 
 public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
@@ -34,7 +34,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
 
     private String v3TokensEndpoint;
-    private HttpRequestClientUtil client;
+    private AuditableHttpRequestClient client;
     private String tokenProviderId;
 	private RASAuthenticationHolder rasAuthenticationHolder;
 
@@ -50,7 +50,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
-        this.client = new HttpRequestClientUtil();
+        this.client = new AuditableHttpRequestClient();
     }
 
     private boolean isUrlValid(String url) throws FatalErrorException {
@@ -66,7 +66,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         String jsonBody = mountJsonBody(credentials);
 
-        HttpRequestClientUtil.Response response = null;
+        AuditableHttpRequestClient.Response response = null;
         try {
             response = this.client.doPostRequest(this.v3TokensEndpoint, jsonBody);
         } catch (HttpResponseException e) {
@@ -76,7 +76,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         return tokenString;
     }
 
-    private String getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
+    private String getTokenFromJson(AuditableHttpRequestClient.Response response) throws UnexpectedException {
 
         String tokenValue = null;
         Header[] headers = response.getHeaders();
@@ -128,7 +128,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     }
 
     // Used in testing
-    public void setClient(HttpRequestClientUtil client) {
+    public void setClient(AuditableHttpRequestClient client) {
         this.client = client;
     }
 }
