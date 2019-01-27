@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DISK;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IMAGE_ID;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.DISK;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IMAGE_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

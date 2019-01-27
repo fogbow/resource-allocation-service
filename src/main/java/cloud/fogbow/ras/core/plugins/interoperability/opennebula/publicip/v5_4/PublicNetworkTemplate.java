@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.BRIDGE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.LEASES;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUPS;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.VIRTUAL_NETWORK_BRIDGED_DRIVE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.BRIDGE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IP;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.LEASES;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SECURITY_GROUPS;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.VIRTUAL_NETWORK_BRIDGED_DRIVE;
 
 import java.util.List;
 

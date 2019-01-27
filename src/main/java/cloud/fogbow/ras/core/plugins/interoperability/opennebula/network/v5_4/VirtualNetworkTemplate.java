@@ -1,17 +1,17 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.AR;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.BRIDGE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DESCRIPTION;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ADDRESS;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_GATEWAY;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUPS;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.VIRTUAL_NETWORK_BRIDGED_DRIVE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.AR;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.BRIDGE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.DESCRIPTION;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IP;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ADDRESS;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_GATEWAY;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SECURITY_GROUPS;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.VIRTUAL_NETWORK_BRIDGED_DRIVE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

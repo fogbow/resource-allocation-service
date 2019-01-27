@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.ID;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUP;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SECURITY_GROUP;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

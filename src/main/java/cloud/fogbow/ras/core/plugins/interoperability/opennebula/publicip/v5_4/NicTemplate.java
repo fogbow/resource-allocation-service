@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_INTERFACE_CONNECTED;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUPS;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_INTERFACE_CONNECTED;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SECURITY_GROUPS;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

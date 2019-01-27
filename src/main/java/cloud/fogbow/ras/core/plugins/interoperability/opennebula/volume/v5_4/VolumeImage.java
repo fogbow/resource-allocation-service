@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DEVICE_PREFIX;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DISK_TYPE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.FILE_SYSTEM_TYPE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IMAGE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.PERSISTENT;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.DEVICE_PREFIX;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.DISK_TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.FILE_SYSTEM_TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IMAGE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.PERSISTENT;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

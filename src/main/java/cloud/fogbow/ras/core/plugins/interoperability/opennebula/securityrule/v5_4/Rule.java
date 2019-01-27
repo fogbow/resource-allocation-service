@@ -1,12 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.PROTOCOL;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RANGE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE_TYPE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IP;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.PROTOCOL;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RANGE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE_TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

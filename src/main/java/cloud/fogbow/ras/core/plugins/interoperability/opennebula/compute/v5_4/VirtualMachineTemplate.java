@@ -1,20 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.CONTEXT;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.CPU;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DISK;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.GRAPHICS;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IMAGE_ID;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.LISTEN;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.MEMORY;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_INTERFACE_CONNECTED;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.USERDATA;
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.USERDATA_ENCODING;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.CONTEXT;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.CPU;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.DISK;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.GRAPHICS;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IMAGE_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.LISTEN;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.MEMORY;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_INTERFACE_CONNECTED;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.USERDATA;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.USERDATA_ENCODING;
 
 import java.util.List;
 
