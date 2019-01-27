@@ -10,10 +10,10 @@ public class CloudStackAllToOneMapper extends BasicAllToOneMapper {
 
     public CloudStackAllToOneMapper(String confFile) {
         super(confFile);
-        String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);
+        String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY);
         HttpRequestClientUtil client =  new HttpRequestClientUtil(new Integer(timeoutStr));
         String endpoint = PropertiesHolder.getInstance().getProperty(CLOUDSTACK_ENDPOINT);
-        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new CloudStackTokenGeneratorPlugin(client, endpoint, provider);
     }
 }

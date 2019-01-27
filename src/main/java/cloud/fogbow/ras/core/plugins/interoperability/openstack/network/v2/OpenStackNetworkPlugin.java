@@ -375,7 +375,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT)));
+        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
     }
 
     protected void setClient(AuditableHttpRequestClient client) {

@@ -19,8 +19,8 @@ public class DefaultConfigurationConstants {
     public static final String BUILD_NUMBER = "[testing mode]";
 
     // INTERCOMPONENT CONF DEFAULTS
-    // reference value is 5 seconds
     public static final String XMPP_TIMEOUT = Long.toString(TimeUnit.SECONDS.toMillis(5));
+    // reference value is 5 seconds
     public static final String XMPP_CSC_PORT = Integer.toString(5347);
 
     // SSH CONF DEFAULTS

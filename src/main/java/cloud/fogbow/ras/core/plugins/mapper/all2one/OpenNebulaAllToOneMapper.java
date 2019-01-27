@@ -12,7 +12,7 @@ public class OpenNebulaAllToOneMapper extends BasicAllToOneMapper {
         super(confFile);
         String endpoint = PropertiesHolder.getInstance().getProperty(OPENNEBULA_ENDPOINT);
         OpenNebulaClientFactory factory = new OpenNebulaClientFactory(endpoint);
-        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new OpenNebulaTokenGeneratorPlugin(factory, provider);
     }
 }

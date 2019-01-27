@@ -28,7 +28,7 @@ public class CloudStackAuthenticationPluginTest {
     public void setUp() {
         this.userId = "fake-user-id";
         this.username = "fake-username";
-        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
 
         try {
             this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();

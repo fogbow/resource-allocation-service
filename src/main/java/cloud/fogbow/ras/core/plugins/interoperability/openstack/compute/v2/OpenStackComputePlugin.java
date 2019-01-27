@@ -178,7 +178,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT)));
+        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
     }
 
     private String getProjectId(CloudToken token) throws InvalidParameterException {

@@ -12,7 +12,7 @@ public class CloudConnectorFactory {
     private Map<String, LocalCloudConnector> cachedLocalCloudConnectors;
 
     private CloudConnectorFactory() {
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.cachedLocalCloudConnectors = new ConcurrentHashMap<String, LocalCloudConnector>();
     }
 

@@ -28,7 +28,7 @@ public class OpenNebulaAuthenticationPluginTest {
     public void setUp() {
         this.userId = "userId";
         this.projectId = "projectId";
-        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
 
         try {
             this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();

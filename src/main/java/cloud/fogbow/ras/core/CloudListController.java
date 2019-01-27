@@ -15,7 +15,7 @@ public class CloudListController {
     private List<String> cloudNames;
 
     public CloudListController() {
-        String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
 
         this.cloudNames = new ArrayList<>();
         String cloudNamesList = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.CLOUD_NAMES_KEY);

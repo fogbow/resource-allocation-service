@@ -31,7 +31,7 @@ public class RASAuthenticationPluginTest {
 		PowerMockito.mockStatic(PropertiesHolder.class);
 		BDDMockito.given(PropertiesHolder.getInstance()).willReturn(this.propertiesHolder);
 		
-		Mockito.when(this.propertiesHolder.getProperty(Mockito.eq(ConfigurationConstants.LOCAL_MEMBER_ID)))
+		Mockito.when(this.propertiesHolder.getProperty(Mockito.eq(ConfigurationConstants.LOCAL_MEMBER_ID_KEY)))
 					.thenReturn(DEFAULT_LOCAL_MEMBER_ID);
 		
 		this.rasAuthenticationHolder = Mockito.mock(RASAuthenticationHolder.class);

@@ -34,7 +34,7 @@ public class OpenNebulaTokenGeneratorPluginTest {
         this.factory = Mockito.mock(OpenNebulaClientFactory.class);
         this.openNenbulaTokenGenerator.setFactory(this.factory);
 
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
     }
 
     // test case: success case

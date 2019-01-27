@@ -38,7 +38,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     private String cloudStackUrl;
     
     public CloudStackAttachmentPlugin() {
-        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT)));
+        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
     }
 
     public CloudStackAttachmentPlugin(String confFilePath) {

@@ -36,7 +36,7 @@ public class RemoteFacade {
     private String localMemberId;
 
     private RemoteFacade() {
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
     }
 
     public static RemoteFacade getInstance() {

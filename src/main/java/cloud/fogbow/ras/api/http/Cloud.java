@@ -35,7 +35,7 @@ public class Cloud {
         throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+            String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);
             return new ResponseEntity<>(cloudNames, HttpStatus.OK);
         } catch (Exception e) {

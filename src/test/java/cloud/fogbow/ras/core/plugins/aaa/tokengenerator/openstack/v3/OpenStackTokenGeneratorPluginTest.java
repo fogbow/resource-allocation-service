@@ -48,7 +48,7 @@ public class OpenStackTokenGeneratorPluginTest {
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(confFilePath));
         this.keystoneV3TokenGenerator.setClient(this.auditableHttpRequestClient);
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
     }
 
     //test case: createTokenValue with valid credentials should generate a string with the appropriate values

@@ -15,11 +15,11 @@ public class OpenStackAllToOneMapper extends BasicAllToOneMapper {
 
     public OpenStackAllToOneMapper(String confFile) {
         super(confFile);
-        String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);
+        String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY);
         HttpRequestClientUtil client =  new HttpRequestClientUtil(new Integer(timeoutStr));
         String endpoint = PropertiesHolder.getInstance().getProperty(OPENSTACK_KEYSTONE_V3_ENDPOINT)
                 + OpenStackRestApiConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
-        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new OpenStackTokenGeneratorPlugin(client, endpoint, provider);
     }
 

@@ -29,7 +29,7 @@ public class ShibbolethTokenGeneratorTest {
 	
 	@Before
 	public void setUp() throws IOException, GeneralSecurityException {
-		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
 		
 		String privateKeyPath = getResourceFilePath(PRIVATE_KEY_SUFIX_PATH);
 		String publicKeyPath = getResourceFilePath(PUBLIC_KEY_SUFIX_PATH);

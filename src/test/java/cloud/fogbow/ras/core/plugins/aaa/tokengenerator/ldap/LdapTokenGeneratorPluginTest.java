@@ -42,7 +42,7 @@ public class LdapTokenGeneratorPluginTest {
     	this.genericSignatureAuthenticationHolder = Mockito.spy(new RASAuthenticationHolder());
     	BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
     	String path = HomeDir.getPath();
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin(this.localMemberId);
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
@@ -71,7 +71,7 @@ public class LdapTokenGeneratorPluginTest {
         //verify
         String split[] = tokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         Assert.assertEquals(split.length, LdapTokenGeneratorPlugin.LDAP_TOKEN_NUMBER_OF_FIELDS);
-        Assert.assertEquals(split[0], PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
+        Assert.assertEquals(split[0], PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY));
         Assert.assertEquals(split[1], FAKE_LOGIN);
         Assert.assertEquals(split[2], FAKE_NAME);
         Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(this.localMemberId, token));

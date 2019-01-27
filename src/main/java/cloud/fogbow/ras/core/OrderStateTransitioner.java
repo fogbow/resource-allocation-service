@@ -42,7 +42,7 @@ public class OrderStateTransitioner {
     }
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         synchronized (order) {
             if (order.isRequesterRemote(localMemberId)) {
                 try {

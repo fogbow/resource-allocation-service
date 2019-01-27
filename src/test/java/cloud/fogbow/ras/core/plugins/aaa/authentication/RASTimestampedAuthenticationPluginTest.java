@@ -28,7 +28,7 @@ public class RASTimestampedAuthenticationPluginTest {
 		this.rasAuthenticationHolder = Mockito.mock(RASAuthenticationHolder.class);
 		PowerMockito.mockStatic(RASAuthenticationHolder.class);
 		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.rasAuthenticationHolder);
-		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
 		this.rasTimestamped = new RASTimestampedAuthenticationPluginWraper(localMemberId);
 	}
 

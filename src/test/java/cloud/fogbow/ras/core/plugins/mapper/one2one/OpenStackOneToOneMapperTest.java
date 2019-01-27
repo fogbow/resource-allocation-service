@@ -55,7 +55,7 @@ public class OpenStackOneToOneMapperTest {
         this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(cloudConfPath));
         this.keystoneV3TokenGenerator.setClient(this.auditableHttpRequestClient);
         this.openStackIdentityPlugin = new OpenStackIdentityPlugin();
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
     }
 
     //test case: two different Federation Tokens should be mapped to two different Tokens

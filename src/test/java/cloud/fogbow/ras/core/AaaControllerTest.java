@@ -36,7 +36,7 @@ public class AaaControllerTest {
         Mockito.when(this.aaaPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getFederationIdentityPlugin()).thenReturn(this.federationIdentityPluginMock);
         this.aaaController = new AaaController(this.aaaPluginsHolderMock,
-                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY));
     }
 
     @Test(expected = UnauthorizedRequestException.class)

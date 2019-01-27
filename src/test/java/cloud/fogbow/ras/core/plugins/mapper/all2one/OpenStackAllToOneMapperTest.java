@@ -41,7 +41,7 @@ public class OpenStackAllToOneMapperTest {
 
     @Before
     public void setUp() {
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         String path = HomeDir.getPath();
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         this.ldapIdentityPlugin = new LdapIdentityPlugin();

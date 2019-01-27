@@ -73,7 +73,7 @@ public class CloudStackOneToOneMapperTest {
         this.cloudStackTokenGeneratorPlugin = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
         this.cloudStackTokenGeneratorPlugin.setClient(this.auditableHttpRequestClient);
         this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
     }
 
     //test case: two different Federation Tokens should be mapped to two different Tokens

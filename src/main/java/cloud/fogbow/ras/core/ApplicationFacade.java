@@ -51,8 +51,8 @@ public class ApplicationFacade {
     private String buildNumber;
 
     private ApplicationFacade() {
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.BUILD_NUMBER,
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.BUILD_NUMBER_KEY,
                 DefaultConfigurationConstants.BUILD_NUMBER);
     }
 
@@ -354,7 +354,7 @@ public class ApplicationFacade {
     // Used for testing
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
-        this.buildNumber = properties.getProperty(ConfigurationConstants.BUILD_NUMBER,
+        this.buildNumber = properties.getProperty(ConfigurationConstants.BUILD_NUMBER_KEY,
                 DefaultConfigurationConstants.BUILD_NUMBER);
     }
 }

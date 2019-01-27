@@ -18,7 +18,7 @@ public class PublicKeysHolder {
     private static PublicKeysHolder instance;
 
     private PublicKeysHolder() {
-        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);
+        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY);
         this.client = new HttpRequestClientUtil(new Integer(timeoutStr));
         this.asPublicKey = null;
     }
@@ -32,8 +32,8 @@ public class PublicKeysHolder {
 
     public RSAPublicKey getAsPublicKey() throws UnavailableProviderException, UnexpectedException {
         if (this.asPublicKey == null) {
-            String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_URL);
-            String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_PORT);
+            String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_URL_KEY);
+            String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_PORT_KEY);
             this.asPublicKey = getPublicKey(asAddress, asPort, cloud.fogbow.as.api.http.PublicKey.PUBLIC_KEY_ENDPOINT);
         }
         return this.asPublicKey;

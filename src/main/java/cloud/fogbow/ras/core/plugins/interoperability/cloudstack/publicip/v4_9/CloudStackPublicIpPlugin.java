@@ -48,7 +48,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin {
 
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
-        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT)));
+        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
     }
 
     @Override

@@ -124,7 +124,7 @@ public class OrderController {
 
     private CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         if (order.isProviderLocal(localMemberId)) {
             provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
         } else {

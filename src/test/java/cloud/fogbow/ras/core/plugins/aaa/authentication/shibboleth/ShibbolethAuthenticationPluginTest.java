@@ -32,7 +32,7 @@ public class ShibbolethAuthenticationPluginTest {
 
 	@Before
 	public void setUp() {
-		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
 		this.shibbolethAuthenticationPlugin = Mockito.spy(new ShibbolethAuthenticationPlugin(this.tokenProviderId));
 	}
 	

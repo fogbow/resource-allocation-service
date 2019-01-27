@@ -13,7 +13,7 @@ public class GenericOneToOneFederationToLocalMapper implements FederationToLocal
 
     public GenericOneToOneFederationToLocalMapper(FederationToLocalMapperPlugin remoteMapper) {
         this.remoteMapper = remoteMapper;
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
     }
 
     @Override

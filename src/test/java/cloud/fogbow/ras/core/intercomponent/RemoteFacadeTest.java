@@ -198,7 +198,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
     @Test
     public void testGenericRequest() throws Exception {
         // set up
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         FederationUserToken federationUser = createFederationUser();
         Mockito.doNothing().when(this.aaaController).remoteAuthenticateAndAuthorize(Mockito.anyString(),
                 Mockito.eq(federationUser), Mockito.anyString(), Mockito.eq(Operation.GENERIC_REQUEST),

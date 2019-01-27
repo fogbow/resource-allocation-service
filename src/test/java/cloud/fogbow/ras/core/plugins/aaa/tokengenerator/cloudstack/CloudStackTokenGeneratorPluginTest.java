@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
+import cloud.fogbow.common.constants.CloudStackRestApiConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -51,7 +52,7 @@ public class CloudStackTokenGeneratorPluginTest {
 
     private static final String FAKE_API_KEY = "fake-api-key";
     private static final String FAKE_SECRET_KEY = "fake-secret-key";
-    private static final String FAKE_TOKEN_VALUE = FAKE_API_KEY + ":" + FAKE_SECRET_KEY;
+    private static final String FAKE_TOKEN_VALUE = FAKE_API_KEY + CloudStackRestApiConstants.KEY_VALUE_SEPARATOR + FAKE_SECRET_KEY;
 
     private AuditableHttpRequestClient auditableHttpRequestClient;
     private CloudStackTokenGeneratorPlugin cloudStackTokenGenerator;
@@ -72,7 +73,7 @@ public class CloudStackTokenGeneratorPluginTest {
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
         this.cloudStackTokenGenerator.setClient(this.auditableHttpRequestClient);
         this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin(this.memberId);
     }
 
