@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
-import cloud.fogbow.common.constants.CloudStackRestApiConstants;
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.commons.codec.binary.Base64;
@@ -25,7 +25,7 @@ public class CloudStackUrlUtil {
     private static final String API_KEY = "apikey";
 
     public static void sign(URIBuilder requestEndpoint, String tokenValue) throws UnauthorizedRequestException {
-        String[] tokenValueSplit = tokenValue.split(CloudStackRestApiConstants.KEY_VALUE_SEPARATOR);
+        String[] tokenValueSplit = tokenValue.split(CloudStackConstants.KEY_VALUE_SEPARATOR);
         String apiKey = tokenValueSplit[0];
         String secretKey = tokenValueSplit[1];
 

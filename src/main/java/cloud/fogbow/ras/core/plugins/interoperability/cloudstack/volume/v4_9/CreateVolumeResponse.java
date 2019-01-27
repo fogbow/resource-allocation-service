@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Volume.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/createVolume.html

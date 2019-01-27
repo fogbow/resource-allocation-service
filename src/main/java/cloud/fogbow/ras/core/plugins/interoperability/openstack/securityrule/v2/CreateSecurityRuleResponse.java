@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -30,7 +30,7 @@ import com.google.gson.annotations.SerializedName;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSecurityRuleResponse {
-    @SerializedName(OpenstackRestApiConstants.Network.SECURITY_GROUP_RULE_KEY_JSON)
+    @SerializedName(OpenStackConstants.Network.SECURITY_GROUP_RULE_KEY_JSON)
     public SecurityRule securityRule;
 
     public CreateSecurityRuleResponse(SecurityRule securityRule) {
@@ -50,7 +50,7 @@ public class CreateSecurityRuleResponse {
     }
 
     public static class SecurityRule {
-        @SerializedName(OpenstackRestApiConstants.Network.ID_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.ID_KEY_JSON)
         private String id;
 
         public SecurityRule(String id) {

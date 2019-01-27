@@ -3,8 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Compute.ID_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Compute.SERVER_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.ID_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.SERVER_KEY_JSON;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/

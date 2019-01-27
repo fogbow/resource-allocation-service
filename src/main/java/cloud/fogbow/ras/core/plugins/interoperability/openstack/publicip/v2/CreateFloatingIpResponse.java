@@ -1,9 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 
 /**
  * Documentation : https://developer.openstack.org/api-ref/network/v2/#create-floating-ip
@@ -17,13 +18,13 @@ import static cloud.fogbow.ras.core.plugins.interoperability.openstack.Openstack
  */
 public class CreateFloatingIpResponse {
 
-    @SerializedName(FLOATING_IP_KEY_JSON)
+    @SerializedName(OpenStackConstants.PublicIp.FLOATING_IP_KEY_JSON)
     private FloatingIp floatingIp;
 
     public static class FloatingIp {
         @SerializedName(ID_KEY_JSON)
         private String id;
-        @SerializedName(FLOATING_IP_ADDRESS_KEY_JSON)
+        @SerializedName(OpenStackConstants.PublicIp.FLOATING_IP_ADDRESS_KEY_JSON)
         private String floatingIpAddress;
 
         public String getId() {

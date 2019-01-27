@@ -26,12 +26,10 @@ public class OpenNebulaTagNameConstants {
 		public static final String AR = "AR";
 		public static final String IP = "IP";
 		public static final String SECURITY_GROUPS = "SECURITY_GROUPS";
-		public static final String AR_ID = "AR_ID";
 		public static final String RULE = "RULE";
 		public static final String PROTOCOL = "PROTOCOL";
 		public static final String RULE_TYPE = "RULE_TYPE";
 		public static final String RANGE = "RANGE";
-		public static final String RULES = "RULES";
 		public static final String IMAGE = "IMAGE";
 		public static final String PERSISTENT = "PERSISTENT";
 		public static final String FILE_SYSTEM_TYPE = "FSTYPE";

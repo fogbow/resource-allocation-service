@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Network.*;
+import static cloud.fogbow.common.constants.OpenStackConstants.Network.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/

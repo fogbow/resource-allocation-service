@@ -7,7 +7,6 @@ import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 import org.json.JSONObject;

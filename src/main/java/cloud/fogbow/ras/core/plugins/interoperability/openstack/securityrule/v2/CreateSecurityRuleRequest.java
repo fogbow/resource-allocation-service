@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -22,7 +22,7 @@ import com.google.gson.annotations.SerializedName;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSecurityRuleRequest {
-    @SerializedName(OpenstackRestApiConstants.Network.SECURITY_GROUP_RULE_KEY_JSON)
+    @SerializedName(OpenStackConstants.Network.SECURITY_GROUP_RULE_KEY_JSON)
     private SecurityRule securityRule;
 
     public CreateSecurityRuleRequest(SecurityRule securityRule) {
@@ -34,19 +34,19 @@ public class CreateSecurityRuleRequest {
     }
 
     public static class SecurityRule {
-        @SerializedName(OpenstackRestApiConstants.Network.SECURITY_GROUP_ID_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.SECURITY_GROUP_ID_KEY_JSON)
         private String securityGroupId;
-        @SerializedName(OpenstackRestApiConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
         private String remoteIpPrefix;
-        @SerializedName(OpenstackRestApiConstants.Network.MIN_PORT_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.MIN_PORT_KEY_JSON)
         private int portRangeMin;
-        @SerializedName(OpenstackRestApiConstants.Network.MAX_PORT_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.MAX_PORT_KEY_JSON)
         private int portRangeMax;
-        @SerializedName(OpenstackRestApiConstants.Network.DIRECTION_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.DIRECTION_KEY_JSON)
         private String direction;
-        @SerializedName(OpenstackRestApiConstants.Network.ETHER_TYPE_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.ETHER_TYPE_KEY_JSON)
         private String etherType;
-        @SerializedName(OpenstackRestApiConstants.Network.PROTOCOL_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.PROTOCOL_KEY_JSON)
         private String protocol;
 
         private SecurityRule(Builder builder) {

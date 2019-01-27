@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 import java.util.List;
 
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants;
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
 
 import com.google.gson.annotations.SerializedName;
@@ -39,7 +39,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class ListFirewallRulesResponse {
 
-	@SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_KEY_JSON)
+	@SerializedName(CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_KEY_JSON)
 	private ListFirewallRules response;
 
 	public static ListFirewallRulesResponse fromJson(String jsonResponse) {
@@ -52,24 +52,24 @@ public class ListFirewallRulesResponse {
 	
 	private class ListFirewallRules {
 
-		@SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.FIREWALL_RULE_KEY_JSON)
+		@SerializedName(CloudStackConstants.SecurityGroupPlugin.FIREWALL_RULE_KEY_JSON)
 		private List<SecurityRuleResponse> securityRulesResponse;
 
 	}
 
     public class SecurityRuleResponse {
 
-    	@SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.ID_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.ID_KEY_JSON)
         private String instanceId;
-    	@SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON)
         private String cidr;
-    	@SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.START_PORT_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.START_PORT_KEY_JSON)
         private int portFrom;
-    	@SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.END_PORT_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.END_PORT_KEY_JSON)
         private int portTo;
-        @SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON)
+        @SerializedName(CloudStackConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON)
 		private String protocol;
-        @SerializedName(CloudStackRestApiConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON)
+        @SerializedName(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON)
         private String ipAddress;
         
 		public String getInstanceId() {

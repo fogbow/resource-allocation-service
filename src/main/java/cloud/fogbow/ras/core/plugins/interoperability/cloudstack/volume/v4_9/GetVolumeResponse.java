@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Volume.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listVolumes.html

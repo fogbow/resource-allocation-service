@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
 
 
 /**

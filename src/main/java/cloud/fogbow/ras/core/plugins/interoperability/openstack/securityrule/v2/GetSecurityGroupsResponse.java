@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class GetSecurityGroupsResponse {
 
-    @SerializedName(OpenstackRestApiConstants.Network.SECURITY_GROUPS_KEY_JSON)
+    @SerializedName(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON)
     private List<SecurityGroup> securityGroups;
 
     public List<SecurityGroup> getSecurityGroups() {

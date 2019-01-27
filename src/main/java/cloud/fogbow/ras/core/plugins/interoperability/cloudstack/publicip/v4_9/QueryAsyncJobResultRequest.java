@@ -4,8 +4,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackReque
 
 import java.security.InvalidParameterException;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.JOB_ID_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.QUERY_ASYNC_JOB_RESULT;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_ID_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.QUERY_ASYNC_JOB_RESULT;
 
 public class QueryAsyncJobResultRequest extends CloudStackRequest {
 

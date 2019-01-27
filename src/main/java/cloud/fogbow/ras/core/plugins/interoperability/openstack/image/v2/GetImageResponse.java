@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Image.*;
+import static cloud.fogbow.common.constants.OpenStackConstants.Image.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/image/v2/

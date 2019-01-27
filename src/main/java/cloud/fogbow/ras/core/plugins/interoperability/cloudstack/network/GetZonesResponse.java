@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants;
+import cloud.fogbow.common.constants.CloudStackConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -44,7 +44,7 @@ import java.util.List;
  * }
  */
 public class GetZonesResponse {
-    @SerializedName(CloudStackRestApiConstants.Network.LIST_ZONES_RESPONSE_KEY_JSON)
+    @SerializedName(CloudStackConstants.Network.LIST_ZONES_RESPONSE_KEY_JSON)
     private ListZonesResponse listZonesResponse;
 
     public List<Zone> getZones() {
@@ -56,18 +56,18 @@ public class GetZonesResponse {
     }
 
     public class ListZonesResponse {
-        @SerializedName(CloudStackRestApiConstants.Network.SECURITY_GROUPS_ENABLED_KEY_JSON)
+        @SerializedName(CloudStackConstants.Network.SECURITY_GROUPS_ENABLED_KEY_JSON)
         private List<Zone> zones;
     }
 
     public class Zone {
-        @SerializedName(CloudStackRestApiConstants.Network.ID_KEY_JSON)
+        @SerializedName(CloudStackConstants.Network.ID_KEY_JSON)
         private String id;
 
-        @SerializedName(CloudStackRestApiConstants.Network.SECURITY_GROUPS_ENABLED_KEY_JSON)
+        @SerializedName(CloudStackConstants.Network.SECURITY_GROUPS_ENABLED_KEY_JSON)
         private boolean securityGroupsEnabled;
 
-        @SerializedName(CloudStackRestApiConstants.Network.NETWORK_TYPE_KEY_JSON)
+        @SerializedName(CloudStackConstants.Network.NETWORK_TYPE_KEY_JSON)
         private String networkType;
 
         public String getId() {

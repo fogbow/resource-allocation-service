@@ -3,9 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.JOB_INSTANCE_ID_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.JOB_STATUS_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.QUERY_ASYNC_JOB_RESULT_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_INSTANCE_ID_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_STATUS_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.QUERY_ASYNC_JOB_RESULT_KEY_JSON;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/queryAsyncJobResult.html

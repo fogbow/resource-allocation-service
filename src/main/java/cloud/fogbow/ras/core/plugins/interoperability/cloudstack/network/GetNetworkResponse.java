@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Network.NETWORKS_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Network.NETWORK_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.NETWORKS_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.NETWORK_KEY_JSON;
 
 /*
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listNetworks.html

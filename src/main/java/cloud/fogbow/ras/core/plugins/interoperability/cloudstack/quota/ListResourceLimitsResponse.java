@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Quota.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.Quota.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listResourceLimits.html

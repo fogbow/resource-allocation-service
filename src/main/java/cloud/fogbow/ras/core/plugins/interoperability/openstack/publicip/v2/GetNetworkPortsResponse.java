@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.ID_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.PORTS_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.PublicIp.ID_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.PublicIp.PORTS_KEY_JSON;
 
 /**
  * Documentation : https://developer.openstack.org/api-ref/network/v2/#list-ports

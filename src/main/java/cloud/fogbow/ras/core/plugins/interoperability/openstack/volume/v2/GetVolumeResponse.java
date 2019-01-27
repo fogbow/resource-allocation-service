@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Volume.*;
+import static cloud.fogbow.common.constants.OpenStackConstants.Volume.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/

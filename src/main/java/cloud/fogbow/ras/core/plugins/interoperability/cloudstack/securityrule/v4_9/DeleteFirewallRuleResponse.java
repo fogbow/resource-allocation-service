@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants;
+import cloud.fogbow.common.constants.CloudStackConstants;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -16,11 +16,11 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class DeleteFirewallRuleResponse {
-    @SerializedName(CloudStackRestApiConstants.PublicIp.DELETE_FIREWALL_RULE_RESPOSNE)
+    @SerializedName(CloudStackConstants.PublicIp.DELETE_FIREWALL_RULE_RESPOSNE)
     private FirewallRuleResponse response;
 
     public static class FirewallRuleResponse {
-        @SerializedName(CloudStackRestApiConstants.PublicIp.JOB_ID_KEY_JSON)
+        @SerializedName(CloudStackConstants.PublicIp.JOB_ID_KEY_JSON)
         private String jobId;
     }
 

@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html

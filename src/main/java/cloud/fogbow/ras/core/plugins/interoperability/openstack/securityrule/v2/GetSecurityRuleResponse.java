@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -28,7 +28,7 @@ import com.google.gson.annotations.SerializedName;
  * </p>
  */
 public class GetSecurityRuleResponse {
-    @SerializedName(OpenstackRestApiConstants.Network.SECURITY_GROUP_RULE_KEY_JSON)
+    @SerializedName(OpenStackConstants.Network.SECURITY_GROUP_RULE_KEY_JSON)
     private SecurityRule securityRule;
 
     public static GetSecurityRuleResponse fromJson(String json) {
@@ -36,19 +36,19 @@ public class GetSecurityRuleResponse {
     }
 
     public class SecurityRule {
-        @SerializedName(OpenstackRestApiConstants.Network.ID_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.ID_KEY_JSON)
         private String id;
-        @SerializedName(OpenstackRestApiConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
         private String cidr;
-        @SerializedName(OpenstackRestApiConstants.Network.MIN_PORT_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.MIN_PORT_KEY_JSON)
         private int portFrom;
-        @SerializedName(OpenstackRestApiConstants.Network.MAX_PORT_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.MAX_PORT_KEY_JSON)
         private int portTo;
-        @SerializedName(OpenstackRestApiConstants.Network.DIRECTION_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.DIRECTION_KEY_JSON)
         private String direction;
-        @SerializedName(OpenstackRestApiConstants.Network.ETHER_TYPE_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.ETHER_TYPE_KEY_JSON)
         private String etherType;
-        @SerializedName(OpenstackRestApiConstants.Network.PROTOCOL_KEY_JSON)
+        @SerializedName(OpenStackConstants.Network.PROTOCOL_KEY_JSON)
         private String protocol;
     }
 

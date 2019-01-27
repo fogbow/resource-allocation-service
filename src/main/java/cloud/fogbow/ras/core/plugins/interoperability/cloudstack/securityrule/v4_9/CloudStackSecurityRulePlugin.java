@@ -14,7 +14,7 @@ import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants;
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
@@ -183,13 +183,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
 
 	private Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
 		switch (protocol) {
-			case CloudStackRestApiConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
 				return Protocol.TCP;
-			case CloudStackRestApiConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL:
 				return Protocol.UDP;
-			case CloudStackRestApiConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL:
 				return Protocol.ICMP;
-			case CloudStackRestApiConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
 				return Protocol.ANY;
 			default:
 				throw new UnexpectedException(Messages.Exception.INVALID_CLOUDSTACK_PROTOCOL);

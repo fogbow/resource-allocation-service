@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Quota.*;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/#limits-limits

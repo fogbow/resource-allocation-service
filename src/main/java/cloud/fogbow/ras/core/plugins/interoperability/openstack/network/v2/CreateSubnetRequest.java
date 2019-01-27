@@ -1,11 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 
+import static cloud.fogbow.common.constants.OpenStackConstants.Network.*;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Network.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/

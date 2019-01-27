@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Attachment.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/queryAsyncJobResult.html

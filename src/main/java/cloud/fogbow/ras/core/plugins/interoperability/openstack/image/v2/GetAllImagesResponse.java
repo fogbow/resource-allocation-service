@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Image.IMAGES_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Image.NEXT_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Image.IMAGES_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Image.NEXT_KEY_JSON;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/image/v2/

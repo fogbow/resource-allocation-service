@@ -4,9 +4,9 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Attachment.DEVICE_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Attachment.VOLUME_ATTACHMENT_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Attachment.VOLUME_ID_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Attachment.DEVICE_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Attachment.VOLUME_ATTACHMENT_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Attachment.VOLUME_ID_KEY_JSON;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/

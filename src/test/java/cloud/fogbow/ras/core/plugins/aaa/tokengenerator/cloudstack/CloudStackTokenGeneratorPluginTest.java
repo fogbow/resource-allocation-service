@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
-import cloud.fogbow.common.constants.CloudStackRestApiConstants;
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -52,7 +52,7 @@ public class CloudStackTokenGeneratorPluginTest {
 
     private static final String FAKE_API_KEY = "fake-api-key";
     private static final String FAKE_SECRET_KEY = "fake-secret-key";
-    private static final String FAKE_TOKEN_VALUE = FAKE_API_KEY + CloudStackRestApiConstants.KEY_VALUE_SEPARATOR + FAKE_SECRET_KEY;
+    private static final String FAKE_TOKEN_VALUE = FAKE_API_KEY + CloudStackConstants.KEY_VALUE_SEPARATOR + FAKE_SECRET_KEY;
 
     private AuditableHttpRequestClient auditableHttpRequestClient;
     private CloudStackTokenGeneratorPlugin cloudStackTokenGenerator;

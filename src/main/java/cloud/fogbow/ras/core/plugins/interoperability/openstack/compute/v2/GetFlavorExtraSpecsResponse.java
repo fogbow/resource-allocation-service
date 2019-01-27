@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Map;
@@ -20,7 +20,7 @@ import java.util.Map;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetFlavorExtraSpecsResponse {
-    @SerializedName(OpenstackRestApiConstants.Compute.FLAVOR_EXTRA_SPECS_KEY_JSON)
+    @SerializedName(OpenStackConstants.Compute.FLAVOR_EXTRA_SPECS_KEY_JSON)
     private Map<String, String> flavorExtraSpecs;
 
     public Map<String, String> getFlavorExtraSpecs() {

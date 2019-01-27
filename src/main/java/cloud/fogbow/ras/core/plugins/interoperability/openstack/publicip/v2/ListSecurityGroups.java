@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Compute.ID_KEY_JSON;
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Compute.SECURITY_GROUPS_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.ID_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.SECURITY_GROUPS_KEY_JSON;
 
 public class ListSecurityGroups {
 

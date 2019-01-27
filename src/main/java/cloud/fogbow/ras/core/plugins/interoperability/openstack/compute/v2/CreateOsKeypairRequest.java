@@ -4,7 +4,7 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Compute.*;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/

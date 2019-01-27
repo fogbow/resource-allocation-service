@@ -6,7 +6,6 @@ import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;

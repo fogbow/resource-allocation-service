@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.Map;
  */
 
 public class GetAllTypesResponse {
-    @SerializedName(OpenstackRestApiConstants.Volume.VOLUME_TYPES_KEY_JSON)
+    @SerializedName(OpenStackConstants.Volume.VOLUME_TYPES_KEY_JSON)
     private List<Type> types;
 
     public static GetAllTypesResponse fromJson(String json) {
@@ -38,13 +38,13 @@ public class GetAllTypesResponse {
     }
 
     public class Type {
-        @SerializedName(OpenstackRestApiConstants.Volume.EXTRA_SPECS_KEY_JSON)
+        @SerializedName(OpenStackConstants.Volume.EXTRA_SPECS_KEY_JSON)
         private Map<String, String> extraSpecs;
 
-        @SerializedName(OpenstackRestApiConstants.Volume.ID_KEY_JSON)
+        @SerializedName(OpenStackConstants.Volume.ID_KEY_JSON)
         private String id;
 
-        @SerializedName(OpenstackRestApiConstants.Volume.NAME_KEY_JSON)
+        @SerializedName(OpenStackConstants.Volume.NAME_KEY_JSON)
         private String name;
 
         public Map<String, String> getExtraSpecs() {
