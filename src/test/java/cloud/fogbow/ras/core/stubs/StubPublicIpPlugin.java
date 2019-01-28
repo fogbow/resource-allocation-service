@@ -1,8 +1,9 @@
 package cloud.fogbow.ras.core.stubs;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 
 /**
@@ -14,17 +15,17 @@ public class StubPublicIpPlugin implements PublicIpPlugin {
     }
 
     @Override
-    public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, Token token) throws FogbowRasException, UnexpectedException {
+    public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudToken token) throws FogbowException {
         return null;
     }
 
     @Override
-    public void deleteInstance(String publicIpInstanceId, String computeInstanceId, Token token) throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudToken token) throws FogbowException {
 
     }
 
     @Override
-    public PublicIpInstance getInstance(String publicIpInstanceId, Token token) throws FogbowRasException, UnexpectedException {
+    public PublicIpInstance getInstance(String publicIpInstanceId, CloudToken token) throws FogbowException {
         return null;
     }
 }

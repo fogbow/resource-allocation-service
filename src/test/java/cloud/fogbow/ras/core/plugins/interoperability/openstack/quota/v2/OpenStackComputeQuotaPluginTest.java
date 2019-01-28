@@ -1,9 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,13 +41,13 @@ public class OpenStackComputeQuotaPluginTest {
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin(cloudConfPath));
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right
     // quotas from the FAKE_QUOTA_JSON_RESPONSE.
     @Test
-    public void testGetUserQuota() throws FogbowRasException, UnexpectedException {
+    public void testGetUserQuota() throws FogbowException {
         // set up
         GetQuotaResponse getQuotaResponse = GetQuotaResponse.fromJson(FAKE_QUOTA_JSON_RESPONSE);
 
@@ -80,7 +84,7 @@ public class OpenStackComputeQuotaPluginTest {
     }
 
     @Test(expected = UnexpectedException.class)
-    public void testGetUserQuotaWhenGetRequestThrowsAnException() throws UnexpectedException, FogbowRasException {
+    public void testGetUserQuotaWhenGetRequestThrowsAnException() throws FogbowException {
         // set up
         Mockito.doThrow(UnexpectedException.class).when(this.plugin).getUserQuota(this.localUserAttributes);
 

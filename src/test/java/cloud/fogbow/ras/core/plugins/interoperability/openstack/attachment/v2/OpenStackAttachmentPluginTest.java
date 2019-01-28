@@ -1,5 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
@@ -10,8 +15,6 @@ import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
@@ -22,6 +25,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Properties;
 
 public class OpenStackAttachmentPluginTest {
@@ -48,7 +52,7 @@ public class OpenStackAttachmentPluginTest {
     private OpenStackV3Token localUserAttributes;
     private AuditableHttpRequestClient client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<Token> argToken = ArgumentCaptor.forClass(Token.class);
+    private ArgumentCaptor<CloudToken> argToken = ArgumentCaptor.forClass(CloudToken.class);
     private String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
 
     @Before
@@ -58,7 +62,7 @@ public class OpenStackAttachmentPluginTest {
         properties.put(OpenStackAttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.attachmentOrder = new AttachmentOrder(null, "default", FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
 
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
@@ -71,10 +75,10 @@ public class OpenStackAttachmentPluginTest {
 
     //test case: Check if requestInstance is returning the instanceId from Json response properly.
     @Test
-    public void testRequestInstance() throws FogbowRasException, HttpResponseException, UnexpectedException {
+    public void testRequestInstance() throws FogbowException, HttpResponseException {
         //set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(Token.class), Mockito.anyString());
+                Mockito.anyString(), Mockito.any(CloudToken.class), Mockito.anyString());
 
         //exercise
         String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -86,12 +90,12 @@ public class OpenStackAttachmentPluginTest {
     //test case: Check if requestInstance is properly forwarding UnexpectedException thrown by doPostRequest.
     @Test(expected = UnexpectedException.class)
     public void testRequestInstanceThrowsUnexpectedException()
-            throws FogbowRasException, HttpResponseException, UnexpectedException {
+            throws FogbowException, HttpResponseException {
         //set up
         int unknownStatusCode = -1;
         HttpResponseException httpResponseException = new HttpResponseException(unknownStatusCode, "");
         Mockito.doThrow(httpResponseException).when(this.client).doPostRequest(Mockito.anyString(),
-                Mockito.any(Token.class), Mockito.anyString());
+                Mockito.any(CloudToken.class), Mockito.anyString());
 
         //exercise/verify
         this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -99,8 +103,8 @@ public class OpenStackAttachmentPluginTest {
 
     //test case: Check if HttpDeleteRequest parameters are correct according to the deleteInstance call parameters
     @Test
-    public void testDeleteInstance() throws FogbowRasException, ClientProtocolException,
-            IOException, UnexpectedException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+    public void testDeleteInstance() throws FogbowException, ClientProtocolException,
+            IOException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         //set up
         Mockito.doNothing().when(this.client).doDeleteRequest(this.argString.capture(), this.argToken.capture());
         String expectedEndpoint = FAKE_ENDPOINT + "/v2/" + FAKE_PROJECT_ID + "/servers/" + FAKE_SERVER_ID
@@ -115,8 +119,8 @@ public class OpenStackAttachmentPluginTest {
     }
 
     //test case: Check if requestInstance is properly forwarding UnauthorizedRequestException thrown by deleteInstance when Forbidden (403).
-    @Test(expected = FogbowRasException.class)
-    public void testDeleteInstanceThrowsUnauthorizedRequestExceptionWhenForbidden() throws HttpResponseException, FogbowRasException, UnexpectedException {
+    @Test(expected = FogbowException.class)
+    public void testDeleteInstanceThrowsUnauthorizedRequestExceptionWhenForbidden() throws HttpResponseException, FogbowException {
         //set up
         HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
         Mockito.doThrow(httpResponseException).when(this.client).doDeleteRequest(Mockito.any(), Mockito.any());
@@ -128,7 +132,7 @@ public class OpenStackAttachmentPluginTest {
     //test case: Check if an attachment is correctly built according to the JSON returned by the getRequest
     @Test
     public void testGetInstance()
-            throws FogbowRasException, HttpResponseException, UnexpectedException {
+            throws FogbowException, HttpResponseException {
         //setup
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
         Mockito.doReturn(FAKE_GET_REQUEST_BODY).when(this.client).doGetRequest(Mockito.anyString(),
@@ -150,10 +154,10 @@ public class OpenStackAttachmentPluginTest {
     //test case: Check if getInstance is properly forwarding UnexpectedException thrown by getInstance.
     @Test(expected = UnexpectedException.class)
     public void testGetInstanceThrowsUnexpectedException()
-            throws FogbowRasException, HttpResponseException, UnexpectedException {
+            throws FogbowException, HttpResponseException {
         //set up
         Mockito.doThrow(UnexpectedException.class).when(this.client)
-                .doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+                .doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
 
         //exercise/verify

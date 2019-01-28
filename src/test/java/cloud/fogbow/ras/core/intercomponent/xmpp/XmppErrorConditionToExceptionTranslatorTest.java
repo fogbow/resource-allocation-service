@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xmpp.packet.IQ;

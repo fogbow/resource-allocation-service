@@ -22,8 +22,10 @@ public abstract class Order implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private OrderState orderState;
-    @JoinColumn
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    //  ToDO Fix this
+    //@JoinColumn
+    //@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Transient
     private FederationUser federationUser;
     @Column
     private String requester;

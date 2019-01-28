@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.api.http.Image;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import com.google.gson.Gson;
@@ -42,7 +44,7 @@ public class ImageTest {
     private ApplicationFacade facade;
 
     @Before
-    public void setUp() throws FogbowRasException {
+    public void setUp() throws FogbowException {
         this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
@@ -55,7 +57,7 @@ public class ImageTest {
         Map<String, String> imagesMap = new HashMap<>();
         Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
+        RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT + "/provider/cloud", getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -77,7 +79,7 @@ public class ImageTest {
 
         Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
+        RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT + "/provider/cloud", getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -97,7 +99,7 @@ public class ImageTest {
     public void testGetImageById() throws Exception {
         // set up
         String fakeId = "fake-Id-1";
-        String imageEndpoint = IMAGE_ENDPOINT + "/" + fakeId;
+        String imageEndpoint = IMAGE_ENDPOINT + "/provider/cloud/" + fakeId;
 
         cloud.fogbow.ras.core.models.images.Image image = new cloud.fogbow.ras.core.models.images.Image(fakeId, "fake-name", 1, 1, 1, "READY");
 
@@ -153,9 +155,7 @@ public class ImageTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        String fakeMemberId = "fake-member-id";
         headers.set(Image.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
-        headers.set(Image.MEMBER_ID_HEADER_KEY, fakeMemberId);
         return headers;
     }
 }

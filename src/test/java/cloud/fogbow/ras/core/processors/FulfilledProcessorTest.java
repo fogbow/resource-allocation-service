@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.processors;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -15,7 +18,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.UserData;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,6 +30,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -87,7 +92,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // must remain in the Fulfilled list.
     @Test
     public void testRunProcessLocalComputeOrderWithInstanceReady()
-            throws FogbowRasException, UnexpectedException, InterruptedException {
+            throws FogbowException, InterruptedException {
 
         // set up
         Order order = this.createOrder();
@@ -116,7 +121,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // list, and removed from the Fulfilled list.
     @Test
     public void testRunProcessLocalComputeOrderWhenInstanceStateIsFailed()
-            throws FogbowRasException, UnexpectedException, InterruptedException {
+            throws FogbowException, InterruptedException {
 
         // set up
         Order order = this.createOrder();
@@ -150,7 +155,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // you must not make state transition by keeping the order in your source list.
     @Test
     public void testProcessComputeOrderNotFulfilled()
-            throws FogbowRasException, UnexpectedException, InterruptedException {
+            throws FogbowException, InterruptedException {
 
         // set up
         Order order = this.createOrder();
@@ -172,7 +177,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // list.
     @Test
     public void testRunProcessLocalComputeOrderWithoutLocalMember()
-            throws FogbowRasException, UnexpectedException, InterruptedException {
+            throws FogbowException, InterruptedException {
 
         // set up
         Order order = this.createOrder();
@@ -339,7 +344,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createOrder() {
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "login", "user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
 
         UserData userData = Mockito.mock(UserData.class);
 
@@ -349,14 +359,14 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
+        Order order = new ComputeOrder(federationUser, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
                 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
     }
 
     private void mockCloudConnectorFactory(Instance orderInstance)
-            throws FogbowRasException, UnexpectedException {
+            throws FogbowException {
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))

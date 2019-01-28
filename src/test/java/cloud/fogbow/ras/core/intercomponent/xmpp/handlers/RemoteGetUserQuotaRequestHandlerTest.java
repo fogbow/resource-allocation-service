@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
@@ -7,7 +9,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,6 +21,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
+
+import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -37,7 +43,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
             + "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
             + "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}"
             + "</userQuota>\n"
-            + "    <userQuotaClassName>org.fogbowcloud.ras.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
+            + "    <userQuotaClassName>cloud.fogbow.ras.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
             + "  </query>\n</iq>";
 
     private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
@@ -69,7 +75,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
                 .when(this.remoteFacade)
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any());
 
-        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUserToken(), ResourceType.COMPUTE);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser(), ResourceType.COMPUTE);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -91,7 +97,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenThrow(new RemoteCommunicationException());
 
-        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUserToken(), ResourceType.COMPUTE);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser(), ResourceType.COMPUTE);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -116,9 +122,13 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         return new ComputeQuota(totalQuota, usedQuota);
     }
 
-    private FederationUserToken createFederationUserToken() {
-        FederationUserToken federationUserToken = new FederationUserToken(REQUESTING_MEMBER,
-                "fake-federation-token-value", "fake-user-id", "fake-user-name");
-        return federationUserToken;
+    private FederationUser createFederationUser() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, REQUESTING_MEMBER);
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
+        FederationUser federationUser = new FederationUser(attributes);
+        return federationUser;
     }
 }

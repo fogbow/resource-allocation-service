@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
@@ -83,7 +86,7 @@ public class RemoteNotifyEventHandlerTest {
     // test case: When an Exception occurs, the handle method must return a response
     // error.
     @Test
-    public void testWhenThrowsException() throws FogbowRasException, UnexpectedException {
+    public void testWhenThrowsException() throws FogbowException {
         // set up
         String orderId = createOrder();
         Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).

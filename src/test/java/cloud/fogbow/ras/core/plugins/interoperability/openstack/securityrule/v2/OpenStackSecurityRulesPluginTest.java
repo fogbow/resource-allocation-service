@@ -1,11 +1,17 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
 import cloud.fogbow.ras.core.models.securityrules.EtherType;
 import cloud.fogbow.ras.core.models.securityrules.Protocol;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.*;
@@ -15,7 +21,6 @@ import org.apache.http.message.BasicStatusLine;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.securityrules.*;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 import org.junit.After;
@@ -28,7 +33,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidParameterException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -76,8 +84,7 @@ public class OpenStackSecurityRulesPluginTest {
         this.auditableHttpRequestClient = Mockito.spy(new AuditableHttpRequestClient(this.client));
         this.openStackSecurityRulePlugin.setClient(this.auditableHttpRequestClient);
 
-        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID,
-                FAKE_NAME, FAKE_PROJECT_ID, null);
+        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     @After
@@ -127,7 +134,7 @@ public class OpenStackSecurityRulesPluginTest {
             this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order,
                     this.defaultLocalUserAttributes);
             Assert.fail();
-        } catch (FogbowRasException e) {
+        } catch (FogbowException e) {
             // Throws an exception, as expected
         } catch (Exception e) {
             Assert.fail();
@@ -176,7 +183,7 @@ public class OpenStackSecurityRulesPluginTest {
 
     //test case: Tests remove security rule
     @Test
-    public void testRemoveInstance() throws IOException, JSONException, FogbowRasException, UnexpectedException {
+    public void testRemoveInstance() throws IOException, JSONException, FogbowException {
         //set up
         String suffixEndpointSecurityRules = OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" +
                 SECURITY_RULE_ID;
@@ -216,10 +223,14 @@ public class OpenStackSecurityRulesPluginTest {
     }
 
     private NetworkOrder createNetworkOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
-                FAKE_FEDERATION_TOKEN_VALUE,
-                FAKE_USER_ID, FAKE_USER_NAME);
-        NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_CLOUD_NAME,
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, FAKE_TOKEN_PROVIDER);
+        attributes.put(FogbowConstants.USER_ID_KEY, FAKE_USER_ID);
+        attributes.put(FogbowConstants.USER_NAME_KEY, FAKE_USER_NAME);
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, FAKE_FEDERATION_TOKEN_VALUE);
+        FederationUser federationUser = new FederationUser(attributes);
+
+        NetworkOrder order = new NetworkOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_CLOUD_NAME,
                 FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
         NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
@@ -231,19 +242,19 @@ public class OpenStackSecurityRulesPluginTest {
                                                             String direction, String etherType, String protocol) {
         JSONObject securityRuleContentJsonObject = new JSONObject();
 
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.ID_KEY_JSON, securityGroupId);
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.REMOTE_IP_PREFIX_KEY_JSON, cidr);
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.MAX_PORT_KEY_JSON, portTo);
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.MIN_PORT_KEY_JSON, portFrom);
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.DIRECTION_KEY_JSON, direction);
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.ETHER_TYPE_KEY_JSON, etherType);
-        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.PROTOCOL_KEY_JSON, protocol);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.ID_KEY_JSON, securityGroupId);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON, cidr);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.MAX_PORT_KEY_JSON, portTo);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.MIN_PORT_KEY_JSON, portFrom);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.DIRECTION_KEY_JSON, direction);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.ETHER_TYPE_KEY_JSON, etherType);
+        securityRuleContentJsonObject.put(OpenStackConstants.Network.PROTOCOL_KEY_JSON, protocol);
 
         JSONArray securityRulesJsonArray = new JSONArray();
         securityRulesJsonArray.add(securityRuleContentJsonObject);
 
         JSONObject securityRulesContentJsonObject = new JSONObject();
-        securityRulesContentJsonObject.put(OpenstackRestApiConstants.Network.SECURITY_GROUP_RULES_KEY_JSON,
+        securityRulesContentJsonObject.put(OpenStackConstants.Network.SECURITY_GROUP_RULES_KEY_JSON,
                 securityRulesJsonArray);
 
         return securityRulesContentJsonObject;

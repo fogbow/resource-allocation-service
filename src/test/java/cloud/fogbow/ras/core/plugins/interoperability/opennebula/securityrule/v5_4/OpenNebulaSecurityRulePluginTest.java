@@ -4,6 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -12,7 +16,6 @@ import cloud.fogbow.ras.core.models.securityrules.Direction;
 import cloud.fogbow.ras.core.models.securityrules.EtherType;
 import cloud.fogbow.ras.core.models.securityrules.Protocol;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,9 +51,9 @@ public class OpenNebulaSecurityRulePluginTest {
 
     // test case: success case
     @Test
-    public void testDeleteSecurityRule() throws UnexpectedException, FogbowRasException {
+    public void testDeleteSecurityRule() throws FogbowException {
         // setup
-        OpenNebulaToken localUserAttributes = new OpenNebulaToken("provider", "tokenValue", "userId", "userName", "signature");
+        CloudToken localUserAttributes = new CloudToken("provider", "userId", "tokenValue");
         String securityGroupId = "0";
         String securityGroupName = "securityGroupName";
         String ipOne = "10.10.0.0";
@@ -95,10 +98,10 @@ public class OpenNebulaSecurityRulePluginTest {
     }
 
     // test case: Occur an error when updating the security group in the cloud
-    @Test(expected = FogbowRasException.class)
-    public void testDeleteSecurityRuleErrorWhileUpdatingSecurity() throws UnexpectedException, FogbowRasException {
+    @Test(expected = FogbowException.class)
+    public void testDeleteSecurityRuleErrorWhileUpdatingSecurity() throws FogbowException {
         // setup
-        OpenNebulaToken localUserAttributes = new OpenNebulaToken("provider", "tokenValue", "userId", "userName", "signature");
+        CloudToken localUserAttributes = new CloudToken("provider", "userId", "tokenValue");
         String securityGroupId = "0";
         String securityGroupName = "securityGroupName";
         String ipOne = "10.10.0.0";
@@ -140,8 +143,8 @@ public class OpenNebulaSecurityRulePluginTest {
     }
 
     // test case: the security rule id came in a unknown format
-    @Test(expected = FogbowRasException.class)
-    public void testCreateRuleException() throws FogbowRasException {
+    @Test(expected = FogbowException.class)
+    public void testCreateRuleException() throws FogbowException {
         // setup
         String securityRuleId = "wrong";
         // exercise
@@ -182,8 +185,8 @@ public class OpenNebulaSecurityRulePluginTest {
     }
 
     // test case: throw exception when security group is null
-    @Test(expected = FogbowRasException.class)
-    public void testCreateSecurityGroupTemplate() throws FogbowRasException {
+    @Test(expected = FogbowException.class)
+    public void testCreateSecurityGroupTemplate() throws FogbowException {
         // set up
         List<Rule> rules = new ArrayList<>();
         SecurityGroupInfo securityGroupInfo = null;
@@ -213,12 +216,12 @@ public class OpenNebulaSecurityRulePluginTest {
 
     // test case: success case
     @Test
-    public void testGetSecurityRules() throws UnexpectedException, FogbowRasException {
+    public void testGetSecurityRules() throws FogbowException {
         // setup
         Order majorOrder = new NetworkOrder();
         String networkId = "instanceId";
         majorOrder.setInstanceId(networkId);
-        OpenNebulaToken localUserAttributes = new OpenNebulaToken("provider", "tokenValue", "userId", "userName", "signature");
+        CloudToken localUserAttributes = new CloudToken("provider", "userId", "tokenValue");
 
         VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
         // created by opennebula deploy
@@ -272,8 +275,8 @@ public class OpenNebulaSecurityRulePluginTest {
     }
 
     // test case: error while trying to get rules
-    @Test(expected = FogbowRasException.class)
-    public void testGetSecurityRulesErrorWhileGetRules() throws UnexpectedException, FogbowRasException {
+    @Test(expected = FogbowException.class)
+    public void testGetSecurityRulesErrorWhileGetRules() throws FogbowException {
         // setup
         SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
         SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
@@ -320,9 +323,9 @@ public class OpenNebulaSecurityRulePluginTest {
 	// its ID, a new rule will be created and added to the template so that it can
 	// update the instance of the security group.
 	@Test
-	public void testRequestSecurityRuleSuccessful() throws FogbowRasException, UnexpectedException {
+	public void testRequestSecurityRuleSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.openNebulaClientFactory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.openNebulaClientFactory).createClient(token.getTokenValue());
 		this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
@@ -384,9 +387,9 @@ public class OpenNebulaSecurityRulePluginTest {
 	// test case: When calling the requestInstance method with a valid client, and a malformed
 	// security rule template, its must be throw an InvalidParameterException.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testRequestSecurityRuleThrowInvalidParameterException() throws FogbowRasException, UnexpectedException {
+	public void testRequestSecurityRuleThrowInvalidParameterException() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.openNebulaClientFactory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.openNebulaClientFactory).createClient(token.getTokenValue());
 		this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
@@ -515,19 +518,17 @@ public class OpenNebulaSecurityRulePluginTest {
 		return xml;
 	}
     
-    private OpenNebulaToken createOpenNebulaToken() {
+    private CloudToken createCloudToken() {
 		String provider = "fake-provider";
 		String tokenValue = "fake-token-value";
 		String userId = "fake-user-id";
 		String userName = "fake-user-name";
 		String signature = "fake-signature";
 		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		CloudToken token = new CloudToken(
+				provider,
+                userId,
+				tokenValue);
 		
 		return token;
 	}

@@ -66,7 +66,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin {
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		
 		String name = networkOrder.getName();
-		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, localUserAttributes);
+		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, localUserAttributes.getUserId());
 		String type = DEFAULT_NETWORK_TYPE;
 		String bridge = this.bridge;
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;

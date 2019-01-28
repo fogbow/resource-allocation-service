@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.genericrequest.v4_9;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
-import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import java.util.Collections;
 
 public class CloudStackGenericRequestPluginTest {
 
-    public static final String CLOUDSTACK_SEPARATOR = CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_VALUE_SEPARATOR;
+    public static final String CLOUDSTACK_SEPARATOR = CloudStackConstants.KEY_VALUE_SEPARATOR;
 
     public static final String FAKE_TOKEN_VALUE = "foo" + CLOUDSTACK_SEPARATOR + "bar";
     public static final String FAKE_PROVIDER = "fake-provider";
@@ -27,13 +27,13 @@ public class CloudStackGenericRequestPluginTest {
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_SIGNATURE = "fake-signature";
 
-    private CloudStackToken fakeToken;
+    private CloudToken fakeToken;
     private CloudStackGenericRequestPlugin plugin;
     private AuditableHttpRequestClient client;
 
     @Before
     public void setUp() {
-        this.fakeToken = new CloudStackToken(FAKE_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USER_NAME, FAKE_SIGNATURE);
+        this.fakeToken = new CloudToken(FAKE_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
         this.client = Mockito.mock(AuditableHttpRequestClient.class);
 
         this.plugin = new CloudStackGenericRequestPlugin();
@@ -41,14 +41,14 @@ public class CloudStackGenericRequestPluginTest {
     }
 
     @Test
-    public void testGenericRequest() throws FogbowRasException, URISyntaxException, HttpResponseException {
+    public void testGenericRequest() throws FogbowException, URISyntaxException, HttpResponseException {
         // set up
         GenericRequest request = new GenericRequest("GET", "https://www.foo.bar", Collections.emptyMap(), Collections.emptyMap());
 
         GenericRequestHttpResponse response = new GenericRequestHttpResponse("fake-content", HttpStatus.OK.value());
         Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap())).thenReturn(response);
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(Token.class))).thenReturn(response.getContent());
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class))).thenReturn(response.getContent());
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);

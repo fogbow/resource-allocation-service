@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class GenericAllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
+public abstract class GenericAllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin<CloudToken> {
     private static final Logger LOGGER = Logger.getLogger(GenericAllToOneFederationToLocalMapper.class);
 
     private static final String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";

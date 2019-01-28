@@ -1,12 +1,15 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.constants.Messages;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteCreateOrderRequest;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,6 +23,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -32,7 +37,7 @@ public class RemoteCreateOrderRequestHandlerTest {
     public static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW_RAS + "</text>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW + "</text>\n"
             + "  </error>\n" + "</iq>";
 
     private RemoteCreateOrderRequestHandler remoteCreateOrderRequestHandler;
@@ -55,10 +60,10 @@ public class RemoteCreateOrderRequestHandlerTest {
     // test case: When the handle method is called passing an IQ request, it must return the Order from
     // that.
     @Test
-    public void testHandleWithValidIQ() throws FogbowRasException, UnexpectedException {
+    public void testHandleWithValidIQ() throws FogbowException {
         // set up
-        FederationUserToken federationUserToken = createFederationUserToken();
-        Order order = createOrder(federationUserToken);
+        FederationUser federationUser = createFederationUser();
+        Order order = createOrder(federationUser);
 
         Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.anyString(), Mockito.eq(order));
 
@@ -81,12 +86,12 @@ public class RemoteCreateOrderRequestHandlerTest {
 
     // test case: When an Exception occurs, the handle method must return a response error.
     @Test
-    public void testHandleWhenThrowsException() throws FogbowRasException, UnexpectedException {
+    public void testHandleWhenThrowsException() throws FogbowException {
         // set up
-        FederationUserToken federationUserToken = null;
-        Order order = createOrder(federationUserToken);
+        FederationUser federationUser = null;
+        Order order = createOrder(federationUser);
 
-        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade)
+        Mockito.doThrow(new FogbowException()).when(this.remoteFacade)
                 .activateOrder(Mockito.anyString(), Mockito.any(Order.class));
 
         IQ iq = RemoteCreateOrderRequest.marshal(order);
@@ -106,15 +111,20 @@ public class RemoteCreateOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    private Order createOrder(FederationUserToken federationUserToken) {
-        return new ComputeOrder(federationUserToken, REQUESTING_MEMBER, "providingmember", "default", "hostName", 1, 2,
+    private Order createOrder(FederationUser federationUser) {
+        return new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember", "default", "hostName", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());
     }
 
-    private FederationUserToken createFederationUserToken() throws InvalidParameterException {
-        FederationUserToken federationUserToken = new FederationUserToken(REQUESTING_MEMBER,
-                "fake-federation-token-value", "fake-user-id", "fake-user-name");
-        return federationUserToken;
+    private FederationUser createFederationUser() throws InvalidParameterException {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, REQUESTING_MEMBER);
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
+        FederationUser federationUser = new FederationUser(attributes);
+
+        return federationUser;
     }
 
 }

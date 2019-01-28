@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
@@ -19,9 +22,7 @@ import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
-import org.fogbowcloud.ras.core.models.tokens.Token;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,11 +108,11 @@ public class OpenNebulaComputePluginTest {
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testRequestInstanceThrowUnespectedExceptionWhenCallCreateClient()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 		
 		// set up
 		ComputeOrder computeOrder = new ComputeOrder();
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -123,9 +124,9 @@ public class OpenNebulaComputePluginTest {
 	// template with a list of networks ID, a virtual network will be allocated,
 	// returned a instance ID.
 	@Test
-	public void testRequestInstanceSuccessfulWithNetworkIds() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessfulWithNetworkIds() throws FogbowException, UnexpectedException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -173,7 +174,7 @@ public class OpenNebulaComputePluginTest {
 		// verify
 		Mockito.verify(this.factory, Mockito.times(3)).createClient(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(Token.class));
+				Mockito.any(CloudToken.class));
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client),
 				Mockito.eq(vmTemplate));
 	}
@@ -182,9 +183,9 @@ public class OpenNebulaComputePluginTest {
 	// template without a list of networks ID, a virtual network will be allocated,
 	// returned a instance ID.
 	@Test
-	public void testRequestInstanceSuccessfulWithoutNetworksId() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessfulWithoutNetworksId() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -216,7 +217,7 @@ public class OpenNebulaComputePluginTest {
 		// verify
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(Token.class));
+				Mockito.any(CloudToken.class));
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client), Mockito.eq(template));
 	}
 	
@@ -224,10 +225,10 @@ public class OpenNebulaComputePluginTest {
 	// returns a null instance, a NoAvailableResourcesException will be thrown.
 	@Test(expected = NoAvailableResourcesException.class) // verify
 	public void testRequestInstanceThrowNoAvailableResourcesExceptionWhenCallGetBestFlavor()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -252,9 +253,9 @@ public class OpenNebulaComputePluginTest {
 	// specified occurs while attempting to allocate a virtual machine, an
 	// InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testRequestInstanceThrowInvalidParameterException() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceThrowInvalidParameterException() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
@@ -302,9 +303,9 @@ public class OpenNebulaComputePluginTest {
 	// requestInstance method call, and an insufficient free memory error message
 	// occurs, a NoAvailableResourcesException will be thrown.
 	@Test(expected = NoAvailableResourcesException.class) // verify
-	public void testRequestInstanceThrowNoAvailableResourcesException() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceThrowNoAvailableResourcesException() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
@@ -352,9 +353,9 @@ public class OpenNebulaComputePluginTest {
 	// requestInstance method call, and an error message occurs with the words limit
 	// and quota, a QuotaExceededException will be thrown.
 	@Test(expected = QuotaExceededException.class) // verify
-	public void testRequestInstanceThrowQuotaExceededException() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceThrowQuotaExceededException() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
@@ -402,11 +403,11 @@ public class OpenNebulaComputePluginTest {
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testGetInstanceThrowUnespectedExceptionWhenCallCreateClient()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -418,9 +419,9 @@ public class OpenNebulaComputePluginTest {
 	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetInstanceSuccessfulWithVolatileDiskResource() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceSuccessfulWithVolatileDiskResource() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -481,9 +482,9 @@ public class OpenNebulaComputePluginTest {
 	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetInstanceSuccessfulWithoutVolatileDiskResource() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceSuccessfulWithoutVolatileDiskResource() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -530,11 +531,11 @@ public class OpenNebulaComputePluginTest {
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testDeleteInstanceThrowUnespectedExceptionWhenCallCreateClient()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -545,9 +546,9 @@ public class OpenNebulaComputePluginTest {
 	// Test case: When calling the deleteInstance method, with the instance ID and
 	// token valid, the instance of virtual machine will be removed.
 	@Test
-	public void testDeleteInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -573,9 +574,9 @@ public class OpenNebulaComputePluginTest {
 	// Test case: When calling the deleteInstance method, if the removal call is not
 	// answered an error response is returned.
 	@Test
-	public void testDeleteInstanceUnsuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -680,11 +681,11 @@ public class OpenNebulaComputePluginTest {
 		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
-		FederationUserToken federationUserToken = null;
+		FederationUser federationUser = null;
 		ArrayList<UserData> userData = FAKE_LIST_USER_DATA;
 		
 		ComputeOrder computeOrder = new ComputeOrder(
-				federationUserToken, 
+				federationUser, 
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -700,19 +701,17 @@ public class OpenNebulaComputePluginTest {
 		return computeOrder;
 	}
 	
-	private OpenNebulaToken createOpenNebulaToken() {
+	private CloudToken createCloudToken() {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
 		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		CloudToken token = new CloudToken(
+				provider,
+				userId,
+				tokenValue);
 		
 		return token;
 	}

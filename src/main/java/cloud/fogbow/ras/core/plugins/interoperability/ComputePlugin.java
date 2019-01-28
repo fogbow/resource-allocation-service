@@ -6,7 +6,7 @@ import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 
-public interface ComputePlugin {
+public interface ComputePlugin<T extends CloudToken> {
 
     /**
      * This method requests the virtual machine creation on a provider.
@@ -19,10 +19,10 @@ public interface ComputePlugin {
      * @return Instance ID.
      * @throws FogbowException {@link FogbowException} When request fails.
      */
-    public String requestInstance(ComputeOrder computeOrder, CloudToken localUserAttributes) throws FogbowException;
+    public String requestInstance(ComputeOrder computeOrder, T localUserAttributes) throws FogbowException;
 
-    public ComputeInstance getInstance(String computeInstanceId, CloudToken localUserAttributes) throws FogbowException;
+    public ComputeInstance getInstance(String computeInstanceId, T localUserAttributes) throws FogbowException;
 
-    public void deleteInstance(String computeInstanceId, CloudToken localUserAttributes) throws FogbowException;
+    public void deleteInstance(String computeInstanceId, T localUserAttributes) throws FogbowException;
 
 }

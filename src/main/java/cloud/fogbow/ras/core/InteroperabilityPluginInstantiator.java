@@ -80,8 +80,7 @@ public class InteroperabilityPluginInstantiator {
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
         String className = this.properties.
                 getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
-        return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath,
-                this.mapperConfPath);
+        return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className, this.mapperConfPath);
     }
 
     /**

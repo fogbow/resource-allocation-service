@@ -1,12 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import cloud.fogbow.ras.core.constants.SystemConstants;
-import org.fogbowcloud.ras.core.exceptions.*;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
-import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
@@ -60,7 +66,7 @@ public class CloudStackComputeQuotaPluginTest {
 
     private CloudStackComputeQuotaPlugin plugin;
     private AuditableHttpRequestClient client;
-    private CloudStackToken token;
+    private CloudToken token;
     private Properties properties;
 
     @Before
@@ -73,7 +79,7 @@ public class CloudStackComputeQuotaPluginTest {
         this.client = Mockito.mock(AuditableHttpRequestClient.class);
         this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
+        this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
     }
 
     // test case: When calling the getUserQuota method, HTTP GET requests must be
@@ -81,7 +87,7 @@ public class CloudStackComputeQuotaPluginTest {
     // list the virtual machines in use, comparing them to calculate the number of
     // available resources, and returning a Quota object .
     @Test
-    public void testGetUserQuotaSuccessful() throws HttpResponseException, FogbowRasException, UnexpectedException {
+    public void testGetUserQuotaSuccessful() throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
@@ -143,7 +149,7 @@ public class CloudStackComputeQuotaPluginTest {
     // test case: when account has unlimited resource limit (-1 value), then an additional request to gather the domain
     // resource limit should be made
     @Test
-    public void testGetDomainQuotaSuccessful() throws HttpResponseException, FogbowRasException, UnexpectedException {
+    public void testGetDomainQuotaSuccessful() throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
@@ -216,14 +222,14 @@ public class CloudStackComputeQuotaPluginTest {
     // permission, an UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetUserQuotaThrowUnauthorizedRequestException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -235,7 +241,7 @@ public class CloudStackComputeQuotaPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
 
@@ -243,13 +249,13 @@ public class CloudStackComputeQuotaPluginTest {
     // limits, an InstanceNotFoundException must be thrown.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetUserQuotaWithoutResourceLimitsThrowInstanceNotFoundException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -261,7 +267,7 @@ public class CloudStackComputeQuotaPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
 
@@ -269,7 +275,7 @@ public class CloudStackComputeQuotaPluginTest {
     // machines, an InstanceNotFoundException must be thrown.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetUserQuotaWithoutVirtualMachinesThrowInstanceNotFoundException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
@@ -315,14 +321,14 @@ public class CloudStackComputeQuotaPluginTest {
     // an UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetUserQuotaThrowUnauthenticatedUserException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -334,7 +340,7 @@ public class CloudStackComputeQuotaPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
 

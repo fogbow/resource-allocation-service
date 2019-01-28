@@ -11,6 +11,7 @@ import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
+import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
@@ -46,7 +47,9 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
     public CloudStackSecurityRulePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
+        this.client = new AuditableHttpRequestClient(
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
+                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
     }
 
     @Override

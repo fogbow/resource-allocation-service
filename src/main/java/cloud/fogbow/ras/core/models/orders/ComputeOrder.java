@@ -71,10 +71,10 @@ public class ComputeOrder extends Order {
                 userData, publicKey, networkIds);
     }
 
-    public ComputeOrder(FederationUser federationUserToken, String requestingMember, String providingMember,
+    public ComputeOrder(FederationUser federationUser, String requestingMember, String providingMember,
                         String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, cloudName, name, vCPU, memory,
+        this(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember, cloudName, name, vCPU, memory,
                 disk, imageId, userData, publicKey, networkIds);
     }
 

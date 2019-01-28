@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -7,7 +8,7 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.dom4j.Element;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,12 +23,12 @@ public class RemoteGenericRequestTest {
     private GenericRequest genericRequest;
     private RemoteGenericRequest remoteGenericRequest;
     private PacketSender packetSender;
-    private FederationUserToken federationUserToken;
+    private FederationUser federationUser;
 
     @Before
     public void setUp() {
         this.genericRequest = new GenericRequest("GET", "https://www.foo.bar", null, null);
-        this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, federationUserToken);
+        this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, federationUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
     }
@@ -46,7 +47,7 @@ public class RemoteGenericRequestTest {
         this.remoteGenericRequest.send();
 
         // verify
-        IQ expectedIq = RemoteGenericRequest.marshal(this.provider, this.cloudName, this.genericRequest, this.federationUserToken);
+        IQ expectedIq = RemoteGenericRequest.marshal(this.provider, this.cloudName, this.genericRequest, this.federationUser);
         IQMatcher matcher = new IQMatcher(expectedIq);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

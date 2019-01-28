@@ -1,10 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +24,7 @@ import java.util.Iterator;
 public class OpenNebulaComputeQuotaPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String FAKE_USER_NAME = "fake-user-name";
+	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
 	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
 	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
@@ -50,10 +53,10 @@ public class OpenNebulaComputeQuotaPluginTest {
 	// token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testGetUserQuotaThrowExceptionWhenCallCreateClientMethod()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -66,9 +69,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	// will be collected to calculate the available quotas.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetUserQuotaSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testGetUserQuotaSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -77,7 +80,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.doReturn(userPool).when(this.factory).createUserPool(client);
 
 		User user = Mockito.mock(User.class);
-		Mockito.doReturn(user).when(this.factory).getUser(userPool, FAKE_USER_NAME);
+		Mockito.doReturn(user).when(this.factory).getUser(userPool, FAKE_USER_ID);
 
 		Iterator<User> userIterator = Mockito.mock(Iterator.class);
 		Mockito.when(userPool.iterator()).thenReturn(userIterator);
@@ -128,9 +131,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	// for users resource.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetUserQuotaWithDefaultValuesInUserResources() throws UnexpectedException, FogbowRasException {
+	public void testGetUserQuotaWithDefaultValuesInUserResources() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -139,7 +142,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.doReturn(userPool).when(this.factory).createUserPool(client);
 
 		User user = Mockito.mock(User.class);
-		Mockito.doReturn(user).when(this.factory).getUser(userPool, FAKE_USER_NAME);
+		Mockito.doReturn(user).when(this.factory).getUser(userPool, FAKE_USER_ID);
 
 		Iterator<User> userIterator = Mockito.mock(Iterator.class);
 		Mockito.when(userPool.iterator()).thenReturn(userIterator);
@@ -185,9 +188,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetUserQuotaWithUnlimitedValuesInGroupResources()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -196,7 +199,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.doReturn(userPool).when(this.factory).createUserPool(client);
 
 		User user = Mockito.mock(User.class);
-		Mockito.doReturn(user).when(this.factory).getUser(userPool, FAKE_USER_NAME);
+		Mockito.doReturn(user).when(this.factory).getUser(userPool, FAKE_USER_ID);
 
 		Iterator<User> userIterator = Mockito.mock(Iterator.class);
 		Mockito.when(userPool.iterator()).thenReturn(userIterator);
@@ -236,19 +239,15 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.verify(user, Mockito.times(7)).xpath(Mockito.anyString());
 	}
 	
-	private OpenNebulaToken createOpenNebulaToken() {
+	private CloudToken createCloudToken() {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		String userId = null;
-		String userName = FAKE_USER_NAME;
-		String signature = null;
-		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		String userId = FAKE_USER_ID;
+
+		CloudToken token = new CloudToken(
+				provider,
+				userId,
+				tokenValue);
 		
 		return token;
 	}

@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
+import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 import org.apache.http.client.HttpResponseException;
@@ -22,7 +23,9 @@ import java.util.Properties;
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputeQuotaPlugin.class);
 
-    private AuditableHttpRequestClient client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
+    private AuditableHttpRequestClient client = new AuditableHttpRequestClient(
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
+                                                                       DefaultConfigurationConstants.XMPP_TIMEOUT)));
 
     private static final String LIMIT_TYPE_INSTANCES = "0";
     private static final String LIMIT_TYPE_MEMORY = "9";

@@ -1,11 +1,12 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import com.google.gson.Gson;
 import cloud.fogbow.ras.api.http.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.times;
 
@@ -159,10 +164,15 @@ public class VolumeTest {
     }
 
     private VolumeOrder createVolumeOrder() throws InvalidParameterException {
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "fake-token-value", FAKE_ID, FAKE_NAME);
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, FAKE_ID);
+        attributes.put(FogbowConstants.USER_NAME_KEY, FAKE_NAME);
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-token-value");
+        FederationUser federationUser = new FederationUser(attributes);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
-        volumeOrder.setFederationUser(federationUserToken);
+        volumeOrder.setFederationUser(federationUser);
 
         return volumeOrder;
     }

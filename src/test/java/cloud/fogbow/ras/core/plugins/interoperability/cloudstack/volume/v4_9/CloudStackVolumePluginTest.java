@@ -1,13 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import cloud.fogbow.ras.core.constants.SystemConstants;
-import org.fogbowcloud.ras.core.exceptions.*;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
@@ -74,7 +77,7 @@ public class CloudStackVolumePluginTest {
 
     private CloudStackVolumePlugin plugin;
     private AuditableHttpRequestClient client;
-    private CloudStackToken token;
+    private CloudToken token;
     private Properties properties;
 
     @Before
@@ -89,7 +92,7 @@ public class CloudStackVolumePluginTest {
         this.client = Mockito.mock(AuditableHttpRequestClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
+        this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
     }
 
     // test case: When calling the requestInstance method with a size compatible with the
@@ -98,7 +101,7 @@ public class CloudStackVolumePluginTest {
     // of compatible size, returning the id of the VolumeInstance object.
     @Test
     public void testCreateRequestInstanceSuccessfulWithDiskSizeCompatible()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -158,7 +161,7 @@ public class CloudStackVolumePluginTest {
     // customized size, returning the id of the VolumeInstance object.
     @Test
     public void testCreateRequestInstanceSuccessfulWithDiskSizeCustomized()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -213,7 +216,7 @@ public class CloudStackVolumePluginTest {
     }
 
     @Test
-    public void testCreateRequestInstanceSuccessfulWithRequirements() throws HttpResponseException, FogbowRasException {
+    public void testCreateRequestInstanceSuccessfulWithRequirements() throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -270,8 +273,8 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(expectedId, volumeId);
     }
 
-    @Test(expected = FogbowRasException.class)
-    public void testCreateRequestInstanceFailNoRequirements() throws HttpResponseException, FogbowRasException {
+    @Test(expected = FogbowException.class)
+    public void testCreateRequestInstanceFailNoRequirements() throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -326,7 +329,7 @@ public class CloudStackVolumePluginTest {
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testCreateRequestInstanceThrowUnauthorizedRequestException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -335,7 +338,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
+                Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -349,7 +352,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
@@ -357,7 +360,7 @@ public class CloudStackVolumePluginTest {
     // InstanceNotFoundException must be thrown.
     @Test(expected = InstanceNotFoundException.class)
     public void testCreateRequestInstanceThrowNotFoundException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -365,7 +368,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -379,15 +382,15 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
     // test case: When calling the requestInstance method passing some invalid argument, an
-    // FogbowRasException must be thrown.
-    @Test(expected = FogbowRasException.class)
-    public void testCreateRequestInstanceThrowFogbowRasException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+    // FogbowException must be thrown.
+    @Test(expected = FogbowException.class)
+    public void testCreateRequestInstanceThrowFogbowException()
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -395,7 +398,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
@@ -409,7 +412,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
@@ -417,7 +420,7 @@ public class CloudStackVolumePluginTest {
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testCreateRequestInstanceThrowUnauthenticatedUserException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -426,7 +429,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
+                Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -440,7 +443,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
@@ -449,7 +452,7 @@ public class CloudStackVolumePluginTest {
     // VolumeInstance object.
     @Test
     public void testGetInstanceRequestSuccessful()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -490,7 +493,7 @@ public class CloudStackVolumePluginTest {
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetInstanceThrowUnauthorizedRequestException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws UnexpectedException, FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -499,7 +502,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
+                Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -511,7 +514,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
 
@@ -519,7 +522,7 @@ public class CloudStackVolumePluginTest {
     // InstanceNotFoundException must be thrown.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInstanceThrowNotFoundException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -527,7 +530,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -539,7 +542,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
@@ -547,7 +550,7 @@ public class CloudStackVolumePluginTest {
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetInstanceThrowUnauthenticatedUserException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws UnexpectedException, FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -556,7 +559,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
+                Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -568,15 +571,15 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
     // test case: When calling the getInstance method passing some invalid argument, an
-    // FogbowRasException must be thrown.
-    @Test(expected = FogbowRasException.class)
-    public void testGetInstanceThrowFogbowRasException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+    // FogbowException must be thrown.
+    @Test(expected = FogbowException.class)
+    public void testGetInstanceThrowFogbowException()
+            throws UnexpectedException, FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -585,7 +588,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
@@ -597,7 +600,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
@@ -605,7 +608,7 @@ public class CloudStackVolumePluginTest {
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testGetInstanceThrowUnexpectedException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -636,7 +639,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
 
             PowerMockito.verifyStatic(GetVolumeResponse.class, VerificationModeFactory.times(1));
             GetVolumeResponse.fromJson(Mockito.eq(response));
@@ -647,7 +650,7 @@ public class CloudStackVolumePluginTest {
     // signed token, which returns a response in the JSON format.
     @Test
     public void testDeleteInstanceRequestSuccessful()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -687,7 +690,7 @@ public class CloudStackVolumePluginTest {
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testDeleteInstanceThrowUnauthorizedRequestException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws UnexpectedException, FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -696,7 +699,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
+                Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -708,7 +711,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
 
@@ -716,7 +719,7 @@ public class CloudStackVolumePluginTest {
     // InstanceNotFoundException must be thrown.
     @Test(expected = InstanceNotFoundException.class)
     public void testDeleteInstanceThrowNotFoundException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -724,7 +727,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -736,7 +739,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
 
@@ -744,7 +747,7 @@ public class CloudStackVolumePluginTest {
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testDeleteInstanceThrowUnauthenticatedUserException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+            throws UnexpectedException, FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -753,7 +756,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
+                Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -765,15 +768,15 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
     // test case: When calling the deleteInstance method passing some invalid argument, an
-    // FogbowRasException must be thrown.
-    @Test(expected = FogbowRasException.class)
-    public void testDeleteInstanceThrowFogbowRasException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
+    // FogbowException must be thrown.
+    @Test(expected = FogbowException.class)
+    public void testDeleteInstanceThrowFogbowException()
+            throws UnexpectedException, FogbowException, HttpResponseException {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -782,7 +785,7 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
@@ -794,7 +797,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
         }
     }
     
@@ -802,7 +805,7 @@ public class CloudStackVolumePluginTest {
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testDeleteInstanceThrowUnexpectedException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
+            throws HttpResponseException, FogbowException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito
@@ -833,7 +836,7 @@ public class CloudStackVolumePluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
+                    Mockito.any(CloudToken.class));
 
             PowerMockito.verifyStatic(DeleteVolumeResponse.class, VerificationModeFactory.times(1));
             DeleteVolumeResponse.fromJson(Mockito.eq(response));

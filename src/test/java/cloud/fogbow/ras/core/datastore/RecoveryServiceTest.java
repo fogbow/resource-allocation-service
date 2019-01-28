@@ -7,7 +7,7 @@
 //import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 //import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 //import org.fogbowcloud.ras.core.models.orders.*;
-//import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+//import cloud.fogbow.common.models.FederationUser;
 //import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 //import org.junit.After;
 //import org.junit.Assert;
@@ -125,7 +125,7 @@
 //    public void testAddComputeOrder() throws UnexpectedException {
 //
 //        // set up
-//        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+//        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER,
 //                FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 //
 //        computeOrder = new ComputeOrder(
@@ -148,7 +148,7 @@
 //    public void testAddComputeOrderSettingState() throws UnexpectedException {
 //
 //        // set up
-//        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+//        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER,
 //                FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 //
 //        computeOrder = new ComputeOrder(
@@ -226,7 +226,7 @@
 //    public void testSaveExistentOrder() throws UnexpectedException {
 //
 //        // set up
-//        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+//        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER,
 //                FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 //
 //        computeOrder = new ComputeOrder(
@@ -245,7 +245,7 @@
 //    public void testUpdateNonExistentOrder() throws UnexpectedException {
 //
 //        // set up
-//        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+//        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER,
 //                FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 //
 //        computeOrder = new ComputeOrder(

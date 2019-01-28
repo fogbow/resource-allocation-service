@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.stubs;
 
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 
 import java.util.List;
 
@@ -18,19 +18,18 @@ public class StubSecurityRulePlugin implements SecurityRulePlugin {
 
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder,
-                                      Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+                                      CloudToken localUserAttributes) {
         return null;
     }
 
     @Override
     public List<SecurityRule> getSecurityRules(Order majorOrder,
-                                               Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+                                               CloudToken localUserAttributes) {
         return null;
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public void deleteSecurityRule(String securityRuleId, CloudToken token) {
 
     }
 }

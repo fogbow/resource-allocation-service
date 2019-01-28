@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
+import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.http.client.HttpResponseException;
 
@@ -18,7 +19,8 @@ public class PublicKeysHolder {
     private static PublicKeysHolder instance;
 
     private PublicKeysHolder() {
-        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY);
+        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
+                DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         this.client = new HttpRequestClientUtil(new Integer(timeoutStr));
         this.asPublicKey = null;
     }

@@ -1,5 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
@@ -10,7 +15,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,6 +24,9 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class RemoteGetUserQuotaRequestTest {
 
     private RemoteGetUserQuotaRequest remoteGetUserQuotaRequest;
@@ -26,16 +34,21 @@ public class RemoteGetUserQuotaRequestTest {
 
     private Quota quota;
     private String provider;
-    private FederationUserToken federationUserToken;
+    private FederationUser federationUser;
     private ResourceType resourceType;
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.federationUserToken = new FederationUserToken("fake-token-provider",
-                "fake-federation-token-value", "fake-user-id", "fake-user-name");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
+        FederationUser federationUser = new FederationUser(attributes);
+
         this.provider = "provider";
         this.resourceType = ResourceType.COMPUTE;
-        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.federationUserToken, this.resourceType);
+        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.federationUser, this.resourceType);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
         ComputeAllocation computeAllocation = new ComputeAllocation(10, 20, 30);
@@ -51,7 +64,7 @@ public class RemoteGetUserQuotaRequestTest {
         //set up
         IQ iqResponse = getQuotaIQResponse(this.quota);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
-        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.federationUserToken, this.resourceType);
+        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.federationUser, this.resourceType);
 
         //exercise
         Quota responseQuota = this.remoteGetUserQuotaRequest.send();

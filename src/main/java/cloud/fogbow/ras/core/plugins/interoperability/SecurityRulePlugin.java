@@ -7,14 +7,14 @@ import cloud.fogbow.ras.core.models.orders.Order;
 
 import java.util.List;
 
-public interface SecurityRulePlugin {
+public interface SecurityRulePlugin<T extends CloudToken> {
 
-    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudToken localUserAttributes)
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, T localUserAttributes)
             throws FogbowException;
 
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudToken localUserAttributes)
+    public List<SecurityRule> getSecurityRules(Order majorOrder, T localUserAttributes)
             throws FogbowException;
 
-    public void deleteSecurityRule(String securityRuleId, CloudToken localUserAttributes)
+    public void deleteSecurityRule(String securityRuleId, T localUserAttributes)
             throws FogbowException;
 }

@@ -1,5 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
@@ -11,7 +16,6 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONArray;
@@ -75,7 +79,7 @@ public class OpenStackNetworkPluginTest {
         this.auditableHttpRequestClient = Mockito.spy(new AuditableHttpRequestClient(this.client));
         this.openStackNetworkPlugin.setClient(this.auditableHttpRequestClient);
 
-        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
+        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     @After
@@ -87,7 +91,7 @@ public class OpenStackNetworkPluginTest {
 
     //test case: The http client must make only 5 requests
     @Test
-    public void testNumberOfRequestsInSucceededRequestInstance() throws IOException, FogbowRasException, UnexpectedException {
+    public void testNumberOfRequestsInSucceededRequestInstance() throws IOException, FogbowException {
         //set up
         // post network
         String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
@@ -133,7 +137,7 @@ public class OpenStackNetworkPluginTest {
 
     //test case: Tests if an exception will be thrown in case that openstack raise an error in network request.
     @Test
-    public void testRequestInstancePostNetworkError() throws IOException, UnexpectedException {
+    public void testRequestInstancePostNetworkError() throws IOException {
         //set up
         HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
@@ -143,7 +147,7 @@ public class OpenStackNetworkPluginTest {
         try {
             this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
             Assert.fail();
-        } catch (FogbowRasException e) {
+        } catch (FogbowException e) {
             // Throws an exception, as expected
         } catch (Exception e) {
             Assert.fail();
@@ -155,7 +159,7 @@ public class OpenStackNetworkPluginTest {
 
     //test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for a new subnet.
     @Test
-    public void testRequestInstancePostSubnetError() throws IOException, FogbowRasException, UnexpectedException {
+    public void testRequestInstancePostSubnetError() throws IOException, FogbowException {
         //set up
         String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
         HttpResponse httpResponsePostNetwork = createHttpResponse(createNetworkResponse, HttpStatus.SC_OK);
@@ -169,7 +173,7 @@ public class OpenStackNetworkPluginTest {
             //exercise
             this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
             Assert.fail();
-        } catch (FogbowRasException e) {
+        } catch (FogbowException e) {
 
         }
 
@@ -179,7 +183,7 @@ public class OpenStackNetworkPluginTest {
 
     //test case: Tests the case that security group raise an exception. This implies that network will be removed.
     @Test
-    public void testErrorInPostSecurityGroup() throws IOException, FogbowRasException, UnexpectedException {
+    public void testErrorInPostSecurityGroup() throws IOException, FogbowException {
         //set up
         //post network
         CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
@@ -204,7 +208,7 @@ public class OpenStackNetworkPluginTest {
         //exercise
         try {
             this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
-        } catch (FogbowRasException | UnexpectedException e) {
+        } catch (FogbowException e) {
             //doNothing
         }
 
@@ -231,7 +235,7 @@ public class OpenStackNetworkPluginTest {
     //test case: Tests the case that security group rules raise an exception. This implies that network
     // and security group will be removed.
     @Test
-    public void testErrorInPostSecurityGroupRules() throws IOException, FogbowRasException, UnexpectedException {
+    public void testErrorInPostSecurityGroupRules() throws IOException, FogbowException {
         //set up
         //post network
         CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
@@ -268,7 +272,7 @@ public class OpenStackNetworkPluginTest {
         //exercise
         try {
             this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
-        } catch (FogbowRasException | UnexpectedException e) {
+        } catch (FogbowException e) {
             //doNothing
         }
 
@@ -445,7 +449,7 @@ public class OpenStackNetworkPluginTest {
 
     //test case: Tests get instance from json response
     @Test
-    public void testGetInstanceFromJson() throws JSONException, IOException, FogbowRasException, UnexpectedException {
+    public void testGetInstanceFromJson() throws JSONException, IOException, FogbowException {
         //set up
         String networkId = "networkId00";
         String networkName = "netName";
@@ -486,7 +490,7 @@ public class OpenStackNetworkPluginTest {
 
     //test case: Tests remove instance, it must execute a http client exactly 3 times: 1 GetRequest, 2 DeleteRequests
     @Test
-    public void testRemoveInstance() throws IOException, JSONException, FogbowRasException, UnexpectedException {
+    public void testRemoveInstance() throws IOException, JSONException, FogbowException {
         //set up
         JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
         String suffixEndpointNetwork = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + NETWORK_ID;
@@ -515,7 +519,7 @@ public class OpenStackNetworkPluginTest {
 
     //test: Tests a delete in a network which has compute attached to it
     @Test
-    public void testRemoveNetworkWithInstanceAssociated() throws JSONException, IOException, FogbowRasException, UnexpectedException {
+    public void testRemoveNetworkWithInstanceAssociated() throws JSONException, IOException, FogbowException {
         //set up
         String suffixEndpointNetwork = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + NETWORK_ID;
 
@@ -526,7 +530,7 @@ public class OpenStackNetworkPluginTest {
         try {
             this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.defaultLocalUserAttributes);
             Assert.fail();
-        } catch (FogbowRasException e) {
+        } catch (FogbowException e) {
             // TODO: check error message
         } catch (Exception e) {
             Assert.fail();
@@ -540,8 +544,8 @@ public class OpenStackNetworkPluginTest {
     }
 
     // test case: throws an exception when try to delete the security group
-    @Test(expected = FogbowRasException.class)
-    public void testDeleteInstanceExceptionSecurityGroupDeletion() throws FogbowRasException, UnexpectedException, IOException {
+    @Test(expected = FogbowException.class)
+    public void testDeleteInstanceExceptionSecurityGroupDeletion() throws FogbowException, IOException {
         // set up
         JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
         // network deletion ok
@@ -568,7 +572,7 @@ public class OpenStackNetworkPluginTest {
 
     // test case: throws a "notFoundInstance" exception and continue try to delete the security group
     @Test
-    public void testDeleteInstanceNotFoundNetworkException() throws FogbowRasException, UnexpectedException, IOException {
+    public void testDeleteInstanceNotFoundNetworkException() throws FogbowException, IOException {
         // set up
         JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
         // network deletion not ok and return nof found

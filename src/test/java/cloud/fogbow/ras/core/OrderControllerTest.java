@@ -1,23 +1,22 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import org.fogbowcloud.ras.core.exceptions.*;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.Instance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
-import org.fogbowcloud.ras.core.models.orders.*;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -29,6 +28,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,14 +69,6 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController = new OrderController();
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-
-        String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
-        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
-        aaaPluginsHolder.setTokenGeneratorPlugin(AaaPluginInstantiator.getTokenGeneratorPlugin(aaaConfFilePath));
-        aaaPluginsHolder.setFederationIdentityPlugin(AaaPluginInstantiator.getFederationIdentityPlugin(aaaConfFilePath));
-        aaaPluginsHolder.setAuthenticationPlugin(AaaPluginInstantiator.getAuthenticationPlugin(aaaConfFilePath));
-        aaaPluginsHolder.setAuthorizationPlugin(AaaPluginInstantiator.getAuthorizationPlugin(aaaConfFilePath));
-
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         // setting up the attributes.
@@ -122,17 +114,22 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatus() throws InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-                "token-value", "fake-id", "fake-user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
+
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setFederationUser(federationUserToken);
+        computeOrder.setFederationUser(federationUser);
         computeOrder.setRequester(this.localMember);
         computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setCachedInstanceState(InstanceState.READY);
 
         ComputeOrder computeOrder2 = new ComputeOrder();
-        computeOrder2.setFederationUser(federationUserToken);
+        computeOrder2.setFederationUser(federationUser);
         computeOrder2.setRequester(this.localMember);
         computeOrder2.setProvider(this.localMember);
         computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
@@ -150,7 +147,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 computeOrder2.getProvider(), computeOrder.getCloudName(), computeOrder2.getCachedInstanceState());
 
         // exercise
-        List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUserToken,
+        List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUser,
                 ResourceType.COMPUTE);
 
         // verify
@@ -162,12 +159,17 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if getOrder() returns exactly the same order that
     // were added on the list.
     @Test
-    public void testGetOrder() throws UnexpectedException, FogbowRasException {
+    public void testGetOrder() throws UnexpectedException, FogbowException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
 
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-                "token-value", "fake-id", "fake-user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
+
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
@@ -192,10 +194,14 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Getting order with when federationUser is null must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetInvalidOrder() throws FogbowRasException {
+    public void testGetInvalidOrder() throws FogbowException {
         // setup
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-                "token-value", "fake-id", "fake-user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
 
         // exercise
         this.ordersController.getOrder("invalid-order-id");
@@ -239,10 +245,14 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-                "token-value", "fake-id", "fake-user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setFederationUser(federationUserToken);
+        computeOrder.setFederationUser(federationUser);
         computeOrder.setRequester(this.localMember);
         computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
@@ -254,7 +264,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
-                this.localMember, federationUserToken, ResourceType.COMPUTE);
+                this.localMember, federationUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertEquals(computeOrder.getActualAllocation().getInstances(),
@@ -270,10 +280,14 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetUserAllocationWithInvalidInstanceType()
             throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-                "token-value", "fake-id", "fake-user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
         NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setFederationUser(federationUserToken);
+        networkOrder.setFederationUser(federationUser);
         networkOrder.setRequester(this.localMember);
         networkOrder.setProvider(this.localMember);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
@@ -282,7 +296,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(this.localMember, federationUserToken, ResourceType.NETWORK);
+        this.ordersController.getUserAllocation(this.localMember, federationUser, ResourceType.NETWORK);
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders
@@ -431,7 +445,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: Deleting a null order must return a FogbowRasException.
-    @Test(expected = FogbowRasException.class) // verify
+    @Test(expected = FogbowException.class) // verify
     public void testDeleteNullOrder()
             throws Exception {
         // exercise
@@ -448,7 +462,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
     @Ignore
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetOrderWithInvalidInstanceType() throws FogbowRasException, UnexpectedException {
+    public void testGetOrderWithInvalidInstanceType() throws FogbowException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
 
@@ -461,7 +475,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
     @Ignore
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetOrderWithInvalidFedUser() throws FogbowRasException {
+    public void testGetOrderWithInvalidFedUser() throws FogbowException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
 
@@ -471,11 +485,15 @@ public class OrderControllerTest extends BaseUnitTests {
 
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException {
         String orderId;
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-                "token-value", "fake-id", "fake-user");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
+        FederationUser federationUser = new FederationUser(attributes);
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
-        computeOrder.setFederationUser(federationUserToken);
+        computeOrder.setFederationUser(federationUser);
         computeOrder.setRequester(this.localMember);
         computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(orderState);
@@ -513,7 +531,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     private Order createLocalOrder() {
-        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember = "";
         String providingMember = "";
@@ -522,7 +540,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         Order localOrder =
                 new ComputeOrder(
-                        federationUserToken,
+                        federationUser,
                         requestingMember,
                         providingMember,
                         "default", instanceName,

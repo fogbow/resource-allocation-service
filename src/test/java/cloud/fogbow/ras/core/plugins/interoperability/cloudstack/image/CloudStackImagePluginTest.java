@@ -1,11 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
-import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONArray;
@@ -43,8 +48,7 @@ public class CloudStackImagePluginTest {
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 
-    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
-            FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
+    public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
@@ -71,7 +75,7 @@ public class CloudStackImagePluginTest {
 
     @Test
     // test case: when getting all templaes, the token should be signed and an HTTP GET request should be made
-    public void testGettingAllTemplates() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGettingAllTemplates() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllImagesRequest.LIST_TEMPLATES_COMMAND;
@@ -104,7 +108,7 @@ public class CloudStackImagePluginTest {
     @Test
     // test case: when getting a valid template, besides token being signed and an HTTP GET request being made
     // the returned image attributes should match with the ones provided by the cloud
-    public void testGettingExistingTemplate() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGettingExistingTemplate() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllImagesRequest.LIST_TEMPLATES_COMMAND;
@@ -138,12 +142,12 @@ public class CloudStackImagePluginTest {
 
     // test case: getting a non-existing image should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetNonExistingTemplate() throws FogbowRasException, HttpResponseException, UnexpectedException {
+    public void testGetNonExistingTemplate() throws FogbowException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -152,7 +156,7 @@ public class CloudStackImagePluginTest {
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class));
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
         }
     }
 

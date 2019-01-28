@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.api.http.Attachment;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.InstanceStatus;
@@ -62,7 +64,7 @@ public class AttachmentTest {
     private ApplicationFacade facade;
 
     @Before
-    public void setUp() throws FogbowRasException {
+    public void setUp() throws FogbowException {
         this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);

@@ -1,18 +1,22 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import cloud.fogbow.ras.core.constants.SystemConstants;
-import org.fogbowcloud.ras.core.exceptions.*;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
@@ -38,7 +42,7 @@ public class OpenStackPublicIpPluginTest {
 
 	@Before
 	public void setUp() {
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
+        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.httpClient = Mockito.mock(AuditableHttpRequestClient.class);
         
         boolean notCheckProperties = false;
@@ -88,8 +92,8 @@ public class OpenStackPublicIpPluginTest {
 	}
 	
 	// test case: throw exception when trying to get the network port
-	@Test(expected= FogbowRasException.class)
-	public void testRequestInstanceErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+	@Test(expected= FogbowException.class)
+	public void testRequestInstanceErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowException {
 		// set up
 		String computeInstanceId = "computeInstanceId";
 		PublicIpOrder publicIpOrder = new PublicIpOrder();
@@ -99,7 +103,7 @@ public class OpenStackPublicIpPluginTest {
 				Mockito.endsWith("security-groups"), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
 				.thenReturn(responseCreateSecurityGroup);
 
-		Mockito.doThrow(new FogbowRasException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
+		Mockito.doThrow(new FogbowException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
 				Mockito.eq(computeInstanceId), Mockito.eq(this.openStackV3Token));
 
 		// exercise
@@ -115,7 +119,7 @@ public class OpenStackPublicIpPluginTest {
 	// test case: success case
 	@Test
 	public void testGetNetworkPortIp()
-			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+			throws HttpResponseException, URISyntaxException, FogbowException {
 		// set up
 		String portId = "portId";
 		String portsEndpoint = "http://endpoint";
@@ -141,9 +145,9 @@ public class OpenStackPublicIpPluginTest {
 	}
 	
 	// test case: throw exception when happens an error on the request
-	@Test(expected=InstanceNotFoundException.class)
+	@Test(expected= InstanceNotFoundException.class)
 	public void testGetNetworkPortIpErrorWhenRequest()
-			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+			throws HttpResponseException, URISyntaxException, FogbowException {
 		// set up
 		String portsEndpoint = "http://endpoint";
 		String defaultNetworkId = "defaultNetworkId";
@@ -166,7 +170,7 @@ public class OpenStackPublicIpPluginTest {
 	// test case: throw exception when endpoint is null
 	@Test
 	public void testGetNetworkPortIpWrongEndpoint()
-			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+			throws HttpResponseException, URISyntaxException, FogbowException {
 		// set up
 		String portsEndpoint = null;
 		String defaultNetworkId = "defaultNetworkId";
@@ -182,13 +186,13 @@ public class OpenStackPublicIpPluginTest {
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.never())
-				.doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+				.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
 	}	
 	
-	// test case: throw FogbowRasException because the cloud found two or more ports. In the Fogbow scenario is not allowed
+	// test case: throw FogbowException because the cloud found two or more ports. In the Fogbow scenario is not allowed
 	@Test
 	public void testGetNetworkPortIpPortsSizeIrregular()
-			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+			throws HttpResponseException, URISyntaxException, FogbowException {
 		// set up
 		String portId = "portId";
 		String portsEndpoint = "http://endpoint";
@@ -215,7 +219,7 @@ public class OpenStackPublicIpPluginTest {
 		try {
 			this.openStackPublicIpPlugin.getNetworkPortIp(computeInstanceId, this.openStackV3Token);
 			Assert.fail();
-		} catch (FogbowRasException e) {}
+		} catch (FogbowException e) {}
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1)).doGetRequest(
@@ -236,7 +240,7 @@ public class OpenStackPublicIpPluginTest {
 		ListSecurityGroups listSecurityGroups = createListSecurityGroupsResponse();
 
 		// when retrieving the group id by name
-		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(Token.class)))
+		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
 				.thenReturn(listSecurityGroups.toJson());
 
 		// exercise
@@ -259,12 +263,12 @@ public class OpenStackPublicIpPluginTest {
 		ListSecurityGroups listSecurityGroups = createListSecurityGroupsResponse();
 
 		// when retrieving the group id by name
-		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(Token.class)))
+		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
 				.thenReturn(listSecurityGroups.toJson());
 
 		HttpResponseException notFoundException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, "");
 		Mockito.doThrow(notFoundException).when(
-				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
+				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
 		
 		// exercise
 		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, null, openStackV3Token);
@@ -413,7 +417,7 @@ public class OpenStackPublicIpPluginTest {
 	// test case: success case with active status
 
 	@Test
-	public void testGetInstanceActive() throws HttpResponseException, FogbowRasException, UnexpectedException {
+	public void testGetInstanceActive() throws HttpResponseException, FogbowException {
 		// set up
 		String floatingIpId = "floatingIpId";
 		String floatingIpAddress = "floatingIpAddress";
@@ -437,7 +441,7 @@ public class OpenStackPublicIpPluginTest {
 	// test case: success case with unavailable status
 
 	@Test
-	public void testGetInstanceUnavailable() throws HttpResponseException, FogbowRasException, UnexpectedException {
+	public void testGetInstanceUnavailable() throws HttpResponseException, FogbowException {
 		// set up
 		String floatingIpId = "floatingIpId";
 		String floatingIpAddress = "floatingIpAddress";
@@ -458,10 +462,10 @@ public class OpenStackPublicIpPluginTest {
 		Assert.assertEquals(floatingIpAddress, publicIpInstance.getIp());
 		Assert.assertEquals(InstanceState.UNAVAILABLE, publicIpInstance.getState());
 	}
-	// test case: throws FogbowRasException
+	// test case: throws FogbowException
 
 	@Test
-	public void testGetInstanceThrowFogbowRasException() throws HttpResponseException, FogbowRasException, UnexpectedException {
+	public void testGetInstanceThrowFogbowException() throws HttpResponseException, FogbowException {
 		// set up
 		String floatingIpId = "floatingIpId";
 
@@ -487,12 +491,12 @@ public class OpenStackPublicIpPluginTest {
 
     	for (int i = 0; i < portsId.length; i++) {
     		Map<String, Object> idJsonKey = new HashMap<String, Object>();
-    		idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, portsId[i]);
+    		idJsonKey.put(OpenStackConstants.PublicIp.ID_KEY_JSON, portsId[i]);
     		idsJsonKey.add(idJsonKey);
 		}
 
         Map<String, Object> portsJsonKey = new HashMap<String, Object>();
-        portsJsonKey.put(OpenstackRestApiConstants.PublicIp.PORTS_KEY_JSON, idsJsonKey);
+        portsJsonKey.put(OpenStackConstants.PublicIp.PORTS_KEY_JSON, idsJsonKey);
 
         Gson gson = new Gson();
         return gson.toJson(portsJsonKey);
@@ -500,9 +504,9 @@ public class OpenStackPublicIpPluginTest {
 
 	private String getCreateFloatingIpResponseJson(String floatingIpId) {
     	Map<String, Object> idJsonKey = new HashMap<String, Object>();
-    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, floatingIpId);
+    	idJsonKey.put(OpenStackConstants.PublicIp.ID_KEY_JSON, floatingIpId);
         Map<String, Object> floatingipJsonKey = new HashMap<String, Object>();
-        floatingipJsonKey.put(OpenstackRestApiConstants.PublicIp.FLOATING_IP_KEY_JSON, idJsonKey);
+        floatingipJsonKey.put(OpenStackConstants.PublicIp.FLOATING_IP_KEY_JSON, idJsonKey);
 
         Gson gson = new Gson();
         return gson.toJson(floatingipJsonKey);
@@ -511,11 +515,11 @@ public class OpenStackPublicIpPluginTest {
 	private String getGetFloatingIpResponseJson(String floatingIpId,
 			String floatingIpAddress, String status) {
     	Map<String, Object> idJsonKey = new HashMap<String, Object>();
-    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, floatingIpId);
-    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.FLOATING_IP_ADDRESS_KEY_JSON, floatingIpAddress);
-    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.STATUS_KEY_JSON, status);
+    	idJsonKey.put(OpenStackConstants.PublicIp.ID_KEY_JSON, floatingIpId);
+    	idJsonKey.put(OpenStackConstants.PublicIp.FLOATING_IP_ADDRESS_KEY_JSON, floatingIpAddress);
+    	idJsonKey.put(OpenStackConstants.PublicIp.STATUS_KEY_JSON, status);
         Map<String, Object> floatingipJsonKey = new HashMap<String, Object>();
-        floatingipJsonKey.put(OpenstackRestApiConstants.PublicIp.FLOATING_IP_KEY_JSON, idJsonKey);
+        floatingipJsonKey.put(OpenStackConstants.PublicIp.FLOATING_IP_KEY_JSON, idJsonKey);
 
         Gson gson = new Gson();
         return gson.toJson(floatingipJsonKey);

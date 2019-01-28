@@ -5,7 +5,7 @@ import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.UserData;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -162,7 +162,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ComputeOrder createComputeOrder() {
-        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -173,7 +173,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         ComputeOrder localOrder =
                 new ComputeOrder(
-                        federationUserToken,
+                        federationUser,
                         requestingMember,
                         providingMember,
                         "default", instanceName,
@@ -188,7 +188,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ComputeOrder createComputeOrderWithoutExtraUserData() {
-        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -199,7 +199,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         ComputeOrder localOrder =
                 new ComputeOrder(
-                        federationUserToken,
+                        federationUser,
                         requestingMember,
                         providingMember,
                         "default", instanceName,
@@ -214,7 +214,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ComputeOrder createComputeOrderWithoutPublicKey() {
-        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -224,7 +224,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         ComputeOrder localOrder =
                 new ComputeOrder(
-                        federationUserToken,
+                        federationUser,
                         requestingMember,
                         providingMember,
                         "default", instanceName,

@@ -5,10 +5,12 @@ import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.AuthenticationUtil;
+import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 import java.util.Map;
 
-public class BasicAllToOneMapper extends GenericAllToOneFederationToLocalMapper {
+public class BasicAllToOneMapper extends GenericAllToOneFederationToLocalMapper
+        implements FederationToLocalMapperPlugin<CloudToken> {
     TokenGeneratorPlugin tokenGeneratorPlugin;
 
     public BasicAllToOneMapper(String mapperConfFilePath) throws FatalErrorException {

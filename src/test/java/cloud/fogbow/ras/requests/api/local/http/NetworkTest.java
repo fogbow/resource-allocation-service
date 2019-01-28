@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.ras.api.http.Network;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -7,7 +8,7 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import com.google.gson.Gson;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +28,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -142,10 +146,15 @@ public class NetworkTest {
     }
 
     private NetworkOrder createNetworkOrder() {
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "fake-token", "fake-user", "fake-name");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-name");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-token");
+        FederationUser federationUser = new FederationUser(attributes);
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
-        networkOrder.setFederationUser(federationUserToken);
+        networkOrder.setFederationUser(federationUser);
 
         return networkOrder;
     }

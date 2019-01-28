@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.stubs;
 
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.core.models.images.Image;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 
 import java.util.Map;
@@ -10,18 +10,18 @@ import java.util.Map;
  * This class is a stub for the ImagePlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubImagePlugin implements ImagePlugin<Token> {
+public class StubImagePlugin implements ImagePlugin<CloudToken> {
 
     public StubImagePlugin(String confFilePath) {
     }
 
     @Override
-    public Map<String, String> getAllImages(Token token) {
+    public Map<String, String> getAllImages(CloudToken token) {
         return null;
     }
 
     @Override
-    public Image getImage(String imageId, Token token) {
+    public Image getImage(String imageId, CloudToken token) {
         return null;
     }
 }

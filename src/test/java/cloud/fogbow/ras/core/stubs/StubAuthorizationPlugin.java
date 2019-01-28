@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.stubs;
 
-import cloud.fogbow.ras.core.models.Operation;
-import cloud.fogbow.ras.core.models.ResourceType;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
+import cloud.fogbow.common.models.FederationUser;
 
 /**
  * This class is a stub for the AuthorizationPlugin interface used for tests only.
@@ -15,12 +15,12 @@ public class StubAuthorizationPlugin implements AuthorizationPlugin {
     }
 
     @Override
-    public boolean isAuthorized(FederationUserToken federationUserToken, String cloudName, Operation operation, ResourceType type) {
+    public boolean isAuthorized(FederationUser federationUser, String s, String s1, String s2) throws UnauthorizedRequestException, UnexpectedException {
         return true;
     }
 
     @Override
-    public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
+    public boolean isAuthorized(FederationUser federationUser, String s, String s1) throws UnauthorizedRequestException, UnexpectedException {
         return true;
     }
 }

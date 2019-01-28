@@ -1,20 +1,20 @@
 package cloud.fogbow.ras.core.stubs;
 
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.Token;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 /**
  * This class is a stub for the FederationToLocalMapperPlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubFederationToLocalMapperPlugin implements FederationToLocalMapperPlugin {
+public class StubFederationToLocalMapperPlugin implements FederationToLocalMapperPlugin<CloudToken> {
 
-    public StubFederationToLocalMapperPlugin(String conf1, String conf2) {
+    public StubFederationToLocalMapperPlugin(String conf1) {
     }
 
     @Override
-    public Token map(FederationUserToken user) {
+    public CloudToken map(FederationUser user) {
         return null;
     }
 }

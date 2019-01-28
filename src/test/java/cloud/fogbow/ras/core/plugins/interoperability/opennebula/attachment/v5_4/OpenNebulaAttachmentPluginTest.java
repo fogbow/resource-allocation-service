@@ -1,10 +1,14 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,10 +50,10 @@ public class OpenNebulaAttachmentPluginTest {
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testRequestInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceThrowUnespectedException() throws FogbowException {
 		// set up
 		AttachmentOrder attachmentOrder = createAttachmentOrder();
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -62,9 +66,9 @@ public class OpenNebulaAttachmentPluginTest {
 	// disk, returning the attached disk ID in conjunction with the other IDs of
 	// that instance.
 	@Test
-	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -98,9 +102,9 @@ public class OpenNebulaAttachmentPluginTest {
 	// or an invalid token, an error will occur and an InvalidParameterException
 	// will be thrown.
 	@Test(expected = InvalidParameterException.class)
-	public void testRequestInstanceUnsuccessful() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceUnsuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -129,9 +133,9 @@ public class OpenNebulaAttachmentPluginTest {
 	// valid token, the volume image disk associated with a virtual machine will be
 	// detached.
 	@Test
-	public void testDeleteInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -161,9 +165,9 @@ public class OpenNebulaAttachmentPluginTest {
 	// or an invalid token, an error will occur and an InvalidParameterException
 	// will be thrown.
 	@Test
-	public void testDeleteInstanceUnsuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -192,9 +196,9 @@ public class OpenNebulaAttachmentPluginTest {
 	// valid token, a set of images will be loaded and the specific instance of the
 	// image must be loaded.
 	@Test
-	public void testGetInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -233,7 +237,7 @@ public class OpenNebulaAttachmentPluginTest {
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
-		FederationUserToken federationUserToken = null;
+		FederationUser federationUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String cloudName = null;
@@ -242,7 +246,7 @@ public class OpenNebulaAttachmentPluginTest {
 		String device = null;
 		
 		AttachmentOrder attachmentOrder = new AttachmentOrder(
-				federationUserToken, 
+				federationUser, 
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -253,19 +257,17 @@ public class OpenNebulaAttachmentPluginTest {
 		return attachmentOrder;
 	}
 
-	private OpenNebulaToken createOpenNebulaToken() {
+	private CloudToken createCloudToken() {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
 		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		CloudToken token = new CloudToken(
+				provider,
+				userId,
+				tokenValue);
 		
 		return token;
 	}

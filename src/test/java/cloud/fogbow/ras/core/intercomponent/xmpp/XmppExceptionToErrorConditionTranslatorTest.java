@@ -1,11 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
-import org.fogbowcloud.ras.core.exceptions.*;
+import cloud.fogbow.common.exceptions.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
-
 
 public class XmppExceptionToErrorConditionTranslatorTest {
 

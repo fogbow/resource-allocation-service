@@ -1,12 +1,14 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.constants.Messages;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteDeleteOrderRequest;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,7 +37,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
             "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
-                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW_RAS + "</text>\n" +
+                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW + "</text>\n" +
                     "  </error>\n" +
                     "</iq>";
 
@@ -62,14 +64,16 @@ public class RemoteDeleteOrderRequestHandlerTest {
     // test case: When calling the method handle passing a valid IQ object, it must create an OK
     // result IQ and return it.
     @Test
-    public void testHandleWithValidIQ() throws FogbowRasException, UnexpectedException {
+    public void testHandleWithValidIQ() throws FogbowException {
         //set up
         Map<String, String> attributes = new HashMap<>();
         attributes.put("user-name", "fogbow");
-
-        FederationUserToken federationUser = new FederationUserToken(REQUESTING_MEMBER,
-                "fake-federation-token-value", "fake-user-id", "fake-user-name");
-
+        Map<String, String> userAttributes = new HashMap<>();
+        userAttributes.put(FogbowConstants.PROVIDER_ID_KEY, REQUESTING_MEMBER);
+        userAttributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
+        userAttributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
+        userAttributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
+        FederationUser federationUser = new FederationUser(userAttributes);
 
         this.order = new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember",
                 "default", "fake-instance-name", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
@@ -94,7 +98,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
                 "default", "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
-        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
+        Mockito.doThrow(new FogbowException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
                 this.order.getId(), this.order.getFederationUser(), this.order.getType());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);

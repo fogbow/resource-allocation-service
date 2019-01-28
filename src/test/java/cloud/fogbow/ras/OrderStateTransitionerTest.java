@@ -1,5 +1,6 @@
 package cloud.fogbow.ras;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;

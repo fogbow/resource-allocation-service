@@ -5,9 +5,11 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.all2one.OpenStackAllToOneMapper;
 
-public class OpenStackOneToOneMapper extends GenericOneToOneFederationToLocalMapper {
+public class OpenStackOneToOneMapper extends GenericOneToOneFederationToLocalMapper
+        implements FederationToLocalMapperPlugin<CloudToken> {
     public OpenStackOneToOneMapper(String mapperConfFilePath) {
         super(new OpenStackAllToOneMapper(mapperConfFilePath));
     }

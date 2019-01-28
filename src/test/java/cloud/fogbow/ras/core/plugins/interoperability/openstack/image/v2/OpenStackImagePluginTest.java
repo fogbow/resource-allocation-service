@@ -1,11 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.security.InvalidParameterException;
 import java.util.*;
 
 public class OpenStackImagePluginTest {
@@ -41,14 +47,14 @@ public class OpenStackImagePluginTest {
         this.plugin = new OpenStackImagePlugin(cloudConfPath);
         this.client = Mockito.mock(AuditableHttpRequestClient.class);
         this.properties = Mockito.mock(Properties.class);
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.plugin.setProperties(this.properties);
         this.plugin.setClient(this.client);
     }
 
     //test case: Check if getAllImages is returning all expected images from Json response properly.
     @Test
-    public void testGetAllImages() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetAllImages() throws FogbowException, HttpResponseException {
         //set up
         String imageGlancev2UrlKey = "image-url-key";
         String endpoint =
@@ -74,7 +80,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Check if getAllImages is returning all expected images from Json response when the request uses pagination.
     @Test
-    public void testGetAllImagesWithPagination() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWithPagination() throws FogbowException, HttpResponseException {
         //set up
         String imageGlancev2UrlKey = "image-url-key";
         String nextUrl1 = "next-url1";
@@ -124,7 +130,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Check if getImageId is returning all expected images from Json response properly.
     @Test
-    public void testGetImage() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetImage() throws FogbowException, HttpResponseException {
         //set up
         String imageId = "image-id";
         String imageGlancev2UrlKey = "image-url-key";
@@ -150,7 +156,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Check if getImageId returns null when the state is not ACTIVE_STATE.
     @Test
-    public void testGetImageWhenImageStateIsNotActivated() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetImageWhenImageStateIsNotActivated() throws FogbowException, HttpResponseException {
         //set up
         String imageId = "image-id";
         String imageGlancev2UrlKey = "image-url-key";
@@ -176,7 +182,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Test if getImageId throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetImageWhenForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetImageWhenForbidden() throws FogbowException, HttpResponseException {
         //set up
         String imageId = "image-id";
         Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
@@ -189,7 +195,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Test if testGet throws UnexpectedException when the http requisition status is unknown.
     @Test(expected = UnexpectedException.class)
-    public void testGetImageWhenUnexpectedException() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetImageWhenUnexpectedException() throws FogbowException, HttpResponseException {
         //set up
         String imageId = "image-id";
         int unexpectedHttpStatus = -1;
@@ -203,7 +209,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Test if getAllImages throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetAllImagesWhenForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWhenForbidden() throws FogbowException, HttpResponseException {
         //set up
         Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
         HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
@@ -215,7 +221,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Test if getAllImages throws UnexpectedException when the http requisition status is unknown.
     @Test(expected = UnexpectedException.class)
-    public void testGetAllImagesWhenUnexpectedException() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWhenUnexpectedException() throws FogbowException, HttpResponseException {
         int unexpectedHttpStatus = -1;
         Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
         HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
@@ -225,7 +231,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Test if getAllImages throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN during pagination.
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetAllImagesWithPaginationWhenForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWithPaginationWhenForbidden() throws FogbowException, HttpResponseException {
         //set up
         String imageGlancev2UrlKey = "image-url-key";
         String nextUrl1 = "next-url1";
@@ -255,7 +261,7 @@ public class OpenStackImagePluginTest {
 
     //test case: Test if getAllImages throws UnexpectedException when the http requisition status is unknown during pagination.
     @Test(expected = UnexpectedException.class)
-    public void testGetAllImagesWithPaginationWhenUnexpectedException() throws FogbowRasException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWithPaginationWhenUnexpectedException() throws FogbowException, HttpResponseException {
         //set up
         String imageGlancev2UrlKey = "image-url-key";
         String nextUrl1 = "next-url1";
@@ -345,12 +351,12 @@ public class OpenStackImagePluginTest {
 
     private String getImageJsonFromImage(Image image) {
         Map<String, String> jsonMap = new HashMap<String, String>();
-        jsonMap.put(OpenstackRestApiConstants.Image.ID_KEY_JSON, image.getId());
-        jsonMap.put(OpenstackRestApiConstants.Image.NAME_KEY_JSON, image.getName());
-        jsonMap.put(OpenstackRestApiConstants.Image.SIZE_KEY_JSON, Long.toString(image.getSize()));
-        jsonMap.put(OpenstackRestApiConstants.Image.MIN_DISK_KEY_JSON, Long.toString(image.getMinDisk()));
-        jsonMap.put(OpenstackRestApiConstants.Image.MIN_RAM_KEY_JSON, Long.toString(image.getMinRam()));
-        jsonMap.put(OpenstackRestApiConstants.Image.STATUS_KEY_JSON, image.getStatus());
+        jsonMap.put(OpenStackConstants.Image.ID_KEY_JSON, image.getId());
+        jsonMap.put(OpenStackConstants.Image.NAME_KEY_JSON, image.getName());
+        jsonMap.put(OpenStackConstants.Image.SIZE_KEY_JSON, Long.toString(image.getSize()));
+        jsonMap.put(OpenStackConstants.Image.MIN_DISK_KEY_JSON, Long.toString(image.getMinDisk()));
+        jsonMap.put(OpenStackConstants.Image.MIN_RAM_KEY_JSON, Long.toString(image.getMinRam()));
+        jsonMap.put(OpenStackConstants.Image.STATUS_KEY_JSON, image.getStatus());
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(jsonMap);
         return jsonResponse;

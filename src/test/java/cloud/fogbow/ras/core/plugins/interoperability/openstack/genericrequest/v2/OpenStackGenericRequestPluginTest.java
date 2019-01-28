@@ -1,7 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.v2;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +35,7 @@ public class OpenStackGenericRequestPluginTest {
 
     // test case: A generic request is invalid, if its header contains 'X-Auth-Token' key.
     @Test
-    public void testGenericRequestWithWrongHeader() throws FogbowRasException {
+    public void testGenericRequestWithWrongHeader() throws FogbowException {
         // set up
         Map<String, String> header = genericRequest.getHeaders();
         header.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, FAKE_VALUE);
@@ -49,7 +52,7 @@ public class OpenStackGenericRequestPluginTest {
 
     // test case: The header 'X-Auth-Token' must be added before executing actual request.
     @Test
-    public void testGenericRequestPlugin() throws FogbowRasException {
+    public void testGenericRequestPlugin() throws FogbowException {
         // set up
         ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
         Mockito.doReturn(null).when(auditableHttpRequestClientMock).doGenericRequest(Mockito.anyString(),

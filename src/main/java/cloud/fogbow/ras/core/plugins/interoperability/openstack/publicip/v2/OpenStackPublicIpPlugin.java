@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
+import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.*;
 import org.apache.http.client.HttpResponseException;
@@ -373,7 +374,9 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY)));
+        this.client = new AuditableHttpRequestClient(
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
+                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
     }
 
     protected void setClient(AuditableHttpRequestClient client) {

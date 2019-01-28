@@ -3,9 +3,12 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 import java.io.File;
 import java.util.Iterator;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -43,10 +46,10 @@ public class OpenNebulaImagePluginTest {
 	// token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testGetAllImagesThrowExceptionWhenCallCreateClientMethod()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 		
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -59,10 +62,10 @@ public class OpenNebulaImagePluginTest {
 	// UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testGetAllImagesThrowExceptionWhenCallCreateImagePoolMethod()
-			throws UnexpectedException, FogbowRasException {
+			throws FogbowException {
 
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createImagePool(client);
@@ -77,9 +80,9 @@ public class OpenNebulaImagePluginTest {
 	// with ID and name.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetAllImagesSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testGetAllImagesSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -110,11 +113,11 @@ public class OpenNebulaImagePluginTest {
 	// the instance of an image, with ID, name, size and status.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetImageSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testGetImageSuccessful() throws FogbowException {
 		// set up
 		String imageId = STRING_VALUE_ONE;
 
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -149,11 +152,11 @@ public class OpenNebulaImagePluginTest {
 	// found, returning a null image.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetImageUnsuccessfulByIdNotFound() throws UnexpectedException, FogbowRasException {
+	public void testGetImageUnsuccessfulByIdNotFound() throws FogbowException {
 		// set up
 		String imageId = STRING_VALUE_TWO;
 
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -182,11 +185,11 @@ public class OpenNebulaImagePluginTest {
 	// returning a null image.
 	@Test
 	@SuppressWarnings(UNCHECKED_VALUE)
-	public void testGetImageEmptyCollection() throws UnexpectedException, FogbowRasException {
+	public void testGetImageEmptyCollection() throws FogbowException {
 		// set up
 		String imageId = STRING_VALUE_ONE;
 
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -207,19 +210,17 @@ public class OpenNebulaImagePluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
 	}
 	
-	private OpenNebulaToken createOpenNebulaToken() {
+	private CloudToken createCloudToken() {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
 		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		CloudToken token = new CloudToken(
+				provider,
+				userId,
+				tokenValue);
 		
 		return token;
 	}

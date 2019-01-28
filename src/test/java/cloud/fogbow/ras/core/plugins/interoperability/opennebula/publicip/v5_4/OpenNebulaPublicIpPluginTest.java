@@ -1,12 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,11 +52,11 @@ public class OpenNebulaPublicIpPluginTest {
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class)
-	public void testRequestInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceThrowUnespectedException() throws FogbowException {
 		// set up
 		PublicIpOrder publicIpOrder = new PublicIpOrder();
 		String computeInstanceId = null;
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -67,9 +70,9 @@ public class OpenNebulaPublicIpPluginTest {
 	// network and the security group will be appended to virtual machine, returning
 	// a set of ID's from this instance.
 	@Test
-	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -127,10 +130,10 @@ public class OpenNebulaPublicIpPluginTest {
 	// test case: When calling the deleteInstance method, if the OpenNebulaClientFactory class
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDeleteInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceThrowUnespectedException() throws FogbowException {
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -141,9 +144,9 @@ public class OpenNebulaPublicIpPluginTest {
 	// test case: When calling the deleteInstance method, with the instance ID and
 	// token valid, the instance of public ip will be removed.
 	@Test
-	public void testDeleteInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -192,10 +195,10 @@ public class OpenNebulaPublicIpPluginTest {
 	// test case: When calling the getInstance method, if the OpenNebulaClientFactory class 
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testGetInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceThrowUnespectedException() throws FogbowException {
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -206,9 +209,9 @@ public class OpenNebulaPublicIpPluginTest {
 	// test case: When calling the getInstance method, with a valid client from a token value and
 	// instance ID, it must returned a instance of a public ip.
 	@Test
-	public void testGetInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -235,14 +238,14 @@ public class OpenNebulaPublicIpPluginTest {
 	}
 	
 	private PublicIpOrder createPublicIpOrder() {
-		FederationUserToken federationUserToken = null;
+		FederationUser federationUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String computeOrderId = "fake-order-id";
 		String cloudName = "fake-public-network";
 
 		PublicIpOrder publicIpOrder = new PublicIpOrder(
-				federationUserToken, 
+				federationUser, 
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -251,19 +254,17 @@ public class OpenNebulaPublicIpPluginTest {
 		return publicIpOrder;
 	}
 
-	private OpenNebulaToken createOpenNebulaToken() {
+	private CloudToken createCloudToken() {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
 		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		CloudToken token = new CloudToken(
+				provider,
+				userId,
+				tokenValue);
 		
 		return token;
 	}

@@ -1,14 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import cloud.fogbow.ras.core.constants.SystemConstants;
-import org.fogbowcloud.ras.core.exceptions.*;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.UserData;
-import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
@@ -59,8 +63,7 @@ public class CloudStackComputePluginTest {
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_SIGNATURE = "fake-signature";
 
-    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
-        FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
+    public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";
@@ -107,7 +110,7 @@ public class CloudStackComputePluginTest {
     // from the cloudstack volume service; 3) register ssh keypair using public key passed in the order; // 4) request
     // to the compute service to actually create the vm; 5) delete keypair used to created the vm.
     @Test
-    public void testRequestInstance() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
+    public void testRequestInstance() throws FogbowException, HttpResponseException, UnsupportedEncodingException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
@@ -178,7 +181,7 @@ public class CloudStackComputePluginTest {
 
     // test case: when order has requirements, filter out non-matching service offerings
     @Test
-    public void testRequestInstanceWithRequirements() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
+    public void testRequestInstanceWithRequirements() throws FogbowException, HttpResponseException, UnsupportedEncodingException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
@@ -254,7 +257,7 @@ public class CloudStackComputePluginTest {
     // Test case: template, zone and default network ids are required paramaters for requesting an instance, so they
     // should be appropriately defined in the config file or in the order. raise exception otherwise.
     @Test(expected = InvalidParameterException.class)
-    public void testRequestInstanceNullRequiredParamater() throws FogbowRasException, HttpResponseException {
+    public void testRequestInstanceNullRequiredParamater() throws FogbowException, HttpResponseException {
         // set up
         String fakeImageId = null;
 
@@ -271,12 +274,12 @@ public class CloudStackComputePluginTest {
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
-        Mockito.verify(this.client, never()).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+        Mockito.verify(this.client, never()).doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
     }
 
     // Test case: fail to retrieve service offerings from cloudstack compute service on request instance
-    @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceServiceOfferingRequestException() throws FogbowRasException, HttpResponseException {
+    @Test(expected = FogbowException.class)
+    public void testRequestInstanceServiceOfferingRequestException() throws FogbowException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -295,7 +298,7 @@ public class CloudStackComputePluginTest {
                 RESPONSE_KEY, JSON);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
-                .thenThrow(FogbowRasException.class);
+                .thenThrow(FogbowException.class);
 
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
@@ -309,8 +312,8 @@ public class CloudStackComputePluginTest {
     }
 
     // test case: if no service offering is found for order with requirements, raise exception
-    @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceNoMatchingRequirements() throws FogbowRasException, HttpResponseException {
+    @Test(expected = FogbowException.class)
+    public void testRequestInstanceNoMatchingRequirements() throws FogbowException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -351,8 +354,8 @@ public class CloudStackComputePluginTest {
     }
 
     // Test case: when no mininum service offering is found to fulfill the order, raise exception
-    @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceServiceOfferingNotFound() throws FogbowRasException, HttpResponseException {
+    @Test(expected = FogbowException.class)
+    public void testRequestInstanceServiceOfferingNotFound() throws FogbowException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -391,8 +394,8 @@ public class CloudStackComputePluginTest {
     }
 
     // Test case: raise exception on fail to retrieve disk offerings from cloudstack compute service on request instance
-    @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceDiskOfferingRequestException() throws FogbowRasException, HttpResponseException {
+    @Test(expected = FogbowException.class)
+    public void testRequestInstanceDiskOfferingRequestException() throws FogbowException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -421,7 +424,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(serviceOfferingResponse);
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
-                .thenThrow(FogbowRasException.class);
+                .thenThrow(FogbowException.class);
 
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
@@ -437,7 +440,7 @@ public class CloudStackComputePluginTest {
     // Test case: send deploy virtual machine request with no disk parameter in case no minimum disk offering is found
     // for the order
     @Test
-    public void testRequestInstanceDiskOfferingNotFound() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
+    public void testRequestInstanceDiskOfferingNotFound() throws FogbowException, HttpResponseException, UnsupportedEncodingException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -506,8 +509,8 @@ public class CloudStackComputePluginTest {
     }
 
     // Test case: http request fails on attempting to deploy a new virtual machine
-    @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceFail() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
+    @Test(expected = FogbowException.class)
+    public void testRequestInstanceFail() throws FogbowException, HttpResponseException, UnsupportedEncodingException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
@@ -579,7 +582,7 @@ public class CloudStackComputePluginTest {
     // size from the cloudstack volume service. Finally, valid compute instance should be returned from those
     // requests results.
     @Test
-    public void testGetInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
+    public void testGetInstance() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
@@ -631,7 +634,7 @@ public class CloudStackComputePluginTest {
 
     // Test case: when getting virtual machine which root disk size could not be retrieved, default volume size to -1
     @Test
-    public void testGetInstanceNoVolume() throws FogbowRasException, HttpResponseException {
+    public void testGetInstanceNoVolume() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
@@ -692,7 +695,7 @@ public class CloudStackComputePluginTest {
 
     // Test case: instance not found
     @Test(expected = InstanceNotFoundException.class)
-    public void getInstanceNotFound() throws FogbowRasException, HttpResponseException {
+    public void getInstanceNotFound() throws FogbowException, HttpResponseException {
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
 
@@ -714,7 +717,7 @@ public class CloudStackComputePluginTest {
 
     // Test case: deleting an instance
     @Test
-    public void deleteInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
+    public void deleteInstance() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DestroyVirtualMachineRequest.DESTROY_VIRTUAL_MACHINE_COMMAND;
@@ -737,8 +740,8 @@ public class CloudStackComputePluginTest {
     }
 
     // Test case: failing to delete an instance
-    @Test(expected = FogbowRasException.class)
-    public void deleteInstanceFail() throws UnexpectedException, FogbowRasException, HttpResponseException {
+    @Test(expected = FogbowException.class)
+    public void deleteInstanceFail() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DestroyVirtualMachineRequest.DESTROY_VIRTUAL_MACHINE_COMMAND;

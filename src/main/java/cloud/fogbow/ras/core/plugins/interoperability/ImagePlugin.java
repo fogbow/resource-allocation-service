@@ -6,9 +6,9 @@ import cloud.fogbow.ras.core.models.images.Image;
 
 import java.util.Map;
 
-public interface ImagePlugin {
+public interface ImagePlugin<T extends CloudToken> {
 
-    Map<String, String> getAllImages(CloudToken localUserAttributes) throws FogbowException;
+    Map<String, String> getAllImages(T localUserAttributes) throws FogbowException;
 
-    Image getImage(String imageId, CloudToken localUserAttributes) throws FogbowException;
+    Image getImage(String imageId, T localUserAttributes) throws FogbowException;
 }

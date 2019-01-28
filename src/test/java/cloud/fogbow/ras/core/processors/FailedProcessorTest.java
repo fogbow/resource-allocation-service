@@ -1,9 +1,10 @@
 package cloud.fogbow.ras.core.processors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -19,7 +20,7 @@ import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -86,7 +87,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	// failed list.
 	@Test
 	public void testRunProcessLocalOrderWithRemoteMember()
-			throws FogbowRasException, UnexpectedException, InterruptedException {
+			throws FogbowException, InterruptedException {
 
 		// set up
 		Order order = this.createOrder();
@@ -111,7 +112,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	// state other than failed after a successful request, it must not transition
 	// states by keeping the request in its source list.
 	@Test
-	public void testRunProcessLocalOrderNotFailed() throws FogbowRasException, UnexpectedException, InterruptedException {
+	public void testRunProcessLocalOrderNotFailed() throws FogbowException, InterruptedException {
 
 		// set up
 		Order order = this.createOrder();
@@ -134,7 +135,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	// failures.
 	@Test
 	public void testRunProcessLocalOrderWithInstanceFailed()
-			throws FogbowRasException, UnexpectedException, InterruptedException {
+			throws FogbowException, InterruptedException {
 		
 		// set up
 		Order order = createOrder();
@@ -164,7 +165,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	// failed list and put in the fulfilled list.
 	@Test
 	public void testRunProcessLocalOrderWithInstanceReady()
-			throws InterruptedException, FogbowRasException, UnexpectedException {
+			throws InterruptedException, FogbowException {
 
 		// set up
 		Order order = createOrder();
@@ -193,7 +194,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	// method will catch an exception.
 	@Test
 	public void testRunProcessLocalOrderToCatchExceptionWhileTryingToGetInstance()
-			throws InterruptedException, FogbowRasException, UnexpectedException {
+			throws InterruptedException, FogbowException {
 
 		// set up
 		Order order = createOrder();
@@ -225,7 +226,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	// the FailedProcessor, while running a local order.
 	@Test
 	public void testRunProcessLocalOrderThrowsUnexpectedException()
-			throws UnexpectedException, InterruptedException, FogbowRasException {
+			throws InterruptedException, FogbowException {
 
 		// set up
 		Order order = createOrder();
@@ -270,7 +271,7 @@ public class FailedProcessorTest extends BaseUnitTests {
         Mockito.verify(this.failedProcessor, Mockito.times(1)).processFailedOrder(order);
     }
     
-	private void mockCloudConnectorFactory(Instance orderInstance) throws FogbowRasException, UnexpectedException {
+	private void mockCloudConnectorFactory(Instance orderInstance) throws FogbowException {
 		CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 		
 		PowerMockito.mockStatic(CloudConnectorFactory.class);
@@ -290,19 +291,21 @@ public class FailedProcessorTest extends BaseUnitTests {
 	}
 
 	private Order createOrder() {
-		FederationUserToken federationUserToken = new FederationUserToken(
-				FAKE_TOKEN_PROVIDER, 
-				FAKE_FEDERATION_USER_TOKEN_VALUE, 
-				FAKE_USER_ID, 
-				FAKE_USER_NAME);
-		
+		Map<String, String> attributes = new HashMap<>();
+		attributes.put(FogbowConstants.PROVIDER_ID_KEY, FAKE_TOKEN_PROVIDER);
+		attributes.put(FogbowConstants.USER_ID_KEY, FAKE_USER_ID);
+		attributes.put(FogbowConstants.USER_NAME_KEY, FAKE_USER_NAME);
+		attributes.put(FogbowConstants.TOKEN_VALUE_KEY, FAKE_FEDERATION_USER_TOKEN_VALUE);
+		FederationUser federationUser = new FederationUser(attributes);
+
+
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 		ArrayList<UserData> userData = super.mockUserData();
 		List<String> networkIds = null;
 
 		Order order = new ComputeOrder(
-				federationUserToken, 
+				federationUser, 
 				requestingMember, 
 				providingMember, 
 				CLOUD_NAME,

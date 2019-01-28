@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;

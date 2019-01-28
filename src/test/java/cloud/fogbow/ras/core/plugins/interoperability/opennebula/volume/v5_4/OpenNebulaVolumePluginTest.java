@@ -1,10 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,10 +48,10 @@ public class OpenNebulaVolumePluginTest {
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class
 	// can not create a valid client from a token value, it must throw a UnespectedException.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testRequestInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceThrowUnespectedException() throws FogbowException {
 		// set up
 		VolumeOrder volumeOrder = new VolumeOrder();
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
@@ -59,9 +62,9 @@ public class OpenNebulaVolumePluginTest {
 	// test case: When calling the requestInstance method, with the valid client and
 	// template, a volume will be allocated to return instance ID.
 	@Test
-	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -91,10 +94,10 @@ public class OpenNebulaVolumePluginTest {
 	// valid token, a set of images will be loaded and the specific instance of the
 	// image must be loaded.
 	@Test
-	public void testGetInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceSuccessful() throws FogbowException {
 		// set up
 		String instanceId = "1";
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -125,10 +128,10 @@ public class OpenNebulaVolumePluginTest {
 	// valid token, a set of images will be loaded and the image specified for
 	// removal will be deleted.
 	@Test
-	public void testDeleteInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
 		String instanceId = "1";
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -156,10 +159,10 @@ public class OpenNebulaVolumePluginTest {
 	// test case: When calling the deleteInstance method, if the removal call is not
 	// answered an error response is returned.
 	@Test
-	public void testDeleteInstanceUnsuccessful() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
 		String instanceId = "1";
-		OpenNebulaToken token = createOpenNebulaToken();
+		CloudToken token = createCloudToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -201,7 +204,7 @@ public class OpenNebulaVolumePluginTest {
 	}
 	
 	private VolumeOrder createVolumeOrder() {
-		FederationUserToken federationUserToken = null;
+		FederationUser federationUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String cloudName = null;
@@ -209,7 +212,7 @@ public class OpenNebulaVolumePluginTest {
 		int volumeSize = 1;
 				
 		VolumeOrder volumeOrder = new VolumeOrder(
-				federationUserToken, 
+				federationUser, 
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -219,19 +222,17 @@ public class OpenNebulaVolumePluginTest {
 		return volumeOrder;
 	}
 	
-	private OpenNebulaToken createOpenNebulaToken() {
+	private CloudToken createCloudToken() {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
 		
-		OpenNebulaToken token = new OpenNebulaToken(
-				provider, 
-				tokenValue, 
-				userId, 
-				userName, 
-				signature);
+		CloudToken token = new CloudToken(
+				provider,
+				userId,
+				tokenValue);
 		
 		return token;
 	}

@@ -1,12 +1,14 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.api.http.Network;
 import cloud.fogbow.ras.api.http.PublicIp;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import org.fogbowcloud.ras.core.exceptions.*;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.junit.Assert;
 import org.junit.Before;

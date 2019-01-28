@@ -1,12 +1,16 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +19,7 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,17 +31,21 @@ public class RemoteGetAllImagesRequestTest {
     private RemoteGetAllImagesRequest remoteGetAllImagesRequest;
 
     private HashMap<String, String> imagesMap;
-    private FederationUserToken federationUserToken;
+    private FederationUser federationUser;
 
     private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.federationUserToken = new FederationUserToken("fake-token-provider",
-                "fake-federation-token-value", "fake-user-id", "fake-user-name");
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
+        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
+        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
+        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
+        this.federationUser = new FederationUser(attributes);
 
 
-        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", federationUserToken);
+        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", federationUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
 
@@ -60,7 +69,7 @@ public class RemoteGetAllImagesRequestTest {
 
         // verify
         // as IQ does not implement equals we need a matcher
-        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, "default", federationUserToken);
+        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, "default", federationUser);
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }
