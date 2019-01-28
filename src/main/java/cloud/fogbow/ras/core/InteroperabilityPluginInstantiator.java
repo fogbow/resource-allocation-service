@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PluginFactory;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.SystemConstants;
