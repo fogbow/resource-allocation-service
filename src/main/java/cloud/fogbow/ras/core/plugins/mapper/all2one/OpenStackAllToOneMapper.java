@@ -12,7 +12,7 @@ import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 import java.util.Map;
 
-public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin<CloudToken> {
+public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
     public static final String OPENSTACK_KEYSTONE_V3_ENDPOINT = "openstack_keystone_v3_endpoint";
 
     public OpenStackAllToOneMapper(String confFile) {

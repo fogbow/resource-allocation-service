@@ -7,7 +7,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
-public class OpenNebulaAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin<CloudToken> {
+public class OpenNebulaAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
     public static final String OPENNEBULA_ENDPOINT = "opennebula_endpoint";
 
     public OpenNebulaAllToOneMapper(String confFile) {

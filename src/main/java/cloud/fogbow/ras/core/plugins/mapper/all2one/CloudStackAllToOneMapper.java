@@ -8,7 +8,7 @@ import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
-public class CloudStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin<CloudToken> {
+public class CloudStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
     public static final String CLOUDSTACK_ENDPOINT = "cloudstack_endpoint";
 
     public CloudStackAllToOneMapper(String confFile) {

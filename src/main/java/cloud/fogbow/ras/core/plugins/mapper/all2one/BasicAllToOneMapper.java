@@ -10,7 +10,7 @@ import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import java.util.Map;
 
 public class BasicAllToOneMapper extends GenericAllToOneFederationToLocalMapper
-        implements FederationToLocalMapperPlugin<CloudToken> {
+        implements FederationToLocalMapperPlugin {
     TokenGeneratorPlugin tokenGeneratorPlugin;
 
     public BasicAllToOneMapper(String mapperConfFilePath) throws FatalErrorException {
