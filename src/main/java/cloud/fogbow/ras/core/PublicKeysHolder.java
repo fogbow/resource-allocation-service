@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.core.constants.SystemConstants;
 import org.apache.http.client.HttpResponseException;
 
 import java.security.GeneralSecurityException;
@@ -45,7 +46,7 @@ public class PublicKeysHolder {
     private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix)
             throws UnavailableProviderException, UnexpectedException {
         RSAPublicKey publicKey = null;
-        String endpoint = serviceAddress + ":" + servicePort + "/" + suffix;
+        String endpoint = SystemConstants.HTTP_PROTOCOL + "://" + serviceAddress + ":" + servicePort + "/" + suffix;
         String responseStr = null;
         try {
             responseStr = this.client.doGetRequest(endpoint, new CloudToken("", "", ""));

@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.constants;
 public class SystemConstants {
     public static final String API_VERSION_NUMBER = "3.0.0";
 
+    public static final String HTTP_PROTOCOL = "http";
+
     // CONFIGURATION FILES NAMES
     public static final String RAS_CONF_FILE_NAME = "ras.conf";
     public static final String CLOUDS_CONF_FILE_NAME = "clouds.conf";
