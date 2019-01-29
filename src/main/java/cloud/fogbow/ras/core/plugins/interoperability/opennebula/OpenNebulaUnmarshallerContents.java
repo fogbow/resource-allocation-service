@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,5 +57,20 @@ public class OpenNebulaUnmarshallerContents {
 			LOGGER.error(e); // TODO Fix error message...
 		}
 		return false;
+	}
+	
+	public List<String> getContextListOf(String expression) {
+		List<String> contextList = new ArrayList<>();
+		NodeList nodes;
+		try {
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			nodes = (NodeList) xPath.compile(expression).evaluate(this.document, XPathConstants.NODESET);
+			 for (int i = 0; i < nodes.getLength(); i++) {
+				 contextList.add(nodes.item(i).getTextContent());
+			 }
+		} catch (XPathExpressionException e) {
+			LOGGER.error(e); // TODO Fix error message...
+		}
+		return contextList;
 	}
 }
