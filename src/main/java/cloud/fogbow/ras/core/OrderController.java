@@ -122,7 +122,7 @@ public class OrderController {
         return instanceStatusList;
     }
 
-    private CloudConnector getCloudConnector(Order order) {
+    protected CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         if (order.isProviderLocal(localMemberId)) {

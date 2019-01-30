@@ -197,13 +197,13 @@ public class ApplicationFacade {
         deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
     }
 
-    public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType)
-            throws UnexpectedException, UnauthorizedRequestException, UnavailableProviderException,
-            UnauthenticatedUserException, InvalidTokenException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
-        this.authorizationController.authorize(requester, Operation.GET_ALL.getValue(), resourceType.getValue());
-        return this.orderController.getInstancesStatus(requester, resourceType);
-    }
+	public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType)
+			throws UnexpectedException, UnauthorizedRequestException, UnavailableProviderException,
+			UnauthenticatedUserException, InvalidTokenException {
+		FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+		this.authorizationController.authorize(requester, Operation.GET_ALL.getValue(), resourceType.getValue());
+		return this.orderController.getInstancesStatus(requester, resourceType);
+	}
 
     public Map<String, String> getAllImages(String memberId, String cloudName, String federationTokenValue)
             throws FogbowException {
@@ -330,19 +330,20 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
-    private void authorizeOrder(FederationUser requester, String cloudName, Operation operation, ResourceType type,
-                                Order order) throws UnexpectedException, UnauthorizedRequestException,
-                                InstanceNotFoundException {
-        // Check if requested type matches order type
-        if (!order.getType().equals(type))
-            throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
-        // Check whether requester owns order
-        FederationUser orderOwner = order.getFederationUser();
-        if (!orderOwner.getUserId().equals(requester.getUserId())) {
-            throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
-        }
-        this.authorizationController.authorize(requester, cloudName, operation.getValue(), type.getValue());
-    }
+	protected void authorizeOrder(FederationUser requester, String cloudName, Operation operation, ResourceType type,
+			Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
+		// Check if requested type matches order type
+		if (!order.getType().equals(type))
+			throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+		// Check whether requester owns order
+		FederationUser orderOwner = order.getFederationUser();
+		String ownerUserId = orderOwner.getUserId();
+		String requestUserId = requester.getUserId();
+		if (!ownerUserId.equals(requestUserId)) {
+			throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
+		}
+		this.authorizationController.authorize(requester, cloudName, operation.getValue(), type.getValue());
+	}
 
     public RSAPublicKey getAsPublicKey() throws UnexpectedException, UnavailableProviderException {
         if (this.asPublicKey == null) {
