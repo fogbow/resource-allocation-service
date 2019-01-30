@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.google.gson.Gson;
 import cloud.fogbow.ras.api.http.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -163,7 +164,7 @@ public class VolumeTest {
         return headers;
     }
 
-    private VolumeOrder createVolumeOrder() throws InvalidParameterException {
+    private VolumeOrder createVolumeOrder() throws InvalidParameterException, UnexpectedException {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
         attributes.put(FogbowConstants.USER_ID_KEY, FAKE_ID);

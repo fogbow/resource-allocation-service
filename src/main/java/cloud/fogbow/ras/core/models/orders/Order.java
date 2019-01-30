@@ -16,17 +16,15 @@ import java.util.Map;
 @Table(name = "order_table")
 public abstract class Order implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    private static final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Order.class);
+
     @Column
     @Id
     private String id;
     @Column
     @Enumerated(EnumType.STRING)
     private OrderState orderState;
-    //  ToDO Fix this
-    //@JoinColumn
-    //@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @Transient
-    private FederationUser federationUser;
     @Column
     private String requester;
     @Column
@@ -41,6 +39,18 @@ public abstract class Order implements Serializable {
     @MapKeyColumn
     @Column
     private Map<String, String> requirements = new HashMap<>();
+
+    @Transient
+    private FederationUser federationUser;
+
+    @Column
+    private String userId;
+    @Column
+    private String identityProvider;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn
+    @Column
+    private Map<String, String> federationUserAttributes = new HashMap<>();
 
     public Order() {
     }
@@ -57,8 +67,13 @@ public abstract class Order implements Serializable {
 
     public Order(String id, String provider, String cloudName, FederationUser federationUser, String requester) {
         this(id, provider, cloudName);
-        this.federationUser = federationUser;
         this.requester = requester;
+
+        try {
+            setFederationUser(federationUser);
+        } catch (UnexpectedException e) {
+            LOGGER.fatal(e.getMessage(), e);
+        }
     }
 
     public String getId() {
@@ -90,10 +105,16 @@ public abstract class Order implements Serializable {
     }
 
     public FederationUser getFederationUser() {
+        if (this.federationUser == null) {
+            this.federationUser = new FederationUser(this.federationUserAttributes);
+        }
         return this.federationUser;
     }
 
-    public void setFederationUser(FederationUser federationUser) {
+    public void setFederationUser(FederationUser federationUser) throws UnexpectedException {
+        this.userId = federationUser.getUserId();
+        this.identityProvider = federationUser.getTokenProvider();
+        this.federationUserAttributes = federationUser.getAttributes();
         this.federationUser = federationUser;
     }
 
