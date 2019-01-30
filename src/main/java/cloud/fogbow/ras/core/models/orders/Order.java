@@ -112,10 +112,12 @@ public abstract class Order implements Serializable {
     }
 
     public void setFederationUser(FederationUser federationUser) throws UnexpectedException {
-        this.userId = federationUser.getUserId();
-        this.identityProvider = federationUser.getTokenProvider();
-        this.federationUserAttributes = federationUser.getAttributes();
         this.federationUser = federationUser;
+        if (federationUser != null) {
+            this.userId = federationUser.getUserId();
+            this.identityProvider = federationUser.getTokenProvider();
+            this.federationUserAttributes = federationUser.getAttributes();
+        }
     }
 
     public String getRequester() {
