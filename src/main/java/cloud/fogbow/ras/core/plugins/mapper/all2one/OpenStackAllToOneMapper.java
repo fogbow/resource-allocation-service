@@ -13,17 +13,15 @@ import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import java.util.Map;
 
 public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
-    public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
 
     public OpenStackAllToOneMapper(String confFile) {
         super(confFile);
         String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
                 DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         HttpRequestClientUtil client =  new HttpRequestClientUtil(new Integer(timeoutStr));
-        String endpoint = PropertiesHolder.getInstance().getProperty(OPENSTACK_KEYSTONE_V3_URL)
-                + OpenStackConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
+        String serviceUrl = super.getTokenGeneratorUrl() + OpenStackConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
-        this.tokenGeneratorPlugin = new OpenStackTokenGeneratorPlugin(client, endpoint, provider);
+        this.tokenGeneratorPlugin = new OpenStackTokenGeneratorPlugin(client, serviceUrl, provider);
     }
 
     @Override
