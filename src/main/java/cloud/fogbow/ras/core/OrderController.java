@@ -40,7 +40,9 @@ public class OrderController {
     }
 
     public void deleteOrder(String orderId) throws FogbowException {
-        if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
+        if (orderId == null) 
+        	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
+        
         Order order = getOrder(orderId);
         synchronized (order) {
             OrderState orderState = order.getOrderState();
@@ -61,7 +63,9 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(String orderId) throws FogbowException, UnexpectedException {
-        if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
+        if (orderId == null) 
+        	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
+        
         Order order = getOrder(orderId);
         synchronized (order) {
             CloudConnector cloudConnector = getCloudConnector(order);
@@ -94,50 +98,61 @@ public class OrderController {
         }
     }
 
-    public List<InstanceStatus> getInstancesStatus(FederationUser federationUser, ResourceType resourceType) {
-        List<InstanceStatus> instanceStatusList = new ArrayList<>();
-        List<Order> allOrders = getAllOrders(federationUser, resourceType);
+	public List<InstanceStatus> getInstancesStatus(FederationUser federationUser, ResourceType resourceType) {
+		List<InstanceStatus> instanceStatusList = new ArrayList<>();
+		List<Order> allOrders = getAllOrders(federationUser, resourceType);
 
-        for (Order order : allOrders) {
-            String name = null;
+		for (Order order : allOrders) {
+			String name = null;
 
-            switch (resourceType) {
-                case COMPUTE:
-                    name = ((ComputeOrder) order).getName();
-                    break;
-                case VOLUME:
-                    name = ((VolumeOrder) order).getName();
-                    break;
-                case NETWORK:
-                    name = ((NetworkOrder) order).getName();
-                    break;
-            }
+			switch (resourceType) {
+			case COMPUTE:
+				name = ((ComputeOrder) order).getName();
+				break;
+			case VOLUME:
+				name = ((VolumeOrder) order).getName();
+				break;
+			case NETWORK:
+				name = ((NetworkOrder) order).getName();
+				break;
+			default:
+				break;
+			}
 
-            // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvider(),
-                    order.getCloudName(), order.getCachedInstanceState());
-            instanceStatusList.add(instanceStatus);
-        }
+			// The state of the instance can be inferred from the state of the order
+			InstanceStatus instanceStatus = new InstanceStatus(
+					order.getId(), 
+					name, 
+					order.getProvider(),
+					order.getCloudName(), 
+					order.getCachedInstanceState());
+			
+			instanceStatusList.add(instanceStatus);
+		}
 
-        return instanceStatusList;
-    }
+		return instanceStatusList;
+	}
 
     protected CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        
         if (order.isProviderLocal(localMemberId)) {
             provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
         } else {
             if (order.getOrderState().equals(OrderState.OPEN) ||
                     order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
-            // This is an order for a remote provider that has never been received by that provider.
-            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
-            // necessary to call deleteInstance in the local member.
+            
+            	// This is an order for a remote provider that has never been received by that provider.
+            	// Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is 
+            	// only necessary to call deleteInstance in the local member.
                 provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
+            
             } else {
                 provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
             }
         }
+
 //        if (!order.getProvider().equals(order.getRequester()) &&
 //                (order.getOrderState().equals(OrderState.OPEN) ||
 //                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
@@ -148,6 +163,7 @@ public class OrderController {
 //        } else {
 //            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
 //        }
+        
         return provider;
     }
 
@@ -166,19 +182,19 @@ public class OrderController {
         return new ComputeAllocation(vCPU, ram, instances);
     }
 
-    private List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {
-        Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
+	private List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {
+		Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
-        // Filter all orders of resourceType from federationUserToken that are not closed (closed orders have been deleted by
-        // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
-        // process them).
-        List<Order> requestedOrders =
-                orders.stream()
-                        .filter(order -> order.getType().equals(resourceType))
-                        .filter(order -> order.getFederationUser().equals(federationUser))
-                        .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
-                        .collect(Collectors.toList());
-        return requestedOrders;
-    }
+		// Filter all orders of resourceType from federationUserToken that are not
+		// closed (closed orders have been deleted by the user and should not be seen;
+		// they will disappear from the system as soon as the closedProcessor thread
+		// process them).
+		List<Order> requestedOrders = orders.stream()
+				.filter(order -> order.getType().equals(resourceType))
+				.filter(order -> order.getFederationUser().equals(federationUser))
+				.filter(order -> !order.getOrderState().equals(OrderState.CLOSED)).collect(Collectors.toList());
+
+		return requestedOrders;
+	}
 }
 
