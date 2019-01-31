@@ -36,7 +36,7 @@ public class RemoteGetOrderRequestHandlerTest {
     private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <query xmlns=\"remoteGetOrder\">\n"
             + "    <instance>{\"id\":\"fake-instance-id\"}</instance>\n"
-            + "    <instanceClassName>org.fogbowcloud.ras.core.models.instances.Instance</instanceClassName>\n"
+            + "    <instanceClassName>cloud.fogbow.ras.core.models.instances.Instance</instanceClassName>\n"
             + "  </query>\n" + "</iq>";
 
     private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
@@ -103,7 +103,7 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up
-        FederationUser federationUser = null;
+        FederationUser federationUser = new FederationUser(new HashMap<>());
         Order order = createOrder(federationUser);
         String orderId = order.getId();
 
