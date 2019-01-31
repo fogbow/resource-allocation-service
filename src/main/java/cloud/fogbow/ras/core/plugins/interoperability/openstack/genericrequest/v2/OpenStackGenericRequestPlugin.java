@@ -24,7 +24,7 @@ public class OpenStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin
 
         headers.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
         return getClient().doGenericRequest(genericRequest.getMethod(), genericRequest.getUrl(),
-                headers, genericRequest.getBody());
+                headers, genericRequest.getBody(), token);
     }
 
     @Override
