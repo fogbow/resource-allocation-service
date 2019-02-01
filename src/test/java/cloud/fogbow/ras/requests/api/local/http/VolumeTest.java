@@ -2,6 +2,7 @@ package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.api.http.CommonKeys;
 import com.google.gson.Gson;
 import cloud.fogbow.ras.api.http.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -158,8 +159,7 @@ public class VolumeTest {
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(Volume.FEDERATION_TOKEN_VALUE_HEADER_KEY,
-                FAKE_FEDERATION_TOKEN_VALUE);
+        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, FAKE_FEDERATION_TOKEN_VALUE);
 
         return headers;
     }

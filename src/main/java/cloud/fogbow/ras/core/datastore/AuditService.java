@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderStateChangeRepository;
 import cloud.fogbow.ras.core.models.auditing.AuditableSyncRequest;
-import cloud.fogbow.ras.core.datastore.orderstorage.AuditedOrderStateChange;
+import cloud.fogbow.ras.core.datastore.orderstorage.AuditableOrderStateChange;
 import cloud.fogbow.ras.core.datastore.orderstorage.SyncRequestRepository;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +21,8 @@ public class AuditService {
 
     public void registerStateChange(Order order) {
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-        AuditedOrderStateChange auditedOrderStateChange = new AuditedOrderStateChange(currentTimestamp, order, order.getOrderState());
-        this.orderTimestampRepository.save(auditedOrderStateChange);
+        AuditableOrderStateChange auditableOrderStateChange = new AuditableOrderStateChange(currentTimestamp, order, order.getOrderState());
+        this.orderTimestampRepository.save(auditableOrderStateChange);
     }
 
     public void registerSyncRequest(AuditableSyncRequest request) {

@@ -14,27 +14,24 @@ import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
+import java.util.Map;
 
 public class CloudStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin {
 
+    public static final String CLOUDSTACK_HTTP_METHOD = "GET";
+
     @Override
     public GenericRequestHttpResponse redirectGenericRequest(GenericRequest genericRequest, CloudToken token) throws FogbowException {
-        String url = genericRequest.getUrl();
-        BasicHttpRequest request = new BasicHttpRequest(genericRequest.getMethod(), url);
-        for (String headerKey : genericRequest.getHeaders().keySet()) {
-            request.setHeader(headerKey, genericRequest.getHeaders().get(headerKey));
-        }
-
         try {
-            URIBuilder uriBuilder = new URIBuilder(url);
+            URIBuilder uriBuilder = new URIBuilder(genericRequest.getUrl());
             CloudStackUrlUtil.sign(uriBuilder, token.getTokenValue());
-            try {
-                return new GenericRequestHttpResponse(getClient().doGetRequest(uriBuilder.toString(), token), HttpStatus.OK.value());
-            } catch (HttpResponseException e) {
-                return new GenericRequestHttpResponse(e.getMessage(), e.getStatusCode());
-            }
+
+            String url = uriBuilder.toString();
+            Map<String, String> headers = genericRequest.getHeaders();
+            Map<String, String> body = genericRequest.getBody();
+            return getClient().doGenericRequest(CLOUDSTACK_HTTP_METHOD, url, headers, body, token);
         } catch (URISyntaxException e) {
-            throw new FogbowException(String.format(Messages.Exception.MALFORMED_GENERIC_REQUEST_URL, url));
+            throw new FogbowException(String.format(Messages.Exception.MALFORMED_GENERIC_REQUEST_URL, genericRequest.getUrl()));
         }
     }
 

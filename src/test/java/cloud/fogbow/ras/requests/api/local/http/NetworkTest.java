@@ -2,6 +2,7 @@ package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.Network;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -142,7 +143,7 @@ public class NetworkTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(Network.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 

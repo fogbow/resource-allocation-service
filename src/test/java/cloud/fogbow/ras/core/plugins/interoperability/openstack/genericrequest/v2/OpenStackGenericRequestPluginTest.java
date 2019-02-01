@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
@@ -56,7 +57,7 @@ public class OpenStackGenericRequestPluginTest {
         // set up
         ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
         Mockito.doReturn(null).when(auditableHttpRequestClientMock).doGenericRequest(Mockito.anyString(),
-                Mockito.anyString(), argumentCaptor.capture(), Mockito.anyMap());
+                Mockito.anyString(), argumentCaptor.capture(), Mockito.anyMap(), Mockito.any(CloudToken.class));
 
         // exercise
         plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3Token.class));
@@ -64,7 +65,7 @@ public class OpenStackGenericRequestPluginTest {
         Assert.assertTrue(argumentCaptor.getValue().size() == 2);
         Assert.assertTrue(argumentCaptor.getValue().containsKey(HttpRequestUtil.X_AUTH_TOKEN_KEY));
         Mockito.verify(auditableHttpRequestClientMock, Mockito.times(1)).doGenericRequest(
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap());
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap(), Mockito.any(CloudToken.class));
     }
 
     private GenericRequest createGenericRequest() {

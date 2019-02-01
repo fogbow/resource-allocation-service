@@ -17,29 +17,31 @@ public class AuditableSyncRequest {
     private Timestamp timestamp;
 
     @Column
-    @Enumerated(EnumType.STRING)
-    private ResourceType resourceType;
+    private final String endpoint;
 
     @Column
-    @Enumerated(EnumType.STRING)
-    private Operation operation;
+    private final String userId;
 
-    public AuditableSyncRequest(Timestamp timestamp, ResourceType resourceType, Operation operation) {
-        this.timestamp = timestamp;
-        this.resourceType = resourceType;
-        this.operation = operation;
+    @Column
+    private final String tokenProviderId;
+
+    @Column
+    private final String tokenValue;
+
+    @Column
+    private String response;
+
+    public AuditableSyncRequest(Timestamp currentTimestamp, String endpoint, String userId, String tokenProviderId, String tokenValue, String response) {
+        this.timestamp = currentTimestamp;
+        this.endpoint = endpoint;
+        this.userId = userId;
+        this.tokenProviderId = tokenProviderId;
+        this.tokenValue = tokenValue;
+        this.response = response;
     }
 
     public Timestamp getTimestamp() {
         return timestamp;
-    }
-
-    public ResourceType getResourceType() {
-        return resourceType;
-    }
-
-    public Operation getOperation() {
-        return operation;
     }
 
     public enum Operation {

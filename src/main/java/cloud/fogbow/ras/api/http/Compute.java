@@ -31,8 +31,6 @@ public class Compute {
     public static final String STATUS_ENDPOINT = "status";
     public static final String QUOTA_ENDPOINT = "quota";
     public static final String ALLOCATION_ENDPOINT = "allocation";
-    public static final String CLOUD_NAME_HEADER_KEY = "cloudName";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "compute";
 
     private final Logger LOGGER = Logger.getLogger(Compute.class);
@@ -44,7 +42,7 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.Compute.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Compute compute,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -69,7 +67,7 @@ public class Compute {
     @RequestMapping(value = "/" + STATUS_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
             UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
         try {
@@ -89,7 +87,7 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -108,7 +106,7 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -129,7 +127,7 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -150,7 +148,7 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {

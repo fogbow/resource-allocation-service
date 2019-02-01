@@ -24,7 +24,6 @@ import java.util.List;
 public class Volume {
 
     public static final String VOLUME_ENDPOINT = "volumes";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "volume";
 
     private final Logger LOGGER = Logger.getLogger(Volume.class);
@@ -35,7 +34,7 @@ public class Volume {
             @ApiParam(value = ApiDocumentation.Volume.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Volume volume,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -52,7 +51,7 @@ public class Volume {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllVolumesStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
             UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
 
@@ -73,7 +72,7 @@ public class Volume {
             @ApiParam(value = ApiDocumentation.Volume.ID)
             @PathVariable String volumeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -92,7 +91,7 @@ public class Volume {
             @ApiParam(value = ApiDocumentation.Volume.ID)
             @PathVariable String volumeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {

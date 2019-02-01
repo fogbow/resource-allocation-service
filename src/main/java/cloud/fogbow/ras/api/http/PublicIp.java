@@ -25,7 +25,6 @@ import java.util.List;
 public class PublicIp {
 
     public static final String PUBLIC_IP_ENDPOINT = "publicIps";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "publicip";
 
     public static final String SECURITY_RULES_ENDPOINT = "securityRules";
@@ -39,7 +38,7 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.PublicIp publicIp,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -58,7 +57,7 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -78,7 +77,7 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -95,7 +94,7 @@ public class PublicIp {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllPublicIpStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
             UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
 
@@ -118,7 +117,7 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_REQUEST_BODY)
             @RequestBody SecurityRule securityRule,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -138,7 +137,7 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -160,7 +159,7 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.PublicIp.SECURITY_RULE_ID)
             @PathVariable String ruleId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
