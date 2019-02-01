@@ -3,8 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.genericrequest;
 public class GenericRequestHttpResponse extends GenericRequestResponse {
     private int httpCode;
 
-    public GenericRequestHttpResponse(String actualResponse, int httpCode) {
-        super(actualResponse);
+    public GenericRequestHttpResponse(String content, int httpCode) {
+        super(content);
         this.httpCode = httpCode;
     }
 
