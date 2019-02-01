@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.Network;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -145,7 +146,7 @@ public class NetworkTest {
         return headers;
     }
 
-    private NetworkOrder createNetworkOrder() {
+    private NetworkOrder createNetworkOrder() throws UnexpectedException {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
         attributes.put(FogbowConstants.USER_ID_KEY, "fake-user");

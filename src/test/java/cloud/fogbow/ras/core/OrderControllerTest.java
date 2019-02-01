@@ -112,7 +112,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
     // were added on the lists.
     @Test
-    public void testGetAllInstancesStatus() throws InvalidParameterException {
+    public void testGetAllInstancesStatus() throws InvalidParameterException, UnexpectedException {
         // set up
         Map<String, String> attributes = new HashMap<>();
         attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
@@ -483,7 +483,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder(orderId);
     }
 
-    private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException {
+    private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException, UnexpectedException {
         String orderId;
         Map<String, String> attributes = new HashMap<>();
         attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");

@@ -71,7 +71,7 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
-            UnauthenticatedUserException, UnauthorizedRequestException {
+            UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> computeInstanceStatus =

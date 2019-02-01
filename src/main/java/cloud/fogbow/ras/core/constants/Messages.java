@@ -19,6 +19,7 @@ public class Messages {
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_PUBLIC_KEY = "Invalid public key fetched from external server.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
+        public static final String INVALID_URL = "Please check the url: %s.";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";

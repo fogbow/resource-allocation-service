@@ -8,10 +8,15 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.Map;
+import java.util.Scanner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.auditing.AuditableSyncRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
@@ -35,34 +40,45 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
 
     @Override
     public String doGetRequest(String endpoint, CloudToken token) throws UnavailableProviderException, HttpResponseException {
-        return super.doGetRequest(endpoint, token);
+        String response = super.doGetRequest(endpoint, token);
+        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response);
+        return response;
     }
 
     @Override
     public String doPostRequest(String endpoint, CloudToken token, String body)
             throws UnavailableProviderException, HttpResponseException {
-        return super.doPostRequest(endpoint, token, body);
+        String response = super.doPostRequest(endpoint, token, body);
+        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response);
+        return response;
     }
 
     @Override
     public void doDeleteRequest(String endpoint, CloudToken token)
             throws UnavailableProviderException, HttpResponseException {
+        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), null);
         super.doDeleteRequest(endpoint, token);
     }
 
     @Override
     public HttpRequestClientUtil.Response doPostRequest(String endpoint, String body)
             throws HttpResponseException, UnavailableProviderException {
-        return super.doPostRequest(endpoint, body);
+        Response response = super.doPostRequest(endpoint, body);
+        auditRequest(endpoint, null, null, null, response.getContent());
+        return response;
     }
 
     @Override
     public String doPutRequest(String endpoint, CloudToken token, JSONObject json)
             throws HttpResponseException, UnavailableProviderException {
-        return super.doPutRequest(endpoint, token, json);
+        String response = super.doPutRequest(endpoint, token, json);
+        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response);
+        return response;
     }
 
-    public GenericRequestHttpResponse doGenericRequest(String method, String urlString, Map<String, String> headers, Map<String, String> body) throws FogbowException {
+    public GenericRequestHttpResponse doGenericRequest(String method, String urlString,
+            Map<String, String> headers, Map<String, String> body, CloudToken token)
+            throws FogbowException {
         try {
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -90,7 +106,9 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
             }
             in.close();
 
-            return new GenericRequestHttpResponse(responseBuffer.toString(), responseCode);
+            GenericRequestHttpResponse response = new GenericRequestHttpResponse(responseBuffer.toString(), responseCode);
+            auditRequest(urlString, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response.getContent());
+            return response;
         } catch (ProtocolException e) {
             throw new FogbowException("", e);
         } catch (MalformedURLException e) {
@@ -98,6 +116,12 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
         } catch (IOException e) {
             throw new FogbowException("", e);
         }
+    }
+
+    private void auditRequest(String endpoint, String userId, String tokenProviderId, String tokenValue, String response) {
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+        AuditableSyncRequest auditableSyncRequest = new AuditableSyncRequest(currentTimestamp, endpoint, userId, tokenProviderId, tokenValue, response);
+        DatabaseManager.getInstance().auditRequest(auditableSyncRequest);
     }
 
     private void addHeadersIntoConnection(HttpURLConnection connection, Map<String, String> headers) {

@@ -32,6 +32,7 @@ public class ConfigurationConstants {
     public static final String SECURITY_RULE_PLUGIN_CLASS_KEY = "security_rule_plugin_class";
     public static final String LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY =
             "local_user_credentials_mapper_plugin_class";
+    public static final String TOKEN_GENERATOR_URL_KEY = "token_generator_url";
 
     // AS configuration
     public static final String AS_PORT_KEY = "as_port";

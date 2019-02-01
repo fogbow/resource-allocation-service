@@ -4,6 +4,12 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.AuditService;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -25,7 +31,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -451,6 +463,8 @@ public class OpenStackNetworkPluginTest {
     @Test
     public void testGetInstanceFromJson() throws JSONException, IOException, FogbowException {
         //set up
+        DatabaseManager.getInstance().setAuditService(Mockito.mock(AuditService.class));
+
         String networkId = "networkId00";
         String networkName = "netName";
         String subnetId = "subnetId00";

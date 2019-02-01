@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
@@ -19,14 +20,12 @@ public abstract class GenericAllToOneFederationToLocalMapper implements Federati
 
     private static final String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
     private Map<String, String> credentials;
+    private String tokenGeneratorUrl;
 
     public GenericAllToOneFederationToLocalMapper(String mapperConfFilePath) throws FatalErrorException {
-        this.loadCredentials(mapperConfFilePath);
-    }
-
-    public void loadCredentials(String confFilePath) {
-        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        Properties properties = PropertiesUtil.readProperties(mapperConfFilePath);
         this.credentials = getLocalTokenCredentials(properties);
+        this.tokenGeneratorUrl = properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_URL_KEY);
     }
 
     @Override
@@ -79,5 +78,9 @@ public abstract class GenericAllToOneFederationToLocalMapper implements Federati
 
     private String normalizeKeyProperties(String keyPropertiesStr) {
         return keyPropertiesStr.replace(LOCAL_TOKEN_CREDENTIALS_PREFIX, "");
+    }
+
+    public String getTokenGeneratorUrl() {
+        return tokenGeneratorUrl;
     }
 }
