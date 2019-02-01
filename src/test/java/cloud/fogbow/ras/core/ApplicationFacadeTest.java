@@ -16,6 +16,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.InvalidTokenException;
@@ -68,15 +69,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private static final String FAKE_IMAGE_NAME = "fake-image-name";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 	private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-	private static final String FAKE_MEMBER_ID = "fake-member-id";
-	private static final String FAKE_NAME = "fake-name";
+	private static final String FAKE_MEMBER_ID_VALUE = "fake-member-id";
+	private static final String FAKE_NAME_VALUE = "fake-name";
 	private static final String FAKE_RULE_ID = "fake-rule-id";
 	private static final String FAKE_SOURCE_ID = "fake-source-id";
 	private static final String FAKE_TARGET_ID = "fake-target-id";
 	private static final String FAKE_USER_ID_VALUE = "fake-user-id";
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
 	private static final String ID_KEY = "id";
+	private static final String NAME_KEY = "name";
+	private static final String PROVIDER_KEY = "provider";
 	private static final String TESTING_MODE_BUILD_NUMBER_FORMAT = "%s-[testing mode]";
+	private static final String TOKEN_KEY = "token";
 	private static final String VALID_PATH_CONF = "ras.conf";
 	private static final String VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY = "ras-without-build-number.conf";
 
@@ -85,29 +89,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private static final int MEMORY_VALUE = 2;
 
 	private ApplicationFacade facade;
-	private LocalCloudConnector localCloudConnector;
-	private Map<String, Order> activeOrdersMap;
 	private OrderController orderController;
-	private SecurityRuleController securityRuleController;
 
 	@Before
 	public void setUp() throws UnexpectedException {
 		super.mockReadOrdersFromDataBase();
-
-		this.facade = ApplicationFacade.getInstance();
-
 		this.orderController = Mockito.spy(new OrderController());
+		this.facade = Mockito.spy(ApplicationFacade.getInstance());
 		this.facade.setOrderController(this.orderController);
-
-		this.securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(this.securityRuleController);
-
-		PowerMockito.mockStatic(CloudConnectorFactory.class);
-
-		this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-
-		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-		this.activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
 	}
 
 	// test case: When calling the setBuildNumber method, it must generate correct
@@ -179,9 +168,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testCreateComputeOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
-		FederationUser federationUser = mockFederationUserAuthenticate(keyRSA);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String publicKey = FAKE_PUBLIC_KEY;
@@ -201,10 +192,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.createCompute(order, FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -220,10 +208,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetComputeOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String publicKey = FAKE_PUBLIC_KEY;
@@ -245,10 +234,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		ComputeInstance instance = this.facade.getCompute(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -269,10 +255,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	public void testDeleteComputeOrder() throws Exception {
 
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String publicKey = FAKE_PUBLIC_KEY;
@@ -298,10 +285,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteCompute(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -320,10 +304,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAllComputeOrdersInstancesStatus() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String publicKey = FAKE_PUBLIC_KEY;
@@ -340,10 +325,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				ResourceType.COMPUTE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -362,9 +344,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testCreateVolumeOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
-		FederationUser federationUser = mockFederationUserAuthenticate(keyRSA);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -380,10 +364,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.createVolume(order, FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -399,10 +380,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetVolumeOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -420,10 +402,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		VolumeInstance instance = this.facade.getVolume(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -444,10 +423,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	public void testDeleteVolumeOrder() throws Exception {
 
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -469,10 +449,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteVolume(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -491,10 +468,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAllVolumeOrdersInstancesStatus() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -507,10 +485,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				ResourceType.VOLUME);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -529,9 +504,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testCreateNetworkOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
-		FederationUser federationUser = mockFederationUserAuthenticate(keyRSA);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -547,10 +524,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.createNetwork(order, FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -566,10 +540,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetNetworkOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -587,10 +562,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		NetworkInstance instance = this.facade.getNetwork(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -610,10 +582,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testDeleteNetworkOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -635,10 +608,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteNetwork(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -657,10 +627,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAllNetworkOrdersInstancesStatus() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -673,10 +644,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				ResourceType.NETWORK);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -691,14 +659,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	// test case: When calling the createAttachment method with a new order passed
-	// by
-	// parameter, it must return its OrderState OPEN after the activation.
+	// by parameter, it must return its OrderState OPEN after the activation.
 	@Test
 	public void testCreateAttachmentOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
-		FederationUser federationUser = mockFederationUserAuthenticate(keyRSA);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -714,10 +683,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.createAttachment(order, FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -733,10 +699,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAttachmentOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -754,10 +721,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AttachmentInstance instance = this.facade.getAttachment(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -777,10 +741,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testDeleteAttachmentOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -802,10 +767,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteAttachment(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -824,10 +786,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAllAttachmentOrdersInstancesStatus() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -840,10 +803,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				ResourceType.ATTACHMENT);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -862,9 +822,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testCreatePublicIpOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
-		FederationUser federationUser = mockFederationUserAuthenticate(keyRSA);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -880,10 +842,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.createPublicIp(order, FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -899,10 +858,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetPublicIpOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -920,10 +880,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PublicIpInstance instance = this.facade.getPublicIp(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -943,10 +900,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testDeletePublicIpOrder() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -968,10 +926,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deletePublicIp(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -987,10 +942,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAllPublicIpOrdersInstancesStatus() throws Exception {
 		// set up
-		PublicKeysHolder pkHolder = mockPublicKeyHolder();
-		RSAPublicKey keyRSA = mockRSAPublicKey(pkHolder);
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+		
 		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = spyFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1003,10 +959,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				ResourceType.PUBLIC_IP);
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -1147,18 +1100,203 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 	}
 	
+	// test case: Creating a security rule for a public IP via its endpoint, it must
+	// return the rule id.
+	@Test
+	public void testCreateSecurityRuleForPublicIp() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		AuthorizationController authorization = mockAuthorizationController(federationUser);
+
+		PublicIpOrder order = spyPublicIpOrder(federationUser);
+		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+
+		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
+		this.facade.setSecurityRuleController(securityRuleController);
+
+		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
+		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
+
+		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+		Mockito.doReturn(FAKE_INSTANCE_ID).when(cloudConnector).requestSecurityRule(order, securityRule,
+				federationUser);
+
+		// exercise
+		this.facade.createSecurityRule(order.getId(), securityRule, FAKE_FEDERATION_TOKEN_VALUE,
+				ResourceType.PUBLIC_IP);
+
+		// verify
+		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(cloudConnector, Mockito.times(1)).requestSecurityRule(Mockito.any(), Mockito.eq(securityRule),
+				Mockito.eq(federationUser));
+	}
+
+	// test case: Creating a security rule for a network via its endpoint, it must
+	// return the rule id.
+	@Test
+	public void testCreateSecurityRuleForNetwork() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		AuthorizationController authorization = mockAuthorizationController(federationUser);
+		
+		NetworkOrder order = spyNetworkOrder(federationUser);
+		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+
+		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
+		this.facade.setSecurityRuleController(securityRuleController);
+
+		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
+		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
+		
+		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+		Mockito.doReturn(FAKE_INSTANCE_ID).when(cloudConnector).requestSecurityRule(order, securityRule,
+				federationUser);
+
+		// exercise
+		this.facade.createSecurityRule(order.getId(), securityRule, FAKE_FEDERATION_TOKEN_VALUE,
+				ResourceType.NETWORK);
+
+		// verify
+		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(cloudConnector, Mockito.times(1)).requestSecurityRule(Mockito.any(), Mockito.eq(securityRule),
+				Mockito.eq(federationUser));
+	}
+
+	// test case: Get all security rules for a public IP via its endpoint, it must
+	// return a list of rules.
+	@Test
+	public void testGetSecurityRuleForPublicIp() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		AuthorizationController authorization = mockAuthorizationController(federationUser);
+
+		PublicIpOrder order = spyPublicIpOrder(federationUser);
+		Mockito.doReturn(order).when(orderController).getOrder(Mockito.anyString());
+
+		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
+		this.facade.setSecurityRuleController(securityRuleController);
+
+		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
+		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
+
+		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+
+		List<SecurityRule> securityRulesExpected = new ArrayList<>();
+		securityRulesExpected.add(securityRule);
+
+		Mockito.doReturn(securityRulesExpected).when(cloudConnector).getAllSecurityRules(order, federationUser);
+
+		// exercise
+		List<SecurityRule> securityRules = this.facade.getAllSecurityRules(order.getId(), FAKE_FEDERATION_TOKEN_VALUE,
+				ResourceType.PUBLIC_IP);
+
+		// verify
+		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(cloudConnector, Mockito.times(1)).getAllSecurityRules(Mockito.any(), Mockito.eq(federationUser));
+
+		Assert.assertEquals(securityRulesExpected, securityRules);
+	}
+
+	// test case: Get all security rules for a network via its endpoint, it must
+	// return a list of rules.
+	@Test
+	public void testGetSecurityRuleForNetwork() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		Map<String, String> attributes = putUserIdAttribute();
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		AuthorizationController authorization = mockAuthorizationController(federationUser);
+		
+		NetworkOrder order = spyNetworkOrder(federationUser);
+		Mockito.doReturn(order).when(orderController).getOrder(Mockito.anyString());
+
+		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
+		this.facade.setSecurityRuleController(securityRuleController);
+
+		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
+		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
+		
+		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+
+		List<SecurityRule> securityRulesExpected = new ArrayList<>();
+		securityRulesExpected.add(securityRule);
+
+		Mockito.doReturn(securityRulesExpected).when(cloudConnector).getAllSecurityRules(order, federationUser);
+
+		// exercise
+		List<SecurityRule> securityRules = this.facade.getAllSecurityRules(order.getId(), FAKE_FEDERATION_TOKEN_VALUE,
+				ResourceType.NETWORK);
+
+		// verify
+		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(cloudConnector, Mockito.times(1)).getAllSecurityRules(Mockito.any(), Mockito.eq(federationUser));
+
+		Assert.assertEquals(securityRulesExpected, securityRules);
+	}
+	
 	// FIXME put on top the tests verified...
 
 	private PublicIpOrder spyPublicIpOrder(FederationUser federationUser) {
 		ComputeOrder computeOrder = new ComputeOrder();
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
-		this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
+		
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		Map<String, Order> activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
+		activeOrdersMap.put(computeOrder.getId(), computeOrder);
+		
 		String computeOrderId = computeOrder.getId();
-
 		PublicIpOrder order = Mockito.spy(
 				new PublicIpOrder(federationUser, 
-						FAKE_MEMBER_ID, 
+						FAKE_MEMBER_ID_VALUE, 
 						FAKE_FEDERATION_TOKEN_VALUE,
 						DEFAULT_CLOUD_NAME, 
 						computeOrderId));
@@ -1170,18 +1308,21 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		ComputeOrder computeOrder = new ComputeOrder();
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
-		this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-		String computeOrderId = computeOrder.getId();
-
+		
 		VolumeOrder volumeOrder = new VolumeOrder();
 		VolumeInstance volumeInstance = new VolumeInstance(FAKE_TARGET_ID);
 		volumeOrder.setInstanceId(volumeInstance.getId());
-		this.activeOrdersMap.put(volumeOrder.getId(), volumeOrder);
+		
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		Map<String, Order> activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
+		activeOrdersMap.put(computeOrder.getId(), computeOrder);
+		activeOrdersMap.put(volumeOrder.getId(), volumeOrder);
+		
+		String computeOrderId = computeOrder.getId();
 		String volumeOrderId = volumeOrder.getId();
-
 		AttachmentOrder order = Mockito.spy(
 				new AttachmentOrder(federationUser, 
-						FAKE_MEMBER_ID, 
+						FAKE_MEMBER_ID_VALUE, 
 						FAKE_FEDERATION_TOKEN_VALUE,
 						DEFAULT_CLOUD_NAME, 
 						computeOrderId, 
@@ -1194,10 +1335,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private NetworkOrder spyNetworkOrder(FederationUser federationUser) {
 		NetworkOrder order = Mockito.spy(
 				new NetworkOrder(federationUser, 
-						FAKE_MEMBER_ID, 
+						FAKE_MEMBER_ID_VALUE, 
 						FAKE_FEDERATION_TOKEN_VALUE,
 						DEFAULT_CLOUD_NAME, 
-						FAKE_NAME, 
+						FAKE_NAME_VALUE, 
 						FAKE_GATEWAY, 
 						FAKE_ADDRESS, 
 						NetworkAllocationMode.STATIC));
@@ -1208,7 +1349,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private VolumeOrder spyVolumeOrder(FederationUser federationUser) {
 		VolumeOrder order = Mockito.spy(
 				new VolumeOrder(federationUser, 
-						FAKE_MEMBER_ID, 
+						FAKE_MEMBER_ID_VALUE, 
 						FAKE_FEDERATION_TOKEN_VALUE,
 						DEFAULT_CLOUD_NAME, 
 						FAKE_VOLUME_NAME, 
@@ -1238,15 +1379,16 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	private CloudConnectorFactory mockCloudConnectorFactory() {
+		PowerMockito.mockStatic(CloudConnectorFactory.class);
 		CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 		PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
 		return cloudConnectorFactory;
 	}
 
-	private FederationUser spyFederationUserAuthenticate(RSAPublicKey keyRSA, Map<String, String> attributes)
+	private FederationUser createFederationUserAuthenticate(RSAPublicKey keyRSA, Map<String, String> attributes)
 			throws UnauthenticatedUserException, InvalidTokenException {
 
-		FederationUser federationUser = Mockito.spy(new FederationUser(attributes));
+		FederationUser federationUser = new FederationUser(attributes);
 		PowerMockito.mockStatic(AuthenticationUtil.class);
 		PowerMockito.when(AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString()))
 				.thenReturn(federationUser);
@@ -1256,7 +1398,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	private Map<String, String> putUserIdAttribute() {
 		Map<String, String> attributes = new HashMap<>();
+		attributes.put(PROVIDER_KEY, FAKE_MEMBER_ID_VALUE);
 		attributes.put(ID_KEY, FAKE_USER_ID_VALUE);
+		attributes.put(NAME_KEY, FAKE_NAME_VALUE);
+		attributes.put(TOKEN_KEY, FAKE_FEDERATION_TOKEN_VALUE);
 		return attributes;
 	}
 
@@ -1265,8 +1410,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		ComputeOrder order = Mockito.spy(
 				new ComputeOrder(federationUser, 
-						FAKE_MEMBER_ID, 
-						FAKE_MEMBER_ID,
+						FAKE_MEMBER_ID_VALUE, 
+						FAKE_MEMBER_ID_VALUE,
 						DEFAULT_CLOUD_NAME, 
 						FAKE_INSTANCE_NAME, 
 						CPU_VALUE, 
@@ -1291,32 +1436,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		return authorization;
 	}
 
-	private FederationUser mockFederationUserAuthenticate(RSAPublicKey keyRSA)
-			throws UnauthenticatedUserException, InvalidTokenException {
-
-		FederationUser federationUser = Mockito.mock(FederationUser.class);
-		PowerMockito.mockStatic(AuthenticationUtil.class);
-		PowerMockito.when(AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString()))
-				.thenReturn(federationUser);
-
-		return federationUser;
-	}
-
-	private RSAPublicKey mockRSAPublicKey(PublicKeysHolder pkHolder)
-			throws UnavailableProviderException, UnexpectedException {
-
-		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
-		Mockito.when(pkHolder.getAsPublicKey()).thenReturn(keyRSA);
-		return keyRSA;
-	}
-
-	private PublicKeysHolder mockPublicKeyHolder() {
-		PowerMockito.mockStatic(PublicKeysHolder.class);
-		PublicKeysHolder pkHolder = Mockito.mock(PublicKeysHolder.class);
-		PowerMockito.when(PublicKeysHolder.getInstance()).thenReturn(pkHolder);
-		return pkHolder;
-	}
-
 	private ArrayList<UserData> generateVeryLongUserDataFileContent() {
 		String extraUserDataFileContent = new String(new char[UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT + 1]);
 
@@ -1336,122 +1455,28 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	// TODO tests in verification...
 
 	@Ignore
-	// test case: Creating a security rule for a public ip via its endpoint, it
-	// should return the rule id.
-	@Test
-	public void testCreateSecurityRuleForPublicIp() throws Exception {
-		// set up
-		Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
-		// Mockito.doReturn(Mockito.mock(FederationUser.class)).when(aaaController).getFederationUser(Mockito.anyString());
-		// Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
-		// Mockito.any(FederationUser.class), Mockito.anyString(),
-		// Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-		Mockito.doReturn(FAKE_INSTANCE_ID).when(securityRuleController).createSecurityRule(Mockito.any(Order.class),
-				Mockito.any(SecurityRule.class), Mockito.any(FederationUser.class));
-
-		// exercise
-		try {
-			facade.createSecurityRule(FAKE_INSTANCE_ID, Mockito.mock(SecurityRule.class), FAKE_FEDERATION_TOKEN_VALUE,
-					ResourceType.PUBLIC_IP);
-		} catch (InstanceNotFoundException e) {
-			// verify
-			Assert.fail();
-		}
-	}
-
-	@Ignore
-	// test case: Creating a security rule for a network via its endpoint, it should
-	// return the rule id.
-	@Test
-	public void testCreateSecurityRuleForNetwork() throws Exception {
-		// set up
-		Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
-		// Mockito.doReturn(Mockito.mock(FederationUser.class)).when(aaaController).getFederationUser(Mockito.anyString());
-		// Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
-		// Mockito.any(FederationUser.class), Mockito.anyString(),
-		// Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-		Mockito.doReturn(FAKE_INSTANCE_ID).when(securityRuleController).createSecurityRule(Mockito.any(Order.class),
-				Mockito.any(SecurityRule.class), Mockito.any(FederationUser.class));
-
-		// exercise
-		try {
-			facade.createSecurityRule(FAKE_INSTANCE_ID, Mockito.mock(SecurityRule.class), FAKE_FEDERATION_TOKEN_VALUE,
-					ResourceType.NETWORK);
-		} catch (InstanceNotFoundException e) {
-			// verify
-			Assert.fail();
-		}
-	}
-
-	@Ignore
-	// test case: Get all security rules for a public ip via its endpoint, it should
-	// return the rule id.
-	@Test
-	public void testGetSecurityRuleForPublicIp() throws Exception {
-		// set up
-		Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
-		// Mockito.doReturn(Mockito.mock(FederationUser.class)).when(aaaController).getFederationUser(Mockito.anyString());
-		// Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
-		// Mockito.any(FederationUser.class), Mockito.anyString(),
-		// Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-		Mockito.doReturn(new ArrayList<SecurityRule>()).when(securityRuleController)
-				.getAllSecurityRules(Mockito.any(Order.class), Mockito.any(FederationUser.class));
-
-		// exercise
-		try {
-			facade.getAllSecurityRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
-		} catch (InstanceNotFoundException e) {
-			// verify
-			Assert.fail();
-		}
-	}
-
-	@Ignore
-	// test case: Get all security rules for a network via its endpoint, it should
-	// return the rule id.
-	@Test
-	public void testGetSecurityRuleForNetwork() throws Exception {
-		// set up
-		Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
-		// Mockito.doReturn(Mockito.mock(FederationUser.class)).when(aaaController).getFederationUser(Mockito.anyString());
-		// Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
-		// Mockito.any(FederationUser.class), Mockito.anyString(),
-		// Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-		Mockito.doReturn(new ArrayList<SecurityRule>()).when(securityRuleController)
-				.getAllSecurityRules(Mockito.any(Order.class), Mockito.any(FederationUser.class));
-
-		// exercise
-		try {
-			facade.getAllSecurityRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
-		} catch (InstanceNotFoundException e) {
-			// verify
-			Assert.fail();
-		}
-	}
-
-	@Ignore
 	// test case: Delete a security rule for a public ip via its endpoint, it should
 	// return the rule id.
 	@Test
 	public void testDeleteSecurityRuleForPublicIp() throws Exception {
 		// set up
-		Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+		PublicIpOrder order = null;
+		Mockito.doReturn(order).when(orderController).getOrder(Mockito.anyString());
 		// Mockito.doReturn(Mockito.mock(FederationUser.class)).when(aaaController).getFederationUser(Mockito.anyString());
 		// Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
-		// Mockito.any(FederationUser.class), Mockito.anyString(),
-		// Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-		Mockito.doNothing().when(securityRuleController).deleteSecurityRule(Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString(), Mockito.any(FederationUser.class));
+		// 			Mockito.any(FederationUser.class), Mockito.anyString(),
+		// 			Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+		// Mockito.doNothing().when(securityRuleController).deleteSecurityRule(Mockito.anyString(),
+		// 			Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUser.class));
 
 		// exercise
 		try {
 			facade.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
 					ResourceType.PUBLIC_IP);
 		} catch (InstanceNotFoundException e) {
+			// verify
 			Assert.fail();
 		}
-
-		// verify
 	}
 
 	@Ignore
@@ -1460,23 +1485,23 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testDeleteSecurityRuleForNetwork() throws Exception {
 		// set up
-		Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+		NetworkOrder order = null;
+		Mockito.doReturn(order).when(orderController).getOrder(Mockito.anyString());
 		// Mockito.doReturn(Mockito.mock(FederationUser.class)).when(aaaController).getFederationUser(Mockito.anyString());
 		// Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
-		// Mockito.any(FederationUser.class), Mockito.anyString(),
-		// Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-		Mockito.doNothing().when(securityRuleController).deleteSecurityRule(Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString(), Mockito.any(FederationUser.class));
+		// 			Mockito.any(FederationUser.class), Mockito.anyString(),
+		// 			Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+		// Mockito.doNothing().when(securityRuleController).deleteSecurityRule(Mockito.anyString(),
+		// 			Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUser.class));
 
 		// exercise
 		try {
 			facade.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
 					ResourceType.NETWORK);
 		} catch (InstanceNotFoundException e) {
+			// verify
 			Assert.fail();
 		}
-
-		// verify
 	}
 
 	@Ignore
@@ -1492,56 +1517,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String fakeResponseContent = "fooBar";
 		GenericRequestResponse expectedResponse = new GenericRequestResponse(fakeResponseContent);
 		CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-		PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-		Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(localCloudConnector);
-		Mockito.when(localCloudConnector.genericRequest(Mockito.eq(genericRequest), Mockito.any(FederationUser.class)))
-				.thenReturn(expectedResponse);
+		// PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+		// Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(),
+		// 			Mockito.anyString())).thenReturn(localCloudConnector);
+		// Mockito.when(localCloudConnector.genericRequest(Mockito.eq(genericRequest),
+		// 			Mockito.any(FederationUser.class))).thenReturn(expectedResponse);
 
 		// exercise
-		GenericRequestResponse genericRequestResponse = facade.genericRequest(FAKE_CLOUD_NAME, FAKE_MEMBER_ID,
+		GenericRequestResponse genericRequestResponse = facade.genericRequest(FAKE_CLOUD_NAME, FAKE_MEMBER_ID_VALUE,
 				genericRequest, FAKE_FEDERATION_TOKEN_VALUE);
 
 		// verify
 		Assert.assertEquals(expectedResponse, genericRequestResponse);
-	}
-
-	private NetworkOrder createNetworkOrder() throws Exception {
-		FederationUser federationUser = null;
-		// new FederationUser(FAKE_TOKEN_PROVIDER,
-		// FAKE_FEDERATION_TOKEN_VALUE,
-		// FAKE_USER_ID, FAKE_USER_NAME);
-		NetworkOrder order = new NetworkOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, "default", FAKE_NAME,
-				FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
-
-		NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
-		Mockito.doReturn(networtkInstanceExcepted).when(this.orderController)
-				.getResourceInstance(Mockito.eq(order.getId()));
-		order.setInstanceId(networtkInstanceExcepted.getId());
-
-		return order;
-	}
-
-	private PublicIpOrder createPublicIpOrder() throws Exception {
-		FederationUser federationUser = null;
-		// new FederationUser(FAKE_TOKEN_PROVIDER,
-		// FAKE_FEDERATION_TOKEN_VALUE,
-		// FAKE_USER_ID, FAKE_USER_NAME);
-
-		ComputeOrder computeOrder = new ComputeOrder();
-		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
-		computeOrder.setInstanceId(computeInstance.getId());
-		this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-
-		PublicIpOrder order = new PublicIpOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, "default",
-				computeInstance.getId());
-
-		PublicIpInstance publicIpInstance = new PublicIpInstance(order.getId());
-
-		Mockito.doReturn(publicIpInstance).when(this.orderController).getResourceInstance(Mockito.eq(order.getId()));
-		order.setInstanceId(publicIpInstance.getId());
-
-		return order;
 	}
 
 }
