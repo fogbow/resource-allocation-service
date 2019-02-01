@@ -6,6 +6,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.log4j.Logger;
 
 public class OpenNebulaMarshallerTemplate {
@@ -22,7 +23,7 @@ public class OpenNebulaMarshallerTemplate {
 	        marshaller.marshal(this, writer);
 	        xml = writer.toString();
 	    } catch (JAXBException e) {
-	        LOGGER.error(e); // TODO Fix error message...
+	        LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_REQUEST_BODY);
 	    }
 	    return xml;
 	}

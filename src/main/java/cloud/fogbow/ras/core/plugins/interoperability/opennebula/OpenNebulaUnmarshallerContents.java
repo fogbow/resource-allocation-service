@@ -11,6 +11,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -31,7 +32,7 @@ public class OpenNebulaUnmarshallerContents {
 			InputSource source = new InputSource(new StringReader(xml));
 			this.document = builder.parse(source);
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			LOGGER.error(e); // TODO Fix error message...
+			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_RESPONSE_BODY);
 		}
 	}
 
