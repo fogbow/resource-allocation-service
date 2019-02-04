@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderStateChangeRepository;
-import cloud.fogbow.ras.core.models.auditing.AuditableSyncRequest;
+import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
 import cloud.fogbow.ras.core.datastore.orderstorage.AuditableOrderStateChange;
 import cloud.fogbow.ras.core.datastore.orderstorage.SyncRequestRepository;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -25,7 +25,7 @@ public class AuditService {
         this.orderTimestampRepository.save(auditableOrderStateChange);
     }
 
-    public void registerSyncRequest(AuditableSyncRequest request) {
+    public void registerSyncRequest(AuditableRequest request) {
         this.syncRequestRepository.save(request);
     }
 }
