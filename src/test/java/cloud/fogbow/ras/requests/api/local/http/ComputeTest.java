@@ -3,6 +3,7 @@ package cloud.fogbow.ras.requests.api.local.http;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.Compute;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.InstanceStatus;
@@ -580,7 +581,7 @@ public class ComputeTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(Compute.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }

@@ -56,10 +56,9 @@ public class Messages {
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
         public static final String EMPTY_PROPERTY_MAP = "Empty property map.";
-        public static final String ERROR_READING_PRIVATE_KEY_FILE = "Error reading private key file.";
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String NEUTRON_ENDPOINT_NOT_FOUND = "Neutron endpoint not found.";
-        public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in clouds.conf file";
+        public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in ras.conf file";
     }
 
     public static class Warn {

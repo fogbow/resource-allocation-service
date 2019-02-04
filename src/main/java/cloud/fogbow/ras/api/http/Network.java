@@ -25,7 +25,6 @@ import java.util.List;
 public class Network {
 
     public static final String NETWORK_ENDPOINT = "networks";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "network";
 
     public static final String SECURITY_RULES_ENDPOINT = "securityRules";
@@ -39,7 +38,7 @@ public class Network {
             @ApiParam(value = ApiDocumentation.Network.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Network network,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -56,7 +55,7 @@ public class Network {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllNetworksStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
             UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
 
@@ -77,7 +76,7 @@ public class Network {
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -96,7 +95,7 @@ public class Network {
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -117,7 +116,7 @@ public class Network {
             @ApiParam(value = ApiDocumentation.Network.CREATE_SECURITY_RULE_REQUEST_BODY)
             @RequestBody SecurityRule securityRule,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -137,7 +136,7 @@ public class Network {
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -159,7 +158,7 @@ public class Network {
             @ApiParam(value = ApiDocumentation.Network.SECURITY_RULE_ID)
             @PathVariable String ruleId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {

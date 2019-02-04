@@ -21,7 +21,6 @@ import java.util.Map;
 public class Image {
 
     public static final String IMAGE_ENDPOINT = "images";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(Image.class);
 
@@ -33,7 +32,7 @@ public class Image {
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -56,7 +55,7 @@ public class Image {
             @ApiParam(value = ApiDocumentation.Image.ID)
             @PathVariable String imageId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {

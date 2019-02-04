@@ -3,6 +3,7 @@ package cloud.fogbow.ras.requests.api.local.http;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.api.http.Attachment;
+import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -323,9 +324,7 @@ public class AttachmentTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(
-                Attachment.FEDERATION_TOKEN_VALUE_HEADER_KEY,
-                fakeFederationTokenValue);
+        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }
