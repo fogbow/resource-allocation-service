@@ -5,6 +5,10 @@ import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 
+/**
+ * documentation: https://cwiki.apache.org/confluence/display/CLOUDSTACK/CloudStack+objects+states
+ */
+
 public class CloudStackStateMapper {
     private static final Logger LOGGER = Logger.getLogger(CloudStackStateMapper.class);
 
@@ -12,8 +16,11 @@ public class CloudStackStateMapper {
     private static final String STARTING_STATUS = "starting";
     private static final String READY_STATUS = "ready";
     private static final String ALLOCATED_STATUS = "allocated";
+    private static final String IMPLEMENTING_STATUS = "implementing";
+    private static final String IMPLEMENTED_STATUS = "implemented";
     public static final String RUNNING_STATUS = "running";
     public static final String DOWN_STATUS = "shutdowned";
+    public static final String SETUP_STATUS = "setup";
     public static final String STOPPED_STATUS = "stopped";
     public static final String STOPPING_STATUS = "stopping";
     public static final String EXPUNGING_STATUS = "expunging";
@@ -74,8 +81,20 @@ public class CloudStackStateMapper {
                         return InstanceState.INCONSISTENT;
                 }
             case NETWORK:
-                // ToDo: find documentation to set this up appropriately
-                return InstanceState.READY;
+                switch (cloudStackState) {
+                    case IMPLEMENTING_STATUS:
+                    case ALLOCATED_STATUS:
+                        return InstanceState.CREATING;
+                    case SETUP_STATUS:
+                    case IMPLEMENTED_STATUS:
+                        return InstanceState.READY;
+                    case DOWN_STATUS:
+                        return InstanceState.UNAVAILABLE;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                                "CloudStackNetworkPlugin"));
+                        return InstanceState.INCONSISTENT;
+                }
             default:
                 LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;

@@ -117,7 +117,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
                     removeSecurityGroup(securityGroupId, openStackV3Token);
                 }
                 if (floatingIpId != null) {
-                    // TODO delete floating ip
+                    deleteInstance(floatingIpId, computeInstanceId, openStackV3Token);
                 }
             }
         }
