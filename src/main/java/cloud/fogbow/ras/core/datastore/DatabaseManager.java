@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.models.auditing.AuditableSyncRequest;
+import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -62,7 +62,7 @@ public class DatabaseManager implements StableStorage {
         this.auditService = auditService;
     }
 
-    public void auditRequest(AuditableSyncRequest request) {
+    public void auditRequest(AuditableRequest request) {
         this.auditService.registerSyncRequest(request);
     }
 }

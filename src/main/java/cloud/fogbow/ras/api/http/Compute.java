@@ -1,19 +1,19 @@
 package cloud.fogbow.ras.api.http;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.constants.Messages;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

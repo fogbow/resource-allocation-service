@@ -7,7 +7,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "order_state_change")
+@Table(name = "state_change_event")
 public class AuditableOrderStateChange {
     @Id
     @GeneratedValue

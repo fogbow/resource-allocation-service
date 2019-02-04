@@ -10,20 +10,19 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Map;
-import java.util.Scanner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.auditing.AuditableSyncRequest;
+import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
 
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
+import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
@@ -40,40 +39,86 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
 
     @Override
     public String doGetRequest(String endpoint, CloudToken token) throws UnavailableProviderException, HttpResponseException {
-        String response = super.doGetRequest(endpoint, token);
-        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response);
-        return response;
+        int responseCode = HttpStatus.SC_OK;
+        try {
+            return super.doGetRequest(endpoint, token);
+        } catch (HttpResponseException e) {
+            responseCode = e.getStatusCode();
+            throw e;
+        } catch (UnavailableProviderException e) {
+            responseCode = HttpStatus.SC_GATEWAY_TIMEOUT;
+            throw e;
+        } finally {
+            auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), responseCode);
+        }
     }
 
     @Override
     public String doPostRequest(String endpoint, CloudToken token, String body)
             throws UnavailableProviderException, HttpResponseException {
-        String response = super.doPostRequest(endpoint, token, body);
-        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response);
-        return response;
+        int responseCode = HttpStatus.SC_OK;
+        try {
+            return super.doPostRequest(endpoint, token, body);
+        } catch (HttpResponseException e) {
+            responseCode = e.getStatusCode();
+            throw e;
+        } catch (UnavailableProviderException e) {
+            responseCode = HttpStatus.SC_GATEWAY_TIMEOUT;
+            throw e;
+        } finally {
+            auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), responseCode);
+        }
     }
 
     @Override
     public void doDeleteRequest(String endpoint, CloudToken token)
             throws UnavailableProviderException, HttpResponseException {
-        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), null);
-        super.doDeleteRequest(endpoint, token);
+        int responseCode = HttpStatus.SC_OK;
+        try {
+            super.doDeleteRequest(endpoint, token);
+        } catch (HttpResponseException e) {
+            responseCode = e.getStatusCode();
+            throw e;
+        } catch (UnavailableProviderException e) {
+            responseCode = HttpStatus.SC_GATEWAY_TIMEOUT;
+            throw e;
+        } finally {
+            auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), responseCode);
+        }
     }
 
     @Override
     public HttpRequestClientUtil.Response doPostRequest(String endpoint, String body)
-            throws HttpResponseException, UnavailableProviderException {
-        Response response = super.doPostRequest(endpoint, body);
-        auditRequest(endpoint, null, null, null, response.getContent());
-        return response;
+            throws UnavailableProviderException, HttpResponseException {
+        int responseCode = HttpStatus.SC_OK;
+        try {
+            return super.doPostRequest(endpoint, body);
+        } catch (HttpResponseException e) {
+            responseCode = e.getStatusCode();
+            throw e;
+        } catch (UnavailableProviderException e) {
+            responseCode = HttpStatus.SC_GATEWAY_TIMEOUT;
+            throw e;
+        } finally {
+            auditRequest(endpoint, null, null, responseCode);
+        }
     }
 
     @Override
     public String doPutRequest(String endpoint, CloudToken token, JSONObject json)
-            throws HttpResponseException, UnavailableProviderException {
-        String response = super.doPutRequest(endpoint, token, json);
-        auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response);
-        return response;
+            throws UnavailableProviderException, HttpResponseException {
+        int responseCode = HttpStatus.SC_OK;
+        try {
+            return super.doPutRequest(endpoint, token, json);
+        } catch (HttpResponseException e) {
+            responseCode = e.getStatusCode();
+            throw e;
+        } catch (UnavailableProviderException e) {
+            responseCode = HttpStatus.SC_GATEWAY_TIMEOUT;
+            throw e;
+        } finally {
+            auditRequest(endpoint, token.getUserId(), token.getTokenProviderId(), responseCode);
+        }
     }
 
     public GenericRequestHttpResponse doGenericRequest(String method, String urlString,
@@ -107,7 +152,7 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
             in.close();
 
             GenericRequestHttpResponse response = new GenericRequestHttpResponse(responseBuffer.toString(), responseCode);
-            auditRequest(urlString, token.getUserId(), token.getTokenProviderId(), token.getTokenValue(), response.getContent());
+            auditRequest(urlString, token.getUserId(), token.getTokenProviderId(), response.getHttpCode());
             return response;
         } catch (ProtocolException e) {
             throw new FogbowException("", e);
@@ -118,10 +163,10 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
         }
     }
 
-    private void auditRequest(String endpoint, String userId, String tokenProviderId, String tokenValue, String response) {
+    private void auditRequest(String endpoint, String userId, String tokenProviderId, int responseCode) {
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-        AuditableSyncRequest auditableSyncRequest = new AuditableSyncRequest(currentTimestamp, endpoint, userId, tokenProviderId, tokenValue, response);
-        DatabaseManager.getInstance().auditRequest(auditableSyncRequest);
+        AuditableRequest auditableRequest = new AuditableRequest(currentTimestamp, endpoint, userId, tokenProviderId, responseCode);
+        DatabaseManager.getInstance().auditRequest(auditableRequest);
     }
 
     private void addHeadersIntoConnection(HttpURLConnection connection, Map<String, String> headers) {
