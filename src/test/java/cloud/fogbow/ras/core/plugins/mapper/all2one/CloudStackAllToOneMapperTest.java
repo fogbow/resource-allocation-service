@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
 import cloud.fogbow.as.core.tokengenerator.plugins.AttributeJoiner;
 import cloud.fogbow.as.core.tokengenerator.plugins.cloudstack.CloudStackTokenGeneratorPlugin;
-import cloud.fogbow.as.core.tokengenerator.plugins.ldap.LdapTokenGeneratorPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
@@ -25,20 +24,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HttpRequestUtil.class, CloudStackTokenGeneratorPlugin.class, LdapTokenGeneratorPlugin.class})
+@PrepareForTest({HttpRequestUtil.class, CloudStackTokenGeneratorPlugin.class})
 public class CloudStackAllToOneMapperTest {
-    private static final String FAKE_NAME1 = "fake-name1";
     private static final String FAKE_LOGIN1 = "fake-login1";
-    private static final String FAKE_NAME2 = "fake-name2";
     private static final String FAKE_LOGIN2 = "fake-login2";
+    private static final String FAKE_PASSWORD_KEY = "password";
     private static final String FAKE_PASSWORD = "fake-password";
     private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USER_NAME_KEY = "username";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
     private String memberId;
     private CloudStackAllToOneMapper mapper;
-    private LdapTokenGeneratorPlugin ldapTokenGenerator;
     private CloudStackTokenGeneratorPlugin cloudStackTokenGenerator;
 
     @Before
@@ -50,7 +48,6 @@ public class CloudStackAllToOneMapperTest {
                 + "cloudstack" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
-        this.ldapTokenGenerator = Mockito.spy(LdapTokenGeneratorPlugin.class);
         this.cloudStackTokenGenerator = Mockito.spy(CloudStackTokenGeneratorPlugin.class);
         this.mapper = new CloudStackAllToOneMapper(mapperConfPath);
         this.mapper.setTokenGeneratorPlugin(this.cloudStackTokenGenerator);
@@ -61,17 +58,13 @@ public class CloudStackAllToOneMapperTest {
     public void testCreate2Tokens() throws FogbowException {
         //set up
         Map<String, String> userCredentials1 = new HashMap<String, String>();
-        userCredentials1.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN1);
-        userCredentials1.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
-        Mockito.doReturn(FAKE_NAME1).when(this.ldapTokenGenerator).
-                ldapAuthenticate(Mockito.eq(FAKE_LOGIN1), Mockito.eq(FAKE_PASSWORD));
+        userCredentials1.put(FAKE_USER_NAME_KEY, FAKE_LOGIN1);
+        userCredentials1.put(FAKE_PASSWORD_KEY, FAKE_PASSWORD);
         FederationUser token1 = new FederationUser(userCredentials1);
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
-        userCredentials2.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN2);
-        userCredentials2.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
-        Mockito.doReturn(FAKE_NAME2).when(ldapTokenGenerator).
-                ldapAuthenticate(Mockito.eq(FAKE_LOGIN2), Mockito.eq(FAKE_PASSWORD));
+        userCredentials2.put(FAKE_USER_NAME_KEY, FAKE_LOGIN2);
+        userCredentials2.put(FAKE_PASSWORD_KEY, FAKE_PASSWORD);
         FederationUser token2 = new FederationUser(userCredentials2);
 
         Map<String, String> attributes = new HashMap();

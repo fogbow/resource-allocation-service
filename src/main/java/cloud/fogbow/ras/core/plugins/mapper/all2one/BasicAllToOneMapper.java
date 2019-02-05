@@ -27,7 +27,7 @@ public class BasicAllToOneMapper extends GenericAllToOneFederationToLocalMapper
         return token;
     }
 
-    protected void setTokenGeneratorPlugin(TokenGeneratorPlugin tokenGeneratorPlugin) {
+    public void setTokenGeneratorPlugin(TokenGeneratorPlugin tokenGeneratorPlugin) {
         this.tokenGeneratorPlugin = tokenGeneratorPlugin;
     }
 }

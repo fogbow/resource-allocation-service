@@ -28,4 +28,8 @@ public class GenericOneToOneFederationToLocalMapper implements FederationToLocal
     public String getMemberId() {
         return this.memberId;
     }
+
+    protected void setRemoteMapper(FederationToLocalMapperPlugin remoteMapper) {
+        this.remoteMapper = remoteMapper;
+    }
 }
