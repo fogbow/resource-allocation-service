@@ -2,23 +2,16 @@ package cloud.fogbow.ras.core.plugins.mapper.one2one;
 
 import cloud.fogbow.as.core.tokengenerator.plugins.AttributeJoiner;
 import cloud.fogbow.as.core.tokengenerator.plugins.cloudstack.CloudStackTokenGeneratorPlugin;
-import cloud.fogbow.as.core.tokengenerator.plugins.cloudstack.ListAccountsRequest;
-import cloud.fogbow.as.core.tokengenerator.plugins.cloudstack.LoginRequest;
-import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.SystemConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.mapper.all2one.CloudStackAllToOneMapper;
 import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +24,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HttpRequestUtil.class, CloudStackTokenGeneratorPlugin.class})
