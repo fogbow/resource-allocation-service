@@ -2032,7 +2032,7 @@
 //    }
 //
 //    private void setVeryLongPublicKey(ComputeOrder order) {
-//        String publicKey = new String(new char[ComputeOrder.MAX_PUBLIC_KEY_SIZE + 1]);
+//        String publicKey = new String(new char[ComputeOrder.PUBLIC_KEY_MAX_SIZE + 1]);
 //        order.setPublicKey(publicKey);
 //    }
 //

@@ -2,6 +2,8 @@ package cloud.fogbow.ras;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPluginInstantiator;
@@ -12,6 +14,9 @@ import cloud.fogbow.ras.core.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
+import cloud.fogbow.ras.core.models.UserData;
+import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.datastore.AuditService;
 import cloud.fogbow.ras.core.datastore.RecoveryService;
@@ -20,6 +25,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 @Component
