@@ -2,15 +2,18 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.ResourceType;
+import org.apache.log4j.Logger;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.UUID;
 
 @Entity
 @Table(name = "public_ip_order_table")
 public class PublicIpOrder extends Order {
+    private static final long serialVersionUID = 1L;
+
+    @Transient
+    private transient static final Logger LOGGER = Logger.getLogger(PublicIpOrder.class);
 
     @Column
     private String computeOrderId;
@@ -46,4 +49,10 @@ public class PublicIpOrder extends Order {
     public String getSpec() {
         return "";
     }
+
+    @Override
+    public Logger getLogger() {
+        return LOGGER;
+    }
+
 }
