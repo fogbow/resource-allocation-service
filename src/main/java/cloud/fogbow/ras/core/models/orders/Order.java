@@ -26,12 +26,14 @@ public abstract class Order extends StorableBean implements Serializable {
     protected static final String INSTANCE_ID_COLUMN_NAME = "instance_id";
 
     protected static final int FIELDS_MAX_SIZE = 255;
+    protected static final int ID_FIXED_SIZE = 36; // UUID size
 
     @Transient
     private transient final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Order.class);
 
     @Column
     @Id
+    @Size(max = ID_FIXED_SIZE)
     private String id;
 
     @Column

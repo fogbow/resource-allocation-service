@@ -20,9 +20,11 @@ public class AttachmentOrder extends Order {
 
     // this attribute refers to the instance of the computer where the volume will be attached
     @Column
+    @Size(max = Order.ID_FIXED_SIZE)
     private String computeId;
 
     // this attribute refers to the volumeId of the volume that will be attached attachment
+    @Size(max = Order.ID_FIXED_SIZE)
     @Column
     private String volumeId;
 

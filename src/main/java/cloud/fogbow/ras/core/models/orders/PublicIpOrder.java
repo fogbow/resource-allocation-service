@@ -5,6 +5,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.UUID;
 
 @Entity
@@ -15,6 +16,7 @@ public class PublicIpOrder extends Order {
     @Transient
     private transient static final Logger LOGGER = Logger.getLogger(PublicIpOrder.class);
 
+    @Size(max = Order.ID_FIXED_SIZE)
     @Column
     private String computeOrderId;
 
