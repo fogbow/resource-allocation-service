@@ -103,7 +103,7 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up
-        FederationUser federationUser = createFederationUser();
+        FederationUser federationUser = new FederationUser(new HashMap<>());
         Order order = createOrder(federationUser);
         String orderId = order.getId();
 

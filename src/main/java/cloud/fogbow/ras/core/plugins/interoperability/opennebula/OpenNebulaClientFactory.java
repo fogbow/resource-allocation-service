@@ -135,7 +135,6 @@ public class OpenNebulaClientFactory {
 		return userpool;
 	}
 
-    // TODO implement tests
     public User getUser(UserPool userPool, String userName) throws UnauthorizedRequestException, UnexpectedException {
  		User user = findUserByName(userPool, userName);
  		OneResponse response = user.info();

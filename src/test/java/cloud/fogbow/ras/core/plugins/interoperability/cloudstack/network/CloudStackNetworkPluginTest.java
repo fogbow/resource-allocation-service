@@ -157,7 +157,7 @@ public class CloudStackNetworkPluginTest {
         Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getCidr());
         Assert.assertEquals(FAKE_GATEWAY, retrievedInstance.getGateway());
         Assert.assertEquals(FAKE_NAME, retrievedInstance.getName());
-        Assert.assertEquals(InstanceState.READY, retrievedInstance.getState());
+        Assert.assertEquals(InstanceState.CREATING, retrievedInstance.getState());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());

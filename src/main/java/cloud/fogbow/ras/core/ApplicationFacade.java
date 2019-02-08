@@ -115,10 +115,6 @@ public class ApplicationFacade {
     }
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowException {
-        if (order.getPublicKey() != null && order.getPublicKey().length() > ComputeOrder.MAX_PUBLIC_KEY_SIZE) {
-            throw new InvalidParameterException(Messages.Exception.TOO_BIG_PUBLIC_KEY);
-        }
-
         if (order.getUserData() != null) {
             for (UserData userDataScript : order.getUserData()) {
                 if (userDataScript != null && userDataScript.getExtraUserDataFileContent() != null &&

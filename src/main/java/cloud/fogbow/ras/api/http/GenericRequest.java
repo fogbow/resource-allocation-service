@@ -32,12 +32,6 @@ public class GenericRequest {
             @RequestBody cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
             throws FogbowException {
 
-//        TODO decide which API we're gonna use
-//        FIXME these can be used if we want to get these from the request itself
-//        Map<String, String> headers = AuditableHttpRequestClient.getHeaders(request);
-//        String url = request.getRequestURL().toString();
-//        String method = request.getMethod();
-
         GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
                 memberId, genericRequest, federationTokenValue);
         return new ResponseEntity<>(genericRequestResponse, HttpStatus.OK);
