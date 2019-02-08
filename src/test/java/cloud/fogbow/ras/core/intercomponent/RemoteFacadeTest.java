@@ -5,15 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.xmpp.packet.IQ;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -27,18 +28,18 @@ import cloud.fogbow.ras.core.CloudListController;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SecurityRuleController;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
-import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
-import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteRequest;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.images.Image;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.Instance;
+import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -261,57 +262,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedQuota.getUsedQuota(), quota.getUsedQuota());
 	}	
 	
-	private AuthorizationController mockAuthorizationController(FederationUser federationUser)
-			throws UnexpectedException, UnauthorizedRequestException {
-		AuthorizationController authorization = Mockito.mock(AuthorizationController.class);
-		Mockito.doNothing().when(authorization).authorize(Mockito.eq(federationUser), Mockito.anyString(),
-				Mockito.anyString(), Mockito.anyString());
-
-		this.facade.setAuthorizationController(authorization);
-		return authorization;
-	}
-
-	private Order spyComputeOrder(FederationUser federationUser, String cloudName, String provider) throws UnexpectedException {
-		Order order = Mockito.spy(new ComputeOrder());
-		order.setFederationUser(federationUser);
-		order.setRequester(FAKE_REQUESTING_MEMBER_ID);
-		order.setProvider(provider);
-		order.setCloudName(cloudName);
-		return order;
-	}
-
-	private FederationUser createFederationUser() {
-		Map<String, String> attributes = new HashMap<>();
-		attributes.put(ID_KEY, FAKE_REQUESTER_USER_ID_VALUE);
-		FederationUser federationUser = new FederationUser(attributes);
-		return federationUser;
-	}
-
-	private CloudConnector mockCloudConnector(CloudConnectorFactory cloudConnectorFactory) {
-		CloudConnector cloudConnector = Mockito.mock(CloudConnector.class);
-		Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(cloudConnector);
-		return cloudConnector;
-	}
-
-	private CloudConnectorFactory mockCloudConnectorFactory() {
-		PowerMockito.mockStatic(CloudConnectorFactory.class);
-		CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-		PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-		return cloudConnectorFactory;
-	}
-	
-	private Quota createComputeQuota() {
-		ComputeAllocation totalQuota = new ComputeAllocation(8, 2048, 2);
-        ComputeAllocation usedQuota = new ComputeAllocation(4, 1024, 1);
-
-        Quota quota = new ComputeQuota(totalQuota, usedQuota);
-		return quota;
-	}
-    
 	// test case: Verifies generic request behavior inside Remote Facade, i.e. it
-	// needs to authenticate and authorize the request, and also get the correct
-	// cloud connector, before passing a generic request.
+	// needs to authorize the request, and also get the correct cloud connector,
+	// before passing a generic request.
 	@Test
 	public void testGenericRequestSuccessfully() throws Exception {
 		// set up
@@ -351,7 +304,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedResponse, genericRequestResponse);
 	}
 
-	// test case: ...
+	// test case: Verifies getImage method behavior inside Remote Facade, i.e. it
+	// needs to authorize the request, and also get the correct cloud connector,
+	// before getting an image.
 	@Test
 	public void testRemoteGetImageSuccessfully() throws Exception {
 		// set up
@@ -379,7 +334,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.verify(cloudConnector, Mockito.times(1)).getImage(Mockito.anyString(), Mockito.eq(federationUser));
 	}
 
-	// test case: ...
+	// test case: Verifies getAllImage method behavior inside Remote Facade, i.e. it
+	// needs to authorize the request, and also get the correct cloud connector,
+	// before getting all available images.
 	@Test
 	public void testRemoteGetAllImagesSuccessfully() throws Exception {
 		// set up
@@ -406,32 +363,37 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.verify(cloudConnector, Mockito.times(1)).getAllImages(Mockito.eq(federationUser));
 	}
 	
-	// test case: ...
+	// test case: Verifies getCloudNames method behavior inside Remote Facade, i.e.
+	// it needs to authorize the request, and also get the correct cloud connector,
+	// before getting a list of cloud names.
 	@Test
 	public void testGetCloudNamesSuccessfully() throws Exception {
 		// set up
 		FederationUser federationUser = createFederationUser();
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
-		
+
 		List<String> cloudNames = new ArrayList<>();
-		
+
 		CloudListController cloudListController = Mockito.mock(CloudListController.class);
 		Mockito.doReturn(cloudNames).when(cloudListController).getCloudNames();
 		this.facade.setCloudListController(cloudListController);
-		
+
 		// exercise
 		this.facade.getCloudNames(FAKE_REQUESTING_MEMBER_ID, federationUser);
-		
+
 		// verify
 		String operation = Operation.GET_CLOUD_NAMES.getValue();
 		String resourceType = ResourceType.CLOUD_NAMES.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser),
-				Mockito.eq(operation), Mockito.eq(resourceType));
-		
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(operation),
+				Mockito.eq(resourceType));
+
 		Mockito.verify(cloudListController, Mockito.times(1)).getCloudNames();
 	}
 	
-	// test case: ...
+	// test case: Verifies createSecurityRule method behavior inside Remote Facade,
+	// i.e. it needs to authorize the request, and make the call the corresponding
+	// method in the SecurityRuleController class, responsible for delegating to the
+	// cloud connector the create rule request.
 	@Test
 	public void testCreateSecurityRuleSuccessfully() throws Exception {
 		// set up
@@ -463,7 +425,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 				Mockito.eq(securityRule), Mockito.eq(federationUser));
 	}
 	
-	// test case: ...
+	// test case: Verifies getAllSecurityRules method behavior inside Remote Facade,
+	// i.e. it needs to authorize the request, and make the call the corresponding
+	// method in the SecurityRuleController class, responsible for delegating to the
+	// cloud connector the all rules request.
 	@Test
 	public void testGetAllSecurityRulesSuccessfully() throws Exception {
 		// set up
@@ -500,7 +465,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Assert.assertSame(expectedSecurityRules, securityRules);
 	}
 	
-	// case test: ...
+	// case test: Verifies deleteSecurityRule method behavior inside Remote Facade,
+	// i.e. it needs to authorize the request, and make the call the corresponding
+	// method in the SecurityRuleController class, responsible for delegating to the
+	// cloud connector the removing of the rule.
 	@Test
 	public void testdeleteSecurityRuleSuccessfully() throws Exception {
 		// set up
@@ -572,16 +540,90 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.authorizeOrder(ownerUser, cloudName, operation, resourceType, order);
 	}
-
-	// test case: ...
-	@Ignore
+	
+	// test case: When calling the RemoteHandleRemoteEvent method from a pending
+	// remote order, it must return its OrderState FULFILLED, based on the match of
+	// the event passed by parameter.
 	@Test
-	public void testRemoteHandleRemoteEvent() throws Exception {
+	public void testRemoteHandleRemoteEventWithInstanceFulfilled() throws Exception {
 		// set up
 		Event event = Event.INSTANCE_FULFILLED;
 
 		String signallingMember = LOCAL_MEMBER_ID;
 		String requester = FAKE_REQUESTING_MEMBER_ID;
+		String provider = signallingMember;
+
+		Order remoteOrder = new ComputeOrder();
+		remoteOrder.setRequester(requester);
+		remoteOrder.setProvider(provider);
+		remoteOrder.setOrderState(OrderState.PENDING);
+
+		Mockito.doReturn(remoteOrder).when(this.orderController).getOrder(Mockito.eq(remoteOrder.getId()));
+
+		IQ response = Mockito.mock(IQ.class);
+		PacketSender packetSender = Mockito.mock(PacketSender.class); 
+		PowerMockito.mockStatic(PacketSenderHolder.class);
+		Mockito.when(PacketSenderHolder.getPacketSender()).thenReturn(packetSender);
+		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(response);
+		
+		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
+		SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(OrderState.PENDING);
+		origin.addItem(remoteOrder);
+		
+		// exercise
+		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
+
+		// verify
+		OrderState expectedOrderState = OrderState.FULFILLED;
+		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
+	}
+	
+	// test case: When calling the RemoteHandleRemoteEvent method from a pending
+	// remote order, it must return its OrderState FAILED_AFTER_SUCCESSUL_REQUEST,
+	// based on the match of the event passed by parameter.
+	@Test
+	public void testRemoteHandleRemoteEventWithInstanceFailed() throws Exception {
+		// set up
+		Event event = Event.INSTANCE_FAILED;
+
+		String signallingMember = LOCAL_MEMBER_ID;
+		String requester = FAKE_REQUESTING_MEMBER_ID;
+		String provider = signallingMember;
+
+		Order remoteOrder = new ComputeOrder();
+		remoteOrder.setRequester(requester);
+		remoteOrder.setProvider(provider);
+		remoteOrder.setOrderState(OrderState.PENDING);
+
+		Mockito.doReturn(remoteOrder).when(this.orderController).getOrder(Mockito.eq(remoteOrder.getId()));
+
+		IQ iqResponse = Mockito.mock(IQ.class);
+		PacketSender packetSender = Mockito.mock(PacketSender.class);
+		PowerMockito.mockStatic(PacketSenderHolder.class);
+		Mockito.when(PacketSenderHolder.getPacketSender()).thenReturn(packetSender);
+		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(iqResponse);
+
+		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
+		SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(OrderState.PENDING);
+		origin.addItem(remoteOrder);
+
+		// exercise
+		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
+
+		// verify
+		OrderState expectedOrderState = OrderState.FAILED_AFTER_SUCCESSUL_REQUEST;
+		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
+	}
+	
+	// test case: When calling the handleRemoteEvent method with a provider
+	// different from the ordering provider, it must throw an UnexpectedException.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testRemoteHandleRemoteEvent() throws Exception {
+		// set up
+		Event event = Event.INSTANCE_FAILED;
+
+		String signallingMember = FAKE_REQUESTING_MEMBER_ID;
+		String requester = signallingMember;
 		String provider = LOCAL_MEMBER_ID;
 
 		Order remoteOrder = new ComputeOrder();
@@ -589,21 +631,58 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		remoteOrder.setProvider(provider);
 		remoteOrder.setOrderState(OrderState.PENDING);
 
-		Mockito.doReturn(remoteOrder).when(this.orderController).getOrder(remoteOrder.getId());
-		
-		Void response = null;
+		Mockito.doReturn(remoteOrder).when(this.orderController).getOrder(Mockito.eq(remoteOrder.getId()));
 
-		RemoteRequest<Void> remoteRequest = Mockito.spy(new RemoteNotifyEventRequest(remoteOrder, event));
-		Mockito.doReturn(response).when(remoteRequest).send();
-		
 		// exercise
 		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
-
-		// verify
-		Mockito.verify(remoteRequest, Mockito.times(1)).send();
-
-		OrderState expectedOrderState = OrderState.FULFILLED;
-		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
 	}
+	
+	private AuthorizationController mockAuthorizationController(FederationUser federationUser)
+			throws UnexpectedException, UnauthorizedRequestException {
+		AuthorizationController authorization = Mockito.mock(AuthorizationController.class);
+		Mockito.doNothing().when(authorization).authorize(Mockito.eq(federationUser), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString());
+
+		this.facade.setAuthorizationController(authorization);
+		return authorization;
+	}
+
+	private Order spyComputeOrder(FederationUser federationUser, String cloudName, String provider) throws UnexpectedException {
+		Order order = Mockito.spy(new ComputeOrder());
+		order.setFederationUser(federationUser);
+		order.setRequester(FAKE_REQUESTING_MEMBER_ID);
+		order.setProvider(provider);
+		order.setCloudName(cloudName);
+		return order;
+	}
+
+	private FederationUser createFederationUser() {
+		Map<String, String> attributes = new HashMap<>();
+		attributes.put(ID_KEY, FAKE_REQUESTER_USER_ID_VALUE);
+		FederationUser federationUser = new FederationUser(attributes);
+		return federationUser;
+	}
+
+	private CloudConnector mockCloudConnector(CloudConnectorFactory cloudConnectorFactory) {
+		CloudConnector cloudConnector = Mockito.mock(CloudConnector.class);
+		Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(cloudConnector);
+		return cloudConnector;
+	}
+
+	private CloudConnectorFactory mockCloudConnectorFactory() {
+		PowerMockito.mockStatic(CloudConnectorFactory.class);
+		CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+		PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+		return cloudConnectorFactory;
+	}
+	
+	private Quota createComputeQuota() {
+		ComputeAllocation totalQuota = new ComputeAllocation(8, 2048, 2);
+        ComputeAllocation usedQuota = new ComputeAllocation(4, 1024, 1);
+
+        Quota quota = new ComputeQuota(totalQuota, usedQuota);
+		return quota;
+	}	
 
 }
