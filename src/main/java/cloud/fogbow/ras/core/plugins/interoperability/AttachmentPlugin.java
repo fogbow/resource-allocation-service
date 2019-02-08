@@ -7,9 +7,9 @@ import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 
 public interface AttachmentPlugin<T extends CloudToken> {
 
-    public String requestInstance(AttachmentOrder attachmentOrder, CloudToken localUserAttributes) throws FogbowException;
+    public String requestInstance(AttachmentOrder attachmentOrder, T localUserAttributes) throws FogbowException;
 
-    public void deleteInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException;
+    public void deleteInstance(String attachmentInstanceId, T localUserAttributes) throws FogbowException;
 
-    public AttachmentInstance getInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException;
+    public AttachmentInstance getInstance(String attachmentInstanceId, T localUserAttributes) throws FogbowException;
 }

@@ -2,30 +2,33 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.ResourceType;
+import org.apache.log4j.Logger;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.UUID;
 
 @Entity
 @Table(name = "attachment_order_table")
 public class AttachmentOrder extends Order {
     private static final long serialVersionUID = 1L;
-    /**
-     * this attribute refers to the instance of the computer where the volume will be attached
-     */
+
+    private static final String DEVICE_COLUMN_NAME = "device";
+
+    @Transient
+    private transient final Logger LOGGER = Logger.getLogger(AttachmentOrder.class);
+
+    // this attribute refers to the instance of the computer where the volume will be attached
     @Column
     private String computeId;
-    /**
-     * this attribute refers to the volumeId of the volume that will be attached attachment
-     */
+
+    // this attribute refers to the volumeId of the volume that will be attached attachment
     @Column
     private String volumeId;
-    /**
-     * this attribute refers to the mount point of the volume device
-     */
-    @Column
+
+    // this attribute refers to the mount point of the volume device
+    @Size(max = Order.FIELDS_MAX_SIZE)
+    @Column(name = DEVICE_COLUMN_NAME)
     private String device;
 
     public AttachmentOrder() {
@@ -76,5 +79,15 @@ public class AttachmentOrder extends Order {
     @Override
     public String getSpec() {
         return "";
+    }
+
+    @Override
+    public Logger getLogger() {
+        return LOGGER;
+    }
+
+    @PrePersist
+    protected void checkColumnsSizes() {
+        this.device = treatValue(this.device, DEVICE_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
     }
 }

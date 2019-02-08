@@ -4,9 +4,12 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.StorableBean;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
+import org.apache.log4j.Logger;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,33 +17,62 @@ import java.util.Map;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-public abstract class Order implements Serializable {
+public abstract class Order extends StorableBean implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    protected static final String REQUESTER_COLUMN_NAME = "requester";
+    protected static final String PROVIDER_COLUMN_NAME = "provider";
+    protected static final String CLOUD_NAME_COLUMN_NAME = "cloud_name";
+    protected static final String INSTANCE_ID_COLUMN_NAME = "instance_id";
+
+    protected static final int FIELDS_MAX_SIZE = 255;
+
+    @Transient
+    private transient final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Order.class);
+
     @Column
     @Id
     private String id;
+
     @Column
     @Enumerated(EnumType.STRING)
     private OrderState orderState;
-    //  ToDO Fix this
-    //@JoinColumn
-    //@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @Transient
-    private FederationUser federationUser;
-    @Column
+
+    @Column(name = REQUESTER_COLUMN_NAME)
+    @Size(max = FIELDS_MAX_SIZE)
     private String requester;
-    @Column
+
+    @Column(name = PROVIDER_COLUMN_NAME)
+    @Size(max = FIELDS_MAX_SIZE)
     private String provider;
-    @Column
+
+    @Column(name = CLOUD_NAME_COLUMN_NAME)
+    @Size(max = FIELDS_MAX_SIZE)
     private String cloudName;
-    @Column
+
+    @Column(name = INSTANCE_ID_COLUMN_NAME)
+    @Size(max = FIELDS_MAX_SIZE)
     private String instanceId;
+
     @Column
     private InstanceState cachedInstanceState;
+
     @ElementCollection
     @MapKeyColumn
     @Column
     private Map<String, String> requirements = new HashMap<>();
+
+    @Transient
+    private FederationUser federationUser;
+
+    @Column
+    private String userId;
+    @Column
+    private String identityProvider;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn
+    @Column
+    private Map<String, String> federationUserAttributes = new HashMap<>();
 
     public Order() {
     }
@@ -57,8 +89,13 @@ public abstract class Order implements Serializable {
 
     public Order(String id, String provider, String cloudName, FederationUser federationUser, String requester) {
         this(id, provider, cloudName);
-        this.federationUser = federationUser;
         this.requester = requester;
+
+        try {
+            setFederationUser(federationUser);
+        } catch (UnexpectedException e) {
+            LOGGER.fatal(e.getMessage(), e);
+        }
     }
 
     public String getId() {
@@ -90,11 +127,19 @@ public abstract class Order implements Serializable {
     }
 
     public FederationUser getFederationUser() {
+        if (this.federationUser == null) {
+            this.federationUser = new FederationUser(this.federationUserAttributes);
+        }
         return this.federationUser;
     }
 
-    public void setFederationUser(FederationUser federationUser) {
+    public void setFederationUser(FederationUser federationUser) throws UnexpectedException {
         this.federationUser = federationUser;
+        if (federationUser != null) {
+            this.userId = federationUser.getUserId();
+            this.identityProvider = federationUser.getTokenProvider();
+            this.federationUserAttributes = federationUser.getAttributes();
+        }
     }
 
     public String getRequester() {
@@ -154,10 +199,6 @@ public abstract class Order implements Serializable {
         return !this.requester.equals(localMemberId);
     }
 
-    public abstract ResourceType getType();
-
-    public abstract String getSpec();
-
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -183,5 +224,20 @@ public abstract class Order implements Serializable {
         return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUser="
                 + this.federationUser + ", requester=" + this.requester + ", provider="
                 + this.provider + ", instanceId=" + this.instanceId + "]";
+    }
+
+    public abstract ResourceType getType();
+
+    public abstract String getSpec();
+
+    @Override
+    public abstract Logger getLogger();
+
+    @PrePersist
+    protected void checkAllColumnsSizes() {
+        this.requester = treatValue(this.requester, REQUESTER_COLUMN_NAME, FIELDS_MAX_SIZE);
+        this.provider = treatValue(this.requester, PROVIDER_COLUMN_NAME, FIELDS_MAX_SIZE);
+        this.cloudName = treatValue(this.requester, CLOUD_NAME_COLUMN_NAME, FIELDS_MAX_SIZE);
+        this.instanceId = treatValue(this.requester, INSTANCE_ID_COLUMN_NAME, FIELDS_MAX_SIZE);
     }
 }

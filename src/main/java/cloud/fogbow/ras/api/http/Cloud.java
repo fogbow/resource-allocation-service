@@ -22,7 +22,6 @@ import java.util.List;
 @Api(description = ApiDocumentation.Cloud.API)
 public class Cloud {
 
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String CLOUD_ENDPOINT = "clouds";
 
     private final Logger LOGGER = Logger.getLogger(Cloud.class);
@@ -31,7 +30,7 @@ public class Cloud {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<String>> getCloudNamesNoMemberId(
         @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
@@ -50,7 +49,7 @@ public class Cloud {
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);

@@ -2,19 +2,27 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.ResourceType;
+import org.apache.log4j.Logger;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.UUID;
 
 @Entity
 @Table(name = "volume_order_table")
 public class VolumeOrder extends Order {
     private static final long serialVersionUID = 1L;
+
+    private static final String NAME_COLUMN_NAME = "name";
+
+    @Transient
+    private transient final Logger LOGGER = Logger.getLogger(VolumeOrder.class);
+
     @Column
     private int volumeSize;
-    @Column
+
+    @Size(max = Order.FIELDS_MAX_SIZE)
+    @Column(name = NAME_COLUMN_NAME)
     private String name;
 
     public VolumeOrder() {
@@ -52,5 +60,15 @@ public class VolumeOrder extends Order {
     @Override
     public String getSpec() {
         return String.valueOf(this.volumeSize);
+    }
+
+    @Override
+    public Logger getLogger() {
+        return LOGGER;
+    }
+
+    @PrePersist
+    private void checkColumnsSizes() {
+        this.name = treatValue(this.name, NAME_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
     }
 }

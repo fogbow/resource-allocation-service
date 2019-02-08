@@ -18,7 +18,6 @@ import static cloud.fogbow.ras.api.http.GenericRequest.GENERIC_REQUEST_ENDPOINT;
 public class GenericRequest {
 
     public static final String GENERIC_REQUEST_ENDPOINT = "genericRequest";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(GenericRequest.class);
 
@@ -29,15 +28,9 @@ public class GenericRequest {
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = true, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
+            @RequestHeader(required = true, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestBody cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
             throws FogbowException {
-
-//        TODO decide which API we're gonna use
-//        FIXME these can be used if we want to get these from the request itself
-//        Map<String, String> headers = AuditableHttpRequestClient.getHeaders(request);
-//        String url = request.getRequestURL().toString();
-//        String method = request.getMethod();
 
         GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
                 memberId, genericRequest, federationTokenValue);

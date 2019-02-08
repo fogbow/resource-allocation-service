@@ -7,7 +7,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
-public class GenericOneToOneFederationToLocalMapper implements FederationToLocalMapperPlugin<CloudToken> {
+public class GenericOneToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
     private FederationToLocalMapperPlugin remoteMapper;
     private String memberId;
 
@@ -27,5 +27,9 @@ public class GenericOneToOneFederationToLocalMapper implements FederationToLocal
 
     public String getMemberId() {
         return this.memberId;
+    }
+
+    protected void setRemoteMapper(FederationToLocalMapperPlugin remoteMapper) {
+        this.remoteMapper = remoteMapper;
     }
 }

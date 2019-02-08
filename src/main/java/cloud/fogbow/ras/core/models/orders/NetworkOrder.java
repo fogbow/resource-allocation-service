@@ -3,20 +3,35 @@ package cloud.fogbow.ras.core.models.orders;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
+import org.apache.log4j.Logger;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.UUID;
 
 @Entity
 @Table(name = "network_order_table")
 public class NetworkOrder extends Order {
     private static final long serialVersionUID = 1L;
-    @Column
+
+    private transient static final Logger LOGGER = Logger.getLogger(NetworkOrder.class);
+
+    private static final String NAME_COLUMN_NAME = "name";
+    private static final String GATEWAY_COLUMN_NAME = "gateway";
+    private static final String CIDR_COLUMN_NAME = "cidr";
+
+    @Size(max = Order.FIELDS_MAX_SIZE)
+    @Column(name = NAME_COLUMN_NAME)
     private String name;
-    @Column
+
+    @Size(max = Order.FIELDS_MAX_SIZE)
+    @Column(name = GATEWAY_COLUMN_NAME)
     private String gateway;
-    @Column
+
+    @Size(max = Order.FIELDS_MAX_SIZE)
+    @Column(name = CIDR_COLUMN_NAME)
     private String cidr;
+
     @Column
     @Enumerated(EnumType.STRING)
     private NetworkAllocationMode allocationMode;
@@ -67,5 +82,17 @@ public class NetworkOrder extends Order {
     @Override
     public String getSpec() {
         return "";
+    }
+
+    @Override
+    public Logger getLogger() {
+        return LOGGER;
+    }
+
+    @PrePersist
+    protected void checkColumnsSizes() {
+        this.name = treatValue(this.name, NAME_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
+        this.gateway = treatValue(this.gateway, GATEWAY_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
+        this.cidr = treatValue(this.cidr, CIDR_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
     }
 }

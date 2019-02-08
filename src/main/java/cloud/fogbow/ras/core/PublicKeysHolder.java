@@ -1,14 +1,19 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.http.client.HttpResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 
@@ -32,7 +37,7 @@ public class PublicKeysHolder {
         return instance;
     }
 
-    public RSAPublicKey getAsPublicKey() throws UnavailableProviderException, UnexpectedException {
+    public RSAPublicKey getAsPublicKey() throws UnavailableProviderException, UnexpectedException, ConfigurationErrorException {
         if (this.asPublicKey == null) {
             String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_URL_KEY);
             String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_PORT_KEY);
@@ -42,12 +47,21 @@ public class PublicKeysHolder {
     }
 
     private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix)
-            throws UnavailableProviderException, UnexpectedException {
+            throws UnavailableProviderException, UnexpectedException, ConfigurationErrorException {
         RSAPublicKey publicKey = null;
-        String endpoint = serviceAddress + ":" + servicePort + "/" + suffix;
+
+        URI uri = null;
+        try {
+            uri = new URI(serviceAddress);
+        } catch (URISyntaxException e) {
+            throw new ConfigurationErrorException(String.format(Messages.Exception.INVALID_URL, serviceAddress));
+        }
+        uri = UriComponentsBuilder.fromUri(uri).port(servicePort).path(suffix).build(true).toUri();
+
+        String endpoint = uri.toString();
         String responseStr = null;
         try {
-            responseStr = this.client.doGetRequest(endpoint, null);
+            responseStr = this.client.doGetRequest(endpoint, new CloudToken("", "", ""));
         } catch (HttpResponseException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         }

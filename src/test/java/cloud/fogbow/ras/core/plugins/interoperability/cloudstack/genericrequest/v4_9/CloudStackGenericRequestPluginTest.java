@@ -46,9 +46,7 @@ public class CloudStackGenericRequestPluginTest {
         GenericRequest request = new GenericRequest("GET", "https://www.foo.bar", Collections.emptyMap(), Collections.emptyMap());
 
         GenericRequestHttpResponse response = new GenericRequestHttpResponse("fake-content", HttpStatus.OK.value());
-        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap())).thenReturn(response);
-
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class))).thenReturn(response.getContent());
+        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap(), Mockito.any(CloudToken.class))).thenReturn(response);
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);
@@ -58,7 +56,8 @@ public class CloudStackGenericRequestPluginTest {
         CloudStackUrlUtil.sign(uriBuilder, fakeToken.getTokenValue());
         String expectedUrl = uriBuilder.toString();
 
-        Mockito.verify(this.client).doGetRequest(Mockito.eq(expectedUrl), Mockito.eq(this.fakeToken));
+        Mockito.verify(this.client).doGenericRequest(Mockito.eq("GET"), Mockito.eq(expectedUrl),
+                Mockito.eq(Collections.emptyMap()), Mockito.eq(Collections.emptyMap()), Mockito.any(CloudToken.class));
     }
 
 }

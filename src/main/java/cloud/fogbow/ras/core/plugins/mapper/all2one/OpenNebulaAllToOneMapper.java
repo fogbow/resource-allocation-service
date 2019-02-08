@@ -7,13 +7,12 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
-public class OpenNebulaAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin<CloudToken> {
-    public static final String OPENNEBULA_ENDPOINT = "opennebula_endpoint";
+public class OpenNebulaAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
 
     public OpenNebulaAllToOneMapper(String confFile) {
         super(confFile);
-        String endpoint = PropertiesHolder.getInstance().getProperty(OPENNEBULA_ENDPOINT);
-        OpenNebulaClientFactory factory = new OpenNebulaClientFactory(endpoint);
+        String serviceUrl = super.getTokenGeneratorUrl();
+        OpenNebulaClientFactory factory = new OpenNebulaClientFactory(serviceUrl);
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new OpenNebulaTokenGeneratorPlugin(factory, provider);
     }

@@ -1,5 +1,7 @@
 //package cloud.fogbow.ras.core;
 //
+//import cloud.fogbow.common.exceptions.*;
+//import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 //import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 //import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 //import cloud.fogbow.ras.core.models.Operation;
@@ -10,26 +12,24 @@
 //import org.junit.Before;
 //import org.junit.Ignore;
 //import org.junit.Test;
+//import org.mockito.Mock;
 //import org.mockito.Mockito;
 //
+//import java.util.HashMap;
+//
 //public class AaaControllerTest {
+//    private static final String FAKE_OPERATION = "fake-operation";
+//    private static final String FAKE_RESOURCE_TYPE = "fake-resource-type";
 //
 //    private AuthorizationPlugin authorizationPluginMock;
+//    private AuthorizationController authorizationController;
 //    private FederationToLocalMapperPlugin federationToLocalMapperPluginMock;
 //
 //    @Before
 //    public void setUp() {
-//        this.aaaPluginsHolderMock = Mockito.mock(AaaPluginsHolder.class);
-//        this.authenticationPluginMock = Mockito.mock(AuthenticationPlugin.class);
 //        this.authorizationPluginMock = Mockito.mock(AuthorizationPlugin.class);
+//        this.authorizationController =  new AuthorizationController(this.authorizationPluginMock);
 //        this.federationToLocalMapperPluginMock = Mockito.mock(FederationToLocalMapperPlugin.class);
-//        this.federationIdentityPluginMock = Mockito.mock(FederationIdentityPlugin.class);
-//
-//        Mockito.when(this.aaaPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
-//        Mockito.when(this.aaaPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
-//        Mockito.when(this.aaaPluginsHolderMock.getFederationIdentityPlugin()).thenReturn(this.federationIdentityPluginMock);
-//        this.aaaController = new AaaController(this.aaaPluginsHolderMock,
-//                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY));
 //    }
 //
 //    @Test(expected = UnauthorizedRequestException.class)
@@ -41,15 +41,18 @@
 //    //test case: Check if authenticate method throws no exception when the federation token is valid and federation token
 //    //id is properly passed as parameter.
 //    @Test
-//    public void testAuthenticate() throws UnauthenticatedUserException, UnavailableProviderException {
+//    public void testAuthenticate() throws UnexpectedException, UnauthorizedRequestException {
 //        //set up
-//        FederationUser federationToken = new FederationUser("fake-provider",
-//                "fake=federation-user", "fake-user-id", "fake-name");
-//        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString(), Mockito.any(FederationUser.class))).thenReturn(true);
+//        FederationUser federationToken = new FederationUser(new HashMap<>());
+//        Mockito.when(this.authorizationPluginMock.isAuthorized(federationToken, Mockito.anyString(), Mockito.anyString()))
+//            .thenReturn(true);
 //
-//        //exercise/verify
-//        this.aaaController.authenticate("fake-member-id", federationToken);
-//        Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isAuthentic("fake-member-id", federationToken);
+//        //exercise
+//        this.authorizationController.authorize(federationToken, "fake-operation", "fake-resource-type");
+//
+//        //verify
+//        Mockito.verify(this.authorizationPluginMock, Mockito.times(1))
+//                .isAuthorized(federationToken, Mockito.anyString(), Mockito.anyString());
 //    }
 //
 //    //test case: Check if authenticate method throws Unauthenticated exception when the federation token is invalid.
@@ -78,7 +81,7 @@
 //
 //    //test case: Check if authorize method throws no exception when the operation is valid.
 //    @Test
-//    public void testAuthorize() throws FogbowRasException {
+//    public void testAuthorize() throws FogbowException {
 //        //set up
 //        Mockito.when(this.authorizationPluginMock.isAuthorized(
 //                Mockito.any(FederationUser.class), Mockito.anyString(),
@@ -93,7 +96,7 @@
 //    //test case: Check if getLocalToken() is returning a valid token.
 //    @Ignore
 //    @Test
-//    public void testGetLocalToken() throws FogbowRasException, UnexpectedException {
+//    public void testGetLocalToken() throws FogbowException, UnexpectedException {
 //        //set up
 //
 //        //exercise
@@ -103,8 +106,8 @@
 //
 //    //test case: Check if getLocalToken is properly forwarding FogbowRasException thrown by FederationIdentityPlugin.
 //    @Ignore
-//    @Test(expected = FogbowRasException.class)
-//    public void testGetLocalTokenWhenFogbowManagerException() throws FogbowRasException, UnexpectedException {
+//    @Test(expected = FogbowException.class)
+//    public void testGetLocalTokenWhenFogbowManagerException() throws FogbowException, UnexpectedException {
 //        //set up
 //        //exercise/verify
 //    }
@@ -112,7 +115,7 @@
 //    //test case: Check if getLocalToken is properly forwading UnexpectedException thrown by FederationIdentityPlugin.
 //    @Ignore
 //    @Test(expected = UnexpectedException.class)
-//    public void testGetLocalTokenWhenUnexpectedException() throws FogbowRasException, UnexpectedException {
+//    public void testGetLocalTokenWhenUnexpectedException() throws FogbowException, UnexpectedException {
 //        //set up
 //        //exercise/verify
 //    }

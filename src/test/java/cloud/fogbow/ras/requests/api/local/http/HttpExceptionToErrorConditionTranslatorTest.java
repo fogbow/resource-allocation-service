@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.Compute;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import org.junit.Before;
@@ -60,7 +61,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(Compute.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }

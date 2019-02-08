@@ -21,7 +21,6 @@ import java.util.List;
 public class Attachment {
 
     public static final String ATTACHMENT_ENDPOINT = "attachments";
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "attachment";
 
     private final Logger LOGGER = Logger.getLogger(Attachment.class);
@@ -32,7 +31,7 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.Attachment.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Attachment attachment,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -49,7 +48,9 @@ public class Attachment {
     @ApiOperation(value = ApiDocumentation.Attachment.GET_OPERATION)
     public ResponseEntity<List<InstanceStatus>> getAllAttachmentsStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) throws UnavailableProviderException, UnexpectedException, InvalidTokenException, UnauthenticatedUserException, UnauthorizedRequestException {
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
+            UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -68,7 +69,7 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {
@@ -88,7 +89,7 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowException {
 
         try {

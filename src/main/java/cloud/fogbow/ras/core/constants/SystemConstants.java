@@ -5,8 +5,6 @@ public class SystemConstants {
 
     // CONFIGURATION FILES NAMES
     public static final String RAS_CONF_FILE_NAME = "ras.conf";
-    public static final String CLOUDS_CONF_FILE_NAME = "clouds.conf";
-    public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.conf";
 
     // INTEROPERABILITY PLUGINS CONF FILES DIRECTORY AND NAMES
     public static final String CLOUDS_CONFIGURATION_DIRECTORY_NAME = "clouds";

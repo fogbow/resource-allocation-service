@@ -19,6 +19,7 @@ public class Messages {
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_PUBLIC_KEY = "Invalid public key fetched from external server.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
+        public static final String INVALID_URL = "Please check the url: %s.";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";
@@ -55,10 +56,9 @@ public class Messages {
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
         public static final String EMPTY_PROPERTY_MAP = "Empty property map.";
-        public static final String ERROR_READING_PRIVATE_KEY_FILE = "Error reading private key file.";
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String NEUTRON_ENDPOINT_NOT_FOUND = "Neutron endpoint not found.";
-        public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in clouds.conf file";
+        public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in ras.conf file";
     }
 
     public static class Warn {
@@ -110,6 +110,8 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
+        public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
+        public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
@@ -148,5 +150,6 @@ public class Messages {
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
+        public static final String VALUE_TOO_LARGE_TO_STORE = "Value '%s' is too large to be stored in the column '%s' of the table relative to the class '%s', storing '%s' instead";
     }
 }

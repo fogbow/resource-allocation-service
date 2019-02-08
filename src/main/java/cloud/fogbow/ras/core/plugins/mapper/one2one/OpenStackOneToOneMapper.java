@@ -9,7 +9,7 @@ import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.all2one.OpenStackAllToOneMapper;
 
 public class OpenStackOneToOneMapper extends GenericOneToOneFederationToLocalMapper
-        implements FederationToLocalMapperPlugin<CloudToken> {
+        implements FederationToLocalMapperPlugin {
     public OpenStackOneToOneMapper(String mapperConfFilePath) {
         super(new OpenStackAllToOneMapper(mapperConfFilePath));
     }
