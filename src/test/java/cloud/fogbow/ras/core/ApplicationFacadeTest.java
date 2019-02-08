@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -15,6 +16,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.xmpp.packet.IQ;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -33,7 +35,9 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
+import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteRequest;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.Operation;
@@ -58,8 +62,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequ
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class, 
-	DatabaseManager.class, RemoteGetCloudNamesRequest.class, RSAUtil.class, ServiceAsymmetricKeysHolder.class, 
-	SharedOrderHolders.class })
+	DatabaseManager.class, PacketSenderHolder.class, RemoteGetCloudNamesRequest.class, RSAUtil.class, 
+	ServiceAsymmetricKeysHolder.class, SharedOrderHolders.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
 	private static final String BUILD_NUMBER_FORMAT = "%s-abcd";
@@ -246,24 +250,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// exercise
 		this.facade.authorizeOrder(ownerUser, cloudName, operation, resourceType, order);
-	}
-
-	// test case: When calling a resource with a too long public key throws an
-	// InvalidParameterException.
-	@Ignore
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testCreateResourceWithTooLongPrivateKey() throws Exception {
-		// set up
-		String cloudName = null;
-		String publicKey = generateVeryLongPublicKey();
-		FederationUser federationUser = null;
-		ArrayList<UserData> userData = null;
-		List<String> networkIds = null;
-
-		ComputeOrder order = spyComputeOrder(federationUser, cloudName, publicKey, userData, networkIds);
-
-		// exercise
-		this.facade.createCompute(order, FEDERATION_TOKEN_VALUE);
 	}
 
 	// test case: When calling a resource with a too long extra user data file
@@ -1571,7 +1557,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	// test case: When calling the getCloudNames method with a remote member ID, it
 	// must verify that this call was successful.
-	@Ignore
 	@Test
 	public void testGetCloudNamesWithRemoteMemberId() throws Exception {
 		// set up
@@ -1583,18 +1568,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		List<String> cloudNames = new ArrayList<>();
-
-		RemoteGetCloudNamesRequest remoteGetCloudNamesRequest = Mockito
-				.spy(new RemoteGetCloudNamesRequest(FAKE_MEMBER_ID, federationUser));
-
-		Mockito.doReturn(cloudNames).when(remoteGetCloudNamesRequest).send();
+		RemoteGetCloudNamesRequest remoteGetCloudNamesRequest = Mockito.mock(RemoteGetCloudNamesRequest.class);
+		Mockito.when(this.facade.getCloudNamesFromRemoteRequest(FAKE_MEMBER_ID, federationUser)).thenReturn(remoteGetCloudNamesRequest);
+		Mockito.when(remoteGetCloudNamesRequest.send()).thenReturn(cloudNames);
 
 		// exercise
-		try {
 			this.facade.getCloudNames(FAKE_MEMBER_ID, FEDERATION_TOKEN_VALUE);
-		} catch (RemoteCommunicationException e) {
-			Assert.fail();
-		}
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();

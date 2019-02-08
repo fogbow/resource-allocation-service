@@ -104,7 +104,7 @@ public class ApplicationFacade {
             return this.cloudListController.getCloudNames();
         } else {
             try {
-                RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(memberId, requester);
+                RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(memberId, requester);
                 List<String> cloudNames = remoteGetCloudNames.send();
                 return cloudNames;
             } catch (Exception e) {
@@ -113,6 +113,12 @@ public class ApplicationFacade {
             }
         }
     }
+
+    // This method is only protected to be used in testing
+	protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String memberId, FederationUser requester) {
+		RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(memberId, requester);
+		return remoteGetCloudNames;
+	}
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowException {
         if (order.getUserData() != null) {
