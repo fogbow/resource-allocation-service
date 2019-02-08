@@ -26,4 +26,8 @@ public class BasicAllToOneMapper extends GenericAllToOneFederationToLocalMapper
     public CloudToken decorateToken(CloudToken token, Map<String, String> attributes) {
         return token;
     }
+
+    public void setTokenGeneratorPlugin(TokenGeneratorPlugin tokenGeneratorPlugin) {
+        this.tokenGeneratorPlugin = tokenGeneratorPlugin;
+    }
 }
