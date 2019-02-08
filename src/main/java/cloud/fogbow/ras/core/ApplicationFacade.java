@@ -7,6 +7,7 @@ import cloud.fogbow.common.util.AuthenticationUtil;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -27,7 +28,6 @@ import cloud.fogbow.ras.core.models.quotas.allocation.Allocation;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;

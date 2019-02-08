@@ -2,12 +2,12 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.dom4j.Element;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;

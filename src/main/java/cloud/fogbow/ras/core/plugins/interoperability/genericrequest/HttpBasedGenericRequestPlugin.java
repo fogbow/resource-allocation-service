@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.genericrequest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;

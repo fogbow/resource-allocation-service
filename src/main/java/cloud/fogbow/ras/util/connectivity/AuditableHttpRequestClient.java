@@ -4,10 +4,10 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
@@ -121,7 +121,7 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
     }
 
     public GenericRequestHttpResponse doGenericRequest(String method, String urlString,
-            Map<String, String> headers, Map<String, String> body, CloudToken token)
+                                                       Map<String, String> headers, Map<String, String> body, CloudToken token)
             throws FogbowException {
         try {
             URL url = new URL(urlString);

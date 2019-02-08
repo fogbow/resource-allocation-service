@@ -3,9 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.genericrequest
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
