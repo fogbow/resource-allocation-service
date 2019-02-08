@@ -108,7 +108,7 @@ public class RemoteFacade {
 
     public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
                                      FederationUser federationUser) throws FogbowException {
-        Order order = orderController.getOrder(orderId);
+        Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
         this.authorizationController.authorize(federationUser, order.getCloudName(), Operation.CREATE.getValue(), ResourceType.SECURITY_RULE.getValue());
@@ -117,17 +117,17 @@ public class RemoteFacade {
 
     public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
                                                   FederationUser federationUser) throws FogbowException {
-        Order order = orderController.getOrder(orderId);
+        Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, order.getCloudName(), Operation.CREATE.getValue(), ResourceType.SECURITY_RULE.getValue());
+        this.authorizationController.authorize(federationUser, order.getCloudName(), Operation.GET_ALL.getValue(), ResourceType.SECURITY_RULE.getValue());
         return securityRuleController.getAllSecurityRules(order, federationUser);
     }
 
     public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
                                    FederationUser federationUser) throws FogbowException {
-        this.authorizationController.authorize(federationUser, cloudName, Operation.CREATE.getValue(), ResourceType.SECURITY_RULE.getValue());
-        securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, federationUser);
+        this.authorizationController.authorize(federationUser, cloudName, Operation.DELETE.getValue(), ResourceType.SECURITY_RULE.getValue());
+        this.securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, federationUser);
     }
 
     public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowException {
@@ -193,7 +193,7 @@ public class RemoteFacade {
         }
     }
 
-    private void authorizeOrder(FederationUser requester, String cloudName, Operation operation, ResourceType type,
+    protected void authorizeOrder(FederationUser requester, String cloudName, Operation operation, ResourceType type,
                                 Order order) throws UnexpectedException, UnauthorizedRequestException,
             InstanceNotFoundException {
         // Check if requested type matches order type
