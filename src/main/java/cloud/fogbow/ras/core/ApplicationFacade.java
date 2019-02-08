@@ -223,7 +223,7 @@ public class ApplicationFacade {
             throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(requester, cloudName, Operation.GET_IMAGE.getValue(), ResourceType.IMAGE.getValue());
         if (memberId == null) {
             memberId = this.memberId;
         }
