@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +12,7 @@ public class CloudConnectorFactory {
     private Map<String, LocalCloudConnector> cachedLocalCloudConnectors;
 
     private CloudConnectorFactory() {
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         this.cachedLocalCloudConnectors = new ConcurrentHashMap<String, LocalCloudConnector>();
     }
 

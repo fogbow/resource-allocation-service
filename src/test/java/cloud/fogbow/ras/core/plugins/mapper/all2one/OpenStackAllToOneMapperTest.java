@@ -6,10 +6,10 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.SystemConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class OpenStackAllToOneMapperTest {
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         this.keystoneV3TokenGenerator = Mockito.spy(OpenStackTokenGeneratorPlugin.class);
         this.mapper = new OpenStackAllToOneMapper(mapperConfPath);
         this.mapper.setTokenGeneratorPlugin(this.keystoneV3TokenGenerator);

@@ -3,8 +3,8 @@ package cloud.fogbow.ras.core.plugins.mapper.one2one;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 public class GenericOneToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
@@ -13,7 +13,7 @@ public class GenericOneToOneFederationToLocalMapper implements FederationToLocal
 
     public GenericOneToOneFederationToLocalMapper(FederationToLocalMapperPlugin remoteMapper) {
         this.remoteMapper = remoteMapper;
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
     }
 
     @Override

@@ -6,9 +6,9 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import org.apache.http.client.HttpResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -24,8 +24,8 @@ public class PublicKeysHolder {
     private static PublicKeysHolder instance;
 
     private PublicKeysHolder() {
-        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
-                DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
+        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.HTTP_REQUEST_TIMEOUT);
         this.client = new HttpRequestClientUtil(new Integer(timeoutStr));
         this.asPublicKey = null;
     }
@@ -39,8 +39,8 @@ public class PublicKeysHolder {
 
     public RSAPublicKey getAsPublicKey() throws UnavailableProviderException, UnexpectedException, ConfigurationErrorException {
         if (this.asPublicKey == null) {
-            String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_URL_KEY);
-            String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AS_PORT_KEY);
+            String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY);
+            String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY);
             this.asPublicKey = getPublicKey(asAddress, asPort, cloud.fogbow.as.api.http.PublicKey.PUBLIC_KEY_ENDPOINT);
         }
         return this.asPublicKey;

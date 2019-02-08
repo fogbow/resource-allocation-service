@@ -2,6 +2,7 @@ package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.Network;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -10,7 +11,6 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import com.google.gson.Gson;
-import cloud.fogbow.common.models.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

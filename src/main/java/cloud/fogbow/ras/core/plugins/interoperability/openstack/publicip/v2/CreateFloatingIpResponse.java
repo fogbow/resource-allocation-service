@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.ID_KEY_JSON;
 
 /**
  * Documentation : https://developer.openstack.org/api-ref/network/v2/#create-floating-ip

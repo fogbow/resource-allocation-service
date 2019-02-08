@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import org.apache.log4j.Logger;
 import org.opennebula.client.*;
 import org.opennebula.client.group.Group;

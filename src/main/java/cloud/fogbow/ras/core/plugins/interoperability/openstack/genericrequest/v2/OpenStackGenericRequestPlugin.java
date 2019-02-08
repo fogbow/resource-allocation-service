@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;

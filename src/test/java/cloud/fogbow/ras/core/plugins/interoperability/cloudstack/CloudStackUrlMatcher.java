@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.ras.constants.Messages;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.constants.Messages;
 import org.mockito.ArgumentMatcher;
 
 import java.io.UnsupportedEncodingException;

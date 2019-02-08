@@ -1,27 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.CONTEXT;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.CPU;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.DISK;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.GRAPHICS;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.IMAGE_ID;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.LISTEN;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.MEMORY;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_INTERFACE_CONNECTED;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.USERDATA;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.USERDATA_ENCODING;
-
-import java.util.List;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = TEMPLATE)
 public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {

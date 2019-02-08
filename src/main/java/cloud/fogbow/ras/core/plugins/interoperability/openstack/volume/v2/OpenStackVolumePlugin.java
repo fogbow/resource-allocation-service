@@ -3,11 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
@@ -18,6 +16,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToF
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
+import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 
 import java.util.List;
@@ -206,8 +206,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
 
     private void initClient() {
         this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
-                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
     public void setClient(AuditableHttpRequestClient client) {
         this.client = client;

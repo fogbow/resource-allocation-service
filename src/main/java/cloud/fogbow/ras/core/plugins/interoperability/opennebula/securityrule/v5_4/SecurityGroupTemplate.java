@@ -1,16 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.ID;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
-
-import java.util.List;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = TEMPLATE)
 public class SecurityGroupTemplate extends OpenNebulaMarshallerTemplate {

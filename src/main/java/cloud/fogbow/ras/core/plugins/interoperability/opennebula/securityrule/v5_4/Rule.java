@@ -1,26 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.IP;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.PROTOCOL;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.RANGE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE_TYPE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
 import cloud.fogbow.ras.core.models.securityrules.EtherType;
 import cloud.fogbow.ras.core.models.securityrules.Protocol;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.rmi.UnexpectedException;
+
+import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = RULE)
 public class Rule {

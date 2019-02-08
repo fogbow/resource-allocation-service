@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.SystemConstants;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
@@ -30,55 +30,55 @@ public class InteroperabilityPluginInstantiator {
     }
 
     public AttachmentPlugin getAttachmentPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.ATTACHMENT_PLUGIN_CLASS_KEY);
         return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public ComputePlugin getComputePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.COMPUTE_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.COMPUTE_PLUGIN_CLASS_KEY);
         return (ComputePlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public ComputeQuotaPlugin getComputeQuotaPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
         return (ComputeQuotaPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public NetworkPlugin getNetworkPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.NETWORK_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.NETWORK_PLUGIN_CLASS_KEY);
         return (NetworkPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public VolumePlugin getVolumePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.VOLUME_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.VOLUME_PLUGIN_CLASS_KEY);
         return (VolumePlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public ImagePlugin getImagePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.IMAGE_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.IMAGE_PLUGIN_CLASS_KEY);
         return (ImagePlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public PublicIpPlugin getPublicIpPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.PUBLIC_IP_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.PUBLIC_IP_PLUGIN_CLASS_KEY);
         return (PublicIpPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public GenericRequestPlugin getGenericRequestPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.GENERIC_PLUGIN_CLASS_KEY);
         // This plugin does not require a configuration file, since all required information to interact with the
         // cloud will come in the request itself.
         return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public SecurityRulePlugin getSecurityRulePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_RULE_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationPropertyKeys.SECURITY_RULE_PLUGIN_CLASS_KEY);
         return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
         String className = this.properties.
-                getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
+                getProperty(ConfigurationPropertyKeys.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
         return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className, this.mapperConfPath);
     }
 

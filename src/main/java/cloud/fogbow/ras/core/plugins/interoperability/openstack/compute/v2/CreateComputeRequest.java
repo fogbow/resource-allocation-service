@@ -1,11 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
-import static cloud.fogbow.common.constants.OpenStackConstants.Compute.*;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/

@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.constants.FogbowConstants;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetOrderRequest;
@@ -10,7 +10,6 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.Instance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;

@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.api.parameters;
 
+import cloud.fogbow.ras.core.models.UserData;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.UserData;
 
 public class Compute implements OrderApiParameter {
     private String provider;

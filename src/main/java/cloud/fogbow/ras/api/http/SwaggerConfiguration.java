@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.api.http;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,21 +15,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @Configuration
 public class SwaggerConfiguration {
-
     public static final String BASE_PACKAGE = "cloud.fogbow.ras";
 
-    public static final String API_TITLE = "Fogbow Resource Allocation Service API";
-    public static final String API_DESCRIPTION =
-            "This documentation introduces readers to Fogbow RAS REST API, provides guidelines on\n" +
-            "how to use it, and describes the available features accessible from it.";
 
-    public static final String CONTACT_NAME = "Fogbow";
-    public static final String CONTACT_URL = "https://www.fogbowcloud.org";
-    public static final String CONTACT_EMAIL = "contact@fogbowcloud.org";
     public static final Contact CONTACT = new Contact(
-        CONTACT_NAME,
-        CONTACT_URL,
-        CONTACT_EMAIL);
+        ApiDocumentation.ApiInfo.CONTACT_NAME,
+            ApiDocumentation.ApiInfo.CONTACT_URL,
+            ApiDocumentation.ApiInfo.CONTACT_EMAIL);
 
     @Bean
     public Docket apiDetails() {
@@ -48,8 +41,8 @@ public class SwaggerConfiguration {
 
         ApiInfoBuilder apiInfoBuilder = new ApiInfoBuilder();
 
-        apiInfoBuilder.title(API_TITLE);
-        apiInfoBuilder.description(API_DESCRIPTION);
+        apiInfoBuilder.title(ApiDocumentation.ApiInfo.API_TITLE);
+        apiInfoBuilder.description(ApiDocumentation.ApiInfo.API_DESCRIPTION);
         apiInfoBuilder.version(versionNumber);
         apiInfoBuilder.contact(CONTACT);
 

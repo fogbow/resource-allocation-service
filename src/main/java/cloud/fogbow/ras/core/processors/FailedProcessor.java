@@ -1,17 +1,17 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.instances.Instance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.apache.log4j.Logger;
 
 /**
  * Process orders in the state failed. It monitors resources that failed after

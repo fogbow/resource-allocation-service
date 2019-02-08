@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
+import org.apache.log4j.Logger;
 
 public class OpenStackStateMapper {
     private static final Logger LOGGER = Logger.getLogger(OpenStackStateMapper.class);

@@ -1,12 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
@@ -17,6 +18,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpT
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
+import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 
 import java.util.*;
 
@@ -39,8 +42,8 @@ public class CloudStackVolumePlugin implements VolumePlugin {
         this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
         this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
-                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
 
     @Override

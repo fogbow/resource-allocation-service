@@ -2,11 +2,10 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import org.apache.http.impl.client.CloseableHttpClient;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +42,7 @@ public class PluginInstantiatorTest {
 
         // verify
         Assert.assertEquals(expected_xmpp_jid_value,
-                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY));
+                PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_JID_KEY));
     }
 
     // test case: Tests if getFederationToLocalMapperPlugin() returns StubFederationToLocalMapperPlugin

@@ -1,29 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.core.constants.SystemConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
-import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
-import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
+import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +29,9 @@ import org.opennebula.client.vm.VirtualMachine;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.File;
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({VirtualMachine.class})

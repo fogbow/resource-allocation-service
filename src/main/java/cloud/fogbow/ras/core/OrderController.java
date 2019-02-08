@@ -5,17 +5,17 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
-import cloud.fogbow.ras.core.models.orders.*;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.Instance;
+import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.core.models.quotas.allocation.Allocation;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -135,7 +135,7 @@ public class OrderController {
 
     protected CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         
         if (order.isProviderLocal(localMemberId)) {
             provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());

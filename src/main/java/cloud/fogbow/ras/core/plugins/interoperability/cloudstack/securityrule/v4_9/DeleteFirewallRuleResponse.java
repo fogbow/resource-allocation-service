@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
-import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.constants.CloudStackConstants;
+import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 /**

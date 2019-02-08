@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import java.util.List;
-
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetworkTemplate.LeaseIp;
+
+import java.util.List;
 
 public class CreatePublicNetworkRequest {
 

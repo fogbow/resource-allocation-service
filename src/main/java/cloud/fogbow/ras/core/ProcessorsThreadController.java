@@ -1,14 +1,10 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
-import cloud.fogbow.ras.core.processors.ClosedProcessor;
-import cloud.fogbow.ras.core.processors.FulfilledProcessor;
-import cloud.fogbow.ras.core.processors.OpenProcessor;
-import cloud.fogbow.ras.core.processors.SpawningProcessor;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.processors.*;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.processors.FailedProcessor;
 
 public class ProcessorsThreadController {
     private static final Logger LOGGER = Logger.getLogger(ProcessorsThreadController.class);
@@ -21,32 +17,32 @@ public class ProcessorsThreadController {
 
     public ProcessorsThreadController(String localMemberId) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
 
         OpenProcessor openProcessor = new OpenProcessor(localMemberId, openOrdersProcSleepTimeStr);
 
         String spawningOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.SPAWNING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.SPAWNING_ORDERS_SLEEP_TIME);
 
         SpawningProcessor spawningProcessor = new SpawningProcessor(localMemberId, spawningOrdersProcSleepTimeStr);
 
         String fulfilledOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.FULFILLED_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
 
         FulfilledProcessor fulfilledProcessor = new FulfilledProcessor(localMemberId, fulfilledOrdersProcSleepTimeStr);
 
         String closedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.CLOSED_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME);
 
         ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
         
         String failedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationConstants.FAILED_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.FAILED_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.FAILED_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
         
         FailedProcessor failedProcessor = new FailedProcessor(localMemberId, failedOrdersProcSleepTimeStr);
 

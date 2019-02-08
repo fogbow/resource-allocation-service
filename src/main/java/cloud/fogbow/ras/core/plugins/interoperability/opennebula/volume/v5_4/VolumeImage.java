@@ -1,18 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.DEVICE_PREFIX;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.DISK_TYPE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.FILE_SYSTEM_TYPE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.IMAGE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.PERSISTENT;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = IMAGE)
 public class VolumeImage extends OpenNebulaMarshallerTemplate {

@@ -7,8 +7,8 @@ import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.SystemConstants;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class CloudStackAllToOneMapperTest {
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "cloudstack" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         this.cloudStackTokenGenerator = Mockito.spy(CloudStackTokenGeneratorPlugin.class);
         this.mapper = new CloudStackAllToOneMapper(mapperConfPath);
         this.mapper.setTokenGeneratorPlugin(this.cloudStackTokenGenerator);

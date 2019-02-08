@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.models.linkedlists;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.junit.Assert;
 import org.junit.Before;

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
@@ -9,7 +10,6 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;

@@ -2,31 +2,24 @@ package cloud.fogbow.ras;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPluginInstantiator;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.core.datastore.AuditService;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.datastore.RecoveryService;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
-import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.datastore.AuditService;
-import cloud.fogbow.ras.core.datastore.RecoveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -43,7 +36,7 @@ public class Main implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         try {
             // Getting the name of the local member
-            String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+            String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
@@ -56,7 +49,7 @@ public class Main implements ApplicationRunner {
             ServiceAsymmetricKeysHolder.getInstance().setPrivateKeyFilePath(privateKeyFilePath);
 
             // Setting up controllers and application facade
-            String className = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
+            String className = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
             AuthorizationPlugin authorizationPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(className);
             AuthorizationController authorizationController =  new AuthorizationController(authorizationPlugin);
             OrderController orderController = new OrderController();

@@ -1,13 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.DISK;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.IMAGE_ID;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = TEMPLATE)
 public class AttachmentDisk extends OpenNebulaMarshallerTemplate {

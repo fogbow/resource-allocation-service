@@ -5,23 +5,23 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.commons.net.util.SubnetUtils;
-import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
-import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
+import org.apache.commons.net.util.SubnetUtils;
+import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 
 import java.util.List;
 import java.util.Properties;
@@ -49,8 +49,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
         this.zoneId = properties.getProperty(ZONE_ID);
 
         this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
-                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
 
     @Override

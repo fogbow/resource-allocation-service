@@ -1,27 +1,27 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.core.models.instances.NetworkInstance;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
-import cloud.fogbow.ras.core.models.instances.NetworkInstance;
-import cloud.fogbow.ras.core.models.NetworkAllocationMode;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin {
 

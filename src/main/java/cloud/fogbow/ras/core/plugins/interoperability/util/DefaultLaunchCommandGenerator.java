@@ -1,14 +1,14 @@
 package cloud.fogbow.ras.core.plugins.interoperability.util;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.models.UserData;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.UserData;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,8 +30,8 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     private final String sshCommonUser;
 
     public DefaultLaunchCommandGenerator() {
-        this.sshCommonUser = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY,
-                DefaultConfigurationConstants.SSH_COMMON_USER);
+        this.sshCommonUser = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
+                ConfigurationPropertyDefaults.SSH_COMMON_USER);
     }
 
     @Override

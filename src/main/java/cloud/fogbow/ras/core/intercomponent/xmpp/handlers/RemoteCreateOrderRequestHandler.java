@@ -1,14 +1,14 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import com.google.gson.Gson;
-import org.apache.log4j.Logger;
-import org.dom4j.Element;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import cloud.fogbow.ras.core.models.orders.Order;
+import com.google.gson.Gson;
+import org.apache.log4j.Logger;
+import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 

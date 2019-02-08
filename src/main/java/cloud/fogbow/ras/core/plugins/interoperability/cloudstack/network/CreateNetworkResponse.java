@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
+
 import static cloud.fogbow.common.constants.CloudStackConstants.Network.*;
 
 public class CreateNetworkResponse {

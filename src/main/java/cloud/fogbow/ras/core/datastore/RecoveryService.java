@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

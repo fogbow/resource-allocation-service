@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.ras.core.intercomponent.xmpp.*;
+import cloud.fogbow.ras.core.models.orders.Order;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import cloud.fogbow.ras.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
 public class RemoteNotifyEventRequest implements RemoteRequest<Void> {

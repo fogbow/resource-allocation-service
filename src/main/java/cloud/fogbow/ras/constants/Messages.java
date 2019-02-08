@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.constants;
+package cloud.fogbow.ras.constants;
 
 public class Messages {
 

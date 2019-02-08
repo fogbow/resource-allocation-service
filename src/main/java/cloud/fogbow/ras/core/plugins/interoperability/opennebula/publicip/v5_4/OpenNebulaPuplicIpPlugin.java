@@ -1,30 +1,30 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetworkTemplate.LeaseIp;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
+import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
 import org.opennebula.client.vnet.VirtualNetworkPool;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin {
 

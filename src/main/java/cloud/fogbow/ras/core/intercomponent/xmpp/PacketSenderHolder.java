@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import org.apache.log4j.Logger;
 import org.jamppa.component.PacketSender;
 import org.xmpp.component.ComponentException;
 
@@ -15,14 +15,14 @@ public class PacketSenderHolder {
 
     public static void init() {
         if (packetSender == null) {
-            String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);
-            String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
-            String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
+            String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_JID_KEY);
+            String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_PASSWORD_KEY);
+            String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                    getProperty(ConfigurationConstants.XMPP_C2C_PORT_KEY, DefaultConfigurationConstants.XMPP_CSC_PORT));
+                    getProperty(ConfigurationPropertyKeys.XMPP_C2C_PORT_KEY, ConfigurationPropertyDefaults.XMPP_CSC_PORT));
             long xmppTimeout =
-                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
-                            DefaultConfigurationConstants.XMPP_TIMEOUT));
+                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_TIMEOUT_KEY,
+                            ConfigurationPropertyDefaults.XMPP_TIMEOUT));
             XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword,
                     xmppServerIp, xmppServerPort, xmppTimeout);
             if (xmppServerIp != null && !xmppServerIp.isEmpty()) {

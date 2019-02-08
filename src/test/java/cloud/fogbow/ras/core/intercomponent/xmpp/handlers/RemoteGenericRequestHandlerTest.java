@@ -2,13 +2,13 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
-import cloud.fogbow.common.models.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;

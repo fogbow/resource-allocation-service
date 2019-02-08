@@ -1,13 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 
-import java.io.StringWriter;
+import cloud.fogbow.ras.constants.Messages;
+import org.apache.log4j.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.log4j.Logger;
+import java.io.StringWriter;
 
 public class OpenNebulaMarshallerTemplate {
 

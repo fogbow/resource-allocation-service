@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.models.orders.Order;
 
 import java.util.List;
 

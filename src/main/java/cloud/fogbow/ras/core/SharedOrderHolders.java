@@ -1,15 +1,14 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.apache.log4j.Logger;
 
 import java.util.Map;
-import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SharedOrderHolders {

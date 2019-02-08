@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.linkedlists;
 
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 
 public class SynchronizedDoublyLinkedList implements ChainedList {

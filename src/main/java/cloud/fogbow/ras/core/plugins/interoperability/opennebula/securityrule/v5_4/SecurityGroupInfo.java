@@ -1,15 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.ID;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.SECURITY_GROUP;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.List;
+import org.apache.log4j.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -17,8 +8,12 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.List;
 
-import org.apache.log4j.Logger;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = SECURITY_GROUP)
 public class SecurityGroupInfo {

@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.api.http;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.core.constants.ApiDocumentation;
-import cloud.fogbow.ras.core.constants.Messages;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;

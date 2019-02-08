@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -8,7 +9,6 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -22,7 +22,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @RunWith(PowerMockRunner.class)
@@ -50,7 +49,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
         this.closedProcessor = Mockito.spy(new ClosedProcessor(
-                DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME));
+                ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME));
     }
 
     @Override

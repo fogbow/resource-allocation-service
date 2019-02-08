@@ -1,12 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
-import java.util.List;
-
-import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.constants.CloudStackConstants;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
-
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listFirewallRules.html

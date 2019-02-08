@@ -6,11 +6,11 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import cloud.fogbow.ras.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
 public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {

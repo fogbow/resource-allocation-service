@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.models;
 
 import org.apache.log4j.Logger;
 
-import static cloud.fogbow.ras.core.constants.Messages.Error.VALUE_TOO_LARGE_TO_STORE;
+import static cloud.fogbow.ras.constants.Messages.Error.VALUE_TOO_LARGE_TO_STORE;
 
 public abstract class StorableBean {
 

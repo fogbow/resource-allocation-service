@@ -3,7 +3,7 @@
 //import cloud.fogbow.common.exceptions.*;
 //import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 //import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-//import cloud.fogbow.ras.core.constants.ConfigurationConstants;
+//import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 //import cloud.fogbow.ras.core.models.Operation;
 //import cloud.fogbow.ras.core.models.ResourceType;
 //import cloud.fogbow.common.models.FederationUser;

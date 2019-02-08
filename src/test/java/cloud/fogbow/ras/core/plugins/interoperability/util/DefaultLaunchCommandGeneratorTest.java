@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.util;
 
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.models.UserData;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +30,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
+        this.properties.setProperty(ConfigurationPropertyKeys.XMPP_JID_KEY, "localidentity-member");
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 
     }
@@ -147,7 +147,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         mimeString += DefaultLaunchCommandGenerator.TOKEN_SSH_USER + System.lineSeparator();
         expectedMimeString +=
-                DefaultConfigurationConstants.SSH_COMMON_USER + System.lineSeparator();
+                ConfigurationPropertyDefaults.SSH_COMMON_USER + System.lineSeparator();
 
         mimeString +=
                 DefaultLaunchCommandGenerator.TOKEN_USER_SSH_PUBLIC_KEY + System.lineSeparator();
@@ -165,9 +165,9 @@ public class DefaultLaunchCommandGeneratorTest {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
         String publicKey = "fake-public-key";
         String instanceName = "fake-instance-name";
 
@@ -191,9 +191,9 @@ public class DefaultLaunchCommandGeneratorTest {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
         String publicKey = "fake-public-key";
         String instanceName = "fake-instance-name";
 
@@ -217,9 +217,9 @@ public class DefaultLaunchCommandGeneratorTest {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
         String instanceName = "fake-instance-name";
 
         ComputeOrder localOrder =

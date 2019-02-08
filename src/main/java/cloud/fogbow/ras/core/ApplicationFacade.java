@@ -7,28 +7,28 @@ import cloud.fogbow.common.util.AuthenticationUtil;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
-import cloud.fogbow.ras.core.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.Operation;
-import cloud.fogbow.ras.core.models.instances.*;
-import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import cloud.fogbow.ras.core.models.InstanceStatus;
+import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.images.Image;
+import cloud.fogbow.ras.core.models.instances.*;
+import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.quotas.allocation.Allocation;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -51,9 +51,9 @@ public class ApplicationFacade {
     private String buildNumber;
 
     private ApplicationFacade() {
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
-        this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.BUILD_NUMBER_KEY,
-                DefaultConfigurationConstants.BUILD_NUMBER);
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+        this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.BUILD_NUMBER_KEY,
+                ConfigurationPropertyDefaults.BUILD_NUMBER);
     }
 
     public static ApplicationFacade getInstance() {
@@ -357,7 +357,7 @@ public class ApplicationFacade {
     // Used for testing
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
-        this.buildNumber = properties.getProperty(ConfigurationConstants.BUILD_NUMBER_KEY,
-                DefaultConfigurationConstants.BUILD_NUMBER);
+        this.buildNumber = properties.getProperty(ConfigurationPropertyKeys.BUILD_NUMBER_KEY,
+                ConfigurationPropertyDefaults.BUILD_NUMBER);
     }
 }

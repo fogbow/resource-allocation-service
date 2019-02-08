@@ -3,7 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.common.constants.OpenStackConstants.Compute.*;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.NAME_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Compute.REMOVE_SECURITY_GROUP_KEY_JSON;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/#add-security-group-to-a-server-addsecuritygroup-action

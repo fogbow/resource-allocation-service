@@ -1,20 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.images.Image;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.ImagePool;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpenNebulaImagePlugin implements ImagePlugin {
 

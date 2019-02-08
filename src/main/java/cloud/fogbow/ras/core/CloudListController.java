@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -15,10 +15,10 @@ public class CloudListController {
     private List<String> cloudNames;
 
     public CloudListController() {
-        String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 
         this.cloudNames = new ArrayList<>();
-        String cloudNamesList = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.CLOUD_NAMES_KEY);
+        String cloudNamesList = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);
         if (cloudNamesList == null || cloudNamesList.isEmpty()) {
             throw new FatalErrorException(Messages.Fatal.NO_CLOUD_SPECIFIED);
         }

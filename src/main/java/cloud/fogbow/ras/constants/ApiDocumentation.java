@@ -1,6 +1,17 @@
-package cloud.fogbow.ras.core.constants;
+package cloud.fogbow.ras.constants;
 
 public class ApiDocumentation {
+    public static class ApiInfo {
+        public static final String API_TITLE = "Fogbow Resource Allocation Service API";
+        public static final String API_DESCRIPTION =
+                "This documentation introduces readers to Fogbow RAS REST API, provides guidelines on\n" +
+                        "how to use it, and describes the available features accessible from it.";
+
+        public static final String CONTACT_NAME = "Fogbow";
+        public static final String CONTACT_URL = "https://www.fogbowcloud.org";
+        public static final String CONTACT_EMAIL = "contact@fogbowcloud.org";
+    }
+
     public static class Attachment {
         public static final String API = "Manages attachments.";
         public static final String CREATE_OPERATION = "Creates an attachment.";

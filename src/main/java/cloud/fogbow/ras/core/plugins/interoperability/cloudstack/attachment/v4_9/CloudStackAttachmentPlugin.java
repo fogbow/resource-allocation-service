@@ -4,10 +4,8 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
@@ -19,6 +17,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
+import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 
 import java.util.Properties;
 
@@ -40,8 +40,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     
     public CloudStackAttachmentPlugin() {
         this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
-                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
 
     public CloudStackAttachmentPlugin(String confFilePath) {

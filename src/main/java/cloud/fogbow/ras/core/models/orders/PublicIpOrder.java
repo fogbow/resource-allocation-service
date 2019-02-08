@@ -4,7 +4,10 @@ import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import java.util.UUID;
 

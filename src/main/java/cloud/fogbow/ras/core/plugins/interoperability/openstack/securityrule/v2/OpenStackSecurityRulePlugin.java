@@ -5,22 +5,22 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
 import cloud.fogbow.ras.core.models.securityrules.EtherType;
 import cloud.fogbow.ras.core.models.securityrules.Protocol;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.json.JSONException;
 
 import javax.ws.rs.core.UriBuilder;
@@ -208,8 +208,8 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
 
     private void initClient() {
         this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT_KEY,
-                        DefaultConfigurationConstants.XMPP_TIMEOUT)));
+                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
 
     protected void setClient(AuditableHttpRequestClient client) {

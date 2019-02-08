@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.api.http;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.constants.ApiDocumentation;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -34,7 +34,7 @@ public class Cloud {
         throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+            String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);
             return new ResponseEntity<>(cloudNames, HttpStatus.OK);
         } catch (Exception e) {

@@ -1,6 +1,6 @@
-package cloud.fogbow.ras.core.constants;
+package cloud.fogbow.ras.constants;
 
-public class ConfigurationConstants {
+public class ConfigurationPropertyKeys {
     // INTERCOMPONENT configuration
     public static final String XMPP_JID_KEY = "xmpp_jid";
     public static final String XMPP_PASSWORD_KEY = "xmpp_password";

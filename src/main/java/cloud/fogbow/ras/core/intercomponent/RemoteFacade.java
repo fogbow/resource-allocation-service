@@ -3,13 +3,12 @@ package cloud.fogbow.ras.core.intercomponent;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.images.Image;
@@ -21,6 +20,7 @@ import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
+import org.apache.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class RemoteFacade {
     private String localMemberId;
 
     private RemoteFacade() {
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
     }
 
     public static RemoteFacade getInstance() {

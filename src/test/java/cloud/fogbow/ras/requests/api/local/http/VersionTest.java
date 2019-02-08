@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.ras.api.http.Version;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.core.constants.SystemConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

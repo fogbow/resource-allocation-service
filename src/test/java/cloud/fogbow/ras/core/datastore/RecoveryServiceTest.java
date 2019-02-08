@@ -1,14 +1,13 @@
 package cloud.fogbow.ras.core.datastore;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;
-import cloud.fogbow.ras.core.datastore.RecoveryService;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import org.junit.After;
 import org.junit.Assert;

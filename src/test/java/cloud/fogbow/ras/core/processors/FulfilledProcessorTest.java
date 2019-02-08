@@ -3,13 +3,15 @@ package cloud.fogbow.ras.core.processors;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
+import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.Instance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
@@ -17,8 +19,6 @@ import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.common.models.FederationUser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -68,7 +68,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
 
         this.properties = propertiesHolder.getProperties();
-        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        this.properties.put(ConfigurationPropertyKeys.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
@@ -186,7 +186,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
 
         this.fulfilledProcessor = new FulfilledProcessor(REMOTE_MEMBER_ID,
-                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
+                ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
         this.thread = new Thread(this.fulfilledProcessor);
@@ -354,10 +354,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         UserData userData = Mockito.mock(UserData.class);
 
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
 
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
 
         Order order = new ComputeOrder(federationUser, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
                 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
@@ -384,7 +384,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private void spyFulfiledProcessor() {
         this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 //this.tunnelingService, this.sshConnectivity,
-                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
+                ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME));
     }
 
 }

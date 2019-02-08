@@ -1,18 +1,18 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.Instance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.common.models.FederationUser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,7 +63,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
                 .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, "default");
 
         this.spawningProcessor = Mockito.spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
+                ConfigurationPropertyDefaults.SPAWNING_ORDERS_SLEEP_TIME));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();

@@ -1,17 +1,16 @@
 package cloud.fogbow.ras.core.processors;
 
-import java.util.*;
-
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.DefaultConfigurationConstants;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.Instance;
@@ -20,7 +19,6 @@ import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.common.models.FederationUser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,6 +29,8 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
@@ -67,7 +67,7 @@ public class FailedProcessorTest extends BaseUnitTests {
     	
     	PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
-        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        this.properties.put(ConfigurationPropertyKeys.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
@@ -96,7 +96,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
 		this.failedProcessor = new FailedProcessor(FAKE_REMOTE_MEMBER_ID,
-				DefaultConfigurationConstants.FAILED_ORDERS_SLEEP_TIME);
+				ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
 
 		// exercise
 		this.thread = new Thread(this.failedProcessor);
@@ -287,7 +287,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 
 	private void spyFailedProcessor() {
 		this.failedProcessor = Mockito.spy(new FailedProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-				DefaultConfigurationConstants.FAILED_ORDERS_SLEEP_TIME));
+				ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME));
 	}
 
 	private Order createOrder() {
@@ -299,8 +299,8 @@ public class FailedProcessorTest extends BaseUnitTests {
 		FederationUser federationUser = new FederationUser(attributes);
 
 
-		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
-		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+		String requestingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+		String providingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
 		ArrayList<UserData> userData = super.mockUserData();
 		List<String> networkIds = null;
 

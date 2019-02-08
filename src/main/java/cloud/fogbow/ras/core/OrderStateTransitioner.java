@@ -2,15 +2,15 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.apache.log4j.Logger;
 
 import java.util.Map;
 
@@ -42,7 +42,7 @@ public class OrderStateTransitioner {
     }
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID_KEY);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         synchronized (order) {
             if (order.isRequesterRemote(localMemberId)) {
                 try {

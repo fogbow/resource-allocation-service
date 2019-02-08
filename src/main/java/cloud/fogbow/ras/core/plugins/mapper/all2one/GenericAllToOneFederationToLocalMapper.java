@@ -6,10 +6,10 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.ConfigurationConstants;
-import cloud.fogbow.ras.core.constants.Messages;
-import org.apache.log4j.Logger;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ public abstract class GenericAllToOneFederationToLocalMapper implements Federati
     public GenericAllToOneFederationToLocalMapper(String mapperConfFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(mapperConfFilePath);
         this.credentials = getLocalTokenCredentials(properties);
-        this.tokenGeneratorUrl = properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_URL_KEY);
+        this.tokenGeneratorUrl = properties.getProperty(ConfigurationPropertyKeys.TOKEN_GENERATOR_URL_KEY);
     }
 
     @Override

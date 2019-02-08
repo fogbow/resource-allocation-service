@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.Charsets;
 import org.apache.http.client.utils.URIBuilder;

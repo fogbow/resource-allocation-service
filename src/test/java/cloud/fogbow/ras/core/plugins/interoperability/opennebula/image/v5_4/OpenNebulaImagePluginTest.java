@@ -1,13 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
-import java.io.File;
-import java.util.Iterator;
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.core.constants.SystemConstants;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +12,9 @@ import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
+
+import java.io.File;
+import java.util.Iterator;
 
 public class OpenNebulaImagePluginTest {
 

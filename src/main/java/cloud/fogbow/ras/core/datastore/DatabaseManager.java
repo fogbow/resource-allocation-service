@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.apache.log4j.Logger;
 
 public class DatabaseManager implements StableStorage {
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);

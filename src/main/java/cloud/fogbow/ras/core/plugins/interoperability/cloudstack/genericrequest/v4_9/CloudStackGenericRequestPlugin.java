@@ -2,16 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.genericrequest
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.message.BasicHttpRequest;
 import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
-import org.springframework.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URISyntaxException;
 import java.util.Map;

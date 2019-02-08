@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.api.http;
 
-import cloud.fogbow.ras.core.constants.ApiDocumentation;
-import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.ApplicationFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

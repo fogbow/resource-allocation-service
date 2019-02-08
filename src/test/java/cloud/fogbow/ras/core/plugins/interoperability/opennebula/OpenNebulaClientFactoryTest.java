@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.core.constants.SystemConstants;
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

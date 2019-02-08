@@ -1,8 +1,8 @@
-package cloud.fogbow.ras.core.constants;
+package cloud.fogbow.ras.constants;
 
 import java.util.concurrent.TimeUnit;
 
-public class DefaultConfigurationConstants {
+public class ConfigurationPropertyDefaults {
    // RAS CONF DEFAULTS
     // reference value is 1 second
     public static final String OPEN_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1));

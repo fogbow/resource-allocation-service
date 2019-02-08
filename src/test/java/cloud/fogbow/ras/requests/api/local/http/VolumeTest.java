@@ -2,13 +2,13 @@ package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
-import com.google.gson.Gson;
 import cloud.fogbow.ras.api.http.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.common.models.FederationUser;
+import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

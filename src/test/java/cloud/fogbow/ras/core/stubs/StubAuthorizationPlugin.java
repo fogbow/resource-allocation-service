@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 
 /**
  * This class is a stub for the AuthorizationPlugin interface used for tests only.

@@ -1,10 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+
+import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listVirtualMachines.html
