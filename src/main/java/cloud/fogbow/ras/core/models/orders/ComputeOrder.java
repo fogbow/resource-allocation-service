@@ -22,7 +22,7 @@ public class ComputeOrder extends Order {
     private static final String IMAGE_ID_COLUMN_NAME = "image_id";
     private static final String PUBLIC_KEY_COLUMN_NAME = "public_key";
 
-    private static final int PUBLIC_KEY_MAX_SIZE = 1024;
+    public static final int PUBLIC_KEY_MAX_SIZE = 1024;
 
     @Transient
     private transient final Logger LOGGER = Logger.getLogger(ComputeOrder.class);
