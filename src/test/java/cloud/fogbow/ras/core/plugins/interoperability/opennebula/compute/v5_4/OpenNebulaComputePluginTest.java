@@ -14,6 +14,7 @@ import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -50,11 +51,12 @@ public class OpenNebulaComputePluginTest {
 	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_IMAGE_KEY = "fake-image-key";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+	private static final String FAKE_IP_ADDRESS_ONE = "fake-ip-address-one";
+	private static final String FAKE_IP_ADDRESS_TWO = "fake-ip-address-two";
 	private static final String FAKE_NAME = "fake-name";
 	private static final String FAKE_PRIVATE_NETWORK_ID = "fake-private-network-id";
 	private static final String FAKE_PRIVATE_IP = "0.0.0.0";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FLAVOR_KIND_NAME = "smallest-flavor";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
 	private static final String IMAGE_SIZE_VALUE = "8";
@@ -62,6 +64,7 @@ public class OpenNebulaComputePluginTest {
 	private static final String MESSAGE_RESPONSE_ANYTHING = "anything";
 	private static final String MESSAGE_RESPONSE_LIMIT_QUOTA = "limit quota";
 	private static final String MESSAGE_RESPONSE_WITHOUT_MEMORY = "Not enough free memory";
+	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
 	private static final String TEMPLATE_CPU_VALUE = "2";
 	private static final String TEMPLATE_DISK_INDEX_IMAGE_PATH = "TEMPLATE/DISK[%s]/IMAGE";
@@ -74,6 +77,16 @@ public class OpenNebulaComputePluginTest {
 	private static final String TEMPLATE_NIC_IP_PATH = "TEMPLATE/NIC/IP";
 	private static final String UNCHECKED_VALUE = "unchecked";
 
+	private static final String FAKE_NIC_IP_TEMPLATE = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
+			+ "<TEMPLATE>\n" 
+			+ "    <NIC>\n" 
+			+ "        <IP>fake-ip-address-1</IP>\n" 
+			+ "    </NIC>\n" 
+			+ "    <NIC>\n" 
+			+ "        <IP>fake-ip-address-2</IP>\n" 
+			+ "    </NIC>\n" 
+			+ "</TEMPLATE>\n";
+	
 	private static final String FAKE_USER_DATA = "fake-user-data";
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
 			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag") };
@@ -458,6 +471,18 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(virtualMachine.lcmStateStr()).thenReturn(DEFAULT_VIRTUAL_MACHINE_STATE);
 		Mockito.when(virtualMachine.xpath(TEMPLATE_NIC_IP_PATH)).thenReturn(FAKE_PRIVATE_IP);
 
+		String xml = FAKE_NIC_IP_TEMPLATE;
+		
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualMachine.info()).thenReturn(response);
+		Mockito.when(response.getMessage()).thenReturn(xml);
+		
+		OpenNebulaUnmarshallerContents unmarshallerContents = Mockito.mock(OpenNebulaUnmarshallerContents.class);
+		List<String> ipAddresses = new ArrayList<String>();
+		ipAddresses.add(FAKE_IP_ADDRESS_ONE);
+		ipAddresses.add(FAKE_IP_ADDRESS_TWO);
+		Mockito.when(unmarshallerContents.getContextListOf(NIC_IP_EXPRESSION)).thenReturn(ipAddresses);
+		
 		// exercise
 		this.plugin.getInstance(instanceId, token);
 
@@ -474,7 +499,7 @@ public class OpenNebulaComputePluginTest {
 				Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).createVirtualMachineInstance(virtualMachine);
 		Mockito.verify(virtualMachine, Mockito.times(1)).getId();
-		Mockito.verify(virtualMachine, Mockito.times(5)).xpath(Mockito.anyString());
+		Mockito.verify(virtualMachine, Mockito.times(4)).xpath(Mockito.anyString());
 		Mockito.verify(virtualMachine, Mockito.times(1)).lcmStateStr();
 	}
 
@@ -705,8 +730,6 @@ public class OpenNebulaComputePluginTest {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
-		String userName = FAKE_USER_NAME;
-		String signature = null;
 		
 		CloudToken token = new CloudToken(
 				provider,

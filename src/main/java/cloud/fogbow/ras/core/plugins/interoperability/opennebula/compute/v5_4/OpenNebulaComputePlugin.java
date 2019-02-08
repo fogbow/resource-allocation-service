@@ -8,24 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.core.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
-import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.log4j.Logger;
-import cloud.fogbow.ras.core.models.HardwareRequirements;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.instances.ComputeInstance;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
@@ -33,6 +16,25 @@ import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.core.constants.Messages;
+import cloud.fogbow.ras.core.models.HardwareRequirements;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.instances.ComputeInstance;
+import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 
 public class OpenNebulaComputePlugin implements ComputePlugin {
 
@@ -44,6 +46,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 	private static final String DEFAULT_VOLUME_TYPE = "fs";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
+	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
 	private static final String TEMPLATE_DISK_IMAGE_INDEX = "TEMPLATE/DISK[%s]/IMAGE";
 	private static final String TEMPLATE_DISK_INDEX = "TEMPLATE/DISK[%s]";
@@ -51,8 +54,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 	private static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
 	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
-	private static final String TEMPLATE_NIC_IP_PATH = "TEMPLATE/NIC/IP";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
+	
 
 	private TreeSet<HardwareRequirements> flavors;
 	private OpenNebulaClientFactory factory;
@@ -253,6 +256,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 	}
 
 	protected ComputeInstance createVirtualMachineInstance(VirtualMachine virtualMachine) {
+		String xml = getTemplateResponse(virtualMachine);
 		String id = virtualMachine.getId();
 		String hostName = virtualMachine.xpath(TEMPLATE_NAME_PATH);
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
@@ -262,9 +266,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 		String state = virtualMachine.lcmStateStr();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
 		
-		String privateIp = virtualMachine.xpath(TEMPLATE_NIC_IP_PATH);
-		List<String> privateIpList = new ArrayList<>();
-		privateIpList.add(privateIp);
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
+		List<String> ipAddresses = unmarshallerContents.getContextListOf(NIC_IP_EXPRESSION);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		ComputeInstance computeInstance = new ComputeInstance(
@@ -274,9 +277,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 				cpu, 
 				memory, 
 				disk, 
-				privateIpList);
+				ipAddresses);
 		
 		return computeInstance;
+	}
+
+	protected String getTemplateResponse(VirtualMachine virtualMachine) {
+		OneResponse response = virtualMachine.info();
+		return response.getMessage();
 	}
 	
 	protected void setFactory(OpenNebulaClientFactory factory) {
