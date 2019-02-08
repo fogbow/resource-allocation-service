@@ -29,7 +29,7 @@ WORKDIR /root/resource-allocation-service
 
 # Generates the build number based on the commit checksum
 RUN \
-    (build_number=$(git rev-parse --short 'HEAD') && echo "build_number=$build_number-(angra)" > build)
+    (build_number=$(git rev-parse --short 'HEAD') && echo "build_number=$build_number-(buzios)" > build)
 
 RUN \
   mvn dependency:sources

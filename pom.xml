@@ -12,12 +12,12 @@
     </repositories>
 
     <groupId>fogbow</groupId>
-    <artifactId>fogbow-ras-core</artifactId>
+    <artifactId>fogbow-ras</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>fogbow-ras</name>
-    <description>Fogbow RAS</description>
+    <description>Fogbow Resource Allocation Service</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -74,6 +74,18 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>fogbow</groupId>
+            <artifactId>common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fogbow</groupId>
+            <artifactId>fogbow-as</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
