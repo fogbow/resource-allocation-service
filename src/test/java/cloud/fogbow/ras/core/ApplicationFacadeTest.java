@@ -6,17 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.xmpp.packet.IQ;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -37,7 +34,6 @@ import cloud.fogbow.ras.core.constants.SystemConstants;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
-import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteRequest;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.Operation;
@@ -1903,10 +1899,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		userDataScripts.add(userData);
 
 		return userDataScripts;
-	}
-
-	private String generateVeryLongPublicKey() {
-		return new String(new char[ComputeOrder.PUBLIC_KEY_MAX_SIZE + 1]);
 	}
 
 }
