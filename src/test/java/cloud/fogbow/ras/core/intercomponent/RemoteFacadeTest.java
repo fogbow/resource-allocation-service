@@ -263,8 +263,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		String method = GET_METHOD;
 		String url = FAKE_URL;
-		Map<String, String> headers = new HashMap<>();
-		Map<String, String> body = new HashMap<>();
+		HashMap<String, String> headers = new HashMap<>();
+		HashMap<String, String> body = new HashMap<>();
 		GenericRequest genericRequest = new GenericRequest(method, url, headers, body);
 
 		String responseContent = FAKE_CONTENT;

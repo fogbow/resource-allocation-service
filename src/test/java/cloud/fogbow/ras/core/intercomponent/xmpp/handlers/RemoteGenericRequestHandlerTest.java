@@ -32,7 +32,9 @@ public class RemoteGenericRequestHandlerTest {
     private static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
             "  <query xmlns=\"remoteGenericRequest\">\n" +
             "    <genericRequestResponse>%s</genericRequestResponse>\n" +
-            "    <genericRequestResponseClassName>cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse</genericRequestResponseClassName>\n" +
+            "    <genericRequestResponseClassName>" +
+            GenericRequestResponse.class.getName() +
+            "</genericRequestResponseClassName>\n" +
             "  </query>\n" +
             "</iq>";
 

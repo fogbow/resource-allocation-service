@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashMap;
 
 public class CloudStackGenericRequestPluginTest {
 
@@ -43,7 +44,9 @@ public class CloudStackGenericRequestPluginTest {
     @Test
     public void testGenericRequest() throws FogbowException, URISyntaxException, HttpResponseException {
         // set up
-        GenericRequest request = new GenericRequest("GET", "https://www.foo.bar", Collections.emptyMap(), Collections.emptyMap());
+        HashMap<String, String> headers = new HashMap<>();
+        HashMap<String, String> body = new HashMap<>();
+        GenericRequest request = new GenericRequest("GET", "https://www.foo.bar", headers, body);
 
         GenericRequestHttpResponse response = new GenericRequestHttpResponse("fake-content", HttpStatus.OK.value());
         Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap(), Mockito.any(CloudToken.class))).thenReturn(response);

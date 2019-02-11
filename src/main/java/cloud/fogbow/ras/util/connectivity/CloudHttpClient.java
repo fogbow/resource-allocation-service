@@ -8,7 +8,7 @@ import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.apache.http.client.HttpClient;
 
-import java.util.Map;
+import java.util.HashMap;
 
 public abstract class CloudHttpClient extends HttpRequestClientUtil {
     public CloudHttpClient(Integer timeout) throws FatalErrorException {
@@ -20,12 +20,13 @@ public abstract class CloudHttpClient extends HttpRequestClientUtil {
     }
 
     @Override
-    public GenericRequestHttpResponse doGenericRequest(String method, String url, Map<String, String> headers,
-                                                       Map<String, String> body, CloudToken token) throws FogbowException {
+    public GenericRequestHttpResponse doGenericRequest(String method, String url, HashMap<String, String> headers,
+                                                       HashMap<String, String> body, CloudToken token) throws FogbowException {
         GenericRequest request = new GenericRequest(method, url, headers, body);
-        includeTokenInRequest(request, token);
+        GenericRequest requestWithToken = includeTokenInRequest(request, token);
 
-        return super.doGenericRequest(method, url, headers, body, token);
+        return super.doGenericRequest(requestWithToken.getMethod(),
+                requestWithToken.getUrl(), requestWithToken.getHeaders(), requestWithToken.getBody(), null);
     }
 
     public abstract GenericRequest includeTokenInRequest(GenericRequest genericRequest, CloudToken token);

@@ -38,7 +38,7 @@ public class OpenStackGenericRequestPluginTest {
     @Test
     public void testGenericRequestWithWrongHeader() throws FogbowException {
         // set up
-        Map<String, String> header = genericRequest.getHeaders();
+        HashMap<String, String> header = genericRequest.getHeaders();
         header.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, FAKE_VALUE);
         genericRequest.setHeaders(header);
 
@@ -69,10 +69,10 @@ public class OpenStackGenericRequestPluginTest {
     }
 
     private GenericRequest createGenericRequest() {
-        Map<String, String> headers = new HashMap<>();
+        HashMap<String, String> headers = new HashMap<>();
         headers.put(FAKE_KEY, FAKE_VALUE);
 
-        Map<String, String> body = new HashMap<>();
+        HashMap<String, String> body = new HashMap<>();
         body.put(FAKE_KEY, FAKE_VALUE);
 
         String method = "GET";
