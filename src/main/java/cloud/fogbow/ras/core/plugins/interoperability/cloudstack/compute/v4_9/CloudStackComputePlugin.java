@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
@@ -22,7 +23,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.Get
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -45,7 +45,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
     private String expungeOnDestroy;
     private String defaultNetworkId;
 
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private LaunchCommandGenerator launchCommandGenerator;
     private Properties properties;
 
@@ -57,7 +57,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
         this.expungeOnDestroy = this.properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
         this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
 
-        this.client = new AuditableHttpRequestClient(
+        this.client = new CloudStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
@@ -321,7 +321,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
     }
 
     // Methods below are used for testing only
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

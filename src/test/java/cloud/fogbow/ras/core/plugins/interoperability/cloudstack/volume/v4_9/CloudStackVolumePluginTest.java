@@ -8,9 +8,9 @@ import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -76,7 +76,7 @@ public class CloudStackVolumePluginTest {
     private static final int STANDARD_SIZE = 0;
 
     private CloudStackVolumePlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private CloudToken token;
     private Properties properties;
 
@@ -89,7 +89,7 @@ public class CloudStackVolumePluginTest {
 
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);

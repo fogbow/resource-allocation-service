@@ -10,9 +10,9 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -65,7 +65,7 @@ public class CloudStackComputeQuotaPluginTest {
     private static final int RAM_AVAILABLE = 26624;
 
     private CloudStackComputeQuotaPlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private CloudToken token;
     private Properties properties;
 
@@ -76,7 +76,7 @@ public class CloudStackComputeQuotaPluginTest {
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);

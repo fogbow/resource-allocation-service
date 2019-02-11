@@ -14,10 +14,10 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -31,7 +31,7 @@ public class CloudStackVolumePlugin implements VolumePlugin {
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     private static final String FOGBOW_TAG_SEPARATOR = ":";
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private boolean diskOfferingCompatible;
     private String zoneId;
     private Properties properties;
@@ -41,7 +41,7 @@ public class CloudStackVolumePlugin implements VolumePlugin {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
-        this.client = new AuditableHttpRequestClient(
+        this.client = new CloudStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
@@ -241,7 +241,7 @@ public class CloudStackVolumePlugin implements VolumePlugin {
         return volumeInstance;
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

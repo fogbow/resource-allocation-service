@@ -10,8 +10,8 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -24,12 +24,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final String SUFFIX = "limits";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     private Properties properties;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
 
     public OpenStackComputeQuotaPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
 
-        this.client = new AuditableHttpRequestClient(
+        this.client = new OpenStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }

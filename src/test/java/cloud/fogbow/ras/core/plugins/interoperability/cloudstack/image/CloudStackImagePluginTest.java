@@ -8,8 +8,8 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -55,7 +55,7 @@ public class CloudStackImagePluginTest {
     public static final long FAKE_SIZE = 1000L;
 
     private CloudStackImagePlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     @Before
@@ -69,7 +69,7 @@ public class CloudStackImagePluginTest {
 
         this.plugin = new CloudStackImagePlugin(cloudStackConfFilePath);
 
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
     }
 

@@ -14,13 +14,13 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -66,7 +66,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     protected static final String ADDR_FIELD = "addr";
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
     private LaunchCommandGenerator launchCommandGenerator;
 
     public OpenStackComputePlugin(String confFilePath) throws FatalErrorException {
@@ -79,7 +79,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
      * Constructor used for testing only
      */
     protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
-                                     AuditableHttpRequestClient client) {
+                                     OpenStackHttpClient client) {
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
         this.client = client;
@@ -179,7 +179,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
+        this.client = new OpenStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }

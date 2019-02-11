@@ -11,11 +11,7 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.*;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -36,7 +32,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin {
     private String cloudStackUrl;
     private final String defaultNetworkId;
 
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     // since the ip creation and association involves multiple synchronous and asynchronous requests,
@@ -49,7 +45,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin {
 
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
-        this.client = new AuditableHttpRequestClient(
+        this.client = new CloudStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }

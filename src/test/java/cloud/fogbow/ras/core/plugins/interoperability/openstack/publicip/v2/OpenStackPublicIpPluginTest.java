@@ -11,10 +11,10 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -31,7 +31,7 @@ import java.util.*;
 public class OpenStackPublicIpPluginTest {
 
 	private OpenStackPublicIpPlugin openStackPublicIpPlugin;
-	private AuditableHttpRequestClient httpClient;
+	private OpenStackHttpClient httpClient;
 	private OpenStackV3Token openStackV3Token;
 	
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
@@ -43,7 +43,7 @@ public class OpenStackPublicIpPluginTest {
 	@Before
 	public void setUp() {
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
-        this.httpClient = Mockito.mock(AuditableHttpRequestClient.class);
+        this.httpClient = Mockito.mock(OpenStackHttpClient.class);
         
         boolean notCheckProperties = false;
 		String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator

@@ -13,12 +13,12 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.*;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -53,7 +53,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
 
     private Properties properties;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
 
     public OpenStackPublicIpPlugin(String confFilePath) {
         this(confFilePath, true);
@@ -374,12 +374,12 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
+        this.client = new OpenStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 

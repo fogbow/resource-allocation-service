@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.QueryAsyncJobResultRequest;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 
 public class CloudStackQueryJobResult {
@@ -12,7 +11,7 @@ public class CloudStackQueryJobResult {
     public static final int SUCCESS = 1;
     public static final int FAILURE = 2;
 
-    public static String getQueryJobResult(AuditableHttpRequestClient client, String jobId, CloudToken cloudStackToken)
+    public static String getQueryJobResult(CloudStackHttpClient client, String jobId, CloudToken cloudStackToken)
             throws FogbowException {
         QueryAsyncJobResultRequest queryAsyncJobResultRequest = new QueryAsyncJobResultRequest.Builder()
                 .jobId(jobId)

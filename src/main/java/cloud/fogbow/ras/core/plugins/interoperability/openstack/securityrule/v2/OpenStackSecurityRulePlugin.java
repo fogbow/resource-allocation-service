@@ -17,8 +17,8 @@ import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -42,7 +42,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     protected static final String SECURITY_GROUPS_ENDPOINT = "security-groups";
 
     private String networkV2APIEndpoint;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
 
     public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
@@ -207,12 +207,12 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
+        this.client = new OpenStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 }

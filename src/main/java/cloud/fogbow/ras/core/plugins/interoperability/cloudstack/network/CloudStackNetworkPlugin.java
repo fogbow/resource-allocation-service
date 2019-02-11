@@ -15,10 +15,10 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -38,7 +38,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
     protected String zoneId = null;
     protected String cloudStackUrl;
 
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     public CloudStackNetworkPlugin(String confFilePath) {
@@ -48,7 +48,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
         this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
         this.zoneId = properties.getProperty(ZONE_ID);
 
-        this.client = new AuditableHttpRequestClient(
+        this.client = new CloudStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
@@ -156,7 +156,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
                 null, null, null);
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

@@ -12,11 +12,11 @@ import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -34,12 +34,12 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     private static final String FAILURE_STATE = "failure";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
     private String cloudStackUrl;
     
     public CloudStackAttachmentPlugin() {
-        this.client = new AuditableHttpRequestClient(
+        this.client = new CloudStackHttpClient(
                 new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                         ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
     }
@@ -170,7 +170,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
         return attachmentInstance;
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

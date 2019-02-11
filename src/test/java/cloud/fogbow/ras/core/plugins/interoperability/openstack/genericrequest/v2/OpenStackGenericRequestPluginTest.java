@@ -5,8 +5,8 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class OpenStackGenericRequestPluginTest {
 
@@ -23,14 +22,14 @@ public class OpenStackGenericRequestPluginTest {
     public static final String FAKE_URL = "fake-url";
 
     private OpenStackGenericRequestPlugin plugin;
-    private AuditableHttpRequestClient auditableHttpRequestClientMock;
+    private OpenStackHttpClient openStackHttpClient;
     private GenericRequest genericRequest;
 
     @Before
     public void setUp() {
-        auditableHttpRequestClientMock = Mockito.mock(AuditableHttpRequestClient.class);
+        openStackHttpClient = Mockito.mock(OpenStackHttpClient.class);
         plugin = Mockito.spy(new OpenStackGenericRequestPlugin());
-        plugin.setClient(auditableHttpRequestClientMock);
+        plugin.setClient(openStackHttpClient);
         genericRequest = createGenericRequest();
     }
 
@@ -55,17 +54,17 @@ public class OpenStackGenericRequestPluginTest {
     @Test
     public void testGenericRequestPlugin() throws FogbowException {
         // set up
-        ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
-        Mockito.doReturn(null).when(auditableHttpRequestClientMock).doGenericRequest(Mockito.anyString(),
-                Mockito.anyString(), argumentCaptor.capture(), Mockito.anyMap(), Mockito.any(CloudToken.class));
+        ArgumentCaptor<HashMap> argumentCaptor = ArgumentCaptor.forClass(HashMap.class);
+        Mockito.doReturn(null).when(openStackHttpClient).doGenericRequest(Mockito.anyString(),
+                Mockito.anyString(), argumentCaptor.capture(), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
         // exercise
         plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3Token.class));
         // verify
         Assert.assertTrue(argumentCaptor.getValue().size() == 2);
         Assert.assertTrue(argumentCaptor.getValue().containsKey(HttpRequestUtil.X_AUTH_TOKEN_KEY));
-        Mockito.verify(auditableHttpRequestClientMock, Mockito.times(1)).doGenericRequest(
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap(), Mockito.any(CloudToken.class));
+        Mockito.verify(openStackHttpClient, Mockito.times(1)).doGenericRequest(
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
     private GenericRequest createGenericRequest() {

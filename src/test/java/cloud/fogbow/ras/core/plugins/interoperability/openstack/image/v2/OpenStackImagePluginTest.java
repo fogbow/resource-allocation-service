@@ -7,8 +7,8 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -36,7 +36,7 @@ public class OpenStackImagePluginTest {
     private static final String FAKE_PROJECT_ID = "fake-project-id";
 
     private OpenStackImagePlugin plugin;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
     private Properties properties;
     private OpenStackV3Token localUserAttributes;
 
@@ -45,7 +45,7 @@ public class OpenStackImagePluginTest {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.plugin = new OpenStackImagePlugin(cloudConfPath);
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(OpenStackHttpClient.class);
         this.properties = Mockito.mock(Properties.class);
         this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.plugin.setProperties(this.properties);

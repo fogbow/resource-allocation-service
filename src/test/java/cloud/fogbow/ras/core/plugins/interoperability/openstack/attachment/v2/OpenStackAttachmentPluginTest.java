@@ -11,9 +11,9 @@ import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
@@ -50,7 +50,7 @@ public class OpenStackAttachmentPluginTest {
     private AttachmentOrder attachmentOrder;
     private OpenStackAttachmentPlugin openStackAttachmentPlugin;
     private OpenStackV3Token localUserAttributes;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
     private ArgumentCaptor<CloudToken> argToken = ArgumentCaptor.forClass(CloudToken.class);
     private String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
@@ -69,7 +69,7 @@ public class OpenStackAttachmentPluginTest {
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.openStackAttachmentPlugin = new OpenStackAttachmentPlugin(cloudConfPath);
         this.openStackAttachmentPlugin.setProperties(properties);
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(OpenStackHttpClient.class);
         this.openStackAttachmentPlugin.setClient(this.client);
     }
 

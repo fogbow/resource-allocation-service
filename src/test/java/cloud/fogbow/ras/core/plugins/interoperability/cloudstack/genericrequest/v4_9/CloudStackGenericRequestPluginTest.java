@@ -4,9 +4,9 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
@@ -30,12 +30,12 @@ public class CloudStackGenericRequestPluginTest {
 
     private CloudToken fakeToken;
     private CloudStackGenericRequestPlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
 
     @Before
     public void setUp() {
         this.fakeToken = new CloudToken(FAKE_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
 
         this.plugin = new CloudStackGenericRequestPlugin();
         this.plugin.setClient(client);
@@ -49,7 +49,7 @@ public class CloudStackGenericRequestPluginTest {
         GenericRequest request = new GenericRequest("GET", "https://www.foo.bar", headers, body);
 
         GenericRequestHttpResponse response = new GenericRequestHttpResponse("fake-content", HttpStatus.OK.value());
-        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap(), Mockito.any(CloudToken.class))).thenReturn(response);
+        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);
@@ -60,7 +60,7 @@ public class CloudStackGenericRequestPluginTest {
         String expectedUrl = uriBuilder.toString();
 
         Mockito.verify(this.client).doGenericRequest(Mockito.eq("GET"), Mockito.eq(expectedUrl),
-                Mockito.eq(Collections.emptyMap()), Mockito.eq(Collections.emptyMap()), Mockito.any(CloudToken.class));
+                Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
 }

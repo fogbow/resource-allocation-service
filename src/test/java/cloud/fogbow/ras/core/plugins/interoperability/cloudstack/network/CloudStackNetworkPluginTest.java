@@ -13,9 +13,9 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -74,7 +74,7 @@ public class CloudStackNetworkPluginTest {
     private String fakeZoneId;
 
     private CloudStackNetworkPlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     @Before
@@ -91,7 +91,7 @@ public class CloudStackNetworkPluginTest {
 
         this.plugin = new CloudStackNetworkPlugin(cloudStackConfFilePath);
 
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
     }
 
