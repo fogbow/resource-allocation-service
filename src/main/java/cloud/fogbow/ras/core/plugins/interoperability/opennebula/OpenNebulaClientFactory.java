@@ -253,11 +253,9 @@ public class OpenNebulaClientFactory {
 
 	protected Pool generateOnePool(Client client, Class classType) {
 		if (classType.isAssignableFrom(TemplatePool.class)) {
-			return new GroupPool(client);
+			return new TemplatePool(client);
 		} else if (classType.isAssignableFrom(GroupPool.class)) {
 			return new GroupPool(client);
-		} else if (classType.isAssignableFrom(TemplatePool.class)) {
-		    return new TemplatePool(client);
         } else if (classType.isAssignableFrom(ImagePool.class)) {
             return new ImagePool(client);
         } else if (classType.isAssignableFrom(UserPool.class)) {

@@ -1,7 +1,23 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeSet;
+
+import org.apache.log4j.Logger;
+import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
+import org.opennebula.client.image.Image;
+import org.opennebula.client.image.ImagePool;
+import org.opennebula.client.template.Template;
+import org.opennebula.client.template.TemplatePool;
+import org.opennebula.client.vm.VirtualMachine;
+
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
@@ -18,18 +34,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaState
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import org.apache.log4j.Logger;
-import org.opennebula.client.Client;
-import org.opennebula.client.OneResponse;
-import org.opennebula.client.image.Image;
-import org.opennebula.client.image.ImagePool;
-import org.opennebula.client.template.Template;
-import org.opennebula.client.template.TemplatePool;
-import org.opennebula.client.vm.VirtualMachine;
 
-import java.util.*;
-
-public class OpenNebulaComputePlugin implements ComputePlugin {
+public class OpenNebulaComputePlugin implements ComputePlugin<CloudToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
 	
@@ -69,11 +75,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		String encoding = USERDATA_ENCODING_CONTEXT;
-
-		if(computeOrder.getUserData() == null || computeOrder.getUserData().size() != 1){
-			throw new InvalidParameterException();
-		}
-
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
 		String address = DEFAULT_GRAPHIC_ADDRESS;
@@ -179,7 +180,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 			for (Template template : templatePool) {
 				String id = template.getId();
 				String name = template.getName();
-				int cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
+				
+				int cpu;
+				try {
+					cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
+				} catch (NumberFormatException e) {
+					continue;
+				}
+				
 				int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
 				int disk = 0;
 
