@@ -15,6 +15,8 @@ public class GenericRequest {
         this.body = body;
     }
 
+    public GenericRequest() {}
+
     public String getMethod() {
         return method;
     }
