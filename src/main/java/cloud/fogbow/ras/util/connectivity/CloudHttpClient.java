@@ -6,13 +6,10 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import com.google.gson.reflect.TypeToken;
 import org.apache.http.client.HttpResponseException;
 import org.springframework.http.HttpStatus;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.Map;
 
 public abstract class CloudHttpClient {
 
@@ -60,7 +57,7 @@ public abstract class CloudHttpClient {
         GenericRequest preparedRequest = prepareRequest(request, token);
 
         return client.doGenericRequest(preparedRequest.getMethod(),
-                preparedRequest.getUrl(), preparedRequest.getHeaders(), preparedRequest.getBody(), null);
+                preparedRequest.getUrl(), preparedRequest.getHeaders(), preparedRequest.getBody());
     }
 
     public abstract GenericRequest prepareRequest(GenericRequest genericRequest, CloudToken token);
