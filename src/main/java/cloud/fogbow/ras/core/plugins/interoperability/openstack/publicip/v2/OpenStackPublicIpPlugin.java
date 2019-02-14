@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -90,7 +91,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
             String responsePostFloatingIp = null;
             try {
                 String floatingIpEndpoint = getFloatingIpEndpoint();
-                responsePostFloatingIp = this.client.doPostRequest(floatingIpEndpoint, openStackV3Token, body);
+                responsePostFloatingIp = this.client.doPostRequest(floatingIpEndpoint, body, openStackV3Token);
             } catch (HttpResponseException e) {
                 OpenStackHttpToFogbowExceptionMapper.map(e);
             }
@@ -200,7 +201,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
         try {
             String computeEndpoint = getComputeEndpoint(openStackV3Token.getProjectId());
             computeEndpoint = String.format("%s/%s/%s", computeEndpoint, computeInstanceId, ACTION);
-            this.client.doPostRequest(computeEndpoint, openStackV3Token, request.toJson());
+            this.client.doPostRequest(computeEndpoint, request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -215,7 +216,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
         try {
             String computeEndpoint = getComputeEndpoint(openStackV3Token.getProjectId());
             computeEndpoint = String.format("%s/%s/%s", computeEndpoint, computeInstanceId, ACTION);
-            this.client.doPostRequest(computeEndpoint, openStackV3Token, request.toJson());
+            this.client.doPostRequest(computeEndpoint, request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -229,7 +230,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
                 .build();
 
         try {
-            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), openStackV3Token, ipv4Request.toJson());
+            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), ipv4Request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -241,7 +242,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
                 .build();
 
         try {
-            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), openStackV3Token, ipv6Request.toJson());
+            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), ipv6Request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -256,7 +257,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
 
         String response = null;
         try {
-            response = this.client.doPostRequest(getSecurityGroupsApiEndpoint(), openStackV3Token, request.toJson());
+            response = this.client.doPostRequest(getSecurityGroupsApiEndpoint(), request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -374,9 +375,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
     }
 
     private void initClient() {
-        this.client = new OpenStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new OpenStackHttpClient(client);
     }
 
     protected void setClient(OpenStackHttpClient client) {

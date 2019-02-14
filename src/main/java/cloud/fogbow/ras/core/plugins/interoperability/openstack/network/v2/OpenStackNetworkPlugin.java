@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -147,7 +148,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-            String response = this.client.doPostRequest(endpoint, openStackV3Token, createNetworkRequest.toJson());
+            String response = this.client.doPostRequest(endpoint, createNetworkRequest.toJson(), openStackV3Token);
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
@@ -165,7 +166,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
         try {
             String jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
-            this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
             OpenStackHttpToFogbowExceptionMapper.map(e);
@@ -184,7 +185,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP;
             String jsonRequest = createSecurityGroupRequest.toJson();
-            String response = this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            String response = this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
             creationResponse = CreateSecurityGroupResponse.fromJson(response);
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
@@ -220,9 +221,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
             CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getCidr(), securityGroupId);
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-            this.client.doPostRequest(endpoint, openStackV3Token, allTcp.toJson());
-            this.client.doPostRequest(endpoint, openStackV3Token, allUdp.toJson());
-            this.client.doPostRequest(endpoint, openStackV3Token, icmpRuleRequest.toJson());
+            this.client.doPostRequest(endpoint, allTcp.toJson(), openStackV3Token);
+            this.client.doPostRequest(endpoint, allUdp.toJson(), openStackV3Token);
+            this.client.doPostRequest(endpoint, icmpRuleRequest.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
             removeSecurityGroup(openStackV3Token, securityGroupId);
@@ -376,9 +377,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
     }
 
     private void initClient() {
-        this.client = new OpenStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new OpenStackHttpClient(client);
     }
 
     protected void setClient(OpenStackHttpClient client) {

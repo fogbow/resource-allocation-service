@@ -3,8 +3,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -20,6 +22,7 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.json.JSONException;
@@ -64,8 +67,9 @@ public class OpenStackSecurityRulesPluginTest {
             OpenStackSecurityRulePlugin.QUERY_PREFIX;
 
     private OpenStackSecurityRulePlugin openStackSecurityRulePlugin;
-    private OpenStackV3Token defaultLocalUserAttributes;
+    private OpenStackV3Token openStackV3Token;
     private HttpClient client;
+    private HttpRequestClientUtil clientUtil;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
 
@@ -81,10 +85,11 @@ public class OpenStackSecurityRulesPluginTest {
         this.openStackSecurityRulePlugin = Mockito.spy(new OpenStackSecurityRulePlugin(confFilePath));
 
         this.client = Mockito.mock(HttpClient.class);
-        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(this.client));
+        this.clientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(this.clientUtil));
         this.openStackSecurityRulePlugin.setClient(this.openStackHttpClient);
 
-        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     @After
@@ -92,16 +97,16 @@ public class OpenStackSecurityRulesPluginTest {
         Mockito.validateMockitoUsage();
     }
 
-    //test case: The http client must make only 1 request
+    // test case: The http client must make only 1 request
     @Test
     public void testRequestSecurityRule() throws Exception {
-        //set up
+        // set up
         // post network
         String createSecurityRuleResponse = new CreateSecurityRuleResponse(
                 new CreateSecurityRuleResponse.SecurityRule(SECURITY_RULE_ID)).toJson();
         Mockito.doReturn(createSecurityRuleResponse).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         Mockito.doReturn(null).when(this.openStackSecurityRulePlugin).
                 getSecurityRulesFromJson(Mockito.anyString());
@@ -110,38 +115,54 @@ public class OpenStackSecurityRulesPluginTest {
         SecurityRule securityRule = createEmptySecurityRule();
         NetworkOrder order = createNetworkOrder();
 
-        //exercise
+        // exercise
         this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order,
-                this.defaultLocalUserAttributes);
+                this.openStackV3Token);
 
-        //verify
+        // verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
                 Mockito.endsWith(OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-                Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                Mockito.anyString(), Mockito.eq(this.openStackV3Token));
     }
 
-    //test case: Tests if an exception will be thrown in case that openstack raise an error in security rule request.
+    // test case: Tests if an exception will be thrown in case that openstack raise an error in security rule request.
     @Test
     public void testRequestSecurityRuleNetworkError() throws Exception {
-        //set up
-        HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
+        // set up
+        String securityGroupsResponse = "{\n" +
+                "    \"security_groups\": [\n" +
+                "        {\n" +
+                "            \"id\": \"85cc3048-abc3-43cc-89b3-377341426ac5\"\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}";
+
+        HttpResponseException toBeThrown = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
+
+        Mockito.doReturn(securityGroupsResponse).when(this.openStackHttpClient).
+                doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+
+        Mockito.doThrow(toBeThrown).when(this.openStackHttpClient).
+                doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudToken.class));
+
         SecurityRule securityRule = createEmptySecurityRule();
         NetworkOrder order = createNetworkOrder();
 
-        //exercise
+        // exercise
         try {
             this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order,
-                    this.defaultLocalUserAttributes);
+                    this.openStackV3Token);
             Assert.fail();
         } catch (FogbowException e) {
-            // Throws an exception, as expected
-        } catch (Exception e) {
-            Assert.fail();
+            // throws a FogbowException, as expected
         }
 
-        //verify
-        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
+        // verify
+        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
+                doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudToken.class));
+
+        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
+                doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
     }
 
     //test case: Tests get security rule from json response
@@ -161,14 +182,14 @@ public class OpenStackSecurityRulesPluginTest {
         JSONObject securityRuleContentJsonObject = generateJsonResponseForSecurityRules(id, cidr, portFrom, portTo,
                 direction, etherType, protocol);
 
-        HttpResponse httpResponseGetSecurityRules = createHttpResponse(securityRuleContentJsonObject.toString(), HttpStatus.SC_OK);
-        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetSecurityRules);
+        Mockito.doReturn(securityRuleContentJsonObject.toString()).when(this.openStackHttpClient).
+                doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
         Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityRulePlugin).
                 retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
 
         //exercise
         List<SecurityRule> securityRules = this.openStackSecurityRulePlugin.getSecurityRules(order,
-                this.defaultLocalUserAttributes);
+                this.openStackV3Token);
         SecurityRule securityRule = securityRules.get(0);
 
         //verify
@@ -189,19 +210,14 @@ public class OpenStackSecurityRulesPluginTest {
                 SECURITY_RULE_ID;
 
         Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.openStackV3Token));
 
         //exercise
-        this.openStackSecurityRulePlugin.deleteSecurityRule(SECURITY_RULE_ID, this.defaultLocalUserAttributes);
+        this.openStackSecurityRulePlugin.deleteSecurityRule(SECURITY_RULE_ID, this.openStackV3Token);
 
         //verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.defaultLocalUserAttributes));
-    }
-
-    @Test
-    public void testRetrieveSecurityGroupId() {
-        
+                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.openStackV3Token));
     }
 
     private SecurityRule createEmptySecurityRule() {

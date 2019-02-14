@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -57,7 +58,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
 
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
         try {
-            this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -149,10 +150,12 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     private void initClient() {
-        this.client = new OpenStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new OpenStackHttpClient(client);
     }
+
 
     protected void setClient(OpenStackHttpClient client) {
         this.client = client;

@@ -10,11 +10,23 @@ public class GenericRequest implements Cloneable {
     private HashMap<String, String> headers;
     private HashMap<String, String> body;
 
-    public GenericRequest(String method, String url, HashMap<String, String> headers, HashMap<String, String> body) {
+    public GenericRequest(String method, String url, HashMap<String, String> body, HashMap<String, String> headers) {
+        if (headers == null || body == null) {
+            throw new IllegalArgumentException("Neither body or headers can be null");
+        }
+
         this.method = method;
         this.url = url;
         this.headers = headers;
         this.body = body;
+    }
+
+    public GenericRequest(String method, String url, HashMap<String, String> body) {
+        this(method, url, body, new HashMap<>());
+    }
+
+    public GenericRequest(String method, String url) {
+        this(method, url, new HashMap<>(), new HashMap<>());
     }
 
     public String getMethod() {

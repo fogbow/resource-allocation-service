@@ -78,7 +78,7 @@ public class OpenStackAttachmentPluginTest {
     public void testRequestInstance() throws FogbowException, HttpResponseException {
         //set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(CloudToken.class), Mockito.anyString());
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudToken.class));
 
         //exercise
         String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -95,7 +95,7 @@ public class OpenStackAttachmentPluginTest {
         int unknownStatusCode = -1;
         HttpResponseException httpResponseException = new HttpResponseException(unknownStatusCode, "");
         Mockito.doThrow(httpResponseException).when(this.client).doPostRequest(Mockito.anyString(),
-                Mockito.any(CloudToken.class), Mockito.anyString());
+                Mockito.anyString(), Mockito.any(CloudToken.class));
 
         //exercise/verify
         this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);

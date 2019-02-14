@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -124,11 +125,11 @@ public class OpenStackComputePlugin implements ComputePlugin {
 
     private String doRequestInstance(CloudToken openStackV3Token, String flavorId, List<String> networksId,
                                      String imageId, String instanceName, String userData, String keyName, String endpoint)
-            throws UnavailableProviderException, HttpResponseException {
+            throws FogbowException, HttpResponseException {
         CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networksId);
 
         String body = createBody.toJson();
-        String response = this.client.doPostRequest(endpoint, openStackV3Token, body);
+        String response = this.client.doPostRequest(endpoint, body, openStackV3Token);
         CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
 
         return createComputeResponse.getId();
@@ -179,9 +180,10 @@ public class OpenStackComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        this.client = new OpenStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new OpenStackHttpClient(client);
     }
 
     private String getProjectId(CloudToken token) throws InvalidParameterException {
@@ -224,7 +226,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
 
             String body = request.toJson();
             try {
-                this.client.doPostRequest(osKeypairEndpoint, openStackV3Token, body);
+                this.client.doPostRequest(osKeypairEndpoint, body, openStackV3Token);
             } catch (HttpResponseException e) {
                 OpenStackHttpToFogbowExceptionMapper.map(e);
             }

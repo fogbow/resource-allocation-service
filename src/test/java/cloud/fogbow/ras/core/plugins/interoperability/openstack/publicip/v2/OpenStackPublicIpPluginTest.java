@@ -73,11 +73,11 @@ public class OpenStackPublicIpPluginTest {
 		Mockito.when(this.openStackPublicIpPlugin.getFloatingIpEndpoint()).thenReturn(floatingIpEndpoint);
 
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.endsWith("security-groups"), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
+				Mockito.endsWith("security-groups"), Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
 				.thenReturn(responseCreateSecurityGroup);
 
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.eq(floatingIpEndpoint), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
+				Mockito.eq(floatingIpEndpoint), Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
 				.thenReturn(responseCreateFloatingIp);
 		
 		// exercise
@@ -85,9 +85,9 @@ public class OpenStackPublicIpPluginTest {
 
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1)).doPostRequest(
-				Mockito.eq(floatingIpEndpoint), 
-				Mockito.eq(this.openStackV3Token), 
-				Mockito.eq(createFloatingIpRequestBody));
+				Mockito.eq(floatingIpEndpoint),
+                Mockito.eq(createFloatingIpRequestBody), Mockito.eq(this.openStackV3Token)
+        );
 		Assert.assertEquals(floatingIpId, publicIpId);
 	}
 	
@@ -100,7 +100,7 @@ public class OpenStackPublicIpPluginTest {
 		String responseCreateSecurityGroup = getCreateSecurityGroupResponseJson("securityGroupId");
 
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.endsWith("security-groups"), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
+				Mockito.endsWith("security-groups"), Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
 				.thenReturn(responseCreateSecurityGroup);
 
 		Mockito.doThrow(new FogbowException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
@@ -111,9 +111,9 @@ public class OpenStackPublicIpPluginTest {
 
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(0)).doPostRequest(
-				Mockito.anyString(), 
-				Mockito.any(OpenStackV3Token.class), 
-				Mockito.anyString());	
+				Mockito.anyString(),
+                Mockito.anyString(), Mockito.any(OpenStackV3Token.class)
+        );
 	}
 	
 	// test case: success case

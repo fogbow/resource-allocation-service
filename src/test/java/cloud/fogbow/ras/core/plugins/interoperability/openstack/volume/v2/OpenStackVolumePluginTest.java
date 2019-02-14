@@ -68,14 +68,14 @@ public class OpenStackVolumePluginTest {
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         Mockito.doReturn(FAKE_VOLUME_JSON).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(CloudToken.class), Mockito.any());
+                Mockito.anyString(), Mockito.any(), Mockito.any(CloudToken.class));
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(CloudToken.class),
-                Mockito.any());
+        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any(CloudToken.class)
+        );
         Assert.assertEquals(FAKE_VOLUME_ID, instanceString);
     }
 
@@ -92,15 +92,15 @@ public class OpenStackVolumePluginTest {
         Mockito.doReturn(FAKE_TYPES_JSON).when(this.client).doGetRequest(
                 Mockito.anyString(), Mockito.any(CloudToken.class));
         Mockito.doReturn(FAKE_VOLUME_JSON).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(CloudToken.class), Mockito.any());
+                Mockito.anyString(), Mockito.any(), Mockito.any(CloudToken.class));
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
-        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(CloudToken.class),
-                Mockito.any());
+        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any(CloudToken.class)
+        );
         Assert.assertEquals(FAKE_VOLUME_ID, instanceString);
     }
 

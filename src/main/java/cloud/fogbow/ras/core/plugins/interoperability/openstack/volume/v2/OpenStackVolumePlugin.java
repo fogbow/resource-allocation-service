@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -76,7 +77,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
         String responseStr = null;
         try {
-            responseStr = this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            responseStr = this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -205,10 +206,12 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     private void initClient() {
-        this.client = new OpenStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new OpenStackHttpClient(client);
     }
+
     public void setClient(OpenStackHttpClient client) {
         this.client = client;
     }

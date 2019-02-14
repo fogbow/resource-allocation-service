@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -23,9 +24,7 @@ import java.util.Properties;
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputeQuotaPlugin.class);
 
-    private CloudStackHttpClient client = new CloudStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                                                                       ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+    private CloudStackHttpClient client;
 
     private static final String LIMIT_TYPE_INSTANCES = "0";
     private static final String LIMIT_TYPE_MEMORY = "9";
@@ -38,6 +37,11 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     public CloudStackComputeQuotaPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
+
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new CloudStackHttpClient(client);
     }
 
     @Override

@@ -50,23 +50,6 @@ public class OpenStackGenericRequestPluginTest {
         }
     }
 
-    // test case: The header 'X-Auth-Token' must be added before executing actual request.
-    @Test
-    public void testGenericRequestPlugin() throws FogbowException {
-        // set up
-        ArgumentCaptor<HashMap> argumentCaptor = ArgumentCaptor.forClass(HashMap.class);
-        Mockito.doReturn(null).when(openStackHttpClient).doGenericRequest(Mockito.anyString(),
-                Mockito.anyString(), argumentCaptor.capture(), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
-
-        // exercise
-        plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3Token.class));
-        // verify
-        Assert.assertTrue(argumentCaptor.getValue().size() == 2);
-        Assert.assertTrue(argumentCaptor.getValue().containsKey(HttpRequestUtil.X_AUTH_TOKEN_KEY));
-        Mockito.verify(openStackHttpClient, Mockito.times(1)).doGenericRequest(
-                Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
-    }
-
     private GenericRequest createGenericRequest() {
         HashMap<String, String> headers = new HashMap<>();
         headers.put(FAKE_KEY, FAKE_VALUE);
@@ -76,7 +59,7 @@ public class OpenStackGenericRequestPluginTest {
 
         String method = "GET";
 
-        GenericRequest genericRequest = new GenericRequest(method, FAKE_URL, headers, body);
+        GenericRequest genericRequest = new GenericRequest(method, FAKE_URL, body, headers);
         return genericRequest;
     }
 }

@@ -3,7 +3,11 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.datastore.AuditService;
@@ -34,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class OpenStackNetworkPluginTest {
@@ -62,7 +67,7 @@ public class OpenStackNetworkPluginTest {
             OpenStackNetworkPlugin.QUERY_NAME + "=" + OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + NETWORK_ID;
 
     private OpenStackNetworkPlugin openStackNetworkPlugin;
-    private OpenStackV3Token defaultLocalUserAttributes;
+    private OpenStackV3Token openStackV3Token;
     private HttpClient client;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
@@ -78,10 +83,11 @@ public class OpenStackNetworkPluginTest {
         this.openStackNetworkPlugin = Mockito.spy(new OpenStackNetworkPlugin(cloudConfPath));
 
         this.client = Mockito.mock(HttpClient.class);
-        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(this.client));
+
+        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(Mockito.mock(HttpRequestClientUtil.class)));
         this.openStackNetworkPlugin.setClient(this.openStackHttpClient);
 
-        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     @After
@@ -99,88 +105,99 @@ public class OpenStackNetworkPluginTest {
         String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
         Mockito.doReturn(createNetworkResponse).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
         //post subnet
         Mockito.doReturn("").when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         //post security group
         CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID);
         CreateSecurityGroupResponse createSecurityGroupResponse = new CreateSecurityGroupResponse(securityGroup);
         Mockito.doReturn(createSecurityGroupResponse.toJson()).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
         //post ssh and icmp rule
         Mockito.doReturn("").when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         Mockito.doReturn(null).when(this.openStackNetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
         NetworkOrder order = createEmptyOrder();
 
         //exercise
-        this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
+        this.openStackNetworkPlugin.requestInstance(order, this.openStackV3Token);
 
         //verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(3)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
     }
 
     //test case: Tests if an exception will be thrown in case that openstack raise an error in network request.
     @Test
-    public void testRequestInstancePostNetworkError() throws IOException {
+    public void testRequestInstancePostNetworkError() throws IOException, FogbowException {
         //set up
-        HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
+        GenericRequestHttpResponse postSubnetResponse = new GenericRequestHttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
+        Mockito.doReturn(postSubnetResponse).when(this.openStackHttpClient).
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+
+//        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
         NetworkOrder order = createEmptyOrder();
 
         //exercise
         try {
-            this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
+            this.openStackNetworkPlugin.requestInstance(order, this.openStackV3Token);
             Assert.fail();
         } catch (FogbowException e) {
             // Throws an exception, as expected
-        } catch (Exception e) {
-            Assert.fail();
         }
 
         //verify
-        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
+//        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
     //test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for a new subnet.
     @Test
     public void testRequestInstancePostSubnetError() throws IOException, FogbowException {
-        //set up
+        // set up
         String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
-        HttpResponse httpResponsePostNetwork = createHttpResponse(createNetworkResponse, HttpStatus.SC_OK);
-        HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-        HttpResponse httpResponseRemoveNetwork = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
-                httpResponsePostSubnet, httpResponseRemoveNetwork);
+
+        GenericRequestHttpResponse postNetworkResponse = new GenericRequestHttpResponse(createNetworkResponse, HttpStatus.SC_OK, null);
+        GenericRequestHttpResponse postSubnetResponse = new GenericRequestHttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
+        Mockito.doReturn(postNetworkResponse).doReturn(postSubnetResponse).when(this.openStackHttpClient).
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+
+//        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
+//                httpResponsePostSubnet, httpResponseRemoveNetwork);
         NetworkOrder order = createEmptyOrder();
 
         try {
-            //exercise
-            this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
+            // exercise
+            this.openStackNetworkPlugin.requestInstance(order, this.openStackV3Token);
             Assert.fail();
         } catch (FogbowException e) {
 
         }
 
-        //verify
-        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
+        // verify
+//        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.openStackHttpClient, Mockito.times(3)).
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
     //test case: Tests the case that security group raise an exception. This implies that network will be removed.
@@ -191,25 +208,25 @@ public class OpenStackNetworkPluginTest {
         CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
         Mockito.doReturn(createNetworkResponse.toJson()).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
         //post subnet
         Mockito.doReturn("").when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
         //post security group
         Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
         //remove network
         Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
 
         Mockito.doReturn(NETWORK_ID).when(this.openStackNetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
         NetworkOrder order = createEmptyOrder();
 
         //exercise
         try {
-            this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
+            this.openStackNetworkPlugin.requestInstance(order, this.openStackV3Token);
         } catch (FogbowException e) {
             //doNothing
         }
@@ -217,21 +234,21 @@ public class OpenStackNetworkPluginTest {
         //verify
         //request checks
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.never()).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
 
         //remove checks
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
     }
 
     //test case: Tests the case that security group rules raise an exception. This implies that network
@@ -243,37 +260,37 @@ public class OpenStackNetworkPluginTest {
         CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
         Mockito.doReturn(createNetworkResponse.toJson()).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         //post subnet
         Mockito.doReturn("").when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         //post security group
         CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID);
         CreateSecurityGroupResponse createSecurityGroupResponse = new CreateSecurityGroupResponse(securityGroup);
         Mockito.doReturn(createSecurityGroupResponse.toJson()).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         //error in post security group rules
         Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.openStackHttpClient)
                 .doPostRequest(Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-                        Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
+                        Mockito.anyString(), Mockito.eq(this.openStackV3Token));
 
         //remove network
         Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
         Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
 
         Mockito.doReturn(NETWORK_ID).when(this.openStackNetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
         NetworkOrder order = createEmptyOrder();
 
         //exercise
         try {
-            this.openStackNetworkPlugin.requestInstance(order, this.defaultLocalUserAttributes);
+            this.openStackNetworkPlugin.requestInstance(order, this.openStackV3Token);
         } catch (FogbowException e) {
             //doNothing
         }
@@ -281,25 +298,25 @@ public class OpenStackNetworkPluginTest {
         //verify
         //request checks
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultLocalUserAttributes),
-                Mockito.anyString());
+                Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.anyString(), Mockito.eq(this.openStackV3Token)
+        );
 
         //remove checks
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.never()).doGetRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
     }
 
     //requestInstance collaborators tests
@@ -471,13 +488,17 @@ public class OpenStackNetworkPluginTest {
         JSONObject subnetJsonObject = new JSONObject();
         subnetJsonObject.put(OpenStackNetworkPlugin.KEY_JSON_SUBNET, subnetContentJsonObject);
 
-        HttpResponse httpResponseGetNetwork = createHttpResponse(networkJsonObject.toString(), HttpStatus.SC_OK);
-        HttpResponse httpResponseGetSubnet = createHttpResponse(subnetJsonObject.toString(), HttpStatus.SC_OK);
-        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetNetwork,
-                httpResponseGetSubnet);
+//        HttpResponse httpResponseGetNetwork = createHttpResponse(networkJsonObject.toString(), HttpStatus.SC_OK);
+//        HttpResponse httpResponseGetSubnet = createHttpResponse(subnetJsonObject.toString(), HttpStatus.SC_OK);
+//        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetNetwork,
+//                httpResponseGetSubnet);
+//        Mockito.when(this.openStackHttpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class))).
+//                thenReturn(networkJsonObject.toString(), subnetJsonObject.toString());
+
+        Mockito.doReturn(networkJsonObject.toString()).doReturn(subnetJsonObject.toString()).when(this.openStackHttpClient).doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
 
         //exercise
-        NetworkInstance instance = this.openStackNetworkPlugin.getInstance("instanceId00", this.defaultLocalUserAttributes);
+        NetworkInstance instance = this.openStackNetworkPlugin.getInstance("instanceId00", this.openStackV3Token);
 
         //verify
         Assert.assertEquals(networkId, instance.getId());
@@ -503,22 +524,22 @@ public class OpenStackNetworkPluginTest {
         String suffixEndpointDeleteSG = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + SECURITY_GROUP_ID;
 
         Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.openStackV3Token));
         Mockito.doReturn(securityGroupResponse.toString()).when(this.openStackHttpClient).doGetRequest(
-                Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.openStackV3Token));
         Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointDeleteSG), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointDeleteSG), Mockito.eq(this.openStackV3Token));
 
         //exercise
-        this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.defaultLocalUserAttributes);
+        this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.openStackV3Token);
 
         //verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGetRequest(
-                Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointDeleteSG), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointDeleteSG), Mockito.eq(this.openStackV3Token));
     }
 
     //test: Tests a delete in a network which has compute attached to it
@@ -528,11 +549,11 @@ public class OpenStackNetworkPluginTest {
         String suffixEndpointNetwork = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + NETWORK_ID;
 
         Mockito.doThrow(new HttpResponseException(HttpStatus.SC_CONFLICT, "conflict")).when(this.openStackHttpClient)
-                .doDeleteRequest(Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultLocalUserAttributes));
+                .doDeleteRequest(Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.openStackV3Token));
 
         //exercise
         try {
-            this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.defaultLocalUserAttributes);
+            this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.openStackV3Token);
             Assert.fail();
         } catch (FogbowException e) {
             // TODO: check error message
@@ -542,9 +563,9 @@ public class OpenStackNetworkPluginTest {
 
         // verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.anyString(), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.anyString(), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.never()).doGetRequest(
-                Mockito.anyString(), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.anyString(), Mockito.eq(this.openStackV3Token));
     }
 
     // test case: throws an exception when try to delete the security group
@@ -554,24 +575,24 @@ public class OpenStackNetworkPluginTest {
         JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
         // network deletion ok
         Mockito.doNothing().when(this.openStackHttpClient)
-                .doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                .doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
         // retrieving securityGroupId ok
         Mockito.doReturn(securityGroupResponse.toString()).when(this.openStackHttpClient).doGetRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
         // security group deletion not ok
         Mockito.doThrow(new HttpResponseException(org.apache.commons.httpclient.HttpStatus.SC_BAD_REQUEST, "")).when(this.openStackHttpClient)
-                .doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                .doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
 
         // exercise
-        this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.defaultLocalUserAttributes);
+        this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGetRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
     }
 
     // test case: throws a "notFoundInstance" exception and continue try to delete the security group
@@ -581,23 +602,23 @@ public class OpenStackNetworkPluginTest {
         JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
         // network deletion not ok and return nof found
         Mockito.doThrow(new HttpResponseException(org.apache.commons.httpclient.HttpStatus.SC_NOT_FOUND, "")).when(this.openStackHttpClient)
-                .doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                .doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
         // retrieved securityGroupId ok
         Mockito.doReturn(securityGroupResponse.toString()).when(this.openStackHttpClient).doGetRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
         // security group deletion ok
-        Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+        Mockito.doNothing().when(this.openStackHttpClient).doDeleteRequest(Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
 
         // exercise
-        this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.defaultLocalUserAttributes);
+        this.openStackNetworkPlugin.deleteInstance(NETWORK_ID, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGetRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_GET_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.openStackV3Token));
     }
 
 

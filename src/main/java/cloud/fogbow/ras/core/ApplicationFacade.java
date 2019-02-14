@@ -94,9 +94,7 @@ public class ApplicationFacade {
         }
     }
 
-    public List<String> getCloudNames(String memberId, String federationTokenValue) throws RemoteCommunicationException,
-            UnexpectedException, UnavailableProviderException, UnauthenticatedUserException, InvalidTokenException,
-            UnauthorizedRequestException, ConfigurationErrorException {
+    public List<String> getCloudNames(String memberId, String federationTokenValue) throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, Operation.GET_CLOUD_NAMES.getValue(),
                 ResourceType.CLOUD_NAMES.getValue());
@@ -200,8 +198,7 @@ public class ApplicationFacade {
     }
 
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType)
-            throws UnexpectedException, UnauthorizedRequestException, UnavailableProviderException,
-            UnauthenticatedUserException, InvalidTokenException, ConfigurationErrorException {
+            throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, Operation.GET_ALL.getValue(), resourceType.getValue());
         return this.orderController.getInstancesStatus(requester, resourceType);
@@ -347,7 +344,7 @@ public class ApplicationFacade {
 		this.authorizationController.authorize(requester, cloudName, operation.getValue(), type.getValue());
 	}
 
-    public RSAPublicKey getAsPublicKey() throws UnexpectedException, UnavailableProviderException, ConfigurationErrorException {
+    public RSAPublicKey getAsPublicKey() throws FogbowException {
         if (this.asPublicKey == null) {
             this.asPublicKey = PublicKeysHolder.getInstance().getAsPublicKey();
         }

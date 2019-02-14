@@ -1467,7 +1467,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();
-		GenericRequest genericRequest = new GenericRequest(method, url, headers, body);
+		GenericRequest genericRequest = new GenericRequest(method, url, body, headers);
 
 		String responseContent = FAKE_CONTENT;
 		GenericRequestResponse expectedResponse = new GenericRequestResponse(responseContent);

@@ -45,7 +45,7 @@ public class RemoteGenericRequestHandlerTest {
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
     private FederationUser federationUser;
-    private GenericRequest genericRequest =  new GenericRequest("GET", "https://www.foo.bar", null, null);
+    private GenericRequest genericRequest =  new GenericRequest("GET", "https://www.foo.bar", new HashMap<>(), new HashMap<>());
     private RemoteFacade remoteFacade;
 
     @Before

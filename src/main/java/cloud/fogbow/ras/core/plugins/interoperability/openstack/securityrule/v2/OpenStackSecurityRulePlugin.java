@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -77,7 +78,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
                         .build();
 
                 String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-                String response = this.client.doPostRequest(endpoint, openStackV3Token, createSecurityRuleRequest.toJson());
+                String response = this.client.doPostRequest(endpoint, createSecurityRuleRequest.toJson(), openStackV3Token);
                 createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
             } catch (JSONException e) {
                 String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
@@ -207,9 +208,10 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     private void initClient() {
-        this.client = new OpenStackHttpClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
+                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
+        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        this.client = new OpenStackHttpClient(client);
     }
 
     protected void setClient(OpenStackHttpClient client) {

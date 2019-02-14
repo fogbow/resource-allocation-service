@@ -1,14 +1,17 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.RSAUtil;
+import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -16,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.HashMap;
 
 public class PublicKeysHolder {
     private HttpRequestClientUtil client;
@@ -37,7 +41,7 @@ public class PublicKeysHolder {
         return instance;
     }
 
-    public RSAPublicKey getAsPublicKey() throws UnavailableProviderException, UnexpectedException, ConfigurationErrorException {
+    public RSAPublicKey getAsPublicKey() throws FogbowException {
         if (this.asPublicKey == null) {
             String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY);
             String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY);
@@ -47,7 +51,7 @@ public class PublicKeysHolder {
     }
 
     private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix)
-            throws UnavailableProviderException, UnexpectedException, ConfigurationErrorException {
+            throws FogbowException {
         RSAPublicKey publicKey = null;
 
         URI uri = null;
@@ -59,17 +63,17 @@ public class PublicKeysHolder {
         uri = UriComponentsBuilder.fromUri(uri).port(servicePort).path(suffix).build(true).toUri();
 
         String endpoint = uri.toString();
-        String responseStr = null;
-        try {
-            responseStr = this.client.doGetRequest(endpoint, new CloudToken("", "", ""));
-        } catch (HttpResponseException e) {
+        GenericRequestHttpResponse response = this.client.doGenericRequest("GET", endpoint, new HashMap<>(), new HashMap<>(), null);
+        if (response.getHttpCode() > HttpStatus.SC_OK) {
+            Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
             throw new UnavailableProviderException(e.getMessage(), e);
+        } else {
+            try {
+                publicKey = RSAUtil.getPublicKeyFromString(response.getContent());
+            } catch (GeneralSecurityException e) {
+                throw new UnexpectedException(Messages.Exception.INVALID_PUBLIC_KEY);
+            }
+            return publicKey;
         }
-        try {
-            publicKey = RSAUtil.getPublicKeyFromString(responseStr);
-        } catch (GeneralSecurityException e) {
-            throw new UnexpectedException(Messages.Exception.INVALID_PUBLIC_KEY);
-        }
-        return publicKey;
     }
 }
