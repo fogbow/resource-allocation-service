@@ -18,7 +18,7 @@ public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements Fede
         super(confFile);
         String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                 ConfigurationPropertyDefaults.HTTP_REQUEST_TIMEOUT);
-        HttpRequestClientUtil client =  new HttpRequestClientUtil(new Integer(timeoutStr));
+        HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl() + OpenStackConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new OpenStackTokenGeneratorPlugin(client, serviceUrl, provider);

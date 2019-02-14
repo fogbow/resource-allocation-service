@@ -13,7 +13,7 @@ public class CloudStackAllToOneMapper extends BasicAllToOneMapper implements Fed
         super(confFile);
         String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                 ConfigurationPropertyDefaults.HTTP_REQUEST_TIMEOUT);
-        HttpRequestClientUtil client =  new HttpRequestClientUtil(new Integer(timeoutStr));
+        HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl();
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new CloudStackTokenGeneratorPlugin(client, serviceUrl, provider);

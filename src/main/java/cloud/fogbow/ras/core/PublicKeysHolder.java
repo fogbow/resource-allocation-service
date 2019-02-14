@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
@@ -30,7 +29,7 @@ public class PublicKeysHolder {
     private PublicKeysHolder() {
         String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                 ConfigurationPropertyDefaults.HTTP_REQUEST_TIMEOUT);
-        this.client = new HttpRequestClientUtil(new Integer(timeoutStr));
+        this.client = new HttpRequestClientUtil();
         this.asPublicKey = null;
     }
 

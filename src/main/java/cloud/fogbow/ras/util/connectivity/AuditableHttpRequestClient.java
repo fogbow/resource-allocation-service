@@ -1,27 +1,13 @@
 package cloud.fogbow.ras.util.connectivity;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Map;
 
@@ -30,11 +16,11 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
     private static final Logger LOGGER = Logger.getLogger(AuditableHttpRequestClient.class);
 
     public AuditableHttpRequestClient(Integer timeout) {
-        super(timeout);
+        super();
     }
     
     public AuditableHttpRequestClient(HttpClient httpClient) {
-        super(httpClient);
+        super();
     }
 
 //    @Override

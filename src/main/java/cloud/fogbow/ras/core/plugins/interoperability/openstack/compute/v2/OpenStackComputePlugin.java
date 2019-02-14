@@ -182,7 +182,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     private void initClient() {
         Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
                 ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-        HttpRequestClientUtil client = new HttpRequestClientUtil(timeout);
+        HttpRequestClientUtil client = new HttpRequestClientUtil();
         this.client = new OpenStackHttpClient(client);
     }
 

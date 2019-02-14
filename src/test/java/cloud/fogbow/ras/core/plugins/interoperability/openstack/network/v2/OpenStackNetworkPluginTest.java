@@ -6,7 +6,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -22,7 +21,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.json.JSONArray;
 import org.json.JSONException;
