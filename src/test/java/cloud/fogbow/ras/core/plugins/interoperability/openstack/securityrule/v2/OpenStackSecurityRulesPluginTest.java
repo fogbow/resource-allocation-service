@@ -21,9 +21,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.*;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.json.JSONException;
 import org.junit.After;
@@ -68,7 +66,6 @@ public class OpenStackSecurityRulesPluginTest {
 
     private OpenStackSecurityRulePlugin openStackSecurityRulePlugin;
     private OpenStackV3Token openStackV3Token;
-    private HttpClient client;
     private HttpRequestClientUtil clientUtil;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
@@ -84,7 +81,6 @@ public class OpenStackSecurityRulesPluginTest {
 
         this.openStackSecurityRulePlugin = Mockito.spy(new OpenStackSecurityRulePlugin(confFilePath));
 
-        this.client = Mockito.mock(HttpClient.class);
         this.clientUtil = Mockito.mock(HttpRequestClientUtil.class);
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(this.clientUtil));
         this.openStackSecurityRulePlugin.setClient(this.openStackHttpClient);

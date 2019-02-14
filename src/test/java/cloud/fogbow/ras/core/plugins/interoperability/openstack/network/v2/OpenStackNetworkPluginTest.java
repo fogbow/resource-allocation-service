@@ -19,7 +19,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpCli
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.apache.http.*;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.message.BasicStatusLine;
 import org.json.JSONArray;
@@ -66,7 +65,6 @@ public class OpenStackNetworkPluginTest {
 
     private OpenStackNetworkPlugin openStackNetworkPlugin;
     private OpenStackV3Token openStackV3Token;
-    private HttpClient client;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
 
@@ -79,8 +77,6 @@ public class OpenStackNetworkPluginTest {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.openStackNetworkPlugin = Mockito.spy(new OpenStackNetworkPlugin(cloudConfPath));
-
-        this.client = Mockito.mock(HttpClient.class);
 
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(Mockito.mock(HttpRequestClientUtil.class)));
         this.openStackNetworkPlugin.setClient(this.openStackHttpClient);

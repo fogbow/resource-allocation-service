@@ -4,7 +4,6 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import org.apache.http.client.HttpClient;
 import org.apache.log4j.Logger;
 
 import java.net.HttpURLConnection;
@@ -14,14 +13,6 @@ import java.util.Map;
 // FIXME Remove this when auditing is finished
 public class AuditableHttpRequestClient extends HttpRequestClientUtil {
     private static final Logger LOGGER = Logger.getLogger(AuditableHttpRequestClient.class);
-
-    public AuditableHttpRequestClient(Integer timeout) {
-        super();
-    }
-    
-    public AuditableHttpRequestClient(HttpClient httpClient) {
-        super();
-    }
 
 //    @Override
 //    public String doGetRequest(String endpoint, CloudToken token) throws UnavailableProviderException, HttpResponseException {
