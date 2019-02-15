@@ -38,14 +38,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			// TODO Auto-generated method stub
-			return null;
+			Class[] parameters = {int.class, Client.class};
+			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			// TODO Auto-generated method stub
-			return null;
+			Object[] values = {(int) objects[0], (Client)objects[1]};
+			return OneGenericInstance.instantiate(generateConstructor(), values);
 		}
 	},
 	
@@ -57,14 +57,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			// TODO Auto-generated method stub
-			return null;
+			Class[] parameters = {int.class, Client.class};
+			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			// TODO Auto-generated method stub
-			return null;
+			Object[] values = {(int) objects[0], (Client)objects[1]};
+			return OneGenericInstance.instantiate(generateConstructor(), values);
 		}
 	},
 	
@@ -95,14 +95,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			// TODO Auto-generated method stub
-			return null;
+			Class[] parameters = {int.class, Client.class};
+			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			// TODO Auto-generated method stub
-			return null;
+			Object[] values = {(int) objects[0], (Client)objects[1]};
+			return OneGenericInstance.instantiate(generateConstructor(), values);
 		}
 	},
 	
@@ -114,14 +114,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			// TODO Auto-generated method stub
-			return null;
+			Class[] parameters = {int.class, Client.class};
+			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			// TODO Auto-generated method stub
-			return null;
+			Object[] values = {(int) objects[0], (Client)objects[1]};
+			return OneGenericInstance.instantiate(generateConstructor(), values);
 		}
 	};
 	

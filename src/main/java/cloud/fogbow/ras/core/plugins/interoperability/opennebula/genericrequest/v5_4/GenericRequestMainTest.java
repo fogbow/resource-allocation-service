@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -10,6 +12,7 @@ import org.opennebula.client.OneResponse;
 
 public class GenericRequestMainTest {
 
+	@SuppressWarnings("unchecked")
 	public static void main(String args[]) throws Exception {
 
 		Scanner read = new Scanner(System.in);
@@ -38,14 +41,14 @@ public class GenericRequestMainTest {
 		option = read.next();
 		Map<String, String> parameters = new HashMap<>();
 		String key;
-		String value;
+		String strValue;
 		int counter = 0;
 		while (option.equals("y")) {
 			System.out.print("enter the key parameters you want to add:  ");
 			key = read.next();
 			System.out.print("enter the value parameters you want to add:  ");
-			value = read.next();
-			parameters.put(key, value);
+			strValue = read.next();
+			parameters.put(key, strValue);
 			System.out.print("continue adding parameters (y/n): ");
 			option = read.next();
 			counter++;
@@ -67,10 +70,23 @@ public class GenericRequestMainTest {
 			System.out.println("Instance returned: " +instance.toString());
 		}
 		
-		Method method = resourseClassType.getMethod(strMethod);
-		System.out.println("Method returned: " +method.getName());
+		// working with map of parameters...
+		OneParameter oneParameter;
+		List classes = new ArrayList<>();
+		List values = new ArrayList<>();
+		for(Map.Entry<String, String> entries : parameters.entrySet()) {
+			key = entries.getKey();
+			oneParameter = OneParameter.getValueOf(key);
+			classes.add(oneParameter.getClassType());
+			values.add(oneParameter.getValue(entries.getValue()));
+		}
 		
-		OneResponse response = (OneResponse) method.invoke(instance);
+		// Generate method...
+		Method method = OneGenericMethod.generate(resourseClassType, strMethod, classes);
+		System.out.println("Method returned: " +method.getName());		
+
+		// Invoke method...
+		OneResponse response = (OneResponse) OneGenericMethod.invoke(instance, method, values);
 		if (response.isError()) {
 			System.out.println("Error response returned: " +response.getErrorMessage());
 		}
