@@ -55,4 +55,22 @@ public class OneGenericMethod {
 		}
 		return null;
 	}
+
+	public static Object invoke(Method method, List<Object> values) {
+		// NOTE(pauloewerton): this is a static method invocation so making this explicit by passing a null object
+		// where an instance would be expected.
+		Object obj = null;
+
+		try {
+			if (values.isEmpty()) {
+				return method.invoke(obj);
+			} else {
+				return method.invoke(obj, values.toArray(new Object[values.size()]));
+			}
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+            e1.printStackTrace();
+        }
+
+		return null;
+	}
 }
