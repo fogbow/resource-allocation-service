@@ -5,7 +5,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequ
 import java.util.Map;
 
 public class OpenNebulaGenericRequest extends GenericRequest {
-    private String poolElement;
+    private String oneResource;
     private String method;
     private String resourceId;
     private Map<String, String> params;
@@ -13,19 +13,19 @@ public class OpenNebulaGenericRequest extends GenericRequest {
     public OpenNebulaGenericRequest() {
     }
 
-    public OpenNebulaGenericRequest(String poolElement, String method, String resourceId, Map<String, String> params) {
-        this.poolElement = poolElement;
+    public OpenNebulaGenericRequest(String oneResource, String method, String resourceId, Map<String, String> params) {
+        this.oneResource = oneResource;
         this.method = method;
         this.resourceId = resourceId;
         this.params = params;
     }
 
-    public String getPoolElement() {
-        return poolElement;
+    public String getOneResource() {
+        return oneResource;
     }
 
-    public void setPoolElement(String poolElement) {
-        this.poolElement = poolElement;
+    public void setOneResource(String oneResource) {
+        this.oneResource = oneResource;
     }
 
     @Override
