@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
 
@@ -57,9 +58,7 @@ public class OpenStackGenericRequestPluginTest {
         HashMap<String, String> body = new HashMap<>();
         body.put(FAKE_KEY, FAKE_VALUE);
 
-        String method = "GET";
-
-        GenericRequest genericRequest = new GenericRequest(method, FAKE_URL, body, headers);
+        GenericRequest genericRequest = new GenericRequest(HttpMethod.GET, FAKE_URL, body, headers);
         return genericRequest;
     }
 }

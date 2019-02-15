@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.http.HttpMethod;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -1463,11 +1464,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
-		String method = GET_METHOD;
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();
-		GenericRequest genericRequest = new GenericRequest(method, url, body, headers);
+		GenericRequest genericRequest = new GenericRequest(HttpMethod.GET, url, body, headers);
 
 		String responseContent = FAKE_CONTENT;
 		GenericRequestResponse expectedResponse = new GenericRequestResponse(responseContent);

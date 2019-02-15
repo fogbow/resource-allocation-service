@@ -9,13 +9,14 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUt
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import org.apache.http.client.utils.URIBuilder;
+import org.springframework.http.HttpMethod;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
 public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<CloudToken> {
 
-    public static final String CLOUDSTACK_HTTP_METHOD = "GET";
+    public static final HttpMethod CLOUDSTACK_HTTP_METHOD = HttpMethod.GET;
 
     private CloudStackHttpClient client;
 

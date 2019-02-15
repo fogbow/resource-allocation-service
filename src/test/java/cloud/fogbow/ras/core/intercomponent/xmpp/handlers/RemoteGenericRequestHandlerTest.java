@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.http.HttpMethod;
 import org.xmpp.packet.IQ;
 
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class RemoteGenericRequestHandlerTest {
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
     private FederationUser federationUser;
-    private GenericRequest genericRequest =  new GenericRequest("GET", "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+    private GenericRequest genericRequest =  new GenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
     private RemoteFacade remoteFacade;
 
     @Before

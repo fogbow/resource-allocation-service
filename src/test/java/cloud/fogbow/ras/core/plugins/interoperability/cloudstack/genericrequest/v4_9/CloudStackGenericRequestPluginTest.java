@@ -12,6 +12,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
@@ -47,10 +48,10 @@ public class CloudStackGenericRequestPluginTest {
         HashMap<String, String> headers = new HashMap<>();
         HashMap<String, String> body = new HashMap<>();
         HashMap<String, List<String>> responseHeaders = new HashMap<>();
-        GenericRequest request = new GenericRequest("GET", "https://www.foo.bar", body, headers);
+        GenericRequest request = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
 
         GenericRequestHttpResponse response = new GenericRequestHttpResponse("fake-content", HttpStatus.OK.value(), responseHeaders);
-        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
+        Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);
@@ -60,7 +61,7 @@ public class CloudStackGenericRequestPluginTest {
         CloudStackUrlUtil.sign(uriBuilder, fakeToken.getTokenValue());
         String expectedUrl = uriBuilder.toString();
 
-        Mockito.verify(this.client).doGenericRequest(Mockito.eq("GET"), Mockito.eq(expectedUrl),
+        Mockito.verify(this.client).doGenericRequest(Mockito.eq(HttpMethod.GET), Mockito.eq(expectedUrl),
                 Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 

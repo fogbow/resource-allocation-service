@@ -5,6 +5,7 @@ import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.util.connectivity.CloudHttpClient;
+import org.springframework.http.HttpMethod;
 
 import java.util.Map;
 
@@ -21,8 +22,8 @@ public class OpenStackHttpClient extends CloudHttpClient {
 
         headers.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
 
-        if (genericRequest.getMethod().equalsIgnoreCase("POST")
-                || genericRequest.getMethod().equalsIgnoreCase("DELETE")) {
+        if (genericRequest.getMethod().equals(HttpMethod.GET)
+                || genericRequest.getMethod().equals(HttpMethod.POST)) {
             headers.put(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
             headers.put(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         }

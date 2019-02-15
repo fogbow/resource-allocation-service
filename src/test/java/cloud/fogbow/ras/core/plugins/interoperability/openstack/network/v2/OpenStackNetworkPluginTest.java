@@ -29,6 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpMethod;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -143,7 +144,7 @@ public class OpenStackNetworkPluginTest {
         //set up
         GenericRequestHttpResponse postSubnetResponse = new GenericRequestHttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postSubnetResponse).when(this.openStackHttpClient).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
@@ -159,7 +160,7 @@ public class OpenStackNetworkPluginTest {
 
         //verify
 //        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
-        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
@@ -172,7 +173,7 @@ public class OpenStackNetworkPluginTest {
         GenericRequestHttpResponse postNetworkResponse = new GenericRequestHttpResponse(createNetworkResponse, HttpStatus.SC_OK, null);
         GenericRequestHttpResponse postSubnetResponse = new GenericRequestHttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postNetworkResponse).doReturn(postSubnetResponse).when(this.openStackHttpClient).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
@@ -190,7 +191,7 @@ public class OpenStackNetworkPluginTest {
         // verify
 //        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
         Mockito.verify(this.openStackHttpClient, Mockito.times(3)).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 

@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.http.HttpMethod;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
@@ -54,7 +55,6 @@ public class RemoteFacadeTest extends BaseUnitTests {
     private static final String FAKE_REQUESTING_MEMBER_ID = "fake-requesting-member-id";
     private static final String FAKE_URL = "https://www.foo.bar";
 	private static final String ID_KEY = "id";
-	private static final String GET_METHOD = "GET";
 	private static final String FAKE_RULE_ID = "fake-rule-id";
 
 	private RemoteFacade facade;
@@ -261,7 +261,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		FederationUser federationUser = createFederationUser();
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
-		String method = GET_METHOD;
+		HttpMethod method = HttpMethod.GET;
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();

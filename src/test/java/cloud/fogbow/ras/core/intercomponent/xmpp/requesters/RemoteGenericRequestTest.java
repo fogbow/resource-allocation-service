@@ -13,6 +13,7 @@ import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpMethod;
 import org.xmpp.packet.IQ;
 
 import java.util.HashMap;
@@ -29,7 +30,7 @@ public class RemoteGenericRequestTest {
 
     @Before
     public void setUp() {
-        this.genericRequest = new GenericRequest("GET", "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+        this.genericRequest = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
         this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, federationUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
