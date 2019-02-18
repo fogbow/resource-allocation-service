@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
+//import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
@@ -17,7 +17,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HomeDir.class, HttpRequestUtil.class})
+@PrepareForTest({HomeDir.class})//, HttpRequestUtil.class})
 public class PluginInstantiatorTest {
 
     private InteroperabilityPluginInstantiator interoperabilityPluginInstantiator;
@@ -27,9 +27,9 @@ public class PluginInstantiatorTest {
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(HomeDir.class);
-        PowerMockito.mockStatic(HttpRequestUtil.class);
+//        PowerMockito.mockStatic(HttpRequestUtil.class);
         CloseableHttpClient client = Mockito.mock(CloseableHttpClient.class);
-        PowerMockito.when(HttpRequestUtil.createHttpClient(Mockito.anyInt())).thenReturn(client);
+//        PowerMockito.when(HttpRequestUtil.createHttpClient(Mockito.anyInt())).thenReturn(client);
         BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
         this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator("default");
     }

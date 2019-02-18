@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
@@ -28,16 +27,13 @@ import java.io.File;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class, DetachVolumeResponse.class})
+@PrepareForTest({CloudStackUrlUtil.class, DetachVolumeResponse.class})
 public class CloudStackAttachmentPluginTest {
 
-    private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String JSON_FORMAT = "json";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String ID_FIELD = "&id=%s";
@@ -70,8 +66,6 @@ public class CloudStackAttachmentPluginTest {
 
     @Before
     public void setUp() {
-        PowerMockito.mockStatic(HttpRequestUtil.class);
-
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);

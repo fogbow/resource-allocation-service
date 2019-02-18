@@ -1,18 +1,18 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.RSAUtil;
-import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
+import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -63,7 +63,7 @@ public class PublicKeysHolder {
         uri = UriComponentsBuilder.fromUri(uri).port(servicePort).path(suffix).build(true).toUri();
 
         String endpoint = uri.toString();
-        GenericRequestHttpResponse response = this.client.doGenericRequest(HttpMethod.GET, endpoint, new HashMap<>(), new HashMap<>());
+        HttpResponse response = this.client.doGenericRequest(HttpMethod.GET, endpoint, new HashMap<>(), new HashMap<>());
         if (response.getHttpCode() > HttpStatus.SC_OK) {
             Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
             throw new UnavailableProviderException(e.getMessage(), e);

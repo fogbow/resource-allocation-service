@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
@@ -13,7 +14,6 @@ import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpMethod;
 import org.xmpp.packet.IQ;
 
 import java.util.HashMap;

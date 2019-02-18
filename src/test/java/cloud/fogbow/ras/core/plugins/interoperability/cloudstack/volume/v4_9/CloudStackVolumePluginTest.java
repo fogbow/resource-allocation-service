@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -30,8 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class, DeleteVolumeResponse.class,
-        GetVolumeResponse.class})
+@PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, GetVolumeResponse.class})
 public class CloudStackVolumePluginTest {
 
     private static final String CLOUD_NAME = "cloudstack";
@@ -57,9 +55,7 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_TAGS = "tag1:value1,tag2:value2";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String FAKE_MEMBER = "fake-member";
     private static final String FAKE_CLOUD_NAME = "cloud-name";
 
@@ -82,13 +78,9 @@ public class CloudStackVolumePluginTest {
 
     @Before
     public void setUp() {
-        PowerMockito.mockStatic(HttpRequestUtil.class);
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-
-        PowerMockito.mockStatic(HttpRequestUtil.class);
-
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);

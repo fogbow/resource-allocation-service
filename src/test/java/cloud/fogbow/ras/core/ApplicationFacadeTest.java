@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
@@ -28,7 +29,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.http.HttpMethod;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;

@@ -1,18 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.v2;
 
+import cloud.fogbow.common.constants.HttpConstants;
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
 
@@ -39,7 +37,7 @@ public class OpenStackGenericRequestPluginTest {
     public void testGenericRequestWithWrongHeader() throws FogbowException {
         // set up
         HashMap<String, String> header = genericRequest.getHeaders();
-        header.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, FAKE_VALUE);
+        header.put(HttpConstants.X_AUTH_TOKEN_KEY, FAKE_VALUE);
         genericRequest.setHeaders(header);
 
         // exercise

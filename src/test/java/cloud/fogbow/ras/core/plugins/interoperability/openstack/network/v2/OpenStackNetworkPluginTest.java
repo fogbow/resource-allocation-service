@@ -5,8 +5,8 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
+import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.datastore.AuditService;
@@ -18,9 +18,8 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import org.apache.http.*;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.message.BasicStatusLine;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,12 +28,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpMethod;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Properties;
@@ -142,9 +138,9 @@ public class OpenStackNetworkPluginTest {
     @Test
     public void testRequestInstancePostNetworkError() throws IOException, FogbowException {
         //set up
-        GenericRequestHttpResponse postSubnetResponse = new GenericRequestHttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
+        HttpResponse postSubnetResponse = new HttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postSubnetResponse).when(this.openStackHttpClient).
-                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
@@ -160,7 +156,8 @@ public class OpenStackNetworkPluginTest {
 
         //verify
 //        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
-        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
+        Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
@@ -170,10 +167,10 @@ public class OpenStackNetworkPluginTest {
         // set up
         String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
 
-        GenericRequestHttpResponse postNetworkResponse = new GenericRequestHttpResponse(createNetworkResponse, HttpStatus.SC_OK, null);
-        GenericRequestHttpResponse postSubnetResponse = new GenericRequestHttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
+        HttpResponse postNetworkResponse = new HttpResponse(createNetworkResponse, HttpStatus.SC_OK, null);
+        HttpResponse postSubnetResponse = new HttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postNetworkResponse).doReturn(postSubnetResponse).when(this.openStackHttpClient).
-                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
@@ -191,7 +188,7 @@ public class OpenStackNetworkPluginTest {
         // verify
 //        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
         Mockito.verify(this.openStackHttpClient, Mockito.times(3)).
-                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
@@ -667,17 +664,6 @@ public class OpenStackNetworkPluginTest {
 
     private NetworkOrder createEmptyOrder() {
         return new NetworkOrder(null, null, null, "default", null, null, null, null);
-    }
-
-    private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
-        HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
-        HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
-        InputStream inputStrem = new ByteArrayInputStream(content.getBytes(UTF_8));
-        Mockito.when(httpEntity.getContent()).thenReturn(inputStrem);
-        Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
-        StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("", 0, 0), httpStatus, "");
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        return httpResponse;
     }
 
     private JSONObject generateJsonResponseForSubnet(String gatewayIp, String cidr) {

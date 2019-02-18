@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
@@ -33,7 +34,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.http.HttpMethod;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
@@ -261,7 +261,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		FederationUser federationUser = createFederationUser();
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
-		HttpMethod method = HttpMethod.GET;
+		String method = HttpMethod.GET;
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();

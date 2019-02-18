@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
@@ -19,7 +20,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.http.HttpMethod;
 import org.xmpp.packet.IQ;
 
 import java.util.HashMap;

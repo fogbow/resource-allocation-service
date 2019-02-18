@@ -1,18 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.genericrequest;
 
-import org.springframework.http.HttpMethod;
-
 import java.util.HashMap;
 
 import static cloud.fogbow.ras.constants.Messages.Exception.CLASS_SHOULD_BE_CLONEABLE;
 
 public class GenericRequest implements Cloneable {
-    private HttpMethod method;
+    private String method;
     private String url;
     private HashMap<String, String> headers;
     private HashMap<String, String> body;
 
-    public GenericRequest(HttpMethod method, String url, HashMap<String, String> body, HashMap<String, String> headers) {
+    public GenericRequest(String method, String url, HashMap<String, String> body, HashMap<String, String> headers) {
         if (headers == null || body == null) {
             throw new IllegalArgumentException("Neither body or headers can be null");
         }
@@ -23,19 +21,19 @@ public class GenericRequest implements Cloneable {
         this.body = body;
     }
 
-    public GenericRequest(HttpMethod method, String url, HashMap<String, String> body) {
+    public GenericRequest(String method, String url, HashMap<String, String> body) {
         this(method, url, body, new HashMap<>());
     }
 
-    public GenericRequest(HttpMethod method, String url) {
+    public GenericRequest(String method, String url) {
         this(method, url, new HashMap<>(), new HashMap<>());
     }
 
-    public HttpMethod getMethod() {
+    public String getMethod() {
         return method;
     }
 
-    public void setMethod(HttpMethod method) {
+    public void setMethod(String method) {
         this.method = method;
     }
 

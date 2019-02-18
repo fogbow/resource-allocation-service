@@ -1,19 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.genericrequest.v4_9;
 
 import cloud.fogbow.common.constants.CloudStackConstants;
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.connectivity.GenericRequestHttpResponse;
+import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -26,8 +26,6 @@ public class CloudStackGenericRequestPluginTest {
     public static final String FAKE_TOKEN_VALUE = "foo" + CLOUDSTACK_SEPARATOR + "bar";
     public static final String FAKE_PROVIDER = "fake-provider";
     public static final String FAKE_USER_ID = "fake-user-id";
-    public static final String FAKE_USER_NAME = "fake-user-name";
-    public static final String FAKE_SIGNATURE = "fake-signature";
 
     private CloudToken fakeToken;
     private CloudStackGenericRequestPlugin plugin;
@@ -50,8 +48,8 @@ public class CloudStackGenericRequestPluginTest {
         HashMap<String, List<String>> responseHeaders = new HashMap<>();
         GenericRequest request = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
 
-        GenericRequestHttpResponse response = new GenericRequestHttpResponse("fake-content", HttpStatus.OK.value(), responseHeaders);
-        Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
+        HttpResponse response = new HttpResponse("fake-content", HttpStatus.SC_OK, responseHeaders);
+        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);
