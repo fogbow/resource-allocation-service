@@ -1,20 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.v2;
 
+import cloud.fogbow.common.constants.HttpConstants;
+import cloud.fogbow.common.constants.HttpMethod;
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class OpenStackGenericRequestPluginTest {
 
@@ -23,14 +22,14 @@ public class OpenStackGenericRequestPluginTest {
     public static final String FAKE_URL = "fake-url";
 
     private OpenStackGenericRequestPlugin plugin;
-    private AuditableHttpRequestClient auditableHttpRequestClientMock;
+    private OpenStackHttpClient openStackHttpClient;
     private GenericRequest genericRequest;
 
     @Before
     public void setUp() {
-        auditableHttpRequestClientMock = Mockito.mock(AuditableHttpRequestClient.class);
+        openStackHttpClient = Mockito.mock(OpenStackHttpClient.class);
         plugin = Mockito.spy(new OpenStackGenericRequestPlugin());
-        plugin.setClient(auditableHttpRequestClientMock);
+        plugin.setClient(openStackHttpClient);
         genericRequest = createGenericRequest();
     }
 
@@ -38,8 +37,8 @@ public class OpenStackGenericRequestPluginTest {
     @Test
     public void testGenericRequestWithWrongHeader() throws FogbowException {
         // set up
-        Map<String, String> header = genericRequest.getHeaders();
-        header.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, FAKE_VALUE);
+        HashMap<String, String> header = genericRequest.getHeaders();
+        header.put(OpenStackConstants.X_AUTH_TOKEN_KEY, FAKE_VALUE);
         genericRequest.setHeaders(header);
 
         // exercise
@@ -51,33 +50,14 @@ public class OpenStackGenericRequestPluginTest {
         }
     }
 
-    // test case: The header 'X-Auth-Token' must be added before executing actual request.
-    @Test
-    public void testGenericRequestPlugin() throws FogbowException {
-        // set up
-        ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
-        Mockito.doReturn(null).when(auditableHttpRequestClientMock).doGenericRequest(Mockito.anyString(),
-                Mockito.anyString(), argumentCaptor.capture(), Mockito.anyMap(), Mockito.any(CloudToken.class));
-
-        // exercise
-        plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3Token.class));
-        // verify
-        Assert.assertTrue(argumentCaptor.getValue().size() == 2);
-        Assert.assertTrue(argumentCaptor.getValue().containsKey(HttpRequestUtil.X_AUTH_TOKEN_KEY));
-        Mockito.verify(auditableHttpRequestClientMock, Mockito.times(1)).doGenericRequest(
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap(), Mockito.any(CloudToken.class));
-    }
-
     private GenericRequest createGenericRequest() {
-        Map<String, String> headers = new HashMap<>();
+        HashMap<String, String> headers = new HashMap<>();
         headers.put(FAKE_KEY, FAKE_VALUE);
 
-        Map<String, String> body = new HashMap<>();
+        HashMap<String, String> body = new HashMap<>();
         body.put(FAKE_KEY, FAKE_VALUE);
 
-        String method = "GET";
-
-        GenericRequest genericRequest = new GenericRequest(method, FAKE_URL, headers, body);
+        GenericRequest genericRequest = new GenericRequest(HttpMethod.GET, FAKE_URL, body, headers);
         return genericRequest;
     }
 }

@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.api.http;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;

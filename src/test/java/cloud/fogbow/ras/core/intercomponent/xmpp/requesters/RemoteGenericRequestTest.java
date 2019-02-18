@@ -1,19 +1,22 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.dom4j.Element;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
+
+import java.util.HashMap;
 
 public class RemoteGenericRequestTest {
 
@@ -27,7 +30,7 @@ public class RemoteGenericRequestTest {
 
     @Before
     public void setUp() {
-        this.genericRequest = new GenericRequest("GET", "https://www.foo.bar", null, null);
+        this.genericRequest = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
         this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, federationUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);

@@ -1,25 +1,41 @@
 package cloud.fogbow.ras.core.plugins.interoperability.genericrequest;
 
-import java.util.Map;
+import cloud.fogbow.common.constants.HttpMethod;
 
-public class GenericRequest {
-    private String method;
+import java.util.HashMap;
+
+import static cloud.fogbow.ras.constants.Messages.Exception.CLASS_SHOULD_BE_CLONEABLE;
+
+public class GenericRequest implements Cloneable {
+    private HttpMethod method;
     private String url;
-    private Map<String, String> headers;
-    private Map<String, String> body;
+    private HashMap<String, String> headers;
+    private HashMap<String, String> body;
 
-    public GenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body) {
+    public GenericRequest(HttpMethod method, String url, HashMap<String, String> body, HashMap<String, String> headers) {
+        if (headers == null || body == null) {
+            throw new IllegalArgumentException("Neither body or headers can be null");
+        }
+
         this.method = method;
         this.url = url;
         this.headers = headers;
         this.body = body;
     }
 
-    public String getMethod() {
+    public GenericRequest(HttpMethod method, String url, HashMap<String, String> body) {
+        this(method, url, body, new HashMap<>());
+    }
+
+    public GenericRequest(HttpMethod method, String url) {
+        this(method, url, new HashMap<>(), new HashMap<>());
+    }
+
+    public HttpMethod getMethod() {
         return method;
     }
 
-    public void setMethod(String method) {
+    public void setMethod(HttpMethod method) {
         this.method = method;
     }
 
@@ -31,19 +47,31 @@ public class GenericRequest {
         this.url = url;
     }
 
-    public Map<String, String> getHeaders() {
+    public HashMap<String, String> getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
+    public void setHeaders(HashMap<String, String> headers) {
         this.headers = headers;
     }
 
-    public Map<String, String> getBody() {
+    public HashMap<String, String> getBody() {
         return body;
     }
 
-    public void setBody(Map<String, String> body) {
+    public void setBody(HashMap<String, String> body) {
         this.body = body;
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            GenericRequest cloned = (GenericRequest) super.clone();
+            cloned.headers = (HashMap<String, String>) this.headers.clone();
+            cloned.body = (HashMap<String, String>) this.body.clone();
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(String.format(CLASS_SHOULD_BE_CLONEABLE, this.getClass().getName()));
+        }
     }
 }

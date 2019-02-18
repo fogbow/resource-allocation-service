@@ -5,10 +5,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
 import cloud.fogbow.ras.core.models.securityrules.EtherType;
@@ -17,8 +14,8 @@ import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -42,7 +39,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     protected static final String SECURITY_GROUPS_ENDPOINT = "security-groups";
 
     private String networkV2APIEndpoint;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
 
     public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
@@ -77,7 +74,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
                         .build();
 
                 String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-                String response = this.client.doPostRequest(endpoint, openStackV3Token, createSecurityRuleRequest.toJson());
+                String response = this.client.doPostRequest(endpoint, createSecurityRuleRequest.toJson(), openStackV3Token);
                 createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
             } catch (JSONException e) {
                 String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
@@ -207,12 +204,10 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new OpenStackHttpClient();
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 }

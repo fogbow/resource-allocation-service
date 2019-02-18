@@ -4,14 +4,11 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.images.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 
 import java.util.HashMap;
@@ -24,15 +21,13 @@ public class CloudStackImagePlugin implements ImagePlugin {
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     private String cloudStackUrl;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     public CloudStackImagePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new CloudStackHttpClient();
     }
 
     @Override
@@ -85,7 +80,7 @@ public class CloudStackImagePlugin implements ImagePlugin {
         }
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 }

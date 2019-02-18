@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
@@ -7,6 +8,7 @@ import cloud.fogbow.common.util.AuthenticationUtil;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -19,7 +21,6 @@ import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -1533,11 +1534,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
-		String method = GET_METHOD;
 		String url = FAKE_URL;
-		Map<String, String> headers = new HashMap<>();
-		Map<String, String> body = new HashMap<>();
-		GenericRequest genericRequest = new GenericRequest(method, url, headers, body);
+		HashMap<String, String> headers = new HashMap<>();
+		HashMap<String, String> body = new HashMap<>();
+		GenericRequest genericRequest = new GenericRequest(HttpMethod.GET, url, body, headers);
 
 		String responseContent = FAKE_CONTENT;
 		GenericRequestResponse expectedResponse = new GenericRequestResponse(responseContent);

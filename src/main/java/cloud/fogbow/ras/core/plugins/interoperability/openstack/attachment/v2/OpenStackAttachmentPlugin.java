@@ -3,19 +3,16 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -31,7 +28,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
     private Properties properties;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
 
     public OpenStackAttachmentPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
@@ -57,7 +54,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
 
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
         try {
-            this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -149,12 +146,10 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new OpenStackHttpClient();
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 

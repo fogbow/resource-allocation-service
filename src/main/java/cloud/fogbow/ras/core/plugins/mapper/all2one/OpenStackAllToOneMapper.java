@@ -4,7 +4,6 @@ import cloud.fogbow.as.core.tokengenerator.plugins.openstack.v3.OpenStackTokenGe
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
@@ -16,9 +15,7 @@ public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements Fede
 
     public OpenStackAllToOneMapper(String confFile) {
         super(confFile);
-        String  timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.HTTP_REQUEST_TIMEOUT);
-        HttpRequestClientUtil client =  new HttpRequestClientUtil(new Integer(timeoutStr));
+        HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl() + OpenStackConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         this.tokenGeneratorPlugin = new OpenStackTokenGeneratorPlugin(client, serviceUrl, provider);

@@ -5,7 +5,6 @@ import cloud.fogbow.as.core.tokengenerator.plugins.openstack.v3.OpenStackTokenGe
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -15,7 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -24,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HttpRequestUtil.class, OpenStackTokenGeneratorPlugin.class})
+@PrepareForTest({OpenStackTokenGeneratorPlugin.class})
 public class OpenStackAllToOneMapperTest {
     private static final String FAKE_LOGIN1 = "fake-login1";
     private static final String FAKE_LOGIN2 = "fake-login2";
@@ -43,8 +41,6 @@ public class OpenStackAllToOneMapperTest {
 
     @Before
     public void setUp() {
-        // we dont want HttpRequestUtil code to be executed in this test
-        PowerMockito.mockStatic(HttpRequestUtil.class);
         String path = HomeDir.getPath();
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;

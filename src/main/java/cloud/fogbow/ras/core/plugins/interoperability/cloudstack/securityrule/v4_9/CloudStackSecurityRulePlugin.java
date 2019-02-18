@@ -6,10 +6,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.securityrules.Direction;
@@ -17,14 +14,10 @@ import cloud.fogbow.ras.core.models.securityrules.EtherType;
 import cloud.fogbow.ras.core.models.securityrules.Protocol;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.*;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -41,15 +34,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
     private String cloudStackUrl;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     public CloudStackSecurityRulePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new CloudStackHttpClient();
     }
 
     @Override
@@ -124,7 +115,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
         waitForDeleteResult(this.client, response.getJobId(), localUserAttributes);
     }
 
-    protected String waitForDeleteResult(AuditableHttpRequestClient client, String jobId, CloudToken token)
+    protected String waitForDeleteResult(CloudStackHttpClient client, String jobId, CloudToken token)
             throws FogbowException, UnexpectedException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
@@ -209,7 +200,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
 		}
 	}
 
-    protected String waitForJobResult(AuditableHttpRequestClient client, String jobId, CloudToken token)
+    protected String waitForJobResult(CloudStackHttpClient client, String jobId, CloudToken token)
             throws FogbowException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
@@ -244,13 +235,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
         }
     }
 
-    protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(AuditableHttpRequestClient client, String jobId, CloudToken token)
+    protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(CloudStackHttpClient client, String jobId, CloudToken token)
             throws FogbowException {
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, jobId, token);
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 }

@@ -3,17 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -23,9 +20,7 @@ import java.util.Properties;
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputeQuotaPlugin.class);
 
-    private AuditableHttpRequestClient client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                                                                       ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+    private CloudStackHttpClient client;
 
     private static final String LIMIT_TYPE_INSTANCES = "0";
     private static final String LIMIT_TYPE_MEMORY = "9";
@@ -38,6 +33,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     public CloudStackComputeQuotaPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
+        this.client = new CloudStackHttpClient();
     }
 
     @Override
@@ -143,7 +139,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         return resourceLimit;
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

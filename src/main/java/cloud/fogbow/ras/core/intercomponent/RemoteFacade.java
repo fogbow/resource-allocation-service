@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
@@ -19,7 +20,6 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.apache.log4j.Logger;
 
 import java.util.List;

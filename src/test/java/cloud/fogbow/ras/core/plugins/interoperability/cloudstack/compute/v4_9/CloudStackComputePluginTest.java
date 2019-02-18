@@ -6,11 +6,11 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
@@ -18,7 +18,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.Get
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
@@ -39,7 +38,7 @@ import static org.mockito.Mockito.never;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class, HttpRequestUtil.class})
+@PrepareForTest({CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class})
 public class CloudStackComputePluginTest {
 
     public static final String FAKE_ID = "fake-id";
@@ -59,9 +58,7 @@ public class CloudStackComputePluginTest {
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final String FAKE_SIGNATURE = "fake-signature";
 
     public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
 
@@ -84,7 +81,7 @@ public class CloudStackComputePluginTest {
     private String fakeZoneId;
 
     private CloudStackComputePlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private Properties properties;
 
@@ -93,12 +90,8 @@ public class CloudStackComputePluginTest {
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-
-        // we dont want HttpRequestUtil code to be executed in this test
-        PowerMockito.mockStatic(HttpRequestUtil.class);
-
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackComputePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);

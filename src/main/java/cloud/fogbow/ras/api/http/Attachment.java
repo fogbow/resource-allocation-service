@@ -52,8 +52,7 @@ public class Attachment {
     public ResponseEntity<List<InstanceStatus>> getAllAttachmentsStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnavailableProviderException, UnexpectedException, InvalidTokenException,
-            UnauthenticatedUserException, UnauthorizedRequestException, ConfigurationErrorException {
+            throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));

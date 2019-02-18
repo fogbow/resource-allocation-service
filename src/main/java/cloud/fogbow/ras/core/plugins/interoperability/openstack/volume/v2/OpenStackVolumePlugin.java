@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -12,10 +13,10 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -33,7 +34,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     protected static final String SUFIX_ENDPOINT_VOLUME_TYPES = "/types";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
     private String volumeV2APIEndpoint;
 
     public OpenStackVolumePlugin(String confFilePath) throws FatalErrorException {
@@ -76,7 +77,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
         String responseStr = null;
         try {
-            responseStr = this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            responseStr = this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -205,11 +206,10 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new OpenStackHttpClient();
     }
-    public void setClient(AuditableHttpRequestClient client) {
+
+    public void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 }
