@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
+import org.opennebula.client.Client;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -57,8 +59,8 @@ public class OneGenericMethod {
 	}
 
 	public static Object invoke(Method method, List<Object> values) {
-		// NOTE(pauloewerton): this is a static method invocation so making this explicit by passing a null object
-		// where an instance would be expected.
+		// NOTE(pauloewerton): this is a static method invocation, making this explicit by passing a null object
+		// where an instance is expected. also, a client object should be passed as the 'values' list first value.
 		Object obj = null;
 
 		try {

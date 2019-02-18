@@ -56,7 +56,8 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 		if (instance != null) {
 			response = (OneResponse) OneGenericMethod.invoke(instance, method, values);
 		} else {
-			values.add(client);
+			classes.add(0, Client.class);
+			values.add(0, client);
 			response = (OneResponse) OneGenericMethod.invoke(method, values);
 		}
 
