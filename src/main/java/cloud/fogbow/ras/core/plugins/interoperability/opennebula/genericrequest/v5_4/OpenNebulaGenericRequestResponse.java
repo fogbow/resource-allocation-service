@@ -7,10 +7,21 @@ public class OpenNebulaGenericRequestResponse extends GenericRequestResponse {
    private String errorMessage;
    private int intMessage;
    private boolean isError;
+   private boolean booleanMessage;
 
    public OpenNebulaGenericRequestResponse(String message) {
       // NOTE(pauloewerton): either 'message' or 'errorMessage' should be passed as the response content.
       super(message);
+   }
+
+   public OpenNebulaGenericRequestResponse(String message, String errorMessage, int intMessage, boolean isError,
+                                           boolean booleanMessage) {
+      super(message);
+      this.message = message;
+      this.errorMessage = errorMessage;
+      this.intMessage = intMessage;
+      this.isError = isError;
+      this.booleanMessage = booleanMessage;
    }
 
    public String getMessage() {
@@ -43,5 +54,13 @@ public class OpenNebulaGenericRequestResponse extends GenericRequestResponse {
 
    public void setError(boolean error) {
       isError = error;
+   }
+
+   public boolean getBooleanMessage() {
+      return booleanMessage;
+   }
+
+   public void setBooleanMessage(boolean booleanMessage) {
+      this.booleanMessage = booleanMessage;
    }
 }

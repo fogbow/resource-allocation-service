@@ -58,6 +58,9 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 		} else {
 			classes.add(0, Client.class);
 			values.add(0, client);
+
+			// Reassigning method with updated classes list.
+			method = OneGenericMethod.generate(resourceClassType, request.getMethod(), classes);
 			response = (OneResponse) OneGenericMethod.invoke(method, values);
 		}
 
@@ -65,7 +68,12 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 	}
 
 	private OpenNebulaGenericRequestResponse getOneGenericRequestResponse(OneResponse oneResponse) {
-		return null;
+	    String message = oneResponse.isError() ? oneResponse.getErrorMessage() : oneResponse.getMessage();
+
+	    OpenNebulaGenericRequestResponse response = new OpenNebulaGenericRequestResponse(message, oneResponse.getErrorMessage(),
+				oneResponse.getIntMessage(), oneResponse.isError(), oneResponse.getBooleanMessage());
+
+		return response;
 	}
 
 }
