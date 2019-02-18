@@ -18,6 +18,10 @@ public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<Clou
 
     private CloudStackHttpClient client;
 
+    public CloudStackGenericRequestPlugin() {
+        this.client = new CloudStackHttpClient();
+    }
+
     @Override
     public HttpResponse redirectGenericRequest(GenericRequest genericRequest, CloudToken token) throws FogbowException {
         try {

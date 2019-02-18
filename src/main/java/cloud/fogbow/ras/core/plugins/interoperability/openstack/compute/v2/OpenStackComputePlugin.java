@@ -3,11 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
@@ -36,35 +32,14 @@ public class OpenStackComputePlugin implements ComputePlugin {
     public static final String SERVERS = "/servers";
     public static final String ACTION = "action";
 
-    protected static final String ID_JSON_FIELD = "id";
-    protected static final String NAME_JSON_FIELD = "name";
-    protected static final String SERVER_JSON_FIELD = "server";
-    protected static final String FLAVOR_REF_JSON_FIELD = "flavorRef";
-    protected static final String FLAVOR_JSON_FIELD = "flavor";
-    protected static final String FLAVOR_EXTRA_SPECS_JSON_FIELD = "extra_specs";
-    protected static final String FLAVOR_ID_JSON_FIELD = "id";
-    protected static final String IMAGE_JSON_FIELD = "imageRef";
-    protected static final String USER_DATA_JSON_FIELD = "user_data";
-    protected static final String NETWORK_JSON_FIELD = "networks";
-    protected static final String STATUS_JSON_FIELD = "status";
-    protected static final String DISK_JSON_FIELD = "disk";
-    protected static final String VCPU_JSON_FIELD = "vcpus";
-    protected static final String MEMORY_JSON_FIELD = "ram";
-    protected static final String SECURITY_JSON_FIELD = "security_groups";
-    protected static final String FLAVOR_JSON_OBJECT = "flavor";
-    protected static final String FLAVOR_JSON_KEY = "flavors";
-    protected static final String KEY_JSON_FIELD = "key_name";
-    protected static final String PUBLIC_KEY_JSON_FIELD = "public_key";
-    protected static final String KEYPAIR_JSON_FIELD = "keypair";
-    protected static final String UUID_JSON_FIELD = "uuid";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     protected static final String SUFFIX_FLAVOR_EXTRA_SPECS = "/os-extra_specs";
-    protected static final String ADDRESS_FIELD = "addresses";
     protected static final String PROVIDER_NETWORK_FIELD = "default";
-    protected static final String ADDR_FIELD = "addr";
+
+
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
     private OpenStackHttpClient client;
@@ -180,10 +155,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-        HttpRequestClientUtil client = new HttpRequestClientUtil();
-        this.client = new OpenStackHttpClient(client);
+        this.client = new OpenStackHttpClient();
     }
 
     private String getProjectId(CloudToken token) throws InvalidParameterException {

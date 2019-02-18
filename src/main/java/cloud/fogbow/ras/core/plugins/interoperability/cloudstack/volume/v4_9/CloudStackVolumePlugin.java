@@ -6,10 +6,6 @@ import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
@@ -42,11 +38,7 @@ public class CloudStackVolumePlugin implements VolumePlugin {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
-
-        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-        HttpRequestClientUtil client = new HttpRequestClientUtil();
-        this.client = new CloudStackHttpClient(client);
+        this.client = new CloudStackHttpClient();
     }
 
     @Override

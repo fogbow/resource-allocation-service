@@ -49,7 +49,7 @@ public class CloudStackGenericRequestPluginTest {
         GenericRequest request = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
 
         HttpResponse response = new HttpResponse("fake-content", HttpStatus.SC_OK, responseHeaders);
-        Mockito.when(this.client.doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
+        Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);

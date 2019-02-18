@@ -16,7 +16,6 @@ public class ConfigurationPropertyKeys {
     public static final String FAILED_ORDERS_SLEEP_TIME_KEY = "failed_orders_sleep_time";
     public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_sleep_period";
     public static final String CLOUD_NAMES_KEY = "cloud_names";
-    public static final String HTTP_REQUEST_TIMEOUT_KEY = "http_request_timeout";
     public static final String BUILD_NUMBER_KEY = "build_number";
 
     // Plugins

@@ -40,10 +40,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     private String cloudStackUrl;
     
     public CloudStackAttachmentPlugin() {
-        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-        HttpRequestClientUtil client = new HttpRequestClientUtil();
-        this.client = new CloudStackHttpClient(client);
+        this.client = new CloudStackHttpClient();
     }
 
     public CloudStackAttachmentPlugin(String confFilePath) {

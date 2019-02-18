@@ -8,7 +8,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import org.apache.http.HttpStatus;
@@ -22,16 +21,11 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 
 public class PublicKeysHolder {
-    private HttpRequestClientUtil client;
     private RSAPublicKey asPublicKey;
 
     private static PublicKeysHolder instance;
 
     private PublicKeysHolder() {
-        String timeoutStr = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.HTTP_REQUEST_TIMEOUT);
-        this.client = new HttpRequestClientUtil();
-        this.asPublicKey = null;
     }
 
     public static synchronized PublicKeysHolder getInstance() {
@@ -63,7 +57,7 @@ public class PublicKeysHolder {
         uri = UriComponentsBuilder.fromUri(uri).port(servicePort).path(suffix).build(true).toUri();
 
         String endpoint = uri.toString();
-        HttpResponse response = this.client.doGenericRequest(HttpMethod.GET, endpoint, new HashMap<>(), new HashMap<>());
+        HttpResponse response = HttpRequestClientUtil.doGenericRequest(HttpMethod.GET, endpoint, new HashMap<>(), new HashMap<>());
         if (response.getHttpCode() > HttpStatus.SC_OK) {
             Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
             throw new UnavailableProviderException(e.getMessage(), e);

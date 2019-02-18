@@ -1,11 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 
+import cloud.fogbow.common.constants.HttpMethod;
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -75,7 +76,7 @@ public class OpenStackNetworkPluginTest {
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.openStackNetworkPlugin = Mockito.spy(new OpenStackNetworkPlugin(cloudConfPath));
 
-        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(Mockito.mock(HttpRequestClientUtil.class)));
+        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackNetworkPlugin.setClient(this.openStackHttpClient);
 
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
@@ -140,7 +141,7 @@ public class OpenStackNetworkPluginTest {
         //set up
         HttpResponse postSubnetResponse = new HttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postSubnetResponse).when(this.openStackHttpClient).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
@@ -157,7 +158,7 @@ public class OpenStackNetworkPluginTest {
         //verify
 //        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
@@ -170,7 +171,7 @@ public class OpenStackNetworkPluginTest {
         HttpResponse postNetworkResponse = new HttpResponse(createNetworkResponse, HttpStatus.SC_OK, null);
         HttpResponse postSubnetResponse = new HttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postNetworkResponse).doReturn(postSubnetResponse).when(this.openStackHttpClient).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
@@ -188,7 +189,7 @@ public class OpenStackNetworkPluginTest {
         // verify
 //        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
         Mockito.verify(this.openStackHttpClient, Mockito.times(3)).
-                doGenericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(HashMap.class),
+                doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
                         Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
     }
 
@@ -349,16 +350,16 @@ public class OpenStackNetworkPluginTest {
 
         //verify
         String subnetJson = generateJsonEntityToCreateSubnet;
-        JSONObject subnetJsonObject = new JSONObject(subnetJson).optJSONObject(OpenStackNetworkPlugin.KEY_JSON_SUBNET);
-        Assert.assertEquals(DEFAULT_PROJECT_ID, subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_PROJECT_ID));
-        Assert.assertTrue(subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_NAME)
+        JSONObject subnetJsonObject = new JSONObject(subnetJson).optJSONObject(OpenStackConstants.Network.SUBNET_KEY_JSON);
+        Assert.assertEquals(DEFAULT_PROJECT_ID, subnetJsonObject.optString(OpenStackConstants.Network.PROJECT_ID_KEY_JSON));
+        Assert.assertTrue(subnetJsonObject.optString(OpenStackConstants.Network.NAME_KEY_JSON)
                 .contains(OpenStackNetworkPlugin.DEFAULT_SUBNET_NAME));
-        Assert.assertEquals(order.getId(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_NETWORK_ID));
-        Assert.assertEquals(order.getCidr(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_CIDR));
-        Assert.assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_GATEWAY_IP));
-        Assert.assertEquals(true, subnetJsonObject.optBoolean(OpenStackNetworkPlugin.KEY_ENABLE_DHCP));
+        Assert.assertEquals(order.getId(), subnetJsonObject.optString(OpenStackConstants.Network.NETWORK_ID_KEY_JSON));
+        Assert.assertEquals(order.getCidr(), subnetJsonObject.optString(OpenStackConstants.Network.CIDR_KEY_JSON));
+        Assert.assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackConstants.Network.GATEWAY_IP_KEY_JSON));
+        Assert.assertEquals(true, subnetJsonObject.optBoolean(OpenStackConstants.Network.ENABLE_DHCP_KEY_JSON));
         Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_IP_VERSION,
-                subnetJsonObject.optInt(OpenStackNetworkPlugin.KEY_IP_VERSION));
+                subnetJsonObject.optInt(OpenStackConstants.Network.IP_VERSION_KEY_JSON));
         Assert.assertEquals(dnsOne, subnetJsonObject.optJSONArray(OpenStackNetworkPlugin.KEY_DNS_NAMESERVERS).get(0));
         Assert.assertEquals(dnsTwo, subnetJsonObject.optJSONArray(OpenStackNetworkPlugin.KEY_DNS_NAMESERVERS).get(1));
     }
@@ -377,9 +378,9 @@ public class OpenStackNetworkPluginTest {
 
         //verify
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
-                .optJSONObject(OpenStackNetworkPlugin.KEY_JSON_SUBNET);
+                .optJSONObject(OpenStackConstants.Network.SUBNET_KEY_JSON);
         Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_NETWORK_CIDR,
-                subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_CIDR));
+                subnetJsonObject.optString(OpenStackConstants.Network.CIDR_KEY_JSON));
     }
 
     //test case: Tests if the json to request subnet was generated as expected, when dns is not provided.
@@ -396,7 +397,7 @@ public class OpenStackNetworkPluginTest {
 
         //verify
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
-                .optJSONObject(OpenStackNetworkPlugin.KEY_JSON_SUBNET);
+                .optJSONObject(OpenStackConstants.Network.SUBNET_KEY_JSON);
         Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_DNS_NAME_SERVERS[0],
                 subnetJsonObject.optJSONArray(OpenStackNetworkPlugin.KEY_DNS_NAMESERVERS).get(0));
         Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_DNS_NAME_SERVERS[1],
@@ -417,8 +418,8 @@ public class OpenStackNetworkPluginTest {
 
         //verify
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
-                .optJSONObject(OpenStackNetworkPlugin.KEY_JSON_SUBNET);
-        Assert.assertEquals(false, subnetJsonObject.optBoolean(OpenStackNetworkPlugin.KEY_ENABLE_DHCP));
+                .optJSONObject(OpenStackConstants.Network.SUBNET_KEY_JSON);
+        Assert.assertEquals(false, subnetJsonObject.optBoolean(OpenStackConstants.Network.ENABLE_DHCP_KEY_JSON));
     }
 
     //test case: Tests if the json to request subnet was generated as expected, when gateway is not provided.
@@ -435,8 +436,8 @@ public class OpenStackNetworkPluginTest {
 
         //verify
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
-                .optJSONObject(OpenStackNetworkPlugin.KEY_JSON_SUBNET);
-        Assert.assertTrue(subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_GATEWAY_IP).isEmpty());
+                .optJSONObject(OpenStackConstants.Network.SUBNET_KEY_JSON);
+        Assert.assertTrue(subnetJsonObject.optString(OpenStackConstants.Network.GATEWAY_IP_KEY_JSON).isEmpty());
     }
 
     //getInstance tests
@@ -447,11 +448,11 @@ public class OpenStackNetworkPluginTest {
         //set up
         String networkId = "networkId00";
         JSONObject networkContentJsonObject = new JSONObject();
-        networkContentJsonObject.put(OpenStackNetworkPlugin.KEY_ID, networkId);
+        networkContentJsonObject.put(OpenStackConstants.Network.ID_KEY_JSON, networkId);
         JSONObject networkJsonObject = new JSONObject();
 
         //exercise
-        networkJsonObject.put(OpenStackNetworkPlugin.KEY_JSON_NETWORK, networkContentJsonObject);
+        networkJsonObject.put(OpenStackConstants.Network.NETWORK_KEY_JSON, networkContentJsonObject);
 
         //verify
         Assert.assertEquals(networkId,
@@ -473,12 +474,12 @@ public class OpenStackNetworkPluginTest {
         // Generating network response string
         JSONObject networkContentJsonObject = generateJsonResponseForNetwork(networkId, networkName, subnetId, vlan);
         JSONObject networkJsonObject = new JSONObject();
-        networkJsonObject.put(OpenStackNetworkPlugin.KEY_JSON_NETWORK, networkContentJsonObject);
+        networkJsonObject.put(OpenStackConstants.Network.NETWORK_KEY_JSON, networkContentJsonObject);
 
         // Generating subnet response string
         JSONObject subnetContentJsonObject = generateJsonResponseForSubnet(gatewayIp, cidr);
         JSONObject subnetJsonObject = new JSONObject();
-        subnetJsonObject.put(OpenStackNetworkPlugin.KEY_JSON_SUBNET, subnetContentJsonObject);
+        subnetJsonObject.put(OpenStackConstants.Network.SUBNET_KEY_JSON, subnetContentJsonObject);
 
 //        HttpResponse httpResponseGetNetwork = createHttpResponse(networkJsonObject.toString(), HttpStatus.SC_OK);
 //        HttpResponse httpResponseGetSubnet = createHttpResponse(subnetJsonObject.toString(), HttpStatus.SC_OK);
@@ -619,14 +620,14 @@ public class OpenStackNetworkPluginTest {
     public void testRetrieveSecurityGroupIdFromGetResponse() throws UnexpectedException {
         //set up
         JSONObject securityGroup = new JSONObject();
-        securityGroup.put(OpenStackNetworkPlugin.KEY_PROJECT_ID, "fake-tenant-id");
-        securityGroup.put(OpenStackNetworkPlugin.KEY_NAME, "fake-name");
-        securityGroup.put(OpenStackNetworkPlugin.KEY_ID, SECURITY_GROUP_ID);
+        securityGroup.put(OpenStackConstants.Network.PROJECT_ID_KEY_JSON, "fake-tenant-id");
+        securityGroup.put(OpenStackConstants.Network.NAME_KEY_JSON, "fake-name");
+        securityGroup.put(OpenStackConstants.Network.ID_KEY_JSON, SECURITY_GROUP_ID);
 
         JSONArray securityGroups = new JSONArray();
         securityGroups.put(securityGroup);
         JSONObject response = new JSONObject();
-        response.put(OpenStackNetworkPlugin.KEY_SECURITY_GROUPS, securityGroups);
+        response.put(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON, securityGroups);
 
         //exercise
         String id = this.openStackNetworkPlugin.getSecurityGroupIdFromGetResponse(response.toString());
@@ -640,13 +641,13 @@ public class OpenStackNetworkPluginTest {
     public void testErrorToRetrieveSecurityGroupIdFromGetResponse() throws UnexpectedException {
         //set up
         JSONObject securityGroup = new JSONObject();
-        securityGroup.put(OpenStackNetworkPlugin.KEY_PROJECT_ID, "fake-tenant-id");
-        securityGroup.put(OpenStackNetworkPlugin.KEY_NAME, "fake-name");
+        securityGroup.put(OpenStackConstants.Network.PROJECT_ID_KEY_JSON, "fake-tenant-id");
+        securityGroup.put(OpenStackConstants.Network.NAME_KEY_JSON, "fake-name");
 
         JSONArray securityGroups = new JSONArray();
         securityGroups.put(securityGroup);
         JSONObject response = new JSONObject();
-        response.put(OpenStackNetworkPlugin.KEY_SECURITY_GROUPS, securityGroups);
+        response.put(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON, securityGroups);
 
         //exercise
         this.openStackNetworkPlugin.getSecurityGroupIdFromGetResponse(response.toString());
@@ -669,9 +670,9 @@ public class OpenStackNetworkPluginTest {
     private JSONObject generateJsonResponseForSubnet(String gatewayIp, String cidr) {
         JSONObject subnetContentJsonObject = new JSONObject();
 
-        subnetContentJsonObject.put(OpenStackNetworkPlugin.KEY_GATEWAY_IP, gatewayIp);
-        subnetContentJsonObject.put(OpenStackNetworkPlugin.KEY_ENABLE_DHCP, true);
-        subnetContentJsonObject.put(OpenStackNetworkPlugin.KEY_CIDR, cidr);
+        subnetContentJsonObject.put(OpenStackConstants.Network.GATEWAY_IP_KEY_JSON, gatewayIp);
+        subnetContentJsonObject.put(OpenStackConstants.Network.ENABLE_DHCP_KEY_JSON, true);
+        subnetContentJsonObject.put(OpenStackConstants.Network.CIDR_KEY_JSON, cidr);
 
         return subnetContentJsonObject;
     }
@@ -679,13 +680,13 @@ public class OpenStackNetworkPluginTest {
     private JSONObject generateJsonResponseForNetwork(String networkId, String networkName, String subnetId, String vlan) {
         JSONObject networkContentJsonObject = new JSONObject();
 
-        networkContentJsonObject.put(OpenStackNetworkPlugin.KEY_ID, networkId);
-        networkContentJsonObject.put(OpenStackNetworkPlugin.KEY_PROVIDER_SEGMENTATION_ID, vlan);
-        networkContentJsonObject.put(OpenStackNetworkPlugin.KEY_STATUS,
+        networkContentJsonObject.put(OpenStackConstants.Network.ID_KEY_JSON, networkId);
+        networkContentJsonObject.put(OpenStackConstants.Network.PROVIDER_SEGMENTATION_ID_KEY_JSON, vlan);
+        networkContentJsonObject.put(OpenStackConstants.Network.STATUS_KEY_JSON,
                 OpenStackStateMapper.ACTIVE_STATUS);
-        networkContentJsonObject.put(OpenStackNetworkPlugin.KEY_NAME, networkName);
+        networkContentJsonObject.put(OpenStackConstants.Network.NAME_KEY_JSON, networkName);
         JSONArray subnetJsonArray = new JSONArray(Arrays.asList(new String[]{subnetId}));
-        networkContentJsonObject.put(OpenStackNetworkPlugin.KEY_SUBNETS, subnetJsonArray);
+        networkContentJsonObject.put(OpenStackConstants.Network.SUBNETS_KEY_JSON, subnetJsonArray);
 
         return networkContentJsonObject;
     }
@@ -694,11 +695,11 @@ public class OpenStackNetworkPluginTest {
         JSONObject jsonObject = new JSONObject();
         JSONArray securityGroups = new JSONArray();
         JSONObject securityGroupInfo = new JSONObject();
-        securityGroupInfo.put(OpenStackNetworkPlugin.KEY_PROJECT_ID, "fake-project-id");
+        securityGroupInfo.put(OpenStackConstants.Network.PROJECT_ID_KEY_JSON, "fake-project-id");
         securityGroupInfo.put(OpenStackNetworkPlugin.QUERY_NAME, "fake-name");
-        securityGroupInfo.put(OpenStackNetworkPlugin.KEY_ID, id);
+        securityGroupInfo.put(OpenStackConstants.Network.ID_KEY_JSON, id);
         securityGroups.put(securityGroupInfo);
-        jsonObject.put(OpenStackNetworkPlugin.KEY_SECURITY_GROUPS, securityGroups);
+        jsonObject.put(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON, securityGroups);
         return jsonObject;
     }
 }

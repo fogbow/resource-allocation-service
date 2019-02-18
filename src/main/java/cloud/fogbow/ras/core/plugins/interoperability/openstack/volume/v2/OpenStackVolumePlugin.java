@@ -206,10 +206,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     private void initClient() {
-        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-        HttpRequestClientUtil client = new HttpRequestClientUtil();
-        this.client = new OpenStackHttpClient(client);
+        this.client = new OpenStackHttpClient();
     }
 
     public void setClient(OpenStackHttpClient client) {

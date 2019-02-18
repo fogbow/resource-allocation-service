@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.
 
 import cloud.fogbow.common.constants.HttpConstants;
 import cloud.fogbow.common.constants.HttpMethod;
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
@@ -37,7 +38,7 @@ public class OpenStackGenericRequestPluginTest {
     public void testGenericRequestWithWrongHeader() throws FogbowException {
         // set up
         HashMap<String, String> header = genericRequest.getHeaders();
-        header.put(HttpConstants.X_AUTH_TOKEN_KEY, FAKE_VALUE);
+        header.put(OpenStackConstants.X_AUTH_TOKEN_KEY, FAKE_VALUE);
         genericRequest.setHeaders(header);
 
         // exercise

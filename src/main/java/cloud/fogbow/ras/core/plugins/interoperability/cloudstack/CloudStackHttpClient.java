@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.util.connectivity.CloudHttpClient;
 import org.apache.http.client.utils.URIBuilder;
@@ -10,10 +9,8 @@ import org.apache.http.client.utils.URIBuilder;
 import java.net.URISyntaxException;
 
 public class CloudStackHttpClient extends CloudHttpClient {
-    public static final String CLOUDSTACK_HTTP_METHOD = "GET";
 
-    public CloudStackHttpClient(HttpRequestClientUtil client) {
-        super(client);
+    public CloudStackHttpClient() {
     }
 
     @Override

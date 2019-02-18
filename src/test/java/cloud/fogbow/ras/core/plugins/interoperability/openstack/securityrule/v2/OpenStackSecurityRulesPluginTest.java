@@ -82,7 +82,7 @@ public class OpenStackSecurityRulesPluginTest {
         this.openStackSecurityRulePlugin = Mockito.spy(new OpenStackSecurityRulePlugin(confFilePath));
 
         this.clientUtil = Mockito.mock(HttpRequestClientUtil.class);
-        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient(this.clientUtil));
+        this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackSecurityRulePlugin.setClient(this.openStackHttpClient);
 
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);

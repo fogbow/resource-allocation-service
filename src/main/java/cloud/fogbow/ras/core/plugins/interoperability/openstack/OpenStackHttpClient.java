@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 
 import cloud.fogbow.common.constants.HttpConstants;
 import cloud.fogbow.common.constants.HttpMethod;
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.util.connectivity.CloudHttpClient;
 
@@ -11,8 +11,7 @@ import java.util.Map;
 
 public class OpenStackHttpClient extends CloudHttpClient {
 
-    public OpenStackHttpClient(HttpRequestClientUtil client) {
-        super(client);
+    public OpenStackHttpClient() {
     }
 
     @Override
@@ -20,7 +19,7 @@ public class OpenStackHttpClient extends CloudHttpClient {
         GenericRequest clonedRequest = (GenericRequest) genericRequest.clone();
         Map<String, String> headers = clonedRequest.getHeaders();
 
-        headers.put(HttpConstants.X_AUTH_TOKEN_KEY, token.getTokenValue());
+        headers.put(OpenStackConstants.X_AUTH_TOKEN_KEY, token.getTokenValue());
 
         if (genericRequest.getMethod().equals(HttpMethod.GET)
                 || genericRequest.getMethod().equals(HttpMethod.POST)) {

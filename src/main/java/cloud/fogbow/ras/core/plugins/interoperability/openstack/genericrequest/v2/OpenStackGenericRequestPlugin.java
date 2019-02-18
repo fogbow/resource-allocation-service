@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.v2;
 
 import cloud.fogbow.common.constants.HttpConstants;
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
@@ -10,14 +11,18 @@ import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequ
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 
-public class OpenStackGenericRequestPlugin implements GenericRequestPlugin {
+public class OpenStackGenericRequestPlugin implements GenericRequestPlugin<CloudToken> {
 
     private OpenStackHttpClient client;
+
+    public OpenStackGenericRequestPlugin() {
+        this.client = new OpenStackHttpClient();
+    }
 
     @Override
     public HttpResponse redirectGenericRequest(GenericRequest genericRequest, CloudToken token)
             throws FogbowException {
-        if (genericRequest.getHeaders().containsKey(HttpConstants.X_AUTH_TOKEN_KEY)) {
+        if (genericRequest.getHeaders().containsKey(OpenStackConstants.X_AUTH_TOKEN_KEY)) {
             throw new InvalidParameterException(Messages.Exception.TOKEN_ALREADY_SPECIFIED);
         }
 

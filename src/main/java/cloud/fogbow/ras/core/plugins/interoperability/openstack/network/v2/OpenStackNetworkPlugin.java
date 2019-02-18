@@ -1,13 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
@@ -40,21 +37,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
     protected static final String V2_API_ENDPOINT = "/v2.0";
     protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
     public static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
-    protected static final String QUERY_NAME = "name";
     protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
-    protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
-    protected static final String KEY_IP_VERSION = "ip_version";
-    protected static final String KEY_GATEWAY_IP = "gateway_ip";
-    protected static final String KEY_PROJECT_ID = "project_id";
-    protected static final String KEY_JSON_NETWORK = "network";
-    protected static final String KEY_NETWORK_ID = "network_id";
-    protected static final String KEY_JSON_SUBNET = "subnet";
-    protected static final String KEY_SUBNETS = "subnets";
-    protected static final String KEY_SECURITY_GROUPS = "security_groups";
-    protected static final String KEY_STATUS = "status";
-    protected static final String KEY_NAME = "name";
-    protected static final String KEY_CIDR = "cidr";
-    protected static final String KEY_ID = "id";
+    protected static final String QUERY_NAME = "name";
     protected static final int DEFAULT_IP_VERSION = 4;
     protected static final String DEFAULT_NETWORK_NAME = "ras-network";
     protected static final String DEFAULT_SUBNET_NAME = "ras-subnet";
@@ -239,9 +223,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
         String securityGroupId = null;
         try {
             JSONObject response = new JSONObject(json);
-            JSONArray securityGroupJSONArray = response.getJSONArray(KEY_SECURITY_GROUPS);
+            JSONArray securityGroupJSONArray = response.getJSONArray(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON);
             JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
-            securityGroupId = securityGroup.getString(KEY_ID);
+            securityGroupId = securityGroup.getString(OpenStackConstants.Network.ID_KEY_JSON);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message, e);
@@ -327,8 +311,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
         String networkId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
-            JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
-            networkId = networkJSONObject.optString(KEY_ID);
+            JSONObject networkJSONObject = rootServer.optJSONObject(OpenStackConstants.Network.NETWORK_KEY_JSON);
+            networkId = networkJSONObject.optString(OpenStackConstants.Network.ID_KEY_JSON);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message, e);
@@ -377,10 +361,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
     }
 
     private void initClient() {
-        Integer timeout = new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-        HttpRequestClientUtil client = new HttpRequestClientUtil();
-        this.client = new OpenStackHttpClient(client);
+        this.client = new OpenStackHttpClient();
     }
 
     protected void setClient(OpenStackHttpClient client) {

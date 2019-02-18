@@ -261,7 +261,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		FederationUser federationUser = createFederationUser();
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
-		String method = HttpMethod.GET;
+		HttpMethod method = HttpMethod.GET;
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();

@@ -13,13 +13,9 @@ import org.apache.http.client.HttpResponseException;
 import java.util.HashMap;
 
 public abstract class CloudHttpClient {
-
-    protected HttpRequestClientUtil client;
-
     public static final String EMPTY_BODY = "{}";
 
-    public CloudHttpClient(HttpRequestClientUtil client) {
-        this.client = client;
+    public CloudHttpClient() {
     }
 
     public String doGetRequest(String url, CloudToken token) throws FogbowException, HttpResponseException {
@@ -35,7 +31,7 @@ public abstract class CloudHttpClient {
         return callDoGenericRequest(HttpMethod.POST, url, bodyContent, token);
     }
 
-    private String callDoGenericRequest(String method, String url, String bodyContent, CloudToken token) throws FogbowException, HttpResponseException {
+    private String callDoGenericRequest(HttpMethod method, String url, String bodyContent, CloudToken token) throws FogbowException, HttpResponseException {
         HashMap<String, String> body = GsonHolder.getInstance().fromJson(bodyContent, HashMap.class);
 
         HashMap<String, String> headers = new HashMap<>();
@@ -48,12 +44,12 @@ public abstract class CloudHttpClient {
         return response.getContent();
     }
 
-    public HttpResponse doGenericRequest(String method, String url, HashMap<String, String> headers,
+    public HttpResponse doGenericRequest(HttpMethod method, String url, HashMap<String, String> headers,
                                          HashMap<String, String> body , CloudToken token) throws FogbowException {
         GenericRequest request = new GenericRequest(method, url, body, headers);
         GenericRequest preparedRequest = prepareRequest(request, token);
 
-        return client.doGenericRequest(preparedRequest.getMethod(),
+        return HttpRequestClientUtil.doGenericRequest(preparedRequest.getMethod(),
                 preparedRequest.getUrl(), preparedRequest.getHeaders(), preparedRequest.getBody());
     }
 
