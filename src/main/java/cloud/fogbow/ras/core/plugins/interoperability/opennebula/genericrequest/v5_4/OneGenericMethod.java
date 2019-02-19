@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
-import org.opennebula.client.Client;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -9,70 +7,32 @@ import java.util.List;
 public class OneGenericMethod {
 
 	public static Method generate(Class classType, String method, List<Class> parameters) {
-		switch (parameters.size()) {
-		case 1:
-			try {
-				return classType.getMethod(method, parameters.get(0));
-			} catch (NoSuchMethodException | SecurityException e) {
-				e.printStackTrace();
-			}
-			break;
-		
-		case 2:
-			try {
-				return classType.getMethod(method, parameters.get(0), parameters.get(1));
-			} catch (NoSuchMethodException | SecurityException e) {
-				e.printStackTrace();
-			}
-			break;
-
-		default:
-			try {
+		try {
+			if (parameters.isEmpty()) {
 				return classType.getMethod(method);
-			} catch (NoSuchMethodException | SecurityException e) {
-				e.printStackTrace();
+			} else {
+				return classType.getMethod(method, parameters.toArray(new Class[parameters.size()]));
 			}
-			break;
-		}
+        } catch (NoSuchMethodException | SecurityException e) {
+            e.printStackTrace();
+        }
 		return null;
 	}
 
 	public static Object invoke(Object instance, Method method, List<Object> values) {
-		switch (values.size()) {
-		case 1:
-			try {
-				return method.invoke(instance, values.get(0));
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-				e1.printStackTrace();
-			}
-			break;
-
-		default:
-			try {
-				return method.invoke(instance);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				e.printStackTrace();
-			}
-			break;
+		if (instance == null) {
+			instance = method;
 		}
-		return null;
-	}
-
-	public static Object invoke(Method method, List<Object> values) {
-		// NOTE(pauloewerton): this is a static method invocation, making this explicit by passing a null object
-		// where an instance is expected. also, a client object should be passed as the 'values' list first value.
-		Object obj = null;
-
 		try {
 			if (values.isEmpty()) {
-				return method.invoke(obj);
+				return method.invoke(instance);
 			} else {
-				return method.invoke(obj, values.toArray(new Object[values.size()]));
+				return method.invoke(instance, values.toArray(new Object[values.size()]));
 			}
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
             e1.printStackTrace();
         }
-
 		return null;
 	}
+
 }

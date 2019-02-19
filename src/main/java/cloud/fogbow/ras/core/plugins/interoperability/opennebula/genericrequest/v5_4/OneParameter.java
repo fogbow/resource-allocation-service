@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
-import org.opennebula.client.Client;
-
 public enum OneParameter {
 
 	ACTION("action") {
@@ -12,8 +10,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -25,8 +22,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Boolean.parseBoolean(arg);
 		}
 	},
 	
@@ -51,21 +47,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-	},
-	
-	CLIENT("client") {
-		@Override
-		public Class getClassType() {
-			return Client.class;
-		}
-
-		@Override
-		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -77,8 +59,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Integer.parseInt(arg);
 		}
 	},
 	
@@ -90,8 +71,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -103,8 +83,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Integer.parseInt(arg);
 		}
 	},
 	
@@ -116,8 +95,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Boolean.parseBoolean(arg);
 		}
 	},
 	
@@ -141,8 +119,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Boolean.parseBoolean(arg);
 		}
 	},
 	
@@ -154,8 +131,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Integer.parseInt(arg);
 		}
 	},
 	
@@ -167,8 +143,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Integer.parseInt(arg);
 		}
 	},
 	
@@ -180,8 +155,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -193,8 +167,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -206,8 +179,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Boolean.parseBoolean(arg);
 		}
 	},
 	
@@ -219,8 +191,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -232,8 +203,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Long.parseLong(arg);
 		}
 	},
 	
@@ -245,8 +215,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -270,8 +239,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -283,8 +251,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return arg;
 		}
 	},
 	
@@ -296,8 +263,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Integer.parseInt(arg);
 		}
 	},
 	
@@ -309,8 +275,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return Integer.parseInt(arg);
 		}
 	},
 	

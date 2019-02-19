@@ -57,7 +57,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 
 			// Reassigning method with updated classes list.
 			method = OneGenericMethod.generate(resourceClassType, request.getMethod(), classes);
-			response = (OneResponse) OneGenericMethod.invoke(method, values);
+			response = (OneResponse) OneGenericMethod.invoke(null, method, values);
 		}
 
 		return this.getOneGenericRequestResponse(response);

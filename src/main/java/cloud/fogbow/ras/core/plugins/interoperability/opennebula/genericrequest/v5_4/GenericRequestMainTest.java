@@ -12,12 +12,12 @@ import org.opennebula.client.OneResponse;
 
 public class GenericRequestMainTest {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "resource", "unused", "rawtypes" })
 	public static void main(String args[]) throws Exception {
 
 		Scanner read = new Scanner(System.in);
 		
-		// Get the resourse (poolElement)...
+		// Get the OneResourse (A Pool or PoolElement)...
 		System.out.print("Enter the desired resource: ");
 		String resourse = read.next();
 		
@@ -54,45 +54,57 @@ public class GenericRequestMainTest {
 			counter++;
 		}
 		
+		String secret = "oneadmin:opennebula";
+		String endpoint = "http://10.11.5.20:2633/RPC2";
+		Client client = new Client(secret, endpoint);
+		
 		// Generate class type of resourse...
 		OneResourse oneResourse = OneResourse.getValueOf(resourse);
 		Class resourseClassType = oneResourse.getClassType();
-		System.out.println("ClassType returned: " +resourseClassType.getName());
-		
-		// Instanciate a resourse...
-		Object instance;
-		if (oneResourse.getName().equals("Client")) {
-			instance = (Client) oneResourse.createInstance("oneadmin:opennebula","http://10.11.5.20:2633/RPC2");
-			System.out.println("Instance returned: " +instance.toString());
-		} else {
-			Client client = new Client("oneadmin:opennebula","http://10.11.5.20:2633/RPC2");
-			instance = oneResourse.createInstance(Integer.parseInt(id),client);
-			System.out.println("Instance returned: " +instance.toString());
-		}
-		
-		// working with map of parameters...
-		OneParameter oneParameter;
+		System.out.println("ClassType returned: " + resourseClassType.getName());
+
 		List classes = new ArrayList<>();
 		List values = new ArrayList<>();
-		for(Map.Entry<String, String> entries : parameters.entrySet()) {
+		
+		// Instanciate a resourse...
+		Object instance = null;
+		if (id != null) {
+			instance = oneResourse.createInstance(Integer.parseInt(id), client);
+			System.out.println("Instance returned: " + instance.toString());
+		} else {
+			if (oneResourse.equals(OneResourse.CLIENT)) {
+				instance = (Client) oneResourse.createInstance(secret, endpoint);
+				System.out.println("Instance returned: " + instance.toString());
+			}
+			if (!parameters.isEmpty()) {
+				classes.add(Client.class);
+				values.add(client);
+			}
+		}
+
+		// Working with map of parameters...
+		OneParameter oneParameter;
+		for (Map.Entry<String, String> entries : parameters.entrySet()) {
 			key = entries.getKey();
 			oneParameter = OneParameter.getValueOf(key);
 			classes.add(oneParameter.getClassType());
 			values.add(oneParameter.getValue(entries.getValue()));
 		}
-		
-		// Generate method...
-		Method method = OneGenericMethod.generate(resourseClassType, strMethod, classes);
-		System.out.println("Method returned: " +method.getName());		
 
-		// Invoke method...
-		OneResponse response = (OneResponse) OneGenericMethod.invoke(instance, method, values);
-		if (response.isError()) {
-			System.out.println("Error response returned: " +response.getErrorMessage());
-		}
-		System.out.println("Response returned: " +response.getMessage());
-		
-		
+		// Generate generic method...
+		Method method = OneGenericMethod.generate(resourseClassType, strMethod, classes);
+		System.out.println("Method returned: " + method.getName());
+
+		// Invoke generic method...
+		Object response = OneGenericMethod.invoke(instance, method, values);
+
+		OneResponse oneResponse = (OneResponse) response;
+		System.out.println("Response status returned: " + oneResponse.isError());
+		System.out.println("Response boolean message returned: " + oneResponse.getBooleanMessage());
+		System.out.println("Response int message returned: " + oneResponse.getIntMessage());
+		System.out.println("Response message returned: " + oneResponse.getMessage());
+		System.out.println("Response error message returned: " + oneResponse.getErrorMessage());
+
 	}
 
 }

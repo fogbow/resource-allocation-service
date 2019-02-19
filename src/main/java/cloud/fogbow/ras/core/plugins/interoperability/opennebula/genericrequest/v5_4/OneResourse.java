@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.opennebula.client.Client;
 import org.opennebula.client.image.Image;
@@ -19,14 +22,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			Class[] parameters = {String.class, String.class};
+			List<Class> parameters = createClientParameters();
 			return OneGenericConstructor.generate(Client.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			String[] strings = {(String) objects[0], (String) objects[1]};
-			return OneGenericInstance.instantiate(generateConstructor(), strings);
+			List<Object> args = addObjetcParameters(objects);
+			return OneGenericInstance.instantiate(generateConstructor(), args);
 		}
 	},
 	
@@ -38,14 +41,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			Class[] parameters = {int.class, Client.class};
+			List<Class> parameters = createDefaultParameters();
 			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			Object[] values = {(int) objects[0], (Client)objects[1]};
-			return OneGenericInstance.instantiate(generateConstructor(), values);
+			List<Object> args = addObjetcParameters(objects);
+			return OneGenericInstance.instantiate(generateConstructor(), args);
 		}
 	},
 	
@@ -57,14 +60,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			Class[] parameters = {int.class, Client.class};
+			List<Class> parameters = createDefaultParameters();
 			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			Object[] values = {(int) objects[0], (Client)objects[1]};
-			return OneGenericInstance.instantiate(generateConstructor(), values);
+			List<Object> args = addObjetcParameters(objects);
+			return OneGenericInstance.instantiate(generateConstructor(), args);
 		}
 	},
 	
@@ -76,14 +79,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			Class[] parameters = {int.class, Client.class};
+			List<Class> parameters = createDefaultParameters();
 			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			Object[] values = {(int) objects[0], (Client)objects[1]};
-			return OneGenericInstance.instantiate(generateConstructor(), values);
+			List<Object> args = addObjetcParameters(objects);
+			return OneGenericInstance.instantiate(generateConstructor(), args);
 		}
 	},
 	
@@ -95,14 +98,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			Class[] parameters = {int.class, Client.class};
+			List<Class> parameters = createDefaultParameters();
 			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			Object[] values = {(int) objects[0], (Client)objects[1]};
-			return OneGenericInstance.instantiate(generateConstructor(), values);
+			List<Object> args = addObjetcParameters(objects);
+			return OneGenericInstance.instantiate(generateConstructor(), args);
 		}
 	},
 	
@@ -114,14 +117,14 @@ public enum OneResourse {
 
 		@Override
 		public Constructor generateConstructor() {
-			Class[] parameters = {int.class, Client.class};
+			List<Class> parameters = createDefaultParameters();
 			return OneGenericConstructor.generate(VirtualMachine.class, parameters);
 		}
 
 		@Override
 		public Object createInstance(Object... objects) {
-			Object[] values = {(int) objects[0], (Client)objects[1]};
-			return OneGenericInstance.instantiate(generateConstructor(), values);
+			List<Object> args = addObjetcParameters(objects);
+			return OneGenericInstance.instantiate(generateConstructor(), args);
 		}
 	};
 	
@@ -149,5 +152,27 @@ public enum OneResourse {
 	public abstract Constructor generateConstructor();
 	
 	public abstract Object createInstance(Object... objects);
+	
+	protected List<Object> addObjetcParameters(Object... objects) {
+		List<Object> parameters = new ArrayList<>();
+		for (Object object : objects) {
+			parameters.add(object);
+		}
+		return parameters;
+	}
+	
+	protected List<Class> createClientParameters() {
+		List<Class> parameters = new ArrayList<>();
+		parameters.add(String.class);
+		parameters.add(String.class);
+		return parameters;
+	}
+	
+	protected List<Class> createDefaultParameters() {
+		List<Class> parameters = new ArrayList<>();
+		parameters.add(int.class);
+		parameters.add(Client.class);
+		return parameters;
+	}
 	
 }
