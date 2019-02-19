@@ -1,14 +1,16 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpGenericRequest;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +34,9 @@ public class RemoteGenericRequestHandlerTest {
     private static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
             "  <query xmlns=\"remoteGenericRequest\">\n" +
             "    <genericRequestResponse>%s</genericRequestResponse>\n" +
-            "    <genericRequestResponseClassName>cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse</genericRequestResponseClassName>\n" +
+            "    <genericRequestResponseClassName>" +
+            GenericRequestResponse.class.getName() +
+            "</genericRequestResponseClassName>\n" +
             "  </query>\n" +
             "</iq>";
 
@@ -43,7 +47,7 @@ public class RemoteGenericRequestHandlerTest {
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
     private FederationUser federationUser;
-    private GenericRequest genericRequest =  new GenericRequest("GET", "https://www.foo.bar", null, null);
+    private GenericRequest genericRequest =  new HttpGenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
     private RemoteFacade remoteFacade;
 
     @Before

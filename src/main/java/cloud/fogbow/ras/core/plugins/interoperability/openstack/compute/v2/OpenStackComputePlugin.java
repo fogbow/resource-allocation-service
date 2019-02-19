@@ -3,10 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.ComputeInstance;
@@ -14,13 +11,13 @@ import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -35,38 +32,17 @@ public class OpenStackComputePlugin implements ComputePlugin {
     public static final String SERVERS = "/servers";
     public static final String ACTION = "action";
 
-    protected static final String ID_JSON_FIELD = "id";
-    protected static final String NAME_JSON_FIELD = "name";
-    protected static final String SERVER_JSON_FIELD = "server";
-    protected static final String FLAVOR_REF_JSON_FIELD = "flavorRef";
-    protected static final String FLAVOR_JSON_FIELD = "flavor";
-    protected static final String FLAVOR_EXTRA_SPECS_JSON_FIELD = "extra_specs";
-    protected static final String FLAVOR_ID_JSON_FIELD = "id";
-    protected static final String IMAGE_JSON_FIELD = "imageRef";
-    protected static final String USER_DATA_JSON_FIELD = "user_data";
-    protected static final String NETWORK_JSON_FIELD = "networks";
-    protected static final String STATUS_JSON_FIELD = "status";
-    protected static final String DISK_JSON_FIELD = "disk";
-    protected static final String VCPU_JSON_FIELD = "vcpus";
-    protected static final String MEMORY_JSON_FIELD = "ram";
-    protected static final String SECURITY_JSON_FIELD = "security_groups";
-    protected static final String FLAVOR_JSON_OBJECT = "flavor";
-    protected static final String FLAVOR_JSON_KEY = "flavors";
-    protected static final String KEY_JSON_FIELD = "key_name";
-    protected static final String PUBLIC_KEY_JSON_FIELD = "public_key";
-    protected static final String KEYPAIR_JSON_FIELD = "keypair";
-    protected static final String UUID_JSON_FIELD = "uuid";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     protected static final String SUFFIX_FLAVOR_EXTRA_SPECS = "/os-extra_specs";
-    protected static final String ADDRESS_FIELD = "addresses";
     protected static final String PROVIDER_NETWORK_FIELD = "default";
-    protected static final String ADDR_FIELD = "addr";
+
+
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
     private LaunchCommandGenerator launchCommandGenerator;
 
     public OpenStackComputePlugin(String confFilePath) throws FatalErrorException {
@@ -79,7 +55,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
      * Constructor used for testing only
      */
     protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
-                                     AuditableHttpRequestClient client) {
+                                     OpenStackHttpClient client) {
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
         this.client = client;
@@ -124,11 +100,11 @@ public class OpenStackComputePlugin implements ComputePlugin {
 
     private String doRequestInstance(CloudToken openStackV3Token, String flavorId, List<String> networksId,
                                      String imageId, String instanceName, String userData, String keyName, String endpoint)
-            throws UnavailableProviderException, HttpResponseException {
+            throws FogbowException, HttpResponseException {
         CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networksId);
 
         String body = createBody.toJson();
-        String response = this.client.doPostRequest(endpoint, openStackV3Token, body);
+        String response = this.client.doPostRequest(endpoint, body, openStackV3Token);
         CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
 
         return createComputeResponse.getId();
@@ -179,9 +155,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new OpenStackHttpClient();
     }
 
     private String getProjectId(CloudToken token) throws InvalidParameterException {
@@ -224,7 +198,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
 
             String body = request.toJson();
             try {
-                this.client.doPostRequest(osKeypairEndpoint, openStackV3Token, body);
+                this.client.doPostRequest(osKeypairEndpoint, body, openStackV3Token);
             } catch (HttpResponseException e) {
                 OpenStackHttpToFogbowExceptionMapper.map(e);
             }

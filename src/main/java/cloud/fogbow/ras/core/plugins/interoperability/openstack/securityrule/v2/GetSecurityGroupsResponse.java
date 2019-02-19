@@ -12,7 +12,7 @@ import java.util.List;
  * {
  *     "security_groups": [
  *         {
- *             "id": "85cc3048-abc3-43cc-89b3-377341426ac5",
+ *             "id": "85cc3048-abc3-43cc-89b3-377341426ac5"
  *         }
  *     ]
  * }

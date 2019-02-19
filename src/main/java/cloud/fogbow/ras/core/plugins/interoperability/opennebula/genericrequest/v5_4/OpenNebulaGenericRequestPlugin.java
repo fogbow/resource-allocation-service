@@ -1,30 +1,26 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import org.opennebula.client.Client;
-import org.opennebula.client.OneResponse;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<CloudToken> {
+import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+
+public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<CloudToken, OpenNebulaGenericRequest> {
 	private OpenNebulaClientFactory factory;
 
-	public OpenNebulaGenericRequestPlugin(String confFilePath) {
-		this.factory = new OpenNebulaClientFactory(confFilePath);
-	}
-
 	@Override
-	public GenericRequestResponse redirectGenericRequest(GenericRequest genericRequest, CloudToken token)
+	public GenericRequestResponse redirectGenericRequest(OpenNebulaGenericRequest genericRequest, CloudToken token)
 			throws FogbowException {
         OpenNebulaGenericRequest request = (OpenNebulaGenericRequest) genericRequest;
 

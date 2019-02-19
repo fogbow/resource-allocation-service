@@ -66,7 +66,7 @@ public class InteroperabilityPluginInstantiator {
 
     public GenericRequestPlugin getGenericRequestPlugin() {
         String className = this.properties.getProperty(ConfigurationPropertyKeys.GENERIC_PLUGIN_CLASS_KEY);
-        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
+        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public SecurityRulePlugin getSecurityRulePlugin() {

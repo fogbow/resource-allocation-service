@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent;
 
+import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -23,7 +25,7 @@ import cloud.fogbow.ras.core.models.quotas.Quota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpGenericRequest;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +56,6 @@ public class RemoteFacadeTest extends BaseUnitTests {
     private static final String FAKE_REQUESTING_MEMBER_ID = "fake-requesting-member-id";
     private static final String FAKE_URL = "https://www.foo.bar";
 	private static final String ID_KEY = "id";
-	private static final String GET_METHOD = "GET";
 	private static final String FAKE_RULE_ID = "fake-rule-id";
 
 	private RemoteFacade facade;
@@ -261,11 +262,11 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		FederationUser federationUser = createFederationUser();
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
-		String method = GET_METHOD;
+		HttpMethod method = HttpMethod.GET;
 		String url = FAKE_URL;
-		Map<String, String> headers = new HashMap<>();
-		Map<String, String> body = new HashMap<>();
-		GenericRequest genericRequest = new GenericRequest(method, url, headers, body);
+		HashMap<String, String> headers = new HashMap<>();
+		HashMap<String, String> body = new HashMap<>();
+		GenericRequest genericRequest = new HttpGenericRequest(method, url, body, headers);
 
 		String responseContent = FAKE_CONTENT;
 		GenericRequestResponse expectedResponse = new GenericRequestResponse(responseContent);

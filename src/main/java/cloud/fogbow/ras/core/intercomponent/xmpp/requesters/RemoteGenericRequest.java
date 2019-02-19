@@ -3,12 +3,12 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
@@ -64,8 +64,11 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(GsonHolder.getInstance().toJson(federationUser));
 
-        Element securityRuleElement = queryElement.addElement(IqElement.GENERIC_REQUEST.toString());
-        securityRuleElement.setText(GsonHolder.getInstance().toJson(genericRequest));
+        Element genericRequestElement = queryElement.addElement(IqElement.GENERIC_REQUEST.toString());
+        genericRequestElement.setText(GsonHolder.getInstance().toJson(genericRequest));
+
+        Element genericRequestClassNameElement = queryElement.addElement(IqElement.GENERIC_REQUEST_CLASS_NAME.toString());
+        genericRequestClassNameElement.setText(genericRequest.getClass().getName());
         return iq;
     }
 }

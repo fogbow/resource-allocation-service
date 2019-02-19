@@ -26,6 +26,7 @@ public enum IqElement {
     SECURITY_RULE_LIST_CLASS_NAME("imagesMapClassName"),
     SECURITY_RULE("securityRule"),
     GENERIC_REQUEST("genericRequest"),
+    GENERIC_REQUEST_CLASS_NAME("genericRequestClassName"),
     GENERIC_REQUEST_RESPONSE("genericRequestResponse"),
     GENERIC_REQUEST_RESPONSE_CLASS_NAME("genericRequestResponseClassName");
 

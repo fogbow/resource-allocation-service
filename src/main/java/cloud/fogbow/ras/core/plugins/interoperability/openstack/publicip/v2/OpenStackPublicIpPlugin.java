@@ -4,21 +4,18 @@ import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.*;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -53,7 +50,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
 
     private Properties properties;
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
 
     public OpenStackPublicIpPlugin(String confFilePath) {
         this(confFilePath, true);
@@ -90,7 +87,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
             String responsePostFloatingIp = null;
             try {
                 String floatingIpEndpoint = getFloatingIpEndpoint();
-                responsePostFloatingIp = this.client.doPostRequest(floatingIpEndpoint, openStackV3Token, body);
+                responsePostFloatingIp = this.client.doPostRequest(floatingIpEndpoint, body, openStackV3Token);
             } catch (HttpResponseException e) {
                 OpenStackHttpToFogbowExceptionMapper.map(e);
             }
@@ -200,7 +197,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
         try {
             String computeEndpoint = getComputeEndpoint(openStackV3Token.getProjectId());
             computeEndpoint = String.format("%s/%s/%s", computeEndpoint, computeInstanceId, ACTION);
-            this.client.doPostRequest(computeEndpoint, openStackV3Token, request.toJson());
+            this.client.doPostRequest(computeEndpoint, request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -215,7 +212,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
         try {
             String computeEndpoint = getComputeEndpoint(openStackV3Token.getProjectId());
             computeEndpoint = String.format("%s/%s/%s", computeEndpoint, computeInstanceId, ACTION);
-            this.client.doPostRequest(computeEndpoint, openStackV3Token, request.toJson());
+            this.client.doPostRequest(computeEndpoint, request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -229,7 +226,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
                 .build();
 
         try {
-            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), openStackV3Token, ipv4Request.toJson());
+            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), ipv4Request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -241,7 +238,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
                 .build();
 
         try {
-            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), openStackV3Token, ipv6Request.toJson());
+            this.client.doPostRequest(getSecurityGroupRulesApiEndpoint(), ipv6Request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -256,7 +253,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
 
         String response = null;
         try {
-            response = this.client.doPostRequest(getSecurityGroupsApiEndpoint(), openStackV3Token, request.toJson());
+            response = this.client.doPostRequest(getSecurityGroupsApiEndpoint(), request.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -374,12 +371,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new OpenStackHttpClient();
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 

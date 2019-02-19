@@ -5,11 +5,10 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -35,7 +34,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.Ge
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.TEMPLATE_FILTER_KEY;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class})
+@PrepareForTest({CloudStackUrlUtil.class})
 public class CloudStackImagePluginTest {
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
@@ -55,21 +54,18 @@ public class CloudStackImagePluginTest {
     public static final long FAKE_SIZE = 1000L;
 
     private CloudStackImagePlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     @Before
     public void setUp() {
-        // we dont want HttpRequestUtil code to be executed in this test
-        PowerMockito.mockStatic(HttpRequestUtil.class);
-
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
         this.plugin = new CloudStackImagePlugin(cloudStackConfFilePath);
 
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
     }
 

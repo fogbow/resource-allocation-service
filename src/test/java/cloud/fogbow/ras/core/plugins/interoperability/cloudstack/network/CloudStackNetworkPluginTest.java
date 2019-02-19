@@ -1,21 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -37,7 +35,7 @@ import java.util.Properties;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class})
+@PrepareForTest({CloudStackUrlUtil.class})
 public class CloudStackNetworkPluginTest {
 
     public static final String FAKE_ID = "fake-id";
@@ -49,9 +47,7 @@ public class CloudStackNetworkPluginTest {
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final String FAKE_SIGNATURE = "fake-signature";
 
     public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
@@ -74,7 +70,7 @@ public class CloudStackNetworkPluginTest {
     private String fakeZoneId;
 
     private CloudStackNetworkPlugin plugin;
-    private AuditableHttpRequestClient client;
+    private CloudStackHttpClient client;
     private Properties properties;
 
     @Before
@@ -85,13 +81,8 @@ public class CloudStackNetworkPluginTest {
 
         this.fakeOfferingId = this.properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID);
         this.fakeZoneId = this.properties.getProperty(CloudStackNetworkPlugin.ZONE_ID);
-
-        // we dont want HttpRequestUtil code to be executed in this test
-        PowerMockito.mockStatic(HttpRequestUtil.class);
-
         this.plugin = new CloudStackNetworkPlugin(cloudStackConfFilePath);
-
-        this.client = Mockito.mock(AuditableHttpRequestClient.class);
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
     }
 

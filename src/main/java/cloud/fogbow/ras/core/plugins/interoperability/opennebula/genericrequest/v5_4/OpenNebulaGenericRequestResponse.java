@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
+
+import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 
 public class OpenNebulaGenericRequestResponse extends GenericRequestResponse {
    private String message;

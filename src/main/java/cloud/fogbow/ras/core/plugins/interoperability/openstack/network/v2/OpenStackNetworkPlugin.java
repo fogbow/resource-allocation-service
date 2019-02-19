@@ -1,22 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.instances.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.util.connectivity.AuditableHttpRequestClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -39,21 +37,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
     protected static final String V2_API_ENDPOINT = "/v2.0";
     protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
     public static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
-    protected static final String QUERY_NAME = "name";
     protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
-    protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
-    protected static final String KEY_IP_VERSION = "ip_version";
-    protected static final String KEY_GATEWAY_IP = "gateway_ip";
-    protected static final String KEY_PROJECT_ID = "project_id";
-    protected static final String KEY_JSON_NETWORK = "network";
-    protected static final String KEY_NETWORK_ID = "network_id";
-    protected static final String KEY_JSON_SUBNET = "subnet";
-    protected static final String KEY_SUBNETS = "subnets";
-    protected static final String KEY_SECURITY_GROUPS = "security_groups";
-    protected static final String KEY_STATUS = "status";
-    protected static final String KEY_NAME = "name";
-    protected static final String KEY_CIDR = "cidr";
-    protected static final String KEY_ID = "id";
+    protected static final String QUERY_NAME = "name";
     protected static final int DEFAULT_IP_VERSION = 4;
     protected static final String DEFAULT_NETWORK_NAME = "ras-network";
     protected static final String DEFAULT_SUBNET_NAME = "ras-subnet";
@@ -67,7 +52,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
 
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pn-";
 
-    private AuditableHttpRequestClient client;
+    private OpenStackHttpClient client;
     private String networkV2APIEndpoint;
     private String[] dnsList;
 
@@ -147,7 +132,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-            String response = this.client.doPostRequest(endpoint, openStackV3Token, createNetworkRequest.toJson());
+            String response = this.client.doPostRequest(endpoint, createNetworkRequest.toJson(), openStackV3Token);
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
@@ -165,7 +150,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
         try {
             String jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
-            this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
             OpenStackHttpToFogbowExceptionMapper.map(e);
@@ -184,7 +169,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP;
             String jsonRequest = createSecurityGroupRequest.toJson();
-            String response = this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
+            String response = this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
             creationResponse = CreateSecurityGroupResponse.fromJson(response);
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
@@ -220,9 +205,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
             CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getCidr(), securityGroupId);
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-            this.client.doPostRequest(endpoint, openStackV3Token, allTcp.toJson());
-            this.client.doPostRequest(endpoint, openStackV3Token, allUdp.toJson());
-            this.client.doPostRequest(endpoint, openStackV3Token, icmpRuleRequest.toJson());
+            this.client.doPostRequest(endpoint, allTcp.toJson(), openStackV3Token);
+            this.client.doPostRequest(endpoint, allUdp.toJson(), openStackV3Token);
+            this.client.doPostRequest(endpoint, icmpRuleRequest.toJson(), openStackV3Token);
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
             removeSecurityGroup(openStackV3Token, securityGroupId);
@@ -238,9 +223,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
         String securityGroupId = null;
         try {
             JSONObject response = new JSONObject(json);
-            JSONArray securityGroupJSONArray = response.getJSONArray(KEY_SECURITY_GROUPS);
+            JSONArray securityGroupJSONArray = response.getJSONArray(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON);
             JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
-            securityGroupId = securityGroup.getString(KEY_ID);
+            securityGroupId = securityGroup.getString(OpenStackConstants.Network.ID_KEY_JSON);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message, e);
@@ -326,8 +311,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
         String networkId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
-            JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
-            networkId = networkJSONObject.optString(KEY_ID);
+            JSONObject networkJSONObject = rootServer.optJSONObject(OpenStackConstants.Network.NETWORK_KEY_JSON);
+            networkId = networkJSONObject.optString(OpenStackConstants.Network.ID_KEY_JSON);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message, e);
@@ -376,12 +361,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin {
     }
 
     private void initClient() {
-        this.client = new AuditableHttpRequestClient(
-                new Integer(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.HTTP_REQUEST_TIMEOUT_KEY,
-                        ConfigurationPropertyDefaults.XMPP_TIMEOUT)));
+        this.client = new OpenStackHttpClient();
     }
 
-    protected void setClient(AuditableHttpRequestClient client) {
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 
