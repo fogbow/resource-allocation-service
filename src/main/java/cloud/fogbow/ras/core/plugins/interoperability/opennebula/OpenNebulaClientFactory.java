@@ -33,11 +33,13 @@ public class OpenNebulaClientFactory {
 
     private String endpoint;
 
+    @Deprecated
 	public OpenNebulaClientFactory(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
 	}
 
+    @Deprecated
 	public Client createClient(String federationTokenValue) throws UnexpectedException {
 		try {
 			return new Client(federationTokenValue, this.endpoint);
@@ -47,6 +49,7 @@ public class OpenNebulaClientFactory {
 		}
 	}
 
+    @Deprecated
     public Group createGroup(Client client, int groupId) throws UnauthorizedRequestException, UnexpectedException {
 		GroupPool groupPool = (GroupPool) generateOnePool(client, GroupPool.class);
     	OneResponse response = groupPool.info();
@@ -62,6 +65,7 @@ public class OpenNebulaClientFactory {
 		return group;
     }
 
+    @Deprecated
 	public ImagePool createImagePool(Client client) throws UnexpectedException {
         ImagePool imagePool = (ImagePool) generateOnePool(client, ImagePool.class);
 		OneResponse response = imagePool.infoAll();
@@ -73,6 +77,7 @@ public class OpenNebulaClientFactory {
 		return imagePool;
 	}
 
+    @Deprecated
 	public VirtualMachine createVirtualMachine(Client client, String virtualMachineId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -95,6 +100,7 @@ public class OpenNebulaClientFactory {
 		return virtualMachine;
 	}
 
+    @Deprecated
 	public VirtualNetwork createVirtualNetwork(Client client, String virtualNetworkId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -113,6 +119,7 @@ public class OpenNebulaClientFactory {
 		return virtualNetwork;
 	}
 
+    @Deprecated
 	public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
 		TemplatePool templatePool = (TemplatePool) generateOnePool(client, TemplatePool.class);
 		OneResponse response = templatePool.infoAll();
@@ -124,6 +131,7 @@ public class OpenNebulaClientFactory {
 		return templatePool;
 	}
 
+    @Deprecated
 	public UserPool createUserPool(Client client) throws UnexpectedException {
 		UserPool userpool = (UserPool) generateOnePool(client, UserPool.class);
  		OneResponse response = userpool.info();
@@ -135,6 +143,7 @@ public class OpenNebulaClientFactory {
 		return userpool;
 	}
 
+    @Deprecated
     public User getUser(UserPool userPool, String userName) throws UnauthorizedRequestException, UnexpectedException {
  		User user = findUserByName(userPool, userName);
  		OneResponse response = user.info();
@@ -145,6 +154,7 @@ public class OpenNebulaClientFactory {
  		return user;
     }   
     
+    @Deprecated
     public SecurityGroup createSecurityGroup(Client client, String securityGroupId)
     			throws UnauthorizedRequestException, InvalidParameterException, InstanceNotFoundException {
 
@@ -163,6 +173,7 @@ public class OpenNebulaClientFactory {
  		return securityGroup;
     }
 
+    @Deprecated
 	public String allocateImage(Client client, String template, Integer datastoreId) throws InvalidParameterException {
 		OneResponse response = Image.allocate(client, template, datastoreId);
 		if (response.isError()) {
@@ -175,6 +186,7 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 
+    @Deprecated
 	public String allocateSecurityGroup(Client client, String template) throws InvalidParameterException {
 		OneResponse response = SecurityGroup.allocate(client, template);
 		if (response.isError()) {
@@ -187,7 +199,7 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 
-
+    @Deprecated
 	public String allocateVirtualMachine(Client client, String template)
 			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
 		
@@ -209,6 +221,7 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 
+    @Deprecated
 	public String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
@@ -229,7 +242,6 @@ public class OpenNebulaClientFactory {
 		}
 		throw new UnauthorizedRequestException();
 	}
-
 
 	protected PoolElement generateOnePoolElement(Client client, String poolElementId, Class classType) throws InvalidParameterException {
 		int id;
