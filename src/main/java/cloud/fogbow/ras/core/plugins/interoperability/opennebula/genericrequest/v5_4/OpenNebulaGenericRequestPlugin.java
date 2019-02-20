@@ -33,6 +33,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 		Client client = this.factory.createClient(token.getTokenValue());
 		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
 		Class resourceClassType = oneResource.getClassType();
+
 		
 		List classes = new ArrayList<>();
 		List values = new ArrayList<>();
