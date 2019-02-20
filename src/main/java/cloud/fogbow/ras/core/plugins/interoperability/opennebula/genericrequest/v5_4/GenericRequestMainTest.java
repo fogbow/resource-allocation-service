@@ -10,6 +10,8 @@ import java.util.Scanner;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
+// this class is temporary for performing manual tests in the OpenNebula API,
+// and will be removed at the end of the plugin implementation.
 public class GenericRequestMainTest {
 
 	@SuppressWarnings({ "unchecked", "resource", "unused", "rawtypes" })
@@ -17,16 +19,16 @@ public class GenericRequestMainTest {
 
 		Scanner read = new Scanner(System.in);
 		
-		// Get the OneResourse (A Pool or PoolElement)...
+		// Get the OneResource (A Pool or PoolElement)...
 		System.out.print("Enter the desired resource: ");
-		String resourse = read.next();
+		String resource = read.next();
 		
-		// Get the resourse ID...
-		System.out.print("Does the requisition have a resourse ID? (y/n): ");
+		// Get the resource ID...
+		System.out.print("Does the requisition have a resource ID? (y/n): ");
 		String option = read.next();
 		String id;
 		if (option.equals("y")) {
-			System.out.print("Enter the value of the resourse ID: ");
+			System.out.print("Enter the value of the resource ID: ");
 			id = read.next();
 		} else {
 			id = null;
@@ -58,48 +60,48 @@ public class GenericRequestMainTest {
 		String endpoint = "http://10.11.5.20:2633/RPC2";
 		Client client = new Client(secret, endpoint);
 		
-		// Generate class type of resourse...
-		OneResourse oneResourse = OneResourse.getValueOf(resourse);
-		Class resourseClassType = oneResourse.getClassType();
-		System.out.println("ClassType returned: " + resourseClassType.getName());
+		OpenNebulaGenericRequest request = new OpenNebulaGenericRequest(endpoint, resource, strMethod, id, parameters);
+		
+		// Generate class type of resource...
+		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
+		Class resourceClassType = oneResource.getClassType();
+		System.out.println("ClassType returned: " + resourceClassType.getName());
 
 		List classes = new ArrayList<>();
 		List values = new ArrayList<>();
 		
-		// Instanciate a resourse...
+		// Instanciate a resource...
 		Object instance = null;
 		if (id != null) {
-			instance = oneResourse.createInstance(Integer.parseInt(id), client);
+			instance = oneResource.createInstance(Integer.parseInt(request.getResourceId()), client);
 			System.out.println("Instance returned: " + instance.toString());
 		} else {
-			if (oneResourse.equals(OneResourse.CLIENT)) {
-				instance = (Client) oneResourse.createInstance(secret, endpoint);
+			if (oneResource.equals(OneResource.CLIENT)) {
+				instance = (Client) oneResource.createInstance(secret, request.getUrl());
 				System.out.println("Instance returned: " + instance.toString());
 			}
-			if (!parameters.isEmpty()) {
+			if (!request.getParameters().isEmpty()) {
 				classes.add(Client.class);
 				values.add(client);
 			}
 		}
 
 		// Working with map of parameters...
-		OneParameter oneParameter;
-		for (Map.Entry<String, String> entries : parameters.entrySet()) {
-			key = entries.getKey();
-			oneParameter = OneParameter.getValueOf(key);
+		for (Map.Entry<String, String> entries : request.getParameters().entrySet()) {
+			OneParameter oneParameter = OneParameter.getValueOf(entries.getKey());
 			classes.add(oneParameter.getClassType());
 			values.add(oneParameter.getValue(entries.getValue()));
 		}
 
 		// Generate generic method...
-		Method method = OneGenericMethod.generate(resourseClassType, strMethod, classes);
+		Method method = OneGenericMethod.generate(resourceClassType, request.getOneMethod(), classes);
 		System.out.println("Method returned: " + method.getName());
 
 		// Invoke generic method...
 		Object response = OneGenericMethod.invoke(instance, method, values);
 
 		OneResponse oneResponse = (OneResponse) response;
-		System.out.println("Response status returned: " + oneResponse.isError());
+		System.out.println("Response error status returned: " + oneResponse.isError());
 		System.out.println("Response boolean message returned: " + oneResponse.getBooleanMessage());
 		System.out.println("Response int message returned: " + oneResponse.getIntMessage());
 		System.out.println("Response message returned: " + oneResponse.getMessage());

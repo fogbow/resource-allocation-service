@@ -12,7 +12,7 @@ import org.opennebula.client.user.User;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-public enum OneResourse {
+public enum OneResource {
 
 	CLIENT("Client") {
 		@Override
@@ -130,7 +130,7 @@ public enum OneResourse {
 	
 	private String name;
 	
-	OneResourse(String name) {
+	OneResource(String name) {
 		this.name = name;
 	}
 	
@@ -138,8 +138,8 @@ public enum OneResourse {
 		return name;
 	}
 	
-	public static OneResourse getValueOf(String arg) {
-		for (OneResourse resourse : OneResourse.values()) {
+	public static OneResource getValueOf(String arg) {
+		for (OneResource resourse : OneResource.values()) {
 			if (resourse.getName().equals(arg)) {
 				return resourse;
 			}
