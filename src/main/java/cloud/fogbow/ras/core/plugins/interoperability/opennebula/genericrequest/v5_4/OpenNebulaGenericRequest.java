@@ -5,47 +5,58 @@ import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequ
 import java.util.Map;
 
 public class OpenNebulaGenericRequest implements GenericRequest {
-    private String oneResource;
-    private String method;
+    private String url;
+	private String oneResource;
+    private String oneMethod;
     private String resourceId;
-    private Map<String, String> params;
+    private Map<String, String> parameters;
 
-    public OpenNebulaGenericRequest(String oneResource, String method, String resourceId, Map<String, String> params) {
-        this.oneResource = oneResource;
-        this.method = method;
+    public OpenNebulaGenericRequest(String url, String oneResource, String oneMethod, String resourceId, Map<String, String> parameters) {
+        this.url = url;
+    	this.oneResource = oneResource;
+        this.oneMethod = oneMethod;
         this.resourceId = resourceId;
-        this.params = params;
+        this.parameters = parameters;
     }
 
-    public String getOneResource() {
-        return oneResource;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setOneResource(String oneResource) {
-        this.oneResource = oneResource;
-    }
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
-    public String getMethod() {
-        return method;
-    }
+	public String getOneResource() {
+		return oneResource;
+	}
 
-    public void setMethod(String method) {
-        this.method = method;
-    }
+	public void setOneResource(String oneResource) {
+		this.oneResource = oneResource;
+	}
 
-    public String getResourceId() {
-        return resourceId;
-    }
+	public String getOneMethod() {
+		return oneMethod;
+	}
 
-    public void setResourceId(String resourceId) {
-        this.resourceId = resourceId;
-    }
+	public void setOneMethod(String oneMethod) {
+		this.oneMethod = oneMethod;
+	}
 
-    public Map<String, String> getParams() {
-        return params;
-    }
+	public String getResourceId() {
+		return resourceId;
+	}
 
-    public void setParams(Map<String, String> params) {
-        this.params = params;
-    }
+	public void setResourceId(String resourceId) {
+		this.resourceId = resourceId;
+	}
+
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(Map<String, String> parameters) {
+		this.parameters = parameters;
+	}
+
 }
