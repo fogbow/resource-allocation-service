@@ -10,6 +10,8 @@ import java.util.Scanner;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
+// this class is temporary for performing manual tests in the OpenNebula API,
+// and will be removed at the end of the plugin implementation.
 public class GenericRequestMainTest {
 
 	@SuppressWarnings({ "unchecked", "resource", "unused", "rawtypes" })
@@ -58,8 +60,10 @@ public class GenericRequestMainTest {
 		String endpoint = "http://10.11.5.20:2633/RPC2";
 		Client client = new Client(secret, endpoint);
 		
+		OpenNebulaGenericRequest request = new OpenNebulaGenericRequest(endpoint, resourse, strMethod, id, parameters);
+		
 		// Generate class type of resourse...
-		OneResourse oneResourse = OneResourse.getValueOf(resourse);
+		OneResourse oneResourse = OneResourse.getValueOf(request.getOneResource());
 		Class resourseClassType = oneResourse.getClassType();
 		System.out.println("ClassType returned: " + resourseClassType.getName());
 
@@ -69,37 +73,35 @@ public class GenericRequestMainTest {
 		// Instanciate a resourse...
 		Object instance = null;
 		if (id != null) {
-			instance = oneResourse.createInstance(Integer.parseInt(id), client);
+			instance = oneResourse.createInstance(Integer.parseInt(request.getResourceId()), client);
 			System.out.println("Instance returned: " + instance.toString());
 		} else {
 			if (oneResourse.equals(OneResourse.CLIENT)) {
-				instance = (Client) oneResourse.createInstance(secret, endpoint);
+				instance = (Client) oneResourse.createInstance(secret, request.getUrl());
 				System.out.println("Instance returned: " + instance.toString());
 			}
-			if (!parameters.isEmpty()) {
+			if (!request.getParameters().isEmpty()) {
 				classes.add(Client.class);
 				values.add(client);
 			}
 		}
 
 		// Working with map of parameters...
-		OneParameter oneParameter;
-		for (Map.Entry<String, String> entries : parameters.entrySet()) {
-			key = entries.getKey();
-			oneParameter = OneParameter.getValueOf(key);
+		for (Map.Entry<String, String> entries : request.getParameters().entrySet()) {
+			OneParameter oneParameter = OneParameter.getValueOf(entries.getKey());
 			classes.add(oneParameter.getClassType());
 			values.add(oneParameter.getValue(entries.getValue()));
 		}
 
 		// Generate generic method...
-		Method method = OneGenericMethod.generate(resourseClassType, strMethod, classes);
+		Method method = OneGenericMethod.generate(resourseClassType, request.getOneMethod(), classes);
 		System.out.println("Method returned: " + method.getName());
 
 		// Invoke generic method...
 		Object response = OneGenericMethod.invoke(instance, method, values);
 
 		OneResponse oneResponse = (OneResponse) response;
-		System.out.println("Response status returned: " + oneResponse.isError());
+		System.out.println("Response error status returned: " + oneResponse.isError());
 		System.out.println("Response boolean message returned: " + oneResponse.getBooleanMessage());
 		System.out.println("Response int message returned: " + oneResponse.getIntMessage());
 		System.out.println("Response message returned: " + oneResponse.getMessage());
