@@ -5,16 +5,24 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+
+import java.io.File;
+import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -22,35 +30,48 @@ import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.vm.VirtualMachine;
 
-public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
+public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 	
+	private static final String CLOUD_NAME = "opennebula";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
     private static final String INSTANCE_ID= "%s %s %s";
 	private static final String SEPARATOR_ID = " ";
+	
+	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
+	@Deprecated
     private OpenNebulaClientFactory factory;
+    private String endpoint;
+    
+	public OpenNebulaAttachmentPlugin() {
+		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
+		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+	}
 
+	@Deprecated
     public OpenNebulaAttachmentPlugin(String confFilePath) {
         this.factory = new OpenNebulaClientFactory(confFilePath);
     }
 
 	@Override
-	public String requestInstance(AttachmentOrder attachmentOrder, CloudToken localUserAttributes) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes));
+	public String requestInstance(AttachmentOrder attachmentOrder, CloudToken cloudToken) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken));
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudToken.getTokenValue());
 		String virtualMachineId = attachmentOrder.getComputeId();
 		String imageId = attachmentOrder.getVolumeId();
 
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-		
 		CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
 				.imageId(imageId)
 				.build();
 		
 		String template = request.getAttachDisk().marshalTemplate();
-		VirtualMachine virtualMachine = attachVolumeImageDisk(client, virtualMachineId, imageId, template);
 		
+		VirtualMachine virtualMachine = attachVolumeImageDisk(client, virtualMachineId, imageId, template);
 		String diskId = getDiskIdFromContenOf(virtualMachine);
 		String instanceId = String.format(INSTANCE_ID, virtualMachineId, imageId, diskId);
 
@@ -58,14 +79,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
 	}
 
 	@Override
-	public void deleteInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException {
-		
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, localUserAttributes));
+	public void deleteInstance(String attachmentInstanceId, CloudToken cloudToken) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, cloudToken));
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudToken.getTokenValue());
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		int virtualMachineId = Integer.parseInt(instanceIds[0]);
 		int diskId = Integer.parseInt(instanceIds[2]);
-
-		Client client = factory.createClient(localUserAttributes.getTokenValue());
+		
 		OneResponse response = VirtualMachine.diskDetach(client, virtualMachineId, diskId);
 		if (response.isError()) {
 			String message = response.getErrorMessage(); 
@@ -75,15 +95,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
 	}
 
 	@Override
-	public AttachmentInstance getInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException {
-		
+	public AttachmentInstance getInstance(String attachmentInstanceId, CloudToken cloudToken) throws FogbowException {
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudToken.getTokenValue());
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		String virtualMachineId = instanceIds[0];
 		String imageId = instanceIds[1];
 
-		Client client = factory.createClient(localUserAttributes.getTokenValue());
-
-		ImagePool imagePool = this.factory.createImagePool(client);
+		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(imageId));
 		String imageDevice = image.xpath(DEFAULT_DEVICE_PREFIX);
 		String imageState = image.stateString();
@@ -110,7 +128,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
 	private VirtualMachine attachVolumeImageDisk(Client client, String virtualMachineId, String imageId, String template) 
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		
-		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, virtualMachineId);
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
 		OneResponse response = virtualMachine.diskAttach(template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
@@ -121,7 +139,18 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
 		return virtualMachine;
 	}
     
+	@Deprecated
 	public void setFactory(OpenNebulaClientFactory factory) {
 		this.factory = factory;		
 	}
+	
+	protected String getEndpoint() {
+		return endpoint;
+	}
+
+	protected void setEndpoint(String endpoint) {
+		this.endpoint = endpoint;
+	}
+	
+	
 }
