@@ -140,12 +140,6 @@ public class AuditableHttpRequestClient extends HttpRequestClientUtil {
 //        }
 //    }
 
-    private void auditRequest(String endpoint, String userId, String tokenProviderId, int responseCode) {
-        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-        AuditableRequest auditableRequest = new AuditableRequest(currentTimestamp, endpoint, userId, tokenProviderId, responseCode);
-        DatabaseManager.getInstance().auditRequest(auditableRequest);
-    }
-
     private void addHeadersIntoConnection(HttpURLConnection connection, Map<String, String> headers) {
         for (String key : headers.keySet()) {
             connection.setRequestProperty(key, headers.get(key));

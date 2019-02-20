@@ -2,10 +2,12 @@ package cloud.fogbow.ras.core.models.quotas;
 
 import cloud.fogbow.ras.core.models.quotas.allocation.Allocation;
 
-public interface Quota {
-    public Allocation getTotalQuota();
+public abstract class Quota {
+    public abstract Allocation getTotalQuota();
 
-    public Allocation getUsedQuota();
+    public abstract Allocation getUsedQuota();
 
-    public Allocation getAvailableQuota();
+    public abstract Allocation getAvailableQuota();
+
+    public abstract String toString();
 }
