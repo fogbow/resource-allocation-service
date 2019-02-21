@@ -1,5 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
+import java.io.File;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
+import org.opennebula.client.image.Image;
+import org.opennebula.client.image.ImagePool;
+import org.opennebula.client.vm.VirtualMachine;
+
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -14,21 +24,10 @@ import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
-
-import java.io.File;
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-import org.opennebula.client.Client;
-import org.opennebula.client.OneResponse;
-import org.opennebula.client.image.Image;
-import org.opennebula.client.image.ImagePool;
-import org.opennebula.client.vm.VirtualMachine;
 
 public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> {
 
@@ -41,27 +40,10 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> 
 	
 	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
-	@Deprecated
-    private OpenNebulaClientFactory factory;
-    private String endpoint;
-    
-	public OpenNebulaAttachmentPlugin() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
-	}
-
-	@Deprecated
-    public OpenNebulaAttachmentPlugin(String confFilePath) {
-        this.factory = new OpenNebulaClientFactory(confFilePath);
-    }
-
 	@Override
 	public String requestInstance(AttachmentOrder attachmentOrder, CloudToken cloudToken) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken));
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudToken.getTokenValue());
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
 		String virtualMachineId = attachmentOrder.getComputeId();
 		String imageId = attachmentOrder.getVolumeId();
 
@@ -81,7 +63,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> 
 	@Override
 	public void deleteInstance(String attachmentInstanceId, CloudToken cloudToken) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, cloudToken));
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudToken.getTokenValue());
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		int virtualMachineId = Integer.parseInt(instanceIds[0]);
 		int diskId = Integer.parseInt(instanceIds[2]);
@@ -96,7 +78,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> 
 
 	@Override
 	public AttachmentInstance getInstance(String attachmentInstanceId, CloudToken cloudToken) throws FogbowException {
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudToken.getTokenValue());
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		String virtualMachineId = instanceIds[0];
 		String imageId = instanceIds[1];
@@ -138,19 +120,18 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> 
 		}
 		return virtualMachine;
 	}
-    
-	@Deprecated
-	public void setFactory(OpenNebulaClientFactory factory) {
-		this.factory = factory;		
-	}
 	
 	protected String getEndpoint() {
+		String opennebulaConfFilePath = HomeDir.getPath() 
+				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator 
+				+ CLOUD_NAME 
+				+ File.separator 
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
+		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 
-	protected void setEndpoint(String endpoint) {
-		this.endpoint = endpoint;
-	}
-	
-	
 }

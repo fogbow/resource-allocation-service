@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -22,21 +21,19 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, VirtualMachine.class})
 public class OpenNebulaAttachmentPluginTest {
 
-	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String VIRTUAL_MACHINE_CONTENT = "<DISK_ID>1</DISK_ID>";
+	private static final String FAKE_IMAGE_DEVICE = "fake-image-device";
+	private static final String FAKE_INSTANCE_ID = "1 1 1";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
-	private static final String CLOUD_NAME = "opennebula";
+	private static final String IMAGE_STATE_READY = "READY";
+	private static final String LOCAL_TOKEN_VALUE = "user:password";
+	private static final String VIRTUAL_MACHINE_CONTENT = "<DISK_ID>1</DISK_ID>";
 
-	@Deprecated
-	private OpenNebulaClientFactory factory;
 	private OpenNebulaAttachmentPlugin plugin;
 
 	@Before
@@ -51,15 +48,15 @@ public class OpenNebulaAttachmentPluginTest {
 		// set up
 		AttachmentOrder attachmentOrder = createAttachmentOrder();
 		CloudToken token = createCloudToken();
-		
+
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(token.getTokenValue()))).willThrow(new UnexpectedException());
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(token.getTokenValue())))
+				.willThrow(new UnexpectedException());
 
 		// exercise
 		this.plugin.requestInstance(attachmentOrder, token);
 	}
 	
-	@Ignore
 	// test case: When invoking the requestInstance method, with the valid client
 	// and template, a virtual machine will be instantiated to attach a volume image
 	// disk, returning the attached disk ID in conjunction with the other IDs of
@@ -67,162 +64,152 @@ public class OpenNebulaAttachmentPluginTest {
 	@Test
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		AttachmentOrder attachmentOrder = createAttachmentOrder();
-		String template = generateAttachmentTemplate();
-
-		String virtualMachineId = "1";
-		OneResponse response = Mockito.mock(OneResponse.class);
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, virtualMachineId);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString())).willReturn(virtualMachine);
+		
+		String template = generateAttachmentTemplate();
+		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(virtualMachine.diskAttach(Mockito.contains(template))).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
 		Mockito.when(virtualMachine.info()).thenReturn(response);
 		Mockito.when(response.getMessage()).thenReturn(VIRTUAL_MACHINE_CONTENT);
 
+		CloudToken token = createCloudToken();
+		AttachmentOrder attachmentOrder = createAttachmentOrder();
+		
 		// exercise
 		this.plugin.requestInstance(attachmentOrder, token);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.eq(client),
-				Mockito.eq(virtualMachineId));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
+		
 		Mockito.verify(virtualMachine, Mockito.times(1)).diskAttach(Mockito.eq(template));
 		Mockito.verify(virtualMachine, Mockito.times(1)).info();
 		Mockito.verify(response, Mockito.times(1)).getMessage();
 	}
 	
-	@Ignore
 	// test case: When calling the requestInstance method, with the fake instance ID
 	// or an invalid token, an error will occur and an InvalidParameterException
 	// will be thrown.
 	@Test(expected = InvalidParameterException.class)
 	public void testRequestInstanceUnsuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		AttachmentOrder attachmentOrder = createAttachmentOrder();
-		String template = generateAttachmentTemplate();
-
-		String virtualMachineId = "1";
-		OneResponse response = Mockito.mock(OneResponse.class);
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, virtualMachineId);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.willReturn(virtualMachine);
+
+		String template = generateAttachmentTemplate();
+		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(virtualMachine.diskAttach(Mockito.contains(template))).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
+
+		CloudToken token = createCloudToken();
+		AttachmentOrder attachmentOrder = createAttachmentOrder();
 
 		// exercise
 		this.plugin.requestInstance(attachmentOrder, token);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.eq(client),
-				Mockito.eq(virtualMachineId));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
+
 		Mockito.verify(virtualMachine, Mockito.times(1)).diskAttach(Mockito.eq(template));
 	}
 
-	@Ignore
 	// test case: When calling the deleteInstance method, with the instance ID and a
 	// valid token, the volume image disk associated with a virtual machine will be
 	// detached.
 	@Test
 	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		String attachmentInstanceId = "1 1 1";
 		int virtualMachineId, diskId;
 		virtualMachineId = diskId = 1;
-
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
 		BDDMockito
-				.given(VirtualMachine.diskDetach(Mockito.eq(client), Mockito.eq(virtualMachineId), Mockito.eq(diskId)))
+				.given(VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), Mockito.eq(diskId)))
 				.willReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
+		CloudToken token = createCloudToken();
+		String attachmentInstanceId = FAKE_INSTANCE_ID;
+		
 		// exercise
 		this.plugin.deleteInstance(attachmentInstanceId, token);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		PowerMockito.verifyStatic(VirtualMachine.class, VerificationModeFactory.times(1));
-		VirtualMachine.diskDetach(Mockito.eq(client), Mockito.eq(virtualMachineId), Mockito.eq(diskId));
+		VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), Mockito.eq(diskId));
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
-	@Ignore
 	// test case: When calling the deleteInstance method, with the fake instance ID
 	// or an invalid token, an error will occur and an InvalidParameterException
 	// will be thrown.
 	@Test
 	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		String attachmentInstanceId = "1 1 1";
 		int virtualMachineId, diskId;
 		virtualMachineId = diskId = 1;
-
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		BDDMockito.given(VirtualMachine.diskDetach(Mockito.eq(client), Mockito.eq(virtualMachineId), 
+		BDDMockito.given(VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), 
 				Mockito.eq(diskId))).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
+		CloudToken token = createCloudToken();
+		String attachmentInstanceId = FAKE_INSTANCE_ID;
+		
 		// exercise
 		this.plugin.deleteInstance(attachmentInstanceId, token);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		PowerMockito.verifyStatic(VirtualMachine.class, VerificationModeFactory.times(1));
-		VirtualMachine.diskDetach(Mockito.eq(client), Mockito.eq(virtualMachineId), Mockito.eq(diskId));
+		VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), Mockito.eq(diskId));
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
-	@Ignore
 	// test case: When calling the getInstance method, with the instance ID and a
 	// valid token, a set of images will be loaded and the specific instance of the
 	// image must be loaded.
 	@Test
 	public void testGetInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		String attachmentInstanceId = "1 1";
-		String imageDevice = "fake-image-device";
-		int diskId = 1;
-
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Mockito.doReturn(imagePool).when(this.factory).createImagePool(client);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
+		
+		int diskId = 1;
 		Image image = Mockito.mock(Image.class);
 		Mockito.when(imagePool.getById(diskId)).thenReturn(image);
+		
+		String imageDevice = FAKE_IMAGE_DEVICE;
 		Mockito.when(image.xpath(DEFAULT_DEVICE_PREFIX)).thenReturn(imageDevice);
-		Mockito.when(image.stateString()).thenReturn(""); // FIXME ...
+		Mockito.when(image.stateString()).thenReturn(IMAGE_STATE_READY);
 
+		CloudToken token = createCloudToken();
+		String attachmentInstanceId = "1 1";
+		
 		// exercise
 		this.plugin.getInstance(attachmentInstanceId, token);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
+		
 		Mockito.verify(imagePool, Mockito.times(1)).getById(Mockito.eq(diskId));
 		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.eq(DEFAULT_DEVICE_PREFIX));
 		Mockito.verify(image, Mockito.times(1)).stateString();
@@ -264,8 +251,6 @@ public class OpenNebulaAttachmentPluginTest {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
-		String userName = FAKE_USER_NAME;
-		String signature = null;
 		
 		CloudToken token = new CloudToken(
 				provider,
@@ -274,4 +259,5 @@ public class OpenNebulaAttachmentPluginTest {
 		
 		return token;
 	}
+	
 }
