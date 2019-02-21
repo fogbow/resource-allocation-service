@@ -284,7 +284,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		// verify
 		String operation = Operation.GENERIC_REQUEST.getValue();
-		String resourceType = ResourceType.GENERIC_REQUEST.getValue();
+		String resourceType = ResourceType.GENERIC_RESOURCE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
@@ -316,7 +316,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.getImage(FAKE_REQUESTING_MEMBER_ID, cloudName, imageId, federationUser);
 
 		// verify
-		String operation = Operation.GET_IMAGE.getValue();
+		String operation = Operation.GET.getValue();
 		String resourceType = ResourceType.IMAGE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
@@ -345,7 +345,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.getAllImages(FAKE_REQUESTING_MEMBER_ID, cloudName, federationUser);
 
 		// verify
-		String operation = Operation.GET_ALL_IMAGES.getValue();
+		String operation = Operation.GET_ALL.getValue();
 		String resourceType = ResourceType.IMAGE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
@@ -372,7 +372,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.getCloudNames(FAKE_REQUESTING_MEMBER_ID, federationUser);
 
 		// verify
-		String operation = Operation.GET_CLOUD_NAMES.getValue();
+		String operation = Operation.GET.getValue();
 		String resourceType = ResourceType.CLOUD_NAMES.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));

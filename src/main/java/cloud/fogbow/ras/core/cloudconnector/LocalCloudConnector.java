@@ -192,7 +192,7 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.CREATE, ResourceType.GENERIC_REQUEST, token, auditableResponse);
+            auditRequest(Operation.CREATE, ResourceType.GENERIC_RESOURCE, token, auditableResponse);
         }
 
         return genericRequestResponse;
