@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.models;
 
+// TODO refactor GET_USER_QUOTA operation, so that this operation returns all quota and not only compute quota
 public enum Operation {
     CREATE("create"),
     GET_ALL("getAll"),
@@ -7,14 +8,11 @@ public enum Operation {
     DELETE("delete"),
     GET_USER_QUOTA("getUserQuota"),
     GET_USER_ALLOCATION("getUserAllocation"),
-    GET_ALL_IMAGES("getAllImages"),
-    GET_IMAGE("getImage"),
-    GET_CLOUD_NAMES("getCloudNames"),
     GENERIC_REQUEST("genericRequest");
 
     private String value;
 
-    private Operation(String value) {
+    Operation(String value) {
         this.value = value;
     }
 

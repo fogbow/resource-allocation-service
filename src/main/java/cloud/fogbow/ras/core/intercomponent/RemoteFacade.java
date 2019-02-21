@@ -80,14 +80,14 @@ public class RemoteFacade {
 
     public Image getImage(String requestingMember, String cloudName, String imageId, FederationUser federationUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GET_IMAGE.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(federationUser, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getImage(imageId, federationUser);
     }
 
     public Map<String, String> getAllImages(String requestingMember, String cloudName, FederationUser federationUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GET_ALL_IMAGES.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(federationUser, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getAllImages(federationUser);
     }
@@ -95,14 +95,14 @@ public class RemoteFacade {
     public GenericRequestResponse genericRequest(String requestingMember, String cloudName, GenericRequest genericRequest,
                                                  FederationUser federationUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GENERIC_REQUEST.getValue(), ResourceType.GENERIC_REQUEST.getValue());
+        this.authorizationController.authorize(federationUser, cloudName, Operation.GENERIC_REQUEST.getValue(), ResourceType.GENERIC_RESOURCE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, federationUser);
     }
 
     public List<String> getCloudNames(String requestingMember, FederationUser federationUser) throws UnexpectedException, UnauthorizedRequestException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, Operation.GET_CLOUD_NAMES.getValue(), ResourceType.CLOUD_NAMES.getValue());
+        this.authorizationController.authorize(federationUser, Operation.GET.getValue(), ResourceType.CLOUD_NAMES.getValue());
         return this.cloudListController.getCloudNames();
     }
 

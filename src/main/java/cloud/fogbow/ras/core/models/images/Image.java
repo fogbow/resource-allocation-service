@@ -89,4 +89,16 @@ public class Image {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Image{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", size=" + size +
+                ", minDisk=" + minDisk +
+                ", minRam=" + minRam +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }
