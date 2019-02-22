@@ -70,6 +70,9 @@ public class SpawningProcessor implements Runnable {
         LocalCloudConnector localCloudConnector = (LocalCloudConnector) CloudConnectorFactory.getInstance().
                 getCloudConnector(this.localMemberId, order.getCloudName());
 
+        // we won't audit requests we make
+        localCloudConnector.switchOffAuditing();
+
         Instance instance = localCloudConnector.getInstance(order);
 
         InstanceState instanceState = instance.getState();

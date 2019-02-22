@@ -9,11 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CloudConnectorFactory {
     private static CloudConnectorFactory instance;
     private String localMemberId;
-    private Map<String, LocalCloudConnector> cachedLocalCloudConnectors;
 
     private CloudConnectorFactory() {
         this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.cachedLocalCloudConnectors = new ConcurrentHashMap<String, LocalCloudConnector>();
     }
 
     public static synchronized CloudConnectorFactory getInstance() {
@@ -25,18 +23,11 @@ public class CloudConnectorFactory {
 
     public CloudConnector getCloudConnector(String memberId, String cloudName) {
         CloudConnector cloudConnector;
-
         if (memberId.equals(this.localMemberId)) {
-            if (cachedLocalCloudConnectors.containsKey(cloudName)) {
-                cloudConnector = this.cachedLocalCloudConnectors.get(cloudName);
-            } else {
-                cloudConnector = new LocalCloudConnector(cloudName);
-                this.cachedLocalCloudConnectors.put(cloudName, (LocalCloudConnector) cloudConnector);
-            }
+            cloudConnector = new LocalCloudConnector(cloudName);
         } else {
             cloudConnector = new RemoteCloudConnector(memberId, cloudName);
         }
-
         return cloudConnector;
     }
 }
