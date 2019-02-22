@@ -80,6 +80,7 @@ public class VolumeTest {
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", order.getId());
 
         String resultVolumeId = result.getResponse().getContentAsString();
 
@@ -87,7 +88,7 @@ public class VolumeTest {
         Mockito.verify(this.facade, times(1)).createVolume(Mockito.any(VolumeOrder.class),
                 Mockito.anyString());
 
-        Assert.assertEquals(order.getId(), resultVolumeId);
+        Assert.assertEquals(expectedResponse, resultVolumeId);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 

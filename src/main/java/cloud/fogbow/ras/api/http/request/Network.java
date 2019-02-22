@@ -2,6 +2,7 @@ package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -35,7 +36,7 @@ public class Network {
 
     @ApiOperation(value = ApiDocumentation.Network.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createNetwork(
+    public ResponseEntity<ResourceId> createNetwork(
             @ApiParam(value = ApiDocumentation.Network.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Network network,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -45,7 +46,7 @@ public class Network {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
             String networkId = ApplicationFacade.getInstance().createNetwork(network.getOrder(), federationTokenValue);
-            return new ResponseEntity<String>(networkId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(networkId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
@@ -110,7 +111,7 @@ public class Network {
 
     @ApiOperation(value = ApiDocumentation.Network.CREATE_SECURITY_RULE_OPERATION)
     @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.POST)
-    public ResponseEntity<String> createSecurityRule(
+    public ResponseEntity<ResourceId> createSecurityRule(
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.Network.CREATE_SECURITY_RULE_REQUEST_BODY)
@@ -123,7 +124,7 @@ public class Network {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
             String ruleId = ApplicationFacade.getInstance().createSecurityRule(networkId, securityRule,
                     federationTokenValue, ResourceType.NETWORK);
-            return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(ruleId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -31,7 +32,7 @@ public class Volume {
 
     @ApiOperation(value = ApiDocumentation.Volume.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createVolume(
+    public ResponseEntity<ResourceId> createVolume(
             @ApiParam(value = ApiDocumentation.Volume.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Volume volume,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -41,7 +42,7 @@ public class Volume {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
             String volumeId = ApplicationFacade.getInstance().createVolume(volume.getOrder(), federationTokenValue);
-            return new ResponseEntity<String>(volumeId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(volumeId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

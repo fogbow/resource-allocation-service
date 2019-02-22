@@ -85,8 +85,9 @@ public class ComputeTest {
 
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", FAKE_ORDER_ID);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_ORDER_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
 
         Mockito.verify(this.facade, Mockito.times(1)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }

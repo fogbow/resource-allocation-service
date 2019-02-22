@@ -89,8 +89,9 @@ public class PublicIpTest {
 
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", orderId);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(orderId, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
 
         Mockito.verify(this.facade, Mockito.times(1))
                 .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());

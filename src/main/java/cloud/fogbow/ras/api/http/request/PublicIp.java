@@ -2,6 +2,7 @@ package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -35,7 +36,7 @@ public class PublicIp {
 
     @ApiOperation(value = ApiDocumentation.PublicIp.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createPublicIp(
+    public ResponseEntity<ResourceId> createPublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.PublicIp publicIp,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -45,7 +46,7 @@ public class PublicIp {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
             String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), federationTokenValue);
-            return new ResponseEntity<String>(publicIpId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(publicIpId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
@@ -111,7 +112,7 @@ public class PublicIp {
 
     @ApiOperation(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_OPERATION)
     @RequestMapping(value = "/{publicIpId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.POST)
-    public ResponseEntity<String> createSecurityRule(
+    public ResponseEntity<ResourceId> createSecurityRule(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_REQUEST_BODY)
@@ -124,7 +125,7 @@ public class PublicIp {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
             String ruleId = ApplicationFacade.getInstance().createSecurityRule(publicIpId, securityRule,
                     federationTokenValue, ResourceType.PUBLIC_IP);
-            return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(ruleId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

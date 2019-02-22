@@ -90,8 +90,9 @@ public class SecurityRuleAPITest {
 
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", FAKE_SECURITY_RULE_ID);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
 
         //set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
@@ -103,7 +104,7 @@ public class SecurityRuleAPITest {
 
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
         Mockito.verify(this.facade, Mockito.times(2)).createSecurityRule(
                 Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
