@@ -95,6 +95,10 @@ public class FulfilledProcessor implements Runnable {
             try {
                 LocalCloudConnector localCloudConnector = (LocalCloudConnector) CloudConnectorFactory.getInstance().
                         getCloudConnector(this.localMemberId, order.getCloudName());
+
+                // we won't audit requests we make
+                localCloudConnector.switchOffAuditing();
+
                 instance = localCloudConnector.getInstance(order);
             } catch (Exception e) {
                 LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
