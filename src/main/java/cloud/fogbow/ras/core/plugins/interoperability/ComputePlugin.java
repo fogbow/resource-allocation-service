@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.instances.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 

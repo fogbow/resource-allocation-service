@@ -6,7 +6,7 @@ import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;

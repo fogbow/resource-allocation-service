@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.instances.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 

@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 
 /**

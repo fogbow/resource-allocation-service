@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 
 import java.util.List;
 
