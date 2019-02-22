@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.api.http.Network;
+import cloud.fogbow.ras.api.http.request.Network;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.instances.InstanceState;

@@ -1,6 +1,7 @@
-package cloud.fogbow.ras.api.http;
+package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;

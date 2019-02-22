@@ -1,7 +1,8 @@
-package cloud.fogbow.ras.api.http;
+package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.ApiParam;
@@ -10,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static cloud.fogbow.ras.api.http.GenericRequest.GENERIC_REQUEST_ENDPOINT;
+import static cloud.fogbow.ras.api.http.request.GenericRequest.GENERIC_REQUEST_ENDPOINT;
 
 @CrossOrigin
 @RestController

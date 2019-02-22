@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.api.http;
+package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
@@ -25,10 +25,11 @@ public class PublicKey {
 
     @ApiOperation(value = ApiDocumentation.PublicKey.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<String> getPublicKey() throws UnexpectedException {
+    public ResponseEntity<cloud.fogbow.ras.api.http.response.PublicKey> getPublicKey() throws UnexpectedException {
         try {
             LOGGER.info(Messages.Info.GET_PUBLIC_KEY);
-            String publicKey = ApplicationFacade.getInstance().getPublicKey();
+            String publicKeyValue = ApplicationFacade.getInstance().getPublicKey();
+            cloud.fogbow.ras.api.http.response.PublicKey publicKey = new cloud.fogbow.ras.api.http.response.PublicKey(publicKeyValue);
             return new ResponseEntity<>(publicKey, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

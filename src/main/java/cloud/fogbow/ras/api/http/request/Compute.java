@@ -1,6 +1,8 @@
-package cloud.fogbow.ras.api.http;
+package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -38,7 +40,7 @@ public class Compute {
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @ApiOperation(value = ApiDocumentation.Compute.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createCompute(
+    public ResponseEntity<ResourceId> createCompute(
             @ApiParam(value = ApiDocumentation.Compute.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Compute compute,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -56,7 +58,7 @@ public class Compute {
             }
 
             String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
-            return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(computeId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
