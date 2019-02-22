@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.api.http.Compute;
+import cloud.fogbow.ras.api.http.request.Compute;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -85,8 +85,9 @@ public class ComputeTest {
 
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", FAKE_ORDER_ID);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_ORDER_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
 
         Mockito.verify(this.facade, Mockito.times(1)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }

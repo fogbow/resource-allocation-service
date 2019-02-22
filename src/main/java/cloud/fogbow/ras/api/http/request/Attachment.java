@@ -1,6 +1,8 @@
-package cloud.fogbow.ras.api.http;
+package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -30,7 +32,7 @@ public class Attachment {
 
     @RequestMapping(method = RequestMethod.POST)
     @ApiOperation(value = ApiDocumentation.Attachment.CREATE_OPERATION)
-    public ResponseEntity<String> createAttachment(
+    public ResponseEntity<ResourceId> createAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Attachment attachment,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -40,7 +42,7 @@ public class Attachment {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
             String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), federationTokenValue);
-            return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ResourceId(attachmentId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

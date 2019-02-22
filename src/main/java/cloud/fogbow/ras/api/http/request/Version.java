@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.api.http;
+package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -25,10 +25,11 @@ public class Version {
 
     @ApiOperation(value = ApiDocumentation.Version.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<String> getVersion() {
+    public ResponseEntity<cloud.fogbow.ras.api.http.response.Version> getVersion() {
 
         LOGGER.info(Messages.Info.RECEIVING_GET_VERSION_REQUEST);
         String versionNumber = ApplicationFacade.getInstance().getVersionNumber();
-        return new ResponseEntity<>(versionNumber, HttpStatus.OK);
+        cloud.fogbow.ras.api.http.response.Version version = new cloud.fogbow.ras.api.http.response.Version(versionNumber);
+        return new ResponseEntity<>(version, HttpStatus.OK);
     }
 }

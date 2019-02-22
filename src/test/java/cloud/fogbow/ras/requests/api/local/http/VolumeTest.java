@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.api.http.Volume;
+import cloud.fogbow.ras.api.http.request.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -80,6 +80,7 @@ public class VolumeTest {
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", order.getId());
 
         String resultVolumeId = result.getResponse().getContentAsString();
 
@@ -87,7 +88,7 @@ public class VolumeTest {
         Mockito.verify(this.facade, times(1)).createVolume(Mockito.any(VolumeOrder.class),
                 Mockito.anyString());
 
-        Assert.assertEquals(order.getId(), resultVolumeId);
+        Assert.assertEquals(expectedResponse, resultVolumeId);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
