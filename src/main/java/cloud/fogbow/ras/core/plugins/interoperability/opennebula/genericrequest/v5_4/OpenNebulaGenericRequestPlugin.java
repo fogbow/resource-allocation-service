@@ -14,15 +14,12 @@ import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<CloudToken, OpenNebulaGenericRequest> {
 	
-	private OpenNebulaClientFactory factory;
-
-	@SuppressWarnings({ "rawtypes", "unchecked" }) // FIXME remove this line after refactoring...
 	@Override
-	public GenericRequestResponse redirectGenericRequest(OpenNebulaGenericRequest genericRequest, CloudToken token)
+	public GenericRequestResponse redirectGenericRequest(OpenNebulaGenericRequest genericRequest, CloudToken cloudToken)
 			throws FogbowException {
         
 		OpenNebulaGenericRequest request = (OpenNebulaGenericRequest) genericRequest;
@@ -30,7 +27,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
         	throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
 
-		Client client = this.factory.createClient(token.getTokenValue());
+		Client client = OpenNebulaClientUtil.createClient(genericRequest.getUrl(), cloudToken.getTokenValue());
 		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
 		Class resourceClassType = oneResource.getClassType();
 
@@ -43,7 +40,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 			instance = oneResource.createInstance(Integer.parseInt(request.getResourceId()), client);
 		} else {
 			if (oneResource.equals(OneResource.CLIENT)) {
-				instance = (Client) oneResource.createInstance(token.getTokenValue(), request.getUrl());
+				instance = (Client) oneResource.createInstance(cloudToken.getTokenValue(), request.getUrl());
 			}
 			if (!request.getParameters().isEmpty()) {
 				classes.add(Client.class);
