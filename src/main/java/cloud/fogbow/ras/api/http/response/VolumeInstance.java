@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.models.instances;
+package cloud.fogbow.ras.api.http.response;
 
 public class VolumeInstance extends Instance {
     private String name;

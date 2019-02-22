@@ -1,6 +1,4 @@
-package cloud.fogbow.ras.core.models;
-
-import cloud.fogbow.ras.core.models.instances.InstanceState;
+package cloud.fogbow.ras.api.http.response;
 
 public class InstanceStatus {
     private String instanceId;

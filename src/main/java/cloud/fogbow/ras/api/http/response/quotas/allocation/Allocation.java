@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.models.quotas.allocation;
+package cloud.fogbow.ras.api.http.response.quotas.allocation;
 
 public class Allocation {
 

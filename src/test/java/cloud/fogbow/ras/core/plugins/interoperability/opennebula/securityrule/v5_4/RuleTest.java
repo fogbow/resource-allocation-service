@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import cloud.fogbow.ras.core.models.securityrules.Direction;
-import cloud.fogbow.ras.core.models.securityrules.EtherType;
-import cloud.fogbow.ras.core.models.securityrules.Protocol;
+import cloud.fogbow.ras.api.http.response.securityrules.Direction;
+import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
+import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
 import org.junit.Assert;
 import org.junit.Test;
 

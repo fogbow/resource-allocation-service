@@ -8,7 +8,7 @@ import cloud.fogbow.ras.api.http.request.Network;
 import cloud.fogbow.ras.api.http.request.PublicIp;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import org.junit.Assert;

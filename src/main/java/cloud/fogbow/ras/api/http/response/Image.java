@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.models.images;
+package cloud.fogbow.ras.api.http.response;
 
 public class Image {
     private String id;

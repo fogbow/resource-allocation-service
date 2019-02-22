@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.models.securityrules;
+package cloud.fogbow.ras.api.http.response.securityrules;
 
 public enum Direction {
     IN("ingress"), OUT("egress");

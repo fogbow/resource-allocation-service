@@ -101,7 +101,7 @@ public class ImageTest {
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/provider/cloud/" + fakeId;
 
-        cloud.fogbow.ras.core.models.images.Image image = new cloud.fogbow.ras.core.models.images.Image(fakeId, "fake-name", 1, 1, 1, "READY");
+        cloud.fogbow.ras.api.http.response.Image image = new cloud.fogbow.ras.api.http.response.Image(fakeId, "fake-name", 1, 1, 1, "READY");
 
         Mockito.doReturn(image).when(this.facade).getImage(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString());
@@ -115,7 +115,7 @@ public class ImageTest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        cloud.fogbow.ras.core.models.images.Image resultImage = new Gson().fromJson(result.getResponse().getContentAsString(), cloud.fogbow.ras.core.models.images.Image.class);
+        cloud.fogbow.ras.api.http.response.Image resultImage = new Gson().fromJson(result.getResponse().getContentAsString(), cloud.fogbow.ras.api.http.response.Image.class);
         Assert.assertEquals(image.getId(), resultImage.getId());
         Assert.assertEquals(image.getName(), resultImage.getName());
         Assert.assertEquals(image.getStatus(), resultImage.getStatus());

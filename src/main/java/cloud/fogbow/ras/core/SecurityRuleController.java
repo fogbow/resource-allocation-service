@@ -5,7 +5,7 @@ import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 
 import java.util.List;
 

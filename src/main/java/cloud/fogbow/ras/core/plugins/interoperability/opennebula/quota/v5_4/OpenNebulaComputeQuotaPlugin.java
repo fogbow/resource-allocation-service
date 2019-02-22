@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
-import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.opennebula.client.Client;

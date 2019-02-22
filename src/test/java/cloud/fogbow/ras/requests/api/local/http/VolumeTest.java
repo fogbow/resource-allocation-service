@@ -6,7 +6,7 @@ import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.core.models.instances.VolumeInstance;
+import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import com.google.gson.Gson;
 import org.junit.Assert;

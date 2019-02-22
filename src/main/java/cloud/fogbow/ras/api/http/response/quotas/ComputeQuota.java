@@ -1,6 +1,6 @@
-package cloud.fogbow.ras.core.models.quotas;
+package cloud.fogbow.ras.api.http.response.quotas;
 
-import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 
 public class ComputeQuota extends Quota {
     private ComputeAllocation totalQuota;

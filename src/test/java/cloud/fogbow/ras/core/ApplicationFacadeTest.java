@@ -9,6 +9,7 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -16,10 +17,9 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import cloud.fogbow.ras.core.models.*;
-import cloud.fogbow.ras.core.models.instances.*;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.junit.Assert;
 import org.junit.Before;
@@ -1786,7 +1786,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		cloud.fogbow.ras.core.models.images.Image image = Mockito.mock(cloud.fogbow.ras.core.models.images.Image.class);
+		Image image = Mockito.mock(Image.class);
 		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(federationUser))).thenReturn(image);
 
 		String memberId = FAKE_MEMBER_ID;

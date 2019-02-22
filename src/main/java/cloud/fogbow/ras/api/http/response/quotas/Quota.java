@@ -1,6 +1,6 @@
-package cloud.fogbow.ras.core.models.quotas;
+package cloud.fogbow.ras.api.http.response.quotas;
 
-import cloud.fogbow.ras.core.models.quotas.allocation.Allocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 
 public abstract class Quota {
     public abstract Allocation getTotalQuota();

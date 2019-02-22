@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.models.instances;
+package cloud.fogbow.ras.api.http.response;
 
 public class AttachmentInstance extends Instance {
     private String computeId;
