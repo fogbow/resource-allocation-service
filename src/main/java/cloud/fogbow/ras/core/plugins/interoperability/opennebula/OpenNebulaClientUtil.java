@@ -165,6 +165,7 @@ public class OpenNebulaClientUtil {
  		return securityGroup;
     }
 
+    @Deprecated
 	public static String allocateImage(Client client, String template, Integer datastoreId)
 			throws InvalidParameterException {
 		
@@ -179,6 +180,7 @@ public class OpenNebulaClientUtil {
 		return response.getMessage();
 	}
 
+	@Deprecated
 	public static String allocateSecurityGroup(Client client, String template) throws InvalidParameterException {
 		OneResponse response = SecurityGroup.allocate(client, template);
 		if (response.isError()) {
@@ -191,7 +193,7 @@ public class OpenNebulaClientUtil {
 		return response.getMessage();
 	}
 
-
+	@Deprecated
 	public static String allocateVirtualMachine(Client client, String template)
 			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
 		
@@ -213,6 +215,7 @@ public class OpenNebulaClientUtil {
 		return response.getMessage();
 	}
 
+	@Deprecated
 	public static String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {

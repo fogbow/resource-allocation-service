@@ -19,7 +19,9 @@ import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
@@ -58,8 +60,16 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudToken> {
 	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
+	
+	private static final int CHMOD_PERMISSION_744 = 744;
 
+	protected static final String FIELD_RESPONSE_LIMIT = "limit";
+	protected static final String FIELD_RESPONSE_QUOTA = "quota";
 	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
+	protected static final String RESPONSE_DONE = "DONE";
+	protected static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
+	protected static final String RESPONSE_NOT_AUTHORIZED = "Not authorized";
+	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 	
 	private TreeSet<HardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
@@ -103,7 +113,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudToken> {
 				.build();
 
 		String template = request.getVirtualMachine().marshalTemplate();
-		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
+		String instanceId = allocateVirtualMachine(client, template);
 		return instanceId;
 	}
 
@@ -248,6 +258,27 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudToken> {
 				this.flavors.remove(flavor);
 			}
 		}
+	}
+	
+	protected String allocateVirtualMachine(Client client, String template)
+			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
+		
+		OneResponse response = VirtualMachine.allocate(client, template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			if (message.contains(FIELD_RESPONSE_LIMIT) && message.contains(FIELD_RESPONSE_QUOTA)) {
+				throw new QuotaExceededException();
+			}
+			if ((message.contains(RESPONSE_NOT_ENOUGH_FREE_MEMORY))
+					|| (message.contains(RESPONSE_NO_SPACE_LEFT_ON_DEVICE))) {
+				throw new NoAvailableResourcesException();
+			}
+			throw new InvalidParameterException(message);
+		}
+		VirtualMachine.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
+		return response.getMessage();
 	}
 
 	protected ComputeInstance getComputeInstance(VirtualMachine virtualMachine) {
