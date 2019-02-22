@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.models.auditing;
 
+import cloud.fogbow.ras.core.models.Operation;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.StorableBean;
 import org.apache.log4j.Logger;
 
@@ -11,13 +13,13 @@ import java.sql.Timestamp;
 @Table(name = "request")
 public class AuditableRequest extends StorableBean {
 
-    private static final String ENDPOINT_COLUMN_NAME = "endpoint";
     private static final String USER_ID_COLUMN_NAME = "user_id";
     private static final String TOKEN_PROVIDER_ID_COLUMN_NAME = "token_provider_id";
+    private static final String RESPONSE_COLUMN_NAME = "response";
 
     private static final int TOKEN_PROVIDER_ID_MAX_SIZE = 255;
     private static final int USER_ID_MAX_SIZE = 255;
-    private static final int ENDPOINT_MAX_SIZE = 1024;
+    private static final int RESPONSE_MAX_SIZE = 255;
 
     @Transient
     private final Logger LOGGER = Logger.getLogger(AuditableRequest.class);
@@ -29,9 +31,13 @@ public class AuditableRequest extends StorableBean {
     @Column
     private Timestamp timestamp;
 
-    @Size(max = ENDPOINT_MAX_SIZE)
-    @Column(name = ENDPOINT_COLUMN_NAME)
-    private String endpoint;
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Operation operation;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private ResourceType resourceType;
 
     @Size(max = USER_ID_MAX_SIZE)
     @Column(name = USER_ID_COLUMN_NAME)
@@ -41,15 +47,17 @@ public class AuditableRequest extends StorableBean {
     @Column(name = TOKEN_PROVIDER_ID_COLUMN_NAME)
     private String tokenProviderId;
 
-    @Column
-    private int responseCode;
+    @Size(max = RESPONSE_MAX_SIZE)
+    @Column(name = RESPONSE_COLUMN_NAME)
+    private String response;
 
-    public AuditableRequest(Timestamp currentTimestamp, String endpoint, String userId, String tokenProviderId, int responseCode) {
-        this.timestamp = currentTimestamp;
-        this.endpoint = endpoint;
+    public AuditableRequest(Timestamp timestamp, Operation operation, ResourceType resourceType, String userId, String tokenProviderId, String response) {
+        this.timestamp = timestamp;
+        this.operation = operation;
+        this.resourceType = resourceType;
         this.userId = userId;
         this.tokenProviderId = tokenProviderId;
-        this.responseCode = responseCode;
+        this.response = response;
     }
 
     @Override
@@ -59,8 +67,8 @@ public class AuditableRequest extends StorableBean {
 
     @PrePersist
     private void checkColumnsSizes() {
-        this.endpoint = treatValue(this.endpoint, ENDPOINT_COLUMN_NAME, ENDPOINT_MAX_SIZE);
         this.userId = treatValue(this.userId, USER_ID_COLUMN_NAME, USER_ID_MAX_SIZE);
         this.tokenProviderId = treatValue(this.tokenProviderId, TOKEN_PROVIDER_ID_COLUMN_NAME, TOKEN_PROVIDER_ID_MAX_SIZE);
+        this.response = treatValue(this.response, RESPONSE_COLUMN_NAME, RESPONSE_MAX_SIZE);
     }
 }

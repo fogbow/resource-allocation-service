@@ -1562,7 +1562,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
 		
 		String operation = Operation.GENERIC_REQUEST.getValue();
-		String resourceType = ResourceType.GENERIC_REQUEST.getValue();
+		String resourceType = ResourceType.GENERIC_RESOURCE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
@@ -1599,7 +1599,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
 
-		String operation = Operation.GET_CLOUD_NAMES.getValue();
+		String operation = Operation.GET.getValue();
 		String resourceType = ResourceType.CLOUD_NAMES.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));
@@ -1633,7 +1633,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
 
-		String operation = Operation.GET_CLOUD_NAMES.getValue();
+		String operation = Operation.GET.getValue();
 		String resourceType = ResourceType.CLOUD_NAMES.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));
@@ -1764,7 +1764,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
 
-		String operation = Operation.GET_ALL_IMAGES.getValue();
+		String operation = Operation.GET_ALL.getValue();
 		String resourceType = ResourceType.IMAGE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
@@ -1803,7 +1803,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
 
-		String operation = Operation.GET_IMAGE.getValue();
+		String operation = Operation.GET.getValue();
 		String resourceType = ResourceType.IMAGE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(federationUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));

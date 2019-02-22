@@ -8,8 +8,19 @@ env:
 
 cache:
   directories:
-    - .autoconf
-    - $HOME/.m2
+  - .autoconf
+  - $HOME/.m2
+
+before_install:
+  - sudo add-apt-repository ppa:deadsnakes/ppa -y
+  - sudo apt-get update
+  - sudo apt-get install python2.7 -y
+  - cd ..
+  - git clone https://github.com/fogbow/quality-assurance.git
+
+install:
+  - cd $TRAVIS_BUILD_DIR
+  - python2 ../quality-assurance/scripts/install-dependencies.properities.py src/main/resources/dependencies.properties
 
 notifications:
   slack: fogbow:STADNJdZ8M5dszVw545vNXbW

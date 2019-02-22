@@ -96,7 +96,7 @@ public class ApplicationFacade {
 
     public List<String> getCloudNames(String memberId, String federationTokenValue) throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
-        this.authorizationController.authorize(requester, Operation.GET_CLOUD_NAMES.getValue(),
+        this.authorizationController.authorize(requester, Operation.GET.getValue(),
                 ResourceType.CLOUD_NAMES.getValue());
         if (memberId.equals(this.memberId)) {
             return this.cloudListController.getCloudNames();
@@ -208,7 +208,7 @@ public class ApplicationFacade {
             throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET_ALL_IMAGES.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(requester, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
         if (memberId == null) {
             memberId = this.memberId;
         }
@@ -220,7 +220,7 @@ public class ApplicationFacade {
             throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET_IMAGE.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(requester, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
         if (memberId == null) {
             memberId = this.memberId;
         }
@@ -270,7 +270,7 @@ public class ApplicationFacade {
                                                  String federationTokenValue) throws FogbowException {
         FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, cloudName, Operation.GENERIC_REQUEST.getValue(),
-                ResourceType.GENERIC_REQUEST.getValue());
+                ResourceType.GENERIC_RESOURCE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, requester);
     }

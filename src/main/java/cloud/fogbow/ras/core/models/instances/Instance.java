@@ -66,4 +66,14 @@ public class Instance {
         } else if (!this.id.equals(other.getId())) return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Instance{" +
+                "id='" + id + '\'' +
+                ", state=" + state +
+                ", provider='" + provider + '\'' +
+                ", cloudName='" + cloudName + '\'' +
+                '}';
+    }
 }
