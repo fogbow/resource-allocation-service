@@ -28,7 +28,7 @@ public class PluginInstantiatorTest {
         PowerMockito.mockStatic(HomeDir.class);
         CloseableHttpClient client = Mockito.mock(CloseableHttpClient.class);
         BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
-        this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator("default");
+        this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator();
     }
 
     // test case: Tests if the key xmpp_jid in ras.conf has its value as fake-localidentity-member.

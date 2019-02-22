@@ -17,7 +17,7 @@ public class InteroperabilityPluginInstantiator {
     private PluginFactory pluginFactory;
     private Map<String, Properties> cloudPropertiesCache;
 
-    public InteroperabilityPluginInstantiator(String cloudName) {
+    public InteroperabilityPluginInstantiator() {
         this.pluginFactory = new PluginFactory();
         this.cloudPropertiesCache = new HashMap<>();
     }

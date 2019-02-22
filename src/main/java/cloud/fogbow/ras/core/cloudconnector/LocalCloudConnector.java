@@ -47,10 +47,10 @@ public class LocalCloudConnector implements CloudConnector {
     private SecurityRulePlugin securityRulePlugin;
     private GenericRequestPlugin genericRequestPlugin;
 
-    private boolean shouldAuditRequests;
+    private boolean auditRequestsOn;
 
     public LocalCloudConnector(String cloudName) {
-        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator(cloudName);
+        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator();
         this.mapperPlugin = instantiator.getLocalUserCredentialsMapperPlugin(cloudName);
         this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
         this.computePlugin = instantiator.getComputePlugin(cloudName);
@@ -475,11 +475,11 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     public void switchOnAuditing() {
-        this.shouldAuditRequests = true;
+        this.auditRequestsOn = true;
     }
 
     public void switchOffAuditing() {
-        this.shouldAuditRequests = false;
+        this.auditRequestsOn = false;
     }
     /**
      * protected visibility for tests
@@ -663,7 +663,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     private void auditRequest(Operation operation, ResourceType resourceType, CloudToken cloudToken,
                               String response) {
-        if (this.shouldAuditRequests) {
+        if (this.auditRequestsOn) {
             String userId = null, tokenProviderId = null;
             if (cloudToken != null) {
                 userId = cloudToken.getUserId();
