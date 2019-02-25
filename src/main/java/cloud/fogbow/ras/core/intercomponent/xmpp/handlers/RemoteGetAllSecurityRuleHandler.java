@@ -5,7 +5,7 @@ import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;

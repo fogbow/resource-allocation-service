@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.ras.api.http.Version;
+import cloud.fogbow.ras.api.http.request.Version;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import org.junit.Assert;
@@ -60,13 +60,14 @@ public class VersionTest {
                 .headers(headers).contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
+        String expectedResponse = String.format("{\"version\":\"%s\"}", SystemConstants.API_VERSION_NUMBER);
 
         String versionNumber = result.getResponse().getContentAsString();
 
         // verify
         Mockito.verify(this.facade, times(1)).getVersionNumber();
 
-        Assert.assertEquals(versionNumber, SystemConstants.API_VERSION_NUMBER);
+        Assert.assertEquals(versionNumber, expectedResponse);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 }

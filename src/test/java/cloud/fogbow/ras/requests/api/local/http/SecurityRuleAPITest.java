@@ -4,11 +4,11 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.api.http.Network;
-import cloud.fogbow.ras.api.http.PublicIp;
+import cloud.fogbow.ras.api.http.request.Network;
+import cloud.fogbow.ras.api.http.request.PublicIp;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import org.junit.Assert;
@@ -90,8 +90,9 @@ public class SecurityRuleAPITest {
 
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", FAKE_SECURITY_RULE_ID);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
 
         //set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
@@ -103,7 +104,7 @@ public class SecurityRuleAPITest {
 
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
         Mockito.verify(this.facade, Mockito.times(2)).createSecurityRule(
                 Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }

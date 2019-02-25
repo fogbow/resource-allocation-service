@@ -7,6 +7,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -15,12 +16,10 @@ import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.models.images.Image;
-import cloud.fogbow.ras.core.models.instances.*;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
-import cloud.fogbow.ras.core.models.quotas.Quota;
-import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.Quota;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpGenericRequest;
@@ -48,18 +47,20 @@ public class LocalCloudConnector implements CloudConnector {
     private SecurityRulePlugin securityRulePlugin;
     private GenericRequestPlugin genericRequestPlugin;
 
+    private boolean auditRequestsOn;
+
     public LocalCloudConnector(String cloudName) {
-        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator(cloudName);
-        this.mapperPlugin = instantiator.getLocalUserCredentialsMapperPlugin();
-        this.attachmentPlugin = instantiator.getAttachmentPlugin();
-        this.computePlugin = instantiator.getComputePlugin();
-        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin();
-        this.networkPlugin = instantiator.getNetworkPlugin();
-        this.volumePlugin = instantiator.getVolumePlugin();
-        this.imagePlugin = instantiator.getImagePlugin();
-        this.publicIpPlugin = instantiator.getPublicIpPlugin();
-        this.securityRulePlugin = instantiator.getSecurityRulePlugin();
-        this.genericRequestPlugin = instantiator.getGenericRequestPlugin();
+        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator();
+        this.mapperPlugin = instantiator.getLocalUserCredentialsMapperPlugin(cloudName);
+        this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
+        this.computePlugin = instantiator.getComputePlugin(cloudName);
+        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin(cloudName);
+        this.networkPlugin = instantiator.getNetworkPlugin(cloudName);
+        this.volumePlugin = instantiator.getVolumePlugin(cloudName);
+        this.imagePlugin = instantiator.getImagePlugin(cloudName);
+        this.publicIpPlugin = instantiator.getPublicIpPlugin(cloudName);
+        this.securityRulePlugin = instantiator.getSecurityRulePlugin(cloudName);
+        this.genericRequestPlugin = instantiator.getGenericRequestPlugin(cloudName);
     }
 
     @Override
@@ -473,6 +474,13 @@ public class LocalCloudConnector implements CloudConnector {
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }
 
+    public void switchOnAuditing() {
+        this.auditRequestsOn = true;
+    }
+
+    public void switchOffAuditing() {
+        this.auditRequestsOn = false;
+    }
     /**
      * protected visibility for tests
      */
@@ -655,15 +663,17 @@ public class LocalCloudConnector implements CloudConnector {
 
     private void auditRequest(Operation operation, ResourceType resourceType, CloudToken cloudToken,
                               String response) {
-        String userId = null, tokenProviderId = null;
-        if (cloudToken != null) {
-            userId = cloudToken.getUserId();
-            tokenProviderId = cloudToken.getTokenProviderId();
-        }
+        if (this.auditRequestsOn) {
+            String userId = null, tokenProviderId = null;
+            if (cloudToken != null) {
+                userId = cloudToken.getUserId();
+                tokenProviderId = cloudToken.getTokenProviderId();
+            }
 
-        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-        AuditableRequest auditableRequest = new AuditableRequest(currentTimestamp, operation, resourceType, userId, tokenProviderId, response);
-        DatabaseManager.getInstance().auditRequest(auditableRequest);
+            Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+            AuditableRequest auditableRequest = new AuditableRequest(currentTimestamp, operation, resourceType, userId, tokenProviderId, response);
+            DatabaseManager.getInstance().auditRequest(auditableRequest);
+        }
     }
 
 }

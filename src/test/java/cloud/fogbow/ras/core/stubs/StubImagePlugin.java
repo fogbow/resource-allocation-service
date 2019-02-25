@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.images.Image;
+import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 
 import java.util.Map;

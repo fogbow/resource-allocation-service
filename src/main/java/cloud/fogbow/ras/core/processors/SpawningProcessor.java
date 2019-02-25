@@ -7,8 +7,8 @@ import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.models.instances.Instance;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -69,6 +69,9 @@ public class SpawningProcessor implements Runnable {
     private void processInstance(Order order) throws FogbowException {
         LocalCloudConnector localCloudConnector = (LocalCloudConnector) CloudConnectorFactory.getInstance().
                 getCloudConnector(this.localMemberId, order.getCloudName());
+
+        // we won't audit requests we make
+        localCloudConnector.switchOffAuditing();
 
         Instance instance = localCloudConnector.getInstance(order);
 

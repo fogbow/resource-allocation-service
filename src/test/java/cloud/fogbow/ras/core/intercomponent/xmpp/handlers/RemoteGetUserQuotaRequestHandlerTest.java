@@ -7,9 +7,9 @@ import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
-import cloud.fogbow.ras.core.models.quotas.Quota;
-import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.Quota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +43,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
             + "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
             + "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}"
             + "</userQuota>\n"
-            + "    <userQuotaClassName>cloud.fogbow.ras.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
+            + "    <userQuotaClassName>cloud.fogbow.ras.api.http.response.quotas.ComputeQuota</userQuotaClassName>\n"
             + "  </query>\n</iq>";
 
     private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"

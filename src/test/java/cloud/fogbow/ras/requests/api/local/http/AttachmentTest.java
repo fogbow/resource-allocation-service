@@ -2,13 +2,13 @@ package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.ras.api.http.Attachment;
+import cloud.fogbow.ras.api.http.request.Attachment;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.core.models.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -91,8 +91,9 @@ public class AttachmentTest {
 
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
+        String expectedResponse = String.format("{\"id\":\"%s\"}", orderId);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(orderId, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
 
         Mockito.verify(this.facade, Mockito.times(1))
                 .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());

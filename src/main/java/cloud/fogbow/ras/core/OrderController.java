@@ -9,12 +9,12 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.models.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.instances.Instance;
+import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.models.quotas.allocation.Allocation;
-import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;

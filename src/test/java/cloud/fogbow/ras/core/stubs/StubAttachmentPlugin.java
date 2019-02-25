@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.instances.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 
