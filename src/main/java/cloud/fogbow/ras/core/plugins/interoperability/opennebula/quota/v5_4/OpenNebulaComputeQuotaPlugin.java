@@ -1,43 +1,48 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import java.io.File;
+import java.util.Properties;
+
 import org.opennebula.client.Client;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 
-public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin {
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
+public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudToken> {
+
+	private static final String CLOUD_NAME = "opennebula";
+	private static final String GROUPS_ID_PATH = "GROUPS/ID";
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
 	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
 	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
 	private static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
 	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
 	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
-	private static final String GROUPS_ID_PATH = "GROUPS/ID";
 	
 	private static final int DEFAULT_RESOURCE_MAX_VALUE = Integer.MAX_VALUE;
 	private static final int VALUE_DEFAULT_QUOTA_OPENNEBULA = -1;
 	private static final int VALUE_UNLIMITED_QUOTA_OPENNEBULA = -2;
 	
-	private OpenNebulaClientFactory factory;
+	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 	
-	public OpenNebulaComputeQuotaPlugin(String confFilePath) {
-		this.factory = new OpenNebulaClientFactory(confFilePath);
-	}
-
 	@Override
-	public ComputeQuota getUserQuota(CloudToken localUserAttributes) throws FogbowException {
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());				
-		UserPool userPool = this.factory.createUserPool(client);
+	public ComputeQuota getUserQuota(CloudToken cloudToken) throws FogbowException {
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+		UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
+		
 		// ToDo: the code below used the user name and not the user id. Check whether it is really
 		// the user name that is needed; in this case, an OpenNebulaToken class needs to be implemented.
-		User user = this.factory.getUser(userPool, localUserAttributes.getUserId());
+		User user = OpenNebulaClientUtil.getUser(userPool, cloudToken.getUserId());
 		String maxCpuByUser = user.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByUser = user.xpath(QUOTA_MEMORY_PATH);
 		String maxInstancesByUser = user.xpath(QUOTA_VMS_PATH);
@@ -48,7 +53,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin {
 		String groupId = user.xpath(GROUPS_ID_PATH);
 		int id = Integer.parseInt(groupId);
 		
-		Group group = this.factory.createGroup(client, id);
+		Group group = OpenNebulaClientUtil.getGroup(client, id);
 		String maxCpuByGroup = group.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByGroup = group.xpath(QUOTA_MEMORY_PATH);
 		String maxInstancesByGroup = group.xpath(QUOTA_VMS_PATH);
@@ -155,8 +160,17 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin {
 		}
 	}
 
-	protected void setFactory(OpenNebulaClientFactory factory) {
-		this.factory = factory;		
+	protected String getEndpoint() {
+		String opennebulaConfFilePath = HomeDir.getPath() 
+				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator 
+				+ CLOUD_NAME 
+				+ File.separator 
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
+		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		return endpoint;
 	}
 	
 }
