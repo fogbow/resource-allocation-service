@@ -1,58 +1,63 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-import java.util.ArrayList;
-import java.util.List;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.securityrules.Direction;
+import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
+import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
 
-public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
+public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudToken> {
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 	
-	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
-    protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
-	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+	private static final String CIDR_SLICE = "[/]";
+	private static final String CLOUD_NAME = "opennebula";
 	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
 	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
-	private static final String CIDR_SLICE = "[/]";
 	private static final String RANGE_PORT_SEPARATOR = ":";
+
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
+	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
 
-	private OpenNebulaClientFactory factory;
-    
-    public OpenNebulaSecurityRulePlugin(String confFilePath) {
-        this.factory = new OpenNebulaClientFactory(confFilePath);
-    }
+	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
+	protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
+	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 
-    @Override
-    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudToken localUserAttributes)
+	@Override
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudToken cloudToken)
             throws FogbowException {
         
-    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+    	LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken.getTokenValue()));
+    	Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
     	
     	String virtualNetworkId = majorOrder.getInstanceId();
-    	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
+    	VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
-		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
+		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId); 
 		
 		String xml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
@@ -71,27 +76,28 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
     }
 
 	@Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudToken localUserAttributes) throws FogbowException {
-    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-    	
-    	// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids in the opennebula context 
-    	String virtualNetworkId = majorOrder.getInstanceId();
-    	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
+	public List<SecurityRule> getSecurityRules(Order majorOrder, CloudToken cloudToken) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, majorOrder.getInstanceId(), cloudToken.getTokenValue()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
 
-		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
-		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
-
+		// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids
+		// in the opennebula context
+		String virtualNetworkId = majorOrder.getInstanceId();
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
+		
+		String securityGroupId = getSecurityGroupBy(virtualNetwork);
+		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
 		return getSecurityRules(securityGroup);
-    }
+	}
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, CloudToken localUserAttributes) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
-        Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+	public void deleteSecurityRule(String securityRuleId, CloudToken cloudToken) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudToken.getTokenValue()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
 
 		Rule ruleToRemove = createRule(securityRuleId);
 		String securityGroupId = ruleToRemove.getSecurityGroupId();
-		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
+		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
 		SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
 
 		List<Rule> rules = getRules(securityGroupInfo);
@@ -101,11 +107,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
 		String xml = securityGroupTemplate.marshalTemplate();
 		OneResponse response = securityGroup.update(xml);
 		if (response.isError()) {
-			String errorMsg = String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage());
+			String errorMsg = String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId,
+					response.getMessage());
 			LOGGER.error(errorMsg);
 			throw new FogbowException(errorMsg);
 		}
-    }
+	}
 
 	protected Rule createRuleBy(SecurityRule securityRule) {
 		String protocol = securityRule.getProtocol().toString().toUpperCase();
@@ -162,7 +169,6 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
 		try {
 			SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
 			List<Rule> rules = getRules(securityGroupInfo);
-
 			for (Rule rule : rules) {
 				Direction direction = rule.getDirection();
 				int portFrom = rule.getPortFrom();
@@ -171,10 +177,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
 				EtherType etherType = rule.getEtherType();
 				Protocol protocol = rule.getSRProtocol();
 				rule.setSecurityGroupId(securityGroup.getId());
-
+				
 				SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
 				securityRule.setInstanceId(rule.serialize());
-
 				securityRules.add(securityRule);
 			}
 		} catch (Exception e) {
@@ -219,12 +224,15 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
 		try {
 			return Rule.deserialize(securityRuleId);
 		} catch (Exception e) {
-			String errorMessage = String.format("Is not possible deserialize the security rule id: %s", securityRuleId );
-			throw new FogbowException(String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityRuleId, errorMessage));
+			String errorMessage = String.format("Is not possible deserialize the security rule id: %s", securityRuleId);
+			throw new FogbowException(
+					String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityRuleId, errorMessage));
 		}
 	}
 
-	protected SecurityGroupTemplate createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, List<Rule> rules) throws FogbowException {
+	protected SecurityGroupTemplate createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, List<Rule> rules)
+			throws FogbowException {
+		
 		try {
 			SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
 			securityGroupTemplate.setId(securityGroupInfo.getId());
@@ -257,7 +265,17 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
 		}
 	}
 
-	protected void setFactory(OpenNebulaClientFactory factory) {
-		this.factory = factory;
+	protected String getEndpoint() {
+		String opennebulaConfFilePath = HomeDir.getPath() 
+				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator 
+				+ CLOUD_NAME 
+				+ File.separator 
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
+		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		return endpoint;
 	}
+	
 }
