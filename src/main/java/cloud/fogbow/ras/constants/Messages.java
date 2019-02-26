@@ -102,7 +102,8 @@ public class Messages {
     }
 
     public static class Error {
-        public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
+    	public static final String CONTENT_DESERIALIZATION_FAILURE = "Is not possible deserialize the Security Rule ID: %s.";
+    	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";

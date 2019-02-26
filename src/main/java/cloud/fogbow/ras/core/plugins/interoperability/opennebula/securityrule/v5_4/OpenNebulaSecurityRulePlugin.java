@@ -209,12 +209,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
     protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
     	String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
     	if (securityGroupXMLContent == null || securityGroupXMLContent.isEmpty()) {
-    		LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is null");
+    		LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
     		return null;
     	}
     	String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
     	if (securityGroupXMLContentSlices.length < 2) {
-    		LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is with wrong format");
+    		LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_WRONG_FORMAT);
     		return null;
     	}
     	return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
@@ -224,7 +224,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 		try {
 			return Rule.deserialize(securityRuleId);
 		} catch (Exception e) {
-			String errorMessage = String.format("Is not possible deserialize the security rule id: %s", securityRuleId);
+			String errorMessage = String.format(Messages.Error.CONTENT_DESERIALIZATION_FAILURE, securityRuleId);
 			throw new FogbowException(
 					String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityRuleId, errorMessage));
 		}
