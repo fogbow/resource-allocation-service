@@ -57,12 +57,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 
 	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
-	private String bridge;
-
-	public OpenNebulaNetworkPlugin() {
-		this.bridge = getProperties().getProperty(DEFAULT_NETWORK_BRIDGE_KEY);
-	}
-
 	@Override
 	public String requestInstance(NetworkOrder networkOrder, CloudToken cloudToken) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken.getTokenValue()));
@@ -71,7 +65,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 		String name = networkOrder.getName();
 		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, cloudToken.getUserId());
 		String type = DEFAULT_NETWORK_TYPE;
-		String bridge = this.bridge;
+		String bridge = getBridge();
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
 		String gateway = networkOrder.getGateway();
 		String securityGroupId = createSecurityGroup(client, networkOrder);
@@ -250,6 +244,12 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 				interfaceState);
 		
 		return networkInstance;
+	}
+	
+	protected String getBridge() {
+		Properties properties = getProperties();
+		String bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE_KEY);
+		return bridge;
 	}
 	
 	protected String getEndpoint() {
