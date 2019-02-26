@@ -10,6 +10,7 @@ import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -19,6 +20,7 @@ import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PublicKeysHolder {
     private RSAPublicKey asPublicKey;
@@ -63,7 +65,10 @@ public class PublicKeysHolder {
             throw new UnavailableProviderException(e.getMessage(), e);
         } else {
             try {
-                publicKey = RSAUtil.getPublicKeyFromString(response.getContent());
+                Gson gson = new Gson();
+                Map<String, String> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
+                String publicKeyString = jsonResponse.get("publicKey");
+                publicKey = RSAUtil.getPublicKeyFromString(publicKeyString);
             } catch (GeneralSecurityException e) {
                 throw new UnexpectedException(Messages.Exception.INVALID_PUBLIC_KEY);
             }
