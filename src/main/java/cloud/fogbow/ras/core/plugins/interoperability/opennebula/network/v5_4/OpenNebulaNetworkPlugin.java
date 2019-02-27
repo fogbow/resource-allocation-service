@@ -51,7 +51,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 	private static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 
 	private static final int BASE_VALUE = 2;
-	private static final int CHMOD_PERMISSION_744 = 744;
 	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SECURITY_GROUP_VALID_POSITION = 1;
 
@@ -92,7 +91,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 				.build();
 		
 		String template = request.getVirtualNetwork().marshalTemplate();
-		return allocateVirtualNetwork(client, template);
+		return OpenNebulaClientUtil.allocateVirtualNetwork(client, template);
 	}
 
 	@Override
@@ -188,35 +187,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 				.build();
 		
 		String template = request.getSecurityGroup().marshalTemplate();
-		return allocateSecurityGroup(client, template);
-	}
-	
-	protected String allocateSecurityGroup(Client client, String template) throws InvalidParameterException {
-		OneResponse response = SecurityGroup.allocate(client, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_SECURITY_GROUPS, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
-		}
-		SecurityGroup.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
-		return response.getMessage();
+		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 	
 	protected String generateSecurityGroupName(NetworkOrder networkOrder) {
 		return SECURITY_GROUP_PREFIX + networkOrder.getId();
-	}
-	
-	protected String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
-		OneResponse response = VirtualNetwork.allocate(client, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
-		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
-		return response.getMessage();
 	}
 	
 	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) {
