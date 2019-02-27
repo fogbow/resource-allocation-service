@@ -10,15 +10,14 @@ import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -37,16 +36,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
     
-    private static final int CHMOD_PERMISSION_744 = 744;
-
     protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
-
-    private Integer dataStoreId;
-
-	public OpenNebulaVolumePlugin() {
-		String dataStoreValue = getProperties().getProperty(DEFAULT_DATASTORE_ID);
-		this.dataStoreId = dataStoreValue == null ? null : Integer.valueOf(dataStoreValue);
-	}
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudToken cloudToken) throws FogbowException {
@@ -67,7 +57,8 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 				.build();
 
 		String template = request.getVolumeImage().marshalTemplate();
-		return allocateImage(client, template, this.dataStoreId);
+		Integer datastoreId = getDataStoreId();
+		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);
 	}
 
 	@Override
@@ -98,18 +89,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 		}
 	}
 
-	protected String allocateImage(Client client, String template, Integer datastoreId)
-			throws InvalidParameterException {
-		
-		OneResponse response = Image.allocate(client, template, datastoreId);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_IMAGE, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException(message);
-		}
-		Image.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
-		return response.getMessage();
+	protected Integer getDataStoreId() {
+		String dataStoreValue = getProperties().getProperty(DEFAULT_DATASTORE_ID);
+		return dataStoreValue == null ? null : Integer.valueOf(dataStoreValue);
 	}
 	
 	protected String getEndpoint() {

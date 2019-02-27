@@ -50,8 +50,8 @@ public class OpenNebulaVolumePluginTest {
 
 		String template = generateImageTemplate();
 		String instanceId = STRING_VALUE_ONE;
-		Mockito.doReturn(instanceId).when(this.plugin).allocateImage(Mockito.eq(client), Mockito.eq(template),
-				Mockito.anyInt());
+
+		BDDMockito.given(OpenNebulaClientUtil.allocateImage(Mockito.eq(client), Mockito.eq(template), Mockito.anyInt())).willReturn(instanceId);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(Image.class);
@@ -70,8 +70,8 @@ public class OpenNebulaVolumePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateImage(Mockito.eq(client), Mockito.eq(template),
-				Mockito.anyInt());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateImage(Mockito.eq(client), Mockito.eq(template), Mockito.anyInt());
 	}
 	
 	// test case: When calling the getInstance method, with the instance ID and a
