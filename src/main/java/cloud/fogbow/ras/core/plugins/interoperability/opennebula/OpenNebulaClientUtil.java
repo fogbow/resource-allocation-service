@@ -165,7 +165,6 @@ public class OpenNebulaClientUtil {
  		return securityGroup;
     }
 
-    @Deprecated
 	public static String allocateImage(Client client, String template, Integer datastoreId)
 			throws InvalidParameterException {
 		
@@ -180,7 +179,6 @@ public class OpenNebulaClientUtil {
 		return response.getMessage();
 	}
 
-	@Deprecated
 	public static String allocateSecurityGroup(Client client, String template) throws InvalidParameterException {
 		OneResponse response = SecurityGroup.allocate(client, template);
 		if (response.isError()) {
@@ -193,7 +191,6 @@ public class OpenNebulaClientUtil {
 		return response.getMessage();
 	}
 
-	@Deprecated
 	public static String allocateVirtualMachine(Client client, String template)
 			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
 		
@@ -215,7 +212,6 @@ public class OpenNebulaClientUtil {
 		return response.getMessage();
 	}
 
-	@Deprecated
 	public static String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
@@ -237,7 +233,6 @@ public class OpenNebulaClientUtil {
 		throw new UnauthorizedRequestException();
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" }) // FIXME remove this line after refactoring...
 	protected static PoolElement generateOnePoolElement(Client client, String poolElementId, Class classType)
 			throws InvalidParameterException {
 		
@@ -258,7 +253,6 @@ public class OpenNebulaClientUtil {
 		return null;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" }) // FIXME remove this line after refactoring...
 	protected static Pool generateOnePool(Client client, Class classType) {
 		if (classType.isAssignableFrom(TemplatePool.class)) {
 			return new TemplatePool(client);
@@ -271,4 +265,5 @@ public class OpenNebulaClientUtil {
         }
 		return null;
 	}
+	
 }
