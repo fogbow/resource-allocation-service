@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.constants.FogbowConstants;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.models.FederationUser;
@@ -22,7 +20,6 @@ import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class RemoteDeleteOrderRequestTest {
 
@@ -35,14 +32,9 @@ public class RemoteDeleteOrderRequestTest {
     private ArgumentCaptor<IQ> iqArgumentCaptor = ArgumentCaptor.forClass(IQ.class);
 
     @Before
-    public void setUp() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
-        FederationUser federationUser = new FederationUser(attributes);
-
+    public void setUp() {
+        FederationUser federationUser = new FederationUser("token-provider", "fake-user-id",
+                "fake-user-name", "federation-token-value", new HashMap<>());
         this.order = new ComputeOrder(federationUser, "requesting-member",
                 "providing-member", "default", "hostName", 10, 20, 30, "imageid",
                 null, "publicKey", null);

@@ -130,7 +130,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(image.getId()).thenReturn(FAKE_IMAGE_ID);
 
         // mocking interoperabilityPluginsHolder to return the correct plugin for each call
-        Mockito.when(mapperPlugin.map(Mockito.any(FederationUser.class))).thenReturn(new CloudToken("", "", ""));
+        CloudToken cloudToken = new CloudToken(new FederationUser("", "", "", "", new HashMap<>()));
+        Mockito.when(mapperPlugin.map(Mockito.any(FederationUser.class))).thenReturn(cloudToken);
 
         // starting the object we want to test
         this.localCloudConnector = new LocalCloudConnector("default");
@@ -151,12 +152,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     public void testGetNetworkInstanceIdsFromNetworkOrderIds() throws InvalidParameterException, UnexpectedException {
         // set up
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-tokenProvider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-user-id",
+                "fake-user-name", "fake-token-value", new HashMap<>());;
         Mockito.when(networkOrder.getFederationUser()).thenReturn(federationUser);
 
         Mockito.doReturn(FAKE_ORDER_ID).when(networkOrder).getId();

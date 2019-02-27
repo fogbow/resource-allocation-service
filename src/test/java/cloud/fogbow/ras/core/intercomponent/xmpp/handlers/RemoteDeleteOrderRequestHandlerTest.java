@@ -66,14 +66,8 @@ public class RemoteDeleteOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws FogbowException {
         //set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put("user-name", "fogbow");
-        Map<String, String> userAttributes = new HashMap<>();
-        userAttributes.put(FogbowConstants.PROVIDER_ID_KEY, REQUESTING_MEMBER);
-        userAttributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
-        userAttributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
-        userAttributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
-        FederationUser federationUser = new FederationUser(userAttributes);
+        FederationUser federationUser = new FederationUser(REQUESTING_MEMBER, "fake-user-id",
+                "fake-user-name", "fake-federation-token-value", new HashMap<>());
 
         this.order = new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember",
                 "default", "fake-instance-name", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());

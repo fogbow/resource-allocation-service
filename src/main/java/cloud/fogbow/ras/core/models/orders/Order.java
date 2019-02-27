@@ -67,15 +67,6 @@ public abstract class Order extends StorableBean implements Serializable {
     @Transient
     private FederationUser federationUser;
 
-    @Column
-    private String userId;
-    @Column
-    private String identityProvider;
-    @ElementCollection(fetch = FetchType.EAGER)
-    @MapKeyColumn
-    @Column
-    private Map<String, String> federationUserAttributes = new HashMap<>();
-
     public Order() {
     }
 
@@ -92,12 +83,7 @@ public abstract class Order extends StorableBean implements Serializable {
     public Order(String id, String provider, String cloudName, FederationUser federationUser, String requester) {
         this(id, provider, cloudName);
         this.requester = requester;
-
-        try {
-            setFederationUser(federationUser);
-        } catch (UnexpectedException e) {
-            LOGGER.fatal(e.getMessage(), e);
-        }
+        this.federationUser = federationUser;
     }
 
     public String getId() {
@@ -130,18 +116,14 @@ public abstract class Order extends StorableBean implements Serializable {
 
     public FederationUser getFederationUser() {
         if (this.federationUser == null) {
-            this.federationUser = new FederationUser(this.federationUserAttributes);
+            // TODO ARNETT REMOVE THIS
+            throw new IllegalArgumentException("FederationUser is NULL");
         }
         return this.federationUser;
     }
 
-    public void setFederationUser(FederationUser federationUser) throws UnexpectedException {
+    public void setFederationUser(FederationUser federationUser) {
         this.federationUser = federationUser;
-        if (federationUser != null) {
-            this.userId = federationUser.getUserId();
-            this.identityProvider = federationUser.getTokenProvider();
-            this.federationUserAttributes = federationUser.getAttributes();
-        }
     }
 
     public String getRequester() {

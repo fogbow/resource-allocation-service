@@ -1,9 +1,10 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
-import cloud.fogbow.as.core.tokengenerator.plugins.AttributeJoiner;
-import cloud.fogbow.as.core.tokengenerator.plugins.openstack.v3.OpenStackTokenGeneratorPlugin;
+import cloud.fogbow.as.core.federationidentity.plugins.openstack.v3.OpenStackFederationIdentityProviderPlugin;
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.util.FederationUserUtil;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenStackTokenGeneratorPlugin.class})
+@PrepareForTest({OpenStackFederationIdentityProviderPlugin.class})
 public class OpenStackAllToOneMapperTest {
     private static final String FAKE_LOGIN1 = "fake-login1";
     private static final String FAKE_LOGIN2 = "fake-login2";
@@ -36,7 +37,7 @@ public class OpenStackAllToOneMapperTest {
     private static final String FAKE_PASSWORD_KEY = "password";
 
     private String memberId;
-    private OpenStackTokenGeneratorPlugin keystoneV3TokenGenerator;
+    private OpenStackFederationIdentityProviderPlugin keystoneV3TokenGenerator;
     private OpenStackAllToOneMapper mapper;
 
     @Before
@@ -46,9 +47,9 @@ public class OpenStackAllToOneMapperTest {
                 + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.keystoneV3TokenGenerator = Mockito.spy(OpenStackTokenGeneratorPlugin.class);
+        this.keystoneV3TokenGenerator = Mockito.spy(OpenStackFederationIdentityProviderPlugin.class);
         this.mapper = new OpenStackAllToOneMapper(mapperConfPath);
-        this.mapper.setTokenGeneratorPlugin(this.keystoneV3TokenGenerator);
+        this.mapper.setFederationIdentityProviderPlugin(this.keystoneV3TokenGenerator);
     }
 
     //test case: two different Federation Tokens should be mapped to the same Local Token
@@ -58,29 +59,27 @@ public class OpenStackAllToOneMapperTest {
         Map<String, String> userCredentials1 = new HashMap<String, String>();
         userCredentials1.put(FAKE_USER_NAME_KEY, FAKE_LOGIN1);
         userCredentials1.put(FAKE_PASSWORD_KEY, FAKE_PASSWORD);
-        FederationUser token1 = new FederationUser(userCredentials1);
+        FederationUser token1 = new FederationUser("fake-token-provider", FAKE_LOGIN1,
+                FAKE_LOGIN1, "fake-federation-token-value", new HashMap<>());;
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
         userCredentials2.put(FAKE_USER_NAME_KEY, FAKE_LOGIN2);
         userCredentials2.put(FAKE_PASSWORD_KEY, FAKE_PASSWORD);
-        FederationUser token2 = new FederationUser(userCredentials2);
+        FederationUser token2 = new FederationUser("fake-token-provider", FAKE_LOGIN2,
+                FAKE_LOGIN2, "fake-federation-token-value", new HashMap<>());;
 
-        Map<String, String> attributes = new HashMap();
-        attributes.put("provider", this.memberId);
-        attributes.put("id", FAKE_USER_ID);
-        attributes.put("name", FAKE_USER_NAME);
-        attributes.put("project", FAKE_PROJECT_ID);
-        attributes.put("token", FAKE_TOKEN_VALUE);
-        String tokenValue = AttributeJoiner.join(attributes);
+        Map<String, String> extraAttributes = new HashMap();
+        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
 
-        Mockito.doReturn(tokenValue).when(this.keystoneV3TokenGenerator).createTokenValue(Mockito.anyMap());
+        FederationUser expectedUser = new FederationUser(this.memberId, FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        Mockito.doReturn(expectedUser).when(this.keystoneV3TokenGenerator).getFederationUser(Mockito.anyMap());
 
         //exercise
         OpenStackV3Token mappedToken1 = (OpenStackV3Token) this.mapper.map(token1);
         OpenStackV3Token mappedToken2 = (OpenStackV3Token) this.mapper.map(token2);
 
         //verify
-        Assert.assertNotEquals(token1.getAttributes(), token2.getAttributes());
+        Assert.assertNotEquals(token1.getExtraAttributes(), token2.getExtraAttributes());
         Assert.assertEquals(mappedToken1.getUserId(), mappedToken2.getUserId());
         Assert.assertEquals(mappedToken1.getTokenValue(), mappedToken2.getTokenValue());
     }

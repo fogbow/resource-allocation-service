@@ -66,7 +66,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private static final String FAKE_URL = "https://www.foo.bar";
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
 	private static final String FEDERATION_TOKEN_VALUE = "federation-token-value";
-	private static final String GET_METHOD = "GET";
 	private static final String ID_KEY = "id";
 	private static final String NAME_KEY = "name";
 	private static final String PROVIDER_KEY = "provider";
@@ -207,26 +206,21 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test(expected = UnauthorizedRequestException.class) // verify
 	public void testAuthorizeOrderThrowsUnauthorizedRequestException() throws Exception {
 		// set up
-		Map<String, String> ownerAttributes = new HashMap<String, String>();
-		ownerAttributes.put(ID_KEY, FAKE_OWNER_USER_ID_VALUE);
-		FederationUser ownerUser = new FederationUser(ownerAttributes);
-
-		Map<String, String> requesterAttributes = new HashMap<String, String>();
-		requesterAttributes.put(ID_KEY, FAKE_REQUESTER_USER_ID_VALUE);
-		FederationUser requesterUser = new FederationUser(requesterAttributes);
+		FederationUser owner = new FederationUser(null, FAKE_OWNER_USER_ID_VALUE, null, null, new HashMap<>());
+		FederationUser requester = new FederationUser(null, FAKE_REQUESTER_USER_ID_VALUE, null, null, new HashMap<>());
 
 		String cloudName = null;
 		String publicKey = null;
 		ArrayList<UserData> userData = null;
 		List<String> networkIds = null;
 
-		ComputeOrder order = spyComputeOrder(requesterUser, cloudName, publicKey, userData, networkIds);
+		ComputeOrder order = spyComputeOrder(requester, cloudName, publicKey, userData, networkIds);
 
 		Operation operation = null;
 		ResourceType resourceType = ResourceType.COMPUTE;
 
 		// exercise
-		this.facade.authorizeOrder(ownerUser, cloudName, operation, resourceType, order);
+		this.facade.authorizeOrder(owner, cloudName, operation, resourceType, order);
 	}
 
 	// test case: When calling a resource with a too long extra user data file
@@ -253,9 +247,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
-		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
@@ -300,8 +294,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
@@ -349,8 +343,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
@@ -401,8 +395,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
@@ -444,8 +438,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());;
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -483,8 +477,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());;
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -528,8 +522,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -576,8 +570,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		VolumeOrder order = spyVolumeOrder(federationUser);
@@ -613,8 +607,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -652,8 +646,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -697,8 +691,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -745,8 +739,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -783,8 +777,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -822,8 +816,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -867,8 +861,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -915,8 +909,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		AttachmentOrder order = spyAttachmentOrder(federationUser);
@@ -953,8 +947,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -992,8 +986,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1037,8 +1031,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 		
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1082,8 +1076,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1207,8 +1201,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1259,8 +1253,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 		
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -1311,8 +1305,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1368,8 +1362,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -1425,8 +1419,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		PublicIpOrder order = spyPublicIpOrder(federationUser);
@@ -1478,8 +1472,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		NetworkOrder order = spyNetworkOrder(federationUser);
@@ -1530,8 +1524,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String url = FAKE_URL;
@@ -1579,8 +1573,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		List<String> cloudNames = new ArrayList<>();
@@ -1614,8 +1608,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		List<String> cloudNames = new ArrayList<>();
@@ -1648,8 +1642,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 
 		AuthorizationController authorization = Mockito.mock(AuthorizationController.class);
 		Mockito.doNothing().when(authorization).authorize(Mockito.eq(federationUser), Mockito.anyString(),
@@ -1670,8 +1664,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
@@ -1702,8 +1696,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
@@ -1741,8 +1735,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
@@ -1779,8 +1773,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		Map<String, String> attributes = putUserIdAttribute();
-		FederationUser federationUser = createFederationUserAuthenticate(keyRSA, attributes);
+		FederationUser federationUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, FEDERATION_TOKEN_VALUE, new HashMap<>());
 		AuthorizationController authorization = mockAuthorizationController(federationUser);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
@@ -1911,24 +1905,16 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		return cloudConnectorFactory;
 	}
 
-	private FederationUser createFederationUserAuthenticate(RSAPublicKey keyRSA, Map<String, String> attributes)
+	private FederationUser createFederationUserAuthenticate(RSAPublicKey keyRSA, String tokenProviderId, String userId,
+			String userName, String tokenValue, Map<String, String> extraAttributes)
 			throws UnauthenticatedUserException, InvalidTokenException {
 
-		FederationUser federationUser = new FederationUser(attributes);
+		FederationUser federationUser = new FederationUser(tokenProviderId, userId, userName, tokenValue, extraAttributes);
 		PowerMockito.mockStatic(AuthenticationUtil.class);
 		PowerMockito.when(AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString()))
 				.thenReturn(federationUser);
 		
 		return federationUser;
-	}
-
-	private Map<String, String> putUserIdAttribute() {
-		Map<String, String> attributes = new HashMap<>();
-		attributes.put(PROVIDER_KEY, FAKE_MEMBER_ID);
-		attributes.put(ID_KEY, FAKE_REQUESTER_USER_ID_VALUE);
-		attributes.put(NAME_KEY, FAKE_NAME_VALUE);
-		attributes.put(TOKEN_KEY, FEDERATION_TOKEN_VALUE);
-		return attributes;
 	}
 
 	private ComputeOrder spyComputeOrder(FederationUser federationUser, String cloudName, String publicKey, ArrayList<UserData> userData,

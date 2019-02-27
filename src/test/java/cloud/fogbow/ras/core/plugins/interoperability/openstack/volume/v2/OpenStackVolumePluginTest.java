@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -10,6 +11,7 @@ import cloud.fogbow.ras.core.models.instances.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import org.apache.http.client.HttpResponseException;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,7 +60,11 @@ public class OpenStackVolumePluginTest {
         this.openStackVolumePlugin = Mockito.spy(new OpenStackVolumePlugin(cloudConfPath));
         this.client = Mockito.mock(OpenStackHttpClient.class);
         this.openStackVolumePlugin.setClient(this.client);
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+
+        HashMap<String, String> extraAttributes = new HashMap<>();
+        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        this.openStackV3Token = new OpenStackV3Token(federationUser);
     }
 
     // test case: Check if the request in requestInstance() is executed properly with the right parameters.

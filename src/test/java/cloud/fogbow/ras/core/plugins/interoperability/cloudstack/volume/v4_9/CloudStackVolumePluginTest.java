@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -84,7 +85,7 @@ public class CloudStackVolumePluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+        this.token = new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, new HashMap<>()));
     }
 
     // test case: When calling the requestInstance method with a size compatible with the

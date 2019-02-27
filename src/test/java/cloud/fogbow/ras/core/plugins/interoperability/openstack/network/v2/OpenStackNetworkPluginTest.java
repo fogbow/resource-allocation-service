@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -19,6 +20,7 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.json.JSONArray;
@@ -67,7 +69,7 @@ public class OpenStackNetworkPluginTest {
     private OpenStackHttpClient openStackHttpClient;
 
     @Before
-    public void setUp() throws InvalidParameterException {
+    public void setUp() throws InvalidParameterException, UnexpectedException {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.put(OpenStackNetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
@@ -79,7 +81,10 @@ public class OpenStackNetworkPluginTest {
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackNetworkPlugin.setClient(this.openStackHttpClient);
 
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        HashMap<String, String> extraAttributes = new HashMap<>();
+        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        this.openStackV3Token = new OpenStackV3Token(federationUser);
     }
 
     @After

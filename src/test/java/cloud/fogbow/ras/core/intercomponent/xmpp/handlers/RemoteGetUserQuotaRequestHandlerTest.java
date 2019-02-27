@@ -123,12 +123,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     }
 
     private FederationUser createFederationUser() {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, REQUESTING_MEMBER);
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
-        FederationUser federationUser = new FederationUser(attributes);
-        return federationUser;
+        return new FederationUser("fake-token-provider", "fake-user-id",
+                "fake-user-name", "fake-federation-token-value", new HashMap<>());
     }
 }

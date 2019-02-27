@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -25,10 +26,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.EXECUTABLE_TEMPLATES_VALUE;
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.TEMPLATE_FILTER_KEY;
@@ -47,7 +45,7 @@ public class CloudStackImagePluginTest {
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 
-    public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+    public static final CloudToken FAKE_TOKEN =  new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>()));
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";

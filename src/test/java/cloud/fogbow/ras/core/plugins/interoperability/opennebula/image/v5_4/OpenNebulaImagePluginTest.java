@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
@@ -14,6 +15,7 @@ import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Iterator;
 
 public class OpenNebulaImagePluginTest {
@@ -216,12 +218,10 @@ public class OpenNebulaImagePluginTest {
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
-		
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
-		
-		return token;
+
+		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
+		CloudToken cloudToken = new CloudToken(federationUser);
+
+		return cloudToken;
 	}
 }

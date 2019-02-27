@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.mapper.all2one;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -29,21 +30,18 @@ public abstract class GenericAllToOneFederationToLocalMapper implements Federati
     }
 
     @Override
-    public CloudToken map(FederationUser user) throws FogbowException {
+    public CloudToken map(FederationUser federationUser) throws FogbowException {
         return createTokenValue(this.credentials);
     }
 
-    public abstract Map<String, String> getAttributesString(Map<String, String> credentials) throws FogbowException;
+    public abstract FederationUser getFederationUser(Map<String, String> credentials) throws FogbowException;
 
-    public abstract CloudToken decorateToken(CloudToken token, Map<String, String> attributes);
+    public abstract CloudToken decorateToken(CloudToken token, FederationUser federationUser) throws UnexpectedException;
 
     public CloudToken createTokenValue(Map<String, String> credentials) throws FogbowException {
-        Map<String, String> attributes = getAttributesString(credentials);
-        String provider = attributes.get(FogbowConstants.PROVIDER_ID_KEY);
-        String userId = attributes.get(FogbowConstants.USER_ID_KEY);
-        String tokenValue = attributes.get(FogbowConstants.TOKEN_VALUE_KEY);
-        CloudToken token = new CloudToken(provider, userId, tokenValue);
-        return decorateToken(token, attributes);
+        FederationUser federationUser = getFederationUser(credentials);
+        CloudToken token = new CloudToken(federationUser);
+        return decorateToken(token, federationUser);
     }
 
     /**

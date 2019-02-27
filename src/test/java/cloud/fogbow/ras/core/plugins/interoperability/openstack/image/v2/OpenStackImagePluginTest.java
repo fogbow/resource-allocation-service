@@ -4,11 +4,13 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.images.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -41,13 +43,17 @@ public class OpenStackImagePluginTest {
     private OpenStackV3Token localUserAttributes;
 
     @Before
-    public void setUp() throws InvalidParameterException {
+    public void setUp() throws InvalidParameterException, UnexpectedException {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.plugin = new OpenStackImagePlugin(cloudConfPath);
         this.client = Mockito.mock(OpenStackHttpClient.class);
         this.properties = Mockito.mock(Properties.class);
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+
+        HashMap<String, String> extraAttributes = new HashMap<>();
+        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        this.localUserAttributes = new OpenStackV3Token(federationUser);
         this.plugin.setProperties(this.properties);
         this.plugin.setClient(this.client);
     }

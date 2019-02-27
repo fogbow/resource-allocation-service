@@ -1,11 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.instances.InstanceState;
@@ -14,6 +12,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
@@ -41,8 +40,11 @@ public class OpenStackPublicIpPluginTest {
     private static final String FAKE_PROJECT_ID = "fake-project-id";
 
 	@Before
-	public void setUp() {
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+	public void setUp() throws UnexpectedException {
+		HashMap<String, String> extraAttributes = new HashMap<>();
+		extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+		FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+		this.openStackV3Token = new OpenStackV3Token(federationUser);
         this.httpClient = Mockito.mock(OpenStackHttpClient.class);
         
         boolean notCheckProperties = false;

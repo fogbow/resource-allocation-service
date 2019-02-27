@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -24,6 +25,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -33,6 +35,7 @@ public class CloudStackAttachmentPluginTest {
     private static final String JSON_FORMAT = "json";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
@@ -73,7 +76,7 @@ public class CloudStackAttachmentPluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackAttachmentPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+        this.token =  new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>()));
     }
 
     // test case: When calling the requestInstance method a HTTP GET request must be made with a

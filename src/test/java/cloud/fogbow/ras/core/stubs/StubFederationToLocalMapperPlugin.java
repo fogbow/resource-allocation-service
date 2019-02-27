@@ -14,7 +14,7 @@ public class StubFederationToLocalMapperPlugin implements FederationToLocalMappe
     }
 
     @Override
-    public CloudToken map(FederationUser user) {
+    public CloudToken map(FederationUser federationUser) {
         return null;
     }
 }

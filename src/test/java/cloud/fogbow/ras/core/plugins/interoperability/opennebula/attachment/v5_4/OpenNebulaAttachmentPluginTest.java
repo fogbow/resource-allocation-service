@@ -25,6 +25,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({VirtualMachine.class})
@@ -262,13 +263,8 @@ public class OpenNebulaAttachmentPluginTest {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
-		String signature = null;
-		
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
-		
-		return token;
+
+		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
+		return new CloudToken(federationUser);
 	}
 }

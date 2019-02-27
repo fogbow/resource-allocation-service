@@ -1,19 +1,23 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.quotas.ComputeQuota;
 import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.HashMap;
 
 public class OpenStackComputeQuotaPluginTest {
 
@@ -36,12 +40,15 @@ public class OpenStackComputeQuotaPluginTest {
     private OpenStackV3Token localUserAttributes;
 
     @Before
-    public void setUp() throws InvalidParameterException {
+    public void setUp() throws InvalidParameterException, UnexpectedException {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin(cloudConfPath));
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        HashMap<String, String> extraAttributes = new HashMap<>();
+        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        this.localUserAttributes = new OpenStackV3Token(federationUser);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right

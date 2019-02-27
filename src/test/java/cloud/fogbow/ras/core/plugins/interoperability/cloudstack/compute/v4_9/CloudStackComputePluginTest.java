@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -58,9 +59,10 @@ public class CloudStackComputePluginTest {
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
-    public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+    public static final CloudToken FAKE_TOKEN =  new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>()));
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";

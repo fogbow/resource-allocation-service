@@ -114,12 +114,8 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatus() throws InvalidParameterException, UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id",
+                "fake-user", "token-value", new HashMap<>());
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
@@ -163,13 +159,8 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
 
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
-
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id",
+                "fake-user", "token-value", new HashMap<>());
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
@@ -195,14 +186,6 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Getting order with when federationUser is null must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInvalidOrder() throws FogbowException {
-        // setup
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
-
         // exercise
         this.ordersController.getOrder("invalid-order-id");
     }
@@ -245,12 +228,8 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id",
+                "fake-user", "token-value", new HashMap<>());;
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequester(this.localMember);
@@ -285,7 +264,8 @@ public class OrderControllerTest extends BaseUnitTests {
         attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
         attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
         attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id",
+                "fake-user", "token-value", new HashMap<>());;
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUser(federationUser);
         networkOrder.setRequester(this.localMember);
@@ -484,13 +464,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException, UnexpectedException {
-        String orderId;
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id", "fake-user", "token-value", new HashMap<>());
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUser(federationUser);
@@ -498,7 +472,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(orderState);
 
-        orderId = computeOrder.getId();
+        String orderId = computeOrder.getId();
 
         this.activeOrdersMap.put(orderId, computeOrder);
 

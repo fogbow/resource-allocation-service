@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
@@ -18,6 +19,7 @@ import cloud.fogbow.ras.core.models.securityrules.Protocol;
 import cloud.fogbow.ras.core.models.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.*;
@@ -71,7 +73,7 @@ public class OpenStackSecurityRulesPluginTest {
     private OpenStackHttpClient openStackHttpClient;
 
     @Before
-    public void setUp() throws InvalidParameterException {
+    public void setUp() throws InvalidParameterException, UnexpectedException {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
@@ -85,7 +87,10 @@ public class OpenStackSecurityRulesPluginTest {
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackSecurityRulePlugin.setClient(this.openStackHttpClient);
 
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        HashMap<String, String> extraAttributes = new HashMap<>();
+        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        this.openStackV3Token = new OpenStackV3Token(federationUser);
     }
 
     @After
@@ -235,12 +240,7 @@ public class OpenStackSecurityRulesPluginTest {
     }
 
     private NetworkOrder createNetworkOrder() throws Exception {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, FAKE_TOKEN_PROVIDER);
-        attributes.put(FogbowConstants.USER_ID_KEY, FAKE_USER_ID);
-        attributes.put(FogbowConstants.USER_NAME_KEY, FAKE_USER_NAME);
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, FAKE_FEDERATION_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USER_NAME, FAKE_FEDERATION_TOKEN_VALUE, new HashMap<>());
 
         NetworkOrder order = new NetworkOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_CLOUD_NAME,
                 FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);

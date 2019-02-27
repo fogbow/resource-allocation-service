@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -29,6 +30,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @RunWith(PowerMockRunner.class)
@@ -53,7 +55,8 @@ public class OpenNebulaSecurityRulePluginTest {
     @Test
     public void testDeleteSecurityRule() throws FogbowException {
         // setup
-        CloudToken localUserAttributes = new CloudToken("provider", "userId", "tokenValue");
+        FederationUser federationUser = new FederationUser("provider", "userId", "userName", "tokenValue", new HashMap<>());
+        CloudToken localUserAttributes = new CloudToken(federationUser);
         String securityGroupId = "0";
         String securityGroupName = "securityGroupName";
         String ipOne = "10.10.0.0";
@@ -101,7 +104,7 @@ public class OpenNebulaSecurityRulePluginTest {
     @Test(expected = FogbowException.class)
     public void testDeleteSecurityRuleErrorWhileUpdatingSecurity() throws FogbowException {
         // setup
-        CloudToken localUserAttributes = new CloudToken("provider", "userId", "tokenValue");
+        CloudToken localUserAttributes = new CloudToken(new FederationUser("provider", "userId", "userName", "tokenValue", new HashMap<>()));
         String securityGroupId = "0";
         String securityGroupName = "securityGroupName";
         String ipOne = "10.10.0.0";
@@ -221,7 +224,7 @@ public class OpenNebulaSecurityRulePluginTest {
         Order majorOrder = new NetworkOrder();
         String networkId = "instanceId";
         majorOrder.setInstanceId(networkId);
-        CloudToken localUserAttributes = new CloudToken("provider", "userId", "tokenValue");
+        CloudToken localUserAttributes = new CloudToken(new FederationUser("provider", "userId", "userName", "tokenValue", new HashMap<>()));
 
         VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
         // created by opennebula deploy
@@ -523,14 +526,8 @@ public class OpenNebulaSecurityRulePluginTest {
 		String tokenValue = "fake-token-value";
 		String userId = "fake-user-id";
 		String userName = "fake-user-name";
-		String signature = "fake-signature";
-		
-		CloudToken token = new CloudToken(
-				provider,
-                userId,
-				tokenValue);
-		
-		return token;
+
+		return new CloudToken(new FederationUser(provider, userId, userName, tokenValue, new HashMap<>()));
 	}
 
 }

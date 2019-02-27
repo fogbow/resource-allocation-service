@@ -17,11 +17,11 @@ public class GenericOneToOneFederationToLocalMapper implements FederationToLocal
     }
 
     @Override
-    public CloudToken map(FederationUser token) throws FogbowException {
-        if (token.getTokenProvider().equals(this.memberId)) {
-            return new CloudToken(token.getTokenProvider(), token.getUserId(), token.getTokenValue());
+    public CloudToken map(FederationUser federationUser) throws FogbowException {
+        if (federationUser.getTokenProviderId().equals(this.memberId)) {
+            return new CloudToken(federationUser);
         } else {
-            return remoteMapper.map(token);
+            return remoteMapper.map(federationUser);
         }
     }
 
