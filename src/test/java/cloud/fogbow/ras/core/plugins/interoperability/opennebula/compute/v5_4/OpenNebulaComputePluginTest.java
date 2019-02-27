@@ -165,8 +165,8 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
 				Mockito.any(CloudToken.class));
 
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateVirtualMachine(Mockito.any(Client.class),
-				Mockito.eq(virtualMachineTemplate));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
 	}
 	
 	// test case: When calling the requestInstance method, with the valid client and
@@ -212,8 +212,8 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
 				Mockito.any(CloudToken.class));
 
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateVirtualMachine(Mockito.any(Client.class),
-				Mockito.eq(template));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(template));
 	}
 	
 	// test case: When calling getBestFlavor during requestInstance method, and it
@@ -275,13 +275,6 @@ public class OpenNebulaComputePluginTest {
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, token);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateVirtualMachine(Mockito.any(Client.class),
-				Mockito.eq(template));
 	}
 	
 	// test case: When you attempt to allocate a virtual machine with the
@@ -315,13 +308,6 @@ public class OpenNebulaComputePluginTest {
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, token);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateVirtualMachine(Mockito.any(Client.class),
-				Mockito.eq(template));
 	}
 	
 	// test case: When attempting to allocate a virtual machine with the
@@ -358,13 +344,6 @@ public class OpenNebulaComputePluginTest {
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, token);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateVirtualMachine(Mockito.any(Client.class),
-				Mockito.eq(template));
 	}
 	
 	// test case: When calling the getInstance method of a resource with the volatile disk size passing 
