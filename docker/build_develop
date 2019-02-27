@@ -1,13 +1,5 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <git branch_ras> <git branch_as> <git branch_common>"
-  exit 1
-fi
-
-branch_ras=$1
-branch_as=$2
-branch_common=$3
-sudo docker build --build-arg BRANCH_RAS=$branch_ras --build-arg BRANCH_AS=$branch_as \
- --build-arg BRANCH_COMMON=$branch_common --no-cache -t fogbow/resource-allocation-service:develop .
+sudo docker build --build-arg BRANCH_RAS=develop --build-arg BRANCH_AS=develop \
+ --build-arg BRANCH_COMMON=develop --no-cache -t fogbow/resource-allocation-service:develop .
 
