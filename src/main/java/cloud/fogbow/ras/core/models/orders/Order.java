@@ -5,7 +5,7 @@ import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.StorableBean;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;

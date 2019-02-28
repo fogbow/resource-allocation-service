@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.instances.InstanceState;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
 public class OpenStackStateMapper {

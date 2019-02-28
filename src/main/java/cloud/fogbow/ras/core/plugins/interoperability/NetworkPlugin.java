@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.models.instances.NetworkInstance;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 
 public interface NetworkPlugin<T extends CloudToken> {

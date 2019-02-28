@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.models.orders;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;

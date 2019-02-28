@@ -28,7 +28,7 @@ public class PluginInstantiatorTest {
         PowerMockito.mockStatic(HomeDir.class);
         CloseableHttpClient client = Mockito.mock(CloseableHttpClient.class);
         BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
-        this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator("default");
+        this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator();
     }
 
     // test case: Tests if the key xmpp_jid in ras.conf has its value as fake-localidentity-member.
@@ -51,7 +51,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubFederationToLocalMapperPlugin";
 
         // exercise
-        FederationToLocalMapperPlugin plugin = this.interoperabilityPluginInstantiator.getLocalUserCredentialsMapperPlugin();
+        String fakeCloudName = "default";
+        FederationToLocalMapperPlugin plugin = this.interoperabilityPluginInstantiator.getLocalUserCredentialsMapperPlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_local_user_credentials_mapper_class_value, plugin.getClass().getName());
@@ -65,7 +66,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubAttachmentPlugin";
 
         // exercise
-        AttachmentPlugin plugin = this.interoperabilityPluginInstantiator.getAttachmentPlugin();
+        String fakeCloudName = "default";
+        AttachmentPlugin plugin = this.interoperabilityPluginInstantiator.getAttachmentPlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_attachment_plugin_class_value, plugin.getClass().getName());
@@ -79,7 +81,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubComputePlugin";
 
         // exercise
-        ComputePlugin plugin = this.interoperabilityPluginInstantiator.getComputePlugin();
+        String fakeCloudName = "default";
+        ComputePlugin plugin = this.interoperabilityPluginInstantiator.getComputePlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_compute_plugin_class_value, plugin.getClass().getName());
@@ -93,7 +96,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubComputeQuotaPlugin";
 
         // exercise
-        ComputeQuotaPlugin plugin = this.interoperabilityPluginInstantiator.getComputeQuotaPlugin();
+        String fakeCloudName = "default";
+        ComputeQuotaPlugin plugin = this.interoperabilityPluginInstantiator.getComputeQuotaPlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_compute_quota_plugin_class_value, plugin.getClass().getName());
@@ -107,7 +111,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubNetworkPlugin";
 
         // exercise
-        NetworkPlugin plugin = this.interoperabilityPluginInstantiator.getNetworkPlugin();
+        String fakeCloudName = "default";
+        NetworkPlugin plugin = this.interoperabilityPluginInstantiator.getNetworkPlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_network_plugin_class_value, plugin.getClass().getName());
@@ -121,7 +126,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubVolumePlugin";
 
         // exercise
-        VolumePlugin plugin = this.interoperabilityPluginInstantiator.getVolumePlugin();
+        String fakeCloudName = "default";
+        VolumePlugin plugin = this.interoperabilityPluginInstantiator.getVolumePlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_volume_plugin_class_value, plugin.getClass().getName());
@@ -135,7 +141,8 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubImagePlugin";
 
         // exercise
-        ImagePlugin plugin = this.interoperabilityPluginInstantiator.getImagePlugin();
+        String fakeCloudName = "default";
+        ImagePlugin plugin = this.interoperabilityPluginInstantiator.getImagePlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_image_plugin_class_value, plugin.getClass().getName());

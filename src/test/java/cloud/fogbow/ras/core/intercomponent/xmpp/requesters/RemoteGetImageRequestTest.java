@@ -10,7 +10,7 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
-import cloud.fogbow.ras.core.models.images.Image;
+import cloud.fogbow.ras.api.http.response.Image;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.jamppa.component.PacketSender;
