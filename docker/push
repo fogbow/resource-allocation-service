@@ -1,9 +1,11 @@
 #!/bin/bash
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <image name>"
+  echo "Usage: $0 <image tag>"
   exit 1
 fi
 
-sudo docker push $1
+tag=$1
+
+sudo docker push fogbow/resource-allocation-service:$tag
 
