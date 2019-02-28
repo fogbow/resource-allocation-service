@@ -65,7 +65,7 @@ public class CloudStackAllToOneMapperTest {
         CloudToken mappedToken2 = this.mapper.map(user2);
 
         //verify
-        Assert.assertNotEquals(user1.getExtraAttributes(), user2.getExtraAttributes());
+        Assert.assertNotEquals(user1, user2);
         Assert.assertEquals(mappedToken1.getUserId(), mappedToken2.getUserId());
         Assert.assertEquals(mappedToken1.getTokenValue(), mappedToken2.getTokenValue());
     }

@@ -67,7 +67,7 @@ public class OpenStackAttachmentPluginTest {
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
         HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
         FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
         this.localUserAttributes = new OpenStackV3Token(federationUser);
         this.attachmentOrder = new AttachmentOrder(null, "default", FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);

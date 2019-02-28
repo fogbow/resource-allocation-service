@@ -28,6 +28,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
+	private static final String FAKE_PROVIDER = "fake-provider";
 
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
 	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
@@ -244,9 +245,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	}
 
 	private CloudToken createCloudToken() {
-		String provider = null;
+		String provider = FAKE_PROVIDER;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		String userId = null;
+		String userId = FAKE_USER_ID;
 		String userName = FAKE_USER_NAME;
 
 		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());

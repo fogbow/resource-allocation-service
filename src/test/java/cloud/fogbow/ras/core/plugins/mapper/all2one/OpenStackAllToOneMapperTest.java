@@ -56,16 +56,9 @@ public class OpenStackAllToOneMapperTest {
     @Test
     public void testCreate2Tokens() throws FogbowException {
         //set up
-        Map<String, String> userCredentials1 = new HashMap<String, String>();
-        userCredentials1.put(FAKE_USER_NAME_KEY, FAKE_LOGIN1);
-        userCredentials1.put(FAKE_PASSWORD_KEY, FAKE_PASSWORD);
-        FederationUser token1 = new FederationUser("fake-token-provider", FAKE_LOGIN1,
+        FederationUser user1 = new FederationUser("fake-token-provider", FAKE_LOGIN1,
                 FAKE_LOGIN1, "fake-federation-token-value", new HashMap<>());;
-
-        Map<String, String> userCredentials2 = new HashMap<String, String>();
-        userCredentials2.put(FAKE_USER_NAME_KEY, FAKE_LOGIN2);
-        userCredentials2.put(FAKE_PASSWORD_KEY, FAKE_PASSWORD);
-        FederationUser token2 = new FederationUser("fake-token-provider", FAKE_LOGIN2,
+        FederationUser user2 = new FederationUser("fake-token-provider", FAKE_LOGIN2,
                 FAKE_LOGIN2, "fake-federation-token-value", new HashMap<>());;
 
         Map<String, String> extraAttributes = new HashMap();
@@ -75,11 +68,11 @@ public class OpenStackAllToOneMapperTest {
         Mockito.doReturn(expectedUser).when(this.keystoneV3TokenGenerator).getFederationUser(Mockito.anyMap());
 
         //exercise
-        OpenStackV3Token mappedToken1 = (OpenStackV3Token) this.mapper.map(token1);
-        OpenStackV3Token mappedToken2 = (OpenStackV3Token) this.mapper.map(token2);
+        OpenStackV3Token mappedToken1 = (OpenStackV3Token) this.mapper.map(user1);
+        OpenStackV3Token mappedToken2 = (OpenStackV3Token) this.mapper.map(user2);
 
         //verify
-        Assert.assertNotEquals(token1.getExtraAttributes(), token2.getExtraAttributes());
+        Assert.assertNotEquals(user1, user2);
         Assert.assertEquals(mappedToken1.getUserId(), mappedToken2.getUserId());
         Assert.assertEquals(mappedToken1.getTokenValue(), mappedToken2.getTokenValue());
     }

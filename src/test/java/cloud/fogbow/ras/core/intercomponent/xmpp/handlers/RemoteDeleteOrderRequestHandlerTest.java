@@ -89,7 +89,9 @@ public class RemoteDeleteOrderRequestHandlerTest {
     @Test
     public void testHandleWhenExceptionIsThrown() throws Exception {
         //set up
-        this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
+        FederationUser federationUser = new FederationUser("tokenProvider", "userId",
+                "userName", "tokenValue", new HashMap<>());
+        this.order = new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember",
                 "default", "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
         Mockito.doThrow(new FogbowException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),

@@ -32,7 +32,7 @@ public class OpenStackComputePlugin implements ComputePlugin {
     public static final String SERVERS = "/servers";
     public static final String ACTION = "action";
 
-    public static final String PROJECT_ID = "projectId";
+    private static final String PROJECT_ID = "projectId";
 
     protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";

@@ -51,7 +51,7 @@ public class OpenStackImagePluginTest {
         this.properties = Mockito.mock(Properties.class);
 
         HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
         FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
         this.localUserAttributes = new OpenStackV3Token(federationUser);
         this.plugin.setProperties(this.properties);
@@ -109,7 +109,6 @@ public class OpenStackImagePluginTest {
         List<Map<String, String>> generatedImages1 = generateImages(0, 100);
         List<Map<String, String>> generatedImages2 = generateImages(200, 100);
         List<Map<String, String>> generatedImages3 = generateImages(400, 100);
-
 
         String jsonResponse1 = getImagesJsonWithNext(generatedImages1, nextUrl1);
         String jsonResponse2 = getImagesJsonWithNext(generatedImages2, nextUrl2);

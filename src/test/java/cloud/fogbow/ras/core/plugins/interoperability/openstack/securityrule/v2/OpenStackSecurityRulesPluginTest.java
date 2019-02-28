@@ -88,7 +88,7 @@ public class OpenStackSecurityRulesPluginTest {
         this.openStackSecurityRulePlugin.setClient(this.openStackHttpClient);
 
         HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackComputePlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
         FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
         this.openStackV3Token = new OpenStackV3Token(federationUser);
     }

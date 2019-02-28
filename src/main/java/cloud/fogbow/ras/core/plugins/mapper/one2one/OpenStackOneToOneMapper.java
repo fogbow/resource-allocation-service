@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.mapper.one2one;
 
-import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
