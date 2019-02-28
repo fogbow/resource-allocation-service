@@ -45,7 +45,7 @@ RUN \
     cd ../authentication-service && as_build_number=$(git rev-parse --short 'HEAD') && \
     cd ../common && common_build_number=$(git rev-parse --short 'HEAD') && \
     cd /root/resource-allocation-service && \ 
-    echo "build_number=ras-$ras_build_number-as-$as_build_number-common-$common_build_number-(buzios)" > build)
+    echo "build_number=ras-$ras_build_number-as-$as_build_number-common-$common_build_number" > build)
 
 RUN \
   mvn dependency:sources
