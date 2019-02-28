@@ -52,37 +52,23 @@ public class OpenNebulaPublicIpPluginTest {
 	@Test
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		Mockito.doReturn(FAKE_IP_ADDRESS).when(this.plugin).getAvailableFixedIp(client);
+		Mockito.doReturn(FAKE_IP_ADDRESS).when(this.plugin).getAvailableFixedIp(Mockito.any(Client.class));
 
 		PublicIpOrder publicIpOrder = createPublicIpOrder();
 		String sgTemplate = generateSecurityGroupsTemplate(publicIpOrder.getId());
 
-		OneResponse sgResponse = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(SecurityGroup.allocate(Mockito.eq(client), Mockito.contains(sgTemplate)))
-				.willReturn(sgResponse);
-
 		String securityGroupsId = ID_VALUE_ONE;
-		Mockito.when(sgResponse.isError()).thenReturn(false);
-		Mockito.when(sgResponse.getMessage()).thenReturn(securityGroupsId);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.allocateSecurityGroup(Mockito.any(Client.class), Mockito.contains(sgTemplate)))
+				.willReturn(securityGroupsId);
 
 		String vnTemplate = generatePublicNetworkTemplate(FAKE_IP_ADDRESS);
-		OneResponse vnResponse = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.contains(vnTemplate)))
-				.willReturn(vnResponse);
-
 		String virtualNetworkId = ID_VALUE_ONE;
-		Mockito.when(vnResponse.isError()).thenReturn(false);
-		Mockito.when(vnResponse.getMessage()).thenReturn(virtualNetworkId);
+		BDDMockito.given(OpenNebulaClientUtil.allocateVirtualNetwork(Mockito.any(Client.class), Mockito.contains(vnTemplate)))
+				.willReturn(virtualNetworkId);
 
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString()))
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
 				.willReturn(virtualMachine);
 
 		String nicTemplate = generateNicTemplate();
@@ -103,12 +89,15 @@ public class OpenNebulaPublicIpPluginTest {
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).getAvailableFixedIp(Mockito.eq(client));
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateSecurityGroup(Mockito.eq(client), Mockito.eq(sgTemplate));
-		Mockito.verify(this.plugin, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client),
-				Mockito.eq(vnTemplate));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateSecurityGroup(Mockito.any(Client.class), Mockito.contains(sgTemplate));
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateVirtualNetwork(Mockito.any(Client.class), Mockito.contains(vnTemplate));
+		
+		Mockito.verify(this.plugin, Mockito.times(1)).getAvailableFixedIp(Mockito.any(Client.class));
 		Mockito.verify(virtualMachine, Mockito.times(1)).nicAttach(Mockito.eq(nicTemplate));
 	}
 	

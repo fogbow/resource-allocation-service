@@ -54,8 +54,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 	private static final String PUBLIC_NETWORK_BRIDGE_KEY = "public_network_bridge";
 	private static final String XPATH_EXPRESSION_FORMAT = "//VNET_POOL/VNET/TEMPLATE/LEASES[descendant::IP[text()='%s']]";
 
-	private static final int CHMOD_PERMISSION_744 = 744;
-
 	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
 	@Override
@@ -73,10 +71,10 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 		}
 		
 		String template = createSecurityGroupsTemplate(publicIpOrder);
-		String securityGroupsId = allocateSecurityGroup(client, template);
+		String securityGroupsId = OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 		
 		template = createPublicNetworkTemplate(publicIpOrder, securityGroupsId, fixedIp);
-		String virtualNetworkId = allocateVirtualNetwork(client, template);
+		String virtualNetworkId = OpenNebulaClientUtil.allocateVirtualNetwork(client, template);
 
 		template = createNicTemplate(virtualNetworkId);
 		VirtualMachine virtualMachine = attachNetworkInterfaceConnected(client, computeInstanceId, template);
@@ -248,30 +246,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 			throw new InvalidParameterException();
 		}
 		return virtualMachine;
-	}
-	
-	protected String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
-		OneResponse response = VirtualNetwork.allocate(client, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
-		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
-		return response.getMessage();
-	}
-
-	protected String allocateSecurityGroup(Client client, String template) throws InvalidParameterException {
-		OneResponse response = SecurityGroup.allocate(client, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_SECURITY_GROUPS, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
-		}
-		SecurityGroup.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
-		return response.getMessage();
 	}
 	
 	protected String getAvailableFixedIp(Client client) {
