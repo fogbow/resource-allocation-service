@@ -24,6 +24,7 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -41,7 +42,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 
 	private static final String ALL_PROTOCOLS = "ALL";
 	private static final String CARACTER_SEPARATOR = ",";
-	private static final String CLOUD_NAME = "opennebula";
 	private static final String DEFAULT_SECURITY_GROUP = "0";
 	private static final String DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE = "fw";
 	private static final String FIXED_PUBLIC_IP_ADDRESSES_KEY = "fixed_public_ip_addresses";
@@ -53,8 +53,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String PUBLIC_NETWORK_BRIDGE_KEY = "public_network_bridge";
 	private static final String XPATH_EXPRESSION_FORMAT = "//VNET_POOL/VNET/TEMPLATE/LEASES[descendant::IP[text()='%s']]";
-
-	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
 	@Override
 	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudToken cloudToken)
@@ -284,7 +282,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 	
 	protected String getEndpoint() {
 		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	
@@ -292,7 +290,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 		String opennebulaConfFilePath = HomeDir.getPath() 
 				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator 
-				+ CLOUD_NAME 
+				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
 				+ File.separator 
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		

@@ -21,6 +21,7 @@ import cloud.fogbow.ras.api.http.response.securityrules.Direction;
 import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
 import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -33,7 +34,6 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 	
 	private static final String CIDR_SLICE = "[/]";
-	private static final String CLOUD_NAME = "opennebula";
 	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
 	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
 	private static final String RANGE_PORT_SEPARATOR = ":";
@@ -42,7 +42,6 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
 
-	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 	protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
 	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 
@@ -269,12 +268,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 		String opennebulaConfFilePath = HomeDir.getPath() 
 				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator 
-				+ CLOUD_NAME 
+				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
 				+ File.separator 
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	

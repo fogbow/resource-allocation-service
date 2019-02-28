@@ -32,6 +32,7 @@ public class ConfigurationPropertyKeys {
     public static final String LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY =
             "local_user_credentials_mapper_plugin_class";
     public static final String TOKEN_GENERATOR_URL_KEY = "token_generator_url";
+    public static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
     // AS configuration
     public static final String AS_PORT_KEY = "as_port";

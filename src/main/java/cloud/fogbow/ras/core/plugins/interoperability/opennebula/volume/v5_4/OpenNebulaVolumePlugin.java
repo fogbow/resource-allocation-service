@@ -15,6 +15,7 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -29,15 +30,12 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
     
     private static final String BLOCK_DISK_TYPE = "BLOCK";
-    private static final String CLOUD_NAME = "opennebula";
     private static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
     private static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
     private static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
     
-    protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
-
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudToken cloudToken) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken.getTokenValue()));
@@ -96,7 +94,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 	
 	protected String getEndpoint() {
 		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	
@@ -104,7 +102,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 		String opennebulaConfFilePath = HomeDir.getPath() 
 				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator 
-				+ CLOUD_NAME 
+				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY
 				+ File.separator 
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		

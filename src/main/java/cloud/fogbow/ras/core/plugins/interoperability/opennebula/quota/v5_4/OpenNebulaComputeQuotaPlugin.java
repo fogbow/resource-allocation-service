@@ -14,13 +14,13 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudToken> {
 
-	private static final String CLOUD_NAME = "opennebula";
 	private static final String GROUPS_ID_PATH = "GROUPS/ID";
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
 	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
@@ -32,8 +32,6 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudTok
 	private static final int DEFAULT_RESOURCE_MAX_VALUE = Integer.MAX_VALUE;
 	private static final int VALUE_DEFAULT_QUOTA_OPENNEBULA = -1;
 	private static final int VALUE_UNLIMITED_QUOTA_OPENNEBULA = -2;
-	
-	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 	
 	@Override
 	public ComputeQuota getUserQuota(CloudToken cloudToken) throws FogbowException {
@@ -164,12 +162,12 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudTok
 		String opennebulaConfFilePath = HomeDir.getPath() 
 				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator 
-				+ CLOUD_NAME 
+				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
 				+ File.separator 
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	

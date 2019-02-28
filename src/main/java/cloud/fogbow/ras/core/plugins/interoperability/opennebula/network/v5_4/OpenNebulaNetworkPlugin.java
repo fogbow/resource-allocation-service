@@ -16,6 +16,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -31,7 +32,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaNetworkPlugin.class);
 
-	private static final String CLOUD_NAME = "opennebula";
 	private static final String DEFAULT_NETWORK_BRIDGE_KEY = "default_network_bridge";
 	private static final String DEFAULT_NETWORK_DESCRIPTION = "Virtual network created by %s";
 	private static final String DEFAULT_NETWORK_TYPE = "RANGED";
@@ -53,8 +53,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SECURITY_GROUP_VALID_POSITION = 1;
-
-	protected static final String OPENNEBULA_RPC_ENDPOINT_KEY = "opennebula_rpc_endpoint";
 
 	@Override
 	public String requestInstance(NetworkOrder networkOrder, CloudToken cloudToken) throws FogbowException {
@@ -229,7 +227,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 	
 	protected String getEndpoint() {
 		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	
@@ -237,7 +235,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudToken> {
 		String opennebulaConfFilePath = HomeDir.getPath() 
 				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator 
-				+ CLOUD_NAME 
+				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
 				+ File.separator 
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
