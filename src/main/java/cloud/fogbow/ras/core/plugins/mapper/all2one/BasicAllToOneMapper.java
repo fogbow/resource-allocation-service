@@ -6,7 +6,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.common.util.AuthenticationUtil;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 import java.util.Map;
