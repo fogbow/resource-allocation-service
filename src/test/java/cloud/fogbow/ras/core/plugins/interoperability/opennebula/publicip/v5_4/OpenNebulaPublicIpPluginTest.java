@@ -26,6 +26,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({VirtualNetwork.class, SecurityGroup.class})
@@ -259,14 +260,8 @@ public class OpenNebulaPublicIpPluginTest {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
-		String signature = null;
-		
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
-		
-		return token;
+
+		return new CloudToken(new FederationUser(provider, userId, userName, LOCAL_TOKEN_VALUE, new HashMap<>()));
 	}
 
 	private String generateNicTemplate() {

@@ -23,7 +23,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -61,13 +60,8 @@ public class RemoteGenericRequestHandlerTest {
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
 
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, this.provider);
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "federation-token-value");
-        FederationUser federationUser = new FederationUser(attributes);
-
+        this.federationUser = new FederationUser(this.provider, "fake-user-id",
+                "fake-user-name", "federation-token-value", new HashMap<>());
     }
 
     // test case: when the handle method is called passing a valid IQ object,

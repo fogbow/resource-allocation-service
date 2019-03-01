@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
@@ -26,6 +27,7 @@ public class CloudStackGenericRequestPluginTest {
     public static final String FAKE_TOKEN_VALUE = "foo" + CLOUDSTACK_SEPARATOR + "bar";
     public static final String FAKE_PROVIDER = "fake-provider";
     public static final String FAKE_USER_ID = "fake-user-id";
+    public static final String FAKE_NAME = "fake-name";
 
     private CloudToken fakeToken;
     private CloudStackGenericRequestPlugin plugin;
@@ -33,7 +35,7 @@ public class CloudStackGenericRequestPluginTest {
 
     @Before
     public void setUp() {
-        this.fakeToken = new CloudToken(FAKE_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+        this.fakeToken = new CloudToken(new FederationUser(FAKE_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, new HashMap<>()));
         this.client = Mockito.mock(CloudStackHttpClient.class);
 
         this.plugin = new CloudStackGenericRequestPlugin();

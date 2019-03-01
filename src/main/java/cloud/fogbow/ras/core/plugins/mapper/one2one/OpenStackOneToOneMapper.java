@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.mapper.one2one;
 
-import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.models.FederationUser;
@@ -15,12 +14,11 @@ public class OpenStackOneToOneMapper extends GenericOneToOneFederationToLocalMap
     }
 
     @Override
-    public OpenStackV3Token map(FederationUser token) throws FogbowException {
+    public OpenStackV3Token map(FederationUser federationUser) throws FogbowException {
         OpenStackV3Token openStackV3Token;
-        CloudToken mappedToken = super.map(token);
-        if (token.getTokenProvider().equals(super.getMemberId())) {
-            openStackV3Token = new OpenStackV3Token(mappedToken.getTokenProviderId(), mappedToken.getUserId(),
-                mappedToken.getTokenValue(), token.getAttribute(OpenStackConstants.Identity.PROJECT_KEY_JSON));
+        CloudToken mappedToken = super.map(federationUser);
+        if (federationUser.getTokenProviderId().equals(super.getMemberId())) {
+            openStackV3Token = new OpenStackV3Token(federationUser);
         } else {
             openStackV3Token = (OpenStackV3Token) mappedToken;
         }

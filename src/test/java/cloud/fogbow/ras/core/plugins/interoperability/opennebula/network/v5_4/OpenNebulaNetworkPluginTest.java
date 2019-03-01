@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -23,6 +24,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SecurityGroup.class, VirtualNetwork.class})
@@ -287,10 +289,8 @@ public class OpenNebulaNetworkPluginTest {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = FAKE_USER_ID;
 
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
+		FederationUser federationUser = new FederationUser(null, userId, null, tokenValue, new HashMap<>());
+		CloudToken token = new CloudToken(federationUser);
 		
 		return token;
 	}

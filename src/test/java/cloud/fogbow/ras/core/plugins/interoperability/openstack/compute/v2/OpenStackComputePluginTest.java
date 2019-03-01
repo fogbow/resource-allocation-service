@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -50,6 +51,7 @@ public class OpenStackComputePluginTest {
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
 
     private final int bestDisk = 8;
@@ -87,10 +89,10 @@ public class OpenStackComputePluginTest {
         this.responseNetworkIds.add(defaultNetworkId);
         this.responseNetworkIds.add(privateNetworkId);
 
-        String tenantId = "tenant-id";
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(OpenStackComputePlugin.PROJECT_ID, tenantId);
-        this.openStackV3CloudToken = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        HashMap<String, String> extraAttributes = new HashMap<>();
+        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
+        this.openStackV3CloudToken = new OpenStackV3Token(federationUser);
 
         this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
                 this.launchCommandGeneratorMock, this.clientMock));

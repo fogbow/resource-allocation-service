@@ -148,12 +148,7 @@ public class NetworkTest {
     }
 
     private NetworkOrder createNetworkOrder() throws UnexpectedException {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-name");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-token");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-user", "fake-name", "fake-token", new HashMap<>());
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
         networkOrder.setFederationUser(federationUser);

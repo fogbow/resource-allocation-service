@@ -166,16 +166,10 @@ public class VolumeTest {
     }
 
     private VolumeOrder createVolumeOrder() throws InvalidParameterException, UnexpectedException {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, FAKE_ID);
-        attributes.put(FogbowConstants.USER_NAME_KEY, FAKE_NAME);
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-token-value");
-        FederationUser federationUser = new FederationUser(attributes);
-
+        FederationUser federationUser = new FederationUser("token-provider", FAKE_ID,
+                FAKE_NAME, "federation-token-value", new HashMap<>());
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         volumeOrder.setFederationUser(federationUser);
-
         return volumeOrder;
     }
 

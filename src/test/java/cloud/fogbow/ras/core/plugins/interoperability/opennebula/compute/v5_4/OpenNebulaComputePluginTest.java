@@ -80,11 +80,13 @@ public class OpenNebulaComputePluginTest {
 			+ "        <IP>fake-ip-address-2</IP>\n" 
 			+ "    </NIC>\n" 
 			+ "</TEMPLATE>\n";
-	
+
+	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_USER_DATA = "fake-user-data";
+
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
 			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag") };
-	
+
 	private static final ArrayList<UserData> FAKE_LIST_USER_DATA = new ArrayList<>(Arrays.asList(FAKE_USER_DATA_ARRAY));
 
 	private static final int CPU_VALUE = 4;
@@ -724,13 +726,10 @@ public class OpenNebulaComputePluginTest {
 		String provider = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
-		
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
-		
-		return token;
+		String userName = FAKE_USER_NAME;
+
+		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
+		return new CloudToken(federationUser);
 	}
 	
 	private String generateTemplate(int choice, String ...args) {

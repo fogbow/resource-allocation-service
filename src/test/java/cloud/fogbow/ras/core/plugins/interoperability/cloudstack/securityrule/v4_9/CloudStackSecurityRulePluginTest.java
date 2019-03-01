@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -55,7 +56,9 @@ public class CloudStackSecurityRulePluginTest {
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_SIGNATURE = "fake-signature";
-    private static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+
+    private static final FederationUser FAKE_USER = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>());
+    private static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_USER);
 
     private CloudStackSecurityRulePlugin plugin;
     private CloudStackHttpClient client;
@@ -87,7 +90,7 @@ public class CloudStackSecurityRulePluginTest {
         String instanceId = "instanceId";
         publicIpOrder.setInstanceId(instanceId);
         String tokenValue = "x" + CloudStackConstants.KEY_VALUE_SEPARATOR + "y";
-        CloudToken localUserAttributes = new CloudToken("", "", tokenValue);
+        CloudToken localUserAttributes  = new CloudToken(new FederationUser("", "", "", tokenValue, new HashMap<>()));
 
         // create firewall rules response
         int portFrom = 20;
@@ -104,7 +107,8 @@ public class CloudStackSecurityRulePluginTest {
                 Mockito.anyString(), Mockito.any(CloudToken.class)))
                 .thenReturn(listFirewallRulesResponse);
 
-        Assert.assertEquals(this.client.doGetRequest("", new CloudToken("provider", "user", "token")), listFirewallRulesResponse);
+        CloudToken token  = new CloudToken(new FederationUser("provider", "user", "name", "token", new HashMap<>()));
+        Assert.assertEquals(this.client.doGetRequest("", token), listFirewallRulesResponse);
 
         CloudStackPublicIpPlugin.setOrderidToInstanceIdMapping(publicIpOrder.getId(), instanceId);
 
@@ -123,7 +127,7 @@ public class CloudStackSecurityRulePluginTest {
         // setup
         Order publicIpOrder = new PublicIpOrder();
         String tokenValue = "x" + CloudStackConstants.KEY_VALUE_SEPARATOR + "y";
-        CloudToken localUserAttributes = new CloudToken("", "",  tokenValue);
+        CloudToken localUserAttributes  = new CloudToken(new FederationUser("", "", "", tokenValue, new HashMap<>()));
 
         HttpResponseException badRequestException = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
         Mockito.doThrow(badRequestException).when(this.client).doGetRequest(
@@ -152,7 +156,7 @@ public class CloudStackSecurityRulePluginTest {
     public void testGetFirewallRulesNetworkOrder() throws FogbowException {
         // setup
         Order networkOrder = new NetworkOrder();
-        CloudToken localUserAttributes = new CloudToken("provider", "user", "token");
+        CloudToken localUserAttributes  = new CloudToken(new FederationUser("provider", "user", "name", "token", new HashMap<>()));
 
         // exercise
         this.plugin.getSecurityRules(networkOrder, localUserAttributes);
@@ -162,11 +166,11 @@ public class CloudStackSecurityRulePluginTest {
     @Test(expected = UnexpectedException.class)
     public void testGetFirewallRulesOrderIrregular() throws FogbowException {
         // setup
-        Order irregularkOrder = new ComputeOrder();
-        CloudToken localUserAttributes = new CloudToken("provider", "user", "token");
+        Order irregularOrder = new ComputeOrder();
+        CloudToken localUserAttributes  = new CloudToken(new FederationUser("provider", "user", "name", "token", new HashMap<>()));
 
         // exercise
-        this.plugin.getSecurityRules(irregularkOrder, localUserAttributes);
+        this.plugin.getSecurityRules(irregularOrder, localUserAttributes);
     }
 
     // test case: Creating a security rule with egress direction, should raise an UnsupportedOperationException.

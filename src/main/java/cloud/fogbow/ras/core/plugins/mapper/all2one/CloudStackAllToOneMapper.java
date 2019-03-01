@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
-import cloud.fogbow.as.core.tokengenerator.plugins.cloudstack.CloudStackTokenGeneratorPlugin;
+import cloud.fogbow.as.core.federationidentity.plugins.cloudstack.CloudStackFederationIdentityProviderPlugin;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -13,6 +13,6 @@ public class CloudStackAllToOneMapper extends BasicAllToOneMapper implements Fed
         HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl();
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.tokenGeneratorPlugin = new CloudStackTokenGeneratorPlugin(client, serviceUrl, provider);
+        this.federationIdentityProviderPlugin = new CloudStackFederationIdentityProviderPlugin(client, serviceUrl, provider);
     }
 }
