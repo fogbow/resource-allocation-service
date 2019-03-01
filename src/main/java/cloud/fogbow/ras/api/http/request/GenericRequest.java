@@ -30,7 +30,7 @@ public class GenericRequest {
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = true, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
-            @RequestBody cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
+            @RequestBody cloud.fogbow.common.util.connectivity.GenericRequest genericRequest)
             throws FogbowException {
 
         GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(cloudName,

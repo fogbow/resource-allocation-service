@@ -5,7 +5,7 @@ import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.common.util.cloud.opennebula.OpenNebulaClientFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.user.User;

@@ -20,7 +20,7 @@ import cloud.fogbow.ras.core.models.*;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import cloud.fogbow.common.util.connectivity.GenericRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

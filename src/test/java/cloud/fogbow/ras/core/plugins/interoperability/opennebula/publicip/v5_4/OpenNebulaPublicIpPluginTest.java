@@ -9,7 +9,7 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.common.util.cloud.opennebula.OpenNebulaClientFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

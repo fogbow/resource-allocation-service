@@ -5,7 +5,6 @@ public class Messages {
     public static class Exception {
         public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
         public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
-        public static final String CLASS_SHOULD_BE_CLONEABLE = "%s should be cloneable";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
@@ -69,7 +68,6 @@ public class Messages {
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
-        public static final String UNABLE_TO_GENERATE_SIGNATURE = "Unable to generate signature.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
     }
@@ -97,8 +95,6 @@ public class Messages {
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
-        public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
-		public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }
 
     public static class Error {
@@ -107,28 +103,16 @@ public class Messages {
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
-        public static final String ERROR_WHILE_CREATING_CLIENT = "Error while creating client.";
-        public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
-        public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
-        public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
-        public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
-        public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
-        public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
-        public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
-        public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
-        public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
         public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE = "Error while removing volume image: %s, with response: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
-        public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
-        public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";
         public static final String FIXED_IP_EXCEEDED = "All fixed ip's are in use.";
