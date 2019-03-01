@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
-import cloud.fogbow.common.util.AuthenticationUtil;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ PublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class, 
+@PrepareForTest({ PublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class,
 	DatabaseManager.class, PacketSenderHolder.class, RemoteGetCloudNamesRequest.class, RSAUtil.class, 
 	ServiceAsymmetricKeysHolder.class, SharedOrderHolders.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
