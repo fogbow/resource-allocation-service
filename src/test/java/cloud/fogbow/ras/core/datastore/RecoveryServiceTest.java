@@ -135,7 +135,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         attributes.put(ID_KEY, FAKE_ID_1);
         attributes.put(NAME_KEY, FAKE_INSTANCE_NAME);
         attributes.put(TOKEN_KEY, FAKE_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
 
         computeOrder = new ComputeOrder(
                 FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
@@ -157,12 +157,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test
     public void testAddComputeOrderSettingState() throws UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(PROVIDER_KEY, FAKE_TOKEN_PROVIDER);
-        attributes.put(ID_KEY, FAKE_ID_1);
-        attributes.put(NAME_KEY, FAKE_INSTANCE_NAME);
-        attributes.put(TOKEN_KEY, FAKE_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
 
         computeOrder = new ComputeOrder(
                 FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
@@ -198,12 +193,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test
     public void testAddOrdersOfAllTypes() throws UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(PROVIDER_KEY, FAKE_TOKEN_PROVIDER);
-        attributes.put(ID_KEY, FAKE_ID_1);
-        attributes.put(NAME_KEY, FAKE_INSTANCE_NAME);
-        attributes.put(TOKEN_KEY, FAKE_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
 
         computeOrder = new ComputeOrder(
                 FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
@@ -240,12 +230,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testSaveExistentOrder() throws UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(PROVIDER_KEY, FAKE_TOKEN_PROVIDER);
-        attributes.put(ID_KEY, FAKE_ID_1);
-        attributes.put(NAME_KEY, FAKE_INSTANCE_NAME);
-        attributes.put(TOKEN_KEY, FAKE_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
 
         computeOrder = new ComputeOrder(
                 FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
@@ -262,12 +247,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testUpdateNonExistentOrder() throws UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(PROVIDER_KEY, FAKE_TOKEN_PROVIDER);
-        attributes.put(ID_KEY, FAKE_ID_1);
-        attributes.put(NAME_KEY, FAKE_INSTANCE_NAME);
-        attributes.put(TOKEN_KEY, FAKE_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
 
         computeOrder = new ComputeOrder(
                 FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,

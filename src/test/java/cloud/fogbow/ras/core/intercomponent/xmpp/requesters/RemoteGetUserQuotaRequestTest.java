@@ -38,13 +38,9 @@ public class RemoteGetUserQuotaRequestTest {
     private ResourceType resourceType;
 
     @Before
-    public void setUp() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-user-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user-name");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "fake-federation-token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+    public void setUp() {
+        this.federationUser = new FederationUser("token-provider", "fake-user-id",
+                "fake-user-name", "federation-token-value", new HashMap<>());
 
         this.provider = "provider";
         this.resourceType = ResourceType.COMPUTE;

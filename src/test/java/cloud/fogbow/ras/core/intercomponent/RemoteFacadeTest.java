@@ -512,13 +512,11 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	@Test(expected = UnauthorizedRequestException.class) // verify
 	public void testAuthorizeOrderThrowsUnauthorizedRequestException() throws Exception {
 		// set up
-		Map<String, String> ownerAttributes = new HashMap<String, String>();
-		ownerAttributes.put(ID_KEY, FAKE_OWNER_USER_ID_VALUE);
-		FederationUser ownerUser = new FederationUser(ownerAttributes);
+		FederationUser ownerUser = new FederationUser(null, FAKE_OWNER_USER_ID_VALUE,
+				FAKE_OWNER_USER_ID_VALUE, null, new HashMap<>());
 
-		Map<String, String> requesterAttributes = new HashMap<String, String>();
-		requesterAttributes.put(ID_KEY, FAKE_REQUESTER_USER_ID_VALUE);
-		FederationUser requesterUser = new FederationUser(requesterAttributes);
+		FederationUser requesterUser = new FederationUser(null, FAKE_REQUESTER_USER_ID_VALUE,
+				FAKE_REQUESTER_USER_ID_VALUE, null, new HashMap<>());
 
 		String cloudName = null;
 		String provider = null;
@@ -648,10 +646,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private FederationUser createFederationUser() {
-		Map<String, String> attributes = new HashMap<>();
-		attributes.put(ID_KEY, FAKE_REQUESTER_USER_ID_VALUE);
-		FederationUser federationUser = new FederationUser(attributes);
-		return federationUser;
+		return new FederationUser(null, FAKE_REQUESTER_USER_ID_VALUE,
+				FAKE_REQUESTER_USER_ID_VALUE, null, new HashMap<>());
 	}
 
 	private CloudConnector mockCloudConnector(CloudConnectorFactory cloudConnectorFactory) {

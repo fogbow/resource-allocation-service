@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,6 +23,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.response.securityrules.Direction;
 import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
 import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
@@ -42,8 +45,9 @@ public class OpenNebulaSecurityRulePluginTest {
     private static final String FAKE_PROVIDER = "fake-provider";
     private static final String FAKE_SECURITY_GROUP_NAME = "fake-security-group-name";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+    private static final String FAKE_USER_NAME = "fakeuser-name";
     private static final String FORMAT_CONTENT = "%s%s%s";
+    private static final String LOCAL_TOKEN_VALUE = "fake-token-value";
 	private static final String IP_ONE = "10.10.0.0";
 	private static final String IP_TWO = "20.20.0.0";
 	private static final String IP_TREE = "30.30.0.0";
@@ -233,6 +237,7 @@ public class OpenNebulaSecurityRulePluginTest {
 
 		// created by opennebula deploy
 		String defaultSecurityGroupId = DEFAULT_SECURITY_GROUP_ID;
+		
 		// created by Fogbow (RAS)
 		String securityGroupId = FAKE_ID_VALUE;
 		String securityGroupXMLContent = String.format(FORMAT_CONTENT, defaultSecurityGroupId,
@@ -551,10 +556,19 @@ public class OpenNebulaSecurityRulePluginTest {
 	
 	private CloudToken createCloudToken() {
 		String provider = FAKE_PROVIDER;
-		String tokenValue = FAKE_TOKEN_VALUE;
 		String userId = FAKE_USER_ID;
-		CloudToken token = new CloudToken(provider, userId, tokenValue);
-		return token;
+		String userName = FAKE_USER_NAME;
+		String tokenValue = LOCAL_TOKEN_VALUE;
+		Map<String, String> extraAttributes = new HashMap<>();
+
+		FederationUser federationUser = new FederationUser(
+				provider, 
+				userId, 
+				userName, 
+				tokenValue, 
+				extraAttributes);
+		
+		return new CloudToken(federationUser);
 	}
 
 }

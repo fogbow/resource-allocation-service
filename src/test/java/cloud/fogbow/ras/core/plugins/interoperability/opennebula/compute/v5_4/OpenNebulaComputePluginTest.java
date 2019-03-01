@@ -2,8 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.junit.Before;
@@ -77,11 +79,13 @@ public class OpenNebulaComputePluginTest {
 			+ "        <IP>fake-ip-address-2</IP>\n" 
 			+ "    </NIC>\n" 
 			+ "</TEMPLATE>\n";
-	
+
 	private static final String FAKE_USER_DATA = "fake-user-data";
+	private static final String FAKE_TAG = "fake-tag";
+
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
-			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag") };
-	
+			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
+
 	private static final ArrayList<UserData> FAKE_LIST_USER_DATA = new ArrayList<>(Arrays.asList(FAKE_USER_DATA_ARRAY));
 
 	private static final int CPU_VALUE_1 = 1;
@@ -623,15 +627,19 @@ public class OpenNebulaComputePluginTest {
 	
 	private CloudToken createCloudToken() {
 		String provider = null;
-		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
+		String userName = null;
+		String tokenValue = LOCAL_TOKEN_VALUE;
+		Map<String, String> extraAttributes = new HashMap<>();
+
+		FederationUser federationUser = new FederationUser(
+				provider, 
+				userId, 
+				userName, 
+				tokenValue, 
+				extraAttributes);
 		
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
-		
-		return token;
+		return new CloudToken(federationUser);
 	}
 	
 	private String generateTemplate(int choice, String ...args) {

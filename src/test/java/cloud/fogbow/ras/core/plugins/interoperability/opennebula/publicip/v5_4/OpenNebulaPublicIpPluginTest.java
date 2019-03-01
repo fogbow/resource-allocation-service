@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -217,10 +220,19 @@ public class OpenNebulaPublicIpPluginTest {
 
 	private CloudToken createCloudToken() {
 		String provider = null;
-		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
-		CloudToken token = new CloudToken(provider, userId, tokenValue);
-		return token;
+		String userName = null;
+		String tokenValue = LOCAL_TOKEN_VALUE;
+		Map<String, String> extraAttributes = new HashMap<>();
+
+		FederationUser federationUser = new FederationUser(
+				provider, 
+				userId, 
+				userName, 
+				tokenValue, 
+				extraAttributes);
+		
+		return new CloudToken(federationUser);
 	}
 
 	private String generateNicTemplate() {

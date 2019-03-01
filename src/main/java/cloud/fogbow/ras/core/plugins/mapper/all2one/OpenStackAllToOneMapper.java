@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
-import cloud.fogbow.as.core.tokengenerator.plugins.openstack.v3.OpenStackTokenGeneratorPlugin;
+import cloud.fogbow.as.core.federationidentity.plugins.openstack.v3.OpenStackFederationIdentityProviderPlugin;
 import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -18,16 +20,12 @@ public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements Fede
         HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl() + OpenStackConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.tokenGeneratorPlugin = new OpenStackTokenGeneratorPlugin(client, serviceUrl, provider);
+        this.federationIdentityProviderPlugin = new OpenStackFederationIdentityProviderPlugin(client, serviceUrl, provider);
     }
 
     @Override
-    public CloudToken decorateToken(CloudToken token, Map<String, String> attributes) {
-        String projectId = attributes.get(OpenStackConstants.Identity.PROJECT_KEY_JSON);
-        String provider = token.getTokenProviderId();
-        String userId = token.getUserId();
-        String tokenValue = token.getTokenValue();
-        OpenStackV3Token decoratedToken = new OpenStackV3Token(provider, userId, tokenValue, projectId);
+    public CloudToken decorateToken(CloudToken token, FederationUser federationUser) throws UnexpectedException {
+        OpenStackV3Token decoratedToken = new OpenStackV3Token(federationUser);
         return decoratedToken;
     }
 }

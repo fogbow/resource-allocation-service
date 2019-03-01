@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
-import cloud.fogbow.common.util.AuthenticationUtil;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.RSAUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;

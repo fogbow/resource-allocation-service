@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,6 +22,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -29,7 +32,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 public class OpenNebulaComputeQuotaPluginTest {
 
 	private static final String EIGHT_CPU_VALUE = "8";
+	private static final String FAKE_PROVIDER = "fake-provider";
 	private static final String FAKE_USER_ID = "fake-user-id";
+	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FIVE_VMS = "5";
 	private static final String GROUPS_ID_PATH = "GROUPS/ID";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
@@ -39,24 +44,23 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String MEMORY_VALUE_64MB = "65536";
 	private static final String ONE_ID_VALUE = "1";
 	private static final String ONE_VM_VALUE = "1";
-	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
-	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
-	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
-	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
 	private static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
+	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
 	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
-	private static final String SIX_CPU_VALUE = "6";
-	private static final String SIXTEEN_CPU_VALUE = "16";
-	private static final String TEN_VMS_VALUE = "10";
-	private static final String TWENTY_VMS_VALUE = "20";
-	private static final String TWO_CPU_VALUE = "2";
-	private static final String VALUE_DEFAULT_QUOTA = "-1";
-	private static final String VALUE_UNLIMITED_QUOTA = "-2";
+	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
+	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
+	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
+	private static final String CPU_VALUE_2 = "2";
+	private static final String CPU_VALUE_6 = "6";
+	private static final String CPU_VALUE_16 = "16";
+	private static final String VMS_VALUE_10 = "10";
+	private static final String VMS_VALUE_20 = "20";
+	private static final String DEFAULT_QUOTA_VALUE = "-1";
+	private static final String UNLIMITED_QUOTA_VALUE = "-2";
 
 	private static final int INSTANCES = 4;
 	private static final int RAM = 30720;
 	private static final int VCPU = 6;
-	
 
 	private OpenNebulaComputeQuotaPlugin plugin;
 
@@ -91,7 +95,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(user.info()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
-		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(TWO_CPU_VALUE);
+		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(CPU_VALUE_2);
 		Mockito.when(user.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(MEMORY_VALUE_2MB);
 		Mockito.when(user.xpath(QUOTA_VMS_USED_PATH)).thenReturn(ONE_VM_VALUE);
 		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(EIGHT_CPU_VALUE);
@@ -103,12 +107,12 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Group group = Mockito.mock(Group.class);
 		BDDMockito.given(OpenNebulaClientUtil.getGroup(Mockito.eq(client), Mockito.anyInt())).willReturn(group);
 
-		Mockito.when(group.xpath(QUOTA_CPU_USED_PATH)).thenReturn(SIX_CPU_VALUE);
+		Mockito.when(group.xpath(QUOTA_CPU_USED_PATH)).thenReturn(CPU_VALUE_6);
 		Mockito.when(group.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(MEMORY_VALUE_16MB);
-		Mockito.when(group.xpath(QUOTA_VMS_USED_PATH)).thenReturn(TEN_VMS_VALUE);
-		Mockito.when(group.xpath(QUOTA_CPU_PATH)).thenReturn(SIXTEEN_CPU_VALUE);
+		Mockito.when(group.xpath(QUOTA_VMS_USED_PATH)).thenReturn(VMS_VALUE_10);
+		Mockito.when(group.xpath(QUOTA_CPU_PATH)).thenReturn(CPU_VALUE_16);
 		Mockito.when(group.xpath(QUOTA_MEMORY_PATH)).thenReturn(MEMORY_VALUE_64MB);
-		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(TWENTY_VMS_VALUE);
+		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(VMS_VALUE_20);
 
 		ComputeAllocation expected = new ComputeAllocation(VCPU, RAM, INSTANCES);
 		
@@ -161,8 +165,8 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(null);
 		Mockito.when(user.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(null);
 		Mockito.when(user.xpath(QUOTA_VMS_USED_PATH)).thenReturn(null);
-		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(VALUE_DEFAULT_QUOTA);
-		Mockito.when(user.xpath(QUOTA_MEMORY_PATH)).thenReturn(VALUE_DEFAULT_QUOTA);
+		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(DEFAULT_QUOTA_VALUE);
+		Mockito.when(user.xpath(QUOTA_MEMORY_PATH)).thenReturn(DEFAULT_QUOTA_VALUE);
 		Mockito.when(user.xpath(QUOTA_VMS_PATH)).thenReturn(ONE_VM_VALUE);
 
 		Mockito.when(user.xpath(GROUPS_ID_PATH)).thenReturn(ONE_ID_VALUE);
@@ -173,7 +177,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(group.xpath(QUOTA_CPU_USED_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_VMS_USED_PATH)).thenReturn(null);
-		Mockito.when(group.xpath(QUOTA_CPU_PATH)).thenReturn(VALUE_UNLIMITED_QUOTA);
+		Mockito.when(group.xpath(QUOTA_CPU_PATH)).thenReturn(UNLIMITED_QUOTA_VALUE);
 		Mockito.when(group.xpath(QUOTA_MEMORY_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(null);
 
@@ -235,9 +239,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(group.xpath(QUOTA_CPU_USED_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_VMS_USED_PATH)).thenReturn(null);
-		Mockito.when(group.xpath(QUOTA_CPU_PATH)).thenReturn(VALUE_UNLIMITED_QUOTA);
+		Mockito.when(group.xpath(QUOTA_CPU_PATH)).thenReturn(UNLIMITED_QUOTA_VALUE);
 		Mockito.when(group.xpath(QUOTA_MEMORY_PATH)).thenReturn(null);
-		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(VALUE_UNLIMITED_QUOTA);
+		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(UNLIMITED_QUOTA_VALUE);
 
 		CloudToken token = createCloudToken();
 		
@@ -254,12 +258,21 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(token));
 		Mockito.verify(user, Mockito.times(7)).xpath(Mockito.anyString());
 	}
-	
+
 	private CloudToken createCloudToken() {
-		String provider = null;
-		String tokenValue = LOCAL_TOKEN_VALUE;
+		String provider = FAKE_PROVIDER;
 		String userId = FAKE_USER_ID;
-		CloudToken token = new CloudToken(provider, userId, tokenValue);
-		return token;
+		String userName = FAKE_USER_NAME;
+		String tokenValue = LOCAL_TOKEN_VALUE;
+		Map<String, String> extraAttributes = new HashMap<>();
+
+		FederationUser federationUser = new FederationUser(
+				provider, 
+				userId, 
+				userName, 
+				tokenValue, 
+				extraAttributes);
+		
+		return new CloudToken(federationUser);
 	}
 }

@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -26,6 +27,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -36,6 +38,7 @@ public class CloudStackComputeQuotaPluginTest {
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_DOMAIN_ID = "fake-domain-id";
     private static final String REQUEST_FORMAT = "%s?command=%s";
@@ -75,7 +78,7 @@ public class CloudStackComputeQuotaPluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudToken(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_TOKEN_VALUE);
+        this.token = new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, new HashMap<>()));
     }
 
     // test case: When calling the getUserQuota method, HTTP GET requests must be

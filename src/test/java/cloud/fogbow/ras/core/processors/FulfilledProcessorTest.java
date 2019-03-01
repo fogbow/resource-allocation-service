@@ -344,12 +344,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createOrder() {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        FederationUser federationUser = new FederationUser(attributes);
+        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id",
+                "fake-user", "token-value", new HashMap<>());;
 
         UserData userData = Mockito.mock(UserData.class);
 

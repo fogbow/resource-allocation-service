@@ -291,12 +291,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	}
 
 	private Order createOrder() {
-		Map<String, String> attributes = new HashMap<>();
-		attributes.put(FogbowConstants.PROVIDER_ID_KEY, FAKE_TOKEN_PROVIDER);
-		attributes.put(FogbowConstants.USER_ID_KEY, FAKE_USER_ID);
-		attributes.put(FogbowConstants.USER_NAME_KEY, FAKE_USER_NAME);
-		attributes.put(FogbowConstants.TOKEN_VALUE_KEY, FAKE_FEDERATION_USER_TOKEN_VALUE);
-		FederationUser federationUser = new FederationUser(attributes);
+		FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USER_NAME, FAKE_FEDERATION_USER_TOKEN_VALUE, new HashMap<>());
 
 
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));

@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +20,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -261,15 +265,19 @@ public class OpenNebulaNetworkPluginTest {
 	
 	private CloudToken createCloudToken() {
 		String provider = null;
-		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = FAKE_USER_ID;
+		String userName = null;
+		String tokenValue = LOCAL_TOKEN_VALUE;
+		Map<String, String> extraAttributes = new HashMap<>();
 
-		CloudToken token = new CloudToken(
-				provider,
-				userId,
-				tokenValue);
+		FederationUser federationUser = new FederationUser(
+				provider, 
+				userId, 
+				userName, 
+				tokenValue, 
+				extraAttributes);
 		
-		return token;
+		return new CloudToken(federationUser);
 	}
 	
 	private String generateNetworkTemplate() {
