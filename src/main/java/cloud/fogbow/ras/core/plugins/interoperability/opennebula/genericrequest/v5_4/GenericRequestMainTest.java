@@ -10,6 +10,8 @@ import java.util.Scanner;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
+import cloud.fogbow.common.util.GsonHolder;
+
 // this class is temporary for performing manual tests in the OpenNebula API,
 // and will be removed at the end of the plugin implementation.
 public class GenericRequestMainTest {
@@ -67,26 +69,26 @@ public class GenericRequestMainTest {
 		Class resourceClassType = oneResource.getClassType();
 		System.out.println("ClassType returned: " + resourceClassType.getName());
 
-		List classes = new ArrayList<>();
-		List values = new ArrayList<>();
-		
 		// Instanciate a resource...
 		Object instance = null;
-		if (id != null) {
+        if (request.getOneResource().endsWith("Pool")) {
+        	instance = oneResource.createInstance(client);
+			System.out.println("Instance returned: " + instance.toString());
+        } else if (request.getResourceId() != null) {
 			instance = oneResource.createInstance(Integer.parseInt(request.getResourceId()), client);
 			System.out.println("Instance returned: " + instance.toString());
-		} else {
-			if (oneResource.equals(OneResource.CLIENT)) {
+		} else if (oneResource.equals(OneResource.CLIENT)) {
 				instance = (Client) oneResource.createInstance(secret, request.getUrl());
 				System.out.println("Instance returned: " + instance.toString());
-			}
-			if (!request.getParameters().isEmpty()) {
-				classes.add(Client.class);
-				values.add(client);
-			}
 		}
-
-		// Working with map of parameters...
+		
+        // Working with map of parameters...
+        List classes = new ArrayList<>();
+		List values = new ArrayList<>();
+		if (request.getResourceId() != null && !request.getOneResource().endsWith("Pool") && !request.getParameters().isEmpty()) {
+			classes.add(Client.class);
+			values.add(client);
+		}
 		for (Map.Entry<String, String> entries : request.getParameters().entrySet()) {
 			OneParameter oneParameter = OneParameter.getValueOf(entries.getKey());
 			classes.add(oneParameter.getClassType());
@@ -100,13 +102,19 @@ public class GenericRequestMainTest {
 		// Invoke generic method...
 		Object response = OneGenericMethod.invoke(instance, method, values);
 
-		OneResponse oneResponse = (OneResponse) response;
-		System.out.println("Response error status returned: " + oneResponse.isError());
-		System.out.println("Response boolean message returned: " + oneResponse.getBooleanMessage());
-		System.out.println("Response int message returned: " + oneResponse.getIntMessage());
-		System.out.println("Response message returned: " + oneResponse.getMessage());
-		System.out.println("Response error message returned: " + oneResponse.getErrorMessage());
-
+		// Requesting a response...
+		OneResponse oneResponse;
+		if (response instanceof OneResponse) {
+			oneResponse = (OneResponse) response;
+			System.out.println("Response error status returned: " + oneResponse.isError());
+			System.out.println("Response boolean message returned: " + oneResponse.getBooleanMessage());
+			System.out.println("Response int message returned: " + oneResponse.getIntMessage());
+			System.out.println("Response message returned: " + oneResponse.getMessage());
+			System.out.println("Response error message returned: " + oneResponse.getErrorMessage());
+		} else {
+			String message = GsonHolder.getInstance().toJson(response);
+			System.out.println(new OpenNebulaGenericRequestResponse(message, false));	
+		}
 	}
 
 }

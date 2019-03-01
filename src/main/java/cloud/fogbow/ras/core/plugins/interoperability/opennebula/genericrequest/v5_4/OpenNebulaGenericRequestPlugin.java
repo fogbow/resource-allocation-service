@@ -11,6 +11,7 @@ import org.opennebula.client.OneResponse;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
@@ -18,54 +19,67 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 
 public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<CloudToken, OpenNebulaGenericRequest> {
 	
+	private static final String RESOURCE_POOL_SUFFIX = "Pool";
+
 	@Override
 	public GenericRequestResponse redirectGenericRequest(OpenNebulaGenericRequest genericRequest, CloudToken cloudToken)
 			throws FogbowException {
         
-		OpenNebulaGenericRequest request = (OpenNebulaGenericRequest) genericRequest;
-        if (request.getOneResource() == null || request.getOneMethod() == null) {
-        	throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-		}
-
 		Client client = OpenNebulaClientUtil.createClient(genericRequest.getUrl(), cloudToken.getTokenValue());
+
+		OpenNebulaGenericRequest request = (OpenNebulaGenericRequest) genericRequest;
+		if (request.getOneResource() == null || request.getOneMethod() == null) {
+			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+		}
+		
+		// Generate class type of resource
 		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
 		Class resourceClassType = oneResource.getClassType();
 
-		
-		List classes = new ArrayList<>();
-		List values = new ArrayList<>();
-
+		// Instantiate a resource
 		Object instance = null;
-		if (request.getResourceId() != null) {
+		if (request.getOneResource().endsWith(RESOURCE_POOL_SUFFIX)) {
+			instance = oneResource.createInstance(client);
+		} else if (request.getResourceId() != null) {
 			instance = oneResource.createInstance(Integer.parseInt(request.getResourceId()), client);
-		} else {
-			if (oneResource.equals(OneResource.CLIENT)) {
-				instance = (Client) oneResource.createInstance(cloudToken.getTokenValue(), request.getUrl());
-			}
-			if (!request.getParameters().isEmpty()) {
-				classes.add(Client.class);
-				values.add(client);
-			}
+		} else if (oneResource.equals(OneResource.CLIENT)) {
+			instance = (Client) oneResource.createInstance(cloudToken.getTokenValue(), request.getUrl());
 		}
 		
+		// Working with map of parameters
+        List classes = new ArrayList<>();
+		List values = new ArrayList<>();
+		if (request.getResourceId() != null 
+				&& !request.getOneResource().endsWith(RESOURCE_POOL_SUFFIX) 
+				&& !request.getParameters().isEmpty()) {
+			
+			classes.add(Client.class);
+			values.add(client);
+		}
 		for (Map.Entry<String, String> entries : request.getParameters().entrySet()) {
 			OneParameter oneParameter = OneParameter.getValueOf(entries.getKey());
 			classes.add(oneParameter.getClassType());
 			values.add(oneParameter.getValue(entries.getValue()));
 		}
 		
+		// Generate generic method
 		Method method = OneGenericMethod.generate(resourceClassType, request.getOneMethod(), classes);
-		OneResponse response = (OneResponse) OneGenericMethod.invoke(instance, method, values);
-
-		return this.getOneGenericRequestResponse(response);
-	}
-
-	private OpenNebulaGenericRequestResponse getOneGenericRequestResponse(OneResponse oneResponse) {
-	    boolean isError = oneResponse.isError();
-		String message = isError ? oneResponse.getErrorMessage() : oneResponse.getMessage();
-
-		OpenNebulaGenericRequestResponse response = new OpenNebulaGenericRequestResponse(message, isError);
-		return response;
+		
+		// Invoke generic method
+		Object object = OneGenericMethod.invoke(instance, method, values);
+		
+		// Requesting a response
+		String message;
+		if (object instanceof OneResponse) {
+			OneResponse oneResponse = (OneResponse) object;
+			boolean isError = oneResponse.isError();
+			message = isError ? oneResponse.getErrorMessage() : oneResponse.getMessage();
+			return new OpenNebulaGenericRequestResponse(message, isError);
+		} else {
+			message = GsonHolder.getInstance().toJson(object);
+			return new OpenNebulaGenericRequestResponse(message, false);
+		}
+		
 	}
 
 }

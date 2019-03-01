@@ -1050,7 +1050,7 @@ public enum OneParameter {
 	
 	protected Integer parseToInteger(String arg) {
 		try {
-			return parseToInteger(arg);
+			return Integer.parseInt(arg);
 		} catch (NumberFormatException e) {
 			return null;
 		}
