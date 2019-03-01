@@ -39,7 +39,7 @@ class GeneralConfigurations:
   #
   #internal configurations
   #
-  #general extraAttributes
+  #general attributes
   json_header = {"Content-Type": "application/json"}
   status_endpoint = 'status'
   provider = 'provider'
@@ -56,7 +56,7 @@ class GeneralConfigurations:
   type_attachment = 'attachment'
   type_image = 'imageId'
 
-  #compute extraAttributes
+  #compute attributes
   computes_endpoint = 'computes/'
   quota_endpoint = 'quota/'
   allocation_endpoint = 'allocationMode/'
@@ -65,16 +65,16 @@ class GeneralConfigurations:
   instances_quota = 'instances'
   networksId_key = 'networkIds'
 
-  #network extraAttributes
+  #network attributes
   networks_endpoint = 'networks/'
 
-  #volume extraAttributes
+  #volume attributes
   volumes_endpoint = 'volumes/'
 
-  #attachment extraAttributes
+  #attachment attributes
   attachments_endpoint = 'attachments/'
   source = 'source'
   target = 'target'
 
-  #images extraAttributes
+  #images attributes
   images_endpoint = 'images/'

@@ -115,10 +115,6 @@ public abstract class Order extends StorableBean implements Serializable {
     }
 
     public FederationUser getFederationUser() {
-        if (this.federationUser == null) {
-            // TODO ARNETT REMOVE THIS
-            throw new IllegalArgumentException("FederationUser is NULL");
-        }
         return this.federationUser;
     }
 
