@@ -5,7 +5,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.RSAUtil;
+import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.api.http.response.*;
@@ -87,7 +87,7 @@ public class ApplicationFacade {
     public String getPublicKey() throws UnexpectedException {
         // There is no need to authenticate the user or authorize this operation
         try {
-            return RSAUtil.savePublicKey(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
+            return CryptoUtil.savePublicKey(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
         } catch (IOException | GeneralSecurityException e) {
             throw new UnexpectedException(e.getMessage(), e);
         }

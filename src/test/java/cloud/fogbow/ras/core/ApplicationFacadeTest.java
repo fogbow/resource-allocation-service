@@ -6,7 +6,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.RSAUtil;
+import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.api.http.response.*;
@@ -38,7 +38,7 @@ import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class,
-	DatabaseManager.class, PacketSenderHolder.class, RemoteGetCloudNamesRequest.class, RSAUtil.class, 
+	DatabaseManager.class, PacketSenderHolder.class, RemoteGetCloudNamesRequest.class, CryptoUtil.class,
 	ServiceAsymmetricKeysHolder.class, SharedOrderHolders.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
@@ -145,8 +145,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.when(sakHolder.getPublicKey()).thenReturn(keyRSA);
 
-		PowerMockito.mockStatic(RSAUtil.class);
-		PowerMockito.when(RSAUtil.savePublicKey(keyRSA)).thenReturn(FAKE_PUBLIC_KEY);
+		PowerMockito.mockStatic(CryptoUtil.class);
+		PowerMockito.when(CryptoUtil.savePublicKey(keyRSA)).thenReturn(FAKE_PUBLIC_KEY);
 
 		// exercise
 		String publicKey = this.facade.getPublicKey();
@@ -157,8 +157,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PowerMockito.verifyStatic(ServiceAsymmetricKeysHolder.class, Mockito.times(1));
 		ServiceAsymmetricKeysHolder.getInstance();
 
-		PowerMockito.verifyStatic(RSAUtil.class, Mockito.times(1));
-		RSAUtil.savePublicKey(Mockito.eq(keyRSA));
+		PowerMockito.verifyStatic(CryptoUtil.class, Mockito.times(1));
+		CryptoUtil.savePublicKey(Mockito.eq(keyRSA));
 
 		Assert.assertNotNull(publicKey);
 	}	
