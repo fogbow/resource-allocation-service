@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest
 import org.opennebula.client.host.Host;
 import org.w3c.dom.Node;
 
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+
 public enum OneParameter {
 
 	ACTION("action") {
@@ -37,11 +39,13 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
 	ARGS("args") {
+		private static final String SEPARATOR = ",";
+		
 		@Override
 		public Class getClassType() {
 			return Object[].class;
@@ -49,8 +53,11 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			Object[] args = null;
+			if (arg.contains(SEPARATOR)) {
+				args = arg.split(SEPARATOR);
+			}
+			return args;
 		}
 	},
 	
@@ -86,7 +93,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -98,7 +105,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -122,7 +129,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -138,7 +145,7 @@ public enum OneParameter {
 		}
 	},
 	
-	DS_ID("dsId") {
+	DS_ID("ds_id") {
 		@Override
 		public Class getClassType() {
 			return int.class;
@@ -146,7 +153,19 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
+		}
+	},
+	
+	DSID("dsId") {
+		@Override
+		public Class getClassType() {
+			return int.class;
+		}
+
+		@Override
+		public Object getValue(String arg) {
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -158,7 +177,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -182,7 +201,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -206,7 +225,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -230,7 +249,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -242,7 +261,30 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
+		}
+	},
+	
+	GIDS("gids") {
+		private static final String SEPARATOR = ",";
+		private Integer[] gids;
+		
+		@Override
+		public Class getClassType() {
+			return Integer[].class;
+		}
+
+		@Override
+		public Object getValue(String arg) {
+			String[] args = null;
+			this.gids = null;
+			if (arg.contains(SEPARATOR)) {
+				args = arg.split(SEPARATOR);
+				for (int i = 0; i < args.length; i++) {
+					this.gids[i] = parseToInteger(args[i]);
+				}
+			}
+			return this.gids;
 		}
 	},
 	
@@ -254,7 +296,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -266,7 +308,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -278,7 +320,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -290,7 +332,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -314,7 +356,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -326,7 +368,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -350,7 +392,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -434,7 +476,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -506,7 +548,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -530,8 +572,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			// TODO Auto-generated method stub
-			return null;
+			return generateNode(arg);
 		}
 	},
 	
@@ -543,7 +584,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -579,7 +620,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -591,7 +632,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -603,7 +644,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -627,7 +668,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -639,7 +680,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -651,7 +692,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -663,7 +704,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -795,7 +836,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -807,7 +848,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -819,7 +860,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -843,7 +884,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -867,11 +908,23 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
 	TOKEN("token") {
+		@Override
+		public Class getClassType() {
+			return String.class;
+		}
+
+		@Override
+		public Object getValue(String arg) {
+			return arg;
+		}
+	},
+	
+	TYPE("type") {
 		@Override
 		public Class getClassType() {
 			return String.class;
@@ -891,7 +944,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -939,7 +992,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	},
 	
@@ -963,7 +1016,7 @@ public enum OneParameter {
 
 		@Override
 		public Object getValue(String arg) {
-			return Integer.parseInt(arg);
+			return parseToInteger(arg);
 		}
 	};
 	
@@ -989,5 +1042,18 @@ public enum OneParameter {
 	public abstract Class getClassType();
 	
 	public abstract Object getValue(String arg);
+	
+	protected Node generateNode(String arg) {
+		OpenNebulaUnmarshallerContents xmlUnmarshaller = new OpenNebulaUnmarshallerContents(arg);
+		return xmlUnmarshaller.getFirstNodeOfDocument();
+	}
+	
+	protected Integer parseToInteger(String arg) {
+		try {
+			return parseToInteger(arg);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
 	
 }

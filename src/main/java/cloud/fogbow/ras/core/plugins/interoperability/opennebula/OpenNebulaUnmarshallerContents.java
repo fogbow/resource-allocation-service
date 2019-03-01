@@ -73,4 +73,8 @@ public class OpenNebulaUnmarshallerContents {
 		}
 		return contextList;
 	}
+	
+	public Node getFirstNodeOfDocument() {
+		return this.document.getFirstChild();
+	}
 }
