@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest
 import org.opennebula.client.host.Host;
 import org.w3c.dom.Node;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 
 public enum OneParameter {
 
@@ -1044,7 +1044,7 @@ public enum OneParameter {
 	public abstract Object getValue(String arg);
 	
 	protected Node generateNode(String arg) {
-		OpenNebulaUnmarshallerContents xmlUnmarshaller = new OpenNebulaUnmarshallerContents(arg);
+		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(arg);
 		return xmlUnmarshaller.getFirstNodeOfDocument();
 	}
 	

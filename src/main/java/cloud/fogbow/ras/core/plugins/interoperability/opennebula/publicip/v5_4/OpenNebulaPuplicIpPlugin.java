@@ -31,7 +31,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetworkTemplate.LeaseIp;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
@@ -227,8 +227,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 	private String getNicIdFromContenOf(VirtualMachine virtualMachine) {
 		OneResponse response = virtualMachine.info();
 		String xml = response.getMessage();
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.getContentOfLastElement(OpenNebulaTagNameConstants.NIC_ID);
+		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
+		String content = xmlUnmarshaller.getContentOfLastElement(OpenNebulaTagNameConstants.NIC_ID);
 		return content;
 	}
 	
@@ -255,13 +255,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudToken> {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, response.getErrorMessage()));
 		}
 		String xml = response.getMessage();
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
+		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
 		String content = null;
 		String expression = null;
 		for (int i = 0; i < sliceFixedIp.length; i++) {
 			content = sliceFixedIp[i];
 			expression = String.format(XPATH_EXPRESSION_FORMAT, content);
-			if (!unmarshallerContents.containsExpressionContext(expression)) {
+			if (!xmlUnmarshaller.containsExpressionContext(expression)) {
 				return content;
 			}
 		}

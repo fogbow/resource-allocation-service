@@ -35,7 +35,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 
@@ -266,8 +266,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudToken> {
 		String state = virtualMachine.lcmStateStr();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
 		
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		List<String> ipAddresses = unmarshallerContents.getContextListOf(NIC_IP_EXPRESSION);
+		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
+		List<String> ipAddresses = xmlUnmarshaller.getContextListOf(NIC_IP_EXPRESSION);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		ComputeInstance computeInstance = new ComputeInstance(

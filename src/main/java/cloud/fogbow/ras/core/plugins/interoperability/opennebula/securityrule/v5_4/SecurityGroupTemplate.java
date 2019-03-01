@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -9,7 +9,7 @@ import java.util.List;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = TEMPLATE)
-public class SecurityGroupTemplate extends OpenNebulaMarshallerTemplate {
+public class SecurityGroupTemplate extends OpenNebulaMarshaller {
 
 	public static final String RANGE_FORMAT = "%s:s%";
 	

@@ -28,7 +28,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 
 public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> {
 
@@ -102,8 +102,8 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudToken> 
     private String getDiskIdFromContenOf(VirtualMachine virtualMachine) {
 		OneResponse response = virtualMachine.info();
 		String xml = response.getMessage();
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.getContentOfLastElement(OpenNebulaTagNameConstants.DISK_ID);
+		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
+		String content = xmlUnmarshaller.getContentOfLastElement(OpenNebulaTagNameConstants.DISK_ID);
 		return content;
 	}
 
