@@ -13,6 +13,6 @@ public class CloudStackAllToOneMapper extends BasicAllToOneMapper implements Fed
         HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl();
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.federationIdentityProviderPlugin = new CloudStackFederationIdentityProviderPlugin(client, serviceUrl, provider);
+        this.federationIdentityProviderPlugin = new CloudStackFederationIdentityProviderPlugin(serviceUrl, provider);
     }
 }

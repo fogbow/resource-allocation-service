@@ -11,8 +11,6 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
-import java.util.Map;
-
 public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
 
     public OpenStackAllToOneMapper(String confFile) {
@@ -20,7 +18,7 @@ public class OpenStackAllToOneMapper extends BasicAllToOneMapper implements Fede
         HttpRequestClientUtil client =  new HttpRequestClientUtil();
         String serviceUrl = super.getTokenGeneratorUrl() + OpenStackConstants.Identity.V3_TOKENS_ENDPOINT_PATH;
         String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.federationIdentityProviderPlugin = new OpenStackFederationIdentityProviderPlugin(client, serviceUrl, provider);
+        this.federationIdentityProviderPlugin = new OpenStackFederationIdentityProviderPlugin(serviceUrl, provider);
     }
 
     @Override
