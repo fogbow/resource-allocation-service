@@ -1,8 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Volume;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -30,8 +29,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.security.InvalidParameterException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mockito.Mockito.times;
 
@@ -160,16 +157,16 @@ public class VolumeTest {
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, FAKE_FEDERATION_TOKEN_VALUE);
+        headers.set(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, FAKE_FEDERATION_TOKEN_VALUE);
 
         return headers;
     }
 
     private VolumeOrder createVolumeOrder() throws InvalidParameterException, UnexpectedException {
-        FederationUser federationUser = new FederationUser("token-provider", FAKE_ID,
-                FAKE_NAME, "federation-token-value", new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_ID, FAKE_NAME, "token-provider"
+        );
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
-        volumeOrder.setFederationUser(federationUser);
+        volumeOrder.setSystemUser(systemUser);
         return volumeOrder;
     }
 

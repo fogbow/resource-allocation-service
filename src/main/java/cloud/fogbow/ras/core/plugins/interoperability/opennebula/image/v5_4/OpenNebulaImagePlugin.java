@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Image;
@@ -28,8 +28,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin {
 	}
 
 	@Override
-	public Map<String, String> getAllImages(CloudToken localUserAttributes) throws FogbowException {
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+	public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
+		Client client = this.factory.createClient(cloudUser.getToken());
 		ImagePool imagePool = this.factory.createImagePool(client);
 
 		Map<String, String> allImages = new HashMap<>();
@@ -40,9 +40,9 @@ public class OpenNebulaImagePlugin implements ImagePlugin {
 	}
 
 	@Override
-	public Image getImage(String imageId, CloudToken localUserAttributes) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, localUserAttributes.getTokenValue()));
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+	public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudUser.getToken()));
+		Client client = this.factory.createClient(cloudUser.getToken());
 		ImagePool imagePool = this.factory.createImagePool(client);
 		
 		for (org.opennebula.client.image.Image image : imagePool) {

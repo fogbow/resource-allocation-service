@@ -1,5 +1,5 @@
 package cloud.fogbow.ras.api.http;
 
 public class CommonKeys {
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String SYSTEM_USER_TOKEN_HEADER_KEY = "systemUserToken";
 }

@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -51,83 +51,83 @@ public class RemoteFacade {
     public void activateOrder(String requestingMember, Order order) throws FogbowException {
         // The user has already been authenticated by the requesting member.
         checkOrderConsistency(requestingMember, order);
-        authorizeOrder(order.getFederationUser(), order.getCloudName(), Operation.CREATE, order.getType(), order);
+        authorizeOrder(order.getSystemUser(), order.getCloudName(), Operation.CREATE, order.getType(), order);
         OrderStateTransitioner.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String requestingMember, String orderId, FederationUser federationUser, ResourceType resourceType) throws FogbowException {
+    public Instance getResourceInstance(String requestingMember, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting member.
         checkOrderConsistency(requestingMember, order);
-        authorizeOrder(federationUser, order.getCloudName(), Operation.GET, resourceType, order);
+        authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
-    public void deleteOrder(String requestingMember, String orderId, FederationUser federationUser, ResourceType resourceType) throws FogbowException {
+    public void deleteOrder(String requestingMember, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting member.
         checkOrderConsistency(requestingMember, order);
-        authorizeOrder(federationUser, order.getCloudName(), Operation.DELETE, resourceType, order);
+        authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(orderId);
     }
 
-    public Quota getUserQuota(String requestingMember, String cloudName, FederationUser federationUser, ResourceType resourceType) throws FogbowException {
+    public Quota getUserQuota(String requestingMember, String cloudName, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GET_USER_QUOTA.getValue(), resourceType.getValue());
+        this.authorizationController.authorize(systemUser, cloudName, Operation.GET_USER_QUOTA.getValue(), resourceType.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
-        return cloudConnector.getUserQuota(federationUser, resourceType);
+        return cloudConnector.getUserQuota(systemUser, resourceType);
     }
 
-    public Image getImage(String requestingMember, String cloudName, String imageId, FederationUser federationUser) throws FogbowException {
+    public Image getImage(String requestingMember, String cloudName, String imageId, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(systemUser, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
-        return cloudConnector.getImage(imageId, federationUser);
+        return cloudConnector.getImage(imageId, systemUser);
     }
 
-    public Map<String, String> getAllImages(String requestingMember, String cloudName, FederationUser federationUser) throws FogbowException {
+    public Map<String, String> getAllImages(String requestingMember, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationController.authorize(systemUser, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
-        return cloudConnector.getAllImages(federationUser);
+        return cloudConnector.getAllImages(systemUser);
     }
 
     public GenericRequestResponse genericRequest(String requestingMember, String cloudName, GenericRequest genericRequest,
-                                                 FederationUser federationUser) throws FogbowException {
+                                                 SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, cloudName, Operation.GENERIC_REQUEST.getValue(), ResourceType.GENERIC_RESOURCE.getValue());
+        this.authorizationController.authorize(systemUser, cloudName, Operation.GENERIC_REQUEST.getValue(), ResourceType.GENERIC_RESOURCE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
-        return cloudConnector.genericRequest(genericRequest, federationUser);
+        return cloudConnector.genericRequest(genericRequest, systemUser);
     }
 
-    public List<String> getCloudNames(String requestingMember, FederationUser federationUser) throws UnexpectedException, UnauthorizedRequestException {
+    public List<String> getCloudNames(String requestingMember, SystemUser systemUser) throws UnexpectedException, UnauthorizedRequestException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, Operation.GET.getValue(), ResourceType.CLOUD_NAMES.getValue());
+        this.authorizationController.authorize(systemUser, Operation.GET.getValue(), ResourceType.CLOUD_NAMES.getValue());
         return this.cloudListController.getCloudNames();
     }
 
     public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
-                                     FederationUser federationUser) throws FogbowException {
+                                     SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, order.getCloudName(), Operation.CREATE.getValue(), ResourceType.SECURITY_RULE.getValue());
-        return securityRuleController.createSecurityRule(order, securityRule, federationUser);
+        this.authorizationController.authorize(systemUser, order.getCloudName(), Operation.CREATE.getValue(), ResourceType.SECURITY_RULE.getValue());
+        return securityRuleController.createSecurityRule(order, securityRule, systemUser);
     }
 
     public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
-                                                  FederationUser federationUser) throws FogbowException {
+                                                  SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(federationUser, order.getCloudName(), Operation.GET_ALL.getValue(), ResourceType.SECURITY_RULE.getValue());
-        return securityRuleController.getAllSecurityRules(order, federationUser);
+        this.authorizationController.authorize(systemUser, order.getCloudName(), Operation.GET_ALL.getValue(), ResourceType.SECURITY_RULE.getValue());
+        return securityRuleController.getAllSecurityRules(order, systemUser);
     }
 
     public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
-                                   FederationUser federationUser) throws FogbowException {
-        this.authorizationController.authorize(federationUser, cloudName, Operation.DELETE.getValue(), ResourceType.SECURITY_RULE.getValue());
-        this.securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, federationUser);
+                                   SystemUser systemUser) throws FogbowException {
+        this.authorizationController.authorize(systemUser, cloudName, Operation.DELETE.getValue(), ResourceType.SECURITY_RULE.getValue());
+        this.securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, systemUser);
     }
 
     public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowException {
@@ -193,15 +193,15 @@ public class RemoteFacade {
         }
     }
 
-    protected void authorizeOrder(FederationUser requester, String cloudName, Operation operation, ResourceType type,
-                                Order order) throws UnexpectedException, UnauthorizedRequestException,
+    protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
+                                  Order order) throws UnexpectedException, UnauthorizedRequestException,
             InstanceNotFoundException {
         // Check if requested type matches order type
         if (!order.getType().equals(type))
             throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
         // Check whether requester owns order
-        FederationUser orderOwner = order.getFederationUser();
-        if (!orderOwner.getUserId().equals(requester.getUserId())) {
+        SystemUser orderOwner = order.getSystemUser();
+        if (!orderOwner.getId().equals(requester.getId())) {
             throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
         }
         this.authorizationController.authorize(requester, cloudName, operation.getValue(), type.getValue());

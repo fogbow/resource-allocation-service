@@ -6,8 +6,8 @@
 //import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 //import cloud.fogbow.ras.core.models.Operation;
 //import cloud.fogbow.ras.core.models.ResourceType;
-//import cloud.fogbow.common.models.FederationUser;
-//import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+//import cloud.fogbow.common.models.SystemUser;
+//import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 //import org.junit.Assert;
 //import org.junit.Before;
 //import org.junit.Ignore;
@@ -23,13 +23,13 @@
 //
 //    private AuthorizationPlugin authorizationPluginMock;
 //    private AuthorizationController authorizationController;
-//    private FederationToLocalMapperPlugin federationToLocalMapperPluginMock;
+//    private SystemToCloudMapperPlugin federationToLocalMapperPluginMock;
 //
 //    @Before
 //    public void setUp() {
 //        this.authorizationPluginMock = Mockito.mock(AuthorizationPlugin.class);
 //        this.authorizationController =  new AuthorizationController(this.authorizationPluginMock);
-//        this.federationToLocalMapperPluginMock = Mockito.mock(FederationToLocalMapperPlugin.class);
+//        this.federationToLocalMapperPluginMock = Mockito.mock(SystemToCloudMapperPlugin.class);
 //    }
 //
 //    @Test(expected = UnauthorizedRequestException.class)
@@ -43,7 +43,7 @@
 //    @Test
 //    public void testAuthenticate() throws UnexpectedException, UnauthorizedRequestException {
 //        //set up
-//        FederationUser federationToken = new FederationUser(new HashMap<>());
+//        SystemUser federationToken = new SystemUser(new HashMap<>());
 //        Mockito.when(this.authorizationPluginMock.isAuthorized(federationToken, Mockito.anyString(), Mockito.anyString()))
 //            .thenReturn(true);
 //
@@ -59,10 +59,10 @@
 //    @Test(expected = UnauthenticatedUserException.class)
 //    public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException, UnavailableProviderException {
 //        //set up
-//        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString(), Mockito.any(FederationUser.class))).thenReturn(false);
+//        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString(), Mockito.any(SystemUser.class))).thenReturn(false);
 //
 //        //exercise/verify
-//        this.aaaController.authenticate(Mockito.anyString(), Mockito.any(FederationUser.class));
+//        this.aaaController.authenticate(Mockito.anyString(), Mockito.any(SystemUser.class));
 //    }
 //
 //    //test case: Check if authorize method throws no exception when the operation is valid.
@@ -70,12 +70,12 @@
 //    public void testAuthorizeOnInstanceType() throws UnauthorizedRequestException {
 //        //set up
 //        Mockito.when(this.authorizationPluginMock.isAuthorized(
-//                Mockito.any(FederationUser.class), Mockito.anyString(),
+//                Mockito.any(SystemUser.class), Mockito.anyString(),
 //                Mockito.any(Operation.class),
 //                Mockito.any(ResourceType.class))).thenReturn(true);
 //
 //        //exercise/verify
-//        this.aaaController.authorize(Mockito.anyString(), Mockito.any(FederationUser.class),
+//        this.aaaController.authorize(Mockito.anyString(), Mockito.any(SystemUser.class),
 //                Mockito.any(Operation.class), Mockito.any(ResourceType.class));
 //    }
 //
@@ -84,12 +84,12 @@
 //    public void testAuthorize() throws FogbowException {
 //        //set up
 //        Mockito.when(this.authorizationPluginMock.isAuthorized(
-//                Mockito.any(FederationUser.class), Mockito.anyString(),
+//                Mockito.any(SystemUser.class), Mockito.anyString(),
 //                Mockito.any(Operation.class),
 //                Mockito.any(ResourceType.class))).thenReturn(true);
 //
 //        //exercise/verify
-//        this.aaaController.authorize(Mockito.anyString(), Mockito.any(FederationUser.class),
+//        this.aaaController.authorize(Mockito.anyString(), Mockito.any(SystemUser.class),
 //                Mockito.any(Operation.class), Mockito.any(ResourceType.class));
 //    }
 //
@@ -124,11 +124,11 @@
 //    @Test
 //    public void testGetFederationUser() throws InvalidTokenException {
 //        //set up
-//        FederationUser expectedFederationUser = new FederationUser("fake-token-provider", "token-value", "id", "fake-name");
+//        SystemUser expectedFederationUser = new SystemUser("fake-token-provider", "token-value", "id", "fake-name");
 //        Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenReturn(expectedFederationUser);
 //
 //        //exercise
-//        FederationUser aaFederationUser = this.aaaController.getFederationUser(Mockito.anyString());
+//        SystemUser aaFederationUser = this.aaaController.getCloudUser(Mockito.anyString());
 //
 //        //verify
 //        Assert.assertEquals(expectedFederationUser, aaFederationUser);
@@ -141,6 +141,6 @@
 //        Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenThrow(new InvalidTokenException());
 //
 //        //exercise/verify
-//        this.aaaController.getFederationUser(Mockito.anyString());
+//        this.aaaController.getCloudUser(Mockito.anyString());
 //    }
 //}

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
@@ -24,13 +24,13 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         String cloudName = unmarshalCloudName(iq);
         GenericRequest genericRequest = unmarshalGenericRequest(iq);
-        FederationUser federationUser = unmarshalFederationUser(iq);
+        SystemUser systemUser = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
             GenericRequestResponse genericRequestResponse = RemoteFacade.getInstance().
-                    genericRequest(iq.getFrom().toBareJID(), cloudName, genericRequest, federationUser);
+                    genericRequest(iq.getFrom().toBareJID(), cloudName, genericRequest, systemUser);
             updateResponse(response, genericRequestResponse);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -46,12 +46,12 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
         return cloudName;
     }
 
-    private FederationUser unmarshalFederationUser(IQ iq) {
+    private SystemUser unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = GsonHolder.getInstance().fromJson(federationUserElement.getText(),
-                FederationUser.class);
-        return federationUser;
+        SystemUser systemUser = GsonHolder.getInstance().fromJson(federationUserElement.getText(),
+                SystemUser.class);
+        return systemUser;
     }
 
     private GenericRequest unmarshalGenericRequest(IQ iq) {

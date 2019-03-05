@@ -14,10 +14,10 @@ import java.sql.Timestamp;
 public class AuditableRequest extends StorableBean {
 
     private static final String USER_ID_COLUMN_NAME = "user_id";
-    private static final String TOKEN_PROVIDER_ID_COLUMN_NAME = "token_provider_id";
+    private static final String SYSTEM_IDENTITY_PROVIDER_ID_COLUMN_NAME = "identity_provider_id";
     private static final String RESPONSE_COLUMN_NAME = "response";
 
-    private static final int TOKEN_PROVIDER_ID_MAX_SIZE = 255;
+    private static final int SYSTEM_IDENTITY_PROVIDER_ID_MAX_SIZE = 255;
     private static final int USER_ID_MAX_SIZE = 255;
     private static final int RESPONSE_MAX_SIZE = 255;
 
@@ -43,20 +43,20 @@ public class AuditableRequest extends StorableBean {
     @Column(name = USER_ID_COLUMN_NAME)
     private String userId;
 
-    @Size(max = TOKEN_PROVIDER_ID_MAX_SIZE)
-    @Column(name = TOKEN_PROVIDER_ID_COLUMN_NAME)
-    private String tokenProviderId;
+    @Size(max = SYSTEM_IDENTITY_PROVIDER_ID_MAX_SIZE)
+    @Column(name = SYSTEM_IDENTITY_PROVIDER_ID_COLUMN_NAME)
+    private String identityProviderId;
 
     @Size(max = RESPONSE_MAX_SIZE)
     @Column(name = RESPONSE_COLUMN_NAME)
     private String response;
 
-    public AuditableRequest(Timestamp timestamp, Operation operation, ResourceType resourceType, String userId, String tokenProviderId, String response) {
+    public AuditableRequest(Timestamp timestamp, Operation operation, ResourceType resourceType, String userId, String identityProviderId, String response) {
         this.timestamp = timestamp;
         this.operation = operation;
         this.resourceType = resourceType;
         this.userId = userId;
-        this.tokenProviderId = tokenProviderId;
+        this.identityProviderId = identityProviderId;
         this.response = response;
     }
 
@@ -68,7 +68,7 @@ public class AuditableRequest extends StorableBean {
     @PrePersist
     private void checkColumnsSizes() {
         this.userId = treatValue(this.userId, USER_ID_COLUMN_NAME, USER_ID_MAX_SIZE);
-        this.tokenProviderId = treatValue(this.tokenProviderId, TOKEN_PROVIDER_ID_COLUMN_NAME, TOKEN_PROVIDER_ID_MAX_SIZE);
+        this.identityProviderId = treatValue(this.identityProviderId, SYSTEM_IDENTITY_PROVIDER_ID_COLUMN_NAME, SYSTEM_IDENTITY_PROVIDER_ID_MAX_SIZE);
         this.response = treatValue(this.response, RESPONSE_COLUMN_NAME, RESPONSE_MAX_SIZE);
     }
 }

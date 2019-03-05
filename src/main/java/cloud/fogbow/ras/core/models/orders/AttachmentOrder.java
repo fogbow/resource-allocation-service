@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -45,9 +45,9 @@ public class AttachmentOrder extends Order {
         this(null, null, providingMember, cloudName, computeId, volumeId, device);
     }
 
-    public AttachmentOrder(FederationUser federationUser, String requestingMember,
+    public AttachmentOrder(SystemUser systemUser, String requestingMember,
                            String providingMember, String cloudName, String computeId, String volumeId, String device) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.computeId = computeId;
         this.volumeId = volumeId;
         this.device = device;

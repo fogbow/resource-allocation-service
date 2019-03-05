@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -37,12 +37,12 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
     }
 
 	@Override
-	public String requestInstance(AttachmentOrder attachmentOrder, CloudToken localUserAttributes) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes));
+	public String requestInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser));
 		String virtualMachineId = attachmentOrder.getComputeId();
 		String imageId = attachmentOrder.getVolumeId();
 
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 		
 		CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
 				.imageId(imageId)
@@ -58,14 +58,14 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
 	}
 
 	@Override
-	public void deleteInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public void deleteInstance(String attachmentInstanceId, CloudUser cloudUser) throws FogbowException {
 		
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, localUserAttributes));
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, cloudUser));
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		int virtualMachineId = Integer.parseInt(instanceIds[0]);
 		int diskId = Integer.parseInt(instanceIds[2]);
 
-		Client client = factory.createClient(localUserAttributes.getTokenValue());
+		Client client = factory.createClient(cloudUser.getToken());
 		OneResponse response = VirtualMachine.diskDetach(client, virtualMachineId, diskId);
 		if (response.isError()) {
 			String message = response.getErrorMessage(); 
@@ -75,13 +75,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin {
 	}
 
 	@Override
-	public AttachmentInstance getInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public AttachmentInstance getInstance(String attachmentInstanceId, CloudUser cloudUser) throws FogbowException {
 		
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		String virtualMachineId = instanceIds[0];
 		String imageId = instanceIds[1];
 
-		Client client = factory.createClient(localUserAttributes.getTokenValue());
+		Client client = factory.createClient(cloudUser.getToken());
 
 		ImagePool imagePool = this.factory.createImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(imageId));

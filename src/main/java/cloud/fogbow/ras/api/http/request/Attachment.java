@@ -35,13 +35,13 @@ public class Attachment {
     public ResponseEntity<ResourceId> createAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Attachment attachment,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-            String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), federationTokenValue);
+            String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(attachmentId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -52,14 +52,14 @@ public class Attachment {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     @ApiOperation(value = ApiDocumentation.Attachment.GET_OPERATION)
     public ResponseEntity<List<InstanceStatus>> getAllAttachmentsStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> attachmentInstanceStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.ATTACHMENT);
+                ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.ATTACHMENT);
             return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -72,14 +72,14 @@ public class Attachment {
     public ResponseEntity<AttachmentInstance> getAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, attachmentId));
             AttachmentInstance attachmentInstance =
-                ApplicationFacade.getInstance().getAttachment(attachmentId, federationTokenValue);
+                ApplicationFacade.getInstance().getAttachment(attachmentId, systemUserToken);
             return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -92,13 +92,13 @@ public class Attachment {
     public ResponseEntity<Boolean> deleteAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, attachmentId));
-            ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
+            ApplicationFacade.getInstance().deleteAttachment(attachmentId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

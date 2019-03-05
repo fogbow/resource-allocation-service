@@ -25,7 +25,7 @@ public class CloudListController {
 
         for (String cloud : cloudNamesList.split(",")) {
             cloud = cloud.trim();
-            // Here we populate the cache of the CloudConnectorFactory and, at the same time, check if all
+            // Here we populate the list of clouds configured and, at the same time, check if all
             // clouds have been correctly configured. If not, the RAS won't even start, and will throw a
             // fatal exception.
             CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloud);

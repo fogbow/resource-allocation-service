@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -43,12 +43,12 @@ public class OpenNebulaVolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public String requestInstance(VolumeOrder volumeOrder, CloudToken localUserAttributes) throws FogbowException {
+	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
 		
 		String volumeName = volumeOrder.getName();
 		int volumeSize = volumeOrder.getVolumeSize();
 
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 
 		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
 				.name(volumeName)
@@ -65,9 +65,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public VolumeInstance getInstance(String volumeInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
 		
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 		ImagePool imagePool = this.factory.createImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
 
@@ -80,9 +80,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public void deleteInstance(String volumeInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public void deleteInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
 
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 		ImagePool imagePool = this.factory.createImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
 		OneResponse response = image.delete();

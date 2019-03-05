@@ -38,14 +38,15 @@ public class Messages {
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
         public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
+        public static final String SYSTEM_USER_TYPE_MISMATCH = "The system user type is not the expected one.";
         public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
-        public static final String TOO_BIG_PUBLIC_KEY = "Too big public key.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER = "Unable to retrieve response from providing member: %s.";
+        public static final String UNABLE_TO_MAP_SYSTEM_USER = "System user is not one-to-one mappable.";
         public static final String UNABLE_TO_MATCH_REQUIREMENTS = "Unable to match requirements.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -55,10 +56,11 @@ public class Messages {
     public static class Fatal {
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
-        public static final String EMPTY_PROPERTY_MAP = "Empty property map.";
+        public static final String EMPTY_PROPERTY_MAP = "Empty property getCloudUser.";
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String NEUTRON_ENDPOINT_NOT_FOUND = "Neutron endpoint not found.";
         public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in ras.conf file";
+        public static final String UNABLE_TO_FIND_CLASS_S = "Unable to find class %s.";
     }
 
     public static class Warn {

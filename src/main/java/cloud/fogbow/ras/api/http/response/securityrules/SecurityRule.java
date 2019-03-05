@@ -3,7 +3,6 @@ package cloud.fogbow.ras.api.http.response.securityrules;
 import java.util.Objects;
 
 public class SecurityRule {
-
     private String instanceId;
     private String cidr;
     private int portFrom;

@@ -28,13 +28,13 @@ public class GenericRequest {
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = true, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = true, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
             @RequestBody cloud.fogbow.common.util.connectivity.GenericRequest genericRequest)
             throws FogbowException {
 
         GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
-                memberId, genericRequest, federationTokenValue);
+                memberId, genericRequest, systemUserToken);
         return new ResponseEntity<>(genericRequestResponse, HttpStatus.OK);
     }
 }

@@ -155,7 +155,7 @@ public class ImageTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }

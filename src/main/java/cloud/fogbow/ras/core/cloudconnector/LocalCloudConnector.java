@@ -4,8 +4,8 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.Messages;
@@ -23,7 +23,7 @@ import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.common.util.connectivity.GenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
@@ -35,7 +35,7 @@ import java.util.Map;
 public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
-    private FederationToLocalMapperPlugin mapperPlugin;
+    private SystemToCloudMapperPlugin mapperPlugin;
     private PublicIpPlugin publicIpPlugin;
     private AttachmentPlugin attachmentPlugin;
     private ComputePlugin computePlugin;
@@ -50,7 +50,6 @@ public class LocalCloudConnector implements CloudConnector {
 
     public LocalCloudConnector(String cloudName) {
         InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator();
-        this.mapperPlugin = instantiator.getLocalUserCredentialsMapperPlugin(cloudName);
         this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
         this.computePlugin = instantiator.getComputePlugin(cloudName);
         this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin(cloudName);
@@ -60,11 +59,12 @@ public class LocalCloudConnector implements CloudConnector {
         this.publicIpPlugin = instantiator.getPublicIpPlugin(cloudName);
         this.securityRulePlugin = instantiator.getSecurityRulePlugin(cloudName);
         this.genericRequestPlugin = instantiator.getGenericRequestPlugin(cloudName);
+        this.mapperPlugin = instantiator.getSystemToCloudMapperPlugin(cloudName);
     }
 
     @Override
     public String requestInstance(Order order) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(order.getFederationUser());
+        CloudUser token = this.mapperPlugin.map(order.getSystemUser());
 
         String response = null;
         try {
@@ -73,7 +73,7 @@ public class LocalCloudConnector implements CloudConnector {
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.CREATE, order.getType(), token, response);
+            auditRequest(Operation.CREATE, order.getType(), order.getSystemUser(), response);
         }
 
         return response;
@@ -81,7 +81,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteInstance(Order order) throws FogbowException, UnexpectedException {
-        CloudToken token = this.mapperPlugin.map(order.getFederationUser());
+        CloudUser token = this.mapperPlugin.map(order.getSystemUser());
 
         String response = null;
         try {
@@ -90,13 +90,13 @@ public class LocalCloudConnector implements CloudConnector {
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.DELETE, order.getType(), token, response);
+            auditRequest(Operation.DELETE, order.getType(), order.getSystemUser(), response);
         }
     }
 
     @Override
     public Instance getInstance(Order order) throws FogbowException, UnexpectedException {
-        CloudToken token = this.mapperPlugin.map(order.getFederationUser());
+        CloudUser token = this.mapperPlugin.map(order.getSystemUser());
 
         String auditableResponse = null;
         Instance instance = null;
@@ -109,15 +109,15 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.GET, order.getType(), token, auditableResponse);
+            auditRequest(Operation.GET, order.getType(), order.getSystemUser(), auditableResponse);
         }
 
         return instance;
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         String auditableResponse = null;
         Quota quota = null;
@@ -130,15 +130,15 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.GET_USER_QUOTA, resourceType, token, auditableResponse);
+            auditRequest(Operation.GET_USER_QUOTA, resourceType, systemUser, auditableResponse);
         }
 
         return quota;
     }
 
     @Override
-    public Map<String, String> getAllImages(FederationUser federationUser) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public Map<String, String> getAllImages(SystemUser systemUser) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         Map<String, String> images = null;
         String auditableResponse = null;
@@ -151,15 +151,15 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.GET_ALL, ResourceType.IMAGE, token, auditableResponse);
+            auditRequest(Operation.GET_ALL, ResourceType.IMAGE, systemUser, auditableResponse);
         }
 
         return images;
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public Image getImage(String imageId, SystemUser systemUser) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         Image image = null;
         String auditableResponse = null;
@@ -172,15 +172,15 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.GET, ResourceType.IMAGE, token, auditableResponse);
+            auditRequest(Operation.GET, ResourceType.IMAGE, systemUser, auditableResponse);
         }
 
         return image;
     }
 
     @Override
-    public GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUser federationUser) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public GenericRequestResponse genericRequest(GenericRequest genericRequest, SystemUser systemUser) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         GenericRequestResponse genericRequestResponse = null;
         String auditableResponse = null;
@@ -193,15 +193,15 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.CREATE, ResourceType.GENERIC_RESOURCE, token, auditableResponse);
+            auditRequest(Operation.CREATE, ResourceType.GENERIC_RESOURCE, systemUser, auditableResponse);
         }
 
         return genericRequestResponse;
     }
 
     @Override
-    public List<SecurityRule> getAllSecurityRules(Order order, FederationUser federationUser) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public List<SecurityRule> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         List<SecurityRule> securityRules = null;
         String auditableResponse = null;
@@ -214,15 +214,15 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.GET_ALL, order.getType(), token, auditableResponse);
+            auditRequest(Operation.GET_ALL, order.getType(), systemUser, auditableResponse);
         }
 
         return securityRules;
     }
 
     @Override
-    public String requestSecurityRule(Order order, SecurityRule securityRule, FederationUser federationUser) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         String response = null;
         try {
@@ -231,15 +231,15 @@ public class LocalCloudConnector implements CloudConnector {
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.CREATE, order.getType(), token, response);
+            auditRequest(Operation.CREATE, order.getType(), systemUser, response);
         }
 
         return response;
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, FederationUser federationUser) throws FogbowException {
-        CloudToken token = this.mapperPlugin.map(federationUser);
+    public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
+        CloudUser token = this.mapperPlugin.map(systemUser);
 
         String response = null;
         try {
@@ -248,11 +248,11 @@ public class LocalCloudConnector implements CloudConnector {
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.DELETE, ResourceType.SECURITY_RULE, token, response);
+            auditRequest(Operation.DELETE, ResourceType.SECURITY_RULE, systemUser, response);
         }
     }
 
-    public String doRequestInstance(Order order, CloudToken token) throws FogbowException {
+    public String doRequestInstance(Order order, CloudUser token) throws FogbowException {
         String requestInstance = null;
         switch (order.getType()) {
             case COMPUTE:
@@ -289,9 +289,9 @@ public class LocalCloudConnector implements CloudConnector {
                 String savedVolumeOrderId = attachmentOrder.getVolumeId();
                 Order attachmentComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedComputeOrderId);
                 Order attachmentVolumeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedVolumeOrderId);
-                String attachmentOrderUserId = attachmentOrder.getFederationUser().getUserId();
-                String computeOrderUserId = attachmentComputeOrder.getFederationUser().getUserId();
-                String volumeOrderUserId = attachmentVolumeOrder.getFederationUser().getUserId();
+                String attachmentOrderUserId = attachmentOrder.getSystemUser().getId();
+                String computeOrderUserId = attachmentComputeOrder.getSystemUser().getId();
+                String volumeOrderUserId = attachmentVolumeOrder.getSystemUser().getId();
                 if (!attachmentOrderUserId.equals(computeOrderUserId) ||
                         !attachmentOrderUserId.equals(volumeOrderUserId)) {
                     throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
@@ -329,8 +329,8 @@ public class LocalCloudConnector implements CloudConnector {
                 Order retrievedComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap()
                         .get(computeOrderId);
 
-                String publicIpOrderUserId = publicIpOrder.getFederationUser().getUserId();
-                String targetComputeOrderUserId = retrievedComputeOrder.getFederationUser().getUserId();
+                String publicIpOrderUserId = publicIpOrder.getSystemUser().getId();
+                String targetComputeOrderUserId = retrievedComputeOrder.getSystemUser().getId();
                 if (!publicIpOrderUserId.equals(targetComputeOrderUserId)) {
                     throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
                 }
@@ -350,7 +350,7 @@ public class LocalCloudConnector implements CloudConnector {
         return requestInstance;
     }
 
-    public void doDeleteInstance(Order order, CloudToken token) throws FogbowException, UnexpectedException {
+    public void doDeleteInstance(Order order, CloudUser token) throws FogbowException, UnexpectedException {
         try {
             if (order.getInstanceId() != null) {
                 switch (order.getType()) {
@@ -393,7 +393,7 @@ public class LocalCloudConnector implements CloudConnector {
         return computeOrder == null ? null : computeOrder.getInstanceId();
     }
 
-    public Instance doGetInstance(Order order, CloudToken token) throws FogbowException, UnexpectedException {
+    public Instance doGetInstance(Order order, CloudUser token) throws FogbowException, UnexpectedException {
         Instance instance;
         synchronized (order) {
             if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
@@ -436,7 +436,7 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
-    public Quota doGetUserQuota(CloudToken token, ResourceType resourceType) throws FogbowException {
+    public Quota doGetUserQuota(CloudUser token, ResourceType resourceType) throws FogbowException {
         switch (resourceType) {
             case COMPUTE:
                 ComputeQuota userQuota = this.computeQuotaPlugin.getUserQuota(token);
@@ -446,30 +446,30 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    public Map<String, String> doGetAllImages(CloudToken token) throws FogbowException {
+    public Map<String, String> doGetAllImages(CloudUser token) throws FogbowException {
         return this.imagePlugin.getAllImages(token);
     }
 
-    public Image doGetImage(String imageId, CloudToken token) throws FogbowException {
+    public Image doGetImage(String imageId, CloudUser token) throws FogbowException {
         return this.imagePlugin.getImage(imageId, token);
     }
 
-    public GenericRequestResponse doGenericRequest(GenericRequest genericRequest, CloudToken token)
+    public GenericRequestResponse doGenericRequest(GenericRequest genericRequest, CloudUser token)
             throws FogbowException {
         return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }
 
-    public List<SecurityRule> doGetAllSecurityRules(Order order, CloudToken token)
+    public List<SecurityRule> doGetAllSecurityRules(Order order, CloudUser token)
             throws FogbowException {
         return this.securityRulePlugin.getSecurityRules(order, token);
     }
 
-    public String doRequestSecurityRule(Order order, SecurityRule securityRule, CloudToken token)
+    public String doRequestSecurityRule(Order order, SecurityRule securityRule, CloudUser token)
             throws FogbowException {
         return this.securityRulePlugin.requestSecurityRule(securityRule, order, token);
     }
 
-    public void doDeleteSecurityRule(String securityRuleId, CloudToken token) throws FogbowException {
+    public void doDeleteSecurityRule(String securityRuleId, CloudUser token) throws FogbowException {
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }
 
@@ -488,7 +488,7 @@ public class LocalCloudConnector implements CloudConnector {
         List<String> networkOrdersId = order.getNetworkIds();
         List<String> networkInstanceIDs = new LinkedList<String>();
 
-        String computeOrderUserId = order.getFederationUser().getUserId();
+        String computeOrderUserId = order.getSystemUser().getId();
 
         for (String orderId : networkOrdersId) {
             Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
@@ -496,7 +496,7 @@ public class LocalCloudConnector implements CloudConnector {
             if (networkOrder == null) {
                 throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
             } else {
-                String networkOrderUserId = networkOrder.getFederationUser().getUserId();
+                String networkOrderUserId = networkOrder.getSystemUser().getId();
                 if (!networkOrderUserId.equals(computeOrderUserId)) {
                     throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
                 }
@@ -512,7 +512,7 @@ public class LocalCloudConnector implements CloudConnector {
             throws FogbowException {
         ComputeInstance fullInstance = instance;
         String imageId = order.getImageId();
-        String imageName = getAllImages(order.getFederationUser()).get(imageId);
+        String imageName = getAllImages(order.getSystemUser()).get(imageId);
         String publicKey = order.getPublicKey();
 
         List<UserData> userData = order.getUserData();
@@ -581,7 +581,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     // Used only in tests
 
-    protected void setMapperPlugin(FederationToLocalMapperPlugin mapperPlugin) {
+    protected void setMapperPlugin(SystemToCloudMapperPlugin mapperPlugin) {
         this.mapperPlugin = mapperPlugin;
     }
     protected void setPublicIpPlugin(PublicIpPlugin publicIpPlugin) {
@@ -616,7 +616,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.genericRequestPlugin = genericRequestPlugin;
     }
 
-    private Instance getResourceInstance(Order order, ResourceType resourceType, CloudToken token)
+    private Instance getResourceInstance(Order order, ResourceType resourceType, CloudUser token)
             throws FogbowException {
         Instance instance;
         String instanceId = order.getInstanceId();
@@ -660,13 +660,13 @@ public class LocalCloudConnector implements CloudConnector {
         return instanceState;
     }
 
-    private void auditRequest(Operation operation, ResourceType resourceType, CloudToken cloudToken,
+    private void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,
                               String response) {
         if (this.auditRequestsOn) {
             String userId = null, tokenProviderId = null;
-            if (cloudToken != null) {
-                userId = cloudToken.getUserId();
-                tokenProviderId = cloudToken.getTokenProviderId();
+            if (systemUser != null) {
+                userId = systemUser.getId();
+                tokenProviderId = systemUser.getIdentityProviderId();
             }
 
             Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());

@@ -1,13 +1,12 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.ClassFactory;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 
 import java.io.File;
 import java.util.HashMap;
@@ -91,12 +90,12 @@ public class InteroperabilityPluginInstantiator {
         return (SecurityRulePlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
     }
 
-    public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin(String cloudName) {
-        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
+    public SystemToCloudMapperPlugin getSystemToCloudMapperPlugin(String cloudName) {
+        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.SYSTEM_TO_CLOUD_MAPPER_PLUGIN_CLASS_KEY);
 
         String path = HomeDir.getPath();
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator + cloudName +
                 File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
-        return (FederationToLocalMapperPlugin) this.classFactory.createPluginInstance(className, mapperConfPath);
+        return (SystemToCloudMapperPlugin) this.classFactory.createPluginInstance(className, mapperConfPath);
     }
 }

@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -19,12 +19,12 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
 
     private String provider;
     private String orderId;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
-    public RemoteGetAllSecurityRuleRequest(String provider, String orderId, FederationUser federationUser) {
+    public RemoteGetAllSecurityRuleRequest(String provider, String orderId, SystemUser systemUser) {
         this.provider = provider;
         this.orderId = orderId;
-        this.federationUser = federationUser;
+        this.systemUser = systemUser;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
                 RemoteMethod.REMOTE_GET_ALL_SECURITY_RULES.toString());
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(systemUser));
 
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(orderId);

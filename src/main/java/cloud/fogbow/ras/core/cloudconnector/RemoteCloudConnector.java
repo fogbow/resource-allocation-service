@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -70,10 +70,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws FogbowException {
+    public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         try {
             RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
-                    this.cloudName, federationUser, resourceType);
+                    this.cloudName, systemUser, resourceType);
             Quota quota = remoteGetUserQuotaRequest.send();
             return quota;
         } catch (Exception e) {
@@ -83,10 +83,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public HashMap<String, String> getAllImages(FederationUser federationUser) throws FogbowException {
+    public HashMap<String, String> getAllImages(SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationMember,
-                    this.cloudName, federationUser);
+                    this.cloudName, systemUser);
             HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
             return imagesMap;
         } catch (Exception e) {
@@ -96,10 +96,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws FogbowException {
+    public Image getImage(String imageId, SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember,
-                    this.cloudName, imageId, federationUser);
+                    this.cloudName, imageId, systemUser);
             Image image = remoteGetImageRequest.send();
             return image;
         } catch (Exception e) {
@@ -109,11 +109,11 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUser federationUserToken)
+    public GenericRequestResponse genericRequest(GenericRequest genericRequest, SystemUser systemUserToken)
             throws FogbowException {
         try {
             RemoteGenericRequest remoteGenericRequest = new RemoteGenericRequest(this.destinationMember, this.cloudName,
-                    genericRequest, federationUserToken);
+                    genericRequest, systemUserToken);
             GenericRequestResponse genericRequestResponse = remoteGenericRequest.send();
             return genericRequestResponse;
         } catch (Exception e) {
@@ -123,11 +123,11 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityRule> getAllSecurityRules(Order order, FederationUser federationUser)
+    public List<SecurityRule> getAllSecurityRules(Order order, SystemUser systemUser)
             throws FogbowException {
         try {
             RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
-                    new RemoteGetAllSecurityRuleRequest(this.destinationMember, order.getId(), federationUser);
+                    new RemoteGetAllSecurityRuleRequest(this.destinationMember, order.getId(), systemUser);
             return remoteGetAllSecurityRuleRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
@@ -136,11 +136,11 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestSecurityRule(Order order, SecurityRule securityRule, FederationUser federationUser)
+    public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser)
             throws FogbowException {
         try {
             RemoteCreateSecurityRuleRequest remoteCreateSecurityRuleRequest = new RemoteCreateSecurityRuleRequest(
-                    securityRule, federationUser, this.destinationMember, order);
+                    securityRule, systemUser, this.destinationMember, order);
             remoteCreateSecurityRuleRequest.send();
             return null;
         } catch (Exception e) {
@@ -150,11 +150,11 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, FederationUser federationUser)
+    public void deleteSecurityRule(String securityRuleId, SystemUser systemUser)
             throws FogbowException {
         try {
             RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest = new RemoteDeleteSecurityRuleRequest(
-                    this.destinationMember, this.cloudName, securityRuleId, federationUser);
+                    this.destinationMember, this.cloudName, securityRuleId, systemUser);
             remoteDeleteSecurityRuleRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);

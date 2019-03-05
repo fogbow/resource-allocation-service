@@ -1,10 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -23,24 +22,21 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class RemoteGetOrderRequestTest {
 
     private RemoteGetOrderRequest remoteGetOrderRequest;
     private PacketSender packetSender;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
     private Instance instance;
     private Order order;
 
     @Before
     public void setUp() {
-        this.federationUser = new FederationUser("token-provider", "fake-user-id",
-                "fake-user-name", "federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", "token-provider"
+        );
 
-        this.order = new ComputeOrder(this.federationUser, "requesting-member",
+        this.order = new ComputeOrder(this.systemUser, "requesting-member",
                 "providing-member", "default", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
         this.remoteGetOrderRequest = new RemoteGetOrderRequest(this.order);

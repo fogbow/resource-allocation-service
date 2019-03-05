@@ -1,9 +1,8 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -30,8 +29,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -344,8 +341,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createOrder() {
-        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-id",
-                "fake-user", "token-value", new HashMap<>());;
+        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
+        );;
 
         UserData userData = Mockito.mock(UserData.class);
 
@@ -355,7 +352,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUser, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
+        Order order = new ComputeOrder(systemUser, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
                 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;

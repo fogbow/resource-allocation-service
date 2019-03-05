@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
@@ -32,12 +32,12 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 
 	@Override
-	public ComputeQuota getUserQuota(CloudToken localUserAttributes) throws FogbowException {
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());				
+	public ComputeQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
+		Client client = this.factory.createClient(cloudUser.getToken());
 		UserPool userPool = this.factory.createUserPool(client);
 		// ToDo: the code below used the user name and not the user id. Check whether it is really
 		// the user name that is needed; in this case, an OpenNebulaToken class needs to be implemented.
-		User user = this.factory.getUser(userPool, localUserAttributes.getUserId());
+		User user = this.factory.getUser(userPool, cloudUser.getId());
 		String maxCpuByUser = user.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByUser = user.xpath(QUOTA_MEMORY_PATH);
 		String maxInstancesByUser = user.xpath(QUOTA_VMS_PATH);

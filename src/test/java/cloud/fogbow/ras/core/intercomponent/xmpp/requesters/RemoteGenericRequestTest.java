@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.constants.HttpMethod;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
@@ -26,12 +26,12 @@ public class RemoteGenericRequestTest {
     private GenericRequest genericRequest;
     private RemoteGenericRequest remoteGenericRequest;
     private PacketSender packetSender;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
     @Before
     public void setUp() {
         this.genericRequest = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
-        this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, federationUser);
+        this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, systemUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
     }
@@ -50,7 +50,7 @@ public class RemoteGenericRequestTest {
         this.remoteGenericRequest.send();
 
         // verify
-        IQ expectedIq = RemoteGenericRequest.marshal(this.provider, this.cloudName, this.genericRequest, this.federationUser);
+        IQ expectedIq = RemoteGenericRequest.marshal(this.provider, this.cloudName, this.genericRequest, this.systemUser);
         IQMatcher matcher = new IQMatcher(expectedIq);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.api.http.response;
 
 public class PublicIpInstance extends Instance {
-
     private String ip;
     private String computeName;
     private String computeId;

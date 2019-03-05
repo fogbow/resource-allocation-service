@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -35,9 +35,9 @@ public class PublicIpOrder extends Order {
         this(null, null, providingMember, cloudName, computeOrderId);
     }
 
-    public PublicIpOrder(FederationUser federationUser, String requestingMember,
+    public PublicIpOrder(SystemUser systemUser, String requestingMember,
                          String providingMember, String cloudName, String computeOrderId) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.computeOrderId = computeOrderId;
     }
 

@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.securityrules.Direction;
@@ -43,10 +43,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     @Override
-    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudToken localUserAttributes)
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudUser cloudUser)
             throws FogbowException {
         
-    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+    	Client client = this.factory.createClient(cloudUser.getToken());
     	
     	String virtualNetworkId = majorOrder.getInstanceId();
     	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
@@ -71,8 +71,8 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
     }
 
 	@Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudToken localUserAttributes) throws FogbowException {
-    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
+    	Client client = this.factory.createClient(cloudUser.getToken());
     	
     	// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids in the opennebula context 
     	String virtualNetworkId = majorOrder.getInstanceId();
@@ -85,9 +85,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, CloudToken localUserAttributes) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
-        Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+    public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudUser.getToken()));
+        Client client = this.factory.createClient(cloudUser.getToken());
 
 		Rule ruleToRemove = createRule(securityRuleId);
 		String securityGroupId = ruleToRemove.getSecurityGroupId();

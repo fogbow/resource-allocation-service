@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -42,8 +42,8 @@ public class CloudStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public String requestInstance(VolumeOrder volumeOrder, CloudToken localUserAttributes) throws FogbowException {
-        String diskOfferingId = getDiskOfferingId(volumeOrder, localUserAttributes);
+    public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+        String diskOfferingId = getDiskOfferingId(volumeOrder, cloudUser);
 
         if (diskOfferingId == null) throw new NoAvailableResourcesException();
 
@@ -54,11 +54,11 @@ public class CloudStackVolumePlugin implements VolumePlugin {
             request = createVolumeCustomized(volumeOrder, diskOfferingId);
         }
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -68,16 +68,16 @@ public class CloudStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public VolumeInstance getInstance(String volumeInstanceId, CloudToken localUserAttributes) throws FogbowException {
+    public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeInstanceId)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -94,18 +94,18 @@ public class CloudStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public void deleteInstance(String volumeInstanceId, CloudToken localUserAttributes)
+    public void deleteInstance(String volumeInstanceId, CloudUser cloudUser)
             throws FogbowException, UnexpectedException {
 
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
                 .id(volumeInstanceId)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -119,12 +119,12 @@ public class CloudStackVolumePlugin implements VolumePlugin {
         }
     }
 
-    private String getDiskOfferingId(VolumeOrder volumeOrder, CloudToken localUserAttributes)
+    private String getDiskOfferingId(VolumeOrder volumeOrder, CloudUser localUserAttributes)
             throws FogbowException {
 
         int volumeSize = volumeOrder.getVolumeSize();
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getToken());
 
         String jsonResponse = null;
         try {

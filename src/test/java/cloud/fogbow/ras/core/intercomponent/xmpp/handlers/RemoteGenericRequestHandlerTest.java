@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
@@ -43,7 +43,7 @@ public class RemoteGenericRequestHandlerTest {
 
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
-    private FederationUser federationUser;
+    private SystemUser systemUser;
     private GenericRequest genericRequest =  new GenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
     private RemoteFacade remoteFacade;
 
@@ -59,8 +59,8 @@ public class RemoteGenericRequestHandlerTest {
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
 
-        this.federationUser = new FederationUser(this.provider, "fake-user-id",
-                "fake-user-name", "federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", this.provider
+        );
     }
 
     // test case: when the handle method is called passing a valid IQ object,
@@ -71,13 +71,13 @@ public class RemoteGenericRequestHandlerTest {
         String fakeContent = "fake-content";
         GenericRequestResponse genericRequestResponse = new GenericRequestResponse(fakeContent);
         Mockito.doReturn(genericRequestResponse).when(this.remoteFacade).genericRequest(
-                REQUESTING_MEMBER, this.cloudName, this.genericRequest, this.federationUser);
+                REQUESTING_MEMBER, this.cloudName, this.genericRequest, this.systemUser);
 
         Mockito.when(this.remoteFacade
                 .genericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenReturn(genericRequestResponse);
 
-        IQ iq = RemoteGenericRequest.marshal(this.provider, this.cloudName, genericRequest, this.federationUser);
+        IQ iq = RemoteGenericRequest.marshal(this.provider, this.cloudName, genericRequest, this.systemUser);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise

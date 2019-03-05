@@ -14,6 +14,11 @@ public class ProcessorsThreadController {
     private final Thread fulfilledProcessorThread;
     private final Thread closedProcessorThread;
     private final Thread failedProcessorThread;
+    private final static String OPEN_PROCESSOR_THREAD_NAME = "open-proc";
+    private final static String SPAWNING_PROCESSOR_THREAD_NAME = "spawning-proc";
+    private final static String FULFILLED_PROCESSOR_THREAD_NAME = "fulfilled-proc";
+    private final static String CLOSED_PROCESSOR_THREAD_NAME = "closed-proc";
+    private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
 
     public ProcessorsThreadController(String localMemberId) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -46,11 +51,11 @@ public class ProcessorsThreadController {
         
         FailedProcessor failedProcessor = new FailedProcessor(localMemberId, failedOrdersProcSleepTimeStr);
 
-        this.openProcessorThread = new Thread(openProcessor, "open-proc");
-        this.spawningProcessorThread = new Thread(spawningProcessor, "spawning-proc");
-        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "fulfilled-proc");
-        this.closedProcessorThread = new Thread(closedProcessor, "closed-proc");
-        this.failedProcessorThread = new Thread(failedProcessor, "failed-proc");
+        this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
+        this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);
+        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, FULFILLED_PROCESSOR_THREAD_NAME);
+        this.closedProcessorThread = new Thread(closedProcessor, CLOSED_PROCESSOR_THREAD_NAME);
+        this.failedProcessorThread = new Thread(failedProcessor, FAILED_PROCESSOR_THREAD_NAME);
     }
 
     /**

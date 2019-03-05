@@ -1,7 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -12,7 +13,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -36,8 +36,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, CloudToken token) throws FogbowException {
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public String requestInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         String projectId = openStackV3Token.getProjectId();
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
@@ -62,8 +62,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public void deleteInstance(String instanceId, CloudToken token) throws FogbowException {
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public void deleteInstance(String instanceId, CloudUser cloudUser) throws FogbowException {
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         String projectId = openStackV3Token.getProjectId();
         if (projectId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -84,9 +84,9 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public AttachmentInstance getInstance(String instanceId, CloudToken token) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, token));
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public AttachmentInstance getInstance(String instanceId, CloudUser cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, cloudUser));
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         String projectId = openStackV3Token.getProjectId();
 
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
@@ -119,7 +119,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin {
             String device = getAttachmentResponse.getDevice();
 
             // There is no OpenStackState for attachments; we set it to empty string to allow its mapping
-            // by the OpenStackStateMapper.map() function.
+            // by the OpenStackStateMapper.getCloudUser() function.
             String openStackState = "";
             InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
 

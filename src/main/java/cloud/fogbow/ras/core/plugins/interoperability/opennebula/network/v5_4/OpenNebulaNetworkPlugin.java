@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -60,13 +60,13 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin {
 	}
 
 	@Override
-	public String requestInstance(NetworkOrder networkOrder, CloudToken localUserAttributes) throws FogbowException {
+	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes));
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser));
+		Client client = this.factory.createClient(cloudUser.getToken());
 		
 		String name = networkOrder.getName();
-		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, localUserAttributes.getUserId());
+		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, cloudUser.getId());
 		String type = DEFAULT_NETWORK_TYPE;
 		String bridge = this.bridge;
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
@@ -100,23 +100,23 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin {
 	}
 
 	@Override
-	public NetworkInstance getInstance(String networkInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public NetworkInstance getInstance(String networkInstanceId, CloudUser cloudUser) throws FogbowException {
 
 		LOGGER.info(
-				String.format(Messages.Info.GETTING_INSTANCE, networkInstanceId, localUserAttributes));
+				String.format(Messages.Info.GETTING_INSTANCE, networkInstanceId, cloudUser));
 		
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, networkInstanceId);
 		return createInstance(virtualNetwork);
 	}
 
 	@Override
-	public void deleteInstance(String networkInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public void deleteInstance(String networkInstanceId, CloudUser cloudUser) throws FogbowException {
 
 		LOGGER.info(
-				String.format(Messages.Info.DELETING_INSTANCE, networkInstanceId, localUserAttributes));
+				String.format(Messages.Info.DELETING_INSTANCE, networkInstanceId, cloudUser));
 		
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, networkInstanceId);
 		
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);

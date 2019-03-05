@@ -31,13 +31,13 @@ public class Cloud {
     @ApiOperation(value = ApiDocumentation.Cloud.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CloudList> getCloudNamesNoMemberId(
-        @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-        @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+        @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
         throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
             String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);
+            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -50,12 +50,12 @@ public class Cloud {
     public ResponseEntity<CloudList> getCloudNames(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);
+            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

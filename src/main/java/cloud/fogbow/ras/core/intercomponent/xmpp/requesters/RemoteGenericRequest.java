@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
@@ -14,13 +14,13 @@ import org.xmpp.packet.IQ;
 
 public class RemoteGenericRequest implements RemoteRequest<GenericRequestResponse> {
 
-    private FederationUser federationUser;
+    private SystemUser systemUser;
     private GenericRequest genericRequest;
     private String cloudName;
     private String provider;
 
-    public RemoteGenericRequest(String provider, String cloudName, GenericRequest genericRequest, FederationUser federationUser) {
-        this.federationUser = federationUser;
+    public RemoteGenericRequest(String provider, String cloudName, GenericRequest genericRequest, SystemUser systemUser) {
+        this.systemUser = systemUser;
         this.provider = provider;
         this.cloudName = cloudName;
         this.genericRequest = genericRequest;
@@ -28,7 +28,7 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
 
     @Override
     public GenericRequestResponse send() throws Exception {
-        IQ iq = marshal(provider, cloudName, genericRequest, federationUser);
+        IQ iq = marshal(provider, cloudName, genericRequest, systemUser);
 
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -51,7 +51,7 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
         return genericRequestResponse;
     }
 
-    public static IQ marshal(String provider, String cloudName, GenericRequest genericRequest, FederationUser federationUser) {
+    public static IQ marshal(String provider, String cloudName, GenericRequest genericRequest, SystemUser systemUser) {
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(provider);
 
@@ -62,7 +62,7 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
         cloudNameElement.setText(cloudName);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(GsonHolder.getInstance().toJson(federationUser));
+        userElement.setText(GsonHolder.getInstance().toJson(systemUser));
 
         Element securityRuleElement = queryElement.addElement(IqElement.GENERIC_REQUEST.toString());
         securityRuleElement.setText(GsonHolder.getInstance().toJson(genericRequest));

@@ -1,8 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -25,7 +24,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -33,7 +31,6 @@ import java.util.Properties;
 public class CloudStackAttachmentPluginTest {
 
     private static final String JSON_FORMAT = "json";
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
@@ -64,7 +61,7 @@ public class CloudStackAttachmentPluginTest {
 
     private CloudStackAttachmentPlugin plugin;
     private CloudStackHttpClient client;
-    private CloudToken token;
+    private CloudUser token;
     private Properties properties;
 
     @Before
@@ -76,7 +73,7 @@ public class CloudStackAttachmentPluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackAttachmentPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token =  new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>()));
+        this.token =  new CloudUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
     }
 
     // test case: When calling the requestInstance method a HTTP GET request must be made with a
@@ -136,7 +133,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -150,7 +147,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -167,7 +164,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -181,7 +178,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -198,7 +195,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -212,7 +209,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -229,7 +226,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
@@ -243,7 +240,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -445,7 +442,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -459,7 +456,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -476,7 +473,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -491,7 +488,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -508,7 +505,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -522,7 +519,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -539,7 +536,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
@@ -553,7 +550,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -651,7 +648,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -663,7 +660,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -680,7 +677,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -692,7 +689,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -709,7 +706,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
@@ -721,7 +718,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     
@@ -738,7 +735,7 @@ public class CloudStackAttachmentPluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
@@ -750,7 +747,7 @@ public class CloudStackAttachmentPluginTest {
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudUser.class));
         }
     }
     

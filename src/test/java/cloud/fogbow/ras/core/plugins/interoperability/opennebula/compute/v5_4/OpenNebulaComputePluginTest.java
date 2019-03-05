@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
@@ -121,8 +121,8 @@ public class OpenNebulaComputePluginTest {
 		
 		// set up
 		ComputeOrder computeOrder = new ComputeOrder();
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		// exercise
@@ -135,9 +135,9 @@ public class OpenNebulaComputePluginTest {
 	@Test
 	public void testRequestInstanceSuccessfulWithNetworkIds() throws FogbowException, UnexpectedException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		List<String> networkIds = listNetworkIds();
@@ -183,7 +183,7 @@ public class OpenNebulaComputePluginTest {
 		// verify
 		Mockito.verify(this.factory, Mockito.times(3)).createClient(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(CloudToken.class));
+				Mockito.any(CloudUser.class));
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client),
 				Mockito.eq(vmTemplate));
 	}
@@ -194,9 +194,9 @@ public class OpenNebulaComputePluginTest {
 	@Test
 	public void testRequestInstanceSuccessfulWithoutNetworksId() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		List<String> networkIds = null;
@@ -226,7 +226,7 @@ public class OpenNebulaComputePluginTest {
 		// verify
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(CloudToken.class));
+				Mockito.any(CloudUser.class));
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client), Mockito.eq(template));
 	}
 	
@@ -237,9 +237,9 @@ public class OpenNebulaComputePluginTest {
 			throws FogbowException {
 
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		List<String> networkIds = null;
@@ -264,10 +264,10 @@ public class OpenNebulaComputePluginTest {
 	@Test(expected = InvalidParameterException.class) // verify
 	public void testRequestInstanceThrowInvalidParameterException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
+		CloudUser token = createCloudToken();
 		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		List<String> networkIds = null;
@@ -314,10 +314,10 @@ public class OpenNebulaComputePluginTest {
 	@Test(expected = NoAvailableResourcesException.class) // verify
 	public void testRequestInstanceThrowNoAvailableResourcesException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
+		CloudUser token = createCloudToken();
 		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		List<String> networkIds = null;
@@ -364,10 +364,10 @@ public class OpenNebulaComputePluginTest {
 	@Test(expected = QuotaExceededException.class) // verify
 	public void testRequestInstanceThrowQuotaExceededException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
+		CloudUser token = createCloudToken();
 		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		List<String> networkIds = null;
@@ -416,8 +416,8 @@ public class OpenNebulaComputePluginTest {
 
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		// exercise
@@ -430,9 +430,9 @@ public class OpenNebulaComputePluginTest {
 	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetInstanceSuccessfulWithVolatileDiskResource() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 		this.plugin.setFlavors(this.flavors);
 
@@ -505,9 +505,9 @@ public class OpenNebulaComputePluginTest {
 	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetInstanceSuccessfulWithoutVolatileDiskResource() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 		this.plugin.setFlavors(this.flavors);
 
@@ -556,8 +556,8 @@ public class OpenNebulaComputePluginTest {
 
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		// exercise
@@ -569,9 +569,9 @@ public class OpenNebulaComputePluginTest {
 	@Test
 	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		String instanceId = FAKE_INSTANCE_ID;
@@ -597,9 +597,9 @@ public class OpenNebulaComputePluginTest {
 	@Test
 	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		String instanceId = FAKE_INSTANCE_ID;
@@ -702,11 +702,11 @@ public class OpenNebulaComputePluginTest {
 		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
-		FederationUser federationUser = null;
+		SystemUser systemUser = null;
 		ArrayList<UserData> userData = FAKE_LIST_USER_DATA;
 		
 		ComputeOrder computeOrder = new ComputeOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -722,14 +722,12 @@ public class OpenNebulaComputePluginTest {
 		return computeOrder;
 	}
 	
-	private CloudToken createCloudToken() {
-		String provider = null;
+	private CloudUser createCloudToken() {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 
-		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
 	
 	private String generateTemplate(int choice, String ...args) {

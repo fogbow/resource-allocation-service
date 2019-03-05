@@ -46,8 +46,7 @@ public class PublicKeysHolder {
         return this.asPublicKey;
     }
 
-    private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix)
-            throws FogbowException {
+    private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix) throws FogbowException {
         RSAPublicKey publicKey = null;
 
         URI uri = null;
@@ -67,6 +66,7 @@ public class PublicKeysHolder {
             try {
                 Gson gson = new Gson();
                 Map<String, String> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
+                //TODO: the key should be a constant defined elsewhere; this class is a candidate to go to common
                 String publicKeyString = jsonResponse.get("publicKey");
                 publicKey = CryptoUtil.getPublicKeyFromString(publicKeyString);
             } catch (GeneralSecurityException e) {

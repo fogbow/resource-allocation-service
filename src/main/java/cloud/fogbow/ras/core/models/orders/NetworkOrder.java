@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -49,9 +49,9 @@ public class NetworkOrder extends Order {
         this(null, null, providingMember, cloudName, name, gateway, cidr, allocationMode);
     }
 
-    public NetworkOrder(FederationUser federationUser, String requestingMember, String providingMember,
+    public NetworkOrder(SystemUser systemUser, String requestingMember, String providingMember,
                         String cloudName, String name, String gateway, String cidr, NetworkAllocationMode allocationMode) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.name = name;
         this.gateway = gateway;
         this.cidr = cidr;

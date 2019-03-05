@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.genericrequest
 
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
@@ -14,7 +14,7 @@ import org.apache.http.client.utils.URIBuilder;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
-public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<CloudToken> {
+public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<CloudUser> {
 
     private CloudStackHttpClient client;
 
@@ -23,10 +23,10 @@ public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<Clou
     }
 
     @Override
-    public HttpResponse redirectGenericRequest(GenericRequest genericRequest, CloudToken token) throws FogbowException {
+    public HttpResponse redirectGenericRequest(GenericRequest genericRequest, CloudUser token) throws FogbowException {
         try {
             URIBuilder uriBuilder = new URIBuilder(genericRequest.getUrl());
-            CloudStackUrlUtil.sign(uriBuilder, token.getTokenValue());
+            CloudStackUrlUtil.sign(uriBuilder, token.getToken());
 
             String url = uriBuilder.toString();
             HashMap<String, String> headers = genericRequest.getHeaders();

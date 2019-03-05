@@ -2,8 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
@@ -20,7 +19,6 @@ import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Iterator;
 
 public class OpenNebulaComputeQuotaPluginTest {
@@ -28,7 +26,6 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String FAKE_PROVIDER = "fake-provider";
 
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
 	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
@@ -61,8 +58,8 @@ public class OpenNebulaComputeQuotaPluginTest {
 			throws FogbowException {
 
 		// set up
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		// exercise
@@ -76,9 +73,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetUserQuotaSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		UserPool userPool = Mockito.mock(UserPool.class);
@@ -138,9 +135,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetUserQuotaWithDefaultValuesInUserResources() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		UserPool userPool = Mockito.mock(UserPool.class);
@@ -195,9 +192,9 @@ public class OpenNebulaComputeQuotaPluginTest {
 	public void testGetUserQuotaWithUnlimitedValuesInGroupResources()
 			throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		UserPool userPool = Mockito.mock(UserPool.class);
@@ -244,13 +241,11 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.verify(user, Mockito.times(7)).xpath(Mockito.anyString());
 	}
 
-	private CloudToken createCloudToken() {
-		String provider = FAKE_PROVIDER;
+	private CloudUser createCloudToken() {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = FAKE_USER_ID;
 		String userName = FAKE_USER_NAME;
 
-		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
 }

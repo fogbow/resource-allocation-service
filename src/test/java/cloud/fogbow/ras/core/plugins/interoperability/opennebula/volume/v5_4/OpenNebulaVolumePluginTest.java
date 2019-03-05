@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -22,7 +22,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Image.class})
@@ -52,8 +51,8 @@ public class OpenNebulaVolumePluginTest {
 	public void testRequestInstanceThrowUnespectedException() throws FogbowException {
 		// set up
 		VolumeOrder volumeOrder = new VolumeOrder();
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		// exercise
@@ -65,9 +64,9 @@ public class OpenNebulaVolumePluginTest {
 	@Test
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		VolumeOrder volumeOrder = createVolumeOrder();
@@ -98,9 +97,9 @@ public class OpenNebulaVolumePluginTest {
 	public void testGetInstanceSuccessful() throws FogbowException {
 		// set up
 		String instanceId = "1";
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		int id = 1;
@@ -132,9 +131,9 @@ public class OpenNebulaVolumePluginTest {
 	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
 		String instanceId = "1";
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		int id = 1;
@@ -163,9 +162,9 @@ public class OpenNebulaVolumePluginTest {
 	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
 		String instanceId = "1";
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		CloudUser token = createCloudToken();
+		Client client = this.factory.createClient(token.getToken());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getToken());
 		this.plugin.setFactory(this.factory);
 
 		int id = 1;
@@ -205,7 +204,7 @@ public class OpenNebulaVolumePluginTest {
 	}
 	
 	private VolumeOrder createVolumeOrder() {
-		FederationUser federationUser = null;
+		SystemUser systemUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String cloudName = null;
@@ -213,7 +212,7 @@ public class OpenNebulaVolumePluginTest {
 		int volumeSize = 1;
 				
 		VolumeOrder volumeOrder = new VolumeOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -223,13 +222,11 @@ public class OpenNebulaVolumePluginTest {
 		return volumeOrder;
 	}
 
-	private CloudToken createCloudToken() {
-		String provider = null;
+	private CloudUser createCloudToken() {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 
-		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
 }

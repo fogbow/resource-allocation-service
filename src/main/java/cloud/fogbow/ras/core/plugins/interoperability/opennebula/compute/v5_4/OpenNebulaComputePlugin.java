@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
@@ -63,10 +63,10 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 	}
 
 	@Override
-	public String requestInstance(ComputeOrder computeOrder, CloudToken localUserAttributes) throws FogbowException {
+	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		Client client = this.factory.createClient(cloudUser.getToken());
 
 		String encoding = USERDATA_ENCODING_CONTEXT;
 
@@ -82,7 +82,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 		String volumeType = DEFAULT_VOLUME_TYPE;
 		List<String> networks = resolveNetworkIds(computeOrder);
 
-		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, localUserAttributes);
+		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
 		String cpu = String.valueOf(foundFlavor.getCpu());
 		String ram = String.valueOf(foundFlavor.getMemory());
 		String disk = String.valueOf(foundFlavor.getDisk());
@@ -105,26 +105,26 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 	}
 
 	@Override
-	public ComputeInstance getInstance(String computeInstanceId, CloudToken localUserAttributes)
+	public ComputeInstance getInstance(String computeInstanceId, CloudUser cloudUser)
 			throws FogbowException, UnexpectedException {
 
 		LOGGER.info(
-				String.format(Messages.Info.GETTING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
+				String.format(Messages.Info.GETTING_INSTANCE, computeInstanceId, cloudUser.getToken()));
 		if (this.flavors == null || this.flavors.isEmpty()) {
-			updateHardwareRequirements(localUserAttributes);
+			updateHardwareRequirements(cloudUser);
 		}
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		return createVirtualMachineInstance(virtualMachine);
 	}
 
 	@Override
-	public void deleteInstance(String computeInstanceId, CloudToken localUserAttributes)
+	public void deleteInstance(String computeInstanceId, CloudUser cloudUser)
 			throws FogbowException, UnexpectedException {
 
 		LOGGER.info(
-				String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+				String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
+		Client client = this.factory.createClient(cloudUser.getToken());
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.terminate();
 		if (response.isError()) {
@@ -144,7 +144,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 		return requestedNetworkIds;
 	}
 	
-	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, CloudToken token)
+	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, CloudUser token)
 			throws NoAvailableResourcesException, UnexpectedException {
 		
 		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, token);
@@ -154,7 +154,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 		return bestFlavor;
 	}
 	
-	protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, CloudToken token) throws UnexpectedException {
+	protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, CloudUser token) throws UnexpectedException {
 		updateHardwareRequirements(token);
 		
 		for (HardwareRequirements hardwareRequirements : this.flavors) {
@@ -167,8 +167,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin {
 		return null;
 	}
 
-	protected void updateHardwareRequirements(CloudToken localUserAttributes) throws UnexpectedException {
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+	protected void updateHardwareRequirements(CloudUser localUserAttributes) throws UnexpectedException {
+		Client client = this.factory.createClient(localUserAttributes.getToken());
 		Map<String, String> imageSizeMap = getImageSizes(client);
 		List<HardwareRequirements> flavors = new ArrayList<>();
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();

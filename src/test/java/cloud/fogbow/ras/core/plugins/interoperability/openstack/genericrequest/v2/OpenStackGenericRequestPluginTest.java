@@ -4,9 +4,9 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.connectivity.GenericRequest;
 import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +42,7 @@ public class OpenStackGenericRequestPluginTest {
 
         // exercise
         try {
-            plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3Token.class));
+            plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3User.class));
             // verify
             Assert.fail();
         } catch (InvalidParameterException e) {

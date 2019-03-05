@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
@@ -23,13 +23,13 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
     @Override
     public IQ handle(IQ iq) {
         String orderId = unmarshalOrderId(iq);
-        FederationUser federationUser = unmarshalFederationUserToken(iq);
+        SystemUser systemUser = unmarshalFederationUserToken(iq);
         SecurityRule securityRule = unmarshalSecurityRule(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
             RemoteFacade.getInstance().createSecurityRule(iq.getFrom().toBareJID(), orderId, securityRule,
-                    federationUser);
+                    systemUser);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -49,11 +49,11 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
         return orderIdElement.getText();
     }
 
-    private FederationUser unmarshalFederationUserToken(IQ iq) {
+    private SystemUser unmarshalFederationUserToken(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
-        return federationUser;
+        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        return systemUser;
     }
 
 }

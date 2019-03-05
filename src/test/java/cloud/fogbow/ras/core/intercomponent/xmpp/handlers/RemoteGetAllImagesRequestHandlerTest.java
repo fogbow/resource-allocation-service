@@ -1,10 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetAllImagesRequest;
@@ -49,7 +47,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
     private RemoteGetAllImagesRequestHandler remoteGetAllImagesRequestHandler;
 
     private String provider;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
     private RemoteFacade remoteFacade;
 
     @Before
@@ -65,8 +63,8 @@ public class RemoteGetAllImagesRequestHandlerTest {
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
 
         this.provider = "member";
-        this.federationUser = new FederationUser(this.provider, "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", this.provider
+        );
     }
 
     // test case: when the handle method is called passing a valid IQ object,
@@ -79,9 +77,9 @@ public class RemoteGetAllImagesRequestHandlerTest {
         images.put("image-id2", IMAGE_NAME.concat("2"));
 
         Mockito.doReturn(images).when(this.remoteFacade).getAllImages(Mockito.anyString(), Mockito.anyString(),
-                Mockito.any(FederationUser.class));
+                Mockito.any(SystemUser.class));
 
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.federationUser);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.systemUser);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -100,9 +98,9 @@ public class RemoteGetAllImagesRequestHandlerTest {
     public void testHandleWhenThrowsException() throws Exception {
         // set up
         Mockito.doThrow(new FogbowException()).when(this.remoteFacade).getAllImages(Mockito.anyString(),
-                Mockito.anyString(), Mockito.any(FederationUser.class));
+                Mockito.anyString(), Mockito.any(SystemUser.class));
 
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.federationUser);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.systemUser);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -110,7 +108,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUser.class));
+                getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.any(SystemUser.class));
 
         String iqId = iq.getID();
         String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER);

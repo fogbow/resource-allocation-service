@@ -3,8 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.genericrequest
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
@@ -25,17 +25,16 @@ public class CloudStackGenericRequestPluginTest {
     public static final String CLOUDSTACK_SEPARATOR = CloudStackConstants.KEY_VALUE_SEPARATOR;
 
     public static final String FAKE_TOKEN_VALUE = "foo" + CLOUDSTACK_SEPARATOR + "bar";
-    public static final String FAKE_PROVIDER = "fake-provider";
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_NAME = "fake-name";
 
-    private CloudToken fakeToken;
+    private CloudUser fakeToken;
     private CloudStackGenericRequestPlugin plugin;
     private CloudStackHttpClient client;
 
     @Before
     public void setUp() {
-        this.fakeToken = new CloudToken(new FederationUser(FAKE_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, new HashMap<>()));
+        this.fakeToken = new CloudUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
         this.client = Mockito.mock(CloudStackHttpClient.class);
 
         this.plugin = new CloudStackGenericRequestPlugin();
@@ -51,18 +50,18 @@ public class CloudStackGenericRequestPluginTest {
         GenericRequest request = new GenericRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
 
         HttpResponse response = new HttpResponse("fake-content", HttpStatus.SC_OK, responseHeaders);
-        Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class))).thenReturn(response);
+        Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudUser.class))).thenReturn(response);
 
         // exercise
         plugin.redirectGenericRequest(request, this.fakeToken);
 
         // verify
         URIBuilder uriBuilder = new URIBuilder(request.getUrl());
-        CloudStackUrlUtil.sign(uriBuilder, fakeToken.getTokenValue());
+        CloudStackUrlUtil.sign(uriBuilder, fakeToken.getToken());
         String expectedUrl = uriBuilder.toString();
 
         Mockito.verify(this.client).doGenericRequest(Mockito.eq(HttpMethod.GET), Mockito.eq(expectedUrl),
-                Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+                Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudUser.class));
     }
 
 }

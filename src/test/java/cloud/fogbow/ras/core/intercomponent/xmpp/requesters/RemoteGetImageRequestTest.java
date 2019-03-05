@@ -1,11 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.constants.FogbowConstants;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -20,23 +18,20 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class RemoteGetImageRequestTest {
 
     private final String provider = "provider";
     private final String imageId = "imageId";
     private RemoteGetImageRequest remoteGetImageRequest;
     private PacketSender packetSender;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
     @Before
     public void setUp() {
-        this.federationUser = new FederationUser("fake-token-provider", "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider"
+        );
 
-        this.remoteGetImageRequest = new RemoteGetImageRequest(provider, "default", imageId, federationUser);
+        this.remoteGetImageRequest = new RemoteGetImageRequest(provider, "default", imageId, systemUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
     }
@@ -55,7 +50,7 @@ public class RemoteGetImageRequestTest {
         this.remoteGetImageRequest.send();
 
         // verify
-        IQ expectedIq = RemoteGetImageRequest.marshal(provider, "default", imageId, federationUser);
+        IQ expectedIq = RemoteGetImageRequest.marshal(provider, "default", imageId, systemUser);
         IQMatcher matcher = new IQMatcher(expectedIq);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

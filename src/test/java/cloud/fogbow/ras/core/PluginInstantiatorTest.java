@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,17 +42,17 @@ public class PluginInstantiatorTest {
                 PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_JID_KEY));
     }
 
-    // test case: Tests if getFederationToLocalMapperPlugin() returns StubFederationToLocalMapperPlugin
+    // test case: Tests if getFederationToLocalMapperPlugin() returns StubSystemToCloudMapperPlugin
     // as the plugin class name.
     @Test
     public void testCreateLocalUserCredentialsMapperPluginInstance() {
         // set up
         String expected_local_user_credentials_mapper_class_value =
-                "cloud.fogbow.ras.core.stubs.StubFederationToLocalMapperPlugin";
+                "cloud.fogbow.ras.core.stubs.StubSystemToCloudMapperPlugin";
 
         // exercise
         String fakeCloudName = "default";
-        FederationToLocalMapperPlugin plugin = this.interoperabilityPluginInstantiator.getLocalUserCredentialsMapperPlugin(fakeCloudName);
+        SystemToCloudMapperPlugin plugin = this.interoperabilityPluginInstantiator.getSystemToCloudMapperPlugin(fakeCloudName);
 
         // verify
         Assert.assertEquals(expected_local_user_credentials_mapper_class_value, plugin.getClass().getName());

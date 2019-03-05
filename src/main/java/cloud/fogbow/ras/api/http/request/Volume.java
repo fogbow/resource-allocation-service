@@ -35,13 +35,13 @@ public class Volume {
     public ResponseEntity<ResourceId> createVolume(
             @ApiParam(value = ApiDocumentation.Volume.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Volume volume,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-            String volumeId = ApplicationFacade.getInstance().createVolume(volume.getOrder(), federationTokenValue);
+            String volumeId = ApplicationFacade.getInstance().createVolume(volume.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(volumeId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -52,14 +52,14 @@ public class Volume {
     @ApiOperation(value = ApiDocumentation.Volume.GET_OPERATION)
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllVolumesStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> volumeInstanceStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.VOLUME);
+                ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.VOLUME);
             return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -72,13 +72,13 @@ public class Volume {
     public ResponseEntity<VolumeInstance> getVolume(
             @ApiParam(value = ApiDocumentation.Volume.ID)
             @PathVariable String volumeId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, volumeId));
-            VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, federationTokenValue);
+            VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, systemUserToken);
             return new ResponseEntity<>(volume, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -91,13 +91,13 @@ public class Volume {
     public ResponseEntity<Boolean> deleteVolume(
             @ApiParam(value = ApiDocumentation.Volume.ID)
             @PathVariable String volumeId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, volumeId));
-            ApplicationFacade.getInstance().deleteVolume(volumeId, federationTokenValue);
+            ApplicationFacade.getInstance().deleteVolume(volumeId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.CryptoUtil;
@@ -94,7 +94,7 @@ public class ApplicationFacade {
     }
 
     public List<String> getCloudNames(String memberId, String federationTokenValue) throws FogbowException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, Operation.GET.getValue(),
                 ResourceType.CLOUD_NAMES.getValue());
         if (memberId.equals(this.memberId)) {
@@ -112,7 +112,7 @@ public class ApplicationFacade {
     }
 
     // This method is only protected to be used in testing
-	protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String memberId, FederationUser requester) {
+	protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String memberId, SystemUser requester) {
 		RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(memberId, requester);
 		return remoteGetCloudNames;
 	}
@@ -198,14 +198,14 @@ public class ApplicationFacade {
 
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType)
             throws FogbowException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, Operation.GET_ALL.getValue(), resourceType.getValue());
         return this.orderController.getInstancesStatus(requester, resourceType);
     }
 
     public Map<String, String> getAllImages(String memberId, String cloudName, String federationTokenValue)
             throws FogbowException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationController.authorize(requester, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
         if (memberId == null) {
@@ -217,7 +217,7 @@ public class ApplicationFacade {
 
     public Image getImage(String memberId, String cloudName, String imageId, String federationTokenValue)
             throws FogbowException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationController.authorize(requester, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
         if (memberId == null) {
@@ -235,7 +235,7 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException();
         }
 
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, order.getCloudName(), Operation.CREATE.getValue(),
                 ResourceType.SECURITY_RULE.getValue());
         return securityRuleController.createSecurityRule(order, securityRule, requester);
@@ -247,7 +247,7 @@ public class ApplicationFacade {
         if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
         }
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, order.getCloudName(), Operation.GET_ALL.getValue(),
                 ResourceType.SECURITY_RULE.getValue());
         return securityRuleController.getAllSecurityRules(order, requester);
@@ -259,7 +259,7 @@ public class ApplicationFacade {
         if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
         }
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, order.getCloudName(), Operation.DELETE.getValue(),
                 ResourceType.SECURITY_RULE.getValue());
         securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
@@ -267,7 +267,7 @@ public class ApplicationFacade {
 
     public GenericRequestResponse genericRequest(String cloudName, String memberId, GenericRequest genericRequest,
                                                  String federationTokenValue) throws FogbowException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, cloudName, Operation.GENERIC_REQUEST.getValue(),
                 ResourceType.GENERIC_RESOURCE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
@@ -281,8 +281,8 @@ public class ApplicationFacade {
         if (order.getCloudName() == null || order.getCloudName().isEmpty())
             order.setCloudName(this.cloudListController.getDefaultCloudName());
         // Check if the user is authentic
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
-        order.setFederationUser(requester);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        order.setSystemUser(requester);
         // Check if the authenticated user is authorized to perform the requested operation
         this.authorizationController.authorize(requester, order.getCloudName(), Operation.CREATE.getValue(),
                 order.getType().getValue());
@@ -295,7 +295,7 @@ public class ApplicationFacade {
 
     private Instance getResourceInstance(String orderId, String federationTokenValue, ResourceType resourceType)
             throws FogbowException, UnexpectedException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(orderId);
@@ -303,7 +303,7 @@ public class ApplicationFacade {
 
     private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType)
             throws FogbowException, UnexpectedException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(orderId);
@@ -311,7 +311,7 @@ public class ApplicationFacade {
 
     private Allocation getUserAllocation(String memberId, String cloudName, String federationTokenValue,
                                          ResourceType resourceType) throws FogbowException, UnexpectedException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationController.authorize(requester, cloudName, Operation.GET_USER_ALLOCATION.getValue(),
                 resourceType.getValue());
@@ -320,7 +320,7 @@ public class ApplicationFacade {
 
     private Quota getUserQuota(String memberId, String cloudName, String federationTokenValue,
                                ResourceType resourceType) throws FogbowException, UnexpectedException {
-        FederationUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
+        SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationController.authorize(requester, cloudName, Operation.GET_USER_QUOTA.getValue(),
                 resourceType.getValue());
@@ -328,15 +328,15 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
-	protected void authorizeOrder(FederationUser requester, String cloudName, Operation operation, ResourceType type,
-			Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
+	protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
+                                  Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
 		// Check if requested type matches order type
 		if (!order.getType().equals(type))
 			throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
 		// Check whether requester owns order
-		FederationUser orderOwner = order.getFederationUser();
-		String ownerUserId = orderOwner.getUserId();
-		String requestUserId = requester.getUserId();
+		SystemUser orderOwner = order.getSystemUser();
+		String ownerUserId = orderOwner.getId();
+		String requestUserId = requester.getId();
 		if (!ownerUserId.equals(requestUserId)) {
 			throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
 		}

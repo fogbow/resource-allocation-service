@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -57,12 +57,12 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin {
 	}
 
 	@Override
-	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudToken localUserAttributes)
+	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudUser cloudUser)
 			throws FogbowException {
 
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 
 		// check if fixed ip is in use...
 		String fixedIp = getAvailableFixedIp(client);
@@ -112,13 +112,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin {
 	}
 
 	@Override
-	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudToken localUserAttributes)
+	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudUser cloudUser)
 			throws FogbowException, UnexpectedException {
 
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId,
-				localUserAttributes.getTokenValue()));
+				cloudUser.getToken()));
 		
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
 		String virtualNetworkId = instanceIds[1];
@@ -131,12 +131,12 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin {
 	}
 
 	@Override
-	public PublicIpInstance getInstance(String publicIpInstanceId, CloudToken localUserAttributes) throws FogbowException {
+	public PublicIpInstance getInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
 
 		LOGGER.info(
-				String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, localUserAttributes.getTokenValue()));
+				String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
 		
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(cloudUser.getToken());
 
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
 		String virtualMachineId = instanceIds[0];
