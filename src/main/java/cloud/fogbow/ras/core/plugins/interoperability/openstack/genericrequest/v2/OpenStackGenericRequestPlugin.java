@@ -6,11 +6,11 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 
-public class OpenStackGenericRequestPlugin implements GenericRequestPlugin<HttpFogbowGenericRequest, OpenStackV3User> {
+public class OpenStackGenericRequestPlugin implements GenericRequestPlugin<HttpRequest, OpenStackV3User> {
 
     private OpenStackHttpClient client;
 
@@ -19,7 +19,7 @@ public class OpenStackGenericRequestPlugin implements GenericRequestPlugin<HttpF
     }
 
     @Override
-    public HttpResponse redirectGenericRequest(HttpFogbowGenericRequest genericRequest, OpenStackV3User cloudUser)
+    public HttpResponse redirectGenericRequest(HttpRequest genericRequest, OpenStackV3User cloudUser)
             throws FogbowException {
         if (genericRequest.getHeaders().containsKey(OpenStackConstants.X_AUTH_TOKEN_KEY)) {
             throw new InvalidParameterException(Messages.Exception.TOKEN_ALREADY_SPECIFIED);

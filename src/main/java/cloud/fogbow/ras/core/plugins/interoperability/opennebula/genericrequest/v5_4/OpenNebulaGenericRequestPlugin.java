@@ -6,16 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 import cloud.fogbow.common.models.OpenNebulaUser;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.OpenNebulaFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaResponse;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaFogbowGenericRequest;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<OpenNebulaFogbowGenericRequest, OpenNebulaUser> {
@@ -23,7 +24,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 	private static final String RESOURCE_POOL_SUFFIX = "Pool";
 
 	@Override
-	public GenericRequestResponse redirectGenericRequest(OpenNebulaFogbowGenericRequest genericRequest, OpenNebulaUser cloudUser)
+	public FogbowGenericResponse redirectGenericRequest(OpenNebulaFogbowGenericRequest genericRequest, OpenNebulaUser cloudUser)
 			throws FogbowException {
         
 		Client client = OpenNebulaClientUtil.createClient(genericRequest.getUrl(), cloudUser.getToken());
@@ -75,10 +76,10 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 			OneResponse oneResponse = (OneResponse) object;
 			boolean isError = oneResponse.isError();
 			message = isError ? oneResponse.getErrorMessage() : oneResponse.getMessage();
-			return new OpenNebulaGenericRequestResponse(message, isError);
+			return new OpenNebulaResponse(message, isError);
 		} else {
 			message = GsonHolder.getInstance().toJson(object);
-			return new OpenNebulaGenericRequestResponse(message, false);
+			return new OpenNebulaResponse(message, false);
 		}
 	}
 }

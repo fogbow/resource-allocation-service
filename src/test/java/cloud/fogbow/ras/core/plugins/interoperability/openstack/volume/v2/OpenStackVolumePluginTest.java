@@ -2,14 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,13 +66,13 @@ public class OpenStackVolumePluginTest {
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         Mockito.doReturn(FAKE_VOLUME_JSON).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.any(), Mockito.any(OpenStackV3User.class));
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any(CloudUser.class)
+        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any(OpenStackV3User.class)
         );
         Assert.assertEquals(FAKE_VOLUME_ID, instanceString);
     }
@@ -89,16 +88,16 @@ public class OpenStackVolumePluginTest {
         volumeOrder.setRequirements(requirements);
 
         Mockito.doReturn(FAKE_TYPES_JSON).when(this.client).doGetRequest(
-                Mockito.anyString(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.any(OpenStackV3User.class));
         Mockito.doReturn(FAKE_VOLUME_JSON).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.any(), Mockito.any(OpenStackV3User.class));
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
-        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any(CloudUser.class)
+        Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
+        Mockito.verify(this.client).doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any(OpenStackV3User.class)
         );
         Assert.assertEquals(FAKE_VOLUME_ID, instanceString);
     }
@@ -114,13 +113,13 @@ public class OpenStackVolumePluginTest {
         volumeOrder.setRequirements(requirements);
 
         Mockito.doReturn(FAKE_TYPES_JSON).when(this.client).doGetRequest(
-                Mockito.anyString(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         // exercise
         String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+        Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
     }
 
     // test case: Tests if generateJsonEntityToCreateInstance is returning the volume Json properly.
@@ -150,14 +149,14 @@ public class OpenStackVolumePluginTest {
     public void testGetInstance() throws FogbowException, HttpResponseException {
         // set up
         Mockito.doReturn(FAKE_VOLUME_JSON).when(
-                this.client).doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+                this.client).doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         // exercise
         VolumeInstance volumeInstance = this.openStackVolumePlugin.getInstance(FAKE_INSTANCE_ID,
                 this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+        Mockito.verify(this.client).doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
         Assert.assertEquals(FAKE_NAME, volumeInstance.getName());
         Assert.assertEquals(Integer.parseInt(FAKE_SIZE), volumeInstance.getVolumeSize());
     }
@@ -167,13 +166,13 @@ public class OpenStackVolumePluginTest {
     public void removeInstance() throws FogbowException, HttpResponseException {
         // set up
         Mockito.doNothing().when(this.client).doDeleteRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class));
+                Mockito.any(OpenStackV3User.class));
 
         // exercise
         this.openStackVolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
 
         // verify
-        Mockito.verify(this.client).doDeleteRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+        Mockito.verify(this.client).doDeleteRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
     }
 
     // test case: Deleting an instance without a project ID must raise FogbowException.

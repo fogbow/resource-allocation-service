@@ -3,9 +3,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -15,9 +16,8 @@ import cloud.fogbow.ras.api.http.response.securityrules.Direction;
 import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
 import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackQueryJobResult;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
@@ -53,7 +53,7 @@ public class CloudStackSecurityRulePluginTest {
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "x" + CloudStackConstants.KEY_VALUE_SEPARATOR + "y";
 
-    private static final CloudUser FAKE_CLOUD_USER = new CloudUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
+    private static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
 
     private CloudStackSecurityRulePlugin plugin;
     private CloudStackHttpClient client;
@@ -97,7 +97,7 @@ public class CloudStackSecurityRulePluginTest {
         String listFirewallRulesResponse = getListFirewallRulesResponseJson(securityRulesExpected, etherType);
 
         Mockito.when(this.client.doGetRequest(
-                Mockito.anyString(), Mockito.any(CloudUser.class)))
+                Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenReturn(listFirewallRulesResponse);
 
         Assert.assertEquals(this.client.doGetRequest("", FAKE_CLOUD_USER), listFirewallRulesResponse);
@@ -121,7 +121,7 @@ public class CloudStackSecurityRulePluginTest {
 
         HttpResponseException badRequestException = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
         Mockito.doThrow(badRequestException).when(this.client).doGetRequest(
-                Mockito.anyString(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.any(CloudStackUser.class));
 
         CloudStackPublicIpPlugin.setOrderidToInstanceIdMapping(publicIpOrder.getId(), publicIpOrder.getId());
 
@@ -170,7 +170,7 @@ public class CloudStackSecurityRulePluginTest {
 
         // exercise
         try {
-            plugin.requestSecurityRule(securityRule, Mockito.mock(Order.class), Mockito.mock(CloudUser.class));
+            plugin.requestSecurityRule(securityRule, Mockito.mock(Order.class), Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (UnsupportedOperationException e) {
             // verify
@@ -181,20 +181,20 @@ public class CloudStackSecurityRulePluginTest {
     @Test
     public void testWaitForJobResultUntilMaxTries() throws FogbowException {
         // set up
-        Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudUser.class));
+        Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudStackUser.class));
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
         try {
-            this.plugin.waitForJobResult(this.client, FAKE_JOB_ID, Mockito.mock(CloudUser.class));
+            this.plugin.waitForJobResult(this.client, FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (FogbowException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(1)).deleteSecurityRule(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -203,11 +203,11 @@ public class CloudStackSecurityRulePluginTest {
     @Test
     public void testWaitForJobResultWillReturnFailedJob() throws FogbowException {
         // set up
-        Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudUser.class));
+        Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudStackUser.class));
 
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -216,12 +216,12 @@ public class CloudStackSecurityRulePluginTest {
 
             new Timer().schedule(timerTask, 5 * CloudStackSecurityRulePlugin.ONE_SECOND_IN_MILIS);
             this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                    Mockito.mock(CloudUser.class));
+                    Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (FogbowException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(0)).deleteSecurityRule(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -232,7 +232,7 @@ public class CloudStackSecurityRulePluginTest {
         // set up
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -240,7 +240,7 @@ public class CloudStackSecurityRulePluginTest {
 
         new Timer().schedule(timerTask, 5 * CloudStackSecurityRulePlugin.ONE_SECOND_IN_MILIS);
         String instanceId = this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                Mockito.mock(CloudUser.class));
+                Mockito.mock(CloudStackUser.class));
 
         // verify
         Assert.assertEquals(FAKE_SECURITY_RULE_ID, instanceId);
@@ -250,22 +250,22 @@ public class CloudStackSecurityRulePluginTest {
     @Test
     public void testWaitForJobResultFailedJob() throws FogbowException {
         // set up
-        Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudUser.class));
+        Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudStackUser.class));
 
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.FAILURE);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
         try {
             this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                    Mockito.mock(CloudUser.class));
+                    Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (FogbowException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(0)).deleteSecurityRule(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -275,12 +275,12 @@ public class CloudStackSecurityRulePluginTest {
         // set up
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
         String instanceId = this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                Mockito.mock(CloudUser.class));
+                Mockito.mock(CloudStackUser.class));
 
         // verify
         Assert.assertEquals(FAKE_SECURITY_RULE_ID, instanceId);
@@ -294,7 +294,7 @@ public class CloudStackSecurityRulePluginTest {
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         String successJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .willReturn(processingJobResponse)
                 .willReturn(successJobResponse);
 
@@ -323,7 +323,7 @@ public class CloudStackSecurityRulePluginTest {
         // set up
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .willReturn(processingJobResponse);
 
         String endpoint = getBaseEndpointFromCloudStackConf();
@@ -386,7 +386,7 @@ public class CloudStackSecurityRulePluginTest {
                 String processingJobResponse = getProcessingJobResponse(status);
                 try {
                     BDDMockito.given(CloudStackSecurityRulePluginTest.this.queryJobResult.getQueryJobResult(
-                            Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudUser.class))).
+                            Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                             willReturn(processingJobResponse);
                 } catch (FogbowException e) {
                     e.printStackTrace();

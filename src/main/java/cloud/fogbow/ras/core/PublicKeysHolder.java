@@ -6,7 +6,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.CryptoUtil;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
+import cloud.fogbow.common.util.connectivity.HttpRequestClient;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -58,7 +58,7 @@ public class PublicKeysHolder {
         uri = UriComponentsBuilder.fromUri(uri).port(servicePort).path(suffix).build(true).toUri();
 
         String endpoint = uri.toString();
-        HttpResponse response = HttpRequestClientUtil.doGenericRequest(HttpMethod.GET, endpoint, new HashMap<>(), new HashMap<>());
+        HttpResponse response = HttpRequestClient.doGenericRequest(HttpMethod.GET, endpoint, new HashMap<>(), new HashMap<>());
         if (response.getHttpCode() > HttpStatus.SC_OK) {
             Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
             throw new UnavailableProviderException(e.getMessage(), e);

@@ -8,7 +8,7 @@ import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -20,8 +20,8 @@ import cloud.fogbow.ras.core.models.*;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -1532,10 +1532,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();
-		FogbowGenericRequest fogbowGenericRequest = new HttpFogbowGenericRequest(HttpMethod.GET, url, body, headers);
+		FogbowGenericRequest fogbowGenericRequest = new HttpRequest(HttpMethod.GET, url, body, headers);
 
 		String responseContent = FAKE_CONTENT;
-		GenericRequestResponse expectedResponse = new GenericRequestResponse(responseContent);
+		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -1546,7 +1546,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String cloudName = FAKE_CLOUD_NAME;
 		
 		// exercise
-		GenericRequestResponse genericRequestResponse = this.facade.genericRequest(cloudName,
+		FogbowGenericResponse fogbowGenericResponse = this.facade.genericRequest(cloudName,
 				FAKE_MEMBER_ID, fogbowGenericRequest, SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
@@ -1563,7 +1563,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(cloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(fogbowGenericRequest),
 				Mockito.eq(systemUser));
 
-		Assert.assertEquals(expectedResponse, genericRequestResponse);
+		Assert.assertEquals(expectedResponse, fogbowGenericResponse);
 	}
 
 	// test case: When calling the getCloudNames method with a local member ID, it

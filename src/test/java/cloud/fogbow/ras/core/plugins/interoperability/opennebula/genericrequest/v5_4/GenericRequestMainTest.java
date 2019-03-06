@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.OpenNebulaFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaResponse;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaFogbowGenericRequest;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
@@ -114,7 +115,7 @@ public class GenericRequestMainTest {
 			System.out.println("Response error message returned: " + oneResponse.getErrorMessage());
 		} else {
 			String message = GsonHolder.getInstance().toJson(response);
-			System.out.println(new OpenNebulaGenericRequestResponse(message, false));	
+			System.out.println(new OpenNebulaResponse(message, false));
 		}
 	}
 

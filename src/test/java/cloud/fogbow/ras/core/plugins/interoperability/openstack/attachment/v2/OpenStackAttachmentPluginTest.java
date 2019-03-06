@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -11,7 +11,6 @@ import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.common.models.OpenStackV3User;
 import org.apache.http.HttpStatus;
@@ -26,7 +25,6 @@ import org.mockito.Mockito;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
-import java.util.HashMap;
 import java.util.Properties;
 
 public class OpenStackAttachmentPluginTest {
@@ -52,7 +50,7 @@ public class OpenStackAttachmentPluginTest {
     private OpenStackV3User localUserAttributes;
     private OpenStackHttpClient client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<CloudUser> argToken = ArgumentCaptor.forClass(CloudUser.class);
+    private ArgumentCaptor<OpenStackV3User> argToken = ArgumentCaptor.forClass(OpenStackV3User.class);
     private String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
 
     @Before
@@ -78,7 +76,7 @@ public class OpenStackAttachmentPluginTest {
     public void testRequestInstance() throws FogbowException, HttpResponseException {
         //set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         //exercise
         String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -95,7 +93,7 @@ public class OpenStackAttachmentPluginTest {
         int unknownStatusCode = -1;
         HttpResponseException httpResponseException = new HttpResponseException(unknownStatusCode, "");
         Mockito.doThrow(httpResponseException).when(this.client).doPostRequest(Mockito.anyString(),
-                Mockito.anyString(), Mockito.any(CloudUser.class));
+                Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         //exercise/verify
         this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -157,7 +155,7 @@ public class OpenStackAttachmentPluginTest {
             throws FogbowException, HttpResponseException {
         //set up
         Mockito.doThrow(UnexpectedException.class).when(this.client)
-                .doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+                .doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
 
         //exercise/verify

@@ -6,7 +6,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
@@ -21,9 +21,8 @@ import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.common.util.connectivity.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.apache.log4j.Logger;
 
@@ -180,15 +179,15 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public GenericRequestResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUser) throws FogbowException {
+    public FogbowGenericResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUser) throws FogbowException {
         CloudUser token = this.mapperPlugin.map(systemUser);
 
-        GenericRequestResponse genericRequestResponse = null;
+        FogbowGenericResponse fogbowGenericResponse = null;
         String auditableResponse = null;
         try {
-            genericRequestResponse = doGenericRequest(genericRequest, token);
-            if (genericRequestResponse != null) {
-                auditableResponse = genericRequestResponse.toString();
+            fogbowGenericResponse = doGenericRequest(genericRequest, token);
+            if (fogbowGenericResponse != null) {
+                auditableResponse = fogbowGenericResponse.toString();
             }
         } catch (Throwable e) {
             auditableResponse = e.getClass().getName();
@@ -197,7 +196,7 @@ public class LocalCloudConnector implements CloudConnector {
             auditRequest(Operation.CREATE, ResourceType.GENERIC_RESOURCE, systemUser, auditableResponse);
         }
 
-        return genericRequestResponse;
+        return fogbowGenericResponse;
     }
 
     @Override
@@ -455,7 +454,7 @@ public class LocalCloudConnector implements CloudConnector {
         return this.imagePlugin.getImage(imageId, token);
     }
 
-    public GenericRequestResponse doGenericRequest(FogbowGenericRequest genericRequest, CloudUser token)
+    public FogbowGenericResponse doGenericRequest(FogbowGenericRequest genericRequest, CloudUser token)
             throws FogbowException {
         return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }

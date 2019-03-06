@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.intercomponent;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
@@ -19,7 +19,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 
 import java.util.List;
@@ -92,8 +92,8 @@ public class RemoteFacade {
         return cloudConnector.getAllImages(systemUser);
     }
 
-    public GenericRequestResponse genericRequest(String requestingMember, String cloudName, FogbowGenericRequest genericRequest,
-                                                 SystemUser systemUser) throws FogbowException {
+    public FogbowGenericResponse genericRequest(String requestingMember, String cloudName, FogbowGenericRequest genericRequest,
+                                                SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
         this.authorizationController.authorize(systemUser, cloudName, Operation.GENERIC_REQUEST.getValue(), ResourceType.GENERIC_RESOURCE.getValue());
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);

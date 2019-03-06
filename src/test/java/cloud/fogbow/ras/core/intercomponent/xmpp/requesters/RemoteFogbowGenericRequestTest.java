@@ -3,13 +3,13 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
 import org.dom4j.Element;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;
@@ -31,7 +31,7 @@ public class RemoteFogbowGenericRequestTest {
 
     @Before
     public void setUp() {
-        this.fogbowGenericRequest = new HttpFogbowGenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+        this.fogbowGenericRequest = new HttpRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
         this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, fogbowGenericRequest, systemUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
@@ -42,8 +42,8 @@ public class RemoteFogbowGenericRequestTest {
     public void testSend() throws Exception {
         // set up
         String expectedResponseContent = "fakeContent";
-        GenericRequestResponse expectedGenericRequestResponse = new GenericRequestResponse(expectedResponseContent);
-        IQ expectedResponse = createIq(expectedGenericRequestResponse);
+        FogbowGenericResponse expectedFogbowGenericResponse = new FogbowGenericResponse(expectedResponseContent);
+        IQ expectedResponse = createIq(expectedFogbowGenericResponse);
 
         Mockito.doReturn(expectedResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
@@ -56,14 +56,14 @@ public class RemoteFogbowGenericRequestTest {
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }
 
-    private IQ createIq(GenericRequestResponse genericRequestResponse) {
+    private IQ createIq(FogbowGenericResponse fogbowGenericResponse) {
         IQ response = new IQ();
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GENERIC_REQUEST.toString());
         Element genericRequestElement = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE.toString());
         Element genericRequestElementClassname = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE_CLASS_NAME.toString());
 
-        genericRequestElement.setText(GsonHolder.getInstance().toJson(genericRequestResponse));
-        genericRequestElementClassname.setText(genericRequestResponse.getClass().getName());
+        genericRequestElement.setText(GsonHolder.getInstance().toJson(fogbowGenericResponse));
+        genericRequestElementClassname.setText(fogbowGenericResponse.getClass().getName());
         return response;
     }
 

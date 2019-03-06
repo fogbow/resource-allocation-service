@@ -2,14 +2,14 @@ package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -79,7 +79,7 @@ public interface CloudConnector {
      * @return the response received from the cloud
      * @throws FogbowException
      */
-    GenericRequestResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUser) throws FogbowException;
+    FogbowGenericResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUser) throws FogbowException;
 
     /**
      * Gets all security rules associated to an Order (must be either a publicIp or a network order)

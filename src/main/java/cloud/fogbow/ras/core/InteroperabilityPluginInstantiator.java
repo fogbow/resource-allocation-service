@@ -5,7 +5,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 
 import java.io.File;

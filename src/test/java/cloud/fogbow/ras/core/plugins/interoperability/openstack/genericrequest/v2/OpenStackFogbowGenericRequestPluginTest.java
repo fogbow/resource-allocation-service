@@ -4,8 +4,8 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.models.OpenStackV3User;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,7 +22,7 @@ public class OpenStackFogbowGenericRequestPluginTest {
 
     private OpenStackGenericRequestPlugin plugin;
     private OpenStackHttpClient openStackHttpClient;
-    private HttpFogbowGenericRequest genericRequest;
+    private HttpRequest genericRequest;
 
     @Before
     public void setUp() {
@@ -49,14 +49,14 @@ public class OpenStackFogbowGenericRequestPluginTest {
         }
     }
 
-    private HttpFogbowGenericRequest createGenericRequest() {
+    private HttpRequest createGenericRequest() {
         HashMap<String, String> headers = new HashMap<>();
         headers.put(FAKE_KEY, FAKE_VALUE);
 
         HashMap<String, String> body = new HashMap<>();
         body.put(FAKE_KEY, FAKE_VALUE);
 
-        HttpFogbowGenericRequest genericRequest = new HttpFogbowGenericRequest(HttpMethod.GET, FAKE_URL, body, headers);
+        HttpRequest genericRequest = new HttpRequest(HttpMethod.GET, FAKE_URL, body, headers);
         return genericRequest;
     }
 }

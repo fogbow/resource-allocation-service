@@ -6,7 +6,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -17,8 +17,8 @@ import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
@@ -968,7 +968,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         // set up
         CloudUser tokenMock = Mockito.mock(CloudUser.class);
         Mockito.doReturn(tokenMock).when(systemToCloudMapperPlugin).map(Mockito.eq(systemUser));
-        Mockito.doReturn(Mockito.mock(GenericRequestResponse.class)).when(genericRequestPlugin).
+        Mockito.doReturn(Mockito.mock(FogbowGenericResponse.class)).when(genericRequestPlugin).
                 redirectGenericRequest(Mockito.any(FogbowGenericRequest.class), Mockito.eq(tokenMock));
 
         // exercise

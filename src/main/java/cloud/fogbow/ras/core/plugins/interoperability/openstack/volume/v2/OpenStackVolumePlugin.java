@@ -1,17 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -22,7 +21,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-public class OpenStackVolumePlugin implements VolumePlugin {
+public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackVolumePlugin.class);
 
     private final String V2_API_ENDPOINT = "/v2/";
@@ -40,9 +39,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public String requestInstance(VolumeOrder order, CloudUser cloudUser) throws FogbowException {
-        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
-        String tenantId = openStackV3Token.getProjectId();
+    public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String tenantId = cloudUser.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
             LOGGER.error(message);
@@ -59,7 +57,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
             String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
             String volumeTypeId = null;
             if(requirements != null && requirements.size() > 0) {
-                volumeTypeId = getValidVolumeTypeId(requirements, tenantId, openStackV3Token);
+                volumeTypeId = getValidVolumeTypeId(requirements, tenantId, cloudUser);
             }
             jsonRequest = generateJsonEntityToCreateInstance(size, name, volumeTypeId);
 
@@ -73,7 +71,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
         String responseStr = null;
         try {
-            responseStr = this.client.doPostRequest(endpoint, jsonRequest, openStackV3Token);
+            responseStr = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -82,9 +80,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public VolumeInstance getInstance(String storageOrderInstanceId, CloudUser cloudUser) throws FogbowException {
-        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
-        String tenantId = openStackV3Token.getProjectId();
+    public VolumeInstance getInstance(String storageOrderInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+        String tenantId = cloudUser.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
             LOGGER.error(message);
@@ -95,7 +92,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
                 + SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
         String responseStr = null;
         try {
-            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
+            responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -103,9 +100,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public void deleteInstance(String storageOrderInstanceId, CloudUser cloudUser) throws FogbowException {
-        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
-        String tenantId = openStackV3Token.getProjectId();
+    public void deleteInstance(String storageOrderInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+        String tenantId = cloudUser.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
             LOGGER.error(message);
@@ -115,7 +111,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
         String endpoint = this.volumeV2APIEndpoint + tenantId
                 + SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
         try {
-            this.client.doDeleteRequest(endpoint, openStackV3Token);
+            this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -164,13 +160,13 @@ public class OpenStackVolumePlugin implements VolumePlugin {
         return createVolumeRequest.toJson();
     }
 
-    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, CloudUser token)
+    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, OpenStackV3User cloudUser)
             throws FogbowException, UnexpectedException {
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUME_TYPES;
         String responseStr = null;
         try {
-            responseStr = this.client.doGetRequest(endpoint, token);
+            responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }

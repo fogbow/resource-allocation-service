@@ -5,16 +5,16 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
-public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<HttpFogbowGenericRequest, CloudStackUser> {
+public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<HttpRequest, CloudStackUser> {
 
     private CloudStackHttpClient client;
 
@@ -23,7 +23,7 @@ public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<Http
     }
 
     @Override
-    public HttpResponse redirectGenericRequest(HttpFogbowGenericRequest genericRequest, CloudStackUser cloudUser) throws FogbowException {
+    public HttpResponse redirectGenericRequest(HttpRequest genericRequest, CloudStackUser cloudUser) throws FogbowException {
         try {
             URIBuilder uriBuilder = new URIBuilder(genericRequest.getUrl());
             CloudStackUrlUtil.sign(uriBuilder, cloudUser.getToken());

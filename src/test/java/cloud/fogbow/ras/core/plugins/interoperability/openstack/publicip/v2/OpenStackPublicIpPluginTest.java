@@ -2,14 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
 import com.google.gson.Gson;
@@ -182,7 +181,7 @@ public class OpenStackPublicIpPluginTest {
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.never())
-				.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+				.doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 	}	
 	
 	// test case: throw FogbowException because the cloud found two or more ports. In the Fogbow scenario is not allowed
@@ -236,7 +235,7 @@ public class OpenStackPublicIpPluginTest {
 		ListSecurityGroups listSecurityGroups = createListSecurityGroupsResponse();
 
 		// when retrieving the group id by name
-		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(listSecurityGroups.toJson());
 
 		// exercise
@@ -259,12 +258,12 @@ public class OpenStackPublicIpPluginTest {
 		ListSecurityGroups listSecurityGroups = createListSecurityGroupsResponse();
 
 		// when retrieving the group id by name
-		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(listSecurityGroups.toJson());
 
 		HttpResponseException notFoundException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, "");
 		Mockito.doThrow(notFoundException).when(
-				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 		
 		// exercise
 		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, null, openStackV3Token);

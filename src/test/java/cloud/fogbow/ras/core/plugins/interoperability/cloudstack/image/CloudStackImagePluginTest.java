@@ -2,13 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.Image;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -42,7 +42,7 @@ public class CloudStackImagePluginTest {
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 
-    public static final CloudUser FAKE_TOKEN =  new CloudUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
+    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
@@ -138,7 +138,7 @@ public class CloudStackImagePluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -147,7 +147,7 @@ public class CloudStackImagePluginTest {
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class));
         }
     }
 

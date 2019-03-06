@@ -3,12 +3,12 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
@@ -31,9 +31,9 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
             FogbowGenericRequest fogbowGenericRequest = unmarshalGenericRequest(iq);
             SystemUser systemUser = unmarshalFederationUser(iq);
 
-            GenericRequestResponse genericRequestResponse = RemoteFacade.getInstance().
+            FogbowGenericResponse fogbowGenericResponse = RemoteFacade.getInstance().
                     genericRequest(iq.getFrom().toBareJID(), cloudName, fogbowGenericRequest, systemUser);
-            updateResponse(response, genericRequestResponse);
+            updateResponse(response, fogbowGenericResponse);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -70,12 +70,12 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
         }
     }
 
-    private void updateResponse(IQ response, GenericRequestResponse genericRequestResponse) {
+    private void updateResponse(IQ response, FogbowGenericResponse fogbowGenericResponse) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GENERIC_REQUEST);
         Element genericRequestElement = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE.toString());
         Element genericRequestElementClassname = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE_CLASS_NAME.toString());
 
-        genericRequestElement.setText(GsonHolder.getInstance().toJson(genericRequestResponse));
-        genericRequestElementClassname.setText(genericRequestResponse.getClass().getName());
+        genericRequestElement.setText(GsonHolder.getInstance().toJson(fogbowGenericResponse));
+        genericRequestElementClassname.setText(fogbowGenericResponse.getClass().getName());
     }
 }

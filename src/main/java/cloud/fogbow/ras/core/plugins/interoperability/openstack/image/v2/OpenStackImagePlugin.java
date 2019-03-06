@@ -2,20 +2,19 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
 
-public class OpenStackImagePlugin implements ImagePlugin {
+public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
 
     public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
@@ -34,14 +33,13 @@ public class OpenStackImagePlugin implements ImagePlugin {
     }
 
     @Override
-    public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
-        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
-        Map<String, String> availableImages = getAvailableImages(openStackV3Token, openStackV3Token.getProjectId());
+    public Map<String, String> getAllImages(OpenStackV3User cloudUser) throws FogbowException {
+        Map<String, String> availableImages = getAvailableImages(cloudUser);
         return availableImages;
     }
 
     @Override
-    public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+    public Image getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
         GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
         String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
@@ -59,12 +57,12 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return null;
     }
 
-    private GetImageResponse getImageResponse(String imageId, CloudUser token) throws FogbowException {
+    private GetImageResponse getImageResponse(String imageId, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                     + IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + File.separator + imageId;
-            jsonResponse = this.client.doGetRequest(endpoint, token);
+            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -72,12 +70,12 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return GetImageResponse.fromJson(jsonResponse);
     }
 
-    private List<GetImageResponse> getImagesResponse(CloudUser token) throws FogbowException {
+    private List<GetImageResponse> getImagesResponse(OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                     + IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + QUERY_ACTIVE_IMAGES;
-            jsonResponse = this.client.doGetRequest(endpoint, token);
+            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -85,11 +83,11 @@ public class OpenStackImagePlugin implements ImagePlugin {
 
         List<GetImageResponse> getImageResponses = new ArrayList<GetImageResponse>();
         getImageResponses.addAll(getAllImagesResponse.getImages());
-        getNextImageListResponseByPagination(token, getAllImagesResponse, getImageResponses);
+        getNextImageListResponseByPagination(cloudUser, getAllImagesResponse, getImageResponses);
         return getImageResponses;
     }
 
-    private void getNextImageListResponseByPagination(CloudUser token, GetAllImagesResponse getAllImagesResponse,
+    private void getNextImageListResponseByPagination(OpenStackV3User cloudUser, GetAllImagesResponse getAllImagesResponse,
                                                       List<GetImageResponse> imagesJson) throws FogbowException {
 
         String next = getAllImagesResponse.getNext();
@@ -97,14 +95,14 @@ public class OpenStackImagePlugin implements ImagePlugin {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) + next;
             String jsonResponse = null;
             try {
-                jsonResponse = this.client.doGetRequest(endpoint, token);
+                jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
             } catch (HttpResponseException e) {
                 OpenStackHttpToFogbowExceptionMapper.map(e);
             }
             getAllImagesResponse = getAllImagesResponse(jsonResponse);
 
             imagesJson.addAll(getAllImagesResponse.getImages());
-            getNextImageListResponseByPagination(token, getAllImagesResponse, imagesJson);
+            getNextImageListResponseByPagination(cloudUser, getAllImagesResponse, imagesJson);
         }
     }
 
@@ -129,11 +127,11 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return privateImagesResponse;
     }
 
-    private Map<String, String> getAvailableImages(CloudUser token, String tenantId) throws FogbowException {
+    private Map<String, String> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
         Map<String, String> availableImages = new HashMap<String, String>();
 
-        List<GetImageResponse> allImagesResponse = getImagesResponse(token);
-        List<GetImageResponse> filteredImagesResponse = filterImagesResponse(tenantId, allImagesResponse);
+        List<GetImageResponse> allImagesResponse = getImagesResponse(cloudUser);
+        List<GetImageResponse> filteredImagesResponse = filterImagesResponse(cloudUser.getProjectId(), allImagesResponse);
 
         for (GetImageResponse getImageResponse : filteredImagesResponse) {
             availableImages.put(getImageResponse.getId(), getImageResponse.getName());

@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -24,8 +24,8 @@ import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -266,10 +266,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();
-		FogbowGenericRequest fogbowGenericRequest = new HttpFogbowGenericRequest(method, url, body, headers);
+		FogbowGenericRequest fogbowGenericRequest = new HttpRequest(method, url, body, headers);
 
 		String responseContent = FAKE_CONTENT;
-		GenericRequestResponse expectedResponse = new GenericRequestResponse(responseContent);
+		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
 
 		CloudConnectorFactory factory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(factory);
@@ -280,7 +280,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		String cloudName = DEFAULT_CLOUD_NAME;
 
 		// exercise
-		GenericRequestResponse genericRequestResponse = facade.genericRequest(FAKE_REQUESTING_MEMBER_ID, cloudName,
+		FogbowGenericResponse fogbowGenericResponse = facade.genericRequest(FAKE_REQUESTING_MEMBER_ID, cloudName,
                 fogbowGenericRequest, systemUser);
 
 		// verify
@@ -292,7 +292,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.verify(cloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(fogbowGenericRequest),
 				Mockito.eq(systemUser));
 
-		Assert.assertEquals(expectedResponse, genericRequestResponse);
+		Assert.assertEquals(expectedResponse, fogbowGenericResponse);
 	}
 
 	// test case: Verifies getImage method behavior inside Remote Facade, i.e. it

@@ -2,19 +2,19 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
 import java.util.Properties;
 
-public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
+public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackComputeQuotaPlugin.class);
 
     private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
@@ -29,7 +29,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     }
 
     @Override
-    public ComputeQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
+    public ComputeQuota getUserQuota(OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + SUFFIX;
 
         String jsonResponse = null;

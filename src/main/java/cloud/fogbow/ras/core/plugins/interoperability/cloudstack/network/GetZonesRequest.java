@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 
 
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackRequest;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import java.security.InvalidParameterException;
 

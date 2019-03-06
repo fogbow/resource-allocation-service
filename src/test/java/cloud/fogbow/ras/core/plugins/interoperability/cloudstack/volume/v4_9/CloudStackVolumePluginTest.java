@@ -1,15 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -72,7 +72,7 @@ public class CloudStackVolumePluginTest {
 
     private CloudStackVolumePlugin plugin;
     private CloudStackHttpClient client;
-    private CloudUser token;
+    private CloudStackUser cloudUser;
     private Properties properties;
 
     @Before
@@ -83,11 +83,11 @@ public class CloudStackVolumePluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
+        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
     }
 
     // test case: When calling the requestInstance method with a size compatible with the
-    // orchestrator's disk offering, HTTP GET requests must be made with a signed token, one to get
+    // orchestrator's disk offering, HTTP GET requests must be made with a signed cloudUser, one to get
     // the compatible disk offering Id attached to the requisition, and another to create a volume
     // of compatible size, returning the id of the VolumeInstance object.
     @Test
@@ -110,7 +110,7 @@ public class CloudStackVolumePluginTest {
         boolean customized = false;
         String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -124,30 +124,30 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, COMPATIBLE_SIZE);
-        String volumeId = this.plugin.requestInstance(order, this.token);
+        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
     }
 
     // test case: When calling the requestInstance method to get a size customized by the
-    // orchestrator's disk offering, HTTP GET requests must be made with a signed token, one to get
+    // orchestrator's disk offering, HTTP GET requests must be made with a signed cloudUser, one to get
     // the standard disk offering Id attached to the requisition, and another to create a volume of
     // customized size, returning the id of the VolumeInstance object.
     @Test
@@ -170,7 +170,7 @@ public class CloudStackVolumePluginTest {
         boolean customized = true;
         String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -184,23 +184,23 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-        String volumeId = this.plugin.requestInstance(order, this.token);
+        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
@@ -227,7 +227,7 @@ public class CloudStackVolumePluginTest {
         Map<String, String> fakeRequirements = new HashMap<>();
         fakeRequirements.put("tag1", "value1");
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -241,24 +241,24 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
         order.setRequirements(fakeRequirements);
-        String volumeId = this.plugin.requestInstance(order, this.token);
+        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
@@ -285,7 +285,7 @@ public class CloudStackVolumePluginTest {
         Map<String, String> fakeRequirements = new HashMap<>();
         fakeRequirements.put("tag3", "value3");
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -299,21 +299,21 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
         order.setRequirements(fakeRequirements);
-        String volumeId = this.plugin.requestInstance(order, this.token);
+        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
     }
 
     // test case: When calling the requestInstance method with a user without permission, an
@@ -329,21 +329,21 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.token);
+            this.plugin.requestInstance(order, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -359,21 +359,21 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.token);
+            this.plugin.requestInstance(order, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -389,21 +389,21 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.token);
+            this.plugin.requestInstance(order, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -420,26 +420,26 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.token);
+            this.plugin.requestInstance(order, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
     // test case: When calling the getInstance method, an HTTP GET request must be made with a
-    // signed token, which returns a response in the JSON format for the retrieval of the
+    // signed cloudUser, which returns a response in the JSON format for the retrieval of the
     // VolumeInstance object.
     @Test
     public void testGetInstanceRequestSuccessful()
@@ -464,10 +464,10 @@ public class CloudStackVolumePluginTest {
         String volume = getVolumeResponse(id, name, size, state);
         String response = getListVolumesResponse(volume);
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         // exercise
-        VolumeInstance recoveredInstance = this.plugin.getInstance(FAKE_ID, this.token);
+        VolumeInstance recoveredInstance = this.plugin.getInstance(FAKE_ID, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -477,7 +477,7 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(name, recoveredInstance.getName());
         Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getVolumeSize());
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudUser);
     }
 
     // test case: When calling the getInstance method with a user without permission, an
@@ -493,19 +493,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
             // exercise
-            this.plugin.getInstance(FAKE_ID, this.token);
+            this.plugin.getInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -521,19 +521,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
             // exercise
-            this.plugin.getInstance(FAKE_ID, this.token);
+            this.plugin.getInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -550,19 +550,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
             // exercise
-            this.plugin.getInstance(FAKE_ID, this.token);
+            this.plugin.getInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -579,19 +579,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
             // exercise
-            this.plugin.getInstance(FAKE_ID, this.token);
+            this.plugin.getInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -616,21 +616,21 @@ public class CloudStackVolumePluginTest {
         String volume = EMPTY_INSTANCE;
         String response = getListVolumesResponse(volume);
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         PowerMockito.mockStatic(GetVolumeResponse.class);
         PowerMockito.when(GetVolumeResponse.fromJson(response)).thenCallRealMethod();
 
         try {
             // exercise
-            this.plugin.getInstance(FAKE_ID, this.token);
+            this.plugin.getInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
 
             PowerMockito.verifyStatic(GetVolumeResponse.class, VerificationModeFactory.times(1));
             GetVolumeResponse.fromJson(Mockito.eq(response));
@@ -638,7 +638,7 @@ public class CloudStackVolumePluginTest {
     }
 
     // test case: When calling the deleteInstance method, an HTTP GET request must be made with a
-    // signed token, which returns a response in the JSON format.
+    // signed cloudUser, which returns a response in the JSON format.
     @Test
     public void testDeleteInstanceRequestSuccessful()
             throws HttpResponseException, FogbowException {
@@ -659,19 +659,19 @@ public class CloudStackVolumePluginTest {
         boolean success = true;
         String response = getDeleteVolumeResponse(success);
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         PowerMockito.mockStatic(DeleteVolumeResponse.class);
         PowerMockito.when(DeleteVolumeResponse.fromJson(response)).thenCallRealMethod();
 
         // exercise
-        this.plugin.deleteInstance(FAKE_ID, this.token);
+        this.plugin.deleteInstance(FAKE_ID, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, token);
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, cloudUser);
 
         PowerMockito.verifyStatic(DeleteVolumeResponse.class, VerificationModeFactory.times(1));
         DeleteVolumeResponse.fromJson(Mockito.eq(response));
@@ -690,19 +690,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, this.token);
+            this.plugin.deleteInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -718,19 +718,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, this.token);
+            this.plugin.deleteInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -747,19 +747,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class)))
+                Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, this.token);
+            this.plugin.deleteInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -776,19 +776,19 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
+                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, null));
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, this.token);
+            this.plugin.deleteInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
     
@@ -813,21 +813,21 @@ public class CloudStackVolumePluginTest {
         boolean success = false;
         String response = getDeleteVolumeResponse(success);
 
-        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         PowerMockito.mockStatic(DeleteVolumeResponse.class);
         PowerMockito.when(DeleteVolumeResponse.fromJson(response)).thenCallRealMethod();
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, this.token);
+            this.plugin.deleteInstance(FAKE_ID, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudUser.class));
+                    Mockito.any(CloudStackUser.class));
 
             PowerMockito.verifyStatic(DeleteVolumeResponse.class, VerificationModeFactory.times(1));
             DeleteVolumeResponse.fromJson(Mockito.eq(response));

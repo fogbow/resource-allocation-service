@@ -3,17 +3,16 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import cloud.fogbow.common.util.connectivity.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-public class RemoteGenericRequest implements RemoteRequest<GenericRequestResponse> {
+public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse> {
 
     private SystemUser systemUser;
     private FogbowGenericRequest genericRequest;
@@ -28,7 +27,7 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
     }
 
     @Override
-    public GenericRequestResponse send() throws Exception {
+    public FogbowGenericResponse send() throws Exception {
         IQ iq = marshal(provider, cloudName, genericRequest, systemUser);
 
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
@@ -36,20 +35,20 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
         return unmarshal(response);
     }
 
-    private GenericRequestResponse unmarshal(IQ response) throws UnexpectedException {
+    private FogbowGenericResponse unmarshal(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String genericRequestResponseStr = queryElement.element(IqElement.GENERIC_REQUEST_RESPONSE.toString()).getText();
 
         String instanceClassName = queryElement.element(IqElement.GENERIC_REQUEST_RESPONSE_CLASS_NAME.toString()).getText();
 
-        GenericRequestResponse genericRequestResponse;
+        FogbowGenericResponse fogbowGenericResponse;
         try {
-            genericRequestResponse = (GenericRequestResponse) GsonHolder.getInstance().
+            fogbowGenericResponse = (FogbowGenericResponse) GsonHolder.getInstance().
                     fromJson(genericRequestResponseStr, Class.forName(instanceClassName));
         } catch (Exception e) {
             throw new UnexpectedException(e.getMessage());
         }
-        return genericRequestResponse;
+        return fogbowGenericResponse;
     }
 
     public static IQ marshal(String provider, String cloudName, FogbowGenericRequest genericRequest, SystemUser systemUser) {

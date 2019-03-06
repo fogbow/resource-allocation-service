@@ -5,9 +5,9 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -46,7 +46,7 @@ public class CloudStackFogbowGenericRequestPluginTest {
         HashMap<String, String> headers = new HashMap<>();
         HashMap<String, String> body = new HashMap<>();
         HashMap<String, List<String>> responseHeaders = new HashMap<>();
-        HttpFogbowGenericRequest request = new HttpFogbowGenericRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
+        HttpRequest request = new HttpRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
 
         HttpResponse response = new HttpResponse("fake-content", HttpStatus.SC_OK, responseHeaders);
         Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudStackUser.class))).thenReturn(response);

@@ -7,7 +7,7 @@ import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -26,7 +26,7 @@ import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -265,8 +265,8 @@ public class ApplicationFacade {
         securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
     }
 
-    public GenericRequestResponse genericRequest(String cloudName, String memberId, FogbowGenericRequest genericRequest,
-                                                 String federationTokenValue) throws FogbowException {
+    public FogbowGenericResponse genericRequest(String cloudName, String memberId, FogbowGenericRequest genericRequest,
+                                                String federationTokenValue) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), federationTokenValue);
         this.authorizationController.authorize(requester, cloudName, Operation.GENERIC_REQUEST.getValue(),
                 ResourceType.GENERIC_RESOURCE.getValue());

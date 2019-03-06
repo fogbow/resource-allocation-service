@@ -5,7 +5,6 @@ public class Messages {
     public static class Exception {
         public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
         public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
-        public static final String CLASS_S_SHOULD_BE_CLONEABLE = "Class %s should be cloneable";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";

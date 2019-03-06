@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackRequest;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 /**
  * Documentation https://cloudstack.apache.org/api/apidocs-4.9/apis/deleteFirewallRule.html

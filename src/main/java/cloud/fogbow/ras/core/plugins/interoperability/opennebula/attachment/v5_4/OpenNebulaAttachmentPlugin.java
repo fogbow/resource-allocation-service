@@ -28,7 +28,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
-import cloud.fogbow.common.util.cloud.opennebula.OpenNebulaTagNameConstants;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
 
 public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 

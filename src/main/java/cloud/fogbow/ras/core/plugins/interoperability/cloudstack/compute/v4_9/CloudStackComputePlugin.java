@@ -1,18 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class CloudStackComputePlugin implements ComputePlugin {
+public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
     public static final String ZONE_ID_KEY = "zone_id";
@@ -61,7 +61,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
     public CloudStackComputePlugin() {}
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+    public String requestInstance(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
             LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
@@ -114,7 +114,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, CloudUser cloudUser) throws FogbowException {
+    public ComputeInstance getInstance(String computeInstanceId, CloudStackUser cloudUser) throws FogbowException {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(computeInstanceId)
                 .build(this.cloudStackUrl);
@@ -138,7 +138,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, CloudUser cloudUser) throws FogbowException {
+    public void deleteInstance(String computeInstanceId, CloudStackUser cloudUser) throws FogbowException {
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
                 .id(computeInstanceId)
                 .expunge(this.expungeOnDestroy)
@@ -166,8 +166,8 @@ public class CloudStackComputePlugin implements ComputePlugin {
         return StringUtils.join(requestedNetworksId, ",");
     }
 
-    private String getServiceOfferingId(ComputeOrder computeOrder, CloudUser cloudStackToken) throws FogbowException {
-        GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
+    private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
+        GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
 
@@ -204,13 +204,13 @@ public class CloudStackComputePlugin implements ComputePlugin {
         return null;
     }
 
-    private GetAllServiceOfferingsResponse getServiceOfferings(CloudUser cloudStackToken) throws FogbowException {
+    private GetAllServiceOfferingsResponse getServiceOfferings(CloudStackUser cloudUser) throws FogbowException {
         GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build(this.cloudStackUrl);
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getToken());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -220,8 +220,8 @@ public class CloudStackComputePlugin implements ComputePlugin {
         return serviceOfferingsResponse;
     }
 
-    private String getDiskOfferingId(int diskSize, CloudUser cloudStackToken) throws FogbowException {
-        GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudStackToken);
+    private String getDiskOfferingId(int diskSize, CloudStackUser cloudUser) throws FogbowException {
+        GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
         if (diskOfferings != null) {
@@ -235,13 +235,13 @@ public class CloudStackComputePlugin implements ComputePlugin {
         return null;
     }
 
-    private GetAllDiskOfferingsResponse getDiskOfferings(CloudUser cloudStackToken) throws FogbowException {
+    private GetAllDiskOfferingsResponse getDiskOfferings(CloudStackUser cloudUser) throws FogbowException {
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getToken());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -251,7 +251,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
         return diskOfferingsResponse;
     }
 
-    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudUser cloudStackToken) {
+    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackUser cloudUser) {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
@@ -259,7 +259,7 @@ public class CloudStackComputePlugin implements ComputePlugin {
 
         int disk = -1;
         try {
-            disk = getVirtualMachineDiskSize(instanceId, cloudStackToken);
+            disk = getVirtualMachineDiskSize(instanceId, cloudUser);
         } catch (FogbowException e) {
             LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()), e);
         }
@@ -284,17 +284,17 @@ public class CloudStackComputePlugin implements ComputePlugin {
         return computeInstance;
     }
 
-    private int getVirtualMachineDiskSize(String virtualMachineId, CloudUser cloudStackToken) throws FogbowException {
+    private int getVirtualMachineDiskSize(String virtualMachineId, CloudStackUser cloudUser) throws FogbowException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
                 .type(DEFAULT_VOLUME_TYPE)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getToken());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }

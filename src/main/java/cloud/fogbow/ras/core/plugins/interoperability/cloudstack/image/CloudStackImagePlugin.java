@@ -2,13 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.client.HttpResponseException;
 
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class CloudStackImagePlugin implements ImagePlugin {
+public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
 
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
@@ -31,7 +31,7 @@ public class CloudStackImagePlugin implements ImagePlugin {
     }
 
     @Override
-    public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
+    public Map<String, String> getAllImages(CloudStackUser cloudUser) throws FogbowException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder().build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -55,7 +55,7 @@ public class CloudStackImagePlugin implements ImagePlugin {
     }
 
     @Override
-    public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+    public Image getImage(String imageId, CloudStackUser cloudUser) throws FogbowException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
                 .build(this.cloudStackUrl);

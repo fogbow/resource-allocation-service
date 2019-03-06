@@ -4,12 +4,12 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,7 +33,7 @@ public class RemoteFogbowGenericRequestHandlerTest {
             "  <query xmlns=\"remoteGenericRequest\">\n" +
             "    <genericRequestResponse>%s</genericRequestResponse>\n" +
             "    <genericRequestResponseClassName>" +
-            GenericRequestResponse.class.getName() +
+            FogbowGenericResponse.class.getName() +
             "</genericRequestResponseClassName>\n" +
             "  </query>\n" +
             "</iq>";
@@ -45,7 +45,7 @@ public class RemoteFogbowGenericRequestHandlerTest {
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
     private SystemUser systemUser;
-    private FogbowGenericRequest fogbowGenericRequest =  new HttpFogbowGenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+    private FogbowGenericRequest fogbowGenericRequest =  new HttpRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
     private RemoteFacade remoteFacade;
 
     @Before
@@ -70,13 +70,13 @@ public class RemoteFogbowGenericRequestHandlerTest {
     public void testHandleWithValidIQ() throws Exception {
         // set up
         String fakeContent = "fake-content";
-        GenericRequestResponse genericRequestResponse = new GenericRequestResponse(fakeContent);
-        Mockito.doReturn(genericRequestResponse).when(this.remoteFacade).genericRequest(
+        FogbowGenericResponse fogbowGenericResponse = new FogbowGenericResponse(fakeContent);
+        Mockito.doReturn(fogbowGenericResponse).when(this.remoteFacade).genericRequest(
                 REQUESTING_MEMBER, this.cloudName, this.fogbowGenericRequest, this.systemUser);
 
         Mockito.when(this.remoteFacade
                 .genericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
-                .thenReturn(genericRequestResponse);
+                .thenReturn(fogbowGenericResponse);
 
         IQ iq = RemoteGenericRequest.marshal(this.provider, this.cloudName, fogbowGenericRequest, this.systemUser);
         iq.setFrom(REQUESTING_MEMBER);
@@ -86,7 +86,7 @@ public class RemoteFogbowGenericRequestHandlerTest {
 
         // verify
         String iqId = iq.getID();
-        String genericRequestResponseAsJson = GsonHolder.getInstance().toJson(genericRequestResponse);
+        String genericRequestResponseAsJson = GsonHolder.getInstance().toJson(fogbowGenericResponse);
         String expected = String.format(IQ_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER, genericRequestResponseAsJson);
         Assert.assertEquals(expected, result.toString());
     }

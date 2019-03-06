@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
+import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Image;
@@ -11,7 +11,7 @@ import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
@@ -109,13 +109,13 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public GenericRequestResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUserToken)
+    public FogbowGenericResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUserToken)
             throws FogbowException {
         try {
             RemoteGenericRequest remoteGenericRequest = new RemoteGenericRequest(this.destinationMember, this.cloudName,
                     genericRequest, systemUserToken);
-            GenericRequestResponse genericRequestResponse = remoteGenericRequest.send();
-            return genericRequestResponse;
+            FogbowGenericResponse fogbowGenericResponse = remoteGenericRequest.send();
+            return fogbowGenericResponse;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
