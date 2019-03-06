@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -19,8 +19,6 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-import java.util.HashMap;
-
 public class RemoteDeleteOrderRequestTest {
 
     private RemoteDeleteOrderRequest remoteDeleteOrderRequest;
@@ -33,9 +31,9 @@ public class RemoteDeleteOrderRequestTest {
 
     @Before
     public void setUp() {
-        FederationUser federationUser = new FederationUser("token-provider", "fake-user-id",
-                "fake-user-name", "federation-token-value", new HashMap<>());
-        this.order = new ComputeOrder(federationUser, "requesting-member",
+        SystemUser systemUser = new SystemUser("fake-user-id", "fake-user-name", "token-provider"
+        );
+        this.order = new ComputeOrder(systemUser, "requesting-member",
                 "providing-member", "default", "hostName", 10, 20, 30, "imageid",
                 null, "publicKey", null);
 
@@ -51,7 +49,7 @@ public class RemoteDeleteOrderRequestTest {
         // set up
         Mockito.doReturn(this.response).when(this.packetSender).syncSendPacket(
                 iqArgumentCaptor.capture());
-        String federationUserJson = new Gson().toJson(this.order.getFederationUser());
+        String federationUserJson = new Gson().toJson(this.order.getSystemUser());
 
         // exercise
         this.remoteDeleteOrderRequest.send();

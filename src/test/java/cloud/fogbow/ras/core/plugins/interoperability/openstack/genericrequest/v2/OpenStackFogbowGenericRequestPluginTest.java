@@ -1,14 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.genericrequest.v2;
 
-import cloud.fogbow.common.constants.HttpConstants;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpGenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.common.models.OpenStackV3User;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +14,7 @@ import org.mockito.Mockito;
 
 import java.util.HashMap;
 
-public class OpenStackGenericRequestPluginTest {
+public class OpenStackFogbowGenericRequestPluginTest {
 
     public static final String FAKE_VALUE = "fake-value";
     public static final String FAKE_KEY = "fake-key";
@@ -24,7 +22,7 @@ public class OpenStackGenericRequestPluginTest {
 
     private OpenStackGenericRequestPlugin plugin;
     private OpenStackHttpClient openStackHttpClient;
-    private HttpGenericRequest genericRequest;
+    private HttpFogbowGenericRequest genericRequest;
 
     @Before
     public void setUp() {
@@ -44,21 +42,21 @@ public class OpenStackGenericRequestPluginTest {
 
         // exercise
         try {
-            plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3Token.class));
+            plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3User.class));
             // verify
             Assert.fail();
         } catch (InvalidParameterException e) {
         }
     }
 
-    private HttpGenericRequest createGenericRequest() {
+    private HttpFogbowGenericRequest createGenericRequest() {
         HashMap<String, String> headers = new HashMap<>();
         headers.put(FAKE_KEY, FAKE_VALUE);
 
         HashMap<String, String> body = new HashMap<>();
         body.put(FAKE_KEY, FAKE_VALUE);
 
-        HttpGenericRequest genericRequest = new HttpGenericRequest(HttpMethod.GET, FAKE_URL, body, headers);
+        HttpFogbowGenericRequest genericRequest = new HttpFogbowGenericRequest(HttpMethod.GET, FAKE_URL, body, headers);
         return genericRequest;
     }
 }

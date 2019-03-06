@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
@@ -73,7 +73,7 @@ public class BaseUnitTests {
     }
 
     protected Order createOrder(String requestingMember, String providingMember) {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
 
         ArrayList<UserData> userDataScripts = mockUserData();
 
@@ -83,7 +83,7 @@ public class BaseUnitTests {
 
         Order localOrder =
                 new ComputeOrder(
-                        federationUser,
+                        systemUser,
                         requestingMember,
                         providingMember,
                         "default", instanceName,

@@ -5,29 +5,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import cloud.fogbow.common.models.OpenNebulaUser;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.OpenNebulaFogbowGenericRequest;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<CloudToken, OpenNebulaGenericRequest> {
+public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<OpenNebulaFogbowGenericRequest, OpenNebulaUser> {
 	
 	private static final String RESOURCE_POOL_SUFFIX = "Pool";
 
 	@Override
-	public GenericRequestResponse redirectGenericRequest(OpenNebulaGenericRequest genericRequest, CloudToken cloudToken)
+	public GenericRequestResponse redirectGenericRequest(OpenNebulaFogbowGenericRequest genericRequest, OpenNebulaUser cloudUser)
 			throws FogbowException {
         
-		Client client = OpenNebulaClientUtil.createClient(genericRequest.getUrl(), cloudToken.getTokenValue());
+		Client client = OpenNebulaClientUtil.createClient(genericRequest.getUrl(), cloudUser.getToken());
 
-		OpenNebulaGenericRequest request = (OpenNebulaGenericRequest) genericRequest;
+		OpenNebulaFogbowGenericRequest request = (OpenNebulaFogbowGenericRequest) genericRequest;
 		if (request.getOneResource() == null || request.getOneMethod() == null) {
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
@@ -43,7 +44,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 		} else if (request.getResourceId() != null) {
 			instance = oneResource.createInstance(Integer.parseInt(request.getResourceId()), client);
 		} else if (oneResource.equals(OneResource.CLIENT)) {
-			instance = (Client) oneResource.createInstance(cloudToken.getTokenValue(), request.getUrl());
+			instance = (Client) oneResource.createInstance(cloudUser.getToken(), request.getUrl());
 		}
 		
 		// Working with map of parameters
@@ -79,7 +80,5 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Clou
 			message = GsonHolder.getInstance().toJson(object);
 			return new OpenNebulaGenericRequestResponse(message, false);
 		}
-		
 	}
-
 }

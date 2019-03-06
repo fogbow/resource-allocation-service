@@ -2,13 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -34,15 +34,15 @@ public class OpenStackImagePlugin implements ImagePlugin {
     }
 
     @Override
-    public Map<String, String> getAllImages(CloudToken token) throws FogbowException {
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         Map<String, String> availableImages = getAvailableImages(openStackV3Token, openStackV3Token.getProjectId());
         return availableImages;
     }
 
     @Override
-    public Image getImage(String imageId, CloudToken openStackV3Token) throws FogbowException {
-        GetImageResponse getImageResponse = getImageResponse(imageId, openStackV3Token);
+    public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+        GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
         String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
         if (status.equals(ACTIVE_STATE)) {
@@ -59,7 +59,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return null;
     }
 
-    private GetImageResponse getImageResponse(String imageId, CloudToken token) throws FogbowException {
+    private GetImageResponse getImageResponse(String imageId, CloudUser token) throws FogbowException {
         String jsonResponse = null;
         try {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
@@ -72,7 +72,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return GetImageResponse.fromJson(jsonResponse);
     }
 
-    private List<GetImageResponse> getImagesResponse(CloudToken token) throws FogbowException {
+    private List<GetImageResponse> getImagesResponse(CloudUser token) throws FogbowException {
         String jsonResponse = null;
         try {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
@@ -89,7 +89,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return getImageResponses;
     }
 
-    private void getNextImageListResponseByPagination(CloudToken token, GetAllImagesResponse getAllImagesResponse,
+    private void getNextImageListResponseByPagination(CloudUser token, GetAllImagesResponse getAllImagesResponse,
                                                       List<GetImageResponse> imagesJson) throws FogbowException {
 
         String next = getAllImagesResponse.getNext();
@@ -129,7 +129,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
         return privateImagesResponse;
     }
 
-    private Map<String, String> getAvailableImages(CloudToken token, String tenantId) throws FogbowException {
+    private Map<String, String> getAvailableImages(CloudUser token, String tenantId) throws FogbowException {
         Map<String, String> availableImages = new HashMap<String, String>();
 
         List<GetImageResponse> allImagesResponse = getImagesResponse(token);

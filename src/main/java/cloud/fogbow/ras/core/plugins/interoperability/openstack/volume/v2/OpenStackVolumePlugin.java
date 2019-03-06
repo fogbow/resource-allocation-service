@@ -1,7 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -9,10 +10,9 @@ import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -40,8 +40,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public String requestInstance(VolumeOrder order, CloudToken token) throws FogbowException {
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public String requestInstance(VolumeOrder order, CloudUser cloudUser) throws FogbowException {
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -82,8 +82,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public VolumeInstance getInstance(String storageOrderInstanceId, CloudToken token) throws FogbowException {
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public VolumeInstance getInstance(String storageOrderInstanceId, CloudUser cloudUser) throws FogbowException {
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -103,8 +103,8 @@ public class OpenStackVolumePlugin implements VolumePlugin {
     }
 
     @Override
-    public void deleteInstance(String storageOrderInstanceId, CloudToken token) throws FogbowException {
-        OpenStackV3Token openStackV3Token = (OpenStackV3Token) token;
+    public void deleteInstance(String storageOrderInstanceId, CloudUser cloudUser) throws FogbowException {
+        OpenStackV3User openStackV3Token = (OpenStackV3User) cloudUser;
         String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -164,7 +164,7 @@ public class OpenStackVolumePlugin implements VolumePlugin {
         return createVolumeRequest.toJson();
     }
 
-    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, CloudToken token)
+    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, CloudUser token)
             throws FogbowException, UnexpectedException {
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUME_TYPES;

@@ -5,25 +5,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.ImagePool;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
-public class OpenNebulaImagePlugin implements ImagePlugin<CloudToken> {
+public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 	
@@ -31,11 +31,11 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudToken> {
 	private static final String RESOURCE_NAME = "image";
 	
 	@Override
-	public Map<String, String> getAllImages(CloudToken cloudToken) throws FogbowException {
+	public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, RESOURCE_NAME));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		
+
 		Map<String, String> allImages = new HashMap<>();
 		for (org.opennebula.client.image.Image image : imagePool) {
 			allImages.put(image.getId(), image.getName());
@@ -44,11 +44,10 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudToken> {
 	}
 
 	@Override
-	public Image getImage(String imageId, CloudToken cloudToken) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudToken.getTokenValue()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
-		
-		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);		
+	public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudUser.getToken()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		for (org.opennebula.client.image.Image image : imagePool) {
 			if (image.getId().equals(imageId)) {
 				return mountImage(image);
@@ -83,7 +82,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudToken> {
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 

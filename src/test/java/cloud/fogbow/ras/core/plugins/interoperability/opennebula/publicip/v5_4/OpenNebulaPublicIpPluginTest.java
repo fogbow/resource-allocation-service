@@ -1,8 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,13 +22,6 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -56,7 +53,6 @@ public class OpenNebulaPublicIpPluginTest {
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
 		Mockito.doReturn(FAKE_IP_ADDRESS).when(this.plugin).getAvailableFixedIp(Mockito.any(Client.class));
-
 		PublicIpOrder publicIpOrder = createPublicIpOrder();
 		String sgTemplate = generateSecurityGroupsTemplate(publicIpOrder.getId());
 
@@ -81,11 +77,11 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(virtualMachine.info()).thenReturn(vmResponse);
 		Mockito.when(vmResponse.getMessage()).thenReturn(VIRTUAL_MACHINE_CONTENT);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String computeInstanceId = ID_VALUE_ONE;
 
 		// exercise
-		this.plugin.requestInstance(publicIpOrder, computeInstanceId, token);
+		this.plugin.requestInstance(publicIpOrder, computeInstanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -103,7 +99,7 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.verify(this.plugin, Mockito.times(1)).getAvailableFixedIp(Mockito.any(Client.class));
 		Mockito.verify(virtualMachine, Mockito.times(1)).nicAttach(Mockito.eq(nicTemplate));
 	}
-	
+
 	// test case: When calling the deleteInstance method, with the instance ID and
 	// token valid, the instance of public ip will be removed.
 	@Test
@@ -139,12 +135,12 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(securityGroup.delete()).thenReturn(response);
 		Mockito.doReturn(false).when(response).isError();
 		
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 		int id = Integer.parseInt(ID_VALUE_ONE);
 		
 		// exercise
-		this.plugin.deleteInstance(instanceId, computeInstanceId, token);
+		this.plugin.deleteInstance(instanceId, computeInstanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -182,11 +178,11 @@ public class OpenNebulaPublicIpPluginTest {
 		String publicIp = FAKE_IP_ADDRESS;
 		Mockito.when(virtualMachine.xpath(VIRTUAL_MACHINE_NIC_IP_PATH)).thenReturn(publicIp);
 		
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 		
 		// exercise
-		PublicIpInstance publicIpInstance = this.plugin.getInstance(instanceId, token);
+		PublicIpInstance publicIpInstance = this.plugin.getInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -202,14 +198,14 @@ public class OpenNebulaPublicIpPluginTest {
 	}
 	
 	private PublicIpOrder createPublicIpOrder() {
-		FederationUser federationUser = null;
+		SystemUser systemUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String computeOrderId = FAKE_ORDER_ID;
 		String cloudName = FAKE_PUBLIC_NETWORK;
 
 		PublicIpOrder publicIpOrder = new PublicIpOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -218,21 +214,12 @@ public class OpenNebulaPublicIpPluginTest {
 		return publicIpOrder;
 	}
 
-	private CloudToken createCloudToken() {
-		String provider = null;
+	private CloudUser createCloudUser() {
 		String userId = null;
 		String userName = null;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
 
 	private String generateNicTemplate() {

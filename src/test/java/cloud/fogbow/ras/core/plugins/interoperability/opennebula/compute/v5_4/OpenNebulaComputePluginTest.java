@@ -2,12 +2,21 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.models.HardwareRequirements;
+import cloud.fogbow.ras.core.models.UserData;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.common.util.cloud.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
+import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,17 +39,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.HardwareRequirements;
-import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
-import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, VirtualMachine.class})
@@ -104,7 +103,7 @@ public class OpenNebulaComputePluginTest {
 		this.plugin = Mockito.spy(new OpenNebulaComputePlugin());
 		this.flavors = Mockito.spy(new TreeSet<>());
 	}
-	
+
 	// test case: When calling the requestInstance method, with the valid client and
 	// template with a list of networks ID, a virtual network will be allocated,
 	// returned a instance ID.
@@ -145,7 +144,7 @@ public class OpenNebulaComputePluginTest {
 
 		List<String> networkIds = listNetworkIds();
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_2, MEMORY_VALUE_1024, DISK_VALUE_8GB);
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		
 		int choice = 0;
 		String valueOfCpu = String.valueOf(CPU_VALUE_2);
@@ -157,7 +156,7 @@ public class OpenNebulaComputePluginTest {
 				privateNetworkId, valueOfDisk);
 		
 		// exercise
-		this.plugin.requestInstance(computeOrder, token);
+		this.plugin.requestInstance(computeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
@@ -166,8 +165,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
 
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(CloudToken.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
@@ -188,11 +186,11 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
 		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
 		
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_1, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
@@ -207,14 +205,14 @@ public class OpenNebulaComputePluginTest {
 		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 
 		// exercise
-		this.plugin.requestInstance(computeOrder, token);
+		this.plugin.requestInstance(computeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(CloudToken.class));
+				Mockito.any(CloudUser.class));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(template));
@@ -240,12 +238,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
 		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_VALUE);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_1, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 
 		// exercise
-		this.plugin.requestInstance(computeOrder, token);
+		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
 	// test case: When calling the requestInstance method, and an error not
@@ -254,11 +252,11 @@ public class OpenNebulaComputePluginTest {
 	@Test(expected = InvalidParameterException.class) // verify
 	public void testRequestInstanceThrowInvalidParameterException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
 
 		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
@@ -278,7 +276,7 @@ public class OpenNebulaComputePluginTest {
 		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 
 		// exercise
-		this.plugin.requestInstance(computeOrder, token);
+		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
 	// test case: When you attempt to allocate a virtual machine with the
@@ -287,11 +285,12 @@ public class OpenNebulaComputePluginTest {
 	@Test(expected = NoAvailableResourcesException.class) // verify
 	public void testRequestInstanceWithMemoryInsufficientThrowNoAvailableResourcesException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
+
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
 
 		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
@@ -311,7 +310,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(response.getErrorMessage()).thenReturn(OpenNebulaComputePlugin.RESPONSE_NOT_ENOUGH_FREE_MEMORY);
 
 		// exercise
-		this.plugin.requestInstance(computeOrder, token);
+		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
 	// test case: When attempting to allocate a virtual machine with the
@@ -320,11 +319,11 @@ public class OpenNebulaComputePluginTest {
 	@Test(expected = QuotaExceededException.class) // verify
 	public void testRequestInstanceThrowQuotaExceededException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
 
 		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
@@ -347,7 +346,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(response.getErrorMessage()).thenReturn(message);
 
 		// exercise
-		this.plugin.requestInstance(computeOrder, token);
+		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
 	// test case: When calling the getInstance method of a resource with the volatile disk size passing 
@@ -393,11 +392,11 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(response.isError()).thenReturn(false);
 		Mockito.when(response.getMessage()).thenReturn(xml);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
 		// exercise
-		this.plugin.getInstance(instanceId, token);
+		this.plugin.getInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
@@ -446,11 +445,11 @@ public class OpenNebulaComputePluginTest {
 		ComputeInstance computeInstance = CreateComputeInstance();
 		Mockito.doReturn(computeInstance).when(this.plugin).getComputeInstance(virtualMachine);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
 		// exercise
-		this.plugin.getInstance(instanceId, token);
+		this.plugin.getInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -480,11 +479,11 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(response).when(virtualMachine).terminate();
 		Mockito.doReturn(true).when(response).isError();
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -515,11 +514,11 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(response).when(virtualMachine).terminate();
 		Mockito.doReturn(false).when(response).isError();
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -605,11 +604,11 @@ public class OpenNebulaComputePluginTest {
 		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
-		FederationUser federationUser = null;
+		SystemUser systemUser = null;
 		ArrayList<UserData> userData = FAKE_LIST_USER_DATA;
 		
 		ComputeOrder computeOrder = new ComputeOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -625,21 +624,12 @@ public class OpenNebulaComputePluginTest {
 		return computeOrder;
 	}
 	
-	private CloudToken createCloudToken() {
-		String provider = null;
-		String userId = null;
-		String userName = null;
+	private CloudUser createCloudUser() {
+		String userId = FAKE_ID;
+		String userName = FAKE_NAME;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
 	
 	private String generateTemplate(int choice, String ...args) {

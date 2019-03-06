@@ -3,8 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -12,9 +11,9 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -46,12 +45,10 @@ public class CloudStackNetworkPluginTest {
     public static final String FAKE_STATE = "Allocated";
     public static final String FAKE_MEMBER = "fake-member";
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
-    public static final FederationUser FAKE_USER = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
-    public static final CloudToken FAKE_TOKEN = new CloudToken(FAKE_USER);
+    public static final CloudUser FAKE_TOKEN = new CloudUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 
@@ -165,7 +162,7 @@ public class CloudStackNetworkPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -174,7 +171,7 @@ public class CloudStackNetworkPluginTest {
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
         }
     }
 
@@ -207,7 +204,7 @@ public class CloudStackNetworkPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
@@ -216,7 +213,7 @@ public class CloudStackNetworkPluginTest {
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
         }
     }
 
@@ -227,7 +224,7 @@ public class CloudStackNetworkPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -236,7 +233,7 @@ public class CloudStackNetworkPluginTest {
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
         }
     }
 

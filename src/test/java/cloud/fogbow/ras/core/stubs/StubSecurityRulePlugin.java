@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.stubs;
 
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
@@ -18,18 +18,18 @@ public class StubSecurityRulePlugin implements SecurityRulePlugin {
 
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder,
-                                      CloudToken localUserAttributes) {
+                                      CloudUser cloudUser) {
         return null;
     }
 
     @Override
     public List<SecurityRule> getSecurityRules(Order majorOrder,
-                                               CloudToken localUserAttributes) {
+                                               CloudUser cloudUser) {
         return null;
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, CloudToken token) {
+    public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) {
 
     }
 }

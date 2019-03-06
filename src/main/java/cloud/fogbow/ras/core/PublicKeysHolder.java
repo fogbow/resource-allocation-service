@@ -5,7 +5,7 @@ import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.util.RSAUtil;
+import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -46,8 +46,7 @@ public class PublicKeysHolder {
         return this.asPublicKey;
     }
 
-    private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix)
-            throws FogbowException {
+    private RSAPublicKey getPublicKey(String serviceAddress, String servicePort, String suffix) throws FogbowException {
         RSAPublicKey publicKey = null;
 
         URI uri = null;
@@ -67,8 +66,9 @@ public class PublicKeysHolder {
             try {
                 Gson gson = new Gson();
                 Map<String, String> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
+                //TODO: the key should be a constant defined elsewhere; this class is a candidate to go to common
                 String publicKeyString = jsonResponse.get("publicKey");
-                publicKey = RSAUtil.getPublicKeyFromString(publicKeyString);
+                publicKey = CryptoUtil.getPublicKeyFromString(publicKeyString);
             } catch (GeneralSecurityException e) {
                 throw new UnexpectedException(Messages.Exception.INVALID_PUBLIC_KEY);
             }

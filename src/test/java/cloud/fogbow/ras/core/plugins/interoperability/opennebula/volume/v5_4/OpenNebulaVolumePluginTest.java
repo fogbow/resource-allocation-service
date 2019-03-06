@@ -2,7 +2,11 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,11 +20,6 @@ import org.opennebula.client.image.ImagePool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -29,6 +28,7 @@ public class OpenNebulaVolumePluginTest {
 
 	private static final String DISK_VALUE_8GB = "8";
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
+	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String STATE_READY = "READY";
@@ -40,7 +40,7 @@ public class OpenNebulaVolumePluginTest {
 	public void setUp() {
 		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin());
 	}
-	
+
 	// test case: When calling the requestInstance method, with the valid client and
 	// template, a volume will be allocated to return instance ID.
 	@Test
@@ -63,11 +63,11 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(response.isError()).thenReturn(false);
 		Mockito.when(response.getMessage()).thenReturn(instanceId);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		VolumeOrder volumeOrder = createVolumeOrder();
 
 		// exercise
-		this.plugin.requestInstance(volumeOrder, token);
+		this.plugin.requestInstance(volumeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -87,7 +87,7 @@ public class OpenNebulaVolumePluginTest {
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
-		
+
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 		
@@ -97,11 +97,11 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(image.getName()).thenReturn(FAKE_VOLUME_NAME);
 		Mockito.when(image.stateString()).thenReturn(STATE_READY);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = STRING_VALUE_ONE;
 		
 		// exercise
-		this.plugin.getInstance(instanceId, token);
+		this.plugin.getInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -126,7 +126,7 @@ public class OpenNebulaVolumePluginTest {
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
-		
+
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 		
@@ -136,11 +136,11 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(image.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = STRING_VALUE_ONE;
 		
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -163,7 +163,7 @@ public class OpenNebulaVolumePluginTest {
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
-		
+
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 		
@@ -173,11 +173,11 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(image.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = STRING_VALUE_ONE;
 		
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -208,7 +208,7 @@ public class OpenNebulaVolumePluginTest {
 	}
 	
 	private VolumeOrder createVolumeOrder() {
-		FederationUser federationUser = null;
+		SystemUser systemUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String cloudName = null;
@@ -216,7 +216,7 @@ public class OpenNebulaVolumePluginTest {
 		int volumeSize = 1;
 				
 		VolumeOrder volumeOrder = new VolumeOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -226,21 +226,11 @@ public class OpenNebulaVolumePluginTest {
 		return volumeOrder;
 	}
 
-	private CloudToken createCloudToken() {
-		String provider = null;
+	private CloudUser createCloudUser() {
 		String userId = null;
-		String userName = null;
+		String userName = FAKE_USER_NAME;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
-	
 }

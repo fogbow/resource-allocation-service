@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -18,17 +18,17 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
 
     private String provider;
     private String cloudName;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
-    public RemoteGetAllImagesRequest(String provider, String cloudName, FederationUser federationUser) {
+    public RemoteGetAllImagesRequest(String provider, String cloudName, SystemUser systemUser) {
         this.provider = provider;
         this.cloudName = cloudName;
-        this.federationUser = federationUser;
+        this.systemUser = systemUser;
     }
 
     @Override
     public HashMap<String, String> send() throws Exception {
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.cloudName, this.federationUser);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.cloudName, this.systemUser);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -36,7 +36,7 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         return unmarshalImages(response);
     }
 
-    public static IQ marshal(String provider, String cloudName, FederationUser federationUser) {
+    public static IQ marshal(String provider, String cloudName, SystemUser systemUser) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
@@ -47,7 +47,7 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         cloudNameElement.setText(cloudName);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(systemUser));
 
         return iq;
     }

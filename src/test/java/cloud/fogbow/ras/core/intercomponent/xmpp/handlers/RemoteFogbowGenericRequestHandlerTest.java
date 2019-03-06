@@ -1,16 +1,15 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.GenericRequestResponse;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpGenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +26,7 @@ import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
-public class RemoteGenericRequestHandlerTest {
+public class RemoteFogbowGenericRequestHandlerTest {
     private static final String REQUESTING_MEMBER = "requestingmember";
 
     private static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
@@ -45,8 +44,8 @@ public class RemoteGenericRequestHandlerTest {
 
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
-    private FederationUser federationUser;
-    private GenericRequest genericRequest =  new HttpGenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+    private SystemUser systemUser;
+    private FogbowGenericRequest fogbowGenericRequest =  new HttpFogbowGenericRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
     private RemoteFacade remoteFacade;
 
     @Before
@@ -61,8 +60,8 @@ public class RemoteGenericRequestHandlerTest {
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
 
-        this.federationUser = new FederationUser(this.provider, "fake-user-id",
-                "fake-user-name", "federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", this.provider
+        );
     }
 
     // test case: when the handle method is called passing a valid IQ object,
@@ -73,13 +72,13 @@ public class RemoteGenericRequestHandlerTest {
         String fakeContent = "fake-content";
         GenericRequestResponse genericRequestResponse = new GenericRequestResponse(fakeContent);
         Mockito.doReturn(genericRequestResponse).when(this.remoteFacade).genericRequest(
-                REQUESTING_MEMBER, this.cloudName, this.genericRequest, this.federationUser);
+                REQUESTING_MEMBER, this.cloudName, this.fogbowGenericRequest, this.systemUser);
 
         Mockito.when(this.remoteFacade
                 .genericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenReturn(genericRequestResponse);
 
-        IQ iq = RemoteGenericRequest.marshal(this.provider, this.cloudName, genericRequest, this.federationUser);
+        IQ iq = RemoteGenericRequest.marshal(this.provider, this.cloudName, fogbowGenericRequest, this.systemUser);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise

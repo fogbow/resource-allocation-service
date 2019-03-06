@@ -1,10 +1,17 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.api.http.response.securityrules.Direction;
+import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
+import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,35 +26,22 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SecurityGroupInfo.class, VirtualNetwork.class})
 public class OpenNebulaSecurityRulePluginTest {
-
-    private static final String DEFAULT_SECURITY_GROUP_ID = "0";
+	private static final String DEFAULT_SECURITY_GROUP_ID = "0";
     private static final String FAKE_CIDR = "10.10.10.0/24";
     private static final String FAKE_ID_VALUE = "100";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_IP_RANGE_SIZE = "256";
     private static final String FAKE_IPV4_VALUE = "10.10.0.1";
-    private static final String FAKE_PROVIDER = "fake-provider";
     private static final String FAKE_SECURITY_GROUP_NAME = "fake-security-group-name";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fakeuser-name";
+	private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FORMAT_CONTENT = "%s%s%s";
-    private static final String LOCAL_TOKEN_VALUE = "fake-token-value";
 	private static final String IP_ONE = "10.10.0.0";
 	private static final String IP_TWO = "20.20.0.0";
 	private static final String IP_TREE = "30.30.0.0";
@@ -96,11 +90,11 @@ public class OpenNebulaSecurityRulePluginTest {
 		Mockito.doReturn(securityGroupInfo).when(this.plugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
 		Mockito.doReturn(rules).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
 
-		CloudToken cloudToken = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String securityRuleId = ruleOneToRemove.serialize();
 
 		// exercise
-		this.plugin.deleteSecurityRule(securityRuleId, cloudToken);
+		this.plugin.deleteSecurityRule(securityRuleId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -153,11 +147,11 @@ public class OpenNebulaSecurityRulePluginTest {
 
 		Mockito.doReturn(rules).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
 
-		CloudToken cloudToken = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String securityRuleId = ruleOneToRemove.serialize();
 
 		// exercise
-		this.plugin.deleteSecurityRule(securityRuleId, cloudToken);
+		this.plugin.deleteSecurityRule(securityRuleId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -265,13 +259,13 @@ public class OpenNebulaSecurityRulePluginTest {
 		Mockito.doReturn(securityGroupInfo).when(this.plugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
 		Mockito.doReturn(rules).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
 
-		CloudToken cloudToken = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		Order majorOrder = new NetworkOrder();
 		String networkId = FAKE_INSTANCE_ID;
 		majorOrder.setInstanceId(networkId);
 
 		// exercise
-		List<SecurityRule> securityRules = this.plugin.getSecurityRules(majorOrder, cloudToken);
+		List<SecurityRule> securityRules = this.plugin.getSecurityRules(majorOrder, cloudUser);
 
 		// verify
 		SecurityRule securityRule = securityRules.iterator().next();
@@ -369,14 +363,14 @@ public class OpenNebulaSecurityRulePluginTest {
 		Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(sgtResponse);
 		Mockito.when(sgtResponse.isError()).thenReturn(false);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		Order majorOrder = new NetworkOrder();
 		String instanceId = FAKE_INSTANCE_ID;
 		majorOrder.setInstanceId(instanceId);
 		SecurityRule securityRule = createSecurityRule();
 
 		// exercise
-		this.plugin.requestSecurityRule(securityRule, majorOrder, token);
+		this.plugin.requestSecurityRule(securityRule, majorOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -439,14 +433,14 @@ public class OpenNebulaSecurityRulePluginTest {
 		Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(sgtResponse);
 		Mockito.when(sgtResponse.isError()).thenReturn(true);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		Order majorOrder = new NetworkOrder();
 		String instanceId = FAKE_INSTANCE_ID;
 		majorOrder.setInstanceId(instanceId);
 		SecurityRule securityRule = createSecurityRule();
 
 		// exercise
-		this.plugin.requestSecurityRule(securityRule, majorOrder, token);
+		this.plugin.requestSecurityRule(securityRule, majorOrder, cloudUser);
 	}
     
     private String generateSecurityGroupTemplate() {
@@ -553,22 +547,12 @@ public class OpenNebulaSecurityRulePluginTest {
 		securityRule.setProtocol(Protocol.TCP);
 		return securityRule;
 	}
-	
-	private CloudToken createCloudToken() {
-		String provider = FAKE_PROVIDER;
+
+    private CloudUser createCloudUser() {
 		String userId = FAKE_USER_ID;
 		String userName = FAKE_USER_NAME;
-		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
+		String tokenValue = FAKE_TOKEN_VALUE;
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
-
 }

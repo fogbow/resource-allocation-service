@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -68,10 +68,10 @@ public class ComputeOrder extends Order {
         super(id);
     }
 
-    public ComputeOrder(String id, FederationUser federationUser, String requestingMember, String providingMember,
+    public ComputeOrder(String id, SystemUser systemUser, String requestingMember, String providingMember,
                         String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
-        super(id, providingMember, cloudName, federationUser, requestingMember);
+        super(id, providingMember, cloudName, systemUser, requestingMember);
         this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
@@ -89,10 +89,10 @@ public class ComputeOrder extends Order {
                 userData, publicKey, networkIds);
     }
 
-    public ComputeOrder(FederationUser federationUser, String requestingMember, String providingMember,
+    public ComputeOrder(SystemUser systemUser, String requestingMember, String providingMember,
                         String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
-        this(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember, cloudName, name, vCPU, memory,
+        this(UUID.randomUUID().toString(), systemUser, requestingMember, providingMember, cloudName, name, vCPU, memory,
                 disk, imageId, userData, publicKey, networkIds);
     }
 

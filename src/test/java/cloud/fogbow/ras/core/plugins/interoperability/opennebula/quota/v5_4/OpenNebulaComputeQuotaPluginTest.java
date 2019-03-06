@@ -3,7 +3,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,12 +22,6 @@ import org.opennebula.client.user.UserPool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -44,12 +41,12 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String MEMORY_VALUE_64MB = "65536";
 	private static final String ONE_ID_VALUE = "1";
 	private static final String ONE_VM_VALUE = "1";
-	private static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
-	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
 	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
-	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
 	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
+	private static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
+	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
+	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
 	private static final String CPU_VALUE_2 = "2";
 	private static final String CPU_VALUE_6 = "6";
 	private static final String CPU_VALUE_16 = "16";
@@ -116,10 +113,10 @@ public class OpenNebulaComputeQuotaPluginTest {
 
 		ComputeAllocation expected = new ComputeAllocation(VCPU, RAM, INSTANCES);
 		
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		
 		// exercise
-		ComputeQuota computeQuota = this.plugin.getUserQuota(token);
+		ComputeQuota computeQuota = this.plugin.getUserQuota(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -128,7 +125,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString());
 		
-		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(token));
+		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(cloudUser));
 		Mockito.verify(user, Mockito.times(7)).xpath(Mockito.anyString());
 		
 		Assert.assertEquals(expected.getvCPU(), computeQuota.getAvailableQuota().getvCPU());
@@ -181,10 +178,10 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(group.xpath(QUOTA_MEMORY_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(null);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		
 		// exercise
-		this.plugin.getUserQuota(token);
+		this.plugin.getUserQuota(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -193,7 +190,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(token));
+		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(cloudUser));
 		Mockito.verify(user, Mockito.times(7)).xpath(Mockito.anyString());
 	}
 	
@@ -243,10 +240,10 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(group.xpath(QUOTA_MEMORY_PATH)).thenReturn(null);
 		Mockito.when(group.xpath(QUOTA_VMS_PATH)).thenReturn(UNLIMITED_QUOTA_VALUE);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		
 		// exercise
-		this.plugin.getUserQuota(token);
+		this.plugin.getUserQuota(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -255,24 +252,15 @@ public class OpenNebulaComputeQuotaPluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString());
 		
-		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(token));
+		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(cloudUser));
 		Mockito.verify(user, Mockito.times(7)).xpath(Mockito.anyString());
 	}
 
-	private CloudToken createCloudToken() {
-		String provider = FAKE_PROVIDER;
+	private CloudUser createCloudUser() {
+		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = FAKE_USER_ID;
 		String userName = FAKE_USER_NAME;
-		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
 }

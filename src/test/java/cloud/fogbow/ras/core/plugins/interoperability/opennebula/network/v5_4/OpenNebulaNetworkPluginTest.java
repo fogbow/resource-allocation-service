@@ -1,8 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,13 +19,6 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.core.models.NetworkAllocationMode;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -66,11 +62,11 @@ public class OpenNebulaNetworkPluginTest {
 		BDDMockito.given(VirtualNetwork.allocate(Mockito.eq(client), Mockito.anyString())).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String virtualNetworkTemplate = generateNetworkTemplate();
 
 		// exercise
-		this.plugin.requestInstance(networkOrder, token);
+		this.plugin.requestInstance(networkOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -99,11 +95,11 @@ public class OpenNebulaNetworkPluginTest {
 		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.anyString())).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		NetworkOrder networkOrder = createNetworkOrder();
 
 		// exercise
-		this.plugin.requestInstance(networkOrder, token);
+		this.plugin.requestInstance(networkOrder, cloudUser);
 	}
 	
 	// test case: When calling the deleteInstance method, if the removal call is not
@@ -134,11 +130,11 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = ID_VALUE_ONE;
 		
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -182,11 +178,11 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 		
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = ID_VALUE_ONE;
 		
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -226,11 +222,11 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.doReturn(FAKE_VLAN_ID).when(virtualNetwork).xpath(Mockito.anyString());
 		Mockito.doReturn(1).when(virtualNetwork).state();
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 		
 		// exercise
-		this.plugin.getInstance(instanceId, token);
+		this.plugin.getInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -262,22 +258,14 @@ public class OpenNebulaNetworkPluginTest {
 		
 		return networkOrder;
 	}
-	
-	private CloudToken createCloudToken() {
-		String provider = null;
-		String userId = FAKE_USER_ID;
-		String userName = null;
-		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+	private CloudUser createCloudUser() {
+		String tokenValue = LOCAL_TOKEN_VALUE;
+		String userId = FAKE_USER_ID;
+
+		CloudUser cloudUser = new CloudUser(userId, null, tokenValue);
+
+		return cloudUser;
 	}
 	
 	private String generateNetworkTemplate() {

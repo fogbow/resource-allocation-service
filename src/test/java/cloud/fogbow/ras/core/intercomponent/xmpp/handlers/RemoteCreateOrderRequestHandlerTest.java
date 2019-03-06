@@ -1,10 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteCreateOrderRequest;
@@ -23,8 +22,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -62,8 +59,8 @@ public class RemoteCreateOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws FogbowException {
         // set up
-        FederationUser federationUser = createFederationUser();
-        Order order = createOrder(federationUser);
+        SystemUser systemUser = createFederationUser();
+        Order order = createOrder(systemUser);
 
         Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.anyString(), Mockito.eq(order));
 
@@ -88,8 +85,8 @@ public class RemoteCreateOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws FogbowException {
         // set up
-        FederationUser federationUser = null;
-        Order order = createOrder(federationUser);
+        SystemUser systemUser = null;
+        Order order = createOrder(systemUser);
 
         Mockito.doThrow(new FogbowException()).when(this.remoteFacade)
                 .activateOrder(Mockito.anyString(), Mockito.any(Order.class));
@@ -111,14 +108,14 @@ public class RemoteCreateOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    private Order createOrder(FederationUser federationUser) {
-        return new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember", "default", "hostName", 1, 2,
+    private Order createOrder(SystemUser systemUser) {
+        return new ComputeOrder(systemUser, REQUESTING_MEMBER, "providingmember", "default", "hostName", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());
     }
 
-    private FederationUser createFederationUser() throws InvalidParameterException {
-        return new FederationUser(REQUESTING_MEMBER, "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+    private SystemUser createFederationUser() throws InvalidParameterException {
+        return new SystemUser("fake-user-id", "fake-user-name", REQUESTING_MEMBER
+        );
     }
 
 }

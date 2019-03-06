@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 import java.io.File;
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -10,22 +12,20 @@ import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
+import cloud.fogbow.common.util.cloud.opennebula.OpenNebulaTagNameConstants;
 
-public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
+public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
     
@@ -37,9 +37,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
     
 	@Override
-	public String requestInstance(VolumeOrder volumeOrder, CloudToken cloudToken) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken.getTokenValue()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
 		int volumeSize = volumeOrder.getVolumeSize();
@@ -60,9 +60,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 	}
 
 	@Override
-	public VolumeInstance getInstance(String volumeInstanceId, CloudToken cloudToken) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeInstanceId, cloudToken.getTokenValue()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+	public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
@@ -75,9 +75,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 	}
 
 	@Override
-	public void deleteInstance(String volumeInstanceId, CloudToken cloudToken) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeInstanceId, cloudToken.getTokenValue()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+	public void deleteInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
@@ -94,7 +94,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudToken> {
 	
 	protected String getEndpoint() {
 		Properties properties = getProperties();
-		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	

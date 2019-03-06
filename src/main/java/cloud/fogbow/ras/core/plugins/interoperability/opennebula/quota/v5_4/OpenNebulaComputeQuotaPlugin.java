@@ -3,23 +3,23 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 import java.io.File;
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.opennebula.client.Client;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudToken> {
+public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUser> {
 
 	private static final String GROUPS_ID_PATH = "GROUPS/ID";
 	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
@@ -34,13 +34,12 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudTok
 	private static final int VALUE_UNLIMITED_QUOTA_OPENNEBULA = -2;
 	
 	@Override
-	public ComputeQuota getUserQuota(CloudToken cloudToken) throws FogbowException {
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+	public ComputeQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 		UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
-		
 		// ToDo: the code below used the user name and not the user id. Check whether it is really
 		// the user name that is needed; in this case, an OpenNebulaToken class needs to be implemented.
-		User user = OpenNebulaClientUtil.getUser(userPool, cloudToken.getUserId());
+		User user = OpenNebulaClientUtil.getUser(userPool, cloudUser.getId());
 		String maxCpuByUser = user.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByUser = user.xpath(QUOTA_MEMORY_PATH);
 		String maxInstancesByUser = user.xpath(QUOTA_VMS_PATH);
@@ -167,7 +166,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudTok
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	

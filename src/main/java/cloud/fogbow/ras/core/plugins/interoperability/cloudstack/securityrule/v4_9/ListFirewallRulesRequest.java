@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackRequest;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/listFirewallRules.html

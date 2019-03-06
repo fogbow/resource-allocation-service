@@ -39,13 +39,13 @@ public class PublicIp {
     public ResponseEntity<ResourceId> createPublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.PublicIp publicIp,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-            String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), federationTokenValue);
+            String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(publicIpId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -58,14 +58,14 @@ public class PublicIp {
     public ResponseEntity<PublicIpInstance> getPublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
             PublicIpInstance publicIpInstance =
-                ApplicationFacade.getInstance().getPublicIp(publicIpId, federationTokenValue);
+                ApplicationFacade.getInstance().getPublicIp(publicIpId, systemUserToken);
             return new ResponseEntity<>(publicIpInstance, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -78,13 +78,13 @@ public class PublicIp {
     public ResponseEntity<Boolean> deletePublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
-            ApplicationFacade.getInstance().deletePublicIp(publicIpId, federationTokenValue);
+            ApplicationFacade.getInstance().deletePublicIp(publicIpId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -95,14 +95,14 @@ public class PublicIp {
     @ApiOperation(value = ApiDocumentation.PublicIp.GET_OPERATION)
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllPublicIpStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> publicIpStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.PUBLIC_IP);
+                ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -117,14 +117,14 @@ public class PublicIp {
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_REQUEST_BODY)
             @RequestBody SecurityRule securityRule,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
             String ruleId = ApplicationFacade.getInstance().createSecurityRule(publicIpId, securityRule,
-                    federationTokenValue, ResourceType.PUBLIC_IP);
+                    systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(new ResourceId(ruleId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -137,14 +137,14 @@ public class PublicIp {
     public ResponseEntity<List<SecurityRule>> getAllSecurityRules(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
             List<SecurityRule> securityRules = ApplicationFacade.getInstance().
-                    getAllSecurityRules(publicIpId, federationTokenValue, ResourceType.PUBLIC_IP);
+                    getAllSecurityRules(publicIpId, systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(securityRules, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -159,13 +159,13 @@ public class PublicIp {
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.PublicIp.SECURITY_RULE_ID)
             @PathVariable String ruleId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, SECURITY_RULE_NAME, ruleId));
-            ApplicationFacade.getInstance().deleteSecurityRule(publicIpId, ruleId, federationTokenValue,
+            ApplicationFacade.getInstance().deleteSecurityRule(publicIpId, ruleId, systemUserToken,
                     ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {

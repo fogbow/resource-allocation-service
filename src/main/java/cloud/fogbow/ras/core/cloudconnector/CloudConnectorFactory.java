@@ -3,9 +3,6 @@ package cloud.fogbow.ras.core.cloudconnector;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class CloudConnectorFactory {
     private static CloudConnectorFactory instance;
     private String localMemberId;

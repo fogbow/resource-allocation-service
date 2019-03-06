@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackRequest;
 
 public class DeleteNetworkRequest extends CloudStackRequest {
     public static final String DELETE_NETWORK_COMMAND = "deleteNetwork";

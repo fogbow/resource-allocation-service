@@ -3,24 +3,23 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 import cloud.fogbow.common.constants.HttpConstants;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.constants.OpenStackConstants;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpGenericRequest;
+import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.HttpFogbowGenericRequest;
 import cloud.fogbow.ras.util.connectivity.CloudHttpClient;
 
 import java.util.Map;
 
-public class OpenStackHttpClient extends CloudHttpClient {
+public class OpenStackHttpClient extends CloudHttpClient<OpenStackV3User> {
 
     public OpenStackHttpClient() {
     }
 
     @Override
-    public HttpGenericRequest prepareRequest(HttpGenericRequest genericRequest, CloudToken token) {
-        HttpGenericRequest clonedRequest = (HttpGenericRequest) genericRequest.clone();
+    public HttpFogbowGenericRequest prepareRequest(HttpFogbowGenericRequest genericRequest, OpenStackV3User cloudUser) {
+        HttpFogbowGenericRequest clonedRequest = (HttpFogbowGenericRequest) genericRequest.clone();
         Map<String, String> headers = clonedRequest.getHeaders();
 
-        headers.put(OpenStackConstants.X_AUTH_TOKEN_KEY, token.getTokenValue());
+        headers.put(OpenStackConstants.X_AUTH_TOKEN_KEY, cloudUser.getToken());
 
         if (genericRequest.getMethod().equals(HttpMethod.GET)
                 || genericRequest.getMethod().equals(HttpMethod.POST)) {

@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -14,22 +19,17 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.securityrules.Direction;
 import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
 import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
 
-public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudToken> {
+public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUser> {
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 	
@@ -45,13 +45,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 	protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
 	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 
-	@Override
-    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudToken cloudToken)
+    @Override
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudUser cloudUser)
             throws FogbowException {
-        
-    	LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudToken.getTokenValue()));
-    	Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
-    	
+
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+
     	String virtualNetworkId = majorOrder.getInstanceId();
     	VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 
@@ -75,9 +75,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
     }
 
 	@Override
-	public List<SecurityRule> getSecurityRules(Order majorOrder, CloudToken cloudToken) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, majorOrder.getInstanceId(), cloudToken.getTokenValue()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
+    	LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, majorOrder.getInstanceId(), cloudUser.getToken()));
+    	Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 
 		// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids
 		// in the opennebula context
@@ -90,9 +90,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 	}
 
     @Override
-	public void deleteSecurityRule(String securityRuleId, CloudToken cloudToken) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudToken.getTokenValue()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudToken.getTokenValue());
+    public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudUser.getToken()));
+        Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
 
 		Rule ruleToRemove = createRule(securityRuleId);
 		String securityGroupId = ruleToRemove.getSecurityGroupId();
@@ -265,7 +265,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 	}
 
 	protected String getEndpoint() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
+		String opennebulaConfFilePath = HomeDir.getPath()
 				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator 
 				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
@@ -273,7 +273,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudTok
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(ConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		return endpoint;
 	}
 	

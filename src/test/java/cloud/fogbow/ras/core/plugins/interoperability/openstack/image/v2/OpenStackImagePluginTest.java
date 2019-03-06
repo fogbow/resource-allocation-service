@@ -4,13 +4,11 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.Image;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.models.OpenStackV3User;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -31,7 +29,6 @@ public class OpenStackImagePluginTest {
     private static final long FAKE_MIN_DISK = 1l;
     private static final long FAKE_MIN_RAM = 2l;
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -40,7 +37,7 @@ public class OpenStackImagePluginTest {
     private OpenStackImagePlugin plugin;
     private OpenStackHttpClient client;
     private Properties properties;
-    private OpenStackV3Token localUserAttributes;
+    private OpenStackV3User localUserAttributes;
 
     @Before
     public void setUp() throws InvalidParameterException, UnexpectedException {
@@ -49,11 +46,7 @@ public class OpenStackImagePluginTest {
         this.plugin = new OpenStackImagePlugin(cloudConfPath);
         this.client = Mockito.mock(OpenStackHttpClient.class);
         this.properties = Mockito.mock(Properties.class);
-
-        HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
-        this.localUserAttributes = new OpenStackV3Token(federationUser);
+        this.localUserAttributes = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.plugin.setProperties(this.properties);
         this.plugin.setClient(this.client);
     }

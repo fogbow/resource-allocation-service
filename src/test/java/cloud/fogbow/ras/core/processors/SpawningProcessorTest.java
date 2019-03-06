@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -298,11 +298,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
 
     private Order createComputeOrder() {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
 
-        Order order = new ComputeOrder(federationUser, requestingMember,
+        Order order = new ComputeOrder(systemUser, requestingMember,
                 providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;

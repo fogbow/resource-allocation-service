@@ -1,19 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.genericrequest;
 
 import cloud.fogbow.common.constants.HttpMethod;
+import cloud.fogbow.ras.constants.Messages;
 
 import java.util.HashMap;
 
-import static cloud.fogbow.ras.constants.Messages.Exception.CLASS_SHOULD_BE_CLONEABLE;
-
-public class HttpGenericRequest implements GenericRequest, Cloneable {
+public class HttpFogbowGenericRequest implements FogbowGenericRequest, Cloneable {
 
     private HttpMethod method;
     private String url;
     private HashMap<String, String> headers;
     private HashMap<String, String> body;
 
-    public HttpGenericRequest(HttpMethod method, String url, HashMap<String, String> body, HashMap<String, String> headers) {
+    public HttpFogbowGenericRequest(HttpMethod method, String url, HashMap<String, String> body, HashMap<String, String> headers) {
         if (headers == null || body == null) {
             throw new IllegalArgumentException("Neither body or headers can be null");
         }
@@ -25,11 +24,11 @@ public class HttpGenericRequest implements GenericRequest, Cloneable {
     }
 
 
-    public HttpGenericRequest(HttpMethod method, String url, HashMap<String, String> body) {
+    public HttpFogbowGenericRequest(HttpMethod method, String url, HashMap<String, String> body) {
         this(method, url, body, new HashMap<>());
     }
 
-    public HttpGenericRequest(HttpMethod method, String url) {
+    public HttpFogbowGenericRequest(HttpMethod method, String url) {
         this(method, url, new HashMap<>(), new HashMap<>());
     }
 
@@ -68,12 +67,12 @@ public class HttpGenericRequest implements GenericRequest, Cloneable {
     @Override
     public Object clone() {
         try {
-            HttpGenericRequest cloned = (HttpGenericRequest) super.clone();
+            HttpFogbowGenericRequest cloned = (HttpFogbowGenericRequest) super.clone();
             cloned.headers = (HashMap<String, String>) this.headers.clone();
             cloned.body = (HashMap<String, String>) this.body.clone();
             return cloned;
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(String.format(CLASS_SHOULD_BE_CLONEABLE, this.getClass().getName()));
+            throw new RuntimeException(String.format(Messages.Exception.CLASS_S_SHOULD_BE_CLONEABLE, this.getClass().getName()));
         }
     }
 }

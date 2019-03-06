@@ -2,16 +2,15 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import com.google.gson.Gson;
@@ -32,14 +31,14 @@ import java.util.*;
 public class OpenStackComputePluginTest {
 
     private OpenStackComputePlugin computePlugin;
-    private OpenStackV3Token openStackV3CloudToken;
+    private OpenStackV3User openStackV3CloudToken;
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private OpenStackHttpClient clientMock;
     private Properties propertiesMock;
     private PropertiesHolder propertiesHolderMock;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
     private ArgumentCaptor<String> argBodyString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<CloudToken> argCloudToken = ArgumentCaptor.forClass(CloudToken.class);
+    private ArgumentCaptor<CloudUser> argCloudToken = ArgumentCaptor.forClass(CloudUser.class);
     private final String defaultNetworkId = "fake-default-network-id";
     private final String imageId = "image-id";
     private final String publicKey = "public-key";
@@ -48,7 +47,6 @@ public class OpenStackComputePluginTest {
     private final int bestCpu = 2;
     private final int bestMemory = 1024;
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -89,10 +87,7 @@ public class OpenStackComputePluginTest {
         this.responseNetworkIds.add(defaultNetworkId);
         this.responseNetworkIds.add(privateNetworkId);
 
-        HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
-        this.openStackV3CloudToken = new OpenStackV3Token(federationUser);
+        this.openStackV3CloudToken = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
 
         this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
                 this.launchCommandGeneratorMock, this.clientMock));

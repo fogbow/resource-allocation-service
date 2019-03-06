@@ -2,13 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -29,14 +29,14 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     }
 
     @Override
-    public ComputeQuota getUserQuota(CloudToken token) throws FogbowException {
+    public ComputeQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
         String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + SUFFIX;
 
         String jsonResponse = null;
 
         try {
             LOGGER.debug("Calling quota plugin");
-            jsonResponse = this.client.doGetRequest(endpoint, token);
+            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             LOGGER.debug("Exception raised: " + e.getMessage(), e);
             OpenStackHttpToFogbowExceptionMapper.map(e);

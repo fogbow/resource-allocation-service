@@ -1,9 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteDeleteOrderRequest;
@@ -22,8 +21,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -66,10 +63,10 @@ public class RemoteDeleteOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws FogbowException {
         //set up
-        FederationUser federationUser = new FederationUser(REQUESTING_MEMBER, "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+        SystemUser systemUser = new SystemUser("fake-user-id", "fake-user-name", REQUESTING_MEMBER
+        );
 
-        this.order = new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember",
+        this.order = new ComputeOrder(systemUser, REQUESTING_MEMBER, "providingmember",
                 "default", "fake-instance-name", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
@@ -89,13 +86,13 @@ public class RemoteDeleteOrderRequestHandlerTest {
     @Test
     public void testHandleWhenExceptionIsThrown() throws Exception {
         //set up
-        FederationUser federationUser = new FederationUser("tokenProvider", "userId",
-                "userName", "tokenValue", new HashMap<>());
-        this.order = new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember",
+        SystemUser systemUser = new SystemUser("userId", "userName", "tokenProvider"
+        );
+        this.order = new ComputeOrder(systemUser, REQUESTING_MEMBER, "providingmember",
                 "default", "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
         Mockito.doThrow(new FogbowException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
-                this.order.getId(), this.order.getFederationUser(), this.order.getType());
+                this.order.getId(), this.order.getSystemUser(), this.order.getType());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -106,7 +103,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         //verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 deleteOrder(this.order.getRequester(), this.order.getId(),
-                this.order.getFederationUser(), this.order.getType());
+                this.order.getSystemUser(), this.order.getType());
 
         String orderId = order.getId();
         String orderProvidingMember = order.getProvider();

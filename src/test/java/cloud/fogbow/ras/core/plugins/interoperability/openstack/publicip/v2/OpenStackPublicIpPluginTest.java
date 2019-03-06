@@ -2,17 +2,15 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
@@ -31,9 +29,8 @@ public class OpenStackPublicIpPluginTest {
 
 	private OpenStackPublicIpPlugin openStackPublicIpPlugin;
 	private OpenStackHttpClient httpClient;
-	private OpenStackV3Token openStackV3Token;
+	private OpenStackV3User openStackV3Token;
 	
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -41,10 +38,7 @@ public class OpenStackPublicIpPluginTest {
 
 	@Before
 	public void setUp() throws UnexpectedException {
-		HashMap<String, String> extraAttributes = new HashMap<>();
-		extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
-		FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
-		this.openStackV3Token = new OpenStackV3Token(federationUser);
+		this.openStackV3Token = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.httpClient = Mockito.mock(OpenStackHttpClient.class);
         
         boolean notCheckProperties = false;
@@ -75,11 +69,11 @@ public class OpenStackPublicIpPluginTest {
 		Mockito.when(this.openStackPublicIpPlugin.getFloatingIpEndpoint()).thenReturn(floatingIpEndpoint);
 
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.endsWith("security-groups"), Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.endsWith("security-groups"), Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseCreateSecurityGroup);
 
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.eq(floatingIpEndpoint), Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.eq(floatingIpEndpoint), Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseCreateFloatingIp);
 		
 		// exercise
@@ -102,7 +96,7 @@ public class OpenStackPublicIpPluginTest {
 		String responseCreateSecurityGroup = getCreateSecurityGroupResponseJson("securityGroupId");
 
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.endsWith("security-groups"), Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.endsWith("security-groups"), Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseCreateSecurityGroup);
 
 		Mockito.doThrow(new FogbowException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
@@ -114,7 +108,7 @@ public class OpenStackPublicIpPluginTest {
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(0)).doPostRequest(
 				Mockito.anyString(),
-                Mockito.anyString(), Mockito.any(OpenStackV3Token.class)
+                Mockito.anyString(), Mockito.any(OpenStackV3User.class)
         );
 	}
 	
@@ -136,7 +130,7 @@ public class OpenStackPublicIpPluginTest {
 		
 		String responseGetPorts = getPortsResponseJson(portId);
 		Mockito.when(this.httpClient.doGetRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseGetPorts);
 		
 		// exercise
@@ -163,7 +157,7 @@ public class OpenStackPublicIpPluginTest {
 		
 		HttpResponseException notFoundException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, "");
 		Mockito.doThrow(notFoundException).when(this.httpClient).doGetRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+				Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 		
 		// exercise
 		this.openStackPublicIpPlugin.getNetworkPortIp(computeInstanceId, this.openStackV3Token);		
@@ -188,7 +182,7 @@ public class OpenStackPublicIpPluginTest {
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.never())
-				.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+				.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
 	}	
 	
 	// test case: throw FogbowException because the cloud found two or more ports. In the Fogbow scenario is not allowed
@@ -210,7 +204,7 @@ public class OpenStackPublicIpPluginTest {
 		String irregularPordId = "irregularPortId";
 		String responseGetPorts = getPortsResponseJson(portId, irregularPordId);
 		Mockito.when(this.httpClient.doGetRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseGetPorts);
 		
 		GetNetworkPortsResquest getNetworkPortsResquest = new GetNetworkPortsResquest.Builder()
@@ -242,7 +236,7 @@ public class OpenStackPublicIpPluginTest {
 		ListSecurityGroups listSecurityGroups = createListSecurityGroupsResponse();
 
 		// when retrieving the group id by name
-		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
 				.thenReturn(listSecurityGroups.toJson());
 
 		// exercise
@@ -265,12 +259,12 @@ public class OpenStackPublicIpPluginTest {
 		ListSecurityGroups listSecurityGroups = createListSecurityGroupsResponse();
 
 		// when retrieving the group id by name
-		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+		Mockito.when(this.httpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudUser.class)))
 				.thenReturn(listSecurityGroups.toJson());
 
 		HttpResponseException notFoundException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, "");
 		Mockito.doThrow(notFoundException).when(
-				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
 		
 		// exercise
 		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, null, openStackV3Token);
@@ -428,7 +422,7 @@ public class OpenStackPublicIpPluginTest {
 				floatingIpStatus);
 
 		Mockito.when(this.httpClient.doGetRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseGetFloatingIp);
 
 		// exercise
@@ -452,7 +446,7 @@ public class OpenStackPublicIpPluginTest {
 				floatingIpStatus);
 
 		Mockito.when(this.httpClient.doGetRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				Mockito.anyString(), Mockito.any(OpenStackV3User.class)))
 				.thenReturn(responseGetFloatingIp);
 
 		// exercise
@@ -473,7 +467,7 @@ public class OpenStackPublicIpPluginTest {
 
 		HttpResponseException badRequestException = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
 		Mockito.doThrow(badRequestException).when(this.httpClient).doGetRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+				Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
 		// exercise
 		try {

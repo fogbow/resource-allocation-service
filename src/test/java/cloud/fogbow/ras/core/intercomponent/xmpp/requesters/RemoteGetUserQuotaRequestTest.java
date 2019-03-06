@@ -1,11 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.constants.FogbowConstants;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -24,9 +22,6 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class RemoteGetUserQuotaRequestTest {
 
     private RemoteGetUserQuotaRequest remoteGetUserQuotaRequest;
@@ -34,17 +29,17 @@ public class RemoteGetUserQuotaRequestTest {
 
     private Quota quota;
     private String provider;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
     private ResourceType resourceType;
 
     @Before
     public void setUp() {
-        this.federationUser = new FederationUser("token-provider", "fake-user-id",
-                "fake-user-name", "federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", "token-provider"
+        );
 
         this.provider = "provider";
         this.resourceType = ResourceType.COMPUTE;
-        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.federationUser, this.resourceType);
+        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.systemUser, this.resourceType);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
         ComputeAllocation computeAllocation = new ComputeAllocation(10, 20, 30);
@@ -60,7 +55,7 @@ public class RemoteGetUserQuotaRequestTest {
         //set up
         IQ iqResponse = getQuotaIQResponse(this.quota);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
-        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.federationUser, this.resourceType);
+        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.systemUser, this.resourceType);
 
         //exercise
         Quota responseQuota = this.remoteGetUserQuotaRequest.send();

@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudUser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,10 +16,6 @@ import org.opennebula.client.image.ImagePool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -43,7 +39,7 @@ public class OpenNebulaImagePluginTest {
 	}
 	
 	// test case: When invoking the getAllImages method, with a valid client, a
-	// collection of images must be loaded, returning a map of instances of images
+	// collection of images must be loaded, returning a getCloudUser of instances of images
 	// with ID and name.
 	@Test
 	public void testGetAllImagesSuccessful() throws FogbowException {
@@ -64,10 +60,10 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(image.getId()).thenReturn(FAKE_ID);
 		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		
 		// exercise
-		this.plugin.getAllImages(token);
+		this.plugin.getAllImages(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -104,11 +100,11 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(STRING_VALUE_ONE);
 		Mockito.when(image.state()).thenReturn(VALUE_ONE);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String imageId = STRING_VALUE_ONE;
 		
 		// exercise
-		this.plugin.getImage(imageId, token);
+		this.plugin.getImage(imageId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -144,11 +140,11 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(imageIterator.next()).thenReturn(image);
 		Mockito.when(image.getId()).thenReturn(STRING_VALUE_ONE);
 		
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String imageId = STRING_VALUE_TWO;
 
 		// exercise
-		this.plugin.getImage(imageId, token);
+		this.plugin.getImage(imageId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -179,11 +175,11 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(imageIterator.hasNext()).thenReturn(false);
 		Mockito.when(imageIterator.next()).thenReturn(null);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String imageId = STRING_VALUE_ONE;
 		
 		// exercise
-		this.plugin.getImage(imageId, token);
+		this.plugin.getImage(imageId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -192,21 +188,14 @@ public class OpenNebulaImagePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
 	}
-	
-	private CloudToken createCloudToken() {
-		String provider = null;
-		String userId = null;
-		String userName = null;
-		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+	private CloudUser createCloudUser() {
+		String userId = FAKE_ID;
+		String userName = FAKE_NAME;
+		String tokenValue = LOCAL_TOKEN_VALUE;
+
+		CloudUser cloudUser = new CloudUser(userId, userName, tokenValue);
+
+		return cloudUser;
 	}
 }

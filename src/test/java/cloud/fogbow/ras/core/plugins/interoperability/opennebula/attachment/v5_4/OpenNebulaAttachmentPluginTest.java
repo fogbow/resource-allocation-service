@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,12 +19,6 @@ import org.opennebula.client.vm.VirtualMachine;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -30,6 +26,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 public class OpenNebulaAttachmentPluginTest {
 
 	private static final String FAKE_IMAGE_DEVICE = "fake-image-device";
+	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_INSTANCE_ID = "1 1 1";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
 	private static final String IMAGE_STATE_READY = "READY";
@@ -53,7 +50,7 @@ public class OpenNebulaAttachmentPluginTest {
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString())).willReturn(virtualMachine);
-		
+
 		String template = generateAttachmentTemplate();
 		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(virtualMachine.diskAttach(Mockito.contains(template))).thenReturn(response);
@@ -62,11 +59,11 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.when(virtualMachine.info()).thenReturn(response);
 		Mockito.when(response.getMessage()).thenReturn(VIRTUAL_MACHINE_CONTENT);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		AttachmentOrder attachmentOrder = createAttachmentOrder();
 		
 		// exercise
-		this.plugin.requestInstance(attachmentOrder, token);
+		this.plugin.requestInstance(attachmentOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -96,11 +93,11 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.when(virtualMachine.diskAttach(Mockito.contains(template))).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		AttachmentOrder attachmentOrder = createAttachmentOrder();
 
 		// exercise
-		this.plugin.requestInstance(attachmentOrder, token);
+		this.plugin.requestInstance(attachmentOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -127,11 +124,11 @@ public class OpenNebulaAttachmentPluginTest {
 				.willReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String attachmentInstanceId = FAKE_INSTANCE_ID;
 		
 		// exercise
-		this.plugin.deleteInstance(attachmentInstanceId, token);
+		this.plugin.deleteInstance(attachmentInstanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(VirtualMachine.class, VerificationModeFactory.times(1));
@@ -153,11 +150,11 @@ public class OpenNebulaAttachmentPluginTest {
 				Mockito.eq(diskId))).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String attachmentInstanceId = FAKE_INSTANCE_ID;
 		
 		// exercise
-		this.plugin.deleteInstance(attachmentInstanceId, token);
+		this.plugin.deleteInstance(attachmentInstanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(VirtualMachine.class, VerificationModeFactory.times(1));
@@ -183,11 +180,11 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.when(image.xpath(DEFAULT_DEVICE_PREFIX)).thenReturn(imageDevice);
 		Mockito.when(image.stateString()).thenReturn(IMAGE_STATE_READY);
 
-		CloudToken token = createCloudToken();
+		CloudUser cloudUser = createCloudUser();
 		String attachmentInstanceId = "1 1";
 		
 		// exercise
-		this.plugin.getInstance(attachmentInstanceId, token);
+		this.plugin.getInstance(attachmentInstanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -213,7 +210,7 @@ public class OpenNebulaAttachmentPluginTest {
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
-		FederationUser federationUser = null;
+		SystemUser systemUser = null;
 		String requestingMember = null;
 		String providingMember = null;
 		String cloudName = null;
@@ -222,7 +219,7 @@ public class OpenNebulaAttachmentPluginTest {
 		String device = null;
 		
 		AttachmentOrder attachmentOrder = new AttachmentOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember,
 				cloudName,
@@ -233,21 +230,11 @@ public class OpenNebulaAttachmentPluginTest {
 		return attachmentOrder;
 	}
 
-	private CloudToken createCloudToken() {
-		String provider = null;
+	private CloudUser createCloudUser() {
 		String userId = null;
-		String userName = null;
+		String userName = FAKE_USER_NAME;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		Map<String, String> extraAttributes = new HashMap<>();
 
-		FederationUser federationUser = new FederationUser(
-				provider, 
-				userId, 
-				userName, 
-				tokenValue, 
-				extraAttributes);
-		
-		return new CloudToken(federationUser);
+		return new CloudUser(userId, userName, tokenValue);
 	}
-	
 }

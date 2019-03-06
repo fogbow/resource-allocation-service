@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.api.http;
 
 public class ExceptionResponse {
-
     private String message;
     private String details;
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.OpenNebulaFogbowGenericRequest;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
@@ -62,7 +63,7 @@ public class GenericRequestMainTest {
 		String endpoint = "http://10.11.5.20:2633/RPC2";
 		Client client = new Client(secret, endpoint);
 		
-		OpenNebulaGenericRequest request = new OpenNebulaGenericRequest(endpoint, resource, strMethod, id, parameters);
+		OpenNebulaFogbowGenericRequest request = new OpenNebulaFogbowGenericRequest(endpoint, resource, strMethod, id, parameters);
 		
 		// Generate class type of resource...
 		OneResource oneResource = OneResource.getValueOf(request.getOneResource());

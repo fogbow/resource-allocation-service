@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 
 /**
@@ -15,12 +15,12 @@ public class StubAuthorizationPlugin implements AuthorizationPlugin {
     }
 
     @Override
-    public boolean isAuthorized(FederationUser federationUser, String s, String s1, String s2) throws UnauthorizedRequestException, UnexpectedException {
+    public boolean isAuthorized(SystemUser systemUser, String s, String s1, String s2) throws UnauthorizedRequestException, UnexpectedException {
         return true;
     }
 
     @Override
-    public boolean isAuthorized(FederationUser federationUser, String s, String s1) throws UnauthorizedRequestException, UnexpectedException {
+    public boolean isAuthorized(SystemUser systemUser, String s, String s1) throws UnauthorizedRequestException, UnexpectedException {
         return true;
     }
 }

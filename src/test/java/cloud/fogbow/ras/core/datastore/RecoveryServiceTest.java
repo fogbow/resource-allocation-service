@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;
@@ -135,10 +135,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
         attributes.put(ID_KEY, FAKE_ID_1);
         attributes.put(NAME_KEY, FAKE_INSTANCE_NAME);
         attributes.put(TOKEN_KEY, FAKE_TOKEN_VALUE);
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
         computeOrder = new ComputeOrder(
-                FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_ID_1, systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
                 FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT, FAKE_DISK_AMOUNT,
                 FAKE_IMAGE_NAME, FAKE_USER_DATA, FAKE_PUBLIC_KEY, FAKE_NETWORK_IDS);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -157,10 +157,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test
     public void testAddComputeOrderSettingState() throws UnexpectedException {
         // set up
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
         computeOrder = new ComputeOrder(
-                FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_ID_1, systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
                 FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT, FAKE_DISK_AMOUNT,
                 FAKE_IMAGE_NAME, FAKE_USER_DATA, FAKE_PUBLIC_KEY, FAKE_NETWORK_IDS);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -193,10 +193,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test
     public void testAddOrdersOfAllTypes() throws UnexpectedException {
         // set up
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
         computeOrder = new ComputeOrder(
-                FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_ID_1, systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
                 FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT, FAKE_DISK_AMOUNT,
                 FAKE_IMAGE_NAME, FAKE_USER_DATA, FAKE_PUBLIC_KEY, FAKE_NETWORK_IDS);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -230,10 +230,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testSaveExistentOrder() throws UnexpectedException {
         // set up
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
         computeOrder = new ComputeOrder(
-                FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_ID_1, systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
                 FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT, FAKE_DISK_AMOUNT,
                 FAKE_IMAGE_NAME, FAKE_USER_DATA, FAKE_PUBLIC_KEY, FAKE_NETWORK_IDS);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -247,10 +247,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testUpdateNonExistentOrder() throws UnexpectedException {
         // set up
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
         computeOrder = new ComputeOrder(
-                FAKE_ID_1, federationUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_ID_1, systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
                 FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT, FAKE_DISK_AMOUNT,
                 FAKE_IMAGE_NAME, FAKE_USER_DATA, FAKE_PUBLIC_KEY, FAKE_NETWORK_IDS);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);

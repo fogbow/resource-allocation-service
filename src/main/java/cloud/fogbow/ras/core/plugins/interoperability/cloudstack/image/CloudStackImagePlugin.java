@@ -2,13 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.client.HttpResponseException;
 
 import java.util.HashMap;
@@ -31,14 +31,14 @@ public class CloudStackImagePlugin implements ImagePlugin {
     }
 
     @Override
-    public Map<String, String> getAllImages(CloudToken CloudToken) throws FogbowException {
+    public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder().build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), CloudToken.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), CloudToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -55,16 +55,16 @@ public class CloudStackImagePlugin implements ImagePlugin {
     }
 
     @Override
-    public Image getImage(String imageId, CloudToken CloudToken) throws FogbowException {
+    public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), CloudToken.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), CloudToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }

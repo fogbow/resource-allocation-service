@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -17,16 +17,16 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetCloudNamesRequest.class);
 
     private String provider;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
-    public RemoteGetCloudNamesRequest(String provider, FederationUser federationUser) {
+    public RemoteGetCloudNamesRequest(String provider, SystemUser systemUser) {
         this.provider = provider;
-        this.federationUser = federationUser;
+        this.systemUser = systemUser;
     }
 
     @Override
     public List<String> send() throws Exception {
-        IQ iq = RemoteGetCloudNamesRequest.marshal(this.provider, this.federationUser);
+        IQ iq = RemoteGetCloudNamesRequest.marshal(this.provider, this.systemUser);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -34,7 +34,7 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
         return unmarshalImages(response);
     }
 
-    public static IQ marshal(String provider, FederationUser federationUser) {
+    public static IQ marshal(String provider, SystemUser systemUser) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
@@ -42,7 +42,7 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
                 RemoteMethod.REMOTE_GET_CLOUD_NAMES.toString());
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(systemUser));
 
         return iq;
     }

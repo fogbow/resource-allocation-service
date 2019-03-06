@@ -1,17 +1,17 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.genericrequest;
 
-import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.genericrequest.FogbowGenericRequest;
 
 import java.util.Map;
 
-public class OpenNebulaGenericRequest implements GenericRequest {
+public class OpenNebulaFogbowGenericRequest implements FogbowGenericRequest {
     private String url;
 	private String oneResource;
     private String oneMethod;
     private String resourceId;
     private Map<String, String> parameters;
 
-    public OpenNebulaGenericRequest(String url, String oneResource, String oneMethod, String resourceId, Map<String, String> parameters) {
+    public OpenNebulaFogbowGenericRequest(String url, String oneResource, String oneMethod, String resourceId, Map<String, String> parameters) {
         this.url = url;
     	this.oneResource = oneResource;
         this.oneMethod = oneMethod;

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.stubs;
 
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
@@ -9,22 +9,22 @@ import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
  * This class is a stub for the ComputePlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubComputePlugin implements ComputePlugin<CloudToken> {
+public class StubComputePlugin implements ComputePlugin<CloudUser> {
 
     public StubComputePlugin(String confFilePath) {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudToken token) {
+    public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) {
         return null;
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, CloudToken token) {
+    public ComputeInstance getInstance(String computeInstanceId, CloudUser cloudUser) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, CloudToken token) {
+    public void deleteInstance(String computeInstanceId, CloudUser cloudUser) {
     }
 }

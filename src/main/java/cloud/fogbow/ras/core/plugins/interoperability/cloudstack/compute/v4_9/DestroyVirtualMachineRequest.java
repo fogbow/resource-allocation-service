@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+import cloud.fogbow.common.util.cloud.cloudstack.CloudStackRequest;
 
 public class DestroyVirtualMachineRequest extends CloudStackRequest {
     protected static final String DESTROY_VIRTUAL_MACHINE_COMMAND = "destroyVirtualMachine";

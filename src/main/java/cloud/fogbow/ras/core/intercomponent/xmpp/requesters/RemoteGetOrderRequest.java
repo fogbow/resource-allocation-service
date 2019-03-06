@@ -35,7 +35,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
         //user
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(order.getFederationUser()));
+        userElement.setText(new Gson().toJson(order.getSystemUser()));
 
         //order
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
