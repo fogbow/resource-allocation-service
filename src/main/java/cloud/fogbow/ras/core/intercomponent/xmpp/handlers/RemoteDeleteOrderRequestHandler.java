@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -25,11 +25,11 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         String orderId = unmarshalOrderId(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
-        FederationUser federationUser = unmarshalFederationUser(iq);
+        SystemUser systemUser = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            RemoteFacade.getInstance().deleteOrder(iq.getFrom().toBareJID(), orderId, federationUser,
+            RemoteFacade.getInstance().deleteOrder(iq.getFrom().toBareJID(), orderId, systemUser,
                     resourceType);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -51,9 +51,9 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
         return resourceType;
     }
 
-    private FederationUser unmarshalFederationUser(IQ iq) {
+    private SystemUser unmarshalFederationUser(IQ iq) {
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
-        return federationUser;
+        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        return systemUser;
     }
 }

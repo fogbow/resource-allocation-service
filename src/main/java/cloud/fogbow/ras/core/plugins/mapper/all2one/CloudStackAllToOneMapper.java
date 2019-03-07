@@ -1,18 +1,26 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
-import cloud.fogbow.as.core.federationidentity.plugins.cloudstack.CloudStackFederationIdentityProviderPlugin;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.plugins.cloudidp.cloudstack.CloudStackIdentityProviderPlugin;
 
-public class CloudStackAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
+import java.util.Map;
+
+public class CloudStackAllToOneMapper extends GenericAllToOneSystemToCloudMapper {
+    private CloudStackIdentityProviderPlugin identityProviderPlugin;
 
     public CloudStackAllToOneMapper(String confFile) {
         super(confFile);
-        HttpRequestClientUtil client =  new HttpRequestClientUtil();
-        String serviceUrl = super.getTokenGeneratorUrl();
-        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.federationIdentityProviderPlugin = new CloudStackFederationIdentityProviderPlugin(client, serviceUrl, provider);
+        this.identityProviderPlugin = new CloudStackIdentityProviderPlugin(super.getIdpUrl());
+    }
+
+    @Override
+    public CloudStackUser getCloudUser(Map<String, String> credentials) throws FogbowException {
+        return this.identityProviderPlugin.getCloudUser(credentials);
+    }
+
+    // Used for testing only
+    public void setIdentityProviderPlugin(CloudStackIdentityProviderPlugin identityProviderPlugin) {
+        this.identityProviderPlugin = identityProviderPlugin;
     }
 }

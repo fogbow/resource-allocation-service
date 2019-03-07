@@ -8,9 +8,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 
-public class OpenNebulaMarshallerTemplate {
+public class OpenNebulaMarshaller {
 
-	private final static Logger LOGGER = Logger.getLogger(OpenNebulaMarshallerTemplate.class);
+	private final static Logger LOGGER = Logger.getLogger(OpenNebulaMarshaller.class);
 	
 	public String marshalTemplate() {
 		StringWriter writer = new StringWriter();

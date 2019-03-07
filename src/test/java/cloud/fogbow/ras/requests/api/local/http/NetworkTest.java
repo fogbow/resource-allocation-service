@@ -1,8 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Network;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -30,9 +29,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -142,16 +138,16 @@ public class NetworkTest {
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        String fakeFederationTokenValue = "fake-access-id";
-        headers.set(CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        String fakeUserToken = "fake-access-id";
+        headers.set(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, fakeUserToken);
         return headers;
     }
 
     private NetworkOrder createNetworkOrder() throws UnexpectedException {
-        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-user", "fake-name", "fake-token", new HashMap<>());
+        SystemUser systemUser = new SystemUser("fake-user", "fake-name", "fake-token-provider");
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
-        networkOrder.setFederationUser(federationUser);
+        networkOrder.setSystemUser(systemUser);
 
         return networkOrder;
     }

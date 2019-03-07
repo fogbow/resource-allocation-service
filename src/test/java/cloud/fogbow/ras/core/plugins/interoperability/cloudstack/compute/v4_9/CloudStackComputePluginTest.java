@@ -3,17 +3,16 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
@@ -57,12 +56,11 @@ public class CloudStackComputePluginTest {
     public static final String FAKE_CLOUD_NAME = "fake-cloud-name";
     public static final String FAKE_PUBLIC_KEY = "fake-public-key";
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
-    public static final CloudToken FAKE_TOKEN =  new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>()));
+    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";
@@ -269,7 +267,7 @@ public class CloudStackComputePluginTest {
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
-        Mockito.verify(this.client, never()).doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+        Mockito.verify(this.client, never()).doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class));
     }
 
     // Test case: fail to retrieve service offerings from cloudstack compute service on request instance

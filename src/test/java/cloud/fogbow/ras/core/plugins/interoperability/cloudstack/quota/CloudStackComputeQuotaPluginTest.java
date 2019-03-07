@@ -4,14 +4,13 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -27,7 +26,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -36,7 +34,6 @@ public class CloudStackComputeQuotaPluginTest {
 
     private static final String CLOUD_NAME = "cloudstack";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
@@ -66,7 +63,7 @@ public class CloudStackComputeQuotaPluginTest {
 
     private CloudStackComputeQuotaPlugin plugin;
     private CloudStackHttpClient client;
-    private CloudToken token;
+    private CloudStackUser cloudUser;
     private Properties properties;
 
     @Before
@@ -78,11 +75,11 @@ public class CloudStackComputeQuotaPluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.token = new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, new HashMap<>()));
+        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
     }
 
     // test case: When calling the getUserQuota method, HTTP GET requests must be
-    // made with a signed token, one to get the total resource limit, and another to
+    // made with a signed cloudUser, one to get the total resource limit, and another to
     // list the virtual machines in use, comparing them to calculate the number of
     // available resources, and returning a Quota object .
     @Test
@@ -104,7 +101,7 @@ public class CloudStackComputeQuotaPluginTest {
         String resourceLimitResponse = getListResourceLimitsResponse(instanceLimitResponse, vCpuLimitResponse,
                 ramLimitResponse);
 
-        Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.token)).thenReturn(resourceLimitResponse);
+        Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.cloudUser)).thenReturn(resourceLimitResponse);
 
         urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
@@ -120,19 +117,19 @@ public class CloudStackComputeQuotaPluginTest {
         String virtualMachine = getVirtualMachineResponse(id, name, state, cpu, ram, nic);
         String vmResponse = getListVirtualMachinesResponse(virtualMachine);
 
-        Mockito.when(this.client.doGetRequest(vmRequest, this.token)).thenReturn(vmResponse);
+        Mockito.when(this.client.doGetRequest(vmRequest, this.cloudUser)).thenReturn(vmResponse);
 
         // exercise
-        ComputeQuota quota = this.plugin.getUserQuota(this.token);
+        ComputeQuota quota = this.plugin.getUserQuota(this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(resourceLimitRequest),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.token));
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.cloudUser));
 
         Assert.assertEquals(MAX_NUMBER_INSTANCES, quota.getTotalQuota().getInstances());
         Assert.assertEquals(MAX_NUMBER_VCPU, quota.getTotalQuota().getvCPU());
@@ -174,8 +171,8 @@ public class CloudStackComputeQuotaPluginTest {
         String domainResourceLimitResponse = getListResourceLimitsResponse(domainInstanceLimitResponse, vCpuLimitResponse,
                 ramLimitResponse);
 
-        Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.token)).thenReturn(resourceLimitResponse);
-        Mockito.when(this.client.doGetRequest(domainResourceLimitRequest, this.token)).thenReturn(domainResourceLimitResponse);
+        Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.cloudUser)).thenReturn(resourceLimitResponse);
+        Mockito.when(this.client.doGetRequest(domainResourceLimitRequest, this.cloudUser)).thenReturn(domainResourceLimitResponse);
 
         urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
@@ -191,20 +188,20 @@ public class CloudStackComputeQuotaPluginTest {
         String virtualMachine = getVirtualMachineResponse(id, name, state, cpu, ram, nic);
         String vmResponse = getListVirtualMachinesResponse(virtualMachine);
 
-        Mockito.when(this.client.doGetRequest(vmRequest, this.token)).thenReturn(vmResponse);
+        Mockito.when(this.client.doGetRequest(vmRequest, this.cloudUser)).thenReturn(vmResponse);
 
         // exercise
-        ComputeQuota quota = this.plugin.getUserQuota(this.token);
+        ComputeQuota quota = this.plugin.getUserQuota(this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(3));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(resourceLimitRequest),
-                Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(domainResourceLimitRequest),
-                Mockito.eq(this.token));
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.token));
+                Mockito.eq(this.cloudUser));
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.cloudUser));
 
         Assert.assertEquals(MAX_NUMBER_INSTANCES, quota.getTotalQuota().getInstances());
         Assert.assertEquals(MAX_NUMBER_VCPU, quota.getTotalQuota().getvCPU());
@@ -228,19 +225,19 @@ public class CloudStackComputeQuotaPluginTest {
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
         try {
             // exercise
-            this.plugin.getUserQuota(this.token);
+            this.plugin.getUserQuota(this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -254,19 +251,19 @@ public class CloudStackComputeQuotaPluginTest {
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
             // exercise
-            this.plugin.getUserQuota(this.token);
+            this.plugin.getUserQuota(this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 
@@ -292,27 +289,27 @@ public class CloudStackComputeQuotaPluginTest {
         String resourceLimitResponse = getListResourceLimitsResponse(instanceLimitResponse, vCpuLimitResponse,
                 ramLimitResponse);
 
-        Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.token)).thenReturn(resourceLimitResponse);
+        Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.cloudUser)).thenReturn(resourceLimitResponse);
 
         urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
         String vmRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
-        Mockito.when(this.client.doGetRequest(vmRequest, this.token))
+        Mockito.when(this.client.doGetRequest(vmRequest, this.cloudUser))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
             // exercise
-            this.plugin.getUserQuota(this.token);
+            this.plugin.getUserQuota(this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(resourceLimitRequest),
-                    Mockito.eq(this.token));
+                    Mockito.eq(this.cloudUser));
 
-            Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.token));
+            Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.cloudUser));
         }
     }
 
@@ -327,19 +324,19 @@ public class CloudStackComputeQuotaPluginTest {
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
         try {
             // exercise
-            this.plugin.getUserQuota(this.token);
+            this.plugin.getUserQuota(this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
             CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
             Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudToken.class));
+                    Mockito.any(CloudStackUser.class));
         }
     }
 

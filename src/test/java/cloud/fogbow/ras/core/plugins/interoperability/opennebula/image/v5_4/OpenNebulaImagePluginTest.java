@@ -1,96 +1,56 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
+import java.util.Iterator;
+
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import cloud.fogbow.common.models.CloudUser;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Iterator;
-
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({OpenNebulaClientUtil.class})
 public class OpenNebulaImagePluginTest {
 
-	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String UNCHECKED_VALUE = "unchecked";
-	private static final String IMAGE_SIZE_PATH = "IMAGE/SIZE";
 	private static final String FAKE_ID = "fake-id";
 	private static final String FAKE_NAME = "fake-name";
+	private static final String IMAGE_SIZE_PATH = "IMAGE/SIZE";
+	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String STRING_VALUE_ONE = "1";
 	private static final String STRING_VALUE_TWO = "2";
 
 	private static final int VALUE_ONE = 1;
-	private static final String CLOUD_NAME = "opennebula";
 
-	private OpenNebulaClientFactory factory;
 	private OpenNebulaImagePlugin plugin;
 
 	@Before
 	public void setUp() {
-		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
-		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(openenbulaConfFilePath));
-	}
-	
-	// test case: When calling the getAllImages method, if the createClient method
-	// in the OpenNebulaClientFactory class can not create a valid client from a
-	// token value, it must throw a UnespectedException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testGetAllImagesThrowExceptionWhenCallCreateClientMethod()
-			throws FogbowException {
-		
-		// set up
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		// exercise
-		this.plugin.getAllImages(token);
-	}
-	
-	// test case: When calling the getAllImages method, if the createImagePool method
-	// in the OpenNebulaClientFactory return an error response, it must throw a 
-	// UnespectedException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testGetAllImagesThrowExceptionWhenCallCreateImagePoolMethod()
-			throws FogbowException {
-
-		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createImagePool(client);
-		this.plugin.setFactory(this.factory);
-
-		// exercise
-		this.plugin.getAllImages(token);
+		this.plugin = Mockito.spy(new OpenNebulaImagePlugin());
 	}
 	
 	// test case: When invoking the getAllImages method, with a valid client, a
-	// collection of images must be loaded, returning a map of instances of images
+	// collection of images must be loaded, returning a getCloudUser of instances of images
 	// with ID and name.
 	@Test
-	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetAllImagesSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Mockito.doReturn(imagePool).when(this.factory).createImagePool(client);
+		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 
 		Image image = Mockito.mock(Image.class);
 		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
@@ -100,12 +60,18 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(image.getId()).thenReturn(FAKE_ID);
 		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
 
+		CloudUser cloudUser = createCloudUser();
+		
 		// exercise
-		this.plugin.getAllImages(token);
+		this.plugin.getAllImages(cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
+		
 		Mockito.verify(image, Mockito.times(1)).getId();
 		Mockito.verify(image, Mockito.times(1)).getName();
 	}
@@ -114,18 +80,15 @@ public class OpenNebulaImagePluginTest {
 	// of images will be loaded to select an Image through a specific ID, returning 
 	// the instance of an image, with ID, name, size and status.
 	@Test
-	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetImageSuccessful() throws FogbowException {
 		// set up
-		String imageId = STRING_VALUE_ONE;
-
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Mockito.doReturn(imagePool).when(this.factory).createImagePool(client);
+		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 
 		Image image = Mockito.mock(Image.class);
 		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
@@ -137,12 +100,19 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(STRING_VALUE_ONE);
 		Mockito.when(image.state()).thenReturn(VALUE_ONE);
 
+		CloudUser cloudUser = createCloudUser();
+		String imageId = STRING_VALUE_ONE;
+		
 		// exercise
-		this.plugin.getImage(imageId, token);
+		this.plugin.getImage(imageId, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
+		
 		Mockito.verify(image, Mockito.times(2)).getId();
 		Mockito.verify(image, Mockito.times(1)).getName();
 		Mockito.verify(image, Mockito.times(1)).xpath(IMAGE_SIZE_PATH);
@@ -153,18 +123,15 @@ public class OpenNebulaImagePluginTest {
 	// divergent from the images contained in the collection, no instance should be
 	// found, returning a null image.
 	@Test
-	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetImageUnsuccessfulByIdNotFound() throws FogbowException {
 		// set up
-		String imageId = STRING_VALUE_TWO;
-
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Mockito.doReturn(imagePool).when(this.factory).createImagePool(client);
+		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 
 		Image image = Mockito.mock(Image.class);
 		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
@@ -172,13 +139,20 @@ public class OpenNebulaImagePluginTest {
 		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
 		Mockito.when(imageIterator.next()).thenReturn(image);
 		Mockito.when(image.getId()).thenReturn(STRING_VALUE_ONE);
+		
+		CloudUser cloudUser = createCloudUser();
+		String imageId = STRING_VALUE_TWO;
 
 		// exercise
-		this.plugin.getImage(imageId, token);
+		this.plugin.getImage(imageId, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
+		
 		Mockito.verify(image, Mockito.times(1)).getId();
 	}
 	
@@ -186,42 +160,42 @@ public class OpenNebulaImagePluginTest {
 	// collection of images is empty, an instance of an image can not be loaded,
 	// returning a null image.
 	@Test
-	@SuppressWarnings(UNCHECKED_VALUE)
 	public void testGetImageEmptyCollection() throws FogbowException {
 		// set up
-		String imageId = STRING_VALUE_ONE;
-
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Mockito.doReturn(imagePool).when(this.factory).createImagePool(client);
+		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
 
 		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
 		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
 		Mockito.when(imageIterator.hasNext()).thenReturn(false);
 		Mockito.when(imageIterator.next()).thenReturn(null);
 
+		CloudUser cloudUser = createCloudUser();
+		String imageId = STRING_VALUE_ONE;
+		
 		// exercise
-		this.plugin.getImage(imageId, token);
+		this.plugin.getImage(imageId, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
 	}
-	
-	private CloudToken createCloudToken() {
-		String provider = null;
+
+	private CloudUser createCloudUser() {
+		String userId = FAKE_ID;
+		String userName = FAKE_NAME;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-		String userId = null;
-		String userName = FAKE_USER_NAME;
-		String signature = null;
 
-		FederationUser federationUser = new FederationUser(provider, userId, userName, tokenValue, new HashMap<>());
-		CloudToken cloudToken = new CloudToken(federationUser);
+		CloudUser cloudUser = new CloudUser(userId, userName, tokenValue);
 
-		return cloudToken;
+		return cloudUser;
 	}
 }

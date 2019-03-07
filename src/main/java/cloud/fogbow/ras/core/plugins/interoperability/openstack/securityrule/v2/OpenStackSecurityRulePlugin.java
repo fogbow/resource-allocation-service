@@ -3,8 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.securityrules.Direction;
@@ -14,8 +15,7 @@ import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
+public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackSecurityRulePlugin.class);
 
     protected static final String NETWORK_NEUTRON_V2_URL_KEY = "openstack_neutron_v2_url";
@@ -49,7 +49,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
 
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder,
-                                      CloudToken openStackV3Token) throws FogbowException {
+                                      OpenStackV3User cloudUser) throws FogbowException {
             CreateSecurityRuleResponse createSecurityRuleResponse = null;
 
             String cidr = securityRule.getCidr();
@@ -60,7 +60,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
             String protocol = securityRule.getProtocol().toString();
 
             String securityGroupName = retrieveSecurityGroupName(majorOrder);
-            String securityGroupId = retrieveSecurityGroupId(securityGroupName, openStackV3Token);
+            String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
 
             try {
                 CreateSecurityRuleRequest createSecurityRuleRequest = new CreateSecurityRuleRequest.Builder()
@@ -74,7 +74,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
                         .build();
 
                 String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-                String response = this.client.doPostRequest(endpoint, createSecurityRuleRequest.toJson(), openStackV3Token);
+                String response = this.client.doPostRequest(endpoint, createSecurityRuleRequest.toJson(), cloudUser);
                 createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
             } catch (JSONException e) {
                 String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
@@ -88,16 +88,16 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     @Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudToken openStackV3Token) throws FogbowException {
+    public List<SecurityRule> getSecurityRules(Order majorOrder, OpenStackV3User cloudUser) throws FogbowException {
         String securityGroupName = retrieveSecurityGroupName(majorOrder);
-        String securityGroupId = retrieveSecurityGroupId(securityGroupName, openStackV3Token);
+        String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
 
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + QUERY_PREFIX +
                 SECURITY_GROUP_ID_PARAM + VALUE_QUERY_PREFIX + securityGroupId;
         String responseStr = null;
 
         try {
-            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
+            responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -106,17 +106,17 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, CloudToken openStackV3Token) throws FogbowException {
+    public void deleteSecurityRule(String securityRuleId, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityRuleId;
 
         try {
-            this.client.doDeleteRequest(endpoint, openStackV3Token);
+            this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityRuleId), e);
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, openStackV3Token.getTokenValue()));
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudUser.getToken()));
     }
 
     private String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
@@ -134,7 +134,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
         return securityGroupName;
     }
 
-    protected String retrieveSecurityGroupId(String securityGroupName, CloudToken openStackV3Token) throws FogbowException {
+    protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         URI uri = UriBuilder
                 .fromPath(this.networkV2APIEndpoint)
                 .path(SECURITY_GROUPS_ENDPOINT)
@@ -144,7 +144,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
         String endpoint = uri.toString();
         String responseStr = null;
         try {
-            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
+            responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -158,8 +158,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin {
         }
     }
 
-    protected List<SecurityRule> getSecurityRulesFromJson(String json)
-            throws FogbowException {
+    protected List<SecurityRule> getSecurityRulesFromJson(String json) throws FogbowException {
         GetSecurityRulesResponse getSecurityGroupResponse = GetSecurityRulesResponse.fromJson(json);
         List<GetSecurityRulesResponse.SecurityRules> securityRules = getSecurityGroupResponse.getSecurityRules();
 

@@ -1,8 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
@@ -23,8 +22,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.security.InvalidParameterException;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -122,8 +119,8 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         return new ComputeQuota(totalQuota, usedQuota);
     }
 
-    private FederationUser createFederationUser() {
-        return new FederationUser("fake-token-provider", "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+    private SystemUser createFederationUser() {
+        return new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider"
+        );
     }
 }

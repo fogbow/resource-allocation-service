@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 

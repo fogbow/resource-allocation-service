@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

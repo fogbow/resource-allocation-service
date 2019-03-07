@@ -1,8 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetOrderRequest;
@@ -23,8 +22,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -69,14 +66,14 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws Exception {
         // set up
-        FederationUser federationUser = createFederationUser();
-        Order order = createOrder(federationUser);
+        SystemUser systemUser = createFederationUser();
+        Order order = createOrder(systemUser);
         String orderId = order.getId();
         Instance instance = new Instance(FAKE_INSTANCE_ID);
 
         Mockito.when(
                 this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
-                        Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
+                        Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -87,7 +84,7 @@ public class RemoteGetOrderRequestHandlerTest {
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
-                Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE));
+                Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
         String providingMember = order.getProvider();
@@ -102,13 +99,13 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up
-        FederationUser federationUser = new FederationUser("fake-token-provider", "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
-        Order order = createOrder(federationUser);
+        SystemUser systemUser = new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider"
+        );
+        Order order = createOrder(systemUser);
         String orderId = order.getId();
 
         Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
-                Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new RemoteCommunicationException());
+                Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new RemoteCommunicationException());
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -119,7 +116,7 @@ public class RemoteGetOrderRequestHandlerTest {
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
-                Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE));
+                Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
         String providingMember = order.getProvider();
@@ -128,16 +125,16 @@ public class RemoteGetOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    private Order createOrder(FederationUser federationUser) {
-        return new ComputeOrder(federationUser, REQUESTING_MEMBER,
+    private Order createOrder(SystemUser systemUser) {
+        return new ComputeOrder(systemUser, REQUESTING_MEMBER,
                 "providingmember", "default", "hostName", 1, 2, 3,
                 "imageId", null,
                 "publicKey", new ArrayList<>());
     }
 
-    private FederationUser createFederationUser() {
-        return new FederationUser("fake-token-provider", "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+    private SystemUser createFederationUser() {
+        return new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider"
+        );
     }
 
 }

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +22,8 @@ public class CloudConnectorFactoryTest {
     @Test
     public void testGetCloudConnectorLocal() {
         // set up
-        FederationToLocalMapperPlugin mapperPlugin =
-                Mockito.mock(FederationToLocalMapperPlugin.class);
+        SystemToCloudMapperPlugin mapperPlugin =
+                Mockito.mock(SystemToCloudMapperPlugin.class);
 
         // exercise
         CloudConnector localCloudConnector =

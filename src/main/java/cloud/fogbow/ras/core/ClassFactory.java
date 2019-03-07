@@ -1,13 +1,15 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.ras.constants.Messages;
 import org.apache.log4j.Logger;
 
 import java.lang.reflect.Constructor;
 
-public class PluginFactory {
-    private static final Logger LOGGER = Logger.getLogger(cloud.fogbow.common.util.PluginFactory.class);
+// Each package has to have its own ClassFactory
+
+public class ClassFactory {
+    private static final Logger LOGGER = Logger.getLogger(ClassFactory.class);
 
     public Object createPluginInstance(String pluginClassName, String parameter1, String parameter2)
             throws FatalErrorException {
@@ -22,7 +24,7 @@ public class PluginFactory {
             constructor = classpath.getConstructor(String.class, String.class);
             pluginInstance = constructor.newInstance(parameter1, parameter2);
         } catch (ClassNotFoundException e) {
-            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS;
+            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS_S;
             throw new FatalErrorException(String.format(msg, pluginClassName));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);
@@ -43,7 +45,7 @@ public class PluginFactory {
             constructor = classpath.getConstructor(String.class);
             pluginInstance = constructor.newInstance(parameter);
         } catch (ClassNotFoundException e) {
-            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS;
+            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS_S;
             throw new FatalErrorException(String.format(msg, pluginClassName));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);
@@ -64,7 +66,7 @@ public class PluginFactory {
             constructor = classpath.getConstructor();
             pluginInstance = constructor.newInstance();
         } catch (ClassNotFoundException e) {
-            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS;
+            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS_S;
             throw new FatalErrorException(String.format(msg, pluginClassName));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);

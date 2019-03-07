@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -17,14 +17,14 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
     private static final Logger LOGGER = Logger.getLogger(RemoteCreateSecurityRuleRequest.class);
 
     private SecurityRule securityRule;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
     private String provider;
     private Order majorOrder;
 
-    public RemoteCreateSecurityRuleRequest(SecurityRule securityRule, FederationUser federationUser,
+    public RemoteCreateSecurityRuleRequest(SecurityRule securityRule, SystemUser systemUser,
                                            String provider, Order majorOrder) {
         this.securityRule = securityRule;
-        this.federationUser = federationUser;
+        this.systemUser = systemUser;
         this.provider = provider;
         this.majorOrder = majorOrder;
     }
@@ -49,7 +49,7 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
         orderIdElement.setText(majorOrder.getId());
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(systemUser));
 
         Element securityRuleElement = queryElement.addElement(IqElement.SECURITY_RULE.toString());
         securityRuleElement.setText(GsonHolder.getInstance().toJson(securityRule));

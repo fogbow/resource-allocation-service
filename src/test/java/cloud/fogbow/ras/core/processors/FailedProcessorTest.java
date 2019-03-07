@@ -1,9 +1,8 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -291,7 +290,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 	}
 
 	private Order createOrder() {
-		FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USER_NAME, FAKE_FEDERATION_USER_TOKEN_VALUE, new HashMap<>());
+		SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_PROVIDER);
 
 
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
@@ -300,7 +299,7 @@ public class FailedProcessorTest extends BaseUnitTests {
 		List<String> networkIds = null;
 
 		Order order = new ComputeOrder(
-				federationUser, 
+				systemUser,
 				requestingMember, 
 				providingMember, 
 				CLOUD_NAME,

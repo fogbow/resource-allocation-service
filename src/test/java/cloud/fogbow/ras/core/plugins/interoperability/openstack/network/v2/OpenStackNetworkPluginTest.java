@@ -5,9 +5,8 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -17,10 +16,8 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
+import cloud.fogbow.common.models.OpenStackV3User;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.json.JSONArray;
@@ -49,7 +46,6 @@ public class OpenStackNetworkPluginTest {
     private static final String SECURITY_GROUP_ID = "fake-sg-id";
     private static final String NETWORK_ID = "networkId";
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -64,7 +60,7 @@ public class OpenStackNetworkPluginTest {
             OpenStackNetworkPlugin.QUERY_NAME + "=" + OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + NETWORK_ID;
 
     private OpenStackNetworkPlugin openStackNetworkPlugin;
-    private OpenStackV3Token openStackV3Token;
+    private OpenStackV3User openStackV3Token;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
 
@@ -80,11 +76,7 @@ public class OpenStackNetworkPluginTest {
 
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackNetworkPlugin.setClient(this.openStackHttpClient);
-
-        HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
-        this.openStackV3Token = new OpenStackV3Token(federationUser);
+        this.openStackV3Token = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     @After
@@ -147,7 +139,7 @@ public class OpenStackNetworkPluginTest {
         HttpResponse postSubnetResponse = new HttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postSubnetResponse).when(this.openStackHttpClient).
                 doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
-                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+                        Mockito.any(HashMap.class), Mockito.any(OpenStackV3User.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
         NetworkOrder order = createEmptyOrder();
@@ -164,7 +156,7 @@ public class OpenStackNetworkPluginTest {
 //        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
                 doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
-                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+                        Mockito.any(HashMap.class), Mockito.any(OpenStackV3User.class));
     }
 
     //test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for a new subnet.
@@ -177,7 +169,7 @@ public class OpenStackNetworkPluginTest {
         HttpResponse postSubnetResponse = new HttpResponse("", HttpStatus.SC_BAD_REQUEST, null);
         Mockito.doReturn(postNetworkResponse).doReturn(postSubnetResponse).when(this.openStackHttpClient).
                 doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
-                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+                        Mockito.any(HashMap.class), Mockito.any(OpenStackV3User.class));
 
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
 //                httpResponsePostSubnet, httpResponseRemoveNetwork);
@@ -195,7 +187,7 @@ public class OpenStackNetworkPluginTest {
 //        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
         Mockito.verify(this.openStackHttpClient, Mockito.times(3)).
                 doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class),
-                        Mockito.any(HashMap.class), Mockito.any(CloudToken.class));
+                        Mockito.any(HashMap.class), Mockito.any(OpenStackV3User.class));
     }
 
     //test case: Tests the case that security group raise an exception. This implies that network will be removed.
@@ -490,10 +482,10 @@ public class OpenStackNetworkPluginTest {
 //        HttpResponse httpResponseGetSubnet = createHttpResponse(subnetJsonObject.toString(), HttpStatus.SC_OK);
 //        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetNetwork,
 //                httpResponseGetSubnet);
-//        Mockito.when(this.openStackHttpClient.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class))).
+//        Mockito.when(this.openStackHttpClient.doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class))).
 //                thenReturn(networkJsonObject.toString(), subnetJsonObject.toString());
 
-        Mockito.doReturn(networkJsonObject.toString()).doReturn(subnetJsonObject.toString()).when(this.openStackHttpClient).doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+        Mockito.doReturn(networkJsonObject.toString()).doReturn(subnetJsonObject.toString()).when(this.openStackHttpClient).doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         //exercise
         NetworkInstance instance = this.openStackNetworkPlugin.getInstance("instanceId00", this.openStackV3Token);

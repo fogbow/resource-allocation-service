@@ -2,24 +2,24 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
 import java.util.Properties;
 
-public class CloudStackAttachmentPlugin implements AttachmentPlugin {
+public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
     private static final String SEPARATOR_ID = " ";
@@ -46,7 +46,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, CloudToken localUserAttributes)
+    public String requestInstance(AttachmentOrder attachmentOrder, CloudStackUser cloudUser)
             throws FogbowException {
         
         String virtualMachineId = attachmentOrder.getComputeId();
@@ -57,11 +57,11 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
                 .virtualMachineId(virtualMachineId)
                 .build(this.cloudStackUrl);
         
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
         
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -78,7 +78,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public void deleteInstance(String attachmentInstanceId, CloudToken localUserAttributes) throws FogbowException {
+    public void deleteInstance(String attachmentInstanceId, CloudStackUser cloudUser) throws FogbowException {
         
         String[] separatorInstanceId = attachmentInstanceId.split(SEPARATOR_ID);
         String volumeId = separatorInstanceId[0];
@@ -87,11 +87,11 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
                 .id(volumeId)
                 .build(this.cloudStackUrl);
         
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
         
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -104,7 +104,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public AttachmentInstance getInstance(String attachmentInstanceId, CloudToken localUserAttributes)
+    public AttachmentInstance getInstance(String attachmentInstanceId, CloudStackUser cloudUser)
             throws FogbowException {
         
         String[] separatorInstanceId = attachmentInstanceId.split(SEPARATOR_ID);
@@ -114,11 +114,11 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin {
                 .jobId(jobId)
                 .build(this.cloudStackUrl);
         
-        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }

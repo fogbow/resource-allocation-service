@@ -1,10 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -31,16 +30,16 @@ public class RemoteGetAllImagesRequestTest {
     private RemoteGetAllImagesRequest remoteGetAllImagesRequest;
 
     private HashMap<String, String> imagesMap;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
     private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.federationUser = new FederationUser("fake-token-provider", "fake-user-id",
-                "fake-user-name", "fake-federation-token-value", new HashMap<>());
+        this.systemUser = new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider"
+        );
 
-        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", federationUser);
+        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", systemUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
 
@@ -51,7 +50,7 @@ public class RemoteGetAllImagesRequestTest {
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetAllImagesRequestTest constructor parameters
-    // and remote get all images request rules. In addition, it checks if the image map from a possible response is
+    // and remote get all images request rules. In addition, it checks if the image getCloudUser from a possible response is
     // properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {
@@ -64,7 +63,7 @@ public class RemoteGetAllImagesRequestTest {
 
         // verify
         // as IQ does not implement equals we need a matcher
-        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, "default", federationUser);
+        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, "default", systemUser);
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }
@@ -94,7 +93,7 @@ public class RemoteGetAllImagesRequestTest {
     }
 
     // test case: checks if "send" is properly forwading UnexpectedException thrown by
-    // "getImageFromResponse" when the images map class name from the IQ response is undefined (wrong or not found)
+    // "getImageFromResponse" when the images getCloudUser class name from the IQ response is undefined (wrong or not found)
     @Test(expected = UnexpectedException.class)
     public void testSendWhenImageClassIsUndefined() throws Exception {
         // set up

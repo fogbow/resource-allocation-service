@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -37,9 +37,9 @@ public class VolumeOrder extends Order {
         this(null, null, providingMember, cloudName, name, volumeSize);
     }
 
-    public VolumeOrder(FederationUser federationUser, String requestingMember, String providingMember,
+    public VolumeOrder(SystemUser systemUser, String requestingMember, String providingMember,
                        String cloudName, String name, int volumeSize) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.name = name;
         this.volumeSize = volumeSize;
     }

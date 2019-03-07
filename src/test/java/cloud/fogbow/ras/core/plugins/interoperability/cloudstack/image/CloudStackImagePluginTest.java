@@ -2,14 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.Image;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -35,17 +34,15 @@ import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.Ge
 @PrepareForTest({CloudStackUrlUtil.class})
 public class CloudStackImagePluginTest {
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String JSON = "json";
     private static final String RESPONSE_KEY = "response";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 
-    public static final CloudToken FAKE_TOKEN =  new CloudToken(new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, new HashMap<>()));
+    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
@@ -141,7 +138,7 @@ public class CloudStackImagePluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
         try {
@@ -150,7 +147,7 @@ public class CloudStackImagePluginTest {
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class));
         }
     }
 

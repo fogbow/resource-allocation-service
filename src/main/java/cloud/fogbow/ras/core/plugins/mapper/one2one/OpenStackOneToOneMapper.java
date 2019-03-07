@@ -1,27 +1,23 @@
 package cloud.fogbow.ras.core.plugins.mapper.one2one;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.as.core.models.OneToOneMappableSystemUser;
+import cloud.fogbow.as.core.models.OpenStackV3SystemUser;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.mapper.all2one.OpenStackAllToOneMapper;
 
-public class OpenStackOneToOneMapper extends GenericOneToOneFederationToLocalMapper
-        implements FederationToLocalMapperPlugin {
+public class OpenStackOneToOneMapper extends GenericOneToOneSystemToCloudMapper {
     public OpenStackOneToOneMapper(String mapperConfFilePath) {
         super(new OpenStackAllToOneMapper(mapperConfFilePath));
     }
 
     @Override
-    public OpenStackV3Token map(FederationUser federationUser) throws FogbowException {
-        OpenStackV3Token openStackV3Token;
-        CloudToken mappedToken = super.map(federationUser);
-        if (federationUser.getTokenProviderId().equals(super.getMemberId())) {
-            openStackV3Token = new OpenStackV3Token(federationUser);
-        } else {
-            openStackV3Token = (OpenStackV3Token) mappedToken;
+    public OpenStackV3User localMap(OneToOneMappableSystemUser systemUser) throws InvalidParameterException {
+        if (!(systemUser instanceof OpenStackV3SystemUser)) {
+            throw new InvalidParameterException(Messages.Exception.SYSTEM_USER_TYPE_MISMATCH);
         }
-        return openStackV3Token;
+        OpenStackV3SystemUser osV3User = (OpenStackV3SystemUser) systemUser;
+        return new OpenStackV3User(osV3User.getId(), osV3User.getName(), osV3User.getToken(), osV3User.getProjectId());
     }
 }

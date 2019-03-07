@@ -1,18 +1,27 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
-import cloud.fogbow.as.core.federationidentity.plugins.opennebula.OpenNebulaClientFactory;
-import cloud.fogbow.as.core.federationidentity.plugins.opennebula.OpenNebulaFederationIdentityProviderPlugin;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.OpenNebulaUser;
+import cloud.fogbow.common.plugins.cloudidp.opennebula.OpenNebulaIdentityProviderPlugin;
 
-public class OpenNebulaAllToOneMapper extends BasicAllToOneMapper implements FederationToLocalMapperPlugin {
+import java.util.Map;
+
+public class OpenNebulaAllToOneMapper extends GenericAllToOneSystemToCloudMapper {
+
+    private OpenNebulaIdentityProviderPlugin identityProviderPlugin;
 
     public OpenNebulaAllToOneMapper(String confFile) {
         super(confFile);
-        String serviceUrl = super.getTokenGeneratorUrl();
-        OpenNebulaClientFactory factory = new OpenNebulaClientFactory(serviceUrl);
-        String provider = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.federationIdentityProviderPlugin = new OpenNebulaFederationIdentityProviderPlugin(factory, provider);
+        this.identityProviderPlugin = new OpenNebulaIdentityProviderPlugin();
+    }
+
+    @Override
+    public OpenNebulaUser getCloudUser(Map<String, String> credentials) throws FogbowException {
+        return this.identityProviderPlugin.getCloudUser(credentials);
+    }
+
+    // Used only in tests
+    public void setIdentityProviderPlugin(OpenNebulaIdentityProviderPlugin identityProviderPlugin) {
+        this.identityProviderPlugin = identityProviderPlugin;
     }
 }

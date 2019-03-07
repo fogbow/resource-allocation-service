@@ -20,13 +20,13 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OpenNebulaUnmarshallerContents {
+public class XmlUnmarshaller {
 
-	private final static Logger LOGGER = Logger.getLogger(OpenNebulaUnmarshallerContents.class);
+	private final static Logger LOGGER = Logger.getLogger(XmlUnmarshaller.class);
 	
 	private Document document;
 	
-	public OpenNebulaUnmarshallerContents(String xml) {
+	public XmlUnmarshaller(String xml) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
@@ -72,5 +72,9 @@ public class OpenNebulaUnmarshallerContents {
 			LOGGER.error(e); // TODO Fix error message...
 		}
 		return contextList;
+	}
+	
+	public Node getFirstNodeOfDocument() {
+		return this.document.getFirstChild();
 	}
 }

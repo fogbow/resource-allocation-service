@@ -3,8 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudToken;
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -12,10 +13,9 @@ import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-public class CloudStackNetworkPlugin implements NetworkPlugin {
+public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
     public static final String NETWORK_OFFERING_ID = "network_offering_id";
@@ -48,7 +48,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public String requestInstance(NetworkOrder networkOrder, CloudToken cloudToken) throws FogbowException {
+    public String requestInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         if (subnetInfo == null) {
             throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, networkOrder.getCidr()));
@@ -70,11 +70,11 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudToken.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -84,16 +84,16 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, CloudToken cloudToken) throws FogbowException {
+    public NetworkInstance getInstance(String networkInstanceId, CloudStackUser cloudUser) throws FogbowException {
         GetNetworkRequest request = new GetNetworkRequest.Builder()
                 .id(networkInstanceId)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudToken.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudToken);
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -110,15 +110,15 @@ public class CloudStackNetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, CloudToken cloudToken) throws FogbowException {
+    public void deleteInstance(String networkInstanceId, CloudStackUser cloudUser) throws FogbowException {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkInstanceId)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudToken.getTokenValue());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         try {
-            this.client.doGetRequest(request.getUriBuilder().toString(), cloudToken);
+            this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }

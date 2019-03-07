@@ -1,0 +1,10 @@
+package cloud.fogbow.ras.core.plugins.mapper;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+
+public interface SystemToCloudMapperPlugin<T extends CloudUser> {
+    public T map(SystemUser systemUser) throws FogbowException;
+}
+

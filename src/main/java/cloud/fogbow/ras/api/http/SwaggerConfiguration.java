@@ -17,7 +17,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class SwaggerConfiguration {
     public static final String BASE_PACKAGE = "cloud.fogbow.ras";
 
-
     public static final Contact CONTACT = new Contact(
         ApiDocumentation.ApiInfo.CONTACT_NAME,
             ApiDocumentation.ApiInfo.CONTACT_URL,

@@ -3,18 +3,15 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
@@ -22,46 +19,29 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.File;
-import java.util.HashMap;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SecurityGroup.class, VirtualNetwork.class})
+@PrepareForTest({OpenNebulaClientUtil.class, SecurityGroup.class, VirtualNetwork.class})
 public class OpenNebulaNetworkPluginTest {
 
-	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_NETWORK_NAME = "fake-network-name";
 	private static final String FAKE_ADDRESS = "fake-address";
 	private static final String FAKE_GATEWAY = "fake-gateway";
-	private static final String FAKE_VLAN_ID = "fake-vlan-id";
+	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+	private static final String FAKE_NETWORK_NAME = "fake-network-name";
 	private static final String FAKE_USER_ID = "fake-user-id";
-	private static final String CLOUD_NAME = "opennebula";
-
-	private OpenNebulaClientFactory factory;
+	private static final String FAKE_VLAN_ID = "fake-vlan-id";
+	private static final String LOCAL_TOKEN_VALUE = "user:password";
+	private static final String SECURITY_GROUPS_TEMPLATE_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+	private static final String SEPARATOR = ",";
+	private static final String ID_VALUE_ZERO = "0";
+	private static final String ID_VALUE_ONE = "1";
+	
 	private OpenNebulaNetworkPlugin plugin;
 
 	@Before
 	public void setUp() {
-		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
-		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(openenbulaConfFilePath));
-	}
-
-	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class
-	// can not create a valid client from a token value, it must throw a UnespectedException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testRequestInstanceThrowUnespectedException() throws FogbowException {
-		// set up
-		NetworkOrder networkOrder = new NetworkOrder();
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		// exercise
-		this.plugin.requestInstance(networkOrder, token);
+		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin());
 	}
 
 	// test case: When calling the requestInstance method, with the valid client and
@@ -69,34 +49,33 @@ public class OpenNebulaNetworkPluginTest {
 	@Test
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
 		NetworkOrder networkOrder = createNetworkOrder();
-		String template = generateSecurityGroupTemplate();
-		
-		String securityGroupId = "100";
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(SecurityGroup.allocate(Mockito.any(), Mockito.any())).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.when(response.getMessage()).thenReturn(securityGroupId);
-		
-		template = generateNetworkTemplate();
+		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.eq(client), Mockito.eq(networkOrder));
 
-		response = Mockito.mock(OneResponse.class);
+		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(), Mockito.any())).willReturn(response);
+		BDDMockito.given(VirtualNetwork.allocate(Mockito.eq(client), Mockito.anyString())).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
+
+		CloudUser cloudUser = createCloudUser();
+		String virtualNetworkTemplate = generateNetworkTemplate();
 
 		// exercise
-		this.plugin.requestInstance(networkOrder, token);
+		this.plugin.requestInstance(networkOrder, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(template));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		
+		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.eq(client), Mockito.eq(networkOrder));
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkTemplate));
 	}
 	
 	// test case: When calling the requestInstance method, and an error occurs while
@@ -105,61 +84,44 @@ public class OpenNebulaNetworkPluginTest {
 	@Test(expected = InvalidParameterException.class)
 	public void testRequestInstanceThrowInvalidParameterException() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		NetworkOrder networkOrder = createNetworkOrder();
-		String template = generateNetworkTemplate();
-
 		OneResponse response = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(SecurityGroup.class);
+		BDDMockito.given(SecurityGroup.allocate(Mockito.any(Client.class), Mockito.anyString())).willReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+		Mockito.when(response.getMessage()).thenReturn(ID_VALUE_ONE);
+
+		response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualNetwork.class);
-		PowerMockito.when(VirtualNetwork.allocate(client, template)).thenReturn(response);
-		Mockito.doReturn(true).when(response).isError();
+		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.anyString())).willReturn(response);
+		Mockito.when(response.isError()).thenReturn(true);
+
+		CloudUser cloudUser = createCloudUser();
+		NetworkOrder networkOrder = createNetworkOrder();
 
 		// exercise
-		this.plugin.requestInstance(networkOrder, token);
-
-		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(template));
+		this.plugin.requestInstance(networkOrder, cloudUser);
 	}
 	
-	// test case: When calling the deleteInstance method, if the OpenNebulaClientFactory class
-	// can not create a valid client from a token value, it must throw a UnespectedException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDeleteInstanceThrowUnespectedException() throws FogbowException {
-		// set up
-		String instanceId = FAKE_INSTANCE_ID;
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		// exercise
-		this.plugin.deleteInstance(instanceId, token);
-	}
-
 	// test case: When calling the deleteInstance method, if the removal call is not
 	// answered an error response is returned.
 	@Test
 	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
-		String instanceId = "1";
 		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, instanceId);
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString())).willReturn(virtualNetwork);
 		
-		String securityGroups = "0,100";
-		Mockito.when(virtualNetwork.xpath("/VNET/TEMPLATE/SECURITY_GROUPS")).thenReturn(securityGroups);
+		String securityGroups = ID_VALUE_ZERO + SEPARATOR + ID_VALUE_ONE;
+		Mockito.when(virtualNetwork.xpath(SECURITY_GROUPS_TEMPLATE_PATH)).thenReturn(securityGroups);
 		
-		String securityGroupId = "100";
 		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		Mockito.doReturn(securityGroup).when(this.factory).createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId));
+		PowerMockito.mockStatic(SecurityGroup.class);
+		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString())).willReturn(securityGroup);
 		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(securityGroup.delete()).thenReturn(response);
@@ -168,13 +130,22 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
+		CloudUser cloudUser = createCloudUser();
+		String instanceId = ID_VALUE_ONE;
+		
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class),
-				Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString());
+
 		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
 		Mockito.verify(response, Mockito.times(2)).isError();
 	}
@@ -184,21 +155,21 @@ public class OpenNebulaNetworkPluginTest {
 	@Test
 	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
-		String instanceId = "1";
 		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, instanceId);
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString())).willReturn(virtualNetwork);
 		
-		String securityGroups = "0,100";
-		Mockito.when(virtualNetwork.xpath("/VNET/TEMPLATE/SECURITY_GROUPS")).thenReturn(securityGroups);
+		String securityGroups = ID_VALUE_ZERO + SEPARATOR + ID_VALUE_ONE;
+		Mockito.when(virtualNetwork.xpath(SECURITY_GROUPS_TEMPLATE_PATH)).thenReturn(securityGroups);
 		
-		String securityGroupId = "100";
 		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		Mockito.doReturn(securityGroup).when(this.factory).createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId));
+		PowerMockito.mockStatic(SecurityGroup.class);
+		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString())).willReturn(securityGroup);
 		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(securityGroup.delete()).thenReturn(response);
@@ -207,29 +178,27 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 		
+		CloudUser cloudUser = createCloudUser();
+		String instanceId = ID_VALUE_ONE;
+		
 		// exercise
-		this.plugin.deleteInstance(instanceId, token);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class),
-				Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString());
+
 		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
 		Mockito.verify(response, Mockito.times(2)).isError();
-	}
-
-	// test case: When calling the getInstance method, if the OpenNebulaClientFactory class
-	// can not create a valid client from a token value, it must throw a UnespectedException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testGetInstanceThrowUnespectedException() throws FogbowException {
-		// set up
-		String instanceId = FAKE_INSTANCE_ID;
-		CloudToken token = createCloudToken();
-		Mockito.doThrow(new UnexpectedException()).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
-
-		// exercise
-		this.plugin.getInstance(instanceId, token);
+		
+		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
+		Mockito.verify(response, Mockito.times(2)).isError();
 	}
 
 	// test case: When calling the getInstance method, with a valid client from a token value and
@@ -237,15 +206,15 @@ public class OpenNebulaNetworkPluginTest {
 	@Test
 	public void testGetInstanceSuccessful() throws FogbowException {
 		// set up
-		CloudToken token = createCloudToken();
-		Client client = this.factory.createClient(token.getTokenValue());
-		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-		this.plugin.setFactory(this.factory);
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
 
-		String instanceId = FAKE_INSTANCE_ID;
 		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, instanceId);
-
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString())).willReturn(virtualNetwork);
+		
 		Mockito.doReturn(FAKE_INSTANCE_ID).when(virtualNetwork).getId();
 		Mockito.doReturn(FAKE_NETWORK_NAME).when(virtualNetwork).getName();
 		Mockito.doReturn(FAKE_ADDRESS).when(virtualNetwork).xpath(Mockito.anyString());
@@ -253,13 +222,19 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.doReturn(FAKE_VLAN_ID).when(virtualNetwork).xpath(Mockito.anyString());
 		Mockito.doReturn(1).when(virtualNetwork).state();
 
+		CloudUser cloudUser = createCloudUser();
+		String instanceId = FAKE_INSTANCE_ID;
+		
 		// exercise
-		this.plugin.getInstance(instanceId, token);
+		this.plugin.getInstance(instanceId, cloudUser);
 
 		// verify
-		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class),
-				Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
+		
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getId();
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getName();
 		Mockito.verify(virtualNetwork, Mockito.times(3)).xpath(Mockito.anyString());
@@ -283,16 +258,14 @@ public class OpenNebulaNetworkPluginTest {
 		
 		return networkOrder;
 	}
-	
-	private CloudToken createCloudToken() {
-		String provider = null;
+
+	private CloudUser createCloudUser() {
 		String tokenValue = LOCAL_TOKEN_VALUE;
 		String userId = FAKE_USER_ID;
 
-		FederationUser federationUser = new FederationUser(null, userId, null, tokenValue, new HashMap<>());
-		CloudToken token = new CloudToken(federationUser);
-		
-		return token;
+		CloudUser cloudUser = new CloudUser(userId, null, tokenValue);
+
+		return cloudUser;
 	}
 	
 	private String generateNetworkTemplate() {
@@ -309,27 +282,8 @@ public class OpenNebulaNetworkPluginTest {
 				"    <NAME>fake-network-name</NAME>\n" + 
 				"    <NETWORK_ADDRESS>10.10.10.0</NETWORK_ADDRESS>\n" + 
 				"    <NETWORK_GATEWAY>10.10.10.1</NETWORK_GATEWAY>\n" + 
-				"    <SECURITY_GROUPS>0,100</SECURITY_GROUPS>\n" + 
+				"    <SECURITY_GROUPS>0,1</SECURITY_GROUPS>\n" + 
 				"    <TYPE>RANGED</TYPE>\n" + 
-				"</TEMPLATE>\n";
-		
-		return template;
-	}
-	
-	private String generateSecurityGroupTemplate() {
-		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<TEMPLATE>\n" + 
-				"    <NAME>ras-sg-pn-391ba2b9-1946-420e-8dc7-3b6c47bca11f</NAME>\n" + 
-				"    <RULE>\n" + 
-				"        <IP>10.10.10.0</IP>\n" + 
-				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
-				"        <SIZE>256</SIZE>\n" + 
-				"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
-				"    </RULE>\n" + 
-				"    <RULE>\n" + 
-				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
-				"        <RULE_TYPE>outbound</RULE_TYPE>\n" + 
-				"    </RULE>\n" + 
 				"</TEMPLATE>\n";
 		
 		return template;

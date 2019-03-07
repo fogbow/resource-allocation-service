@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
-import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.connectivity.HttpRequestClientUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.HttpRequestClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -17,9 +17,6 @@ import cloud.fogbow.ras.api.http.response.securityrules.Direction;
 import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
 import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.*;
@@ -37,9 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidParameterException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -57,18 +52,14 @@ public class OpenStackSecurityRulesPluginTest {
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_CLOUD_NAME = "fake-cloud-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_MEMBER_ID = "fake-member-id";
     private static final String FAKE_GATEWAY = "fake-gateway";
     private static final String FAKE_ADDRESS = "fake-address";
 
-    private static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES  +
-            OpenStackSecurityRulePlugin.QUERY_PREFIX;
-
     private OpenStackSecurityRulePlugin openStackSecurityRulePlugin;
-    private OpenStackV3Token openStackV3Token;
-    private HttpRequestClientUtil clientUtil;
+    private OpenStackV3User openStackV3Token;
+    private HttpRequestClient clientUtil;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
 
@@ -83,14 +74,10 @@ public class OpenStackSecurityRulesPluginTest {
 
         this.openStackSecurityRulePlugin = Mockito.spy(new OpenStackSecurityRulePlugin(confFilePath));
 
-        this.clientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.clientUtil = Mockito.mock(HttpRequestClient.class);
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackSecurityRulePlugin.setClient(this.openStackHttpClient);
-
-        HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
-        this.openStackV3Token = new OpenStackV3Token(federationUser);
+        this.openStackV3Token = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     @After
@@ -112,7 +99,7 @@ public class OpenStackSecurityRulesPluginTest {
         Mockito.doReturn(null).when(this.openStackSecurityRulePlugin).
                 getSecurityRulesFromJson(Mockito.anyString());
         Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityRulePlugin).
-                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
         SecurityRule securityRule = createEmptySecurityRule();
         NetworkOrder order = createNetworkOrder();
 
@@ -141,10 +128,10 @@ public class OpenStackSecurityRulesPluginTest {
         HttpResponseException toBeThrown = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
 
         Mockito.doReturn(securityGroupsResponse).when(this.openStackHttpClient).
-                doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         Mockito.doThrow(toBeThrown).when(this.openStackHttpClient).
-                doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudToken.class));
+                doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         SecurityRule securityRule = createEmptySecurityRule();
         NetworkOrder order = createNetworkOrder();
@@ -160,10 +147,10 @@ public class OpenStackSecurityRulesPluginTest {
 
         // verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
-                doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudToken.class));
+                doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).
-                doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
     }
 
     //test case: Tests get security rule from json response
@@ -184,9 +171,9 @@ public class OpenStackSecurityRulesPluginTest {
                 direction, etherType, protocol);
 
         Mockito.doReturn(securityRuleContentJsonObject.toString()).when(this.openStackHttpClient).
-                doGetRequest(Mockito.anyString(), Mockito.any(CloudToken.class));
+                doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
         Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityRulePlugin).
-                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         //exercise
         List<SecurityRule> securityRules = this.openStackSecurityRulePlugin.getSecurityRules(order,
@@ -240,9 +227,9 @@ public class OpenStackSecurityRulesPluginTest {
     }
 
     private NetworkOrder createNetworkOrder() throws Exception {
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_USER_NAME, FAKE_FEDERATION_TOKEN_VALUE, new HashMap<>());
+        SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_PROVIDER);
 
-        NetworkOrder order = new NetworkOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_CLOUD_NAME,
+        NetworkOrder order = new NetworkOrder(systemUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_CLOUD_NAME,
                 FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
         NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());

@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -75,15 +75,15 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUser federationUser,
-                                        ResourceType resourceType) throws UnexpectedException {
+    public Allocation getUserAllocation(String memberId, SystemUser systemUser, ResourceType resourceType)
+            throws UnexpectedException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
         List<Order> filteredOrders = orders.stream()
                 .filter(order -> order.getType().equals(resourceType))
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
                 .filter(order -> order.isProviderLocal(memberId))
-                .filter(order -> order.getFederationUser().equals(federationUser))
+                .filter(order -> order.getSystemUser().equals(systemUser))
                 .collect(Collectors.toList());
 
         switch (resourceType) {
@@ -98,9 +98,9 @@ public class OrderController {
         }
     }
 
-	public List<InstanceStatus> getInstancesStatus(FederationUser federationUser, ResourceType resourceType) {
+	public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) {
 		List<InstanceStatus> instanceStatusList = new ArrayList<>();
-		List<Order> allOrders = getAllOrders(federationUser, resourceType);
+		List<Order> allOrders = getAllOrders(systemUser, resourceType);
 
 		for (Order order : allOrders) {
 			String name = null;
@@ -152,18 +152,6 @@ public class OrderController {
                 provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
             }
         }
-
-//        if (!order.getProvider().equals(order.getRequester()) &&
-//                (order.getOrderState().equals(OrderState.OPEN) ||
-//                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
-//            // This is an order for a remote provider that has never been received by that provider.
-//            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
-//            // necessary to call deleteInstance in the local member.
-//            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequester());
-//        } else {
-//            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
-//        }
-        
         return provider;
     }
 
@@ -182,16 +170,16 @@ public class OrderController {
         return new ComputeAllocation(vCPU, ram, instances);
     }
 
-	private List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {
+	private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
 		Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
-		// Filter all orders of resourceType from federationUserToken that are not
+		// Filter all orders of resourceType from the user systemUser that are not
 		// closed (closed orders have been deleted by the user and should not be seen;
 		// they will disappear from the system as soon as the closedProcessor thread
 		// process them).
 		List<Order> requestedOrders = orders.stream()
 				.filter(order -> order.getType().equals(resourceType))
-				.filter(order -> order.getFederationUser().equals(federationUser))
+				.filter(order -> order.getSystemUser().equals(systemUser))
 				.filter(order -> !order.getOrderState().equals(OrderState.CLOSED)).collect(Collectors.toList());
 
 		return requestedOrders;

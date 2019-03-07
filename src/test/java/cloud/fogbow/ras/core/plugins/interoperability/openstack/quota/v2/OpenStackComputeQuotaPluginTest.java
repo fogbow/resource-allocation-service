@@ -1,27 +1,22 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
-import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackV3Token;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
+import cloud.fogbow.common.models.OpenStackV3User;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.File;
-import java.util.HashMap;
 
 public class OpenStackComputeQuotaPluginTest {
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -37,18 +32,14 @@ public class OpenStackComputeQuotaPluginTest {
                     + "\"totalSecurityGroupsUsed\": 1, \"maxTotalInstances\": 20, \"maxTotalRAMSize\": 46080}}}";
 
     private OpenStackComputeQuotaPlugin plugin;
-    private OpenStackV3Token localUserAttributes;
+    private OpenStackV3User localUserAttributes;
 
     @Before
     public void setUp() throws InvalidParameterException, UnexpectedException {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin(cloudConfPath));
-
-        HashMap<String, String> extraAttributes = new HashMap<>();
-        extraAttributes.put(OpenStackConstants.Identity.PROJECT_KEY_JSON, FAKE_PROJECT_ID);
-        FederationUser federationUser = new FederationUser(FAKE_TOKEN_PROVIDER, FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, extraAttributes);
-        this.localUserAttributes = new OpenStackV3Token(federationUser);
+        this.localUserAttributes = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right

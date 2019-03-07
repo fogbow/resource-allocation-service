@@ -32,13 +32,13 @@ public class Image {
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
-            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, federationTokenValue);
+            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, systemUserToken);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -55,13 +55,13 @@ public class Image {
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.Image.ID)
             @PathVariable String imageId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
-            cloud.fogbow.ras.api.http.response.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, federationTokenValue);
+            cloud.fogbow.ras.api.http.response.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, systemUserToken);
             return new ResponseEntity<>(image, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

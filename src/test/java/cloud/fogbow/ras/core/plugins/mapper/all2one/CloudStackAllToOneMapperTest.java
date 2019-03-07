@@ -1,10 +1,11 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
-import cloud.fogbow.as.core.federationidentity.plugins.cloudstack.CloudStackFederationIdentityProviderPlugin;
+import cloud.fogbow.as.core.systemidp.plugins.cloudstack.CloudStackSystemIdentityProviderPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudToken;
-import cloud.fogbow.common.models.FederationUser;
-import cloud.fogbow.common.util.FederationUserUtil;
+import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.plugins.cloudidp.cloudstack.CloudStackIdentityProviderPlugin;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -18,24 +19,19 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackFederationIdentityProviderPlugin.class})
+@PrepareForTest({CloudStackSystemIdentityProviderPlugin.class})
 public class CloudStackAllToOneMapperTest {
     private static final String FAKE_LOGIN1 = "fake-login1";
     private static final String FAKE_LOGIN2 = "fake-login2";
-    private static final String FAKE_PASSWORD_KEY = "password";
-    private static final String FAKE_PASSWORD = "fake-password";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USER_NAME_KEY = "username";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
     private String memberId;
     private CloudStackAllToOneMapper mapper;
-    private CloudStackFederationIdentityProviderPlugin cloudStackTokenGenerator;
+    private CloudStackIdentityProviderPlugin cloudStackIdentityProviderPlugin;
 
     @Before
     public void setUp() {
@@ -44,29 +40,29 @@ public class CloudStackAllToOneMapperTest {
                 + "cloudstack" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-        this.cloudStackTokenGenerator = Mockito.spy(CloudStackFederationIdentityProviderPlugin.class);
+        this.cloudStackIdentityProviderPlugin = Mockito.spy(CloudStackIdentityProviderPlugin.class);
         this.mapper = new CloudStackAllToOneMapper(mapperConfPath);
-        this.mapper.setFederationIdentityProviderPlugin(this.cloudStackTokenGenerator);
+        this.mapper.setIdentityProviderPlugin(this.cloudStackIdentityProviderPlugin);
     }
 
-    //test case: two different Federation Tokens should be mapped to the same Local Token
+    //test case: two different SystemUser should be mapped to the same CloudStackUser
     @Test
     public void testCreate2Tokens() throws FogbowException {
         //set up
-        FederationUser user1 = new FederationUser(this.memberId, FAKE_LOGIN1, FAKE_LOGIN1, null, new HashMap<>());
-        FederationUser user2 = new FederationUser(this.memberId, FAKE_LOGIN2, FAKE_LOGIN2, null, new HashMap<>());
+        SystemUser user1 = new SystemUser(FAKE_LOGIN1, FAKE_LOGIN1, this.memberId);
+        SystemUser user2 = new SystemUser(FAKE_LOGIN2, FAKE_LOGIN2, this.memberId);
 
-        FederationUser federationUser = new FederationUser(this.memberId, FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, new HashMap<>());
+        CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE);
 
-        Mockito.doReturn(federationUser).when(this.cloudStackTokenGenerator).getFederationUser(Mockito.anyMap());
+        Mockito.doReturn(systemUser).when(this.cloudStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());
 
         //exercise
-        CloudToken mappedToken1 = this.mapper.map(user1);
-        CloudToken mappedToken2 = this.mapper.map(user2);
+        CloudUser mappedToken1 = this.mapper.map(user1);
+        CloudUser mappedToken2 = this.mapper.map(user2);
 
         //verify
         Assert.assertNotEquals(user1, user2);
-        Assert.assertEquals(mappedToken1.getUserId(), mappedToken2.getUserId());
-        Assert.assertEquals(mappedToken1.getTokenValue(), mappedToken2.getTokenValue());
+        Assert.assertEquals(mappedToken1.getId(), mappedToken2.getId());
+        Assert.assertEquals(mappedToken1.getToken(), mappedToken2.getToken());
     }
 }

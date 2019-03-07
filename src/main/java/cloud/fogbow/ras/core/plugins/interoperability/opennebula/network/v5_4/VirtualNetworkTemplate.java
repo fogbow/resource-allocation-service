@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
+//import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -8,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 
 @XmlRootElement(name = TEMPLATE)
-public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
+public class VirtualNetworkTemplate extends OpenNebulaMarshaller {
 
 	private String name;
 	private String description;

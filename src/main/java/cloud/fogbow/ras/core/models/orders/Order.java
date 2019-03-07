@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.StorableBean;
@@ -64,8 +64,9 @@ public abstract class Order extends StorableBean implements Serializable {
     @Column
     private Map<String, String> requirements = new HashMap<>();
 
+    // TODO: check if this is correct; we need to save the user.
     @Transient
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
     public Order() {
     }
@@ -80,10 +81,10 @@ public abstract class Order extends StorableBean implements Serializable {
         this.cloudName = cloudName;
     }
 
-    public Order(String id, String provider, String cloudName, FederationUser federationUser, String requester) {
+    public Order(String id, String provider, String cloudName, SystemUser systemUser, String requester) {
         this(id, provider, cloudName);
         this.requester = requester;
-        this.federationUser = federationUser;
+        this.systemUser = systemUser;
     }
 
     public String getId() {
@@ -114,12 +115,12 @@ public abstract class Order extends StorableBean implements Serializable {
         }
     }
 
-    public FederationUser getFederationUser() {
-        return this.federationUser;
+    public SystemUser getSystemUser() {
+        return this.systemUser;
     }
 
-    public void setFederationUser(FederationUser federationUser) {
-        this.federationUser = federationUser;
+    public void setSystemUser(SystemUser systemUser) {
+        this.systemUser = systemUser;
     }
 
     public String getRequester() {
@@ -201,8 +202,8 @@ public abstract class Order extends StorableBean implements Serializable {
 
     @Override
     public String toString() {
-        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUser="
-                + this.federationUser + ", requester=" + this.requester + ", provider="
+        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", systemUser="
+                + this.systemUser + ", requester=" + this.requester + ", provider="
                 + this.provider + ", instanceId=" + this.instanceId + "]";
     }
 

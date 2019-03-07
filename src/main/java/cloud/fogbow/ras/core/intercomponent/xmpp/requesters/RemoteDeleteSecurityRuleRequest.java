@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.models.FederationUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -17,13 +17,13 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
     private String provider;
     private String cloudName;
     private String ruleId;
-    private FederationUser federationUser;
+    private SystemUser systemUser;
 
-    public RemoteDeleteSecurityRuleRequest(String provider, String cloudName, String ruleId, FederationUser federationUser) {
+    public RemoteDeleteSecurityRuleRequest(String provider, String cloudName, String ruleId, SystemUser systemUser) {
         this.provider = provider;
         this.cloudName = cloudName;
         this.ruleId = ruleId;
-        this.federationUser = federationUser;
+        this.systemUser = systemUser;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
         cloudNameElement.setText(cloudName);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(systemUser));
 
         Element ruleIdElement = queryElement.addElement(IqElement.RULE_ID.toString());
         ruleIdElement.setText(ruleId);

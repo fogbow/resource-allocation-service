@@ -36,7 +36,6 @@ public class ApiDocumentation {
         public static final String GET_QUOTA = "Gets the compute quota for the user on a particular provider.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
         public static final String ID = "The ID of the specific compute instance.";
-
         public static final String CREATE_REQUEST_BODY =
                 "The body of the request must specify the amount of vCpus (vCPU), the amount of memory (in MB)\n" +
                 "(memory), the disk size in GB (disk) that is required, the image id (imageId) that is going to\n" +
@@ -69,7 +68,7 @@ public class ApiDocumentation {
         public static final String CREATE_SECURITY_RULE_OPERATION = "Creates a security rule for the network.";
         public static final String CREATE_SECURITY_RULE_REQUEST_BODY =
                 "The body of the request must specify the ID of the network\n" +
-                        "to which this security rule will be assigned.";
+                "to which this security rule will be assigned.";
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules attached to the network.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
@@ -88,7 +87,7 @@ public class ApiDocumentation {
         public static final String CREATE_SECURITY_RULE_OPERATION = "Creates a security rule for the public IP.";
         public static final String CREATE_SECURITY_RULE_REQUEST_BODY =
                 "The body of the request must specify the ID of the public IP\n" +
-                        "to which this security rule will be assigned.";
+                "to which this security rule will be assigned.";
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules attached to the public IP.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
@@ -124,8 +123,9 @@ public class ApiDocumentation {
     }
 
     public static class CommonParameters {
-        public static final String FEDERATION_TOKEN = "This is the token that identifies a federation user.\n" +
-                                                      "It is typically created via a call to the /tokens endpoint.";
+        public static final String SYSTEM_USER_TOKEN = "This is the token that identifies a user in the system.\n" +
+                                                       "It is created via a call to the /tokens endpoint of the\n" +
+                                                       "Fogbow Authentication Service (AS).";
         public static final String MEMBER_ID = "The ID of the specific target provider.";
         public static final String CLOUD_NAME = "The name of the specific target cloud.";
     }
