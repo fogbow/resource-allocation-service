@@ -22,7 +22,7 @@ token = post_token()
 if not token:
   sys.exit('Error while trying to generate token')
 
-GeneralConfigurations.json_header["federationTokenValue"] = token
+GeneralConfigurations.json_header["Fogbow-User-Token"] = token
 print('###### Starting tests ######')
 print()
 print('=== Starting Compute tests ===')
