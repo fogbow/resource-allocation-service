@@ -21,7 +21,6 @@ import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.apache.log4j.Logger;
@@ -179,7 +178,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public FogbowGenericResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUser) throws FogbowException {
+    public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException {
         CloudUser token = this.mapperPlugin.map(systemUser);
 
         FogbowGenericResponse fogbowGenericResponse = null;
@@ -454,7 +453,7 @@ public class LocalCloudConnector implements CloudConnector {
         return this.imagePlugin.getImage(imageId, token);
     }
 
-    public FogbowGenericResponse doGenericRequest(FogbowGenericRequest genericRequest, CloudUser token)
+    public FogbowGenericResponse doGenericRequest(String genericRequest, CloudUser token)
             throws FogbowException {
         return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }

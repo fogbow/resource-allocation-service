@@ -9,12 +9,13 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClie
 import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
+import com.google.gson.Gson;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
-public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<HttpRequest, CloudStackUser> {
+public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<CloudStackUser> {
 
     private CloudStackHttpClient client;
 
@@ -23,17 +24,18 @@ public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<Http
     }
 
     @Override
-    public HttpResponse redirectGenericRequest(HttpRequest genericRequest, CloudStackUser cloudUser) throws FogbowException {
+    public HttpResponse redirectGenericRequest(String genericRequest, CloudStackUser cloudUser) throws FogbowException {
+        HttpRequest httpRequest = new Gson().fromJson(genericRequest, HttpRequest.class);
         try {
-            URIBuilder uriBuilder = new URIBuilder(genericRequest.getUrl());
+            URIBuilder uriBuilder = new URIBuilder(httpRequest.getUrl());
             CloudStackUrlUtil.sign(uriBuilder, cloudUser.getToken());
 
             String url = uriBuilder.toString();
-            HashMap<String, String> headers = genericRequest.getHeaders();
-            HashMap<String, String> body = genericRequest.getBody();
+            HashMap<String, String> headers = httpRequest.getHeaders();
+            HashMap<String, String> body = httpRequest.getBody();
             return client.doGenericRequest(HttpMethod.GET, url, headers, body, cloudUser);
         } catch (URISyntaxException e) {
-            throw new FogbowException(String.format(Messages.Exception.MALFORMED_GENERIC_REQUEST_URL, genericRequest.getUrl()));
+            throw new FogbowException(String.format(Messages.Exception.MALFORMED_GENERIC_REQUEST_URL, httpRequest.getUrl()));
         }
     }
 

@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
@@ -46,16 +47,17 @@ public class CloudStackFogbowGenericRequestPluginTest {
         HashMap<String, String> headers = new HashMap<>();
         HashMap<String, String> body = new HashMap<>();
         HashMap<String, List<String>> responseHeaders = new HashMap<>();
-        HttpRequest request = new HttpRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
+        HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "https://www.foo.bar", body, headers);
+        String serializedHttpRequest = GsonHolder.getInstance().toJson(httpRequest);
 
         HttpResponse response = new HttpResponse("fake-content", HttpStatus.SC_OK, responseHeaders);
         Mockito.when(this.client.doGenericRequest(Mockito.any(HttpMethod.class), Mockito.anyString(), Mockito.any(HashMap.class), Mockito.any(HashMap.class), Mockito.any(CloudStackUser.class))).thenReturn(response);
 
         // exercise
-        plugin.redirectGenericRequest(request, this.fakeToken);
+        plugin.redirectGenericRequest(serializedHttpRequest, this.fakeToken);
 
         // verify
-        URIBuilder uriBuilder = new URIBuilder(request.getUrl());
+        URIBuilder uriBuilder = new URIBuilder(httpRequest.getUrl());
         CloudStackUrlUtil.sign(uriBuilder, fakeToken.getToken());
         String expectedUrl = uriBuilder.toString();
 

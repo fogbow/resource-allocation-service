@@ -28,7 +28,7 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
         String cloudName = unmarshalCloudName(iq);
         IQ response = IQ.createResultIQ(iq);
         try {
-            FogbowGenericRequest fogbowGenericRequest = unmarshalGenericRequest(iq);
+            String fogbowGenericRequest = unmarshalGenericRequest(iq);
             SystemUser systemUser = unmarshalFederationUser(iq);
 
             FogbowGenericResponse fogbowGenericResponse = RemoteFacade.getInstance().
@@ -57,18 +57,11 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
         return systemUser;
     }
 
-    private FogbowGenericRequest unmarshalGenericRequest(IQ iq) throws UnexpectedException {
+    private String unmarshalGenericRequest(IQ iq) throws UnexpectedException {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element genericRequestElement = queryElement.element(IqElement.GENERIC_REQUEST.toString());
-        Element genericRequestClassNameElement = queryElement.element(IqElement.GENERIC_REQUEST_CLASS_NAME.toString());
-
-        try {
-            return  (FogbowGenericRequest) GsonHolder.getInstance().fromJson(genericRequestElement.getText(),
-                    Class.forName(genericRequestClassNameElement.getText()));
-        } catch (ClassNotFoundException|ClassCastException e) {
-            throw new UnexpectedException(e.getMessage(), e);
-        }
-    }
+        return  GsonHolder.getInstance().fromJson(genericRequestElement.getText(), String.class);
+     }
 
     private void updateResponse(IQ response, FogbowGenericResponse fogbowGenericResponse) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GENERIC_REQUEST);

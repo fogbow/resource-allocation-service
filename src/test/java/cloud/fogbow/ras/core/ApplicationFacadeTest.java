@@ -5,6 +5,7 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
@@ -1532,7 +1533,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
 		HashMap<String, String> body = new HashMap<>();
-		FogbowGenericRequest fogbowGenericRequest = new HttpRequest(HttpMethod.GET, url, body, headers);
+		FogbowGenericRequest httpGenericRequest = new HttpRequest(HttpMethod.GET, url, body, headers);
+		String serializedGenericRequest = GsonHolder.getInstance().toJson(httpGenericRequest);
 
 		String responseContent = FAKE_CONTENT;
 		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
@@ -1540,14 +1542,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		Mockito.when(cloudConnector.genericRequest(Mockito.eq(fogbowGenericRequest), Mockito.eq(systemUser)))
+		Mockito.when(cloudConnector.genericRequest(Mockito.eq(serializedGenericRequest), Mockito.eq(systemUser)))
 				.thenReturn(expectedResponse);
 
 		String cloudName = FAKE_CLOUD_NAME;
 		
 		// exercise
 		FogbowGenericResponse fogbowGenericResponse = this.facade.genericRequest(cloudName,
-				FAKE_MEMBER_ID, fogbowGenericRequest, SYSTEM_USER_TOKEN_VALUE);
+				FAKE_MEMBER_ID, serializedGenericRequest, SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
@@ -1560,7 +1562,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(cloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(fogbowGenericRequest),
+		Mockito.verify(cloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(serializedGenericRequest),
 				Mockito.eq(systemUser));
 
 		Assert.assertEquals(expectedResponse, fogbowGenericResponse);

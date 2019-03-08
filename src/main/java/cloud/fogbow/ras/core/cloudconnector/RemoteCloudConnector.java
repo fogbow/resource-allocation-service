@@ -11,7 +11,6 @@ import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
@@ -109,7 +108,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public FogbowGenericResponse genericRequest(FogbowGenericRequest genericRequest, SystemUser systemUserToken)
+    public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUserToken)
             throws FogbowException {
         try {
             RemoteGenericRequest remoteGenericRequest = new RemoteGenericRequest(this.destinationMember, this.cloudName,

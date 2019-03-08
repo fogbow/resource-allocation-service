@@ -8,6 +8,7 @@ import java.util.Map;
 import cloud.fogbow.common.models.OpenNebulaUser;
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaResponse;
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaFogbowGenericRequest;
+import com.google.gson.Gson;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
@@ -19,17 +20,17 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<OpenNebulaFogbowGenericRequest, OpenNebulaUser> {
+public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<OpenNebulaUser> {
 	
 	private static final String RESOURCE_POOL_SUFFIX = "Pool";
 
 	@Override
-	public FogbowGenericResponse redirectGenericRequest(OpenNebulaFogbowGenericRequest genericRequest, OpenNebulaUser cloudUser)
+	public FogbowGenericResponse redirectGenericRequest(String genericRequest, OpenNebulaUser cloudUser)
 			throws FogbowException {
-        
-		Client client = OpenNebulaClientUtil.createClient(genericRequest.getUrl(), cloudUser.getToken());
+		OpenNebulaFogbowGenericRequest oneGenericRequest = new Gson().fromJson(genericRequest, OpenNebulaFogbowGenericRequest.class);
+		Client client = OpenNebulaClientUtil.createClient(oneGenericRequest.getUrl(), cloudUser.getToken());
 
-		OpenNebulaFogbowGenericRequest request = (OpenNebulaFogbowGenericRequest) genericRequest;
+		OpenNebulaFogbowGenericRequest request = (OpenNebulaFogbowGenericRequest) oneGenericRequest;
 		if (request.getOneResource() == null || request.getOneMethod() == null) {
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
