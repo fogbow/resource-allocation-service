@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sudo docker build --build-arg BRANCH_RAS=develop --build-arg BRANCH_AS=develop \
- --build-arg BRANCH_COMMON=develop --no-cache -t fogbow/resource-allocation-service:develop .
+sudo docker build --build-arg RAS_BRANCH=develop --build-arg AS_BRANCH=develop \
+ --build-arg COMMON_BRANCH=develop --no-cache -t fogbow/resource-allocation-service:develop .
 

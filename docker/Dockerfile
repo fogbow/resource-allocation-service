@@ -1,8 +1,8 @@
 FROM openjdk:8
 
-ARG BRANCH_COMMON
-ARG BRANCH_AS
-ARG BRANCH_RAS
+ARG COMMON_BRANCH
+ARG AS_BRANCH
+ARG RAS_BRANCH
 
 # Install.
 RUN \
@@ -24,17 +24,17 @@ WORKDIR /root
 # Installing Common
 RUN \
   git clone https://github.com/fogbow/common.git && \
-  (cd common && git checkout $BRANCH_COMMON && mvn install -Dmaven.test.skip=true)
+  (cd common && git checkout $COMMON_BRANCH && mvn install -Dmaven.test.skip=true)
 
 # Installing Authentication Service
 RUN \
   git clone https://github.com/fogbow/authentication-service.git && \
-  (cd authentication-service && git checkout $BRANCH_AS && mvn install -Dmaven.test.skip=true)
+  (cd authentication-service && git checkout $AS_BRANCH && mvn install -Dmaven.test.skip=true)
 
 # Downloading Resource Allocation Service
 RUN \
   git clone https://github.com/fogbow/resource-allocation-service.git && \
-  (cd resource-allocation-service && git checkout $BRANCH_RAS)
+  (cd resource-allocation-service && git checkout $RAS_BRANCH)
 
 # Define working directory.
 WORKDIR /root/resource-allocation-service
