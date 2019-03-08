@@ -47,8 +47,9 @@ public class CloudStackNetworkPluginTest {
 
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
-    public static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
+    public static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 

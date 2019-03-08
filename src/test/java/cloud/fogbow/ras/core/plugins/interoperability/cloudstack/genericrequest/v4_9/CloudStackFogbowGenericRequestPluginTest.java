@@ -26,6 +26,7 @@ public class CloudStackFogbowGenericRequestPluginTest {
     public static final String FAKE_TOKEN_VALUE = "foo" + CLOUDSTACK_SEPARATOR + "bar";
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_NAME = "fake-name";
+    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
     private CloudStackUser fakeToken;
     private CloudStackGenericRequestPlugin plugin;
@@ -33,7 +34,7 @@ public class CloudStackFogbowGenericRequestPluginTest {
 
     @Before
     public void setUp() {
-        this.fakeToken = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
+        this.fakeToken = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
         this.client = Mockito.mock(CloudStackHttpClient.class);
 
         this.plugin = new CloudStackGenericRequestPlugin();
