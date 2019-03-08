@@ -15,11 +15,11 @@ import org.xmpp.packet.IQ;
 public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse> {
 
     private SystemUser systemUser;
-    private FogbowGenericRequest genericRequest;
+    private String genericRequest;
     private String cloudName;
     private String provider;
 
-    public RemoteGenericRequest(String provider, String cloudName, FogbowGenericRequest genericRequest, SystemUser systemUser) {
+    public RemoteGenericRequest(String provider, String cloudName, String genericRequest, SystemUser systemUser) {
         this.systemUser = systemUser;
         this.provider = provider;
         this.cloudName = cloudName;
@@ -38,7 +38,6 @@ public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse
     private FogbowGenericResponse unmarshal(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String genericRequestResponseStr = queryElement.element(IqElement.GENERIC_REQUEST_RESPONSE.toString()).getText();
-
         String instanceClassName = queryElement.element(IqElement.GENERIC_REQUEST_RESPONSE_CLASS_NAME.toString()).getText();
 
         FogbowGenericResponse fogbowGenericResponse;
@@ -51,7 +50,7 @@ public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse
         return fogbowGenericResponse;
     }
 
-    public static IQ marshal(String provider, String cloudName, FogbowGenericRequest genericRequest, SystemUser systemUser) {
+    public static IQ marshal(String provider, String cloudName, String genericRequest, SystemUser systemUser) {
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(provider);
 
@@ -67,8 +66,6 @@ public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse
         Element genericRequestElement = queryElement.addElement(IqElement.GENERIC_REQUEST.toString());
         genericRequestElement.setText(GsonHolder.getInstance().toJson(genericRequest));
 
-        Element genericRequestClassNameElement = queryElement.addElement(IqElement.GENERIC_REQUEST_CLASS_NAME.toString());
-        genericRequestClassNameElement.setText(genericRequest.getClass().getName());
         return iq;
     }
 }

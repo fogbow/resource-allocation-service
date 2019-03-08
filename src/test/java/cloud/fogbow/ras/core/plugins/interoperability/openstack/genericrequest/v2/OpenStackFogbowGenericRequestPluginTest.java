@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -39,10 +40,11 @@ public class OpenStackFogbowGenericRequestPluginTest {
         HashMap<String, String> header = genericRequest.getHeaders();
         header.put(OpenStackConstants.X_AUTH_TOKEN_KEY, FAKE_VALUE);
         genericRequest.setHeaders(header);
+        String serializedGenericRequest = GsonHolder.getInstance().toJson(genericRequest);
 
         // exercise
         try {
-            plugin.redirectGenericRequest(genericRequest, Mockito.mock(OpenStackV3User.class));
+            plugin.redirectGenericRequest(serializedGenericRequest, Mockito.mock(OpenStackV3User.class));
             // verify
             Assert.fail();
         } catch (InvalidParameterException e) {

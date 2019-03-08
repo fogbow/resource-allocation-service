@@ -26,7 +26,6 @@ import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -265,7 +264,7 @@ public class ApplicationFacade {
         securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
     }
 
-    public FogbowGenericResponse genericRequest(String cloudName, String memberId, FogbowGenericRequest genericRequest,
+    public FogbowGenericResponse genericRequest(String cloudName, String memberId, String genericRequest,
                                                 String userToken) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationController.authorize(requester, cloudName, Operation.GENERIC_REQUEST.getValue(),

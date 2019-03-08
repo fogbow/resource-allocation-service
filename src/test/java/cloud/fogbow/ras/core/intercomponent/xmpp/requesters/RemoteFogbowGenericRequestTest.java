@@ -24,14 +24,14 @@ public class RemoteFogbowGenericRequestTest {
     private final String provider = "provider";
     private final String cloudName = "cloudName";
 
-    private FogbowGenericRequest fogbowGenericRequest;
+    private String fogbowGenericRequest;
     private RemoteGenericRequest remoteGenericRequest;
     private PacketSender packetSender;
     private SystemUser systemUser;
 
     @Before
     public void setUp() {
-        this.fogbowGenericRequest = new HttpRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+        this.fogbowGenericRequest = GsonHolder.getInstance().toJson(new HttpRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>()));
         this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, fogbowGenericRequest, systemUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);

@@ -969,16 +969,16 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         CloudUser tokenMock = Mockito.mock(CloudUser.class);
         Mockito.doReturn(tokenMock).when(systemToCloudMapperPlugin).map(Mockito.eq(systemUser));
         Mockito.doReturn(Mockito.mock(FogbowGenericResponse.class)).when(genericRequestPlugin).
-                redirectGenericRequest(Mockito.any(FogbowGenericRequest.class), Mockito.eq(tokenMock));
+                redirectGenericRequest(Mockito.any(String.class), Mockito.eq(tokenMock));
 
         // exercise
-        localCloudConnector.genericRequest(Mockito.mock(FogbowGenericRequest.class), systemUser);
+        localCloudConnector.genericRequest(Mockito.anyString(), systemUser);
 
         // verify
         Mockito.verify(systemToCloudMapperPlugin,
                 Mockito.times(1)).map(Mockito.any(SystemUser.class));
         Mockito.verify(genericRequestPlugin, Mockito.times(1)).
-                redirectGenericRequest(Mockito.any(FogbowGenericRequest.class), Mockito.eq(tokenMock));
+                redirectGenericRequest(Mockito.any(String.class), Mockito.eq(tokenMock));
     }
 
 }

@@ -38,19 +38,19 @@ public class RemoteFogbowGenericRequestHandlerTest {
             "  </query>\n" +
             "</iq>";
 
-    private String IMAGE_NAME = "image-name";
-
     private RemoteGenericRequestHandler remoteGenericRequestHandler;
 
     private String provider = "fake-provider";
     private String cloudName = "fake-cloud-name";
     private SystemUser systemUser;
-    private FogbowGenericRequest fogbowGenericRequest =  new HttpRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+    private String fogbowGenericRequest;
     private RemoteFacade remoteFacade;
 
     @Before
     public void setUp() throws InvalidParameterException {
         this.remoteGenericRequestHandler = new RemoteGenericRequestHandler();
+        FogbowGenericRequest fogbowGenericRequest = new HttpRequest(HttpMethod.GET, "https://www.foo.bar", new HashMap<>(), new HashMap<>());
+        this.fogbowGenericRequest = GsonHolder.getInstance().toJson(fogbowGenericRequest);
 
         PacketSender packetSender = Mockito.mock(PacketSender.class);
         PowerMockito.mockStatic(PacketSenderHolder.class);

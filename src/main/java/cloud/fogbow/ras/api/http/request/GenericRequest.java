@@ -31,7 +31,7 @@ public class GenericRequest {
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
             @RequestHeader(required = true, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
-            @RequestBody FogbowGenericRequest genericRequest)
+            @RequestBody String genericRequest)
             throws FogbowException {
 
         FogbowGenericResponse fogbowGenericResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
