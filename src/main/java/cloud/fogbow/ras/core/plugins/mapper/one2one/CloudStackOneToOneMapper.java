@@ -18,7 +18,7 @@ public class CloudStackOneToOneMapper extends GenericOneToOneSystemToCloudMapper
             throw new InvalidParameterException(Messages.Exception.SYSTEM_USER_TYPE_MISMATCH);
         }
         CloudStackSystemUser csUser = (CloudStackSystemUser) systemUser;
-        return new CloudStackUser(csUser.getId(), csUser.getName(), csUser.getToken());
+        return new CloudStackUser(csUser.getId(), csUser.getName(), csUser.getToken(), csUser.getCookieHeaders());
     }
 }
 

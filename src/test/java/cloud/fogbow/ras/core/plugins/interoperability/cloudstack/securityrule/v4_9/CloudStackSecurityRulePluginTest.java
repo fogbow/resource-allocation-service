@@ -48,12 +48,13 @@ public class CloudStackSecurityRulePluginTest {
     private static final String ID_KEY = "id";
     private static final String CLOUD_NAME = "cloudstack";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "x" + CloudStackConstants.KEY_VALUE_SEPARATOR + "y";
 
-    private static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
+    private static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
 
     private CloudStackSecurityRulePlugin plugin;
     private CloudStackHttpClient client;
