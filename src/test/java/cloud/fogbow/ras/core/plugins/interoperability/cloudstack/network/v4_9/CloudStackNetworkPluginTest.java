@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
+package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -14,6 +14,10 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CloudStackNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;

@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image;
+package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -9,6 +9,8 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClie
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.CloudStackImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -27,8 +29,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.util.*;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.EXECUTABLE_TEMPLATES_VALUE;
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.TEMPLATE_FILTER_KEY;
+import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest.EXECUTABLE_TEMPLATES_VALUE;
+import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest.TEMPLATE_FILTER_KEY;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackUrlUtil.class})

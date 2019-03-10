@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network;
+package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.util.GsonHolder;

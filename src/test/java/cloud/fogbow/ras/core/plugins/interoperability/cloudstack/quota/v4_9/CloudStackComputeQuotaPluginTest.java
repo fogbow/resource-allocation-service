@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota;
+package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -12,6 +12,8 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.CloudStackComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListResourceLimitsRequest;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
