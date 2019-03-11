@@ -46,6 +46,7 @@ public class CloudStackComputePluginTest {
     public static final String FAKE_STATE = "Running";
     public static final String FAKE_CPU_NUMBER = "4";
     public static final String FAKE_MEMORY = "2024";
+    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
     public static final String FAKE_DISK = "25";
     public static final String FAKE_TAGS = "tag1:value1,tag2:value2";
     public static final String FAKE_ADDRESS = "10.0.0.0/24";
@@ -60,7 +61,7 @@ public class CloudStackComputePluginTest {
     private static final String FAKE_USERNAME = "fake-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
-    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
+    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";

@@ -22,6 +22,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackSystemIdentityProviderPlugin.class})
@@ -35,6 +36,7 @@ public class CloudStackOneToOneMapperTest {
     private static final String FAKE_TOKEN1 = "fake-token1";
     private static final String FAKE_TOKEN2 = "fake-token2";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
     private static final String FAKE_MEMBER_ID1 = "fake-member-id1";
     private static final String FAKE_MEMBER_ID2 = "fake-member-id2";
 
@@ -61,9 +63,9 @@ public class CloudStackOneToOneMapperTest {
     @Test
     public void testCreate2TokensLocal() throws FogbowException {
         //set up
-        CloudStackUser cloudUser1 = new CloudStackUser(FAKE_ID1, FAKE_NAME1, FAKE_TOKEN1);
+        CloudStackUser cloudUser1 = new CloudStackUser(FAKE_ID1, FAKE_NAME1, FAKE_TOKEN1, FAKE_COOKIE_HEADER);
         CloudStackSystemUser systemUser1 = new CloudStackSystemUser(this.memberId, cloudUser1);
-        CloudStackUser cloudUser2 = new CloudStackUser(FAKE_ID2, FAKE_NAME2, FAKE_TOKEN2);
+        CloudStackUser cloudUser2 = new CloudStackUser(FAKE_ID2, FAKE_NAME2, FAKE_TOKEN2, FAKE_COOKIE_HEADER);
         CloudStackSystemUser systemUser2 = new CloudStackSystemUser(this.memberId, cloudUser2);
         //exercise
         CloudStackUser mappedToken1 = (CloudStackUser) this.mapper.map(systemUser1);
@@ -92,7 +94,7 @@ public class CloudStackOneToOneMapperTest {
         OneToOneMappableSystemUser systemUser1 = new OneToOneMappableSystemUser(FAKE_ID1, FAKE_NAME1, FAKE_MEMBER_ID1, FAKE_TOKEN1);
         OneToOneMappableSystemUser systemUser2 = new OneToOneMappableSystemUser(FAKE_ID2, FAKE_NAME2, FAKE_MEMBER_ID2, FAKE_TOKEN2);
 
-        CloudStackUser cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE);
+        CloudStackUser cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
         Mockito.doReturn(cloudUser).when(this.cloudStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());
 
         //exercise

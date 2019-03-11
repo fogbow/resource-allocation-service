@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota;
+package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -12,6 +12,8 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.CloudStackComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListResourceLimitsRequest;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -26,6 +28,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -37,6 +40,7 @@ public class CloudStackComputeQuotaPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
     private static final String FAKE_DOMAIN_ID = "fake-domain-id";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
@@ -75,7 +79,7 @@ public class CloudStackComputeQuotaPluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE);
+        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
     }
 
     // test case: When calling the getUserQuota method, HTTP GET requests must be
