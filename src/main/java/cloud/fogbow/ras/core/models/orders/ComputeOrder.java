@@ -41,7 +41,7 @@ public class ComputeOrder extends Order {
     @Embedded
     private ArrayList<UserData> userData;
 
-    @Size(max = Order.FIELDS_MAX_SIZE)
+    @Size(max = 4)
     @Column(name = NAME_COLUMN_NAME)
     private String name;
 

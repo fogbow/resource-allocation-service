@@ -2,6 +2,8 @@ package cloud.fogbow.ras;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPluginInstantiator;
@@ -14,12 +16,20 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.datastore.RecoveryService;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionSystemException;
 
+import javax.persistence.RollbackException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -34,6 +44,24 @@ public class Main implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        // TODO ARNETT REMOVE THIS
+        Order order = new ComputeOrder(new SystemUser("userId", "userName", "prov"),
+                "r", "p", "c", "aloha", 0, 0, 0, "i", new ArrayList<>(), "p", new ArrayList<>());
+        try {
+            recoveryService.save(order);
+        } catch (TransactionSystemException e) {
+            if (isSizeViolation(e)) {
+                getStorableObject(order);
+            }
+
+            String message = ((ConstraintViolationException) e.getCause().getCause()).getConstraintViolations().iterator().next().getMessage();
+            message.startsWith("size must be between");
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        }
+
+        System.exit(1);
         try {
             // Getting the name of the local member
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
@@ -91,6 +119,36 @@ public class Main implements ApplicationRunner {
             LOGGER.fatal(errorException.getMessage(), errorException);
             tryExit();
         }
+    }
+
+    private void getStorableObject(Object order) {
+        // new = constructor.call()
+        // for field in fields:
+        //   if field has not @Column:
+        //     new.field = old.field
+        //   else:
+        //     fieldMaxSize = field.getMaxSize()
+        //     new.field = truncate(old.field, fieldMaxSize)
+        // return new;
+    }
+
+    private boolean isSizeViolation(TransactionSystemException e) {
+        Throwable e1 = e.getCause();
+        if (e1 != null && e1 instanceof RollbackException) {
+            Throwable e2 = e1.getCause();
+            if (e2 != null && e2 instanceof ConstraintViolationException) {
+                ConstraintViolationException constraintViolationException = (ConstraintViolationException) e2;
+                Set<ConstraintViolation<?>> constraintViolations = constraintViolationException.getConstraintViolations();
+                if (constraintViolations.iterator().hasNext()) {
+                    ConstraintViolation<?> constraintViolation = constraintViolations.iterator().next();
+                    if (constraintViolation.getMessage().startsWith("size must be between")) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private void tryExit() {
