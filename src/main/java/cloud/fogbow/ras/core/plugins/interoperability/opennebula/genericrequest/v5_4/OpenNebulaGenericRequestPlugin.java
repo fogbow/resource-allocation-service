@@ -5,17 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import cloud.fogbow.common.models.OpenNebulaUser;
-import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaResponse;
-import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaFogbowGenericRequest;
-import com.google.gson.Gson;
+import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
+import com.google.gson.Gson;
+
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.OpenNebulaUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaFogbowGenericRequest;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaResponse;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -37,7 +39,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		}
 		
 		Object instance = instantiateResource(request, client, cloudUser.getToken());
-		Parameters parameters = generateParametersMap(request, client);
+		Parameters parameters = generateParametersMap(request, instance, client);
 		Method method = generateMethod(request, parameters);
 		Object response = invokeGenericMethod(instance, parameters, method);
 		return reproduceMessage(response);
@@ -56,25 +58,28 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		}
 	}
 	
-	protected Object invokeGenericMethod(Object instance, Parameters parameters, Method method) {
+	protected Object invokeGenericMethod(Object instance, Parameters parameters, Method method)
+			throws InvalidParameterException {
+		
 		Object response = OneGenericMethod.invoke(instance, method, parameters.getValues());
 		return response;
 	}
 
 	protected Method generateMethod(OpenNebulaFogbowGenericRequest request, Parameters parameters) {
+		
 		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
 		Class resourceClassType = oneResource.getClassType();
 		Method method = OneGenericMethod.generate(resourceClassType, request.getOneMethod(), parameters.getClasses());
 		return method;
 	}
 
-	protected Parameters generateParametersMap(OpenNebulaFogbowGenericRequest request, Client client) {
+	protected Parameters generateParametersMap(OpenNebulaFogbowGenericRequest request, Object instance, Client client) {
 		Parameters parameters = new Parameters();
-		if (!request.getOneResource().endsWith(RESOURCE_POOL_SUFFIX) && !request.getParameters().isEmpty()) {
-			if (request.getResourceId() == null || request.getResourceId().isEmpty()) {
-				parameters.getClasses().add(Client.class);
-				parameters.getValues().add(client);
-			}
+		if (!request.getOneResource().endsWith(RESOURCE_POOL_SUFFIX) && !request.getParameters().isEmpty()
+				&& instance == null) {
+			
+			parameters.getClasses().add(Client.class);
+			parameters.getValues().add(client);
 		}
 		for (Map.Entry<String, String> entries : request.getParameters().entrySet()) {
 			OneParameter oneParameter = OneParameter.getValueOf(entries.getKey());
@@ -86,7 +91,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 
 	protected Object instantiateResource(OpenNebulaFogbowGenericRequest request, Client client, String secret)
 			throws InvalidParameterException {
-		
+
 		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
 		Object instance = null;
 		if (oneResource.equals(OneResource.CLIENT)) {
@@ -98,7 +103,7 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 				int id = parseToInteger(request.getResourceId());
 				instance = oneResource.createInstance(id, client);
 			}
-		} 
+		}
 		return instance;
 	}
 
