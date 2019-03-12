@@ -27,6 +27,7 @@ public class CloudStackStateMapper {
     public static final String ERROR_STATUS = "error";
     public static final String PENDING_STATUS = "pending";
     public static final String FAILURE_STATUS = "failure";
+    public static final String MIGRATING_STATUS = "migrating";
 
     public static InstanceState map(ResourceType type, String cloudStackState) {
 
@@ -83,8 +84,8 @@ public class CloudStackStateMapper {
             case NETWORK:
                 switch (cloudStackState) {
                     case IMPLEMENTING_STATUS:
-                    case ALLOCATED_STATUS:
                         return InstanceState.CREATING;
+                    case ALLOCATED_STATUS:
                     case SETUP_STATUS:
                     case IMPLEMENTED_STATUS:
                         return InstanceState.READY;
