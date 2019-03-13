@@ -37,7 +37,7 @@ public class OpenNebulaAttachmentPluginTest {
 
 	@Before
 	public void setUp() {
-		this.plugin = Mockito.spy(new OpenNebulaAttachmentPlugin());
+		this.plugin = Mockito.spy(new OpenNebulaAttachmentPlugin(Mockito.anyString()));
 	}
 	
 	// test case: When invoking the requestInstance method, with the valid client
