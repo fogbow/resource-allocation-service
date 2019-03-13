@@ -1,12 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
-import java.util.HashMap;
+import java.io.File;
 import java.util.Iterator;
-import java.util.Map;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +18,13 @@ import org.opennebula.client.user.UserPool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -29,7 +32,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 public class OpenNebulaComputeQuotaPluginTest {
 
 	private static final String EIGHT_CPU_VALUE = "8";
-	private static final String FAKE_PROVIDER = "fake-provider";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FIVE_VMS = "5";
@@ -63,7 +65,11 @@ public class OpenNebulaComputeQuotaPluginTest {
 
 	@Before
 	public void setUp() {
-		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin());
+		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin(opennebulaConfFilePath));
 	}
 	
 	// test case: When invoking the getUserQuota method, with a valid client, a

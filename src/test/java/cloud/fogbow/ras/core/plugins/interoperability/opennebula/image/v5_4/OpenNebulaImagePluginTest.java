@@ -1,9 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
+import java.io.File;
 import java.util.Iterator;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +15,11 @@ import org.opennebula.client.image.ImagePool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -35,7 +39,11 @@ public class OpenNebulaImagePluginTest {
 
 	@Before
 	public void setUp() {
-		this.plugin = Mockito.spy(new OpenNebulaImagePlugin());
+		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(opennebulaConfFilePath));
 	}
 	
 	// test case: When invoking the getAllImages method, with a valid client, a

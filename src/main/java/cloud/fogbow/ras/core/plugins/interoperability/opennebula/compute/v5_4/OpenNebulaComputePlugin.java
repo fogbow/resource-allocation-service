@@ -19,6 +19,7 @@ import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -69,8 +70,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	
 	private TreeSet<HardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
-	
-	public OpenNebulaComputePlugin() {
+	private Properties properties;
+	private String endpoint;
+
+	public OpenNebulaComputePlugin(String confFilePath) throws FatalErrorException {
+		this.properties = PropertiesUtil.readProperties(confFilePath);
+		this.endpoint = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		this.flavors = new TreeSet<HardwareRequirements>();
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 	}
@@ -78,7 +83,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String encoding = USERDATA_ENCODING_CONTEXT;
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
@@ -119,7 +124,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		if (this.flavors == null || this.flavors.isEmpty()) {
 			updateHardwareRequirements(cloudUser);
 		}
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
 		return getComputeInstance(virtualMachine);
 	}
@@ -127,7 +132,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	@Override
 	public void deleteInstance(String computeInstanceId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.terminate();
 		if (response.isError()) {
@@ -138,8 +143,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	protected List<String> resolveNetworkIds(ComputeOrder computeOrder) {
 		List<String> requestedNetworkIds = new ArrayList<>();
-		Properties properties = getProperties();
-		String defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+//		Properties properties = getProperties();
+		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 		requestedNetworkIds.add(defaultNetworkId);
 		if (!computeOrder.getNetworkIds().isEmpty()) {
 			requestedNetworkIds.addAll(computeOrder.getNetworkIds());
@@ -173,7 +178,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected void updateHardwareRequirements(CloudUser cloudUser) throws UnexpectedException {
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		Map<String, String> imageSizeMap = getImageSizes(client);
 		List<HardwareRequirements> flavors = new ArrayList<>();
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
@@ -294,24 +299,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	
 	public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
 		this.launchCommandGenerator = launchCommandGenerator;
-	}
-	
-	protected String getEndpoint() {
-		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		return endpoint;
-	}
-	
-	protected Properties getProperties() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		return properties;
 	}
 	
 }

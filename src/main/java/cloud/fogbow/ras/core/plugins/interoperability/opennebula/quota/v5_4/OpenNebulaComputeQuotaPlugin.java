@@ -1,23 +1,21 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
-import java.io.File;
 import java.util.Properties;
 
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.opennebula.client.Client;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 
 public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUser> {
 
@@ -33,9 +31,16 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 	private static final int VALUE_DEFAULT_QUOTA_OPENNEBULA = -1;
 	private static final int VALUE_UNLIMITED_QUOTA_OPENNEBULA = -2;
 	
+	private String endpoint;
+
+	public OpenNebulaComputeQuotaPlugin(String confFilePath) throws FatalErrorException {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+	}
+	
 	@Override
 	public ComputeQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
 		// ToDo: the code below used the user name and not the user id. Check whether it is really
 		// the user name that is needed; in this case, an OpenNebulaToken class needs to be implemented.
@@ -155,19 +160,6 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 		public Integer getMaxResource() {
 			return maxResource;
 		}
-	}
-
-	protected String getEndpoint() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		return endpoint;
 	}
 	
 }

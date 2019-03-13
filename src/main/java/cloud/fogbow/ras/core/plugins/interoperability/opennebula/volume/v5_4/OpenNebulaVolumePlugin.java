@@ -1,29 +1,28 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import java.io.File;
 import java.util.Properties;
 
-import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
 
 public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
@@ -36,10 +35,18 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
     
+    private Properties properties;
+    private String endpoint;
+
+	public OpenNebulaVolumePlugin(String confFilePath) throws FatalErrorException {
+		this.properties = PropertiesUtil.readProperties(confFilePath);
+		this.endpoint = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+	}
+    
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
 		int volumeSize = volumeOrder.getVolumeSize();
@@ -62,7 +69,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	@Override
 	public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
@@ -77,7 +84,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	@Override
 	public void deleteInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
@@ -87,27 +94,14 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		}
 	}
 
-	protected Integer getDataStoreId() {
-		String dataStoreValue = getProperties().getProperty(DEFAULT_DATASTORE_ID);
-		return dataStoreValue == null ? null : Integer.valueOf(dataStoreValue);
-	}
-	
-	protected String getEndpoint() {
-		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		return endpoint;
-	}
-	
-	protected Properties getProperties() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		return properties;
+	protected Integer getDataStoreId() throws UnexpectedException {
+		String dataStore = this.properties.getProperty(DEFAULT_DATASTORE_ID);
+		try {
+			return Integer.valueOf(dataStore);
+		} catch (NumberFormatException e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e.getMessage()));
+			throw new UnexpectedException();
+		}
 	}
 	
 }

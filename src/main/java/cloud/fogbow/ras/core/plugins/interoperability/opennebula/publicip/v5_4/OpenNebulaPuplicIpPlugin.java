@@ -1,12 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -15,22 +12,23 @@ import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
 import org.opennebula.client.vnet.VirtualNetworkPool;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
-import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetworkTemplate.LeaseIp;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
@@ -53,12 +51,23 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final String PUBLIC_NETWORK_BRIDGE_KEY = "public_network_bridge";
 	private static final String XPATH_EXPRESSION_FORMAT = "//VNET_POOL/VNET/TEMPLATE/LEASES[descendant::IP[text()='%s']]";
 
+	private String endpoint;
+	private String bridge;
+	private String addresses;
+
+	public OpenNebulaPuplicIpPlugin(String confFilePath) throws FatalErrorException {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+		this.bridge = properties.getProperty(PUBLIC_NETWORK_BRIDGE_KEY);
+		this.addresses = properties.getProperty(FIXED_PUBLIC_IP_ADDRESSES_KEY);
+	}
+	
 	@Override
 	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudUser cloudUser)
 			throws FogbowException {
 
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		// Check if fixed IP is in use
 		String fixedIp = getAvailableFixedIp(client);
@@ -91,7 +100,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 			throws FogbowException {
 
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
 		String virtualNetworkId = instanceIds[1];
@@ -107,7 +116,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	public PublicIpInstance getInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
 
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
 		String virtualMachineId = instanceIds[0];
@@ -168,7 +177,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private String createPublicNetworkTemplate(PublicIpOrder publicIpOrder, String securityGroupId, String fixedIp) {
 		String name = publicIpOrder.getCloudName();
 		String type = NETWORK_TYPE_FIXED;
-		String bridge = getBridge();
+		String bridge = this.bridge;
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
 		String securityGroups = DEFAULT_SECURITY_GROUP + CARACTER_SEPARATOR  + securityGroupId;
 		
@@ -245,7 +254,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 	
 	protected String getAvailableFixedIp(Client client) {
-		String publicIpAddresses = getPublicIpAddresses();
+		String publicIpAddresses = this.addresses;
 		String[] sliceFixedIp = publicIpAddresses.split(CARACTER_SEPARATOR);
 		
 		OneResponse response = VirtualNetworkPool.infoAll(client);
@@ -264,36 +273,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 			}
 		}
 		return null;
-	}
-	
-	protected String getPublicIpAddresses() {
-		Properties properties = getProperties();
-		String addresses = properties.getProperty(FIXED_PUBLIC_IP_ADDRESSES_KEY);
-		return addresses;
-	}
-	
-	protected String getBridge() {
-		Properties properties = getProperties();
-		String bridge = properties.getProperty(PUBLIC_NETWORK_BRIDGE_KEY);
-		return bridge;
-	}
-	
-	protected String getEndpoint() {
-		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		return endpoint;
-	}
-	
-	protected Properties getProperties() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		return properties;
 	}
 	
 }
