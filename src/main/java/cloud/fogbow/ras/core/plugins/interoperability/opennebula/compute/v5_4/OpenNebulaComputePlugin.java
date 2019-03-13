@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,14 +22,11 @@ import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -63,9 +59,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	
 	protected static final String FIELD_RESPONSE_LIMIT = "limit";
 	protected static final String FIELD_RESPONSE_QUOTA = "quota";
-	protected static final String RESPONSE_DONE = "DONE";
-	protected static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
-	protected static final String RESPONSE_NOT_AUTHORIZED = "Not authorized";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 	
 	private TreeSet<HardwareRequirements> flavors;
@@ -143,7 +136,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	protected List<String> resolveNetworkIds(ComputeOrder computeOrder) {
 		List<String> requestedNetworkIds = new ArrayList<>();
-//		Properties properties = getProperties();
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 		requestedNetworkIds.add(defaultNetworkId);
 		if (!computeOrder.getNetworkIds().isEmpty()) {
