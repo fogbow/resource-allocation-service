@@ -236,7 +236,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 
     protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(CloudStackHttpClient client, String jobId, CloudStackUser cloudUser)
             throws FogbowException {
-        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, jobId, cloudUser);
+        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, this.cloudStackUrl, jobId, cloudUser);
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
 

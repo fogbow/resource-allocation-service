@@ -185,7 +185,7 @@ public class CloudStackSecurityRulePluginTest {
         Mockito.doNothing().when(plugin).deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudStackUser.class));
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -208,7 +208,7 @@ public class CloudStackSecurityRulePluginTest {
 
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -233,7 +233,7 @@ public class CloudStackSecurityRulePluginTest {
         // set up
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -255,7 +255,7 @@ public class CloudStackSecurityRulePluginTest {
 
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.FAILURE);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -276,7 +276,7 @@ public class CloudStackSecurityRulePluginTest {
         // set up
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                 willReturn(processingJobResponse);
 
         // exercise
@@ -295,7 +295,7 @@ public class CloudStackSecurityRulePluginTest {
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         String successJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class)))
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .willReturn(processingJobResponse)
                 .willReturn(successJobResponse);
 
@@ -324,7 +324,7 @@ public class CloudStackSecurityRulePluginTest {
         // set up
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class)))
+                Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .willReturn(processingJobResponse);
 
         String endpoint = getBaseEndpointFromCloudStackConf();
@@ -387,7 +387,7 @@ public class CloudStackSecurityRulePluginTest {
                 String processingJobResponse = getProcessingJobResponse(status);
                 try {
                     BDDMockito.given(CloudStackSecurityRulePluginTest.this.queryJobResult.getQueryJobResult(
-                            Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
+                            Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                             willReturn(processingJobResponse);
                 } catch (FogbowException e) {
                     e.printStackTrace();

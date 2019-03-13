@@ -112,7 +112,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     private PublicIpInstance getCurrentInstance(String orderId, CloudStackUser cloudUser) throws FogbowException {
         CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(orderId);
-        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(this.client,
+        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(this.client, this.cloudStackUrl,
                 currentAsyncRequest.getCurrentJobId(), cloudUser);
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
 
