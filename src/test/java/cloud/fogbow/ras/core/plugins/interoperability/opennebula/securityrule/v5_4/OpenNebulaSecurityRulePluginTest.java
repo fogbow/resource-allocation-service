@@ -1,17 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,11 +18,24 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.api.http.response.securityrules.Direction;
+import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
+import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SecurityGroupInfo.class, VirtualNetwork.class})
 public class OpenNebulaSecurityRulePluginTest {
+	
 	private static final String DEFAULT_SECURITY_GROUP_ID = "0";
     private static final String FAKE_CIDR = "10.10.10.0/24";
     private static final String FAKE_ID_VALUE = "100";
@@ -51,7 +56,11 @@ public class OpenNebulaSecurityRulePluginTest {
 
     @Before
     public void setUp() {
-        this.plugin = Mockito.spy(new OpenNebulaSecurityRulePlugin());
+    	String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+    	
+        this.plugin = Mockito.spy(new OpenNebulaSecurityRulePlugin(opennebulaConfFilePath));
     }
 
     // test case: success case when call the deleteSecurityRule method.

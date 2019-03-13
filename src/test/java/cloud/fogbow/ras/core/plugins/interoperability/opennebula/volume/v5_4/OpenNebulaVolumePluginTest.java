@@ -1,12 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import java.util.HashMap;
-import java.util.Map;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import java.io.File;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +15,13 @@ import org.opennebula.client.image.ImagePool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -38,7 +40,11 @@ public class OpenNebulaVolumePluginTest {
 
 	@Before
 	public void setUp() {
-		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin());
+		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
+		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin(opennebulaConfFilePath));
 	}
 
 	// test case: When calling the requestInstance method, with the valid client and

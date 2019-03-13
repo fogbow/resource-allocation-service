@@ -1,26 +1,24 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.ImagePool;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
 public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
@@ -30,10 +28,17 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	private static final String IMAGE_SIZE_PATH = "IMAGE/SIZE";
 	private static final String RESOURCE_NAME = "image";
 	
+	private String endpoint;
+	
+	public OpenNebulaImagePlugin(String confFilePath) throws FatalErrorException {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+	}
+	
 	@Override
 	public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, RESOURCE_NAME));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 
 		Map<String, String> allImages = new HashMap<>();
@@ -46,7 +51,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	@Override
 	public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		for (org.opennebula.client.image.Image image : imagePool) {
 			if (image.getId().equals(imageId)) {
@@ -71,19 +76,6 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		String status = instanceState.getValue();
 
 		return new Image(id, name, size, minDisk, minRam, status);
-	}
-
-	private String getEndpoint() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		return endpoint;
 	}
 
 }
