@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 @Transactional
 public interface OrderRepository extends JpaRepository<Order, String> {
-    List<Order> findByOrderState(OrderState Orderstate);
+    public abstract List<Order> findByOrderState(OrderState Orderstate);
 }

@@ -44,24 +44,6 @@ public class Main implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        // TODO ARNETT REMOVE THIS
-        Order order = new ComputeOrder(new SystemUser("userId", "userName", "prov"),
-                "r", "p", "c", "aloha", 0, 0, 0, "i", new ArrayList<>(), "p", new ArrayList<>());
-        try {
-            recoveryService.save(order);
-        } catch (TransactionSystemException e) {
-            if (isSizeViolation(e)) {
-                getStorableObject(order);
-            }
-
-            String message = ((ConstraintViolationException) e.getCause().getCause()).getConstraintViolations().iterator().next().getMessage();
-            message.startsWith("size must be between");
-            e.printStackTrace();
-        } catch (UnexpectedException e) {
-            e.printStackTrace();
-        }
-
-        System.exit(1);
         try {
             // Getting the name of the local member
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
