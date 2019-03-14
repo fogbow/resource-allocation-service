@@ -27,7 +27,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
 	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
 	
-	private static final int DEFAULT_RESOURCE_MAX_VALUE = Integer.MAX_VALUE;
+	private static final int DEFAULT_RESOURCE_MAX_VALUE = -1;
 	private static final int VALUE_DEFAULT_QUOTA_OPENNEBULA = -1;
 	private static final int VALUE_UNLIMITED_QUOTA_OPENNEBULA = -2;
 	
@@ -42,8 +42,6 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 	public ComputeQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
-		// ToDo: the code below used the user name and not the user id. Check whether it is really
-		// the user name that is needed; in this case, an OpenNebulaToken class needs to be implemented.
 		User user = OpenNebulaClientUtil.getUser(userPool, cloudUser.getId());
 		String maxCpuByUser = user.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByUser = user.xpath(QUOTA_MEMORY_PATH);
@@ -92,34 +90,47 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 				maxGroupResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			}
 			if (isUserSmallerQuota(maxUserResource, maxGroupResource)) {
-				return new ResourceQuota(maxUserResource, resourceInUseByUser);
+				return getUserResouceQuota(maxUserResource, resourceInUseByUser);
 			} else {
-				return new ResourceQuota(maxGroupResource, resourceInUseByGroup);
+				return getUserResouceQuota(maxGroupResource, resourceInUseByGroup);
 			}
 		} else if (isValidNumber(maxUserResource)) {
 			if (isUnlimitedOrDefaultQuota(maxUserResource)){
 				maxUserResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			}
-			return new ResourceQuota(maxUserResource, resourceInUseByUser);
+			return getUserResouceQuota(maxUserResource, resourceInUseByUser);
 		} else if (isValidNumber(maxGroupResource)) {
 			if (isUnlimitedOrDefaultQuota(maxGroupResource)){
 				maxGroupResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			}
-			return new ResourceQuota(maxGroupResource, resourceInUseByGroup);
+			return getUserResouceQuota(maxGroupResource, resourceInUseByGroup);
 		} else {
 			String maxResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			String resourceInUse = String.valueOf(getBiggerValue(resourceInUseByUser, resourceInUseByGroup));
-			return new ResourceQuota(maxResource, resourceInUse);
+			return getUserResouceQuota(maxResource, resourceInUse);
 		}
 	}
 
+	private ResourceQuota getUserResouceQuota(String maxUserResource, String resourceInUseByUser) {
+		int maxResourceValue = parseToInteger(maxUserResource);
+		int resourceInUseValue = parseToInteger(resourceInUseByUser);
+		return new ResourceQuota(maxResourceValue, resourceInUseValue);
+	}
+
 	private int getBiggerValue(String userResource, String groupResource) {
-		int userValue = userResource == null ? 0 : Integer.parseInt(userResource);
-		int groupValue = groupResource == null ? 0 : Integer.parseInt(groupResource);
+		int userValue = parseToInteger(userResource);
+		int groupValue = parseToInteger(groupResource);
 		int resourceValue = Math.max(userValue, groupValue);
 		return resourceValue;
 	}
-
+	
+	private int parseToInteger(String number) {
+		if (isValidNumber(number)) {
+			return Integer.parseInt(number);
+		}
+		return 0;
+	}
+	
 	private boolean isUserSmallerQuota(String userResource, String groupResource) {
 		int userResourceValue = Integer.parseInt(userResource);
 		int groupResourceValue = Integer.parseInt(groupResource);
@@ -148,9 +159,9 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 		private Integer maxResource;
 		private Integer resourceInUse;
 		
-		public ResourceQuota(String maxResource, String resourceInUse) {
-			this.maxResource = maxResource == null ? 0 : Integer.parseInt(maxResource);
-			this.resourceInUse = resourceInUse == null ? 0 : Integer.parseInt(resourceInUse);
+		public ResourceQuota(int maxResource, int resourceInUse) {
+			this.maxResource = maxResource;
+			this.resourceInUse = resourceInUse;
 		}
 		
 		public Integer getResourceInUse() {	
