@@ -90,28 +90,28 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 				maxGroupResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			}
 			if (isUserSmallerQuota(maxUserResource, maxGroupResource)) {
-				return getUserResouceQuota(maxUserResource, resourceInUseByUser);
+				return getResouceQuota(maxUserResource, resourceInUseByUser);
 			} else {
-				return getUserResouceQuota(maxGroupResource, resourceInUseByGroup);
+				return getResouceQuota(maxGroupResource, resourceInUseByGroup);
 			}
 		} else if (isValidNumber(maxUserResource)) {
 			if (isUnlimitedOrDefaultQuota(maxUserResource)){
 				maxUserResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			}
-			return getUserResouceQuota(maxUserResource, resourceInUseByUser);
+			return getResouceQuota(maxUserResource, resourceInUseByUser);
 		} else if (isValidNumber(maxGroupResource)) {
 			if (isUnlimitedOrDefaultQuota(maxGroupResource)){
 				maxGroupResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			}
-			return getUserResouceQuota(maxGroupResource, resourceInUseByGroup);
+			return getResouceQuota(maxGroupResource, resourceInUseByGroup);
 		} else {
 			String maxResource = String.valueOf(DEFAULT_RESOURCE_MAX_VALUE);
 			String resourceInUse = String.valueOf(getBiggerValue(resourceInUseByUser, resourceInUseByGroup));
-			return getUserResouceQuota(maxResource, resourceInUse);
+			return getResouceQuota(maxResource, resourceInUse);
 		}
 	}
 
-	private ResourceQuota getUserResouceQuota(String maxUserResource, String resourceInUseByUser) {
+	private ResourceQuota getResouceQuota(String maxUserResource, String resourceInUseByUser) {
 		int maxResourceValue = parseToInteger(maxUserResource);
 		int resourceInUseValue = parseToInteger(resourceInUseByUser);
 		return new ResourceQuota(maxResourceValue, resourceInUseValue);
