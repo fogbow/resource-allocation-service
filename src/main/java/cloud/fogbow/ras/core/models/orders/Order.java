@@ -25,8 +25,8 @@ public abstract class Order extends StorableBean implements Serializable {
     protected static final String CLOUD_NAME_COLUMN_NAME = "cloud_name";
     protected static final String INSTANCE_ID_COLUMN_NAME = "instance_id";
 
-    protected static final int FIELDS_MAX_SIZE = 255;
-    protected static final int ID_FIXED_SIZE = 36; // UUID size
+    public static final int FIELDS_MAX_SIZE = 255;
+    public static final int ID_FIXED_SIZE = 36; // UUID size
 
     @Transient
     private transient final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Order.class);

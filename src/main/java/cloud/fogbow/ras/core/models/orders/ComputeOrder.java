@@ -8,10 +8,7 @@ import org.apache.log4j.Logger;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "compute_order_table")
@@ -171,6 +168,23 @@ public class ComputeOrder extends Order {
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ComputeOrder that = (ComputeOrder) o;
+        return getvCPU() == that.getvCPU() &&
+                getMemory() == that.getMemory() &&
+                getDisk() == that.getDisk() &&
+                Objects.equals(getUserData(), that.getUserData()) &&
+                Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getImageId(), that.getImageId()) &&
+                Objects.equals(getPublicKey(), that.getPublicKey()) &&
+                Objects.equals(getActualAllocation(), that.getActualAllocation()) &&
+                Objects.equals(getNetworkIds(), that.getNetworkIds());
     }
 
     @PrePersist

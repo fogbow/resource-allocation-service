@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class RecoveryService extends FogbowDatabaseService {
+public class RecoveryService extends FogbowDatabaseService<Order> {
     private static final Logger LOGGER = Logger.getLogger(RecoveryService.class);
 
     @Autowired

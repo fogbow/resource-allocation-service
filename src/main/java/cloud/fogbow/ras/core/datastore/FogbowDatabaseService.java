@@ -10,20 +10,36 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.Set;
 
-public class FogbowDatabaseService {
+public class FogbowDatabaseService<T> {
     public static final String SIZE_ERROR_MESSAGE_PREFIX = "size must be between";
 
-    public void safeSave(Order o, JpaRepository repository) throws UnexpectedException {
+    public <S extends T> void safeSave(S o, JpaRepository<T, ?> repository) throws UnexpectedException {
         try {
             repository.save(o);
-        } catch (TransactionSystemException e) {
-            if (isSizeViolation(e)) {
-                StorableObjectTruncateHelper<Order> truncateHelper = new StorableObjectTruncateHelper<>(o.getClass());
-                Order truncated = truncateHelper.truncate(o);
+        } catch (TransactionSystemException transactionSystemException) {
+            if (isSizeViolation(transactionSystemException)) {
+                // transaction needs to be cleared before saving again
+                safeFlush(repository);
+
+                StorableObjectTruncateHelper<S> truncateHelper = new StorableObjectTruncateHelper<>(o.getClass());
+                S truncated = truncateHelper.truncate(o);
+
                 repository.save(truncated);
             } else {
-                throw new UnexpectedException("", e);
+                throw new UnexpectedException("", transactionSystemException);
             }
+        }
+    }
+
+    /**
+     * Clears the transaction silently.
+     *
+     * @param repository
+     */
+    private void safeFlush(JpaRepository repository) {
+        try {
+            repository.flush();
+        } catch (Exception e1) {
         }
     }
 
