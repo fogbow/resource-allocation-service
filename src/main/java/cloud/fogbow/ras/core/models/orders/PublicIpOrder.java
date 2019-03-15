@@ -54,10 +54,4 @@ public class PublicIpOrder extends Order {
     public String getSpec() {
         return "";
     }
-
-    @Override
-    public Logger getLogger() {
-        return LOGGER;
-    }
-
 }

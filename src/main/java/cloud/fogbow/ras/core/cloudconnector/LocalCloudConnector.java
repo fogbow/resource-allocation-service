@@ -45,7 +45,7 @@ public class LocalCloudConnector implements CloudConnector {
     private SecurityRulePlugin securityRulePlugin;
     private GenericRequestPlugin genericRequestPlugin;
 
-    private boolean auditRequestsOn;
+    private boolean auditRequestsOn = true;
 
     public LocalCloudConnector(String cloudName) {
         InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator();
@@ -660,7 +660,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     private void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,
-                              String response) {
+                              String response) throws UnexpectedException {
         if (this.auditRequestsOn) {
             String userId = null, tokenProviderId = null;
             if (systemUser != null) {

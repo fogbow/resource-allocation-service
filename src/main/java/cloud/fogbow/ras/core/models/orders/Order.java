@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.StorableBean;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
@@ -17,7 +16,7 @@ import java.util.Map;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-public abstract class Order extends StorableBean implements Serializable {
+public abstract class Order implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected static final String REQUESTER_COLUMN_NAME = "requester";
@@ -210,15 +209,4 @@ public abstract class Order extends StorableBean implements Serializable {
     public abstract ResourceType getType();
 
     public abstract String getSpec();
-
-    @Override
-    public abstract Logger getLogger();
-
-    @PrePersist
-    protected void checkAllColumnsSizes() {
-        this.requester = treatValue(this.requester, REQUESTER_COLUMN_NAME, FIELDS_MAX_SIZE);
-        this.provider = treatValue(this.requester, PROVIDER_COLUMN_NAME, FIELDS_MAX_SIZE);
-        this.cloudName = treatValue(this.requester, CLOUD_NAME_COLUMN_NAME, FIELDS_MAX_SIZE);
-        this.instanceId = treatValue(this.requester, INSTANCE_ID_COLUMN_NAME, FIELDS_MAX_SIZE);
-    }
 }

@@ -1,9 +1,8 @@
-package cloud.fogbow.ras.core.datastore;
+package cloud.fogbow.ras.core.datastore.services;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.datastore.orderstorage.AuditableOrderStateChange;
-import cloud.fogbow.ras.core.datastore.orderstorage.AuditableRequestsRepository;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderStateChangeRepository;
-import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,21 +10,14 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 
 @Service
-public class AuditService {
-
+public class AuditableOrderStateChangeService extends FogbowDatabaseService<AuditableOrderStateChange> {
     @Autowired
     private OrderStateChangeRepository orderTimestampRepository;
 
-    @Autowired
-    private AuditableRequestsRepository auditableRequestsRepository;
-
-    public void registerStateChange(Order order) {
+    public void registerStateChange(Order order) throws UnexpectedException {
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         AuditableOrderStateChange auditableOrderStateChange = new AuditableOrderStateChange(currentTimestamp, order, order.getOrderState());
         this.orderTimestampRepository.save(auditableOrderStateChange);
-    }
-
-    public void registerSyncRequest(AuditableRequest request) {
-        this.auditableRequestsRepository.save(request);
+        safeSave(auditableOrderStateChange, this.orderTimestampRepository);
     }
 }

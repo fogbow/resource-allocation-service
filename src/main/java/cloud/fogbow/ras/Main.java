@@ -2,8 +2,6 @@ package cloud.fogbow.ras;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPluginInstantiator;
@@ -11,13 +9,12 @@ import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
-import cloud.fogbow.ras.core.datastore.AuditService;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.datastore.RecoveryService;
+import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
+import cloud.fogbow.ras.core.datastore.services.AuditableRequestService;
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -28,7 +25,6 @@ import org.springframework.transaction.TransactionSystemException;
 import javax.persistence.RollbackException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +36,10 @@ public class Main implements ApplicationRunner {
     private RecoveryService recoveryService;
 
     @Autowired
-    private AuditService auditService;
+    private AuditableRequestService auditableRequestService;
+
+    @Autowired
+    private AuditableOrderStateChangeService auditableOrderStateChangeService;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -50,7 +49,8 @@ public class Main implements ApplicationRunner {
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
-            DatabaseManager.getInstance().setAuditService(auditService);
+            DatabaseManager.getInstance().setAuditableOrderStateChangeService(auditableOrderStateChangeService);
+            DatabaseManager.getInstance().setAuditableRequestService(auditableRequestService);
 
             // Setting up asymmetric cryptography
             String publicKeyFilePath = PropertiesHolder.getInstance().getProperty(FogbowConstants.PUBLIC_KEY_FILE_PATH);

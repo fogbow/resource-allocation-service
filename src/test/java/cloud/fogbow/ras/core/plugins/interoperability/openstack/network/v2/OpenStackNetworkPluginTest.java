@@ -10,8 +10,8 @@ import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.datastore.AuditService;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
@@ -460,7 +460,7 @@ public class OpenStackNetworkPluginTest {
     @Test
     public void testGetInstanceFromJson() throws JSONException, IOException, FogbowException {
         //set up
-        DatabaseManager.getInstance().setAuditService(Mockito.mock(AuditService.class));
+        DatabaseManager.getInstance().setAuditableOrderStateChangeService(Mockito.mock(AuditableOrderStateChangeService.class));
 
         String networkId = "networkId00";
         String networkName = "netName";
