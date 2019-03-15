@@ -1,31 +1,28 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
 
@@ -54,16 +51,25 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SECURITY_GROUP_VALID_POSITION = 1;
+	
+	private String endpoint;
+	private String bridge; 
+
+	public OpenNebulaNetworkPlugin(String confFilePath) throws FatalErrorException {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+		this.bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE_KEY);
+	}
 
 	@Override
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		String name = networkOrder.getName();
 		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, cloudUser.getId());
 		String type = DEFAULT_NETWORK_TYPE;
-		String bridge = getBridge();
+		String bridge = this.bridge;
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
 		String gateway = networkOrder.getGateway();
 		String securityGroupId = createSecurityGroup(client, networkOrder);
@@ -96,7 +102,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	@Override
 	public NetworkInstance getInstance(String networkInstanceId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, networkInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkInstanceId);
 		return createInstance(virtualNetwork);
 	}
@@ -104,7 +110,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	@Override
 	public void deleteInstance(String networkInstanceId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, networkInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(getEndpoint(), cloudUser.getToken());
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkInstanceId);
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);
 		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
@@ -218,30 +224,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 				interfaceState);
 		
 		return networkInstance;
-	}
-	
-	protected String getBridge() {
-		Properties properties = getProperties();
-		String bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE_KEY);
-		return bridge;
-	}
-	
-	protected String getEndpoint() {
-		Properties properties = getProperties();
-		String endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		return endpoint;
-	}
-	
-	protected Properties getProperties() {
-		String opennebulaConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY 
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		Properties properties = PropertiesUtil.readProperties(opennebulaConfFilePath);
-		return properties;
 	}
 	
 }

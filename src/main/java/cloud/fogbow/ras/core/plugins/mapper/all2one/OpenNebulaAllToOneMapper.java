@@ -1,18 +1,23 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import java.util.Map;
+import java.util.Properties;
+
+import cloud.fogbow.as.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.OpenNebulaUser;
 import cloud.fogbow.common.plugins.cloudidp.opennebula.OpenNebulaIdentityProviderPlugin;
-
-import java.util.Map;
+import cloud.fogbow.common.util.PropertiesUtil;
 
 public class OpenNebulaAllToOneMapper extends GenericAllToOneSystemToCloudMapper {
 
     private OpenNebulaIdentityProviderPlugin identityProviderPlugin;
 
-    public OpenNebulaAllToOneMapper(String confFile) {
-        super(confFile);
-        this.identityProviderPlugin = new OpenNebulaIdentityProviderPlugin();
+    public OpenNebulaAllToOneMapper(String mapperConfFilePath) {
+        super(mapperConfFilePath);
+        Properties properties = PropertiesUtil.readProperties(mapperConfFilePath);
+        String identityUrl = properties.getProperty(ConfigurationPropertyKeys.CLOUD_IDENTITY_PROVIDER_URL_KEY);
+        this.identityProviderPlugin = new OpenNebulaIdentityProviderPlugin(identityUrl);
     }
 
     @Override

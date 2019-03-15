@@ -18,15 +18,16 @@ public class CloudStackStateMapper {
     private static final String ALLOCATED_STATUS = "allocated";
     private static final String IMPLEMENTING_STATUS = "implementing";
     private static final String IMPLEMENTED_STATUS = "implemented";
-    public static final String RUNNING_STATUS = "running";
-    public static final String DOWN_STATUS = "shutdowned";
-    public static final String SETUP_STATUS = "setup";
-    public static final String STOPPED_STATUS = "stopped";
-    public static final String STOPPING_STATUS = "stopping";
-    public static final String EXPUNGING_STATUS = "expunging";
-    public static final String ERROR_STATUS = "error";
-    public static final String PENDING_STATUS = "pending";
-    public static final String FAILURE_STATUS = "failure";
+    private static final String RUNNING_STATUS = "running";
+    private static final String DOWN_STATUS = "shutdowned";
+    private static final String SETUP_STATUS = "setup";
+    private static final String STOPPED_STATUS = "stopped";
+    private static final String STOPPING_STATUS = "stopping";
+    private static final String EXPUNGING_STATUS = "expunging";
+    private static final String ERROR_STATUS = "error";
+    private static final String PENDING_STATUS = "pending";
+    private static final String FAILURE_STATUS = "failure";
+    private static final String MIGRATING_STATUS = "migrating";
 
     public static InstanceState map(ResourceType type, String cloudStackState) {
 
@@ -41,6 +42,7 @@ public class CloudStackStateMapper {
                     case STOPPED_STATUS:
                     case STOPPING_STATUS:
                     case EXPUNGING_STATUS:
+                    case MIGRATING_STATUS:
                         return InstanceState.UNAVAILABLE;
                     case STARTING_STATUS:
                         return InstanceState.CREATING;
@@ -83,8 +85,8 @@ public class CloudStackStateMapper {
             case NETWORK:
                 switch (cloudStackState) {
                     case IMPLEMENTING_STATUS:
-                    case ALLOCATED_STATUS:
                         return InstanceState.CREATING;
+                    case ALLOCATED_STATUS:
                     case SETUP_STATUS:
                     case IMPLEMENTED_STATUS:
                         return InstanceState.READY;

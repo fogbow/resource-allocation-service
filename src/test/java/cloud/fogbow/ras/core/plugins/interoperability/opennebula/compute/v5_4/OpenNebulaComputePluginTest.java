@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -7,10 +8,12 @@ import java.util.List;
 import java.util.TreeSet;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
@@ -98,7 +101,11 @@ public class OpenNebulaComputePluginTest {
 
     @Before
 	public void setUp() {
-		this.plugin = Mockito.spy(new OpenNebulaComputePlugin());
+    	String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+    	
+		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(opennebulaConfFilePath));
 		this.flavors = Mockito.spy(new TreeSet<>());
 	}
 
