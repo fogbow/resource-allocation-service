@@ -191,7 +191,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				int disk = 0;
 				flavor = new HardwareRequirements(name, id, cpu, memory, disk);
 				flavorsTemplate.add(flavor);
-				if (containsFlavor(flavor, this.flavors)) {
+				if (!containsFlavor(flavor, this.flavors)) {
 					int size = loadImageSizeDisk(imageSizeMap, template);
 					flavor = new HardwareRequirements(name, id, cpu, memory, size);
 					flavors.add(flavor);
@@ -205,6 +205,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		removeInvalidFlavors(flavorsTemplate);
 	}
 
+	// FIXME Get the disk size from the Image ID template
 	protected int loadImageSizeDisk(Map<String, String> map, Template template) {
 		int index = 1;
 		int size = 0;
