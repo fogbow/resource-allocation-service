@@ -152,8 +152,8 @@ public class OpenNebulaComputePluginTest {
 		CloudUser cloudUser = createCloudUser();
 		
 		int choice = 0;
-		String valueOfCpu = String.valueOf(CPU_VALUE_2);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_1024);
+		String valueOfCpu = String.valueOf(CPU_VALUE_4);
+		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
 		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
 		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
 		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
@@ -415,9 +415,9 @@ public class OpenNebulaComputePluginTest {
 
 		Mockito.verify(template, Mockito.times(1)).getId();
 		Mockito.verify(template, Mockito.times(1)).getName();
-		Mockito.verify(template, Mockito.times(2)).xpath(Mockito.anyString());
+		Mockito.verify(template, Mockito.times(9)).xpath(Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).containsFlavor(Mockito.any(HardwareRequirements.class),
+		Mockito.verify(this.plugin, Mockito.times(2)).containsFlavor(Mockito.any(HardwareRequirements.class),
 				Mockito.anyCollection());
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
