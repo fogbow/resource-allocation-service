@@ -2,11 +2,9 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.StorableBean;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import org.apache.log4j.Logger;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -17,7 +15,7 @@ import java.util.Map;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-public abstract class Order extends StorableBean implements Serializable {
+public abstract class Order implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected static final String REQUESTER_COLUMN_NAME = "requester";
@@ -25,8 +23,8 @@ public abstract class Order extends StorableBean implements Serializable {
     protected static final String CLOUD_NAME_COLUMN_NAME = "cloud_name";
     protected static final String INSTANCE_ID_COLUMN_NAME = "instance_id";
 
-    protected static final int FIELDS_MAX_SIZE = 255;
-    protected static final int ID_FIXED_SIZE = 36; // UUID size
+    public static final int FIELDS_MAX_SIZE = 255;
+    public static final int ID_FIXED_SIZE = 36; // UUID size
 
     @Transient
     private transient final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Order.class);
@@ -210,15 +208,4 @@ public abstract class Order extends StorableBean implements Serializable {
     public abstract ResourceType getType();
 
     public abstract String getSpec();
-
-    @Override
-    public abstract Logger getLogger();
-
-    @PrePersist
-    protected void checkAllColumnsSizes() {
-        this.requester = treatValue(this.requester, REQUESTER_COLUMN_NAME, FIELDS_MAX_SIZE);
-        this.provider = treatValue(this.requester, PROVIDER_COLUMN_NAME, FIELDS_MAX_SIZE);
-        this.cloudName = treatValue(this.requester, CLOUD_NAME_COLUMN_NAME, FIELDS_MAX_SIZE);
-        this.instanceId = treatValue(this.requester, INSTANCE_ID_COLUMN_NAME, FIELDS_MAX_SIZE);
-    }
 }

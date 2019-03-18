@@ -1,5 +1,6 @@
-package cloud.fogbow.ras.core.datastore;
+package cloud.fogbow.ras.core.datastore.services;
 
+import cloud.fogbow.common.datastore.FogbowDatabaseService;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;
@@ -12,31 +13,28 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class RecoveryService {
+public class RecoveryService extends FogbowDatabaseService<Order> {
     private static final Logger LOGGER = Logger.getLogger(RecoveryService.class);
 
     @Autowired
     private OrderRepository orderRepository;
-
-    public RecoveryService() {
-    }
 
     public List<Order> readActiveOrders(OrderState orderState) {
         return orderRepository.findByOrderState(orderState);
     }
 
     public void save(Order order) throws UnexpectedException {
-        if (orderRepository.exists(order.getId())) {
+        if (this.orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.REQUEST_ALREADY_EXIST);
         }
-        this.orderRepository.save(order);
+        safeSave(order, this.orderRepository);
     }
 
     public void update(Order order) throws UnexpectedException {
-        if (!orderRepository.exists(order.getId())) {
+        if (!this.orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.INEXISTENT_REQUEST);
         }
-        this.orderRepository.save(order);
+        safeSave(order, this.orderRepository);
     }
 
 }

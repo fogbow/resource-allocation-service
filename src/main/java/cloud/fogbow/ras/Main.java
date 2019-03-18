@@ -9,9 +9,10 @@ import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
-import cloud.fogbow.ras.core.datastore.AuditService;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.datastore.RecoveryService;
+import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
+import cloud.fogbow.ras.core.datastore.services.AuditableRequestService;
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.apache.log4j.Logger;
@@ -30,7 +31,10 @@ public class Main implements ApplicationRunner {
     private RecoveryService recoveryService;
 
     @Autowired
-    private AuditService auditService;
+    private AuditableRequestService auditableRequestService;
+
+    @Autowired
+    private AuditableOrderStateChangeService auditableOrderStateChangeService;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -40,7 +44,8 @@ public class Main implements ApplicationRunner {
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
-            DatabaseManager.getInstance().setAuditService(auditService);
+            DatabaseManager.getInstance().setAuditableOrderStateChangeService(auditableOrderStateChangeService);
+            DatabaseManager.getInstance().setAuditableRequestService(auditableRequestService);
 
             // Setting up asymmetric cryptography
             String publicKeyFilePath = PropertiesHolder.getInstance().getProperty(FogbowConstants.PUBLIC_KEY_FILE_PATH);

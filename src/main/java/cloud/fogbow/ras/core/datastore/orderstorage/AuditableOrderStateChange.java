@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.datastore.orderstorage;
 
-import cloud.fogbow.ras.core.models.StorableBean;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
@@ -10,7 +9,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "state_change_event")
-public class AuditableOrderStateChange extends StorableBean {
+public class AuditableOrderStateChange {
     @Transient
     private final Logger LOGGER = Logger.getLogger(AuditableOrderStateChange.class);
 
@@ -27,6 +26,9 @@ public class AuditableOrderStateChange extends StorableBean {
     @Column
     @Enumerated(EnumType.STRING)
     private OrderState newState;
+
+    public AuditableOrderStateChange() {
+    }
 
     public AuditableOrderStateChange(Timestamp timestamp, Order order, OrderState newState) {
         this.order = order;
@@ -48,10 +50,5 @@ public class AuditableOrderStateChange extends StorableBean {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return LOGGER;
     }
 }

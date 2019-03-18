@@ -8,10 +8,7 @@ import org.apache.log4j.Logger;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "compute_order_table")
@@ -166,17 +163,5 @@ public class ComputeOrder extends Order {
             return "";
         }
         return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return LOGGER;
-    }
-
-    @PrePersist
-    protected void checkColumnsSizes() {
-        this.name = treatValue(this.name, NAME_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
-        this.imageId = treatValue(this.imageId, IMAGE_ID_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
-        this.publicKey = treatValue(this.publicKey, PUBLIC_KEY_COLUMN_NAME, PUBLIC_KEY_MAX_SIZE);
     }
 }

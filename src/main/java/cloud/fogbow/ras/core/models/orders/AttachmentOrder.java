@@ -80,16 +80,7 @@ public class AttachmentOrder extends Order {
 
     @Override
     public String getSpec() {
+        // TODO
         return "";
-    }
-
-    @Override
-    public Logger getLogger() {
-        return LOGGER;
-    }
-
-    @PrePersist
-    protected void checkColumnsSizes() {
-        this.device = treatValue(this.device, DEVICE_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
     }
 }
