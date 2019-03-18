@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.datastore.services;
 
+import cloud.fogbow.common.datastore.FogbowDatabaseService;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;

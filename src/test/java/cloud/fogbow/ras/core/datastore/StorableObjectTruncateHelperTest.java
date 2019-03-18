@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.datastore;
 
+import cloud.fogbow.common.datastore.StorableObjectTruncateHelper;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.UserData;
