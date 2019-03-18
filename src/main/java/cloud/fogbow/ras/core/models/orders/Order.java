@@ -2,10 +2,9 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import org.apache.log4j.Logger;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;

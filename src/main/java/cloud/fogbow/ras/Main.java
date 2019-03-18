@@ -20,12 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionSystemException;
 
-import javax.persistence.RollbackException;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -101,36 +96,6 @@ public class Main implements ApplicationRunner {
             LOGGER.fatal(errorException.getMessage(), errorException);
             tryExit();
         }
-    }
-
-    private void getStorableObject(Object order) {
-        // new = constructor.call()
-        // for field in fields:
-        //   if field has not @Column:
-        //     new.field = old.field
-        //   else:
-        //     fieldMaxSize = field.getMaxSize()
-        //     new.field = truncate(old.field, fieldMaxSize)
-        // return new;
-    }
-
-    private boolean isSizeViolation(TransactionSystemException e) {
-        Throwable e1 = e.getCause();
-        if (e1 != null && e1 instanceof RollbackException) {
-            Throwable e2 = e1.getCause();
-            if (e2 != null && e2 instanceof ConstraintViolationException) {
-                ConstraintViolationException constraintViolationException = (ConstraintViolationException) e2;
-                Set<ConstraintViolation<?>> constraintViolations = constraintViolationException.getConstraintViolations();
-                if (constraintViolations.iterator().hasNext()) {
-                    ConstraintViolation<?> constraintViolation = constraintViolations.iterator().next();
-                    if (constraintViolation.getMessage().startsWith("size must be between")) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     private void tryExit() {
