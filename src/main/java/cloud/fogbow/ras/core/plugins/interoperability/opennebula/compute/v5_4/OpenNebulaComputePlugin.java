@@ -49,10 +49,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
-	private static final String TEMPLATE_DISK_IMAGE_INDEX = "TEMPLATE/DISK[%s]/IMAGE";
-	private static final String TEMPLATE_DISK_INDEX = "TEMPLATE/DISK[%s]";
-	private static final String TEMPLATE_DISK_SIZE_INDEX = "TEMPLATE/DISK[%s]/SIZE";
 	private static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
+	private static final String TEMPLATE_IMAGE_ID_PATH = "TEMPLATE/DISK/IMAGE_ID";
 	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
@@ -60,6 +58,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected static final String FIELD_RESPONSE_LIMIT = "limit";
 	protected static final String FIELD_RESPONSE_QUOTA = "quota";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
+
 	
 	private TreeSet<HardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
@@ -171,8 +170,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	protected void updateHardwareRequirements(CloudUser cloudUser) throws UnexpectedException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		Map<String, String> imageSizeMap = getImageSizes(client);
-		List<HardwareRequirements> flavors = new ArrayList<>();
+		Map<String, String> imagesSizeMap = getImagesSize(client);
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
 
 		TemplatePool templatePool = OpenNebulaClientUtil.getTemplatePool(client);
@@ -181,58 +179,52 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			for (Template template : templatePool) {
 				String id = template.getId();
 				String name = template.getName();
-				int cpu;
-				try {
-					cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
-				} catch (NumberFormatException e) {
+				int cpu = parseToInteger(template.xpath(TEMPLATE_CPU_PATH));
+				int memory = parseToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
+				String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
+				int disk = getDiskSizeFromImages(imagesSizeMap, imageId);
+				if (cpu == 0 || memory == 0 || disk == 0) {
 					continue;
 				}
-				int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
-				int disk = 0;
 				flavor = new HardwareRequirements(name, id, cpu, memory, disk);
-				flavorsTemplate.add(flavor);
-				if (!containsFlavor(flavor, this.flavors)) {
-					int size = loadImageSizeDisk(imageSizeMap, template);
-					flavor = new HardwareRequirements(name, id, cpu, memory, size);
-					flavors.add(flavor);
+				if (!containsFlavor(flavor, getFlavors())) {
+					flavorsTemplate.add(flavor);
 				}
 			}
 		}
 
-		if (flavors != null) {
-			this.flavors.addAll(flavors);
+		if (flavorsTemplate != null) {
+			this.flavors.addAll(flavorsTemplate);
 		}
-		removeInvalidFlavors(flavorsTemplate);
+	}
+	
+	protected int getDiskSizeFromImages(Map<String, String> imageSizeMap, String imageId) {
+		if (imageSizeMap != null || imageId != null) {
+			String diskSize = imageSizeMap.get(imageId);
+			return parseToInteger(diskSize);
+		} else {
+			LOGGER.error("Could not get disk size");
+			return 0;
+		}
 	}
 
-	// FIXME Get the disk size from the Image ID template
-	protected int loadImageSizeDisk(Map<String, String> map, Template template) {
-		int index = 1;
-		int size = 0;
-		while (true) {
-			String imageDiskName = template.xpath(String.format(TEMPLATE_DISK_IMAGE_INDEX, index));
-			String volatileDiskSize = template.xpath(String.format(TEMPLATE_DISK_SIZE_INDEX, index));
-			if (volatileDiskSize != null && !volatileDiskSize.isEmpty()) {
-				size += Integer.parseInt(volatileDiskSize);
-			} else if (imageDiskName != null && !imageDiskName.isEmpty()){
-				size += Integer.parseInt(map.get(imageDiskName));
-			}
-			index++;
-			String templateDiskIndex = String.format(TEMPLATE_DISK_INDEX, index);
-			if (template.xpath(templateDiskIndex) == null || template.xpath(templateDiskIndex).isEmpty()) {
-				break;
-			}
+	protected int parseToInteger(String number) {
+		try {
+			return Integer.parseInt(number);
+		} catch (NumberFormatException e) {
+			LOGGER.error(Messages.Error.ERROR_MESSAGE, e);
+			return 0;
 		}
-		return size;
 	}
 
-	protected Map<String, String> getImageSizes(Client client) throws UnexpectedException {
-		Map<String, String> imageSizeMap = new HashMap<String, String>();
+	protected Map<String, String> getImagesSize(Client client) throws UnexpectedException {
+		Map<String, String> imagesSizeMap = new HashMap<String, String>();
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		for (Image image : imagePool) {
-			imageSizeMap.put(image.getName(), image.xpath(IMAGE_SIZE_PATH));
+			String imageSize = image.xpath(IMAGE_SIZE_PATH);
+			imagesSizeMap.put(image.getId(), imageSize);
 		}
-		return imageSizeMap;
+		return imagesSizeMap;
 	}
 
 	protected boolean containsFlavor(HardwareRequirements flavor, Collection<HardwareRequirements> flavors) {
@@ -245,15 +237,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return false;
 	}
 
-	protected void removeInvalidFlavors(List<HardwareRequirements> flavors) {
-		ArrayList<HardwareRequirements> copyFlavors = new ArrayList<>(this.flavors);
-		for (HardwareRequirements flavor : copyFlavors) {
-			if (!containsFlavor(flavor, flavors) && copyFlavors.size() != 0) {
-				this.flavors.remove(flavor);
-			}
-		}
-	}
-	
 	protected ComputeInstance getComputeInstance(VirtualMachine virtualMachine) {
 		String xml = getTemplateResponse(virtualMachine);
 		String id = virtualMachine.getId();
@@ -286,9 +269,17 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return response.getMessage();
 	}
 	
-	protected void setFlavors(TreeSet<HardwareRequirements> flavors) {
-		this.flavors = flavors;
-	}
+	protected TreeSet<HardwareRequirements> getFlavors() {
+        synchronized (this.flavors) {
+            return new TreeSet<HardwareRequirements>(this.flavors);
+        }
+    }
+
+    protected void setFlavors(TreeSet<HardwareRequirements> flavors) {
+        synchronized (this.flavors) {
+            this.flavors = flavors;
+        }
+    }
 	
 	public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
 		this.launchCommandGenerator = launchCommandGenerator;
