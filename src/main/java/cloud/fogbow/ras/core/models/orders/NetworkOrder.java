@@ -83,16 +83,4 @@ public class NetworkOrder extends Order {
     public String getSpec() {
         return "";
     }
-
-    @Override
-    public Logger getLogger() {
-        return LOGGER;
-    }
-
-    @PrePersist
-    protected void checkColumnsSizes() {
-        this.name = treatValue(this.name, NAME_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
-        this.gateway = treatValue(this.gateway, GATEWAY_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
-        this.cidr = treatValue(this.cidr, CIDR_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
-    }
 }

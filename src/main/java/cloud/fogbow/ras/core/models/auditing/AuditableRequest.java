@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.models.auditing;
 
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.StorableBean;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;
@@ -11,7 +10,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "request")
-public class AuditableRequest extends StorableBean {
+public class AuditableRequest {
 
     private static final String USER_ID_COLUMN_NAME = "user_id";
     private static final String SYSTEM_IDENTITY_PROVIDER_ID_COLUMN_NAME = "identity_provider_id";
@@ -51,6 +50,10 @@ public class AuditableRequest extends StorableBean {
     @Column(name = RESPONSE_COLUMN_NAME)
     private String response;
 
+    public AuditableRequest() {
+
+    }
+
     public AuditableRequest(Timestamp timestamp, Operation operation, ResourceType resourceType, String userId, String identityProviderId, String response) {
         this.timestamp = timestamp;
         this.operation = operation;
@@ -58,17 +61,5 @@ public class AuditableRequest extends StorableBean {
         this.userId = userId;
         this.identityProviderId = identityProviderId;
         this.response = response;
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return LOGGER;
-    }
-
-    @PrePersist
-    private void checkColumnsSizes() {
-        this.userId = treatValue(this.userId, USER_ID_COLUMN_NAME, USER_ID_MAX_SIZE);
-        this.identityProviderId = treatValue(this.identityProviderId, SYSTEM_IDENTITY_PROVIDER_ID_COLUMN_NAME, SYSTEM_IDENTITY_PROVIDER_ID_MAX_SIZE);
-        this.response = treatValue(this.response, RESPONSE_COLUMN_NAME, RESPONSE_MAX_SIZE);
     }
 }
