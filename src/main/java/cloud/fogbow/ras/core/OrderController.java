@@ -10,6 +10,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.*;
@@ -17,18 +18,19 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class OrderController {
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
 
     private final SharedOrderHolders orderHolders;
+    private Map<String, List<String>> orderDependencies;
 
     public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
+        this.orderDependencies = new ConcurrentHashMap<>();
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
@@ -184,5 +186,54 @@ public class OrderController {
 
 		return requestedOrders;
 	}
+
+	public void updateDependencies(Order order, Operation operation) throws FogbowException {
+        AttachmentOrder attachmentOrder = null;
+        PublicIpOrder publicIpOrder = null;
+
+        switch (order.getType()) {
+            case ATTACHMENT:
+                attachmentOrder = (AttachmentOrder) order;
+                break;
+            case PUBLIC_IP:
+                publicIpOrder = (PublicIpOrder) order;
+                break;
+            default:
+                // Dependencies check applies only to attachment and public IP orders.
+                return;
+        }
+
+        String computeOrderId = null;
+        String orderId = null;
+
+        if (attachmentOrder != null) {
+            computeOrderId = attachmentOrder.getComputeId();
+            orderId = attachmentOrder.getVolumeId();
+        }
+
+        if (publicIpOrder != null) {
+            computeOrderId = publicIpOrder.getComputeOrderId();
+            orderId = publicIpOrder.getId();
+        }
+
+        if (operation == Operation.CREATE) {
+            if (this.orderDependencies.containsKey(computeOrderId)) {
+                this.orderDependencies.get(computeOrderId).add(orderId);
+            } else {
+                this.orderDependencies.put(computeOrderId, new ArrayList<>(Arrays.asList(orderId)));
+            }
+        } else if (operation == Operation.DELETE) {
+            if (this.orderDependencies.containsKey(computeOrderId)) {
+                this.orderDependencies.get(computeOrderId).remove(orderId);
+            }
+        }
+    }
+
+    public void checkDependencies(String computeOrderId) throws FogbowException {
+        if (this.orderDependencies.containsKey(computeOrderId) &&
+            !this.orderDependencies.get(computeOrderId).isEmpty()) {
+                throw new FogbowException();
+        }
+    }
 }
 

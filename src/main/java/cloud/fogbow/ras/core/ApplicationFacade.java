@@ -134,6 +134,9 @@ public class ApplicationFacade {
     }
 
     public void deleteCompute(String computeId, String userToken) throws FogbowException {
+        // NOTE(pauloewerton): ensure there is no volume or public IP associated with this compute before deleting it.
+        this.orderController.checkDependencies(computeId);
+
         deleteOrder(computeId, userToken, ResourceType.COMPUTE);
     }
 
@@ -289,6 +292,7 @@ public class ApplicationFacade {
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
         OrderStateTransitioner.activateOrder(order);
+        this.orderController.updateDependencies(order, Operation.CREATE);
         return order.getId();
     }
 
