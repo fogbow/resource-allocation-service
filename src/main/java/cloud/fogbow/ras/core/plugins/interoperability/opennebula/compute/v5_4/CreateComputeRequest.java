@@ -17,19 +17,25 @@ public class CreateComputeRequest {
 		VirtualMachineTemplate.Context context = buildContext(builder);
 		VirtualMachineTemplate.Graphics graphics = buildGraphics(builder);
 		VirtualMachineTemplate.ImageDisk imageDisk = buildImage(builder);
-		VirtualMachineTemplate.VolumeDisk volumeDisk = buildVolume(builder);
-		List<VirtualMachineTemplate.Nic> nics = buildNics(builder);
+		List<VirtualMachineTemplate.Nic> nicList = buildNics(builder);
+		VirtualMachineTemplate.OperationalSystem os = buildOs(builder);
 		
 		this.virtualMachine = new VirtualMachineTemplate();
 		this.virtualMachine.setContext(context);
 		this.virtualMachine.setCpu(cpu);
 		this.virtualMachine.setGraphics(graphics);
 		this.virtualMachine.setImageDisk(imageDisk);
-		this.virtualMachine.setVolumeDisk(volumeDisk);
 		this.virtualMachine.setMemory(memory);
-		this.virtualMachine.setNics(nics);
+		this.virtualMachine.setNicList(nicList);
+		this.virtualMachine.setOperationalSystem(os);
 	}
 
+	private VirtualMachineTemplate.OperationalSystem buildOs(Builder builder) {
+		VirtualMachineTemplate.OperationalSystem os = new VirtualMachineTemplate.OperationalSystem();
+		os.setArchitecture(builder.architecture);
+		return os;
+	}
+	
 	private List<VirtualMachineTemplate.Nic> buildNics(Builder builder) {
 		List<VirtualMachineTemplate.Nic> networks = new ArrayList<>();
 		for (int i = 0; i < builder.networks.size(); i++) {
@@ -38,13 +44,6 @@ public class CreateComputeRequest {
 			networks.add(nic);
 		}
 		return networks;
-	}
-
-	private VirtualMachineTemplate.VolumeDisk buildVolume(Builder builder) {
-		VirtualMachineTemplate.VolumeDisk volumeDisk = new VirtualMachineTemplate.VolumeDisk();
-		volumeDisk.setSize(builder.volumeSize);
-		volumeDisk.setType(builder.volumeType);
-		return volumeDisk;
 	}
 
 	private VirtualMachineTemplate.ImageDisk buildImage(Builder builder) {
@@ -76,11 +75,10 @@ public class CreateComputeRequest {
 		private String graphicsListen;
 		private String graphicsType;
 		private String imageId;
-		private String volumeSize;
-		private String volumeType;
 		private String memory;
 		private List<String> networks;
-
+		private String architecture;
+		
 		public Builder contextEncoding(String contextEncoding) {
 			this.contextEncoding = contextEncoding;
 			return this;
@@ -116,16 +114,6 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder volumeSize(String volumeSize) {
-			this.volumeSize = volumeSize;
-			return this;
-		}
-
-		public Builder volumeType(String volumeType) {
-			this.volumeType = volumeType;
-			return this;
-		}
-
 		public Builder memory(String memory) {
 			this.memory = memory;
 			return this;
@@ -133,6 +121,11 @@ public class CreateComputeRequest {
 
 		public Builder networks(List<String> networks) {
 			this.networks = networks;
+			return this;
+		}
+		
+		public Builder architecture(String architecture) {
+			this.architecture = architecture;
 			return this;
 		}
 

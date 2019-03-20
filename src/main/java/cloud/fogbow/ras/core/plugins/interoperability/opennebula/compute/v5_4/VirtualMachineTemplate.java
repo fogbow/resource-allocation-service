@@ -18,7 +18,8 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	private VirtualMachineTemplate.ImageDisk imageDisk;
 	private VirtualMachineTemplate.VolumeDisk volumeDisk;
 	private String memory;
-	private List<VirtualMachineTemplate.Nic> nics;
+	private List<VirtualMachineTemplate.Nic> nicList;
+	private VirtualMachineTemplate.OperationalSystem operationalSystem;
 
 	@XmlElement(name = CONTEXT)
 	public VirtualMachineTemplate.Context getContext() {
@@ -75,12 +76,21 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	@XmlElement(name = NETWORK_INTERFACE_CONNECTED)
-	public List<VirtualMachineTemplate.Nic> getNics() {
-		return nics;
+	public List<VirtualMachineTemplate.Nic> getNicList() {
+		return nicList;
 	}
 
-	public void setNics(List<VirtualMachineTemplate.Nic> nics) {
-		this.nics = nics;
+	public void setNicList(List<VirtualMachineTemplate.Nic> nicList) {
+		this.nicList = nicList;
+	}
+	
+	@XmlElement(name = "OS") // FIXME create constant OPERATIONAL_SYSTEM
+	public VirtualMachineTemplate.OperationalSystem getOperationalSystem() {
+		return operationalSystem;
+	}
+
+	public void setOperationalSystem(VirtualMachineTemplate.OperationalSystem operationalSystem) {
+		this.operationalSystem = operationalSystem;
 	}
 
 	@XmlRootElement(name = CONTEXT)
@@ -195,6 +205,21 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 
 		public void setNetworkId(String networkId) {
 			this.networkId = networkId;
+		}
+	}
+	
+	@XmlRootElement(name = "OS") // FIXME create constant OPERATIONAL_SYSTEM
+	public static class OperationalSystem {
+		
+		private String architecture;
+
+		@XmlElement(name = "ARCH") // FIXME create constant ARCHITECTURE
+		public String getArchitecture() {
+			return architecture;
+		}
+
+		public void setArchitecture(String architecture) {
+			this.architecture = architecture;
 		}
 	}
 }
