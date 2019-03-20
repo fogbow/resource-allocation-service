@@ -355,82 +355,6 @@ public class OpenNebulaComputePluginTest {
 		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
-	// test case: When calling the getInstance method of a resource with the volatile disk size passing 
-	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
-	@Ignore
-	@Test
-	public void testGetInstanceSuccessfulWithVolatileDiskResource() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.eq(client))).willReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_VALUE);
-
-		Template template = mockTemplatePoolIterator();
-		int index = 1;
-		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_SIZE_PATH, index))).thenReturn(IMAGE_SIZE_VALUE);
-		index++;
-		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_PATH, index))).thenReturn(FAKE_NAME);
-
-		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualMachine);
-		Mockito.when(virtualMachine.getId()).thenReturn(FAKE_INSTANCE_ID);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_NAME_PATH)).thenReturn(FAKE_NAME);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_CPU_PATH)).thenReturn(TEMPLATE_CPU_VALUE);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(TEMPLATE_MEMORY_VALUE);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(IMAGE_SIZE_VALUE);
-		Mockito.when(virtualMachine.lcmStateStr()).thenReturn(DEFAULT_VIRTUAL_MACHINE_STATE);
-
-		String xml = FAKE_NIC_IP_TEMPLATE;
-		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.when(virtualMachine.info()).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.when(response.getMessage()).thenReturn(xml);
-
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = FAKE_INSTANCE_ID;
-
-		// exercise
-		this.plugin.getInstance(instanceId, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getTemplatePool(Mockito.eq(client));
-
-		Mockito.verify(template, Mockito.times(1)).getId();
-		Mockito.verify(template, Mockito.times(1)).getName();
-		Mockito.verify(template, Mockito.times(9)).xpath(Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(2)).containsFlavor(Mockito.any(HardwareRequirements.class),
-				Mockito.anyCollection());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).getComputeInstance(virtualMachine);
-		Mockito.verify(virtualMachine, Mockito.times(1)).getId();
-		Mockito.verify(virtualMachine, Mockito.times(1)).lcmStateStr();
-		Mockito.verify(virtualMachine, Mockito.times(4)).xpath(Mockito.anyString());
-	}
-
 	// test case: When calling the getInstance method of a resource without the volatile disk size passing 
 	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
 	@Test
@@ -667,10 +591,9 @@ public class OpenNebulaComputePluginTest {
 				"    <NIC>\n" + 
 				"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
 				"    </NIC>\n" + 
-				"    <DISK>\n" + 
-				"        <SIZE>%s</SIZE>\n" + 
-				"        <TYPE>fs</TYPE>\n" + 
-				"    </DISK>\n" + 
+				"    <OS>\n" + 
+				"        <ARCH>x86_64</ARCH>\n" + 
+				"    </OS>\n" + 
 				"</TEMPLATE>\n";
 		
 		String template1 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
@@ -692,10 +615,9 @@ public class OpenNebulaComputePluginTest {
 				"    <NIC>\n" + 
 				"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
 				"    </NIC>\n" + 
-				"    <DISK>\n" + 
-				"        <SIZE>%s</SIZE>\n" + 
-				"        <TYPE>fs</TYPE>\n" + 
-				"    </DISK>\n" + 
+				"    <OS>\n" + 
+				"        <ARCH>x86_64</ARCH>\n" + 
+				"    </OS>\n" + 
 				"</TEMPLATE>\n";
 		
 		if (choice == 0) {
