@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Disk;
+
 public class CreateComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;
@@ -16,18 +18,27 @@ public class CreateComputeRequest {
 		String memory = builder.memory;
 		VirtualMachineTemplate.Context context = buildContext(builder);
 		VirtualMachineTemplate.Graphics graphics = buildGraphics(builder);
-		VirtualMachineTemplate.ImageDisk imageDisk = buildImage(builder);
-		List<VirtualMachineTemplate.Nic> nicList = buildNics(builder);
+		VirtualMachineTemplate.Disk disk = buildDisk(builder);
+		List<VirtualMachineTemplate.Nic> nic = buildNic(builder);
 		VirtualMachineTemplate.OperationalSystem os = buildOs(builder);
 		
 		this.virtualMachine = new VirtualMachineTemplate();
 		this.virtualMachine.setContext(context);
 		this.virtualMachine.setCpu(cpu);
 		this.virtualMachine.setGraphics(graphics);
-		this.virtualMachine.setImageDisk(imageDisk);
+		this.virtualMachine.setDisk(disk);
 		this.virtualMachine.setMemory(memory);
-		this.virtualMachine.setNicList(nicList);
+		this.virtualMachine.setNic(nic);
 		this.virtualMachine.setOperationalSystem(os);
+	}
+
+	private Disk buildDisk(Builder builder) {
+		VirtualMachineTemplate.Disk disk = new VirtualMachineTemplate.Disk();
+		disk.setImageId(builder.diskImageId);
+		disk.setType(builder.diskType);
+		disk.setSize(builder.diskSize);
+		disk.setFormat(builder.diskFormat);
+		return disk;
 	}
 
 	private VirtualMachineTemplate.OperationalSystem buildOs(Builder builder) {
@@ -36,7 +47,7 @@ public class CreateComputeRequest {
 		return os;
 	}
 	
-	private List<VirtualMachineTemplate.Nic> buildNics(Builder builder) {
+	private List<VirtualMachineTemplate.Nic> buildNic(Builder builder) {
 		List<VirtualMachineTemplate.Nic> networks = new ArrayList<>();
 		for (int i = 0; i < builder.networks.size(); i++) {
 			VirtualMachineTemplate.Nic nic = new VirtualMachineTemplate.Nic();
@@ -46,15 +57,9 @@ public class CreateComputeRequest {
 		return networks;
 	}
 
-	private VirtualMachineTemplate.ImageDisk buildImage(Builder builder) {
-		VirtualMachineTemplate.ImageDisk imageDisk = new VirtualMachineTemplate.ImageDisk();
-		imageDisk.setImageId(builder.imageId);
-		return imageDisk;
-	}
-
 	private VirtualMachineTemplate.Graphics buildGraphics(Builder builder) {
 		VirtualMachineTemplate.Graphics graphics = new VirtualMachineTemplate.Graphics();
-		graphics.setListen(builder.graphicsListen);
+		graphics.setAddress(builder.graphicsAddress);
 		graphics.setType(builder.graphicsType);
 		return graphics;
 	}
@@ -72,9 +77,12 @@ public class CreateComputeRequest {
 		private String contextUserdata;
 		private String contextNetwork;
 		private String cpu;
-		private String graphicsListen;
+		private String graphicsAddress;
 		private String graphicsType;
-		private String imageId;
+		private String diskImageId;
+		private String diskType;
+		private String diskSize;
+		private String diskFormat;
 		private String memory;
 		private List<String> networks;
 		private String architecture;
@@ -99,8 +107,8 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder graphicsListen(String graphicsListen) {
-			this.graphicsListen = graphicsListen;
+		public Builder graphicsAddress(String graphicsAddress) {
+			this.graphicsAddress = graphicsAddress;
 			return this;
 		}
 
@@ -109,8 +117,23 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder imageId(String imageId) {
-			this.imageId = imageId;
+		public Builder diskImageId(String diskImageId) {
+			this.diskImageId = diskImageId;
+			return this;
+		}
+		
+		public Builder diskType(String diskType) {
+			this.diskType = diskType;
+			return this;
+		}
+		
+		public Builder diskSize(String diskSize) {
+			this.diskSize = diskSize;
+			return this;
+		}
+		
+		public Builder diskFormat(String diskFormat) {
+			this.diskFormat = diskFormat;
 			return this;
 		}
 

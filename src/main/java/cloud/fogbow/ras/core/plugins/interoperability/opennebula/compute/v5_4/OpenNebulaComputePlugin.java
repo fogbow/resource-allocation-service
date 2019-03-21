@@ -42,9 +42,11 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
 	
 	private static final String DEFAULT_ARCHITECTURE = "x86_64";
-	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+	private static final String DEFAULT_DISK_FORMAT = "ext3";
+	private static final String DEFAULT_DISK_TYPE = "fs";
 	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
+	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
@@ -58,11 +60,11 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected static final String FIELD_RESPONSE_LIMIT = "limit";
 	protected static final String FIELD_RESPONSE_QUOTA = "quota";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
-	
+
+	private String endpoint;
 	private TreeSet<HardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
 	private Properties properties;
-	private String endpoint;
 
 	public OpenNebulaComputePlugin(String confFilePath) throws FatalErrorException {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
@@ -76,33 +78,49 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		String encoding = USERDATA_ENCODING_CONTEXT;
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+		String encoding = USERDATA_ENCODING_CONTEXT;
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
-		String address = DEFAULT_GRAPHIC_ADDRESS;
+		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
-		String imageId = computeOrder.getImageId();
-		List<String> networks = resolveNetworkIds(computeOrder);
 		String architecture = DEFAULT_ARCHITECTURE;
+		List<String> networks = resolveNetworkIds(computeOrder);
 
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
 		String cpu = String.valueOf(foundFlavor.getCpu());
 		String ram = String.valueOf(foundFlavor.getMemory());
-
+		
+		int disk = foundFlavor.getDisk();
+		String diskSize = null;
+		String diskType = null;
+		String diskFormat = null;
+		String diskImageId = null;
+		if (computeOrder.getDisk() > 0 && computeOrder.getDisk() < disk) {
+			diskSize = String.valueOf(computeOrder.getDisk());
+			diskType = DEFAULT_DISK_TYPE;
+			diskFormat = DEFAULT_DISK_FORMAT;
+		} else {
+			diskImageId = computeOrder.getImageId();
+		}
+		
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
 				.contextEncoding(encoding)
 				.contextUserdata(userData)
 				.contextNetwork(hasNetwork)
 				.cpu(cpu)
-				.graphicsListen(address)
+				.graphicsAddress(graphicsAddress)
 				.graphicsType(graphicsType)
-				.imageId(imageId)
+				.diskImageId(diskImageId)
+				.diskType(diskType)
+				.diskSize(diskSize)
+				.diskFormat(diskFormat)
 				.memory(ram)
 				.networks(networks)
 				.architecture(architecture)
 				.build();
 		
 		String template = request.getVirtualMachine().marshalTemplate();
+		System.out.println(template); // FIXME remove this later
 		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
 		return instanceId;
 	}
@@ -155,7 +173,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		for (HardwareRequirements hardwareRequirements : getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
-					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) { // TODO check this
 				return hardwareRequirements;
 			}
 		}
@@ -197,12 +215,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			String diskSize = imageSizeMap.get(imageId);
 			return convertToInteger(diskSize);
 		} else {
-			LOGGER.error("Could not get disk size");
+			LOGGER.error("Could not get disk size"); // FIXME create constant to this error
 			return 0;
 		}
 	}
 
-	protected int convertToInteger(String number) { // FIXME convertToInteger
+	protected int convertToInteger(String number) { // TODO check this
 		try {
 			return Integer.parseInt(number);
 		} catch (NumberFormatException e) {
