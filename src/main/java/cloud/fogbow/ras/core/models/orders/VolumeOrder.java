@@ -61,14 +61,4 @@ public class VolumeOrder extends Order {
     public String getSpec() {
         return String.valueOf(this.volumeSize);
     }
-
-    @Override
-    public Logger getLogger() {
-        return LOGGER;
-    }
-
-    @PrePersist
-    private void checkColumnsSizes() {
-        this.name = treatValue(this.name, NAME_COLUMN_NAME, Order.FIELDS_MAX_SIZE);
-    }
 }

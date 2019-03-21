@@ -5,6 +5,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.*;
