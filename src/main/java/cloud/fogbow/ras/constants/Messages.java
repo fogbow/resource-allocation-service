@@ -153,5 +153,6 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
         public static final String VALUE_TOO_LARGE_TO_STORE = "Value '%s' is too large to be stored in the column '%s' of the table relative to the class '%s', storing '%s' instead";
+        public static final String DEPENDENCY_ERROR = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
     }
 }

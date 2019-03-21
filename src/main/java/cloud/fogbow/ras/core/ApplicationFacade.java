@@ -296,16 +296,14 @@ public class ApplicationFacade {
         return order.getId();
     }
 
-    private Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType)
-            throws FogbowException, UnexpectedException {
+    private Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
-    private void deleteOrder(String orderId, String userToken, ResourceType resourceType)
-            throws FogbowException, UnexpectedException {
+    private void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);

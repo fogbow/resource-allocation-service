@@ -62,6 +62,8 @@ public class OrderController {
                 throw new InstanceNotFoundException(message);
             }
         }
+
+        this.updateDependencies(this.getOrder(orderId), Operation.DELETE);
     }
 
     public Instance getResourceInstance(String orderId) throws FogbowException, UnexpectedException {
@@ -232,7 +234,8 @@ public class OrderController {
     public void checkDependencies(String computeOrderId) throws FogbowException {
         if (this.orderDependencies.containsKey(computeOrderId) &&
             !this.orderDependencies.get(computeOrderId).isEmpty()) {
-                throw new FogbowException();
+                throw new FogbowException(String.format(Messages.Error.DEPENDENCY_ERROR, computeOrderId,
+                                          this.orderDependencies.get(computeOrderId)));
         }
     }
 }
