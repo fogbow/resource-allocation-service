@@ -22,12 +22,12 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputeQuotaPlugin.class);
 	
-	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
-	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
-	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
-	private static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
-	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
-	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
+	protected static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
+	protected static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
+	protected static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
+	protected static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
+	protected static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
+	protected static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
 	
 	private String endpoint;
 

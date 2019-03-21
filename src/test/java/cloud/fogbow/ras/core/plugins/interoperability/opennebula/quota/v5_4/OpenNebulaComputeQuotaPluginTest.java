@@ -30,27 +30,28 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 @PrepareForTest({OpenNebulaClientUtil.class})
 public class OpenNebulaComputeQuotaPluginTest {
 
-	private static final String EIGHT_CPU_VALUE = "8";
+	private static final String CPU_MAX_VALUE = "8";
+	private static final String CPU_USED_VALUE = "2";
+	private static final String EMPTY_STRING = "";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String FIVE_VMS = "5";
-	private static final String GROUPS_ID_PATH = "GROUPS/ID";
+	private static final String FRACTION_RESOURCE_USED_VALUE = "1.5";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String MEMORY_VALUE_2MB = "2048";
-	private static final String MEMORY_VALUE_32MB = "32768";
-	private static final String ONE_ID_VALUE = "1";
-	private static final String ONE_VM_VALUE = "1";
-	private static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
-	private static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
-	private static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
-	private static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
-	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
-	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
-	private static final String CPU_VALUE_2 = "2";
+	private static final String MEMORY_USED_VALUE = "2048";
+	private static final String MEMORY_MAX_VALUE = "32768";
+	private static final String QUOTA_CPU_USED_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_CPU_USED_PATH;
+	private static final String QUOTA_MEMORY_USED_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_MEMORY_USED_PATH;
+	private static final String QUOTA_VMS_USED_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_VMS_USED_PATH;
+	private static final String QUOTA_CPU_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_CPU_PATH;
+	private static final String QUOTA_MEMORY_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_MEMORY_PATH;
+	private static final String QUOTA_VMS_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_VMS_PATH;
+	private static final String VMS_MAX_VALUE = "5";
+	private static final String VMS_USED_VALUE = "1";
 
-	private static final int INSTANCES = 4;
-	private static final int RAM = 30720;
-	private static final int VCPU = 6;
+	private static final int CPU_EXPECTED = 6;
+	private static final int MEMORY_EXPECTED = 30720;
+	private static final int VMS_EXPECTED = 4;
+	private static final int ZERO_VALUE = 0;
 
 	private OpenNebulaComputeQuotaPlugin plugin;
 
@@ -64,8 +65,8 @@ public class OpenNebulaComputeQuotaPluginTest {
 	}
 	
 	// test case: When invoking the getUserQuota method, with a valid client, a
-	// collection of users must be loaded next to a group of users, and their data
-	// will be collected to calculate the available quotas.
+	// collection of users must be loaded, with valid data to be collected to
+	// calculate the available quotas.
 	@Test
 	public void testGetUserQuotaSuccessful() throws FogbowException {
 		// set up
@@ -89,32 +90,138 @@ public class OpenNebulaComputeQuotaPluginTest {
 		Mockito.when(user.info()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
-		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(CPU_VALUE_2);
-		Mockito.when(user.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(MEMORY_VALUE_2MB);
-		Mockito.when(user.xpath(QUOTA_VMS_USED_PATH)).thenReturn(ONE_VM_VALUE);
-		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(EIGHT_CPU_VALUE);
-		Mockito.when(user.xpath(QUOTA_MEMORY_PATH)).thenReturn(MEMORY_VALUE_32MB);
-		Mockito.when(user.xpath(QUOTA_VMS_PATH)).thenReturn(FIVE_VMS);
+		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(CPU_USED_VALUE);
+		Mockito.when(user.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(MEMORY_USED_VALUE);
+		Mockito.when(user.xpath(QUOTA_VMS_USED_PATH)).thenReturn(VMS_USED_VALUE);
+		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(CPU_MAX_VALUE);
+		Mockito.when(user.xpath(QUOTA_MEMORY_PATH)).thenReturn(MEMORY_MAX_VALUE);
+		Mockito.when(user.xpath(QUOTA_VMS_PATH)).thenReturn(VMS_MAX_VALUE);
 
-		Mockito.when(user.xpath(GROUPS_ID_PATH)).thenReturn(ONE_ID_VALUE);
+		ComputeAllocation expected = new ComputeAllocation(CPU_EXPECTED, MEMORY_EXPECTED, VMS_EXPECTED);
 
-		ComputeAllocation expected = new ComputeAllocation(VCPU, RAM, INSTANCES);
-		
 		CloudUser cloudUser = createCloudUser();
-		
+
 		// exercise
 		ComputeQuota computeQuota = this.plugin.getUserQuota(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-		
+
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString());
-		
+
 		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(cloudUser));
 		Mockito.verify(user, Mockito.times(6)).xpath(Mockito.anyString());
-		
+
+		Assert.assertEquals(expected.getvCPU(), computeQuota.getAvailableQuota().getvCPU());
+		Assert.assertEquals(expected.getRam(), computeQuota.getAvailableQuota().getRam());
+		Assert.assertEquals(expected.getInstances(), computeQuota.getAvailableQuota().getInstances());
+	}
+	
+	// test case: When invoking the getUserQuota method, with no valid user data,
+	// this must return a quota with zero values.
+	@Test
+	public void testGetUserQuotaWithoutValidData() throws FogbowException {
+		// set up
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
+
+		UserPool userPool = Mockito.mock(UserPool.class);
+		BDDMockito.given(OpenNebulaClientUtil.getUserPool(Mockito.eq(client))).willReturn(userPool);
+
+		User user = Mockito.mock(User.class);
+		BDDMockito.given(OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString())).willReturn(user);
+
+		Iterator<User> userIterator = Mockito.mock(Iterator.class);
+		Mockito.when(userPool.iterator()).thenReturn(userIterator);
+		Mockito.when(userIterator.hasNext()).thenReturn(true, false);
+		Mockito.when(userIterator.next()).thenReturn(user);
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.when(user.info()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+
+		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(EMPTY_STRING);
+		Mockito.when(user.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(EMPTY_STRING);
+		Mockito.when(user.xpath(QUOTA_VMS_USED_PATH)).thenReturn(EMPTY_STRING);
+		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(EMPTY_STRING);
+		Mockito.when(user.xpath(QUOTA_MEMORY_PATH)).thenReturn(EMPTY_STRING);
+		Mockito.when(user.xpath(QUOTA_VMS_PATH)).thenReturn(EMPTY_STRING);
+
+		ComputeAllocation expected = new ComputeAllocation(ZERO_VALUE, ZERO_VALUE, ZERO_VALUE);
+
+		CloudUser cloudUser = createCloudUser();
+
+		// exercise
+		ComputeQuota computeQuota = this.plugin.getUserQuota(cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString());
+
+		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(cloudUser));
+		Mockito.verify(user, Mockito.times(6)).xpath(Mockito.anyString());
+
+		Assert.assertEquals(expected.getvCPU(), computeQuota.getAvailableQuota().getvCPU());
+		Assert.assertEquals(expected.getRam(), computeQuota.getAvailableQuota().getRam());
+		Assert.assertEquals(expected.getInstances(), computeQuota.getAvailableQuota().getInstances());
+	}
+	
+	// test case: When invoking the getUserQuota method, with a fraction of a value
+	// used by the resource, this must return a rounded value.
+	@Test
+	public void testGetUserQuotaWithFractionOfResourceUsed() throws FogbowException {
+		// set up
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
+
+		UserPool userPool = Mockito.mock(UserPool.class);
+		BDDMockito.given(OpenNebulaClientUtil.getUserPool(Mockito.eq(client))).willReturn(userPool);
+
+		User user = Mockito.mock(User.class);
+		BDDMockito.given(OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString())).willReturn(user);
+
+		Iterator<User> userIterator = Mockito.mock(Iterator.class);
+		Mockito.when(userPool.iterator()).thenReturn(userIterator);
+		Mockito.when(userIterator.hasNext()).thenReturn(true, false);
+		Mockito.when(userIterator.next()).thenReturn(user);
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.when(user.info()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+
+		Mockito.when(user.xpath(QUOTA_CPU_USED_PATH)).thenReturn(FRACTION_RESOURCE_USED_VALUE);
+		Mockito.when(user.xpath(QUOTA_MEMORY_USED_PATH)).thenReturn(MEMORY_USED_VALUE);
+		Mockito.when(user.xpath(QUOTA_VMS_USED_PATH)).thenReturn(VMS_USED_VALUE);
+		Mockito.when(user.xpath(QUOTA_CPU_PATH)).thenReturn(CPU_MAX_VALUE);
+		Mockito.when(user.xpath(QUOTA_MEMORY_PATH)).thenReturn(MEMORY_MAX_VALUE);
+		Mockito.when(user.xpath(QUOTA_VMS_PATH)).thenReturn(VMS_MAX_VALUE);
+
+		ComputeAllocation expected = new ComputeAllocation(CPU_EXPECTED, MEMORY_EXPECTED, VMS_EXPECTED);
+
+		CloudUser cloudUser = createCloudUser();
+
+		// exercise
+		ComputeQuota computeQuota = this.plugin.getUserQuota(cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString());
+
+		Mockito.verify(this.plugin, Mockito.times(1)).getUserQuota(Mockito.eq(cloudUser));
+		Mockito.verify(user, Mockito.times(6)).xpath(Mockito.anyString());
+
 		Assert.assertEquals(expected.getvCPU(), computeQuota.getAvailableQuota().getvCPU());
 		Assert.assertEquals(expected.getRam(), computeQuota.getAvailableQuota().getRam());
 		Assert.assertEquals(expected.getInstances(), computeQuota.getAvailableQuota().getInstances());
