@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -8,7 +9,6 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.After;
@@ -88,8 +88,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         // test if the open order list is empty and 
         // the spawningList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(localOrder, spawningOrdersList.getNext());
     }
@@ -119,8 +119,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         // test if the open order list is empty and the failedList is with the
         // localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertEquals(localOrder, failedOrdersList.getNext());
     }
@@ -150,8 +150,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         // test if the open order list is empty and 
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(localOrder, failedOrdersList.getNext());
     }
@@ -180,8 +180,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         // test if the open order list is empty and
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(remoteOrder, pendingOrdersList.getNext());
     }
@@ -211,8 +211,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         // test if the open order list is empty and
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertEquals(remoteOrder, failedOrdersList.getNext());
     }
@@ -235,7 +235,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         assertEquals(OrderState.PENDING, order.getOrderState());
         assertFalse(this.listIsEmpty(openOrdersList));
     }
@@ -271,7 +271,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         openOrdersList.addItem(order);
         assertEquals(OrderState.OPEN, order.getOrderState());
         assertFalse(this.listIsEmpty(openOrdersList));
@@ -368,7 +368,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.OPEN, localOrder.getOrderState());
     }
 
-    private boolean listIsEmpty(ChainedList list) {
+    private boolean listIsEmpty(ChainedList<Order> list) {
         list.resetPointer();
         return list.getNext() == null;
     }

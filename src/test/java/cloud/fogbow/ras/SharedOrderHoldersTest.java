@@ -1,10 +1,10 @@
 package cloud.fogbow.ras;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,8 +34,8 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
     @Test
     public void testGetSameListReference() {
         // set up
-        SynchronizedDoublyLinkedList listFromInstanceOne = instanceOne.getOpenOrdersList();
-        SynchronizedDoublyLinkedList listFromInstanceTwo = instanceTwo.getOpenOrdersList();
+        SynchronizedDoublyLinkedList<Order> listFromInstanceOne = instanceOne.getOpenOrdersList();
+        SynchronizedDoublyLinkedList<Order> listFromInstanceTwo = instanceTwo.getOpenOrdersList();
 
         // verify
         Assert.assertSame(listFromInstanceOne, listFromInstanceTwo);
@@ -46,8 +46,8 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
 
         // verify
         Assert.assertSame(listFromInstanceOne.getCurrent(), listFromInstanceTwo.getCurrent());
-        Assert.assertSame(orderOne, listFromInstanceOne.getCurrent().getOrder());
-        Assert.assertSame(orderOne, listFromInstanceTwo.getCurrent().getOrder());
+        Assert.assertSame(orderOne, listFromInstanceOne.getCurrent().getValue());
+        Assert.assertSame(orderOne, listFromInstanceTwo.getCurrent().getValue());
 
         // exercise
         Order orderTwo = createLocalOrder(getLocalMemberId());
@@ -57,7 +57,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         Assert.assertSame(
                 listFromInstanceOne.getCurrent().getNext(),
                 listFromInstanceTwo.getCurrent().getNext());
-        Assert.assertSame(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
-        Assert.assertSame(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
+        Assert.assertSame(orderTwo, listFromInstanceOne.getCurrent().getNext().getValue());
+        Assert.assertSame(orderTwo, listFromInstanceTwo.getCurrent().getNext().getValue());
     }
 }

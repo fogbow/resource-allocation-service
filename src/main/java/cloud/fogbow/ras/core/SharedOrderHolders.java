@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
@@ -15,14 +15,15 @@ public class SharedOrderHolders {
     private static final Logger LOGGER = Logger.getLogger(SharedOrderHolders.class);
 
     private static SharedOrderHolders instance;
+
     private Map<String, Order> activeOrdersMap;
-    private SynchronizedDoublyLinkedList openOrders;
-    private SynchronizedDoublyLinkedList spawningOrders;
-    private SynchronizedDoublyLinkedList failedAfterSuccessfulRequestOrders;
-    private SynchronizedDoublyLinkedList failedOnRequestOrders;
-    private SynchronizedDoublyLinkedList fulfilledOrders;
-    private SynchronizedDoublyLinkedList pendingOrders;
-    private SynchronizedDoublyLinkedList closedOrders;
+    private SynchronizedDoublyLinkedList<Order> openOrders;
+    private SynchronizedDoublyLinkedList<Order> spawningOrders;
+    private SynchronizedDoublyLinkedList<Order> failedAfterSuccessfulRequestOrders;
+    private SynchronizedDoublyLinkedList<Order> failedOnRequestOrders;
+    private SynchronizedDoublyLinkedList<Order> fulfilledOrders;
+    private SynchronizedDoublyLinkedList<Order> pendingOrders;
+    private SynchronizedDoublyLinkedList<Order> closedOrders;
 
     public SharedOrderHolders() {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
@@ -55,7 +56,7 @@ public class SharedOrderHolders {
         }
     }
 
-    private void addOrdersToMap(SynchronizedDoublyLinkedList ordersList, Map<String, Order> activeOrdersMap) {
+    private void addOrdersToMap(SynchronizedDoublyLinkedList<Order> ordersList, Map<String, Order> activeOrdersMap) {
         Order order;
 
         while ((order = ordersList.getNext()) != null) {
@@ -77,36 +78,36 @@ public class SharedOrderHolders {
         return activeOrdersMap;
     }
 
-    public SynchronizedDoublyLinkedList getOpenOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getOpenOrdersList() {
         return openOrders;
     }
 
-    public SynchronizedDoublyLinkedList getSpawningOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getSpawningOrdersList() {
         return spawningOrders;
     }
 
-    public SynchronizedDoublyLinkedList getFailedAfterSuccessfulRequestOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getFailedAfterSuccessfulRequestOrdersList() {
         return failedAfterSuccessfulRequestOrders;
     }
 
-    public SynchronizedDoublyLinkedList getFailedOnRequestOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getFailedOnRequestOrdersList() {
         return failedOnRequestOrders;
     }
 
-    public SynchronizedDoublyLinkedList getFulfilledOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getFulfilledOrdersList() {
         return fulfilledOrders;
     }
 
-    public SynchronizedDoublyLinkedList getPendingOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getPendingOrdersList() {
         return pendingOrders;
     }
 
-    public SynchronizedDoublyLinkedList getClosedOrdersList() {
+    public SynchronizedDoublyLinkedList<Order> getClosedOrdersList() {
         return closedOrders;
     }
 
-    public SynchronizedDoublyLinkedList getOrdersList(OrderState orderState) {
-        SynchronizedDoublyLinkedList list = null;
+    public SynchronizedDoublyLinkedList<Order> getOrdersList(OrderState orderState) {
+        SynchronizedDoublyLinkedList<Order> list = null;
         switch (orderState) {
             case OPEN:
                 list = SharedOrderHolders.getInstance().getOpenOrdersList();

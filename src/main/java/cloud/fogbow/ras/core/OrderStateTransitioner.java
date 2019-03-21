@@ -2,12 +2,12 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
@@ -27,7 +27,7 @@ public class OrderStateTransitioner {
         synchronized (order) {
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-            ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+            ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
             String orderId = order.getId();
 
@@ -72,7 +72,7 @@ public class OrderStateTransitioner {
     public static void deactivateOrder(Order order) throws UnexpectedException {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+        ChainedList<Order> closedOrders = sharedOrderHolders.getClosedOrdersList();
 
         synchronized (order) {
             if (activeOrdersMap.containsKey(order.getId())) {
@@ -97,8 +97,8 @@ public class OrderStateTransitioner {
         }
 
         SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-        SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(currentState);
-        SynchronizedDoublyLinkedList destination = ordersHolder.getOrdersList(newState);
+        SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(currentState);
+        SynchronizedDoublyLinkedList<Order> destination = ordersHolder.getOrdersList(newState);
 
         if (origin == null) {
             String message = String.format(Messages.Exception.UNABLE_TO_FIND_LIST_FOR_REQUESTS, currentState);

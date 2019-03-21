@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -9,7 +10,6 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.Before;
@@ -81,7 +81,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+        ChainedList<Order> closedOrders = sharedOrderHolders.getClosedOrdersList();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         assertNull(activeOrdersMap.get(localOrder.getId()));
 

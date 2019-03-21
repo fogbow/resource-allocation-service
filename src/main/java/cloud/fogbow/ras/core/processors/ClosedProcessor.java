@@ -1,17 +1,17 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 
 public class ClosedProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClosedProcessor.class);
 
-    private ChainedList closedOrders;
+    private ChainedList<Order> closedOrders;
     private Long sleepTime;
 
     public ClosedProcessor(String sleepTimeStr) {
