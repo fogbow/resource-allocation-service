@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ PublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class,
+@PrepareForTest({ RasPublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class,
 	DatabaseManager.class, PacketSenderHolder.class, RemoteGetCloudNamesRequest.class, CryptoUtil.class,
 	ServiceAsymmetricKeysHolder.class, SharedOrderHolders.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
@@ -170,9 +170,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test
 	public void testGetAuthenticationServicePublicKeySuccessfully() throws Exception {
 		// set up
-		PowerMockito.mockStatic(PublicKeysHolder.class);
-		PublicKeysHolder pkHolder = Mockito.mock(PublicKeysHolder.class);
-		PowerMockito.when(PublicKeysHolder.getInstance()).thenReturn(pkHolder);
+		PowerMockito.mockStatic(RasPublicKeysHolder.class);
+		RasPublicKeysHolder pkHolder = Mockito.mock(RasPublicKeysHolder.class);
+		PowerMockito.when(RasPublicKeysHolder.getInstance()).thenReturn(pkHolder);
 
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.when(pkHolder.getAsPublicKey()).thenReturn(keyRSA);
@@ -181,8 +181,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.getAsPublicKey();
 
 		// verify
-		PowerMockito.verifyStatic(PublicKeysHolder.class, Mockito.times(1));
-		PublicKeysHolder.getInstance();
+		PowerMockito.verifyStatic(RasPublicKeysHolder.class, Mockito.times(1));
+		RasPublicKeysHolder.getInstance();
 
 		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
 	}	

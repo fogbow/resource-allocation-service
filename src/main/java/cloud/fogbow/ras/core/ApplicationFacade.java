@@ -344,7 +344,7 @@ public class ApplicationFacade {
 
     public RSAPublicKey getAsPublicKey() throws FogbowException {
         if (this.asPublicKey == null) {
-            this.asPublicKey = PublicKeysHolder.getInstance().getAsPublicKey();
+            this.asPublicKey = RasPublicKeysHolder.getInstance().getAsPublicKey();
         }
         return this.asPublicKey;
     }
