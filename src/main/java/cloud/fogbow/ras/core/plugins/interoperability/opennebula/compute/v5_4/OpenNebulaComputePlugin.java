@@ -54,12 +54,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
 	private static final String TEMPLATE_IMAGE_ID_PATH = "TEMPLATE/DISK/IMAGE_ID";
 	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
-	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
 	
-	protected static final String FIELD_RESPONSE_LIMIT = "limit";
-	protected static final String FIELD_RESPONSE_QUOTA = "quota";
-	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
+	protected static final boolean SHUTS_DOWN_HARD = true;
 
 	private String endpoint;
 	private TreeSet<HardwareRequirements> flavors;
@@ -88,7 +85,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
 		String cpu = String.valueOf(foundFlavor.getCpu());
-		String ram = String.valueOf(foundFlavor.getMemory());
+		String memory = String.valueOf(foundFlavor.getMemory());
 		
 		int disk = foundFlavor.getDisk();
 		String diskSize = null;
@@ -114,13 +111,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				.diskType(diskType)
 				.diskSize(diskSize)
 				.diskFormat(diskFormat)
-				.memory(ram)
+				.memory(memory)
 				.networks(networks)
 				.architecture(architecture)
 				.build();
 		
 		String template = request.getVirtualMachine().marshalTemplate();
-		System.out.println(template); // FIXME remove this later
 		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
 		return instanceId;
 	}
@@ -138,7 +134,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
-		OneResponse response = virtualMachine.terminate();
+		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
 			LOGGER.error(
 					String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeInstanceId, response.getMessage()));
@@ -173,7 +169,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		for (HardwareRequirements hardwareRequirements : getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
-					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) { // TODO check this
+					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
 				return hardwareRequirements;
 			}
 		}
@@ -215,16 +211,16 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			String diskSize = imageSizeMap.get(imageId);
 			return convertToInteger(diskSize);
 		} else {
-			LOGGER.error("Could not get disk size"); // FIXME create constant to this error
+			LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE);
 			return 0;
 		}
 	}
 
-	protected int convertToInteger(String number) { // TODO check this
+	protected int convertToInteger(String number) {
 		try {
 			return Integer.parseInt(number);
 		} catch (NumberFormatException e) {
-			LOGGER.error(Messages.Error.ERROR_MESSAGE, e);
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
 			return 0;
 		}
 	}
@@ -252,7 +248,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected ComputeInstance getComputeInstance(VirtualMachine virtualMachine) {
 		String xml = getTemplateResponse(virtualMachine);
 		String id = virtualMachine.getId();
-		String hostName = virtualMachine.xpath(TEMPLATE_NAME_PATH);
+		String name = virtualMachine.getName();
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
 		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
 		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
@@ -267,7 +263,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		ComputeInstance computeInstance = new ComputeInstance(
 				id, 
 				instanceState, 
-				hostName,
+				name,
 				cpu, 
 				memory, 
 				disk, 
@@ -283,7 +279,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	
 	protected TreeSet<HardwareRequirements> getFlavors() {
         synchronized (this.flavors) {
-            return new TreeSet<HardwareRequirements>(this.flavors);
+            return this.flavors;
         }
     }
 
