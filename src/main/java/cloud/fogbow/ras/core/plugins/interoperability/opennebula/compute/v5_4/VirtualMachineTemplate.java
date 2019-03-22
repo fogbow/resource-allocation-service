@@ -74,7 +74,7 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 		this.nic = nic;
 	}
 	
-	@XmlElement(name = "OS") // FIXME create constant OPERATIONAL_SYSTEM
+	@XmlElement(name = OPERATIONAL_SYSTEM)
 	public VirtualMachineTemplate.OperationalSystem getOperationalSystem() {
 		return os;
 	}
@@ -178,7 +178,7 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 			this.size = size;
 		}
 
-		@XmlElement(name = "FORMAT") // FIXME create constant FORMAT
+		@XmlElement(name = FORMAT)
 		public String getFormat() {
 			return format;
 		}
@@ -228,12 +228,12 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 		}
 	}
 	
-	@XmlRootElement(name = "OS") // FIXME create constant OPERATIONAL_SYSTEM
+	@XmlRootElement(name = OPERATIONAL_SYSTEM)
 	public static class OperationalSystem {
 		
 		private String architecture;
 
-		@XmlElement(name = "ARCH") // FIXME create constant ARCHITECTURE
+		@XmlElement(name = ARCHITECTURE)
 		public String getArchitecture() {
 			return architecture;
 		}
