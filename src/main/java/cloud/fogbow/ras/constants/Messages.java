@@ -105,10 +105,11 @@ public class Messages {
     	public static final String CONTENT_DESERIALIZATION_FAILURE = "Is not possible deserialize the Security Rule ID: %s.";
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
-        public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
+        public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
+        public static final String ERROR_WHILE_CONVERTING_TO_INTEGER = "Error while converting the input string to an integer.";
         public static final String ERROR_WHILE_CREATING_CLIENT = "Error while creating client.";
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
@@ -116,8 +117,9 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
-        public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
+        public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting disk size.";
+        public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
