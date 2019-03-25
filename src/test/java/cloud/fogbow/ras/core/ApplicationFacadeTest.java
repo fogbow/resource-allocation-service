@@ -384,7 +384,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
 		// order controller is called once more to check for public IP or attachment dependencies
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
@@ -559,7 +559,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
@@ -728,7 +728,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());

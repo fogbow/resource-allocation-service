@@ -62,8 +62,6 @@ public class OrderController {
                 throw new InstanceNotFoundException(message);
             }
         }
-
-        this.updateComputeDependencies(this.getOrder(orderId), Operation.DELETE);
     }
 
     public Instance getResourceInstance(String orderId) throws FogbowException, UnexpectedException {

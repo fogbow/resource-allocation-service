@@ -187,6 +187,7 @@ public class ApplicationFacade {
 
     public void deleteAttachment(String orderId, String userToken) throws FogbowException {
         deleteOrder(orderId, userToken, ResourceType.ATTACHMENT);
+        this.orderController.updateComputeDependencies(this.orderController.getOrder(orderId), Operation.DELETE);
     }
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String userToken) throws FogbowException {
@@ -202,6 +203,7 @@ public class ApplicationFacade {
 
     public void deletePublicIp(String publicIpOrderId, String userToken) throws FogbowException {
         deleteOrder(publicIpOrderId, userToken, ResourceType.PUBLIC_IP);
+        this.orderController.updateComputeDependencies(this.orderController.getOrder(publicIpOrderId), Operation.DELETE);
     }
 
     public List<InstanceStatus> getAllInstancesStatus(String userToken, ResourceType resourceType)
