@@ -135,7 +135,7 @@ public class ApplicationFacade {
 
     public void deleteCompute(String computeId, String userToken) throws FogbowException {
         // NOTE(pauloewerton): ensure there is no volume or public IP associated with this compute before deleting it.
-        this.orderController.checkDependencies(computeId);
+        this.orderController.checkComputeDependencies(computeId);
 
         deleteOrder(computeId, userToken, ResourceType.COMPUTE);
     }
@@ -175,7 +175,10 @@ public class ApplicationFacade {
     }
 
     public String createAttachment(AttachmentOrder attachmentOrder, String userToken) throws FogbowException {
-        return activateOrder(attachmentOrder, userToken);
+        String attachmentOrderId = activateOrder(attachmentOrder, userToken);
+        this.orderController.updateComputeDependencies(attachmentOrder, Operation.CREATE);
+
+        return attachmentOrderId;
     }
 
     public AttachmentInstance getAttachment(String orderId, String userToken) throws FogbowException {
@@ -187,7 +190,10 @@ public class ApplicationFacade {
     }
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String userToken) throws FogbowException {
-        return activateOrder(publicIpOrder, userToken);
+        String publicIpOrderId = activateOrder(publicIpOrder, userToken);
+        this.orderController.updateComputeDependencies(publicIpOrder, Operation.CREATE);
+
+        return publicIpOrderId;
     }
 
     public PublicIpInstance getPublicIp(String publicIpOrderId, String userToken) throws FogbowException {
@@ -292,7 +298,6 @@ public class ApplicationFacade {
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
         OrderStateTransitioner.activateOrder(order);
-        this.orderController.updateDependencies(order, Operation.CREATE);
         return order.getId();
     }
 

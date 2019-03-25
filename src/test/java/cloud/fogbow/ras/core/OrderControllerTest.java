@@ -17,12 +17,14 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -413,6 +415,34 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
+        this.ordersController.deleteOrder(orderId);
+
+        // verify
+        Order order = this.closedOrdersList.getNext();
+
+        Assert.assertNull(this.openOrdersList.getNext());
+        Assert.assertNotNull(order);
+        Assert.assertEquals(computeOrder, order);
+        Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+    }
+
+    // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
+    @Test(expected = FogbowException.class)
+    public void testDeleteOrderWithDependency() throws Exception {
+        // set up
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
+
+        // verify
+        Assert.assertNotNull(this.openOrdersList.getNext());
+        Assert.assertNull(this.closedOrdersList.getNext());
+
+        // exercise
+        this.ordersController.checkComputeDependencies(computeOrder.getId());
         this.ordersController.deleteOrder(orderId);
 
         // verify

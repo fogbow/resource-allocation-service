@@ -383,7 +383,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
+		// order controller is called once more to check for public IP or attachment dependencies
+		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
@@ -558,7 +559,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
@@ -727,7 +728,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
@@ -797,6 +798,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -897,10 +899,56 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
+		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
+	}
+
+	// test case: When calling the deleteCompute method passing a compute order with an attachment dependency,
+	// raise error
+	@Test(expected = FogbowException.class) // verify
+	public void testDeleteComputeOrderWithAttachmentDependency() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+		AuthorizationController authorization = mockAuthorizationController(systemUser);
+
+		AttachmentOrder order = spyAttachmentOrder(systemUser);
+
+		AttachmentInstance attachmentInstance = new AttachmentInstance(order.getId());
+		order.setInstanceId(attachmentInstance.getId());
+
+		// checking if the order has no state and is null
+		Assert.assertNull(order.getOrderState());
+		OrderState expectedOrderState = OrderState.OPEN;
+
+		// exercise
+		this.facade.createAttachment(order, SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String operation = Operation.CREATE.getValue();
+		String resourceType = ResourceType.ATTACHMENT.getValue();
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
+				Mockito.eq(operation), Mockito.eq(resourceType));
+
+		Assert.assertEquals(expectedOrderState, order.getOrderState());
+
+		// exercise
+		this.facade.deleteCompute(order.getComputeId(), SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
+		Mockito.verify(this.orderController, Mockito.times(1)).checkComputeDependencies(order.getComputeId());
 	}
 
 	// test case: When calling the getAllInstancesStatus method, it must return a
@@ -967,6 +1015,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -1068,6 +1117,52 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
+	}
+
+	// test case: When calling the createPublicIp method with a new order passed by
+	// parameter, it must return its OrderState OPEN after the activation.
+	@Test(expected = FogbowException.class) // verify
+	public void testDeleteComputeOrderWithPublicIpDependency() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+		AuthorizationController authorization = mockAuthorizationController(systemUser);
+
+		PublicIpOrder order = spyPublicIpOrder(systemUser);
+
+		PublicIpInstance publicIpInstance = new PublicIpInstance(order.getId());
+		order.setInstanceId(publicIpInstance.getId());
+
+		// checking if the order has no state and is null
+		Assert.assertNull(order.getOrderState());
+		OrderState expectedOrderState = OrderState.OPEN;
+
+		// exercise
+		this.facade.createPublicIp(order, SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String operation = Operation.CREATE.getValue();
+		String resourceType = ResourceType.PUBLIC_IP.getValue();
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
+				Mockito.eq(operation), Mockito.eq(resourceType));
+
+		Assert.assertEquals(expectedOrderState, order.getOrderState());
+
+		// exercise
+		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
+		Mockito.verify(this.orderController, Mockito.times(1)).checkComputeDependencies(order.getComputeOrderId());
 	}
 
 	// test case: When calling the getAllInstancesStatus method, it must return a

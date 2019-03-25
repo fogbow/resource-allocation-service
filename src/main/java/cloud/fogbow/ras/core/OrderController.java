@@ -63,7 +63,7 @@ public class OrderController {
             }
         }
 
-        this.updateDependencies(this.getOrder(orderId), Operation.DELETE);
+        this.updateComputeDependencies(this.getOrder(orderId), Operation.DELETE);
     }
 
     public Instance getResourceInstance(String orderId) throws FogbowException, UnexpectedException {
@@ -189,7 +189,7 @@ public class OrderController {
 		return requestedOrders;
 	}
 
-	public void updateDependencies(Order order, Operation operation) throws FogbowException {
+	public void updateComputeDependencies(Order order, Operation operation) throws FogbowException {
         AttachmentOrder attachmentOrder = null;
         PublicIpOrder publicIpOrder = null;
 
@@ -201,7 +201,7 @@ public class OrderController {
                 publicIpOrder = (PublicIpOrder) order;
                 break;
             default:
-                // Dependencies check applies only to attachment and public IP orders.
+                // NOTE(pauloewerton): Dependencies check applies only to attachment and public IP orders for now.
                 return;
         }
 
@@ -231,7 +231,7 @@ public class OrderController {
         }
     }
 
-    public void checkDependencies(String computeOrderId) throws FogbowException {
+    public void checkComputeDependencies(String computeOrderId) throws FogbowException {
         if (this.orderDependencies.containsKey(computeOrderId) &&
             !this.orderDependencies.get(computeOrderId).isEmpty()) {
                 throw new FogbowException(String.format(Messages.Error.DEPENDENCY_ERROR, computeOrderId,
