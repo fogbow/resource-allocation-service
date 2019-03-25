@@ -54,7 +54,7 @@ public class XmlUnmarshaller {
 				return true;
 			}
 		} catch (XPathExpressionException e) {
-			LOGGER.error(e); // TODO Fix error message...
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
 		}
 		return false;
 	}
@@ -69,7 +69,7 @@ public class XmlUnmarshaller {
 				 contextList.add(nodes.item(i).getTextContent());
 			 }
 		} catch (XPathExpressionException e) {
-			LOGGER.error(e); // TODO Fix error message...
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
 		}
 		return contextList;
 	}

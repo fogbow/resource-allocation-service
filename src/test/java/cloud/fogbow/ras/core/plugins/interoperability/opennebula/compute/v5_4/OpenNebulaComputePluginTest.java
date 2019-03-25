@@ -18,6 +18,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +47,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 @PrepareForTest({OpenNebulaClientUtil.class, VirtualMachine.class})
 public class OpenNebulaComputePluginTest {
 
-	private static final String DEFAULT_VIRTUAL_MACHINE_STATE = "Running";
 	private static final String FAKE_HOST_NAME = "fake-host-name";
 	private static final String FAKE_ID = "fake-id";
 	private static final String FAKE_IMAGE = "fake-image";
@@ -63,25 +63,14 @@ public class OpenNebulaComputePluginTest {
 	private static final String SEPARATOR = " ";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
 	private static final String TEMPLATE_CPU_VALUE = "2";
-	private static final String TEMPLATE_DISK_INDEX_PATH = "TEMPLATE/DISK[%s]";
-	private static final String TEMPLATE_DISK_INDEX_SIZE_PATH = "TEMPLATE/DISK[%s]/SIZE";
-	private static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
 	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 	private static final String TEMPLATE_MEMORY_VALUE = "1024";
-	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
-
-	private static final String FAKE_NIC_IP_TEMPLATE = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
-			+ "<TEMPLATE>\n" 
-			+ "    <NIC>\n" 
-			+ "        <IP>fake-ip-address-1</IP>\n" 
-			+ "    </NIC>\n" 
-			+ "    <NIC>\n" 
-			+ "        <IP>fake-ip-address-2</IP>\n" 
-			+ "    </NIC>\n" 
-			+ "</TEMPLATE>\n";
-
 	private static final String FAKE_USER_DATA = "fake-user-data";
 	private static final String FAKE_TAG = "fake-tag";
+	
+	private static final String FIELD_RESPONSE_LIMIT = "limit";
+	private static final String FIELD_RESPONSE_QUOTA = "quota";
+	private static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
 			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
@@ -93,7 +82,8 @@ public class OpenNebulaComputePluginTest {
 	private static final int CPU_VALUE_4 = 4;
 	private static final int MEMORY_VALUE_1024 = 1024;
 	private static final int MEMORY_VALUE_2048 = 2048;
-	private static final int DISK_VALUE_8GB = 8;
+	private static final int DISK_VALUE_6GB = 6144;
+	private static final int DISK_VALUE_8GB = 8192;
 	private static final int DEFAULT_NETWORK_ID = 0;
 	
 	private OpenNebulaComputePlugin plugin;
@@ -112,8 +102,8 @@ public class OpenNebulaComputePluginTest {
 	// test case: When calling the requestInstance method, with the valid client and
 	// template with a list of networks ID, a virtual network will be allocated,
 	// returned a instance ID.
-	@Test
-	public void testRequestInstanceSuccessfulWithNetworkIds() throws FogbowException, UnexpectedException {
+    @Test
+	public void testRequestInstanceSuccessfulWithTwoNetworkIds() throws FogbowException, UnexpectedException {
 		// set up
 		Client client = Mockito.mock(Client.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
@@ -139,9 +129,6 @@ public class OpenNebulaComputePluginTest {
 		this.plugin.setFlavors(this.flavors);
 		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor), Mockito.eq(this.flavors));
 
-		Template template = mockTemplatePoolIterator();
-		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).loadImageSizeDisk(Mockito.anyMap(), Mockito.eq(template));
-
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
 		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
@@ -152,8 +139,8 @@ public class OpenNebulaComputePluginTest {
 		CloudUser cloudUser = createCloudUser();
 		
 		int choice = 0;
-		String valueOfCpu = String.valueOf(CPU_VALUE_2);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_1024);
+		String valueOfCpu = String.valueOf(CPU_VALUE_4);
+		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
 		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
 		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
 		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
@@ -221,6 +208,69 @@ public class OpenNebulaComputePluginTest {
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(template));
+	}
+	
+	// test case: When calling the requestInstance method, with a disk size smaller
+	// than the image, a configuration for volatile disk will be defined in the
+	// model for allocation, returning an instance ID.
+	@Test
+	public void testRequestInstanceSuccessfulWithVolatileDisk() throws FogbowException {
+		// set up
+		Client client = Mockito.mock(Client.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+				.willReturn(client);
+
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+
+		ImagePool imagePool = Mockito.mock(ImagePool.class);
+		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
+
+		Image image = Mockito.mock(Image.class);
+		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
+		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
+		Mockito.when(imageIterator.next()).thenReturn(image);
+		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
+		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_VALUE);
+
+		HardwareRequirements flavor = createHardwareRequirements();
+		this.flavors.add(flavor);
+		this.plugin.setFlavors(this.flavors);
+		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor), Mockito.eq(this.flavors));
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(VirtualMachine.class);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+
+		List<String> networkIds = null;
+		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_2, MEMORY_VALUE_1024, DISK_VALUE_6GB);
+		CloudUser cloudUser = createCloudUser();
+
+		int choice = 2;
+		String valueOfCpu = String.valueOf(CPU_VALUE_4);
+		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
+		String valueOfDisk = String.valueOf(DISK_VALUE_6GB);
+		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
+		String virtualMachineTemplate = generateTemplate(choice, valueOfCpu, valueOfRam, defaultNetworkId, valueOfDisk);
+
+		// exercise
+		this.plugin.requestInstance(computeOrder, cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
+
+		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
+				Mockito.any(CloudUser.class));
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
 	}
 	
 	// test case: When calling getBestFlavor during requestInstance method, and it
@@ -312,7 +362,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.mockStatic(VirtualMachine.class);
 		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
-		Mockito.when(response.getErrorMessage()).thenReturn(OpenNebulaComputePlugin.RESPONSE_NOT_ENOUGH_FREE_MEMORY);
+		Mockito.when(response.getErrorMessage()).thenReturn(RESPONSE_NOT_ENOUGH_FREE_MEMORY);
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, cloudUser);
@@ -341,8 +391,7 @@ public class OpenNebulaComputePluginTest {
 		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
 		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 
-		String message = OpenNebulaComputePlugin.FIELD_RESPONSE_LIMIT + SEPARATOR
-				+ OpenNebulaComputePlugin.FIELD_RESPONSE_QUOTA;
+		String message = FIELD_RESPONSE_LIMIT + SEPARATOR + FIELD_RESPONSE_QUOTA;
 		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
@@ -354,81 +403,6 @@ public class OpenNebulaComputePluginTest {
 		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
-	// test case: When calling the getInstance method of a resource with the volatile disk size passing 
-	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
-	@Test
-	public void testGetInstanceSuccessfulWithVolatileDiskResource() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.eq(client))).willReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_VALUE);
-
-		Template template = mockTemplatePoolIterator();
-		int index = 1;
-		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_SIZE_PATH, index))).thenReturn(IMAGE_SIZE_VALUE);
-		index++;
-		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_PATH, index))).thenReturn(FAKE_NAME);
-
-		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualMachine);
-		Mockito.when(virtualMachine.getId()).thenReturn(FAKE_INSTANCE_ID);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_NAME_PATH)).thenReturn(FAKE_NAME);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_CPU_PATH)).thenReturn(TEMPLATE_CPU_VALUE);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(TEMPLATE_MEMORY_VALUE);
-		Mockito.when(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(IMAGE_SIZE_VALUE);
-		Mockito.when(virtualMachine.lcmStateStr()).thenReturn(DEFAULT_VIRTUAL_MACHINE_STATE);
-
-		String xml = FAKE_NIC_IP_TEMPLATE;
-		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.when(virtualMachine.info()).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.when(response.getMessage()).thenReturn(xml);
-
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = FAKE_INSTANCE_ID;
-
-		// exercise
-		this.plugin.getInstance(instanceId, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getTemplatePool(Mockito.eq(client));
-
-		Mockito.verify(template, Mockito.times(1)).getId();
-		Mockito.verify(template, Mockito.times(1)).getName();
-		Mockito.verify(template, Mockito.times(2)).xpath(Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).containsFlavor(Mockito.any(HardwareRequirements.class),
-				Mockito.anyCollection());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).getComputeInstance(virtualMachine);
-		Mockito.verify(virtualMachine, Mockito.times(1)).getId();
-		Mockito.verify(virtualMachine, Mockito.times(1)).lcmStateStr();
-		Mockito.verify(virtualMachine, Mockito.times(4)).xpath(Mockito.anyString());
-	}
-
 	// test case: When calling the getInstance method of a resource without the volatile disk size passing 
 	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
 	@Test
@@ -481,7 +455,7 @@ public class OpenNebulaComputePluginTest {
 				.willReturn(virtualMachine);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.doReturn(response).when(virtualMachine).terminate();
+		Mockito.doReturn(response).when(virtualMachine).terminate(OpenNebulaComputePlugin.SHUTS_DOWN_HARD);
 		Mockito.doReturn(true).when(response).isError();
 
 		CloudUser cloudUser = createCloudUser();
@@ -497,7 +471,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
 
-		Mockito.verify(virtualMachine, Mockito.times(1)).terminate();
+		Mockito.verify(virtualMachine, Mockito.times(1)).terminate(Mockito.eq(OpenNebulaComputePlugin.SHUTS_DOWN_HARD));
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
@@ -516,7 +490,7 @@ public class OpenNebulaComputePluginTest {
 				.willReturn(virtualMachine);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.doReturn(response).when(virtualMachine).terminate();
+		Mockito.doReturn(response).when(virtualMachine).terminate(OpenNebulaComputePlugin.SHUTS_DOWN_HARD);
 		Mockito.doReturn(false).when(response).isError();
 
 		CloudUser cloudUser = createCloudUser();
@@ -532,7 +506,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
 
-		Mockito.verify(virtualMachine, Mockito.times(1)).terminate();
+		Mockito.verify(virtualMachine, Mockito.times(1)).terminate(Mockito.eq(OpenNebulaComputePlugin.SHUTS_DOWN_HARD));
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
@@ -643,75 +617,126 @@ public class OpenNebulaComputePluginTest {
 		String defaultNetworkId;
 		String privateNetworkId;
 		String size;
-		String template0 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<TEMPLATE>\n" + 
-				"    <CONTEXT>\n" + 
-				"        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" + 
-				"        <NETWORK>YES</NETWORK>\n" +
-				"        <USERDATA>fake-user-data</USERDATA>\n" +
-				"    </CONTEXT>\n" + 
-				"    <CPU>%s</CPU>\n" + 
-				"    <GRAPHICS>\n" + 
-				"        <LISTEN>0.0.0.0</LISTEN>\n" + 
-				"        <TYPE>vnc</TYPE>\n" + 
-				"    </GRAPHICS>\n" + 
-				"    <DISK>\n" + 
-				"        <IMAGE_ID>fake-image-id</IMAGE_ID>\n" + 
-				"    </DISK>\n" + 
-				"    <MEMORY>%s</MEMORY>\n" + 
-				"    <NIC>\n" + 
-				"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
-				"    </NIC>\n" + 
-				"    <NIC>\n" + 
-				"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
-				"    </NIC>\n" + 
-				"    <DISK>\n" + 
-				"        <SIZE>%s</SIZE>\n" + 
-				"        <TYPE>fs</TYPE>\n" + 
-				"    </DISK>\n" + 
-				"</TEMPLATE>\n";
+		String template;
 		
-		String template1 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<TEMPLATE>\n" + 
-				"    <CONTEXT>\n" + 
-				"        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" + 
-				"        <NETWORK>YES</NETWORK>\n" +
-				"        <USERDATA>fake-user-data</USERDATA>\n" +
-				"    </CONTEXT>\n" + 
-				"    <CPU>%s</CPU>\n" + 
-				"    <GRAPHICS>\n" + 
-				"        <LISTEN>0.0.0.0</LISTEN>\n" + 
-				"        <TYPE>vnc</TYPE>\n" + 
-				"    </GRAPHICS>\n" + 
-				"    <DISK>\n" + 
-				"        <IMAGE_ID>fake-image-id</IMAGE_ID>\n" + 
-				"    </DISK>\n" + 
-				"    <MEMORY>%s</MEMORY>\n" + 
-				"    <NIC>\n" + 
-				"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
-				"    </NIC>\n" + 
-				"    <DISK>\n" + 
-				"        <SIZE>%s</SIZE>\n" + 
-				"        <TYPE>fs</TYPE>\n" + 
-				"    </DISK>\n" + 
-				"</TEMPLATE>\n";
-		
-		if (choice == 0) {
+		switch (choice) {
+		case 0:
 			cpu = args[0];
 			memory = args[1];
 			defaultNetworkId = args[2] != null ? args[2] : String.valueOf(DEFAULT_NETWORK_ID);
 			privateNetworkId = args[3];
 			size = args[4];
+			template = getTemplateWithTwoNetworkIds();
+			return String.format(template, cpu, memory, defaultNetworkId, privateNetworkId, size);
 			
-			return String.format(template0, cpu, memory, defaultNetworkId, privateNetworkId, size);
-		} else {
+		case 1:
 			cpu = args[0];
 			memory = args[1];
 			defaultNetworkId = args[2] != null ? args[2] : String.valueOf(DEFAULT_NETWORK_ID);
 			size = args[3];
+			template = getTemplateWithOneNetworkId();
+			return String.format(template, cpu, memory, defaultNetworkId, size);
 			
-			return String.format(template1, cpu, memory, defaultNetworkId, size);
+		case 2:
+			cpu = args[0];
+			memory = args[1];
+			defaultNetworkId = args[2] != null ? args[2] : String.valueOf(DEFAULT_NETWORK_ID);
+			size = args[3];
+			template = getTemplateWithVolatileDisk();
+			return String.format(template, cpu, memory, defaultNetworkId, size);
+
+		default:
+			return null;
 		}
+	}
+
+	private String getTemplateWithVolatileDisk() {
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
+				+ "<TEMPLATE>\n"
+				+ "    <CONTEXT>\n" 
+				+ "        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n"
+				+ "        <NETWORK>YES</NETWORK>\n"
+				+ "        <USERDATA>fake-user-data</USERDATA>\n"
+				+ "    </CONTEXT>\n" 
+				+ "    <CPU>%s</CPU>\n" 
+				+ "    <DISK>\n"
+				+ "        <FORMAT>ext3</FORMAT>\n"
+				+ "        <SIZE>6144</SIZE>\n"
+				+ "        <TYPE>fs</TYPE>\n"
+				+ "    </DISK>\n"
+				+ "    <GRAPHICS>\n" 
+				+ "        <LISTEN>0.0.0.0</LISTEN>\n" 
+				+ "        <TYPE>vnc</TYPE>\n"
+				+ "    </GRAPHICS>\n"
+				+ "    <MEMORY>%s</MEMORY>\n"
+				+ "    <NIC>\n"
+				+ "        <NETWORK_ID>%s</NETWORK_ID>\n"
+				+ "    </NIC>\n"
+				+ "    <OS>\n" 
+				+ "        <ARCH>x86_64</ARCH>\n"
+				+ "    </OS>\n"
+				+ "</TEMPLATE>\n";
+		
+		return template;
+	}
+	
+	private String getTemplateWithTwoNetworkIds() {
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
+				+ "<TEMPLATE>\n"
+				+ "    <CONTEXT>\n" 
+				+ "        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n"
+				+ "        <NETWORK>YES</NETWORK>\n"
+				+ "        <USERDATA>fake-user-data</USERDATA>\n"
+				+ "    </CONTEXT>\n" 
+				+ "    <CPU>%s</CPU>\n" 
+				+ "    <DISK>\n"
+				+ "        <IMAGE_ID>fake-image-id</IMAGE_ID>\n" 
+				+ "    </DISK>\n"
+				+ "    <GRAPHICS>\n" 
+				+ "        <LISTEN>0.0.0.0</LISTEN>\n" 
+				+ "        <TYPE>vnc</TYPE>\n"
+				+ "    </GRAPHICS>\n"
+				+ "    <MEMORY>%s</MEMORY>\n"
+				+ "    <NIC>\n"
+				+ "        <NETWORK_ID>%s</NETWORK_ID>\n"
+				+ "    </NIC>\n"
+				+ "    <NIC>\n"
+				+ "        <NETWORK_ID>%s</NETWORK_ID>\n"
+				+ "    </NIC>\n"
+				+ "    <OS>\n" 
+				+ "        <ARCH>x86_64</ARCH>\n"
+				+ "    </OS>\n"
+				+ "</TEMPLATE>\n";
+		
+		return template;
+	}
+	
+	private String getTemplateWithOneNetworkId() {
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+				+ "<TEMPLATE>\n"
+				+ "    <CONTEXT>\n"
+				+ "        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" 
+				+ "        <NETWORK>YES</NETWORK>\n"
+				+ "        <USERDATA>fake-user-data</USERDATA>\n"
+				+ "    </CONTEXT>\n"
+				+ "    <CPU>%s</CPU>\n"
+				+ "    <DISK>\n"
+				+ "        <IMAGE_ID>fake-image-id</IMAGE_ID>\n"
+				+ "    </DISK>\n"
+				+ "    <GRAPHICS>\n" 
+				+ "        <LISTEN>0.0.0.0</LISTEN>\n"
+				+ "        <TYPE>vnc</TYPE>\n"
+				+ "    </GRAPHICS>\n"
+				+ "    <MEMORY>%s</MEMORY>\n"
+				+ "    <NIC>\n"
+				+ "        <NETWORK_ID>%s</NETWORK_ID>\n"
+				+ "    </NIC>\n"
+				+ "    <OS>\n" 
+				+ "        <ARCH>x86_64</ARCH>\n"
+				+ "    </OS>\n"
+				+ "</TEMPLATE>\n";
+		
+		return template;
 	}
 	
 }
