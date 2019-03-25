@@ -15,10 +15,10 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	private VirtualMachineTemplate.Context context;
 	private String cpu;
 	private VirtualMachineTemplate.Graphics graphics;
-	private VirtualMachineTemplate.ImageDisk imageDisk;
-	private VirtualMachineTemplate.VolumeDisk volumeDisk;
+	private VirtualMachineTemplate.Disk disk;
 	private String memory;
-	private List<VirtualMachineTemplate.Nic> nics;
+	private List<VirtualMachineTemplate.Nic> nic;
+	private VirtualMachineTemplate.OperationalSystem os;
 
 	@XmlElement(name = CONTEXT)
 	public VirtualMachineTemplate.Context getContext() {
@@ -48,21 +48,12 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	@XmlElement(name = DISK)
-	public VirtualMachineTemplate.ImageDisk getImageDisk() {
-		return imageDisk;
+	public VirtualMachineTemplate.Disk getDisk() {
+		return disk;
 	}
 
-	public void setImageDisk(VirtualMachineTemplate.ImageDisk imageDisk) {
-		this.imageDisk = imageDisk;
-	}
-
-	@XmlElement(name = DISK)
-	public VirtualMachineTemplate.VolumeDisk getVolumeDisk() {
-		return volumeDisk;
-	}
-
-	public void setVolumeDisk(VirtualMachineTemplate.VolumeDisk volumeDisk) {
-		this.volumeDisk = volumeDisk;
+	public void setDisk(VirtualMachineTemplate.Disk disk) {
+		this.disk = disk;
 	}
 
 	@XmlElement(name = MEMORY)
@@ -75,12 +66,21 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	@XmlElement(name = NETWORK_INTERFACE_CONNECTED)
-	public List<VirtualMachineTemplate.Nic> getNics() {
-		return nics;
+	public List<VirtualMachineTemplate.Nic> getNic() {
+		return nic;
 	}
 
-	public void setNics(List<VirtualMachineTemplate.Nic> nics) {
-		this.nics = nics;
+	public void setNic(List<VirtualMachineTemplate.Nic> nic) {
+		this.nic = nic;
+	}
+	
+	@XmlElement(name = OPERATIONAL_SYSTEM)
+	public VirtualMachineTemplate.OperationalSystem getOperationalSystem() {
+		return os;
+	}
+
+	public void setOperationalSystem(VirtualMachineTemplate.OperationalSystem os) {
+		this.os = os;
 	}
 
 	@XmlRootElement(name = CONTEXT)
@@ -121,16 +121,16 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	@XmlRootElement(name = GRAPHICS)
 	public static class Graphics {
 
-		private String listen;
+		private String address;
 		private String type;
 		
 		@XmlElement(name = LISTEN)
-		public String getListen() {
-			return listen;
+		public String getAddress() {
+			return address;
 		}
 		
-		public void setListen(String listen) {
-			this.listen = listen;
+		public void setAddress(String address) {
+			this.address = address;
 		}
 		
 		@XmlElement(name = TYPE)
@@ -144,9 +144,12 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 	
 	@XmlRootElement(name = DISK)
-	public static class ImageDisk {
+	public static class Disk {
 
 		private String imageId;
+		private String type;
+		private String size;
+		private String format;
 
 		@XmlElement(name = IMAGE_ID)
 		public String getImageId() {
@@ -155,6 +158,33 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 
 		public void setImageId(String imageId) {
 			this.imageId = imageId;
+		}
+		
+		@XmlElement(name = TYPE)
+		public String getType() {
+			return type;
+		}
+
+		public void setType(String type) {
+			this.type = type;
+		}
+
+		@XmlElement(name = SIZE)
+		public String getSize() {
+			return size;
+		}
+
+		public void setSize(String size) {
+			this.size = size;
+		}
+
+		@XmlElement(name = FORMAT)
+		public String getFormat() {
+			return format;
+		}
+
+		public void setFormat(String format) {
+			this.format = format;
 		}
 	}
 	
@@ -195,6 +225,21 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 
 		public void setNetworkId(String networkId) {
 			this.networkId = networkId;
+		}
+	}
+	
+	@XmlRootElement(name = OPERATIONAL_SYSTEM)
+	public static class OperationalSystem {
+		
+		private String architecture;
+
+		@XmlElement(name = ARCHITECTURE)
+		public String getArchitecture() {
+			return architecture;
+		}
+
+		public void setArchitecture(String architecture) {
+			this.architecture = architecture;
 		}
 	}
 }

@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Disk;
+
 public class CreateComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;
@@ -16,21 +18,36 @@ public class CreateComputeRequest {
 		String memory = builder.memory;
 		VirtualMachineTemplate.Context context = buildContext(builder);
 		VirtualMachineTemplate.Graphics graphics = buildGraphics(builder);
-		VirtualMachineTemplate.ImageDisk imageDisk = buildImage(builder);
-		VirtualMachineTemplate.VolumeDisk volumeDisk = buildVolume(builder);
-		List<VirtualMachineTemplate.Nic> nics = buildNics(builder);
+		VirtualMachineTemplate.Disk disk = buildDisk(builder);
+		List<VirtualMachineTemplate.Nic> nic = buildNic(builder);
+		VirtualMachineTemplate.OperationalSystem os = buildOs(builder);
 		
 		this.virtualMachine = new VirtualMachineTemplate();
 		this.virtualMachine.setContext(context);
 		this.virtualMachine.setCpu(cpu);
 		this.virtualMachine.setGraphics(graphics);
-		this.virtualMachine.setImageDisk(imageDisk);
-		this.virtualMachine.setVolumeDisk(volumeDisk);
+		this.virtualMachine.setDisk(disk);
 		this.virtualMachine.setMemory(memory);
-		this.virtualMachine.setNics(nics);
+		this.virtualMachine.setNic(nic);
+		this.virtualMachine.setOperationalSystem(os);
 	}
 
-	private List<VirtualMachineTemplate.Nic> buildNics(Builder builder) {
+	private Disk buildDisk(Builder builder) {
+		VirtualMachineTemplate.Disk disk = new VirtualMachineTemplate.Disk();
+		disk.setImageId(builder.diskImageId);
+		disk.setType(builder.diskType);
+		disk.setSize(builder.diskSize);
+		disk.setFormat(builder.diskFormat);
+		return disk;
+	}
+
+	private VirtualMachineTemplate.OperationalSystem buildOs(Builder builder) {
+		VirtualMachineTemplate.OperationalSystem os = new VirtualMachineTemplate.OperationalSystem();
+		os.setArchitecture(builder.architecture);
+		return os;
+	}
+	
+	private List<VirtualMachineTemplate.Nic> buildNic(Builder builder) {
 		List<VirtualMachineTemplate.Nic> networks = new ArrayList<>();
 		for (int i = 0; i < builder.networks.size(); i++) {
 			VirtualMachineTemplate.Nic nic = new VirtualMachineTemplate.Nic();
@@ -40,22 +57,9 @@ public class CreateComputeRequest {
 		return networks;
 	}
 
-	private VirtualMachineTemplate.VolumeDisk buildVolume(Builder builder) {
-		VirtualMachineTemplate.VolumeDisk volumeDisk = new VirtualMachineTemplate.VolumeDisk();
-		volumeDisk.setSize(builder.volumeSize);
-		volumeDisk.setType(builder.volumeType);
-		return volumeDisk;
-	}
-
-	private VirtualMachineTemplate.ImageDisk buildImage(Builder builder) {
-		VirtualMachineTemplate.ImageDisk imageDisk = new VirtualMachineTemplate.ImageDisk();
-		imageDisk.setImageId(builder.imageId);
-		return imageDisk;
-	}
-
 	private VirtualMachineTemplate.Graphics buildGraphics(Builder builder) {
 		VirtualMachineTemplate.Graphics graphics = new VirtualMachineTemplate.Graphics();
-		graphics.setListen(builder.graphicsListen);
+		graphics.setAddress(builder.graphicsAddress);
 		graphics.setType(builder.graphicsType);
 		return graphics;
 	}
@@ -73,14 +77,16 @@ public class CreateComputeRequest {
 		private String contextUserdata;
 		private String contextNetwork;
 		private String cpu;
-		private String graphicsListen;
+		private String graphicsAddress;
 		private String graphicsType;
-		private String imageId;
-		private String volumeSize;
-		private String volumeType;
+		private String diskImageId;
+		private String diskType;
+		private String diskSize;
+		private String diskFormat;
 		private String memory;
 		private List<String> networks;
-
+		private String architecture;
+		
 		public Builder contextEncoding(String contextEncoding) {
 			this.contextEncoding = contextEncoding;
 			return this;
@@ -101,8 +107,8 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder graphicsListen(String graphicsListen) {
-			this.graphicsListen = graphicsListen;
+		public Builder graphicsAddress(String graphicsAddress) {
+			this.graphicsAddress = graphicsAddress;
 			return this;
 		}
 
@@ -111,18 +117,23 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder imageId(String imageId) {
-			this.imageId = imageId;
+		public Builder diskImageId(String diskImageId) {
+			this.diskImageId = diskImageId;
 			return this;
 		}
-
-		public Builder volumeSize(String volumeSize) {
-			this.volumeSize = volumeSize;
+		
+		public Builder diskType(String diskType) {
+			this.diskType = diskType;
 			return this;
 		}
-
-		public Builder volumeType(String volumeType) {
-			this.volumeType = volumeType;
+		
+		public Builder diskSize(String diskSize) {
+			this.diskSize = diskSize;
+			return this;
+		}
+		
+		public Builder diskFormat(String diskFormat) {
+			this.diskFormat = diskFormat;
 			return this;
 		}
 
@@ -133,6 +144,11 @@ public class CreateComputeRequest {
 
 		public Builder networks(List<String> networks) {
 			this.networks = networks;
+			return this;
+		}
+		
+		public Builder architecture(String architecture) {
+			this.architecture = architecture;
 			return this;
 		}
 
