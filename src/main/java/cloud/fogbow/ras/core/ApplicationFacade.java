@@ -134,9 +134,6 @@ public class ApplicationFacade {
     }
 
     public void deleteCompute(String computeId, String userToken) throws FogbowException {
-        // NOTE(pauloewerton): ensure there is no volume or public IP associated with this compute before deleting it.
-        this.orderController.checkComputeDependencies(computeId);
-
         deleteOrder(computeId, userToken, ResourceType.COMPUTE);
     }
 
@@ -176,8 +173,6 @@ public class ApplicationFacade {
 
     public String createAttachment(AttachmentOrder attachmentOrder, String userToken) throws FogbowException {
         String attachmentOrderId = activateOrder(attachmentOrder, userToken);
-        this.orderController.updateComputeDependencies(attachmentOrder, Operation.CREATE);
-
         return attachmentOrderId;
     }
 
@@ -191,8 +186,6 @@ public class ApplicationFacade {
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String userToken) throws FogbowException {
         String publicIpOrderId = activateOrder(publicIpOrder, userToken);
-        this.orderController.updateComputeDependencies(publicIpOrder, Operation.CREATE);
-
         return publicIpOrderId;
     }
 
@@ -297,7 +290,7 @@ public class ApplicationFacade {
         // Set an initial state for the resource instance that is yet to be created in the cloud
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
-        OrderStateTransitioner.activateOrder(order);
+        this.orderController.activateOrder(order);
         return order.getId();
     }
 
@@ -335,7 +328,7 @@ public class ApplicationFacade {
     }
 
 	protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-                                  Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
+                  Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
 		// Check if requested type matches order type
 		if (!order.getType().equals(type))
 			throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);

@@ -1,10 +1,13 @@
 package cloud.fogbow.ras.constants;
 
+import java.util.Locale;
+
 public class Messages {
 
     public static class Exception {
         public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
         public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
+        public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
@@ -14,6 +17,7 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
+        public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
@@ -105,6 +109,7 @@ public class Messages {
     	public static final String CONTENT_DESERIALIZATION_FAILURE = "Is not possible deserialize the Security Rule ID: %s.";
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
+        public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
@@ -154,7 +159,5 @@ public class Messages {
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
-        public static final String VALUE_TOO_LARGE_TO_STORE = "Value '%s' is too large to be stored in the column '%s' of the table relative to the class '%s', storing '%s' instead";
-        public static final String DEPENDENCY_ERROR = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
     }
 }

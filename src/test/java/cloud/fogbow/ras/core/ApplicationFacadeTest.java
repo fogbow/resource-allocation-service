@@ -33,10 +33,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PublicKeysHolder.class, AuthenticationUtil.class, CloudConnectorFactory.class,
@@ -68,10 +65,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private static final String FAKE_URL = "https://www.foo.bar";
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
 	private static final String SYSTEM_USER_TOKEN_VALUE = "system-user-token-value";
-	private static final String ID_KEY = "id";
-	private static final String NAME_KEY = "name";
-	private static final String PROVIDER_KEY = "provider";
-	private static final String TOKEN_KEY = "token";
 	private static final String VALID_PATH_CONF = "ras.conf";
 	private static final String VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY = "ras-without-build-number.conf";
 
@@ -85,7 +78,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Before
 	public void setUp() throws UnexpectedException {
 		super.mockReadOrdersFromDataBase();
-		this.orderController = Mockito.spy(new OrderController());
+		this.orderController = new OrderController();
 		this.facade = Mockito.spy(ApplicationFacade.getInstance());
 		this.facade.setOrderController(this.orderController);
 	}
@@ -306,7 +299,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		List<String> networkIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -330,10 +323,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getResourceInstance(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertSame(instanceExpected, instance);
 	}
 
@@ -355,7 +344,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		List<String> networkIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -383,10 +372,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		// order controller is called once more to check for public IP or attachment dependencies
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
 
@@ -408,7 +393,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		List<String> networkIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
 
@@ -426,9 +411,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String resourceType = ResourceType.COMPUTE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));
-
-		Mockito.verify(this.orderController, Mockito.times(1)).getInstancesStatus(Mockito.eq(systemUser),
-				Mockito.eq(ResourceType.COMPUTE));
 
 		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
@@ -485,7 +467,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		VolumeOrder order = spyVolumeOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -510,10 +492,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getResourceInstance(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertSame(instanceExpected, instance);
 	}
 
@@ -530,7 +508,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		VolumeOrder order = spyVolumeOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -559,9 +537,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
 
@@ -578,7 +553,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		VolumeOrder order = spyVolumeOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
 
@@ -595,9 +570,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String operation = Operation.GET_ALL.getValue();
 		String resourceType = ResourceType.VOLUME.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(operation), Mockito.eq(resourceType));
-
-		Mockito.verify(this.orderController, Mockito.times(1)).getInstancesStatus(Mockito.eq(systemUser),
-				Mockito.eq(ResourceType.VOLUME));
 
 		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
@@ -654,7 +626,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -679,10 +651,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getResourceInstance(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertSame(instanceExpected, instance);
 	}
 
@@ -699,7 +667,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -728,10 +696,63 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
+		Assert.assertEquals(expectedOrderState, order.getOrderState());
+	}
+
+	// test case: When calling the deleteNetwork method passing a network order with a compute dependency,
+	// a DependencyDetectedException should be thrown
+	@Test(expected = DependencyDetectedException.class) // verify
+	public void testDeleteNetworkOrderWithComputeDependency() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+		AuthorizationController authorization = mockAuthorizationController(systemUser);
+
+		NetworkOrder netOrder1 = new NetworkOrder();
+		netOrder1.setSystemUser(systemUser);
+		NetworkOrder netOrder2 = new NetworkOrder();
+		netOrder2.setSystemUser(systemUser);
+
+		this.orderController.activateOrder(netOrder1);
+		this.orderController.activateOrder(netOrder2);
+
+		List<String> networkIds = new LinkedList<>();
+		networkIds.add(netOrder1.getId());
+		networkIds.add(netOrder2.getId());
+
+		ComputeOrder order = spyComputeOrder(systemUser, DEFAULT_CLOUD_NAME, null, null, networkIds);
+
+		ComputeInstance computeInstance = new ComputeInstance(order.getId());
+		order.setInstanceId(computeInstance.getId());
+
+		// checking if the order has no state and is null
+		Assert.assertNull(order.getOrderState());
+		OrderState expectedOrderState = OrderState.OPEN;
+
+		// exercise
+		this.facade.createCompute(order, SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String operation = Operation.CREATE.getValue();
+		String resourceType = ResourceType.COMPUTE.getValue();
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser),
+				Mockito.eq(cloudName), Mockito.eq(operation), Mockito.eq(resourceType));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
+
+		// exercise
+		this.facade.deleteNetwork(netOrder2.getId(), SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
 	}
 
 	// test case: When calling the getAllInstancesStatus method, it must return a
@@ -747,7 +768,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
 
@@ -765,9 +786,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String resourceType = ResourceType.NETWORK.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));
-
-		Mockito.verify(this.orderController, Mockito.times(1)).getInstancesStatus(Mockito.eq(systemUser),
-				Mockito.eq(ResourceType.NETWORK));
 
 		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
@@ -798,7 +816,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -825,7 +842,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		AttachmentOrder order = spyAttachmentOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -850,10 +867,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getResourceInstance(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertSame(instanceExpected, instance);
 	}
 
@@ -870,7 +883,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		AttachmentOrder order = spyAttachmentOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -899,15 +912,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(3)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
 
 	// test case: When calling the deleteCompute method passing a compute order with an attachment dependency,
-	// raise error
-	@Test(expected = FogbowException.class) // verify
+	// a DependencyDetectedException should be thrown
+	@Test(expected = DependencyDetectedException.class) // verify
 	public void testDeleteComputeOrderWithAttachmentDependency() throws Exception {
 		// set up
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
@@ -931,7 +941,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -948,7 +957,50 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteCompute(order.getComputeId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).checkComputeDependencies(order.getComputeId());
+	}
+
+	// test case: When calling the deleteVolume method passing a volume order with an attachment dependency,
+	// a DependencyDetectedException should be thrown
+	@Test(expected = DependencyDetectedException.class) // verify
+	public void testDeleteVolumeOrderWithAttachmentDependency() throws Exception {
+		// set up
+		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
+		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
+
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+		AuthorizationController authorization = mockAuthorizationController(systemUser);
+
+		AttachmentOrder order = spyAttachmentOrder(systemUser);
+
+		AttachmentInstance attachmentInstance = new AttachmentInstance(order.getId());
+		order.setInstanceId(attachmentInstance.getId());
+
+		// checking if the order has no state and is null
+		Assert.assertNull(order.getOrderState());
+		OrderState expectedOrderState = OrderState.OPEN;
+
+		// exercise
+		this.facade.createAttachment(order, SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
+		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
+
+		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
+		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String operation = Operation.CREATE.getValue();
+		String resourceType = ResourceType.ATTACHMENT.getValue();
+		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
+				Mockito.eq(operation), Mockito.eq(resourceType));
+
+		Assert.assertEquals(expectedOrderState, order.getOrderState());
+
+		// exercise
+		this.facade.deleteVolume(order.getVolumeId(), SYSTEM_USER_TOKEN_VALUE);
+
+		// verify
 	}
 
 	// test case: When calling the getAllInstancesStatus method, it must return a
@@ -964,7 +1016,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		AttachmentOrder order = spyAttachmentOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
 
@@ -982,9 +1034,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String resourceType = ResourceType.ATTACHMENT.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));
-
-		Mockito.verify(this.orderController, Mockito.times(1)).getInstancesStatus(Mockito.eq(systemUser),
-				Mockito.eq(ResourceType.ATTACHMENT));
 
 		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
@@ -1015,7 +1064,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -1042,7 +1090,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -1067,10 +1115,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(2)).getOrder(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getResourceInstance(Mockito.eq(order.getId()));
-		Mockito.verify(this.orderController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-
 		Assert.assertSame(instanceExpected, instance);
 	}
 
@@ -1087,7 +1131,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -1119,9 +1163,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
 
-	// test case: When calling the createPublicIp method with a new order passed by
-	// parameter, it must return its OrderState OPEN after the activation.
-	@Test(expected = FogbowException.class) // verify
+	// test case: When calling the deleteCompute method with a PublicIp associated with the compute that is to be
+	// deleted, a DependencyDetectedException should be thrown
+	@Test(expected = DependencyDetectedException.class) // verify
 	public void testDeleteComputeOrderWithPublicIpDependency() throws Exception {
 		// set up
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
@@ -1145,7 +1189,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// verify
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(this.orderController, Mockito.times(1)).updateComputeDependencies(order, Operation.CREATE);
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
 		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
@@ -1162,7 +1205,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).checkComputeDependencies(order.getComputeOrderId());
+		Mockito.verify(this.orderController, Mockito.times(1)).deleteOrder(order.getComputeOrderId());
 	}
 
 	// test case: When calling the getAllInstancesStatus method, it must return a
@@ -1178,7 +1221,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		OrderStateTransitioner.activateOrder(order);
+		this.orderController.activateOrder(order);
 
 		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
 
@@ -1197,9 +1240,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(operation),
 				Mockito.eq(resourceType));
 
-		Mockito.verify(this.orderController, Mockito.times(1)).getInstancesStatus(Mockito.eq(systemUser),
-				Mockito.eq(ResourceType.PUBLIC_IP));
-
 		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
 
@@ -1210,7 +1250,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = null;
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
@@ -1226,7 +1266,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = null;
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
@@ -1242,7 +1282,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = null;
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		// exercise
 		this.facade.getAllSecurityRules(FAKE_INSTANCE_ID, SYSTEM_USER_TOKEN_VALUE, ResourceType.PUBLIC_IP);
@@ -1255,7 +1295,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = null;
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		// exercise
 		this.facade.getAllSecurityRules(FAKE_INSTANCE_ID, SYSTEM_USER_TOKEN_VALUE, ResourceType.NETWORK);
@@ -1268,7 +1308,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = null;
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		// exercise
 		this.facade.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, SYSTEM_USER_TOKEN_VALUE,
@@ -1282,7 +1322,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = null;
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		// exercise
 		this.facade.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, SYSTEM_USER_TOKEN_VALUE,
@@ -1303,7 +1343,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1325,7 +1365,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
@@ -1355,7 +1394,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 		
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1377,7 +1416,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
@@ -1407,7 +1445,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1433,7 +1471,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
@@ -1464,7 +1501,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1490,7 +1527,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
@@ -1521,7 +1557,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1544,7 +1580,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
@@ -1574,7 +1609,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		AuthorizationController authorization = mockAuthorizationController(systemUser);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString());
+		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1597,7 +1632,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).getOrder(Mockito.eq(order.getId()));
 		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
 
 		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
@@ -1781,9 +1815,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String resourceType = ResourceType.COMPUTE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser), Mockito.eq(cloudName),
 				Mockito.eq(operation), Mockito.eq(resourceType));
-
-		Mockito.verify(this.orderController, Mockito.times(1)).getUserAllocation(Mockito.anyString(),
-				Mockito.eq(systemUser), Mockito.any());
 	}
 	
 	// test case: When calling the getComputeQuota method, verify that this call was
@@ -1904,6 +1935,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	
 	private PublicIpOrder spyPublicIpOrder(SystemUser systemUser) {
 		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setSystemUser(systemUser);
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
 		
@@ -1924,10 +1956,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	private AttachmentOrder spyAttachmentOrder(SystemUser systemUser) {
 		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setSystemUser(systemUser);
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
 		
 		VolumeOrder volumeOrder = new VolumeOrder();
+		volumeOrder.setSystemUser(systemUser);
 		VolumeInstance volumeInstance = new VolumeInstance(FAKE_TARGET_ID);
 		volumeOrder.setInstanceId(volumeInstance.getId());
 		

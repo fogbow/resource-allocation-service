@@ -1,9 +1,6 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -13,6 +10,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -41,12 +39,56 @@ public class OrderController {
         return requestedOrder;
     }
 
+    public void activateOrder(Order order) throws FogbowException {
+        LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
+
+        if (order == null) {
+            throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
+        }
+
+        synchronized (order) {
+            SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+            Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+            ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+
+            String orderId = order.getId();
+
+            if (activeOrdersMap.containsKey(orderId)) {
+                String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
+                throw new UnexpectedException(message);
+            }
+            order.setOrderState(OrderState.OPEN);
+            activeOrdersMap.put(orderId, order);
+            openOrdersList.addItem(order);
+            this.updateOrderDependencies(order, Operation.CREATE);
+        }
+    }
+
+    public void deactivateOrder(Order order) throws UnexpectedException {
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+
+        synchronized (order) {
+            if (activeOrdersMap.containsKey(order.getId())) {
+                activeOrdersMap.remove(order.getId());
+            } else {
+                String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
+                throw new UnexpectedException(message);
+            }
+            closedOrders.removeItem(order);
+            order.setInstanceId(null);
+            order.setOrderState(OrderState.DEACTIVATED);
+        }
+    }
+
     public void deleteOrder(String orderId) throws FogbowException {
         if (orderId == null) 
         	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         
         Order order = getOrder(orderId);
         synchronized (order) {
+            checkOrderDependencies(order.getId());
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
                 CloudConnector cloudConnector = getCloudConnector(order);
@@ -56,17 +98,16 @@ public class OrderController {
                     LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId), e);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
+                updateOrderDependencies(order, Operation.DELETE);
             } else {
                 String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());
                 LOGGER.error(message);
                 throw new InstanceNotFoundException(message);
             }
         }
-
-        this.updateComputeDependencies(this.getOrder(orderId), Operation.DELETE);
     }
 
-    public Instance getResourceInstance(String orderId) throws FogbowException, UnexpectedException {
+    public Instance getResourceInstance(String orderId) throws FogbowException {
         if (orderId == null) 
         	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         
@@ -189,53 +230,74 @@ public class OrderController {
 		return requestedOrders;
 	}
 
-	public void updateComputeDependencies(Order order, Operation operation) throws FogbowException {
-        AttachmentOrder attachmentOrder = null;
-        PublicIpOrder publicIpOrder = null;
+	private void updateOrderDependencies(Order order, Operation operation) throws FogbowException {
+        List<String> dependentOrderIds = new LinkedList<>();
 
         switch (order.getType()) {
             case ATTACHMENT:
-                attachmentOrder = (AttachmentOrder) order;
+                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+                dependentOrderIds.add(attachmentOrder.getComputeId());
+                dependentOrderIds.add(attachmentOrder.getVolumeId());
+                break;
+            case COMPUTE:
+                ComputeOrder computeOrder = (ComputeOrder) order;
+                dependentOrderIds.addAll(computeOrder.getNetworkIds());
                 break;
             case PUBLIC_IP:
-                publicIpOrder = (PublicIpOrder) order;
+                PublicIpOrder publicIpOrder = (PublicIpOrder) order;
+                dependentOrderIds.add(publicIpOrder.getComputeOrderId());
                 break;
             default:
-                // NOTE(pauloewerton): Dependencies check applies only to attachment and public IP orders for now.
+                // Dependencies apply only to attachment, compute and public IP orders for now.
                 return;
         }
 
-        String computeOrderId = null;
-        String orderId = null;
-
-        if (attachmentOrder != null) {
-            computeOrderId = attachmentOrder.getComputeId();
-            orderId = attachmentOrder.getVolumeId();
+        switch (operation) {
+            case CREATE:
+                addOrderDependency(order.getId(), dependentOrderIds);
+                break;
+            case DELETE:
+                deleteOrderDependency(order.getId(), dependentOrderIds);
+                break;
+                default:
+                    throw new UnexpectedException(String.format(Messages.Exception.UNEXPECTED_OPERATION_S, operation));
         }
+    }
 
-        if (publicIpOrder != null) {
-            computeOrderId = publicIpOrder.getComputeOrderId();
-            orderId = publicIpOrder.getId();
-        }
-
-        if (operation == Operation.CREATE) {
-            if (this.orderDependencies.containsKey(computeOrderId)) {
-                this.orderDependencies.get(computeOrderId).add(orderId);
+    private void deleteOrderDependency(String orderId, List<String> dependentOrderIds) throws UnexpectedException {
+        for (String dependentOrderId : dependentOrderIds) {
+            if (this.orderDependencies.containsKey(dependentOrderId)) {
+                List<String> currentList = this.orderDependencies.get(dependentOrderId);
+                if (currentList.remove(orderId)) {
+                    this.orderDependencies.put(dependentOrderId, currentList);
+                } else {
+                    LOGGER.error(String.format(Messages.Error.COULD_NOT_FIND_DEPENDENCY_S_S, dependentOrderId, orderId));
+                }
             } else {
-                this.orderDependencies.put(computeOrderId, new ArrayList<>(Arrays.asList(orderId)));
-            }
-        } else if (operation == Operation.DELETE) {
-            if (this.orderDependencies.containsKey(computeOrderId)) {
-                this.orderDependencies.get(computeOrderId).remove(orderId);
+                LOGGER.error(String.format(Messages.Error.COULD_NOT_FIND_DEPENDENCY_S_S, dependentOrderId, orderId));
             }
         }
     }
 
-    public void checkComputeDependencies(String computeOrderId) throws FogbowException {
-        if (this.orderDependencies.containsKey(computeOrderId) &&
-            !this.orderDependencies.get(computeOrderId).isEmpty()) {
-                throw new FogbowException(String.format(Messages.Error.DEPENDENCY_ERROR, computeOrderId,
-                                          this.orderDependencies.get(computeOrderId)));
+    private void addOrderDependency(String orderId, List<String> dependentOrderIds) {
+        for (String dependentOrderId : dependentOrderIds) {
+            if (this.orderDependencies.containsKey(dependentOrderId)) {
+                List<String> currentList = this.orderDependencies.get(dependentOrderId);
+                currentList.add(orderId);
+                this.orderDependencies.put(dependentOrderId, currentList);
+            } else {
+                List<String> currentList = new LinkedList<>();
+                currentList.add(orderId);
+                this.orderDependencies.put(dependentOrderId, currentList);
+            }
+        }
+    }
+
+    private void checkOrderDependencies(String orderId) throws DependencyDetectedException {
+        if (this.orderDependencies.containsKey(orderId) &&
+            !this.orderDependencies.get(orderId).isEmpty()) {
+                throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED, orderId,
+                                          this.orderDependencies.get(orderId)));
         }
     }
 }
