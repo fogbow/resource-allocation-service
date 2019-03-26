@@ -192,17 +192,16 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				int memory = convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
 				String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
 				int disk = getDiskSizeFromImages(imagesSizeMap, imageId);
-				if (cpu == 0 || memory == 0 || disk == 0) {
-					continue;
-				}
-				flavor = new HardwareRequirements(name, id, cpu, memory, disk);
-				if (!containsFlavor(flavor, getFlavors())) {
-					flavorsTemplate.add(flavor);
+				if (cpu != 0 && memory != 0 && disk != 0) {
+					flavor = new HardwareRequirements(name, id, cpu, memory, disk);
+					if (!containsFlavor(flavor, getFlavors())) {
+						flavorsTemplate.add(flavor);
+					}
 				}
 			}
 		}
 
-		if (flavorsTemplate != null) {
+		if (!flavorsTemplate.isEmpty()) {
 			this.flavors.addAll(flavorsTemplate);
 		}
 	}
