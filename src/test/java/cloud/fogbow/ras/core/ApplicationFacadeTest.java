@@ -746,7 +746,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String resourceType = ResourceType.COMPUTE.getValue();
 		Mockito.verify(authorization, Mockito.times(1)).authorize(Mockito.eq(systemUser),
 				Mockito.eq(cloudName), Mockito.eq(operation), Mockito.eq(resourceType));
-
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 
 		// exercise
