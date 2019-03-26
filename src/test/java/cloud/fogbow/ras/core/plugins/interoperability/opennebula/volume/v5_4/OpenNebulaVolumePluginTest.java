@@ -199,16 +199,16 @@ public class OpenNebulaVolumePluginTest {
 	}
 	
 	private String generateImageTemplate() {
-		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<IMAGE>\n" + 
-				"    <DEV_PREFIX>vd</DEV_PREFIX>\n" + 
-				"    <DISK_TYPE>BLOCK</DISK_TYPE>\n" + 
-				"    <FSTYPE>raw</FSTYPE>\n" + 
-				"    <NAME>fake-volume-name</NAME>\n" + 
-				"    <PERSISTENT>YES</PERSISTENT>\n" + 
-				"    <SIZE>1</SIZE>\n" + 
-				"    <TYPE>DATABLOCK</TYPE>\n" + 
-				"</IMAGE>\n";
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+				+ "<IMAGE>\n"
+				+ "    <DEV_PREFIX>vd</DEV_PREFIX>\n"
+				+ "    <DISK_TYPE>BLOCK</DISK_TYPE>\n"
+				+ "    <FSTYPE>raw</FSTYPE>\n"
+				+ "    <PERSISTENT>YES</PERSISTENT>\n"
+				+ "    <TYPE>DATABLOCK</TYPE>\n"
+				+ "    <NAME>fake-volume-name</NAME>\n"
+				+ "    <SIZE>1</SIZE>\n"
+				+ "</IMAGE>\n";
 		
 		return template;
 	}
