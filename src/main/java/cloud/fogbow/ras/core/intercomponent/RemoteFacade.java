@@ -51,7 +51,7 @@ public class RemoteFacade {
         // The user has already been authenticated by the requesting member.
         checkOrderConsistency(requestingMember, order);
         authorizeOrder(order.getSystemUser(), order.getCloudName(), Operation.CREATE, order.getType(), order);
-        OrderStateTransitioner.activateOrder(order);
+        this.orderController.activateOrder(order);
     }
 
     public Instance getResourceInstance(String requestingMember, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
