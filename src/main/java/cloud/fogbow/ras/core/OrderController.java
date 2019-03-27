@@ -39,7 +39,7 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public static void activateOrder(Order order) throws UnexpectedException {
+    public void activateOrder(Order order) throws FogbowException {
         LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
 
         if (order == null) {
@@ -60,10 +60,11 @@ public class OrderController {
             order.setOrderState(OrderState.OPEN);
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
+            this.updateOrderDependencies(order, Operation.CREATE);
         }
     }
 
-    public static void deactivateOrder(Order order) throws UnexpectedException {
+    public void deactivateOrder(Order order) throws UnexpectedException {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         ChainedList<Order> closedOrders = sharedOrderHolders.getClosedOrdersList();
