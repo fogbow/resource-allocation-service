@@ -9,7 +9,7 @@ import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

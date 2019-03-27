@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models;
 
-import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;

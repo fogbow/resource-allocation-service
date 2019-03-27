@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.util;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
