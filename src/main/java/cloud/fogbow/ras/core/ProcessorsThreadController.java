@@ -20,7 +20,7 @@ public class ProcessorsThreadController {
     private final static String CLOSED_PROCESSOR_THREAD_NAME = "closed-proc";
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
 
-    public ProcessorsThreadController(String localMemberId) {
+    public ProcessorsThreadController(String localMemberId, OrderController orderController) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
@@ -43,7 +43,7 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationPropertyKeys.CLOSED_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME);
 
-        ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
+        ClosedProcessor closedProcessor = new ClosedProcessor(orderController, closedOrdersProcSleepTimeStr);
         
         String failedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.FAILED_ORDERS_SLEEP_TIME_KEY,
