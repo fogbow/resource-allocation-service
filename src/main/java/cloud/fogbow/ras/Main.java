@@ -73,7 +73,8 @@ public class Main implements ApplicationRunner {
             remoteFacade.setCloudListController(cloudListController);
 
             // Setting up order processors
-            ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);
+            ProcessorsThreadController processorsThreadController = new
+                    ProcessorsThreadController(localMemberId, orderController);
 
             // Starting threads
             processorsThreadController.startRasThreads();

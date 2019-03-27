@@ -2,10 +2,7 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.OrderStateTransitioner;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
@@ -37,6 +34,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     @SuppressWarnings("unused")
     private Properties properties;
     private Thread thread;
+    private OrderController orderController;
 
     @Before
     public void setUp() throws UnexpectedException {
@@ -44,11 +42,12 @@ public class ClosedProcessorTest extends BaseUnitTests {
         this.properties = new Properties();
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-        properties = propertiesHolder.getProperties();
+        this.properties = propertiesHolder.getProperties();
+        this.orderController = new OrderController();
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
-        this.closedProcessor = Mockito.spy(new ClosedProcessor(
+        this.closedProcessor = Mockito.spy(new ClosedProcessor(orderController,
                 ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME));
     }
 
@@ -71,7 +70,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         Order localOrder = createLocalOrder(getLocalMemberId());
         localOrder.setInstanceId(instanceId);
 
-        OrderStateTransitioner.activateOrder(localOrder);
+        this.orderController.activateOrder(localOrder);
         OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
 
         //exercise

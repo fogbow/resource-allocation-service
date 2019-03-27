@@ -172,7 +172,8 @@ public class ApplicationFacade {
     }
 
     public String createAttachment(AttachmentOrder attachmentOrder, String userToken) throws FogbowException {
-        return activateOrder(attachmentOrder, userToken);
+        String attachmentOrderId = activateOrder(attachmentOrder, userToken);
+        return attachmentOrderId;
     }
 
     public AttachmentInstance getAttachment(String orderId, String userToken) throws FogbowException {
@@ -184,7 +185,8 @@ public class ApplicationFacade {
     }
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String userToken) throws FogbowException {
-        return activateOrder(publicIpOrder, userToken);
+        String publicIpOrderId = activateOrder(publicIpOrder, userToken);
+        return publicIpOrderId;
     }
 
     public PublicIpInstance getPublicIp(String publicIpOrderId, String userToken) throws FogbowException {
@@ -288,20 +290,18 @@ public class ApplicationFacade {
         // Set an initial state for the resource instance that is yet to be created in the cloud
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
-        OrderStateTransitioner.activateOrder(order);
+        this.orderController.activateOrder(order);
         return order.getId();
     }
 
-    private Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType)
-            throws FogbowException, UnexpectedException {
+    private Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
-    private void deleteOrder(String orderId, String userToken, ResourceType resourceType)
-            throws FogbowException, UnexpectedException {
+    private void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);
@@ -328,7 +328,7 @@ public class ApplicationFacade {
     }
 
 	protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-                                  Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
+                  Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
 		// Check if requested type matches order type
 		if (!order.getType().equals(type))
 			throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);

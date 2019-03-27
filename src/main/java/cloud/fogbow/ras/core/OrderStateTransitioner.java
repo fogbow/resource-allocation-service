@@ -6,40 +6,13 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-import java.util.Map;
-
 public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
-
-    public static void activateOrder(Order order) throws UnexpectedException {
-        LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
-
-        if (order == null) {
-            throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
-        }
-
-        synchronized (order) {
-            SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-            Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-            ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-
-            String orderId = order.getId();
-
-            if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
-                throw new UnexpectedException(message);
-            }
-            order.setOrderState(OrderState.OPEN);
-            activeOrdersMap.put(orderId, order);
-            openOrdersList.addItem(order);
-        }
-    }
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
@@ -66,24 +39,6 @@ public class OrderStateTransitioner {
                 }
             }
             doTransition(order, newState);
-        }
-    }
-
-    public static void deactivateOrder(Order order) throws UnexpectedException {
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
-
-        synchronized (order) {
-            if (activeOrdersMap.containsKey(order.getId())) {
-                activeOrdersMap.remove(order.getId());
-            } else {
-                String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
-                throw new UnexpectedException(message);
-            }
-            closedOrders.removeItem(order);
-            order.setInstanceId(null);
-            order.setOrderState(OrderState.DEACTIVATED);
         }
     }
 
