@@ -32,11 +32,11 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
     private static final String BLOCK_DISK_TYPE = "BLOCK";
     private static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
     private static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
-    private static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
+    private static final String FOGBOW_VOLUME_NAME = "ras-volume-";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
     
-    protected static final String FOGBOW_VOLUME_NAME = "ras-volume-";
+    protected static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
     
     private Properties properties;
     private String endpoint;
@@ -116,5 +116,9 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	protected String getRandomUUID() {
         return UUID.randomUUID().toString();
     }
-	
+
+	// Used for testing only
+	protected void setProperties(Properties properties) {
+		this.properties = properties;
+	}
 }
