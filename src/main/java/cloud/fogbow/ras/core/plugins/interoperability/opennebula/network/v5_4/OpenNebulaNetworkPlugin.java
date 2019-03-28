@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -30,28 +31,30 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaNetworkPlugin.class);
 
+	private static final String ALL_PROTOCOLS = "ALL";
+	private static final String CIDR_SEPARATOR = "[/]";
 	private static final String DEFAULT_NETWORK_BRIDGE_KEY = "default_network_bridge";
 	private static final String DEFAULT_NETWORK_DESCRIPTION = "Virtual network created by %s";
 	private static final String DEFAULT_NETWORK_TYPE = "RANGED";
+	private static final String DEFAULT_SECURITY_GROUPS_BASE_FORMAT = "0,%s";
 	private static final String DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE = "fw";
+	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String NETWORK_ADDRESS_RANGE_TYPE = "IP4";
+	private static final String OUTPUT_RULE_TYPE = "outbound";
+	private static final String SECURITY_GROUP_RESOURCE = "SecurityGroup";
 	private static final String TEMPLATE_NETWORK_ADDRESS_PATH = "TEMPLATE/NETWORK_ADDRESS";
 	private static final String TEMPLATE_NETWORK_GATEWAY_PATH = "TEMPLATE/NETWORK_GATEWAY";
 	private static final String TEMPLATE_VLAN_ID_PATH = "TEMPLATE/VLAN_ID";
-	private static final String CIDR_SEPARATOR = "[/]";
-	private static final String ALL_PROTOCOLS = "ALL";
-	private static final String INPUT_RULE_TYPE = "inbound";
-	private static final String OUTPUT_RULE_TYPE = "outbound";
-	private static final String DEFAULT_SECURITY_GROUPS_BASE_FORMAT = "0,%s";
-	private static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
-	private static final String SECURITY_GROUPS_SEPARATOR = ",";
-	private static final String SECURITY_GROUP_RESOURCE = "SecurityGroup";
 	private static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SECURITY_GROUP_VALID_POSITION = 1;
 	
+	protected static final String FOGBOW_NETWORK_NAME = "ras-network-";
+	protected static final String SECURITY_GROUPS_SEPARATOR = ",";
+	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+
 	private String endpoint;
 	private String bridge; 
 
@@ -66,7 +69,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
-		String name = networkOrder.getName();
+		String networkName = networkOrder.getName();
+		String name = networkName == null ? FOGBOW_NETWORK_NAME + getRandomUUID() : networkName;
 		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, cloudUser.getId());
 		String type = DEFAULT_NETWORK_TYPE;
 		String bridge = this.bridge;
@@ -114,8 +118,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkInstanceId);
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);
 		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
-		deleteSecurityGroup(securityGroup);
 		deleteVirtualNetwork(virtualNetwork);
+		deleteSecurityGroup(securityGroup);
 	}
 
 	private void deleteSecurityGroup(SecurityGroup securityGroup) {
@@ -132,7 +136,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	private String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
+	protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
 		String content = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
 		if (content == null || content.isEmpty()) {
 			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
@@ -146,7 +150,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return contentSlices[SECURITY_GROUP_VALID_POSITION];
 	}
 	
-	private String[] sliceCIDR(String cidr) throws InvalidParameterException {
+	protected String[] sliceCIDR(String cidr) throws InvalidParameterException {
 		String[] slice = null;
 		try {
 			slice = cidr.split(CIDR_SEPARATOR);
@@ -224,6 +228,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 				interfaceState);
 		
 		return networkInstance;
+	}
+	
+	protected String getRandomUUID() {
+		return UUID.randomUUID().toString();
 	}
 	
 }
