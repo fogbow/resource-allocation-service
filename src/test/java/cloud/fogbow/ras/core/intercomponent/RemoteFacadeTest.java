@@ -152,7 +152,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.orderController.activateOrder(order);
 
 		Instance expectedInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-		Mockito.doReturn(expectedInstance).when(orderController).getResourceInstance(Mockito.anyString());
+		Mockito.doReturn(expectedInstance).when(orderController).getResourceInstance(Mockito.any(Order.class));
 
 		// exercise
 		Instance instance = this.facade.getResourceInstance(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser,

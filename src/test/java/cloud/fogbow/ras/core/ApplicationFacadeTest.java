@@ -1204,7 +1204,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).deleteOrder(order.getComputeOrderId());
+		Mockito.verify(this.orderController, Mockito.times(1)).deleteOrder(null);
 	}
 
 	// test case: When calling the getAllInstancesStatus method, it must return a

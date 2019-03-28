@@ -298,14 +298,14 @@ public class ApplicationFacade {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
-        return this.orderController.getResourceInstance(orderId);
+        return this.orderController.getResourceInstance(order);
     }
 
     private void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);
-        this.orderController.deleteOrder(orderId);
+        this.orderController.deleteOrder(order);
     }
 
     private Allocation getUserAllocation(String memberId, String cloudName, String userToken,

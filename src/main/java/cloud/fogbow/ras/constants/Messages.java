@@ -3,13 +3,13 @@ package cloud.fogbow.ras.constants;
 public class Messages {
 
     public static class Exception {
+        public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INCORRECT_REQUESTING_MEMBER = "Mismatch on requesting member information.";
         public static final String INEXISTENT_REQUEST = "Request does not exist.";
-        public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";

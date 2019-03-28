@@ -82,11 +82,10 @@ public class OrderController {
         }
     }
 
-    public void deleteOrder(String orderId) throws FogbowException {
-        if (orderId == null) 
-        	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
-        
-        Order order = getOrder(orderId);
+    public void deleteOrder(Order order) throws FogbowException {
+        if (order == null)
+            throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+
         synchronized (order) {
             checkOrderDependencies(order.getId());
             OrderState orderState = order.getOrderState();
@@ -95,7 +94,7 @@ public class OrderController {
                 try {
                     cloudConnector.deleteInstance(order);
                 } catch (InstanceNotFoundException e) {
-                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId), e);
+                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, order.getId()), e);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
                 updateOrderDependencies(order, Operation.DELETE);
@@ -107,11 +106,10 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(String orderId) throws FogbowException {
-        if (orderId == null) 
-        	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
-        
-        Order order = getOrder(orderId);
+    public Instance getResourceInstance(Order order) throws FogbowException {
+        if (order == null)
+        	throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+
         synchronized (order) {
             CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
