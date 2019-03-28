@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -11,7 +12,6 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -50,13 +50,13 @@ public class OrderControllerTest extends BaseUnitTests {
 
     private OrderController ordersController;
     private Map<String, Order> activeOrdersMap;
-    private ChainedList openOrdersList;
-    private ChainedList pendingOrdersList;
-    private ChainedList spawningOrdersList;
-    private ChainedList fulfilledOrdersList;
-    private ChainedList failedAfterSuccessfulRequestOrdersList;
-    private ChainedList failedOnRequestOrdersList;
-    private ChainedList closedOrdersList;
+    private ChainedList<Order> openOrdersList;
+    private ChainedList<Order> pendingOrdersList;
+    private ChainedList<Order> spawningOrdersList;
+    private ChainedList<Order> fulfilledOrdersList;
+    private ChainedList<Order> failedAfterSuccessfulRequestOrdersList;
+    private ChainedList<Order> failedOnRequestOrdersList;
+    private ChainedList<Order> closedOrdersList;
     private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
     private LocalCloudConnector localCloudConnector;
 
@@ -81,22 +81,6 @@ public class OrderControllerTest extends BaseUnitTests {
         this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
     }
 
-    // test case: When pass an Order with id null, it must raise an InvalidParameterException.
-    @Test(expected = InvalidParameterException.class) // verify
-    public void testDeleteOrderThrowsInvalidParameterException()
-            throws Exception {
-
-        // set up
-        Order order = Mockito.mock(Order.class);
-        String orderId = order.getId();
-
-        // verify
-        Assert.assertNull(orderId);
-
-        // exercise
-        this.ordersController.deleteOrder(orderId);
-    }
-
     // test case: when try to delete an Order closed, it must raise an InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testDeleteClosedOrderThrowsInstanceNotFoundException()
@@ -104,9 +88,10 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // set up
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // exercise
-        this.ordersController.deleteOrder(orderId);
+        this.ordersController.deleteOrder(computeOrder);
     }
 
     // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
@@ -218,10 +203,17 @@ public class OrderControllerTest extends BaseUnitTests {
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
         // exercise
-        Instance instance = this.ordersController.getResourceInstance(order.getId());
+        Instance instance = this.ordersController.getResourceInstance(order);
 
         // verify
         Assert.assertEquals(orderInstance, instance);
+    }
+
+    // test case: Requesting a null order must return a UnexpectedException.
+    @Test(expected = UnexpectedException.class) // verify
+    public void testGetResourceInstanceNullOrder() throws Exception {
+        // exercise
+        this.ordersController.getResourceInstance(null);
     }
 
     // test case: Tests if getUserAllocation() returns the ComputeAllocation properly.
@@ -297,7 +289,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(orderId);
+        this.ordersController.deleteOrder(computeOrder);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -327,7 +319,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(orderId);
+        this.ordersController.deleteOrder(computeOrder);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -356,7 +348,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(orderId);
+        this.ordersController.deleteOrder(computeOrder);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -385,7 +377,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(orderId);
+        this.ordersController.deleteOrder(computeOrder);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -413,7 +405,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(orderId);
+        this.ordersController.deleteOrder(computeOrder);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -424,8 +416,8 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Deleting a null order must return a FogbowRasException.
-    @Test(expected = FogbowException.class) // verify
+    // test case: Deleting a null order must return a UnexpectedException.
+    @Test(expected = UnexpectedException.class) // verify
     public void testDeleteNullOrder()
             throws Exception {
         // exercise

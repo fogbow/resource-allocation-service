@@ -59,7 +59,7 @@ public class RemoteFacade {
         // The user has already been authenticated by the requesting member.
         checkOrderConsistency(requestingMember, order);
         authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
-        return this.orderController.getResourceInstance(orderId);
+        return this.orderController.getResourceInstance(order);
     }
 
     public void deleteOrder(String requestingMember, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
@@ -67,7 +67,7 @@ public class RemoteFacade {
         // The user has already been authenticated by the requesting member.
         checkOrderConsistency(requestingMember, order);
         authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
-        this.orderController.deleteOrder(orderId);
+        this.orderController.deleteOrder(order);
     }
 
     public Quota getUserQuota(String requestingMember, String cloudName, SystemUser systemUser, ResourceType resourceType) throws FogbowException {

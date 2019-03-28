@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.processors;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -14,7 +15,6 @@ import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -50,8 +50,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final int MAX_SLEEP_TIME = 10000;
     private static final int DEFAULT_SLEEP_TIME = 500;
 
-    private ChainedList failedOrderList;
-    private ChainedList fulfilledOrderList;
+    private ChainedList<Order> failedOrderList;
+    private ChainedList<Order> fulfilledOrderList;
     private FulfilledProcessor fulfilledProcessor;
     private LocalCloudConnector localCloudConnector;
     private Properties properties;

@@ -2,10 +2,10 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -32,7 +32,7 @@ public class BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {
             if (!state.equals(OrderState.DEACTIVATED)) {
-                SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
+                SynchronizedDoublyLinkedList<Order> ordersList = sharedOrderHolders.getOrdersList(state);
                 cleanList(ordersList);
             }
         }
@@ -41,7 +41,7 @@ public class BaseUnitTests {
         activeOrderMap.clear();
     }
 
-    protected void cleanList(ChainedList list) {
+    protected void cleanList(ChainedList<Order> list) {
         list.resetPointer();
         Order order = null;
         do {
@@ -53,7 +53,7 @@ public class BaseUnitTests {
         list.resetPointer();
     }
 
-    protected boolean isEmpty(ChainedList list) {
+    protected boolean isEmpty(ChainedList<Order> list) {
         list.resetPointer();
         return list.getNext() == null;
     }
@@ -109,13 +109,13 @@ public class BaseUnitTests {
      */
     public void mockReadOrdersFromDataBase() throws UnexpectedException {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
 
         Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
         Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));

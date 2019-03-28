@@ -6,13 +6,13 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -82,13 +82,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         // mocking databaseManager
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         PowerMockito.mockStatic(DatabaseManager.class);
         BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
 

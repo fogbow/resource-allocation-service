@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
@@ -27,5 +27,5 @@ public interface StableStorage {
      * @param orderState {@link OrderState}
      * @return {@link SynchronizedDoublyLinkedList}
      */
-    SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) throws UnexpectedException;
+    SynchronizedDoublyLinkedList<Order> readActiveOrders(OrderState orderState) throws UnexpectedException;
 }

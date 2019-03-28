@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
 import cloud.fogbow.ras.core.datastore.services.AuditableRequestService;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
@@ -44,9 +44,9 @@ public class DatabaseManager implements StableStorage {
     }
 
     @Override
-    public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) throws UnexpectedException {
+    public SynchronizedDoublyLinkedList<Order> readActiveOrders(OrderState orderState) throws UnexpectedException {
 
-        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList();
+        SynchronizedDoublyLinkedList<Order> synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList<>();
 
         for (Order order : this.recoveryService.readActiveOrders(orderState)) {
             synchronizedDoublyLinkedList.addItem(order);

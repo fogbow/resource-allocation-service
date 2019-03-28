@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
@@ -18,7 +19,6 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -152,7 +152,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.orderController.activateOrder(order);
 
 		Instance expectedInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-		Mockito.doReturn(expectedInstance).when(orderController).getResourceInstance(Mockito.anyString());
+		Mockito.doReturn(expectedInstance).when(orderController).getResourceInstance(Mockito.any(Order.class));
 
 		// exercise
 		Instance instance = this.facade.getResourceInstance(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser,
@@ -558,7 +558,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(response);
 		
 		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-		SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(OrderState.PENDING);
+		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(OrderState.PENDING);
 		origin.addItem(remoteOrder);
 		
 		// exercise
@@ -595,7 +595,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(iqResponse);
 
 		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-		SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(OrderState.PENDING);
+		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(OrderState.PENDING);
 		origin.addItem(remoteOrder);
 
 		// exercise
