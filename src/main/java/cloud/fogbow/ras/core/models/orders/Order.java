@@ -68,12 +68,15 @@ public abstract class Order implements Serializable {
     private SystemUser systemUser;
 
     @Column
+    @Size(max = FIELDS_MAX_SIZE)
     private String userId;
 
     @Column
+    @Size(max = 1024)
     private String serializedSystemUser;
 
     @Column
+    @Size(max = FIELDS_MAX_SIZE)
     private String providerId;
 
     public Order() {
@@ -204,19 +207,17 @@ public abstract class Order implements Serializable {
         return this.providerId;
     }
 
-    @PrePersist
-    private void serializeSystemUser() {
+    public void serializeSystemUser() {
         Gson gson = new Gson();
-        this.serializedSystemUser = gson.toJson(this.systemUser);
-        System.out.println(serializedSystemUser);
+        this.setSerializedSystemUser(gson.toJson(this.getSystemUser()));
+        this.setUserId(this.getSystemUser().getId());
+        this.setProviderId(this.getSystemUser().getIdentityProviderId());
     }
 
     @PostLoad
     private void deserializeSystemUser() {
         Gson gson = new Gson();
-        this.systemUser = gson.fromJson(this.serializedSystemUser, SystemUser.class);
-        System.out.println(systemUser);
-        System.out.println("blaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        this.setSystemUser(gson.fromJson(this.getSerializedSystemUser(), SystemUser.class));
     }
 
     public boolean isProviderLocal(String localMemberId) {

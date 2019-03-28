@@ -27,6 +27,7 @@ public class RecoveryService extends FogbowDatabaseService<Order> {
         if (this.orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.REQUEST_ALREADY_EXIST);
         }
+        order.serializeSystemUser();
         safeSave(order, this.orderRepository);
     }
 
