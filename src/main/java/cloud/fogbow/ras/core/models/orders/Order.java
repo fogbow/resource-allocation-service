@@ -5,6 +5,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
+import com.google.gson.Gson;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -65,6 +66,15 @@ public abstract class Order implements Serializable {
     // TODO: check if this is correct; we need to save the user.
     @Transient
     private SystemUser systemUser;
+
+    @Column
+    private String userId;
+
+    @Column
+    private String serializedSystemUser;
+
+    @Column
+    private String providerId;
 
     public Order() {
     }
@@ -168,6 +178,45 @@ public abstract class Order implements Serializable {
 
     public void setRequirements(Map<String, String> requirements) {
         this.requirements = requirements;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return this.userId;
+    }
+
+    public void setSerializedSystemUser(String serializedSystemUser) {
+        this.serializedSystemUser = serializedSystemUser;
+    }
+
+    public String getSerializedSystemUser() {
+        return this.serializedSystemUser;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
+    public String getProviderId() {
+        return this.providerId;
+    }
+
+    @PrePersist
+    private void serializeSystemUser() {
+        Gson gson = new Gson();
+        this.serializedSystemUser = gson.toJson(this.systemUser);
+        System.out.println(serializedSystemUser);
+    }
+
+    @PostLoad
+    private void deserializeSystemUser() {
+        Gson gson = new Gson();
+        this.systemUser = gson.fromJson(this.serializedSystemUser, SystemUser.class);
+        System.out.println(systemUser);
+        System.out.println("blaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     }
 
     public boolean isProviderLocal(String localMemberId) {
