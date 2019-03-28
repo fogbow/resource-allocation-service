@@ -1,14 +1,8 @@
 package cloud.fogbow.ras.constants;
 
-import java.util.Locale;
-
 public class Messages {
 
     public static class Exception {
-        public static final String ATTEMPTING_TO_ADD_A_NULL_ITEM = "Attempting to add a null item.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_ITEM = "Attempting to remove a null item.";
-        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
