@@ -11,8 +11,8 @@ import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 public class VolumeImage extends OpenNebulaMarshaller {
     
 	private String name;
-    private String persistent;
-    private String type;
+    private String imagePersistent;
+    private String imageType;
     private String fileSystemType;
     private String diskType;
     private String devicePrefix;
@@ -28,30 +28,21 @@ public class VolumeImage extends OpenNebulaMarshaller {
     }
 
     @XmlElement(name = PERSISTENT)
-    public String getPersistent() {
-        return persistent;
+    public String getImagePersistent() {
+        return imagePersistent;
     }
 
-    public void setPersistent(String persistent) {
-        this.persistent = persistent;
-    }
-
-    @XmlElement(name = SIZE)
-    public int getSize() {
-        return size;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
+    public void setImagePersistent(String imagePersistent) {
+        this.imagePersistent = imagePersistent;
     }
 
     @XmlElement(name = TYPE)
-    public String getType() {
-        return type;
+    public String getImageType() {
+        return imageType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setImageType(String imageType) {
+        this.imageType = imageType;
     }
 
     @XmlElement(name = FILE_SYSTEM_TYPE)
@@ -80,4 +71,14 @@ public class VolumeImage extends OpenNebulaMarshaller {
     public void setDevicePrefix(String devicePrefix) {
         this.devicePrefix = devicePrefix;
     }
+    
+    @XmlElement(name = SIZE)
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+    
 }
