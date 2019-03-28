@@ -47,16 +47,17 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
 	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-	private static final String IMAGE_SIZE_PATH = "SIZE";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
-	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
-	private static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
-	private static final String TEMPLATE_IMAGE_ID_PATH = "TEMPLATE/DISK/IMAGE_ID";
-	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
 	
 	protected static final boolean SHUTS_DOWN_HARD = true;
+
+	protected static final String IMAGE_SIZE_PATH = "SIZE";
+	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
+	protected static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
+	protected static final String TEMPLATE_IMAGE_ID_PATH = "TEMPLATE/DISK/IMAGE_ID";
+	protected static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 
 	private String endpoint;
 	private TreeSet<HardwareRequirements> flavors;
@@ -191,23 +192,22 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				int memory = convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
 				String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
 				int disk = getDiskSizeFromImages(imagesSizeMap, imageId);
-				if (cpu == 0 || memory == 0 || disk == 0) {
-					continue;
-				}
-				flavor = new HardwareRequirements(name, id, cpu, memory, disk);
-				if (!containsFlavor(flavor, getFlavors())) {
-					flavorsTemplate.add(flavor);
+				if (cpu != 0 && memory != 0 && disk != 0) {
+					flavor = new HardwareRequirements(name, id, cpu, memory, disk);
+					if (!containsFlavor(flavor, getFlavors())) {
+						flavorsTemplate.add(flavor);
+					}
 				}
 			}
 		}
 
-		if (flavorsTemplate != null) {
+		if (!flavorsTemplate.isEmpty()) {
 			this.flavors.addAll(flavorsTemplate);
 		}
 	}
 	
 	protected int getDiskSizeFromImages(Map<String, String> imageSizeMap, String imageId) {
-		if (imageSizeMap != null || imageId != null) {
+		if (imageSizeMap != null && imageId != null) {
 			String diskSize = imageSizeMap.get(imageId);
 			return convertToInteger(diskSize);
 		} else {
@@ -246,7 +246,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected ComputeInstance getComputeInstance(VirtualMachine virtualMachine) {
-		String xml = getTemplateResponse(virtualMachine);
+		OneResponse response = virtualMachine.info();
+		String xml = response.getMessage();
 		String id = virtualMachine.getId();
 		String name = virtualMachine.getName();
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
@@ -255,28 +256,15 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		String state = virtualMachine.lcmStateStr();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
-		
+
 		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
 		List<String> ipAddresses = xmlUnmarshaller.getContextListOf(NIC_IP_EXPRESSION);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
-		ComputeInstance computeInstance = new ComputeInstance(
-				id, 
-				instanceState, 
-				name,
-				cpu, 
-				memory, 
-				disk, 
-				ipAddresses);
-		
+		ComputeInstance computeInstance = new ComputeInstance(id, instanceState, name, cpu, memory, disk, ipAddresses);
 		return computeInstance;
 	}
 
-	protected String getTemplateResponse(VirtualMachine virtualMachine) {
-		OneResponse response = virtualMachine.info();
-		return response.getMessage();
-	}
-	
 	protected TreeSet<HardwareRequirements> getFlavors() {
         synchronized (this.flavors) {
             return this.flavors;
