@@ -2,10 +2,10 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
-import com.google.gson.Gson;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -208,16 +208,20 @@ public abstract class Order implements Serializable {
     }
 
     public void serializeSystemUser() {
-        Gson gson = new Gson();
-        this.setSerializedSystemUser(gson.toJson(this.getSystemUser()));
+        SerializableSystemUser serializableSystemUser = new SerializableSystemUser(this.getSystemUser());
+        this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializableSystemUser));
         this.setUserId(this.getSystemUser().getId());
         this.setProviderId(this.getSystemUser().getIdentityProviderId());
     }
 
     @PostLoad
     private void deserializeSystemUser() {
-        Gson gson = new Gson();
-        this.setSystemUser(gson.fromJson(this.getSerializedSystemUser(), SystemUser.class));
+        try {
+            SerializableSystemUser serializableSystemUser = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializableSystemUser.class);
+            this.setSystemUser(serializableSystemUser.getSystemUser());
+        } catch(ClassNotFoundException exception) {
+            exception.printStackTrace();
+        }
     }
 
     public boolean isProviderLocal(String localMemberId) {
@@ -258,4 +262,19 @@ public abstract class Order implements Serializable {
     public abstract ResourceType getType();
 
     public abstract String getSpec();
+
+    private class SerializableSystemUser {
+
+        private String className;
+        private String payload;
+
+        public SerializableSystemUser(SystemUser user) {
+            this.className = user.getClass().getName();
+            this.payload = GsonHolder.getInstance().toJson(user);
+        }
+
+        public SystemUser getSystemUser() throws ClassNotFoundException {
+            return (SystemUser) GsonHolder.getInstance().fromJson(this.payload, Class.forName(this.className));
+        }
+    }
 }
