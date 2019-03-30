@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.models.orders;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.SystemUserUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -63,7 +64,6 @@ public abstract class Order implements Serializable {
     @Column
     private Map<String, String> requirements = new HashMap<>();
 
-    // TODO: check if this is correct; we need to save the user.
     @Transient
     private SystemUser systemUser;
 
@@ -72,7 +72,7 @@ public abstract class Order implements Serializable {
     private String userId;
 
     @Column
-    @Size(max = 1024)
+    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
     private String serializedSystemUser;
 
     @Column
@@ -207,6 +207,8 @@ public abstract class Order implements Serializable {
         return this.providerId;
     }
 
+    // Cannot be called at @PrePersist because the transient field systemUser is set to null at this stage
+    // Instead, the systemUser is explicitly serialized before being save by RecoveryService.save().
     public void serializeSystemUser() {
         SerializableSystemUser serializableSystemUser = new SerializableSystemUser(this.getSystemUser());
         this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializableSystemUser));

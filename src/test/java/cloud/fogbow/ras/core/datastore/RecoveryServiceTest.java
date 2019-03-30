@@ -203,15 +203,18 @@ public class RecoveryServiceTest extends BaseUnitTests {
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         // creating attachment order with open state
-        Order attachmentOrder = new AttachmentOrder();
+        Order attachmentOrder = new AttachmentOrder(systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_CLOUD_NAME, FAKE_ID_1, FAKE_ID_1, null);
         attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         // creating network order with fulfilled state
-        Order networkOrder = new NetworkOrder();
+        Order networkOrder = new NetworkOrder(systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_CLOUD_NAME, null, null, null, null);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // creating volume order with fulfilled state
-        Order volumeOrder = new VolumeOrder();
+        Order volumeOrder = new VolumeOrder(systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_CLOUD_NAME, null, 0);
         volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // exercise
