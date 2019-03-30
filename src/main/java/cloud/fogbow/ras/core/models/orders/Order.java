@@ -3,8 +3,10 @@ package cloud.fogbow.ras.core.models.orders;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.SerializedEntityHolder;
 import cloud.fogbow.common.util.SystemUserUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
 
@@ -210,19 +212,19 @@ public abstract class Order implements Serializable {
     // Cannot be called at @PrePersist because the transient field systemUser is set to null at this stage
     // Instead, the systemUser is explicitly serialized before being save by RecoveryService.save().
     public void serializeSystemUser() {
-        SerializableSystemUser serializableSystemUser = new SerializableSystemUser(this.getSystemUser());
-        this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializableSystemUser));
+        SerializedEntityHolder<SystemUser> serializedSystemUserHolder = new SerializedEntityHolder<SystemUser>(this.getSystemUser());
+        this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializedSystemUserHolder));
         this.setUserId(this.getSystemUser().getId());
         this.setProviderId(this.getSystemUser().getIdentityProviderId());
     }
 
     @PostLoad
-    private void deserializeSystemUser() {
+    private void deserializeSystemUser() throws UnexpectedException {
         try {
-            SerializableSystemUser serializableSystemUser = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializableSystemUser.class);
-            this.setSystemUser(serializableSystemUser.getSystemUser());
+            SerializedEntityHolder serializedSystemUserHolder = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializedEntityHolder.class);
+            this.setSystemUser((SystemUser) serializedSystemUserHolder.getSerializedEntity());
         } catch(ClassNotFoundException exception) {
-            exception.printStackTrace();
+            throw new UnexpectedException(Messages.Exception.UNABLE_TO_DESERIALIZE_SYSTEM_USER);
         }
     }
 
@@ -264,19 +266,4 @@ public abstract class Order implements Serializable {
     public abstract ResourceType getType();
 
     public abstract String getSpec();
-
-    private class SerializableSystemUser {
-
-        private String className;
-        private String payload;
-
-        public SerializableSystemUser(SystemUser user) {
-            this.className = user.getClass().getName();
-            this.payload = GsonHolder.getInstance().toJson(user);
-        }
-
-        public SystemUser getSystemUser() throws ClassNotFoundException {
-            return (SystemUser) GsonHolder.getInstance().fromJson(this.payload, Class.forName(this.className));
-        }
-    }
 }
