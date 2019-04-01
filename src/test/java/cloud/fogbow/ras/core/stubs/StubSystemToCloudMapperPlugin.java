@@ -8,7 +8,7 @@ import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
  * This class is a stub for the SystemToCloudMapperPlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubSystemToCloudMapperPlugin implements SystemToCloudMapperPlugin<CloudUser> {
+public class StubSystemToCloudMapperPlugin implements SystemToCloudMapperPlugin<CloudUser, SystemUser> {
 
     public StubSystemToCloudMapperPlugin(String conf1) {
     }

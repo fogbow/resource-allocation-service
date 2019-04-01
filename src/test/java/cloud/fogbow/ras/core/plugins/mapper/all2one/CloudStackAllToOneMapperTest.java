@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import cloud.fogbow.as.core.models.CloudStackSystemUser;
 import cloud.fogbow.as.core.systemidp.plugins.cloudstack.CloudStackSystemIdentityProviderPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -52,8 +53,10 @@ public class CloudStackAllToOneMapperTest {
     @Test
     public void testCreate2Tokens() throws FogbowException {
         //set up
-        SystemUser user1 = new SystemUser(FAKE_LOGIN1, FAKE_LOGIN1, this.memberId);
-        SystemUser user2 = new SystemUser(FAKE_LOGIN2, FAKE_LOGIN2, this.memberId);
+        CloudStackUser cloudStackUser1 = new CloudStackUser(FAKE_LOGIN1, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+        CloudStackSystemUser user1 = new CloudStackSystemUser(this.memberId, cloudStackUser1);
+        CloudStackUser cloudStackUser2 = new CloudStackUser(FAKE_LOGIN2, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+        CloudStackSystemUser user2 = new CloudStackSystemUser(this.memberId, cloudStackUser2);
 
         CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 

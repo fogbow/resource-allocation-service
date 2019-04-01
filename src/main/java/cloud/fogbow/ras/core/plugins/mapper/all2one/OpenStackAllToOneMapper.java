@@ -1,12 +1,13 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import cloud.fogbow.as.core.models.OpenStackV3SystemUser;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.plugins.cloudidp.openstack.v3.OpenStackIdentityProviderPlugin;
 
 import java.util.Map;
 
-public class OpenStackAllToOneMapper extends GenericAllToOneSystemToCloudMapper {
+public class OpenStackAllToOneMapper extends GenericAllToOneSystemToCloudMapper<OpenStackV3User, OpenStackV3SystemUser> {
     private OpenStackIdentityProviderPlugin identityProviderPlugin;
 
     public OpenStackAllToOneMapper(String confFile) {
