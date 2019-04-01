@@ -28,6 +28,7 @@ public class CloudStackAllToOneMapperTest {
     private static final String FAKE_LOGIN2 = "fake-login2";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
@@ -54,7 +55,7 @@ public class CloudStackAllToOneMapperTest {
         SystemUser user1 = new SystemUser(FAKE_LOGIN1, FAKE_LOGIN1, this.memberId);
         SystemUser user2 = new SystemUser(FAKE_LOGIN2, FAKE_LOGIN2, this.memberId);
 
-        CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
+        CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 
         Mockito.doReturn(systemUser).when(this.cloudStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());
 

@@ -44,6 +44,7 @@ public class CloudStackNetworkPluginTest {
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
+    public static final String FAKE_DOMAIN = "fake-domain";
     public static final String FAKE_GATEWAY = "10.0.0.1";
     public static final String FAKE_ADDRESS = "10.0.0.0/24";
     public static final String FAKE_STATE = "Allocated";
@@ -53,7 +54,7 @@ public class CloudStackNetworkPluginTest {
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
-    public static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
+    public static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 

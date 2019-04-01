@@ -52,6 +52,7 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_ID = "fake-id";
     private static final String FAKE_JOB_ID = "fake-job-id";
     private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TAGS = "tag1:value1,tag2:value2";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -84,7 +85,7 @@ public class CloudStackVolumePluginTest {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
+        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
     }
 
     // test case: When calling the requestInstance method with a size compatible with the
