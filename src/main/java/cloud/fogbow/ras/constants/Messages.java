@@ -1,19 +1,15 @@
 package cloud.fogbow.ras.constants;
 
-import java.util.Locale;
-
 public class Messages {
 
     public static class Exception {
-        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
+        public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INCORRECT_REQUESTING_MEMBER = "Mismatch on requesting member information.";
         public static final String INEXISTENT_REQUEST = "Request does not exist.";
-        public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
@@ -21,9 +17,7 @@ public class Messages {
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
-        public static final String INVALID_PUBLIC_KEY = "Invalid public key fetched from external server.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
-        public static final String INVALID_URL = "Please check the url: %s.";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";

@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.SystemUserUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -62,9 +64,20 @@ public abstract class Order implements Serializable {
     @Column
     private Map<String, String> requirements = new HashMap<>();
 
-    // TODO: check if this is correct; we need to save the user.
     @Transient
     private SystemUser systemUser;
+
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private String userId;
+
+    @Column
+    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
+    private String serializedSystemUser;
+
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private String providerId;
 
     public Order() {
     }
@@ -170,6 +183,49 @@ public abstract class Order implements Serializable {
         this.requirements = requirements;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return this.userId;
+    }
+
+    public void setSerializedSystemUser(String serializedSystemUser) {
+        this.serializedSystemUser = serializedSystemUser;
+    }
+
+    public String getSerializedSystemUser() {
+        return this.serializedSystemUser;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
+    public String getProviderId() {
+        return this.providerId;
+    }
+
+    // Cannot be called at @PrePersist because the transient field systemUser is set to null at this stage
+    // Instead, the systemUser is explicitly serialized before being save by RecoveryService.save().
+    public void serializeSystemUser() {
+        SerializableSystemUser serializableSystemUser = new SerializableSystemUser(this.getSystemUser());
+        this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializableSystemUser));
+        this.setUserId(this.getSystemUser().getId());
+        this.setProviderId(this.getSystemUser().getIdentityProviderId());
+    }
+
+    @PostLoad
+    private void deserializeSystemUser() {
+        try {
+            SerializableSystemUser serializableSystemUser = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializableSystemUser.class);
+            this.setSystemUser(serializableSystemUser.getSystemUser());
+        } catch(ClassNotFoundException exception) {
+            exception.printStackTrace();
+        }
+    }
+
     public boolean isProviderLocal(String localMemberId) {
         return this.provider.equals(localMemberId);
     }
@@ -208,4 +264,19 @@ public abstract class Order implements Serializable {
     public abstract ResourceType getType();
 
     public abstract String getSpec();
+
+    private class SerializableSystemUser {
+
+        private String className;
+        private String payload;
+
+        public SerializableSystemUser(SystemUser user) {
+            this.className = user.getClass().getName();
+            this.payload = GsonHolder.getInstance().toJson(user);
+        }
+
+        public SystemUser getSystemUser() throws ClassNotFoundException {
+            return (SystemUser) GsonHolder.getInstance().fromJson(this.payload, Class.forName(this.className));
+        }
+    }
 }

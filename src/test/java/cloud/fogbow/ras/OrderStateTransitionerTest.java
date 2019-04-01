@@ -1,11 +1,11 @@
 package cloud.fogbow.ras;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.After;
@@ -56,8 +56,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
 
-        SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
-        SynchronizedDoublyLinkedList spawningOrdersList = orderHolders.getSpawningOrdersList();
+        SynchronizedDoublyLinkedList<Order> openOrdersList = orderHolders.getOpenOrdersList();
+        SynchronizedDoublyLinkedList<Order> spawningOrdersList = orderHolders.getSpawningOrdersList();
 
         Order order = createOrder(originState);
         openOrdersList.addItem(order);
@@ -109,7 +109,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
 
         Mockito.when(ordersHolder.getOrdersList(originState))
-                .thenReturn(new SynchronizedDoublyLinkedList());
+                .thenReturn(new SynchronizedDoublyLinkedList<>());
 
         // Destination list will fail to be found
         Mockito.when(ordersHolder.getOrdersList(destinationState)).thenReturn(null);

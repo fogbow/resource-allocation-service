@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -10,7 +11,6 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -49,7 +49,7 @@ public class OrderController {
         synchronized (order) {
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-            ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+            ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
             String orderId = order.getId();
 
@@ -67,7 +67,7 @@ public class OrderController {
     public void deactivateOrder(Order order) throws UnexpectedException {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+        ChainedList<Order> closedOrders = sharedOrderHolders.getClosedOrdersList();
 
         synchronized (order) {
             if (activeOrdersMap.containsKey(order.getId())) {
@@ -82,11 +82,10 @@ public class OrderController {
         }
     }
 
-    public void deleteOrder(String orderId) throws FogbowException {
-        if (orderId == null) 
-        	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
-        
-        Order order = getOrder(orderId);
+    public void deleteOrder(Order order) throws FogbowException {
+        if (order == null)
+            throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+
         synchronized (order) {
             checkOrderDependencies(order.getId());
             OrderState orderState = order.getOrderState();
@@ -95,7 +94,7 @@ public class OrderController {
                 try {
                     cloudConnector.deleteInstance(order);
                 } catch (InstanceNotFoundException e) {
-                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId), e);
+                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, order.getId()), e);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
                 updateOrderDependencies(order, Operation.DELETE);
@@ -107,11 +106,10 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(String orderId) throws FogbowException {
-        if (orderId == null) 
-        	throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
-        
-        Order order = getOrder(orderId);
+    public Instance getResourceInstance(Order order) throws FogbowException {
+        if (order == null)
+        	throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+
         synchronized (order) {
             CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
