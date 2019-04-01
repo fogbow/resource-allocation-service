@@ -38,6 +38,7 @@ public class CloudStackImagePluginTest {
 
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String JSON = "json";
     private static final String RESPONSE_KEY = "response";
@@ -45,7 +46,7 @@ public class CloudStackImagePluginTest {
     public static final String CLOUD_NAME = "cloudstack";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
-    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
+    public static final CloudStackUser FAKE_TOKEN =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
