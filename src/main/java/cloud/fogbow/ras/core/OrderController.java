@@ -90,14 +90,7 @@ public class OrderController {
             checkOrderDependencies(order.getId());
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
-                CloudConnector cloudConnector = getCloudConnector(order);
-                try {
-                    cloudConnector.deleteInstance(order);
-                } catch (InstanceNotFoundException e) {
-                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, order.getId()), e);
-                }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
-                updateOrderDependencies(order, Operation.DELETE);
             } else {
                 String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());
                 LOGGER.error(message);
@@ -176,7 +169,7 @@ public class OrderController {
 		return instanceStatusList;
 	}
 
-    protected CloudConnector getCloudConnector(Order order) {
+    public CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         
@@ -228,7 +221,7 @@ public class OrderController {
 		return requestedOrders;
 	}
 
-	private void updateOrderDependencies(Order order, Operation operation) throws FogbowException {
+	public void updateOrderDependencies(Order order, Operation operation) throws FogbowException {
         List<String> dependentOrderIds = new LinkedList<>();
 
         switch (order.getType()) {

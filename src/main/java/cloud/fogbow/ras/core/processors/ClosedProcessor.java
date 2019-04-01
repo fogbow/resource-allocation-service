@@ -1,11 +1,15 @@
 package cloud.fogbow.ras.core.processors;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
+import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 
@@ -46,9 +50,17 @@ public class ClosedProcessor implements Runnable {
         }
     }
 
-    protected void processClosedOrder(Order order) throws UnexpectedException {
+    protected void processClosedOrder(Order order) throws FogbowException {
         synchronized (order) {
-           this.orderController.deactivateOrder(order);
+            CloudConnector cloudConnector = this.orderController.getCloudConnector(order);
+            try {
+                cloudConnector.deleteInstance(order);
+            } catch (InstanceNotFoundException e) {
+                LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, order.getId()), e);
+            }
+
+            this.orderController.updateOrderDependencies(order, Operation.DELETE);
+            this.orderController.deactivateOrder(order);
         }
     }
 }
