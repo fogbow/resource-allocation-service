@@ -11,14 +11,5 @@ public class CloudStackOneToOneMapper extends GenericOneToOneSystemToCloudMapper
     public CloudStackOneToOneMapper(String mapperConfFilePath) {
         super(new CloudStackAllToOneMapper(mapperConfFilePath));
     }
-
-    @Override
-    public CloudStackUser localMap(OneToOneMappableSystemUser systemUser) throws InvalidParameterException {
-        if (!(systemUser instanceof CloudStackSystemUser)) {
-            throw new InvalidParameterException(Messages.Exception.SYSTEM_USER_TYPE_MISMATCH);
-        }
-        CloudStackSystemUser csUser = (CloudStackSystemUser) systemUser;
-        return new CloudStackUser(csUser.getId(), csUser.getName(), csUser.getToken(), csUser.getCookieHeaders());
-    }
 }
 

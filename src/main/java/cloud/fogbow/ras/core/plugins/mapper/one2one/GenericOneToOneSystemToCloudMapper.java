@@ -19,16 +19,11 @@ public abstract class GenericOneToOneSystemToCloudMapper implements SystemToClou
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
     }
 
-    public abstract CloudUser localMap(OneToOneMappableSystemUser systemUser) throws InvalidParameterException;
-
     @Override
-    public CloudUser map(SystemUser systemUser) throws FogbowException {
-        if (!(systemUser instanceof OneToOneMappableSystemUser)) {
-            throw new InvalidParameterException(Messages.Exception.UNABLE_TO_MAP_SYSTEM_USER);
-        }
+    public <T extends SystemUser & OneToOneMappableSystemUser> CloudUser map(T systemUser) throws FogbowException {
         if (systemUser.getIdentityProviderId().equals(this.memberId)) {
             // TODO: check if token hasn't expired; if it has, then renew it.
-            return localMap((OneToOneMappableSystemUser) systemUser);
+            return systemUser.generateCloudUser();
         } else {
             return remoteMapper.map(systemUser);
         }
