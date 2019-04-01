@@ -2,7 +2,11 @@ package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.SerializedEntityHolder;
+import cloud.fogbow.common.util.SystemUserUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
 
@@ -62,9 +66,20 @@ public abstract class Order implements Serializable {
     @Column
     private Map<String, String> requirements = new HashMap<>();
 
-    // TODO: check if this is correct; we need to save the user.
     @Transient
     private SystemUser systemUser;
+
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private String userId;
+
+    @Column
+    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
+    private String serializedSystemUser;
+
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private String providerId;
 
     public Order() {
     }
@@ -168,6 +183,49 @@ public abstract class Order implements Serializable {
 
     public void setRequirements(Map<String, String> requirements) {
         this.requirements = requirements;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return this.userId;
+    }
+
+    public void setSerializedSystemUser(String serializedSystemUser) {
+        this.serializedSystemUser = serializedSystemUser;
+    }
+
+    public String getSerializedSystemUser() {
+        return this.serializedSystemUser;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
+    public String getProviderId() {
+        return this.providerId;
+    }
+
+    // Cannot be called at @PrePersist because the transient field systemUser is set to null at this stage
+    // Instead, the systemUser is explicitly serialized before being save by RecoveryService.save().
+    public void serializeSystemUser() {
+        SerializedEntityHolder<SystemUser> serializedSystemUserHolder = new SerializedEntityHolder<SystemUser>(this.getSystemUser());
+        this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializedSystemUserHolder));
+        this.setUserId(this.getSystemUser().getId());
+        this.setProviderId(this.getSystemUser().getIdentityProviderId());
+    }
+
+    @PostLoad
+    private void deserializeSystemUser() throws UnexpectedException {
+        try {
+            SerializedEntityHolder serializedSystemUserHolder = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializedEntityHolder.class);
+            this.setSystemUser((SystemUser) serializedSystemUserHolder.getSerializedEntity());
+        } catch(ClassNotFoundException exception) {
+            throw new UnexpectedException(Messages.Exception.UNABLE_TO_DESERIALIZE_SYSTEM_USER);
+        }
     }
 
     public boolean isProviderLocal(String localMemberId) {

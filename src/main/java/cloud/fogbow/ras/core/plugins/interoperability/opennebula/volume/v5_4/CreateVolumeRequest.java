@@ -7,8 +7,8 @@ public class CreateVolumeRequest {
     public CreateVolumeRequest(Builder builder) {
     	this.volumeImage = new VolumeImage();
     	this.volumeImage.setName(builder.name);
-    	this.volumeImage.setPersistent(builder.persistent);
-    	this.volumeImage.setType(builder.type);
+    	this.volumeImage.setImagePersistent(builder.imagePersistent);
+    	this.volumeImage.setImageType(builder.imageType);
     	this.volumeImage.setFileSystemType(builder.fileSystemType);
     	this.volumeImage.setDiskType(builder.diskType);
     	this.volumeImage.setDevicePrefix(builder.devicePrefix);
@@ -22,8 +22,8 @@ public class CreateVolumeRequest {
     public static class Builder {
         
     	private String name;
-        private String persistent;
-        private String type;
+        private String imagePersistent;
+        private String imageType;
         private String fileSystemType;
         private String diskType;
         private String devicePrefix;
@@ -34,13 +34,13 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder persistent(String persistent) {
-            this.persistent = persistent;
+        public Builder imagePersistent(String imagePersistent) {
+            this.imagePersistent = imagePersistent;
             return this;
         }
 
-        public Builder type(String type) {
-            this.type = type;
+        public Builder imageType(String imageType) {
+            this.imageType = imageType;
             return this;
         }
 

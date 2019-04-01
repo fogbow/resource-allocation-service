@@ -1,23 +1,26 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 
 public class ClosedProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClosedProcessor.class);
 
-    private ChainedList closedOrders;
+    private ChainedList<Order> closedOrders;
     private Long sleepTime;
+    private OrderController orderController;
 
-    public ClosedProcessor(String sleepTimeStr) {
+    public ClosedProcessor(OrderController orderController, String sleepTimeStr) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
         this.closedOrders = sharedOrdersHolder.getClosedOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.orderController = orderController;
     }
 
     @Override
@@ -45,7 +48,7 @@ public class ClosedProcessor implements Runnable {
 
     protected void processClosedOrder(Order order) throws UnexpectedException {
         synchronized (order) {
-           OrderStateTransitioner.deactivateOrder(order);
+           this.orderController.deactivateOrder(order);
         }
     }
 }

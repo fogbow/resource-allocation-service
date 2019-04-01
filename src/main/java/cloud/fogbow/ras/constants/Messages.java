@@ -3,23 +3,21 @@ package cloud.fogbow.ras.constants;
 public class Messages {
 
     public static class Exception {
-        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
+        public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
+        public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INCORRECT_REQUESTING_MEMBER = "Mismatch on requesting member information.";
         public static final String INEXISTENT_REQUEST = "Request does not exist.";
-        public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
+        public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
-        public static final String INVALID_PUBLIC_KEY = "Invalid public key fetched from external server.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
-        public static final String INVALID_URL = "Please check the url: %s.";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";
@@ -42,6 +40,7 @@ public class Messages {
         public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
+        public static final String UNABLE_TO_DESERIALIZE_SYSTEM_USER = "Unable to deserialize system user.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
@@ -105,6 +104,7 @@ public class Messages {
     	public static final String CONTENT_DESERIALIZATION_FAILURE = "Is not possible deserialize the Security Rule ID: %s.";
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
+        public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
@@ -154,6 +154,5 @@ public class Messages {
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
-        public static final String VALUE_TOO_LARGE_TO_STORE = "Value '%s' is too large to be stored in the column '%s' of the table relative to the class '%s', storing '%s' instead";
     }
 }

@@ -2,14 +2,14 @@ package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderRepository;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -77,12 +77,12 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // mocking databaseManager
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         PowerMockito.mockStatic(DatabaseManager.class);
         BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
 
@@ -203,15 +203,18 @@ public class RecoveryServiceTest extends BaseUnitTests {
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         // creating attachment order with open state
-        Order attachmentOrder = new AttachmentOrder();
+        Order attachmentOrder = new AttachmentOrder(systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_CLOUD_NAME, FAKE_ID_1, FAKE_ID_1, null);
         attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         // creating network order with fulfilled state
-        Order networkOrder = new NetworkOrder();
+        Order networkOrder = new NetworkOrder(systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_CLOUD_NAME, null, null, null, null);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // creating volume order with fulfilled state
-        Order volumeOrder = new VolumeOrder();
+        Order volumeOrder = new VolumeOrder(systemUser, FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER,
+                FAKE_CLOUD_NAME, null, 0);
         volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // exercise

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -31,9 +32,11 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
     private static final String BLOCK_DISK_TYPE = "BLOCK";
     private static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
     private static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
-    private static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
+    private static final String FOGBOW_VOLUME_NAME = "ras-volume-";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
+    
+    protected static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
     
     private Properties properties;
     private String endpoint;
@@ -49,23 +52,29 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
-		int volumeSize = volumeOrder.getVolumeSize();
+		String name = volumeName == null ? FOGBOW_VOLUME_NAME + getRandomUUID() : volumeName;
+		String imagePersistent = PERSISTENT_DISK_CONFIRMATION;
+		String imageType = DATABLOCK_IMAGE_TYPE;
+		String fileSystemType = FILE_SYSTEM_TYPE_RAW;
+		String diskType = BLOCK_DISK_TYPE;
+		String devicePrefix = DEFAULT_DATASTORE_DEVICE_PREFIX;
+		int size = volumeOrder.getVolumeSize();
 		
 		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
-				.name(volumeName)
-				.size(volumeSize)
-				.persistent(PERSISTENT_DISK_CONFIRMATION)
-				.type(DATABLOCK_IMAGE_TYPE)
-				.fileSystemType(FILE_SYSTEM_TYPE_RAW)
-				.diskType(BLOCK_DISK_TYPE)
-				.devicePrefix(DEFAULT_DATASTORE_DEVICE_PREFIX)
+				.name(name)
+				.size(size)
+				.imagePersistent(imagePersistent)
+				.imageType(imageType)
+				.fileSystemType(fileSystemType)
+				.diskType(diskType)
+				.devicePrefix(devicePrefix)
 				.build();
 
 		String template = request.getVolumeImage().marshalTemplate();
 		Integer datastoreId = getDataStoreId();
 		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);
 	}
-
+	
 	@Override
 	public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
@@ -104,4 +113,12 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		}
 	}
 	
+	protected String getRandomUUID() {
+        return UUID.randomUUID().toString();
+    }
+
+	// Used for testing only
+	protected void setProperties(Properties properties) {
+		this.properties = properties;
+	}
 }
