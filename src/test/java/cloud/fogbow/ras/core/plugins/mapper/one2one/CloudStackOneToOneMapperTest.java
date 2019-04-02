@@ -33,6 +33,7 @@ public class CloudStackOneToOneMapperTest {
     private static final String FAKE_NAME1 = "fake-name1";
     private static final String FAKE_NAME2 = "fake-name2";
     private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN1 = "fake-token1";
     private static final String FAKE_TOKEN2 = "fake-token2";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
@@ -63,9 +64,9 @@ public class CloudStackOneToOneMapperTest {
     @Test
     public void testCreate2TokensLocal() throws FogbowException {
         //set up
-        CloudStackUser cloudUser1 = new CloudStackUser(FAKE_ID1, FAKE_NAME1, FAKE_TOKEN1, FAKE_COOKIE_HEADER);
+        CloudStackUser cloudUser1 = new CloudStackUser(FAKE_ID1, FAKE_NAME1, FAKE_TOKEN1, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
         CloudStackSystemUser systemUser1 = new CloudStackSystemUser(this.memberId, cloudUser1);
-        CloudStackUser cloudUser2 = new CloudStackUser(FAKE_ID2, FAKE_NAME2, FAKE_TOKEN2, FAKE_COOKIE_HEADER);
+        CloudStackUser cloudUser2 = new CloudStackUser(FAKE_ID2, FAKE_NAME2, FAKE_TOKEN2, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
         CloudStackSystemUser systemUser2 = new CloudStackSystemUser(this.memberId, cloudUser2);
         //exercise
         CloudStackUser mappedToken1 = (CloudStackUser) this.mapper.map(systemUser1);
@@ -77,32 +78,24 @@ public class CloudStackOneToOneMapperTest {
         Assert.assertEquals(mappedToken2.getToken(), systemUser2.getToken());
     }
 
-    //test case: two different SystemUser objects should be mapped to two different CloudUser objects
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateCloudUserWithTypeMismatch() throws FogbowException {
-        //set up
-        OneToOneMappableSystemUser systemUser1 = new OneToOneMappableSystemUser(FAKE_ID1, FAKE_NAME1, this.memberId, FAKE_TOKEN1);
-
-        //exercise
-        CloudStackUser mappedToken1 = (CloudStackUser) this.mapper.map(systemUser1);
-    }
-
     //test case: two different remote SystemUser objects should be mapped to the same CloudUser object
     @Test
     public void testCreate2TokensRemote() throws FogbowException, HttpResponseException {
         //set up
-        OneToOneMappableSystemUser systemUser1 = new OneToOneMappableSystemUser(FAKE_ID1, FAKE_NAME1, FAKE_MEMBER_ID1, FAKE_TOKEN1);
-        OneToOneMappableSystemUser systemUser2 = new OneToOneMappableSystemUser(FAKE_ID2, FAKE_NAME2, FAKE_MEMBER_ID2, FAKE_TOKEN2);
+        CloudStackUser cloudUser1 = new CloudStackUser(FAKE_ID1, FAKE_NAME1, FAKE_TOKEN1, FAKE_DOMAIN, new HashMap<>());
+        CloudStackSystemUser token1 = new CloudStackSystemUser(FAKE_MEMBER_ID1, cloudUser1);
+        CloudStackUser cloudUser2 = new CloudStackUser(FAKE_ID2, FAKE_NAME2, FAKE_TOKEN2, FAKE_DOMAIN, new HashMap<>());
+        CloudStackSystemUser token2 = new CloudStackSystemUser(FAKE_MEMBER_ID2, cloudUser2);
 
-        CloudStackUser cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
+        CloudStackUser cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME1, FAKE_TOKEN_VALUE, FAKE_DOMAIN, new HashMap<>());
         Mockito.doReturn(cloudUser).when(this.cloudStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());
 
         //exercise
-        CloudStackUser mappedToken1 = (CloudStackUser) this.mapper.map(systemUser1);
-        CloudStackUser mappedToken2 = (CloudStackUser) this.mapper.map(systemUser2);
+        CloudStackUser mappedToken1 = (CloudStackUser) this.mapper.map(token1);
+        CloudStackUser mappedToken2 = (CloudStackUser) this.mapper.map(token2);
 
         //verify
-        Assert.assertNotEquals(systemUser1.getToken(), systemUser2.getToken());
+        Assert.assertNotEquals(token1.getToken(), token2.getToken());
         Assert.assertEquals(mappedToken1.getId(), mappedToken2.getId());
         Assert.assertEquals(mappedToken1.getToken(), mappedToken2.getToken());
     }

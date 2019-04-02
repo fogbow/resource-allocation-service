@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.one2one;
 
+import cloud.fogbow.as.core.models.OpenStackV3ScopedSystemUser;
 import cloud.fogbow.as.core.models.OpenStackV3SystemUser;
 import cloud.fogbow.as.core.systemidp.plugins.openstack.v3.OpenStackSystemIdentityProviderPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -57,14 +58,14 @@ public class OpenStackOneToOneMapperTest {
         this.mapper.setRemoteMapper(this.allToOneMapper);
     }
 
-    //test case: two different OpenStackV3SystemUser objects should be mapped to two different OpenStackV3User objects
+    //test case: two different OpenStackV3ScopedSystemUser objects should be mapped to two different OpenStackV3User objects
     @Test
     public void testCreate2TokensLocal() throws FogbowException {
         //set up
         OpenStackV3User cloudUser1 = new OpenStackV3User(FAKE_USER_ID1, FAKE_USERNAME1, FAKE_TOKEN1, FAKE_PROJECT1);
-        OpenStackV3SystemUser systemUser1 = new OpenStackV3SystemUser(this.memberId, cloudUser1);
+        OpenStackV3ScopedSystemUser systemUser1 = new OpenStackV3ScopedSystemUser(this.memberId, cloudUser1);
         OpenStackV3User cloudUser2 = new OpenStackV3User(FAKE_USER_ID2, FAKE_USERNAME2, FAKE_TOKEN2, FAKE_PROJECT2);
-        OpenStackV3SystemUser systemUser2 = new OpenStackV3SystemUser(this.memberId, cloudUser2);
+        OpenStackV3ScopedSystemUser systemUser2 = new OpenStackV3ScopedSystemUser(this.memberId, cloudUser2);
 
         //exercise
         OpenStackV3User mappedToken1 = (OpenStackV3User) this.mapper.map(systemUser1);
@@ -81,9 +82,9 @@ public class OpenStackOneToOneMapperTest {
     public void testCreate2TokensRemote() throws FogbowException {
         //set up
         OpenStackV3User cloudUser1 = new OpenStackV3User(FAKE_USER_ID1, FAKE_USERNAME1, FAKE_TOKEN1, FAKE_PROJECT1);
-        OpenStackV3SystemUser token1 = new OpenStackV3SystemUser(FAKE_MEMBER_ID1, cloudUser1);
+        OpenStackV3ScopedSystemUser token1 = new OpenStackV3ScopedSystemUser(FAKE_MEMBER_ID1, cloudUser1);
         OpenStackV3User cloudUser2 = new OpenStackV3User(FAKE_USER_ID2, FAKE_USERNAME2, FAKE_TOKEN2, FAKE_PROJECT2);
-        OpenStackV3SystemUser token2 = new OpenStackV3SystemUser(FAKE_MEMBER_ID2, cloudUser2);
+        OpenStackV3ScopedSystemUser token2 = new OpenStackV3ScopedSystemUser(FAKE_MEMBER_ID2, cloudUser2);
 
         OpenStackV3User cloudUser = new OpenStackV3User(FAKE_USER_ID, FAKE_USERNAME1, FAKE_TOKEN_VALUE, FAKE_PROJECT1);
         Mockito.doReturn(cloudUser).when(this.openStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());

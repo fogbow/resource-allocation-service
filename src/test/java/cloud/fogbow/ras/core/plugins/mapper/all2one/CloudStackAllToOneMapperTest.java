@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import cloud.fogbow.as.core.models.CloudStackSystemUser;
 import cloud.fogbow.as.core.systemidp.plugins.cloudstack.CloudStackSystemIdentityProviderPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -28,6 +29,7 @@ public class CloudStackAllToOneMapperTest {
     private static final String FAKE_LOGIN2 = "fake-login2";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
@@ -51,10 +53,12 @@ public class CloudStackAllToOneMapperTest {
     @Test
     public void testCreate2Tokens() throws FogbowException {
         //set up
-        SystemUser user1 = new SystemUser(FAKE_LOGIN1, FAKE_LOGIN1, this.memberId);
-        SystemUser user2 = new SystemUser(FAKE_LOGIN2, FAKE_LOGIN2, this.memberId);
+        CloudStackUser cloudStackUser1 = new CloudStackUser(FAKE_LOGIN1, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+        CloudStackSystemUser user1 = new CloudStackSystemUser(this.memberId, cloudStackUser1);
+        CloudStackUser cloudStackUser2 = new CloudStackUser(FAKE_LOGIN2, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+        CloudStackSystemUser user2 = new CloudStackSystemUser(this.memberId, cloudStackUser2);
 
-        CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_COOKIE_HEADER);
+        CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 
         Mockito.doReturn(systemUser).when(this.cloudStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());
 

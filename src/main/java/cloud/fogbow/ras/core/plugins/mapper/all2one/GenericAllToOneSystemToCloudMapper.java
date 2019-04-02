@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class GenericAllToOneSystemToCloudMapper implements SystemToCloudMapperPlugin<CloudUser> {
+public abstract class GenericAllToOneSystemToCloudMapper<T extends CloudUser, S extends SystemUser> implements SystemToCloudMapperPlugin<T, S> {
     private static final Logger LOGGER = Logger.getLogger(GenericAllToOneSystemToCloudMapper.class);
 
     private static final String CLOUD_USER_CREDENTIALS_PREFIX = "cloud_user_credentials_";
@@ -27,10 +27,10 @@ public abstract class GenericAllToOneSystemToCloudMapper implements SystemToClou
         this.credentials = getCloudUserCredentials(properties);
     }
 
-    public abstract CloudUser getCloudUser(Map<String, String> credentials) throws FogbowException;
+    public abstract T getCloudUser(Map<String, String> credentials) throws FogbowException;
 
     @Override
-    public CloudUser map(SystemUser systemUser) throws FogbowException {
+    public T map(S systemUser) throws FogbowException {
         return getCloudUser(this.credentials);
     }
 

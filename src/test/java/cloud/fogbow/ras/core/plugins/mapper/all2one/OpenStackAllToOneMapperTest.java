@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import cloud.fogbow.as.core.models.OpenStackV3SystemUser;
 import cloud.fogbow.as.core.systemidp.plugins.openstack.v3.OpenStackSystemIdentityProviderPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
@@ -26,6 +27,7 @@ public class OpenStackAllToOneMapperTest {
     private static final String FAKE_LOGIN2 = "fake-login2";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
 
     private String memberId;
@@ -48,8 +50,10 @@ public class OpenStackAllToOneMapperTest {
     @Test
     public void testCreate2Tokens() throws FogbowException {
         //set up
-        SystemUser user1 = new SystemUser(FAKE_LOGIN1, FAKE_LOGIN1, "fake-token-provider");
-        SystemUser user2 = new SystemUser(FAKE_LOGIN2, FAKE_LOGIN2, "fake-token-provider");
+        OpenStackV3User openStackV3User1 = new OpenStackV3User(FAKE_LOGIN1, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        OpenStackV3SystemUser user1 = new OpenStackV3SystemUser(this.memberId, openStackV3User1);
+        OpenStackV3User openStackV3User2 = new OpenStackV3User(FAKE_LOGIN2, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        OpenStackV3SystemUser user2 = new OpenStackV3SystemUser(this.memberId, openStackV3User2);
 
         OpenStackV3User expectedUser = new OpenStackV3User(FAKE_USER_ID, FAKE_USER_NAME, this.memberId, FAKE_TOKEN_VALUE);
         Mockito.doReturn(expectedUser).when(this.openStackIdentityProviderPlugin).getCloudUser(Mockito.anyMap());
