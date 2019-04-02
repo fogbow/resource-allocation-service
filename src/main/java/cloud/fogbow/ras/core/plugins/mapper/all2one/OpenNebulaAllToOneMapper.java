@@ -4,12 +4,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import cloud.fogbow.as.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.as.core.models.OpenNebulaSystemUser;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.OpenNebulaUser;
 import cloud.fogbow.common.plugins.cloudidp.opennebula.OpenNebulaIdentityProviderPlugin;
 import cloud.fogbow.common.util.PropertiesUtil;
 
-public class OpenNebulaAllToOneMapper extends GenericAllToOneSystemToCloudMapper {
+public class OpenNebulaAllToOneMapper extends GenericAllToOneSystemToCloudMapper<OpenNebulaUser, OpenNebulaSystemUser> {
 
     private OpenNebulaIdentityProviderPlugin identityProviderPlugin;
 
