@@ -223,6 +223,31 @@ public class OpenNebulaClientUtil {
 		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
 	}
+	
+	public static String reserveVirtualNetwork(Client client, int id, String template) throws InvalidParameterException {
+		OneResponse response = VirtualNetwork.reserve(client, id, template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
+		return response.getMessage();
+	}
+	
+	public static String updateVirtualNetwork(Client client, int id, String template) throws InvalidParameterException {
+		boolean append = true;
+		OneResponse response = VirtualNetwork.update(client, id, template, append);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_NETWORK, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
+		return response.getMessage();
+	}
 
 	private static User findUserByName(UserPool userPool, String userName) throws UnauthorizedRequestException {
 		for (User user : userPool) {
