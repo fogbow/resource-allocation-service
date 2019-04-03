@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.regex.PatternSyntaxException;
 
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -35,6 +34,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaNetworkPlugin.class);
 
 	private static final String ALL_PROTOCOLS = "ALL";
+	private static final String CIDR_FORMAT = "%s/%s";
 	private static final String CIDR_SEPARATOR = "[/]";
 	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 	private static final String DEFAULT_SECURITY_GROUP_ID_KEY = "default_security_group_id";
@@ -50,12 +50,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	
 	protected static final String FOGBOW_NETWORK_NAME = "ras-network-";
 	protected static final String SECURITY_GROUPS_SEPARATOR = ",";
-	protected static final String TEMPLATE_NETWORK_ADDRESS_PATH = "TEMPLATE/NETWORK_ADDRESS";
-	protected static final String TEMPLATE_NETWORK_GATEWAY_PATH = "TEMPLATE/NETWORK_GATEWAY";
-	protected static final String TEMPLATE_VLAN_ID_PATH = "TEMPLATE/VLAN_ID";
 	protected static final String VNET_ADDRESS_RANGE_IP_PATH = "/VNET/AR_POOL/AR/IP";
 	protected static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
 	protected static final String VNET_TEMPLATE_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+	protected static final String VNET_TEMPLATE_VLAN_ID_PATH = "/VNET/TEMPLATE/VLAN_ID";
 
 	private String endpoint;
 	private String defaultNetwork;
@@ -76,47 +74,26 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		int defaultNetworkID = convertToInteger(this.defaultNetwork);
 		String networkName = networkOrder.getName();
 		String name = networkName == null ? FOGBOW_NETWORK_NAME + getRandomUUID() : networkName;
-		int size = calculateAddressRangeSize(networkOrder.getCidr()); 
+		int size = getAddressRangeSize(networkOrder.getCidr()); 
 		
-		CreateNetworkReservedRequest networkRequest = new CreateNetworkReservedRequest.Builder()
+		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()
 				.name(name)
 				.size(size)
 				.build();
 		
-		String networkTemplate = networkRequest.getVirtualNetworkReserved().marshalTemplate();
-		String networkInstance = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkID, networkTemplate);
+		String networkReserveTemplate = reserveRequest.getVirtualNetworkReserved().marshalTemplate();
+		String networkInstance = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkID, networkReserveTemplate);
 		
-		int virtualNetworkID = convertToInteger(networkInstance);
-		String securityGroupName = generateSecurityGroupName(networkOrder);
-		String securityGroupID = createSecurityGroup(client, securityGroupName, networkInstance); 
+		String securityGroupID = createSecurityGroup(client, networkInstance, networkOrder); 
 		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, this.defaultSecurityGroup, securityGroupID);
 		
-		CreateSecurityGroupsRequest securityGroupsRequest = new CreateSecurityGroupsRequest.Builder()
+		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
 				.securityGroups(securityGroups)
 				.build();
 		
-		String securityGroupsTemplate = securityGroupsRequest.getSecurityGroups().marshalTemplate();
-		return OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkID, securityGroupsTemplate);
-	}
-
-	private int calculateAddressRangeSize(String cidr) throws InvalidParameterException {
-		try {
-			String[] slice = cidr.split(CIDR_SEPARATOR);
-			String addressRangeSize = slice[1];
-			int size = convertToInteger(addressRangeSize);
-			return (int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - size);
-		} catch (PatternSyntaxException e) {
-			throw new InvalidParameterException();
-		}
-	}
-	
-	private int convertToInteger(String number) throws InvalidParameterException {
-		try {
-			return Integer.parseInt(number);
-		} catch (NumberFormatException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
-			throw new InvalidParameterException();
-		}
+		int virtualNetworkID = convertToInteger(networkInstance);
+		String networkUpdateTemplate = updateRequest.getVirtualNetworkUpdate().marshalTemplate();
+		return OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkID, networkUpdateTemplate);
 	}
 
 	@Override
@@ -166,15 +143,16 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return contentSlices[SECURITY_GROUP_VALID_POSITION];
 	}
 
-	protected String createSecurityGroup(Client client, String name, String virtualNetworkId)
+	protected String createSecurityGroup(Client client, String virtualNetworkId, NetworkOrder networkOrder)
 			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
-		
-		// "ALL" setting applies to all protocols if a port range is not defined
-		String protocol = ALL_PROTOCOLS;
 
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 		String ip = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
 		String size = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
+		String name = generateSecurityGroupName(networkOrder);
+		
+		// "ALL" setting applies to all protocols if a port range is not defined
+		String protocol = ALL_PROTOCOLS;
 
 		// An undefined port range is interpreted by opennebula as all open
 		String rangeAll = null;
@@ -207,12 +185,13 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return SECURITY_GROUP_PREFIX + networkOrder.getId();
 	}
 	
-	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) {
+	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) throws InvalidParameterException {
 		String id = virtualNetwork.getId();
 		String name = virtualNetwork.getName();
-		String address = virtualNetwork.xpath(TEMPLATE_NETWORK_ADDRESS_PATH);
-		String gateway = virtualNetwork.xpath(TEMPLATE_NETWORK_GATEWAY_PATH);
-		String vLan = virtualNetwork.xpath(TEMPLATE_VLAN_ID_PATH);
+		String vLan = virtualNetwork.xpath(VNET_TEMPLATE_VLAN_ID_PATH);
+		String gateway = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
+		String rangeSize = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
+		String address = getAddressCIDR(gateway, rangeSize);
 		String networkInterface = null;
 		String macInterface = null;
 		String interfaceState = null;
@@ -232,6 +211,43 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 				interfaceState);
 		
 		return networkInstance;
+	}
+	
+	protected String getAddressCIDR(String gateway, String rangeSize) throws InvalidParameterException {
+		int size = convertToInteger(rangeSize);
+		int value = getBarValueOfCIDR(size);
+		String cidr = String.format(CIDR_FORMAT, gateway, String.valueOf(value));
+		return cidr;
+	}
+	
+	protected int getBarValueOfCIDR(int size) {
+		int expo = 1;
+		for (int i = 0; i < IPV4_AMOUNT_BITS; i++)
+			if (expo >= size)
+				return IPV4_AMOUNT_BITS - i;
+			else
+				expo *= BASE_VALUE;
+		return 0;
+	}
+
+	protected int getAddressRangeSize(String cidr) throws InvalidParameterException {
+		try {
+			String[] slice = cidr.split(CIDR_SEPARATOR);
+			String addressRangeSize = slice[1];
+			int size = convertToInteger(addressRangeSize);
+			return (int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - size);
+		} catch (Exception e) {
+			throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, cidr));
+		}
+	}
+	
+	protected int convertToInteger(String number) throws InvalidParameterException {
+		try {
+			return Integer.parseInt(number);
+		} catch (NumberFormatException e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
+			throw new InvalidParameterException();
+		}
 	}
 	
 	protected String getRandomUUID() {

@@ -1,18 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-public class CreateNetworkReservedRequest {
+public class CreateNetworkReserveRequest {
 
-	private VirtualNetworkReservedTemplate virtualNetworkReserved;
+	private VirtualNetworkReserveTemplate virtualNetworkReserved;
 	
-	public VirtualNetworkReservedTemplate getVirtualNetworkReserved() {
+	public VirtualNetworkReserveTemplate getVirtualNetworkReserved() {
 		return virtualNetworkReserved;
 	}
 	
-	public CreateNetworkReservedRequest(Builder builder) {
+	public CreateNetworkReserveRequest(Builder builder) {
 		String name = builder.name;
 		int size = builder.size;
 		
-		this.virtualNetworkReserved = new VirtualNetworkReservedTemplate();
+		this.virtualNetworkReserved = new VirtualNetworkReserveTemplate();
 		this.virtualNetworkReserved.setName(name);
 		this.virtualNetworkReserved.setSize(size);
 	}
@@ -31,8 +31,8 @@ public class CreateNetworkReservedRequest {
 			return this;
 		}
 		
-		public CreateNetworkReservedRequest build() {
-			return new CreateNetworkReservedRequest(this);
+		public CreateNetworkReserveRequest build() {
+			return new CreateNetworkReserveRequest(this);
 		}
 	}
 	

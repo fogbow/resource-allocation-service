@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
 
 @XmlRootElement(name = TEMPLATE)
-public class VirtualNetworkReservedTemplate extends OpenNebulaMarshaller {
+public class VirtualNetworkReserveTemplate extends OpenNebulaMarshaller {
 
 	private String name;
 	private int size;
