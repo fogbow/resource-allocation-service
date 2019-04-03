@@ -82,8 +82,8 @@ public abstract class Order implements Serializable {
     private String providerId;
 
     @Column
-    @Size(max = FIELDS_MAX_SIZE)
-    private ResourceType type;
+    @Enumerated(EnumType.STRING)
+    protected ResourceType type;
 
     public Order() {
     }
