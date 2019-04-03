@@ -70,7 +70,7 @@ public abstract class Order implements Serializable {
     private SystemUser systemUser;
 
     @Column
-    @Size(max = 4)
+    @Size(max = FIELDS_MAX_SIZE)
     private String userId;
 
     @Column
