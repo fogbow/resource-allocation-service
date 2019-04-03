@@ -27,14 +27,17 @@ public class VolumeOrder extends Order {
 
     public VolumeOrder() {
         this(UUID.randomUUID().toString());
+        this.type = ResourceType.VOLUME;
     }
 
     public VolumeOrder(String id) {
         super(id);
+        this.type = ResourceType.VOLUME;
     }
 
     public VolumeOrder(String providingMember, String cloudName, String name, int volumeSize) {
         this(null, null, providingMember, cloudName, name, volumeSize);
+        this.type = ResourceType.VOLUME;
     }
 
     public VolumeOrder(SystemUser systemUser, String requestingMember, String providingMember,
@@ -42,6 +45,7 @@ public class VolumeOrder extends Order {
         super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.name = name;
         this.volumeSize = volumeSize;
+        this.type = ResourceType.VOLUME;
     }
 
     public int getVolumeSize() {
@@ -50,11 +54,6 @@ public class VolumeOrder extends Order {
 
     public String getName() {
         return name;
-    }
-
-    @Override
-    public ResourceType getType() {
-        return ResourceType.VOLUME;
     }
 
     @Override

@@ -38,15 +38,18 @@ public class NetworkOrder extends Order {
 
     public NetworkOrder() {
         this(UUID.randomUUID().toString());
+        this.type = ResourceType.NETWORK;
     }
 
     public NetworkOrder(String id) {
         super(id);
+        this.type = ResourceType.NETWORK;
     }
 
     public NetworkOrder(String providingMember, String cloudName, String name, String gateway, String cidr,
                         NetworkAllocationMode allocationMode) {
         this(null, null, providingMember, cloudName, name, gateway, cidr, allocationMode);
+        this.type = ResourceType.NETWORK;
     }
 
     public NetworkOrder(SystemUser systemUser, String requestingMember, String providingMember,
@@ -56,6 +59,7 @@ public class NetworkOrder extends Order {
         this.gateway = gateway;
         this.cidr = cidr;
         this.allocationMode = allocationMode;
+        this.type = ResourceType.NETWORK;
     }
 
     public String getName() {
@@ -72,11 +76,6 @@ public class NetworkOrder extends Order {
 
     public NetworkAllocationMode getAllocationMode() {
         return allocationMode;
-    }
-
-    @Override
-    public ResourceType getType() {
-        return ResourceType.NETWORK;
     }
 
     @Override
