@@ -133,11 +133,6 @@ public class ComputeOrder extends Order {
         this.userData = userData;
     }
 
-    @Override
-    public ResourceType getType() {
-        return ResourceType.COMPUTE;
-    }
-
     public String getPublicKey() {
         return publicKey;
     }

@@ -75,11 +75,6 @@ public class NetworkOrder extends Order {
     }
 
     @Override
-    public ResourceType getType() {
-        return ResourceType.NETWORK;
-    }
-
-    @Override
     public String getSpec() {
         return "";
     }

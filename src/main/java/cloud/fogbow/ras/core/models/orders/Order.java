@@ -70,7 +70,7 @@ public abstract class Order implements Serializable {
     private SystemUser systemUser;
 
     @Column
-    @Size(max = FIELDS_MAX_SIZE)
+    @Size(max = 4)
     private String userId;
 
     @Column
@@ -80,6 +80,10 @@ public abstract class Order implements Serializable {
     @Column
     @Size(max = FIELDS_MAX_SIZE)
     private String providerId;
+
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private ResourceType type;
 
     public Order() {
     }
@@ -263,7 +267,13 @@ public abstract class Order implements Serializable {
                 + this.provider + ", instanceId=" + this.instanceId + "]";
     }
 
-    public abstract ResourceType getType();
+    public ResourceType getType() {
+        return this.type;
+    }
+
+    public void setType(ResourceType type) {
+        this.type = type;
+    }
 
     public abstract String getSpec();
 }

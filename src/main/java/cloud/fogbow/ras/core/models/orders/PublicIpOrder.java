@@ -41,11 +41,6 @@ public class PublicIpOrder extends Order {
         this.computeOrderId = computeOrderId;
     }
 
-    @Override
-    public ResourceType getType() {
-        return ResourceType.PUBLIC_IP;
-    }
-
     public String getComputeOrderId() {
         return computeOrderId;
     }

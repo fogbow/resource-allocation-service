@@ -126,7 +126,7 @@ public class ApplicationFacade {
             }
         }
 
-        return activateOrder(order, userToken);
+        return activateOrder(order, userToken, ResourceType.COMPUTE);
     }
 
     public ComputeInstance getCompute(String orderId, String userToken) throws FogbowException {
@@ -148,7 +148,7 @@ public class ApplicationFacade {
     }
 
     public String createVolume(VolumeOrder volumeOrder, String userToken) throws FogbowException {
-        return activateOrder(volumeOrder, userToken);
+        return activateOrder(volumeOrder, userToken, ResourceType.VOLUME);
     }
 
     public VolumeInstance getVolume(String orderId, String userToken) throws FogbowException {
@@ -160,7 +160,7 @@ public class ApplicationFacade {
     }
 
     public String createNetwork(NetworkOrder networkOrder, String userToken) throws FogbowException {
-        return activateOrder(networkOrder, userToken);
+        return activateOrder(networkOrder, userToken, ResourceType.NETWORK);
     }
 
     public NetworkInstance getNetwork(String orderId, String userToken) throws FogbowException {
@@ -172,7 +172,7 @@ public class ApplicationFacade {
     }
 
     public String createAttachment(AttachmentOrder attachmentOrder, String userToken) throws FogbowException {
-        String attachmentOrderId = activateOrder(attachmentOrder, userToken);
+        String attachmentOrderId = activateOrder(attachmentOrder, userToken, ResourceType.ATTACHMENT);
         return attachmentOrderId;
     }
 
@@ -185,7 +185,7 @@ public class ApplicationFacade {
     }
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String userToken) throws FogbowException {
-        String publicIpOrderId = activateOrder(publicIpOrder, userToken);
+        String publicIpOrderId = activateOrder(publicIpOrder, userToken, ResourceType.PUBLIC_IP);
         return publicIpOrderId;
     }
 
@@ -275,9 +275,10 @@ public class ApplicationFacade {
         return cloudConnector.genericRequest(genericRequest, requester);
     }
 
-    private String activateOrder(Order order, String userToken) throws FogbowException {
+    private String activateOrder(Order order, String userToken, ResourceType resourceType) throws FogbowException {
         // Set order fields that have not been provided by the requester in the body of the HTTP request
         order.setRequester(this.memberId);
+        order.setType(resourceType);
         if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.memberId);
         if (order.getCloudName() == null || order.getCloudName().isEmpty())
             order.setCloudName(this.cloudListController.getDefaultCloudName());
