@@ -81,6 +81,10 @@ public abstract class Order implements Serializable {
     @Size(max = FIELDS_MAX_SIZE)
     private String providerId;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    protected ResourceType type;
+
     public Order() {
     }
 
@@ -263,7 +267,13 @@ public abstract class Order implements Serializable {
                 + this.provider + ", instanceId=" + this.instanceId + "]";
     }
 
-    public abstract ResourceType getType();
+    public ResourceType getType() {
+        return this.type;
+    }
+
+    public void setType(ResourceType type) {
+        this.type = type;
+    }
 
     public abstract String getSpec();
 }

@@ -25,25 +25,24 @@ public class PublicIpOrder extends Order {
 
     public PublicIpOrder() {
         this(UUID.randomUUID().toString());
+        this.type = ResourceType.PUBLIC_IP;
     }
 
     public PublicIpOrder(String id) {
         super(id);
+        this.type = ResourceType.PUBLIC_IP;
     }
 
     public PublicIpOrder(String providingMember, String cloudName, String computeOrderId) {
         this(null, null, providingMember, cloudName, computeOrderId);
+        this.type = ResourceType.PUBLIC_IP;
     }
 
     public PublicIpOrder(SystemUser systemUser, String requestingMember,
                          String providingMember, String cloudName, String computeOrderId) {
         super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.computeOrderId = computeOrderId;
-    }
-
-    @Override
-    public ResourceType getType() {
-        return ResourceType.PUBLIC_IP;
+        this.type = ResourceType.PUBLIC_IP;
     }
 
     public String getComputeOrderId() {

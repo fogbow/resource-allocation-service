@@ -35,14 +35,17 @@ public class AttachmentOrder extends Order {
 
     public AttachmentOrder() {
         this(UUID.randomUUID().toString());
+        this.type = ResourceType.ATTACHMENT;
     }
 
     public AttachmentOrder(String id) {
         super(id);
+        this.type = ResourceType.ATTACHMENT;
     }
 
     public AttachmentOrder(String providingMember, String cloudName, String computeId, String volumeId, String device) {
         this(null, null, providingMember, cloudName, computeId, volumeId, device);
+        this.type = ResourceType.ATTACHMENT;
     }
 
     public AttachmentOrder(SystemUser systemUser, String requestingMember,
@@ -51,6 +54,7 @@ public class AttachmentOrder extends Order {
         this.computeId = computeId;
         this.volumeId = volumeId;
         this.device = device;
+        this.type = ResourceType.ATTACHMENT;
     }
 
     public String getComputeId() {
@@ -71,11 +75,6 @@ public class AttachmentOrder extends Order {
 
     public String getDevice() {
         return this.device;
-    }
-
-    @Override
-    public ResourceType getType() {
-        return ResourceType.ATTACHMENT;
     }
 
     @Override

@@ -59,10 +59,12 @@ public class ComputeOrder extends Order {
 
     public ComputeOrder() {
         this(UUID.randomUUID().toString());
+        this.type = ResourceType.COMPUTE;
     }
 
     public ComputeOrder(String id) {
         super(id);
+        this.type = ResourceType.COMPUTE;
     }
 
     public ComputeOrder(String id, SystemUser systemUser, String requestingMember, String providingMember,
@@ -78,12 +80,14 @@ public class ComputeOrder extends Order {
         this.publicKey = publicKey;
         this.networkIds = networkIds;
         this.actualAllocation = new ComputeAllocation();
+        this.type = ResourceType.COMPUTE;
     }
 
     public ComputeOrder(String providingMember, String cloudName, String name, int vCPU, int memory, int disk, String imageId,
                         ArrayList<UserData> userData, String publicKey, List<String> networkIds) {
         this(null, null, providingMember, cloudName, name, vCPU, memory, disk, imageId,
                 userData, publicKey, networkIds);
+        this.type = ResourceType.COMPUTE;
     }
 
     public ComputeOrder(SystemUser systemUser, String requestingMember, String providingMember,
@@ -91,6 +95,7 @@ public class ComputeOrder extends Order {
                         List<String> networkIds) {
         this(UUID.randomUUID().toString(), systemUser, requestingMember, providingMember, cloudName, name, vCPU, memory,
                 disk, imageId, userData, publicKey, networkIds);
+        this.type = ResourceType.COMPUTE;
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -131,11 +136,6 @@ public class ComputeOrder extends Order {
 
     public void setUserData(ArrayList<UserData> userData) {
         this.userData = userData;
-    }
-
-    @Override
-    public ResourceType getType() {
-        return ResourceType.COMPUTE;
     }
 
     public String getPublicKey() {
