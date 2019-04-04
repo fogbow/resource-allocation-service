@@ -70,27 +70,28 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		
+
 		int defaultNetworkID = convertToInteger(this.defaultNetwork);
 		String networkName = networkOrder.getName();
 		String name = networkName == null ? FOGBOW_NETWORK_NAME + getRandomUUID() : networkName;
-		int size = getAddressRangeSize(networkOrder.getCidr()); 
-		
+		int size = getAddressRangeSize(networkOrder.getCidr());
+
 		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()
 				.name(name)
 				.size(size)
 				.build();
-		
+
 		String networkReserveTemplate = reserveRequest.getVirtualNetworkReserved().marshalTemplate();
-		String networkInstance = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkID, networkReserveTemplate);
-		
-		String securityGroupID = createSecurityGroup(client, networkInstance, networkOrder); 
-		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, this.defaultSecurityGroup, securityGroupID);
-		
+		String networkInstance = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkID,
+				networkReserveTemplate);
+
+		String securityGroupInstance = createSecurityGroup(client, networkInstance, networkOrder);
+		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, this.defaultSecurityGroup, securityGroupInstance);
+
 		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
 				.securityGroups(securityGroups)
 				.build();
-		
+
 		int virtualNetworkID = convertToInteger(networkInstance);
 		String networkUpdateTemplate = updateRequest.getVirtualNetworkUpdate().marshalTemplate();
 		return OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkID, networkUpdateTemplate);
@@ -191,7 +192,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		String vLan = virtualNetwork.xpath(VNET_TEMPLATE_VLAN_ID_PATH);
 		String gateway = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
 		String rangeSize = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
-		String address = getAddressCIDR(gateway, rangeSize);
+		String address = generateAddressCIDR(gateway, rangeSize);
 		String networkInterface = null;
 		String macInterface = null;
 		String interfaceState = null;
@@ -213,14 +214,14 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return networkInstance;
 	}
 	
-	protected String getAddressCIDR(String gateway, String rangeSize) throws InvalidParameterException {
+	protected String generateAddressCIDR(String gateway, String rangeSize) throws InvalidParameterException {
 		int size = convertToInteger(rangeSize);
-		int value = getBarValueOfCIDR(size);
+		int value = calculateCIDR(size);
 		String cidr = String.format(CIDR_FORMAT, gateway, String.valueOf(value));
 		return cidr;
 	}
 	
-	protected int getBarValueOfCIDR(int size) {
+	protected int calculateCIDR(int size) {
 		int expo = 1;
 		for (int i = 0; i < IPV4_AMOUNT_BITS; i++)
 			if (expo >= size)

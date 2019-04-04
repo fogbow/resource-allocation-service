@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -34,10 +33,11 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 public class OpenNebulaNetworkPluginTest {
 
 	private static final String EMPTY_STRING = "";
-	private static final String FAKE_ADDRESS = "fake-address";
-	private static final String FAKE_GATEWAY = "fake-gateway";
+	private static final String FAKE_CIDR_ADDRESS = "10.1.0.0/24";
+	private static final String FAKE_GATEWAY = "10.1.0.0";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 	private static final String FAKE_NETWORK_NAME = "fake-network-name";
+	private static final String FAKE_SIZE = "256";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_VLAN_ID = "fake-vlan-id";
 	private static final String ID_VALUE_ONE = "1";
@@ -164,9 +164,8 @@ public class OpenNebulaNetworkPluginTest {
 	
 	// test case: When calling the requestInstance method, with a valid client and
 	// an order without a network name, a template must be generated with a default
-	// network name and the other associated data, to allocate a network, returning
+	// network name and the other associated data, to reserve a network, returning
 	// its instance ID.
-	@Ignore
 	@Test
 	public void testRequestInstanceSuccessfullyWithDefaultNetworkName() throws FogbowException {
 		// set up
@@ -175,21 +174,30 @@ public class OpenNebulaNetworkPluginTest {
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
 
+		int defaultNetworkID = Integer.parseInt(ID_VALUE_ZERO);
 		String networkName = null;
 		NetworkOrder networkOrder = createNetworkOrder(networkName);
-//		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.eq(client),
-//				Mockito.eq(networkOrder));
 
+		networkName = OpenNebulaNetworkPlugin.FOGBOW_NETWORK_NAME + FAKE_NETWORK_NAME;
+		String networkReserveTemplate = getNetworkReserveTemplate(networkName);
 		Mockito.doReturn(FAKE_NETWORK_NAME).when(this.plugin).getRandomUUID();
 
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(VirtualNetwork.allocate(Mockito.eq(client), Mockito.anyString())).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
+		BDDMockito.given(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client), Mockito.eq(defaultNetworkID),
+				Mockito.eq(networkReserveTemplate))).willReturn(ID_VALUE_ONE);
+
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.eq(ID_VALUE_ONE)))
+				.willReturn(virtualNetwork);
+
+		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.any(Client.class),
+				Mockito.anyString(), Mockito.eq(networkOrder));
+
+		int virtualNetworkID = Integer.parseInt(ID_VALUE_ONE);
+		String networkUpdateTemplate = getNetworkUpdateTemplate();
+		BDDMockito.given(OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkID),
+				Mockito.eq(networkUpdateTemplate))).willReturn(ID_VALUE_ONE);
 
 		CloudUser cloudUser = createCloudUser();
-		networkName = OpenNebulaNetworkPlugin.FOGBOW_NETWORK_NAME + FAKE_NETWORK_NAME;
-		String virtualNetworkTemplate = generateNetworkTemplate(networkName);
 
 		// exercise
 		this.plugin.requestInstance(networkOrder, cloudUser);
@@ -198,16 +206,21 @@ public class OpenNebulaNetworkPluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
-//		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.eq(client), Mockito.eq(networkOrder));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client), Mockito.eq(defaultNetworkID),
+				Mockito.eq(networkReserveTemplate));
+
+		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.any(Client.class),
+				Mockito.anyString(), Mockito.eq(networkOrder));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkTemplate));
+		OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkID),
+				Mockito.eq(networkUpdateTemplate));
 	}
 	
 	// test case: When calling the requestInstance method, with a valid client and
 	// an order with a network name, a template must be generated with the
-	// associated data, to allocate a network, returning its instance ID.
-	@Ignore
+	// associated data, to reserve a network, returning its instance ID.
 	@Test
 	public void testRequestInstanceSuccessfullyWithoutDefaultNetworkName() throws FogbowException {
 		// set up
@@ -216,16 +229,25 @@ public class OpenNebulaNetworkPluginTest {
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
 
+		int defaultNetworkID = Integer.parseInt(ID_VALUE_ZERO);
 		String networkName = FAKE_NETWORK_NAME;
-		String virtualNetworkTemplate = generateNetworkTemplate(networkName);
 		NetworkOrder networkOrder = createNetworkOrder(networkName);
-//		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.eq(client),
-//				Mockito.eq(networkOrder));
+		String networkReserveTemplate = getNetworkReserveTemplate(networkName);
 
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(VirtualNetwork.allocate(Mockito.eq(client), Mockito.anyString())).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
+		BDDMockito.given(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client), Mockito.eq(defaultNetworkID),
+				Mockito.eq(networkReserveTemplate))).willReturn(ID_VALUE_ONE);
+
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.eq(ID_VALUE_ONE)))
+				.willReturn(virtualNetwork);
+
+		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.any(Client.class),
+				Mockito.anyString(), Mockito.eq(networkOrder));
+
+		int virtualNetworkID = Integer.parseInt(ID_VALUE_ONE);
+		String networkUpdateTemplate = getNetworkUpdateTemplate();
+		BDDMockito.given(OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkID),
+				Mockito.eq(networkUpdateTemplate))).willReturn(ID_VALUE_ONE);
 
 		CloudUser cloudUser = createCloudUser();
 
@@ -236,35 +258,16 @@ public class OpenNebulaNetworkPluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
-//		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.eq(client), Mockito.eq(networkOrder));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client), Mockito.eq(defaultNetworkID),
+				Mockito.eq(networkReserveTemplate));
+
+		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.any(Client.class),
+				Mockito.anyString(), Mockito.eq(networkOrder));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkTemplate));
-	}
-	
-	// test case: When calling the requestInstance method, and an error occurs while
-	// attempting to allocate a virtual network, an InvalidParameterException will
-	// be thrown.
-	@Ignore
-	@Test(expected = InvalidParameterException.class)
-	public void testRequestInstanceThrowInvalidParameterException() throws FogbowException {
-		// set up
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(SecurityGroup.allocate(Mockito.any(Client.class), Mockito.anyString())).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.when(response.getMessage()).thenReturn(ID_VALUE_ONE);
-
-		response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.anyString())).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-
-		CloudUser cloudUser = createCloudUser();
-		NetworkOrder networkOrder = createNetworkOrder(FAKE_NETWORK_NAME);
-
-		// exercise
-		this.plugin.requestInstance(networkOrder, cloudUser);
+		OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkID),
+				Mockito.eq(networkUpdateTemplate));
 	}
 	
 	// test case: When calling the deleteInstance method, if the removal call is not
@@ -373,9 +376,7 @@ public class OpenNebulaNetworkPluginTest {
 	}
 
 	// test case: When calling the getInstance method, with a valid client from a
-	// token value and
-	// instance ID, it must returned a instance of a virtual network.
-	@Ignore
+	// token value and instance ID, it must returned a instance of a virtual network.
 	@Test
 	public void testGetInstanceSuccessfully() throws FogbowException {
 		// set up
@@ -391,10 +392,10 @@ public class OpenNebulaNetworkPluginTest {
 
 		Mockito.doReturn(FAKE_INSTANCE_ID).when(virtualNetwork).getId();
 		Mockito.doReturn(FAKE_NETWORK_NAME).when(virtualNetwork).getName();
-		Mockito.doReturn(FAKE_ADDRESS).when(virtualNetwork).xpath(Mockito.anyString());
-		Mockito.doReturn(FAKE_GATEWAY).when(virtualNetwork).xpath(Mockito.anyString());
-		Mockito.doReturn(FAKE_VLAN_ID).when(virtualNetwork).xpath(Mockito.anyString());
-		Mockito.doReturn(1).when(virtualNetwork).state();
+		Mockito.doReturn(FAKE_VLAN_ID).when(virtualNetwork).xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_TEMPLATE_VLAN_ID_PATH));
+		Mockito.doReturn(FAKE_GATEWAY).when(virtualNetwork).xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_ADDRESS_RANGE_IP_PATH));
+		Mockito.doReturn(FAKE_SIZE).when(virtualNetwork).xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_ADDRESS_RANGE_SIZE_PATH));
+		Mockito.doReturn(FAKE_CIDR_ADDRESS).when(this.plugin).generateAddressCIDR(FAKE_GATEWAY, FAKE_SIZE);
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
@@ -414,16 +415,15 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.verify(virtualNetwork, Mockito.times(3)).xpath(Mockito.anyString());
 	}
 	
-	// test case: When calling the sliceCIDR method, an invalid CIDR, it must throw
+	// test case: When calling the getAddressRangeSize method, an invalid CIDR, it must throw
 	// an InvalidParameterException.
-	@Ignore
 	@Test(expected = InvalidParameterException.class) // verify
 	public void testSliceCIDRThrowInvalidParameterException() throws InvalidParameterException {
 		// set up
 		String cidr = null;
 
 		// exercise
-//		this.plugin.sliceCIDR(cidr);
+		this.plugin.getAddressRangeSize(cidr);
 	}
 
 	private NetworkOrder createNetworkOrder(String networkName) {
@@ -454,25 +454,21 @@ public class OpenNebulaNetworkPluginTest {
 		return cloudUser;
 	}
 	
-	private String generateNetworkTemplate(String networkName) {
+	private String getNetworkReserveTemplate(String networkName) {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
-				"    <AR>\n" + 
-				"        <IP>10.10.10.0</IP>\n" + 
-				"        <SIZE>256</SIZE>\n" + 
-				"        <TYPE>IP4</TYPE>\n" + 
-				"    </AR>\n" + 
-				"    <BRIDGE>br0</BRIDGE>\n" + 
-				"    <VN_MAD>fw</VN_MAD>\n" + 
-				"    <DESCRIPTION>Virtual network created by fake-user-id</DESCRIPTION>\n" +
 				"    <NAME>%s</NAME>\n" + 
-				"    <NETWORK_ADDRESS>10.10.10.0</NETWORK_ADDRESS>\n" + 
-				"    <NETWORK_GATEWAY>10.10.10.1</NETWORK_GATEWAY>\n" + 
-				"    <SECURITY_GROUPS>0,1</SECURITY_GROUPS>\n" + 
-				"    <TYPE>RANGED</TYPE>\n" + 
+				"    <SIZE>256</SIZE>\n" + 
 				"</TEMPLATE>\n";
 		
 		return String.format(template, networkName);
+	}
+	
+	private String getNetworkUpdateTemplate() {
+		return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
+				"<TEMPLATE>\n" + 
+				"    <SECURITY_GROUPS>0,1</SECURITY_GROUPS>\n" + 
+				"</TEMPLATE>\n";
 	}
 	
 }
