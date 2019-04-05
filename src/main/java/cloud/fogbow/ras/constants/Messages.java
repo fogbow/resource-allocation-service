@@ -131,6 +131,7 @@ public class Messages {
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
         public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE = "Error while removing volume image: %s, with response: %s.";
+        public static final String ERROR_WHILE_UPDATING_NETWORK = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";
