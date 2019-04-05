@@ -5,10 +5,8 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -104,7 +102,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testRemoteActivateOrderSuccessfully() throws FogbowException {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
@@ -117,11 +122,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.activateOrder(FAKE_REQUESTING_MEMBER_ID, order);
 
-		// verify
-		String operation = Operation.CREATE.getValue();
-		String resourceType = ResourceType.COMPUTE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
@@ -147,7 +148,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.setOrderController(orderController);
 
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
@@ -161,11 +169,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Instance instance = this.facade.getResourceInstance(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser,
 				order.getType());
 
-		// verify
-		String operation = Operation.GET.getValue();
-		String resourceType = ResourceType.COMPUTE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 		Assert.assertSame(expectedInstance, instance);
 	}
 
@@ -177,7 +181,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(RasAuthPlugin.class);
-		Mockito.doNothing().when(authorization).isAuthorized(Mockito.eq(systemUser), Mockito.mock(RasOperation.class));
+		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(new RasOperation(Operation.GET, ResourceType.COMPUTE)))).thenReturn(true);
 
 		this.facade.setAuthorizationPlugin(authorization);
 
@@ -200,7 +204,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testRemoteDeleteOrderSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
@@ -214,11 +225,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.deleteOrder(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser, order.getType());
 
-		// verify
-		String operation = Operation.DELETE.getValue();
-		String resourceType = ResourceType.COMPUTE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
@@ -229,7 +236,13 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testRemoteGetUserQuotaSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET_USER_QUOTA,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		ResourceType resourceType = ResourceType.COMPUTE;
@@ -243,10 +256,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		Quota quota = this.facade.getUserQuota(FAKE_REQUESTING_MEMBER_ID, cloudName, systemUser, resourceType);
 
-		// verify
-		String operation = Operation.GET_USER_QUOTA.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType.getValue()));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(cloudConnector, Mockito.times(1)).getUserQuota(Mockito.eq(systemUser),
 				Mockito.eq(resourceType));
@@ -263,7 +273,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testGenericRequestSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GENERIC_REQUEST,
+				ResourceType.GENERIC_RESOURCE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		HttpMethod method = HttpMethod.GET;
 		String url = FAKE_URL;
@@ -287,11 +304,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		FogbowGenericResponse fogbowGenericResponse = facade.genericRequest(FAKE_REQUESTING_MEMBER_ID, cloudName,
                 serializedGenericRequest, systemUser);
 
-		// verify
-		String operation = Operation.GENERIC_REQUEST.getValue();
-		String resourceType = ResourceType.GENERIC_RESOURCE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(cloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(serializedGenericRequest),
 				Mockito.eq(systemUser));
@@ -306,7 +319,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testRemoteGetImageSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.IMAGE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -320,11 +340,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.getImage(FAKE_REQUESTING_MEMBER_ID, cloudName, imageId, systemUser);
 
-		// verify
-		String operation = Operation.GET.getValue();
-		String resourceType = ResourceType.IMAGE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(cloudConnector, Mockito.times(1)).getImage(Mockito.anyString(), Mockito.eq(systemUser));
 	}
@@ -336,7 +352,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testRemoteGetAllImagesSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET_ALL,
+				ResourceType.IMAGE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -349,11 +372,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.getAllImages(FAKE_REQUESTING_MEMBER_ID, cloudName, systemUser);
 
-		// verify
-		String operation = Operation.GET_ALL.getValue();
-		String resourceType = ResourceType.IMAGE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(cloudConnector, Mockito.times(1)).getAllImages(Mockito.eq(systemUser));
 	}
@@ -365,7 +384,13 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testGetCloudNamesSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.CLOUD_NAMES
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		List<String> cloudNames = new ArrayList<>();
 
@@ -376,11 +401,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.getCloudNames(FAKE_REQUESTING_MEMBER_ID, systemUser);
 
-		// verify
-		String operation = Operation.GET.getValue();
-		String resourceType = ResourceType.CLOUD_NAMES.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation),
-				Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(cloudListController, Mockito.times(1)).getCloudNames();
 	}
@@ -393,7 +414,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testCreateSecurityRuleSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
@@ -410,11 +438,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.createSecurityRule(FAKE_REQUESTING_MEMBER_ID, order.getId(), securityRule, systemUser);
 
-		// verify
-		String operation = Operation.CREATE.getValue();
-		String resourceType = ResourceType.SECURITY_RULE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(securityRuleController, Mockito.times(1)).createSecurityRule(Mockito.eq(order),
 				Mockito.eq(securityRule), Mockito.eq(systemUser));
@@ -428,7 +452,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testGetAllSecurityRulesSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET_ALL,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
@@ -448,11 +479,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		List<SecurityRule> securityRules = this.facade.getAllSecurityRules(FAKE_REQUESTING_MEMBER_ID, order.getId(),
 				systemUser);
 
-		// verify
-		String operation = Operation.GET_ALL.getValue();
-		String resourceType = ResourceType.SECURITY_RULE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(securityRuleController, Mockito.times(1)).getAllSecurityRules(Mockito.eq(order),
 				Mockito.eq(systemUser));
@@ -468,7 +495,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testdeleteSecurityRuleSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
@@ -485,11 +519,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// exercise
 		this.facade.deleteSecurityRule(FAKE_REQUESTING_MEMBER_ID, cloudName, ruleId, systemUser);
 
-		// verify
-		String operation = Operation.DELETE.getValue();
-		String resourceType = ResourceType.SECURITY_RULE.getValue();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(cloudName),
-				Mockito.eq(operation), Mockito.eq(resourceType));
+		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
 		Mockito.verify(securityRuleController, Mockito.times(1)).deleteSecurityRule(Mockito.anyString(),
 				Mockito.eq(cloudName), Mockito.anyString(), Mockito.eq(systemUser));
@@ -630,10 +660,11 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
 	}
 
-	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser)
+	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)
 			throws UnexpectedException, UnauthorizedRequestException {
 		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(RasAuthPlugin.class);
-		Mockito.doNothing().when(authorization).isAuthorized(Mockito.eq(systemUser), Mockito.mock(RasOperation.class));
+
+		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation))).thenReturn(true);
 
 		this.facade.setAuthorizationPlugin(authorization);
 		return authorization;
