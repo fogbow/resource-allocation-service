@@ -45,7 +45,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	private static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 
 	private static final int BASE_VALUE = 2;
-	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SECURITY_GROUP_VALID_POSITION = 1;
 	
 	protected static final String FOGBOW_NETWORK_NAME = "ras-network-";
@@ -54,6 +53,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	protected static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
 	protected static final String VNET_TEMPLATE_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 	protected static final String VNET_TEMPLATE_VLAN_ID_PATH = "/VNET/TEMPLATE/VLAN_ID";
+
+	protected static final int IPV4_AMOUNT_BITS = 32;
 
 	private String endpoint;
 	private String defaultNetwork;
@@ -214,21 +215,23 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return networkInstance;
 	}
 	
-	protected String generateAddressCIDR(String gateway, String rangeSize) throws InvalidParameterException {
+	protected String generateAddressCIDR(String address, String rangeSize) throws InvalidParameterException {
 		int size = convertToInteger(rangeSize);
 		int value = calculateCIDR(size);
-		String cidr = String.format(CIDR_FORMAT, gateway, String.valueOf(value));
-		return cidr;
+		return String.format(CIDR_FORMAT, address, String.valueOf(value));
 	}
 	
 	protected int calculateCIDR(int size) {
-		int expo = 1;
+		int exponent = 1;
+		int value = 0;
 		for (int i = 0; i < IPV4_AMOUNT_BITS; i++)
-			if (expo >= size)
-				return IPV4_AMOUNT_BITS - i;
-			else
-				expo *= BASE_VALUE;
-		return 0;
+			if (exponent >= size) {
+					value = IPV4_AMOUNT_BITS - i;
+					return value;
+			} else {
+				exponent *= BASE_VALUE;
+			}
+		return value;
 	}
 
 	protected int getAddressRangeSize(String cidr) throws InvalidParameterException {
