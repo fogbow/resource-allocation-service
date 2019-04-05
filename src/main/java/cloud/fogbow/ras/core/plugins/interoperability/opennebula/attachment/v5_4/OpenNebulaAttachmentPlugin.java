@@ -71,9 +71,12 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		int virtualMachineId = Integer.parseInt(instanceIds[0]);
 		int diskId = Integer.parseInt(instanceIds[2]);
 
+		// This detach operation is returning ok status but the volume is not being
+		// detached from the virtual machine in the opennebula cloud, preventing even
+		// removing this volume until the virtual machine is removed before.
 		OneResponse response = VirtualMachine.diskDetach(client, virtualMachineId, diskId);
 		if (response.isError()) {
-			String message = response.getErrorMessage(); 
+			String message = response.getErrorMessage();
 			String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, diskId, message);
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 		}
