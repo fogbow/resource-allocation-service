@@ -15,6 +15,8 @@ import cloud.fogbow.ras.core.datastore.services.AuditableRequestService;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
+import cloud.fogbow.ras.core.models.RasOperation;
+import cloud.fogbow.ras.core.plugins.authorization.RasAuthPlugin;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -55,20 +57,19 @@ public class Main implements ApplicationRunner {
 
             // Setting up controllers and application facade
             String className = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
-            AuthorizationPlugin authorizationPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(className);
-            AuthorizationController authorizationController =  new AuthorizationController(authorizationPlugin);
+            AuthorizationPlugin<RasOperation> authorizationPlugin = new RasAuthPlugin();
             OrderController orderController = new OrderController();
             SecurityRuleController securityRuleController = new SecurityRuleController();
             CloudListController cloudListController = new CloudListController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
-            applicationFacade.setAuthorizationController(authorizationController);
+            applicationFacade.setAuthorizationPlugin(authorizationPlugin);
 
             applicationFacade.setOrderController(orderController);
             applicationFacade.setCloudListController(cloudListController);
             applicationFacade.setSecurityRuleController(securityRuleController);
             remoteFacade.setSecurityRuleController(securityRuleController);
-            remoteFacade.setAuthorizationController(authorizationController);
+            remoteFacade.setAuthorizationPlugin(authorizationPlugin);
             remoteFacade.setOrderController(orderController);
             remoteFacade.setCloudListController(cloudListController);
 

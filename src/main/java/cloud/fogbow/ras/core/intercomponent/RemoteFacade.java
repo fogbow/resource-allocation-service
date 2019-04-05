@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
+import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -11,6 +12,7 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.models.Operation;
+import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
@@ -28,7 +30,7 @@ public class RemoteFacade {
     private static final Logger LOGGER = Logger.getLogger(RemoteFacade.class);
 
     private static RemoteFacade instance;
-    private AuthorizationController authorizationController;
+    private AuthorizationPlugin<RasOperation> authorizationPlugin;
     private OrderController orderController;
     private SecurityRuleController securityRuleController;
     private CloudListController cloudListController;
@@ -72,21 +74,21 @@ public class RemoteFacade {
 
     public Quota getUserQuota(String requestingMember, String cloudName, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, cloudName, Operation.GET_USER_QUOTA.getValue(), resourceType.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_USER_QUOTA, resourceType, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getUserQuota(systemUser, resourceType);
     }
 
     public Image getImage(String requestingMember, String cloudName, String imageId, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getImage(imageId, systemUser);
     }
 
     public Map<String, String> getAllImages(String requestingMember, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getAllImages(systemUser);
     }
@@ -94,14 +96,14 @@ public class RemoteFacade {
     public FogbowGenericResponse genericRequest(String requestingMember, String cloudName, String genericRequest,
                                                 SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, cloudName, Operation.GENERIC_REQUEST.getValue(), ResourceType.GENERIC_RESOURCE.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, systemUser);
     }
 
     public List<String> getCloudNames(String requestingMember, SystemUser systemUser) throws UnexpectedException, UnauthorizedRequestException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, Operation.GET.getValue(), ResourceType.CLOUD_NAMES.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES));
         return this.cloudListController.getCloudNames();
     }
 
@@ -110,7 +112,7 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, order.getCloudName(), Operation.CREATE.getValue(), ResourceType.SECURITY_RULE.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName()));
         return securityRuleController.createSecurityRule(order, securityRule, systemUser);
     }
 
@@ -119,13 +121,13 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationController.authorize(systemUser, order.getCloudName(), Operation.GET_ALL.getValue(), ResourceType.SECURITY_RULE.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName()));
         return securityRuleController.getAllSecurityRules(order, systemUser);
     }
 
     public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
                                    SystemUser systemUser) throws FogbowException {
-        this.authorizationController.authorize(systemUser, cloudName, Operation.DELETE.getValue(), ResourceType.SECURITY_RULE.getValue());
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName));
         this.securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, systemUser);
     }
 
@@ -166,8 +168,8 @@ public class RemoteFacade {
         }
     }
 
-    public void setAuthorizationController(AuthorizationController authorizationController) {
-        this.authorizationController = authorizationController;
+    public void setAuthorizationPlugin(AuthorizationPlugin<RasOperation> authorizationPlugin) {
+        this.authorizationPlugin = authorizationPlugin;
     }
 
     public synchronized void setOrderController(OrderController orderController) {
@@ -203,6 +205,6 @@ public class RemoteFacade {
         if (!orderOwner.getId().equals(requester.getId())) {
             throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
         }
-        this.authorizationController.authorize(requester, cloudName, operation.getValue(), type.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName));
     }
 }

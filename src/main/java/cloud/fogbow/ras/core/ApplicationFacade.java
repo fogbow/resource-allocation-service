@@ -4,6 +4,7 @@ import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationController;
+import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
@@ -18,6 +19,7 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.Operation;
+import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
@@ -26,6 +28,7 @@ import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.core.plugins.authorization.RasAuthPlugin;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -40,7 +43,7 @@ public class ApplicationFacade {
 
     private static ApplicationFacade instance;
 
-    private AuthorizationController authorizationController;
+    private AuthorizationPlugin<RasOperation> authorizationPlugin;
     private OrderController orderController;
     private SecurityRuleController securityRuleController;
     private CloudListController cloudListController;
@@ -63,8 +66,8 @@ public class ApplicationFacade {
         }
     }
 
-    public void setAuthorizationController(AuthorizationController authorizationController) {
-        this.authorizationController = authorizationController;
+    public void setAuthorizationPlugin(AuthorizationPlugin<RasOperation> authorizationPlugin) {
+        this.authorizationPlugin = authorizationPlugin;
     }
 
     public synchronized void setOrderController(OrderController orderController) {
@@ -94,8 +97,7 @@ public class ApplicationFacade {
 
     public List<String> getCloudNames(String memberId, String userToken) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
-        this.authorizationController.authorize(requester, Operation.GET.getValue(),
-                ResourceType.CLOUD_NAMES.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES));
         if (memberId.equals(this.memberId)) {
             return this.cloudListController.getCloudNames();
         } else {
@@ -200,7 +202,7 @@ public class ApplicationFacade {
     public List<InstanceStatus> getAllInstancesStatus(String userToken, ResourceType resourceType)
             throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
-        this.authorizationController.authorize(requester, Operation.GET_ALL.getValue(), resourceType.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_ALL, resourceType));
         return this.orderController.getInstancesStatus(requester, resourceType);
     }
 
@@ -208,7 +210,7 @@ public class ApplicationFacade {
             throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET_ALL.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName));
         if (memberId == null) {
             memberId = this.memberId;
         }
@@ -220,7 +222,7 @@ public class ApplicationFacade {
             throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET.getValue(), ResourceType.IMAGE.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName));
         if (memberId == null) {
             memberId = this.memberId;
         }
@@ -237,8 +239,8 @@ public class ApplicationFacade {
         }
 
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
-        this.authorizationController.authorize(requester, order.getCloudName(), Operation.CREATE.getValue(),
-                ResourceType.SECURITY_RULE.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
+                ResourceType.SECURITY_RULE, order.getCloudName()));
         return securityRuleController.createSecurityRule(order, securityRule, requester);
     }
 
@@ -249,8 +251,8 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException();
         }
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
-        this.authorizationController.authorize(requester, order.getCloudName(), Operation.GET_ALL.getValue(),
-                ResourceType.SECURITY_RULE.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_ALL,
+                ResourceType.SECURITY_RULE, order.getCloudName()));
         return securityRuleController.getAllSecurityRules(order, requester);
     }
 
@@ -261,16 +263,16 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException();
         }
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
-        this.authorizationController.authorize(requester, order.getCloudName(), Operation.DELETE.getValue(),
-                ResourceType.SECURITY_RULE.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.DELETE,
+                ResourceType.SECURITY_RULE, order.getCloudName()));
         securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
     }
 
     public FogbowGenericResponse genericRequest(String cloudName, String memberId, String genericRequest,
                                                 String userToken) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
-        this.authorizationController.authorize(requester, cloudName, Operation.GENERIC_REQUEST.getValue(),
-                ResourceType.GENERIC_RESOURCE.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GENERIC_REQUEST,
+                ResourceType.GENERIC_RESOURCE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, requester);
     }
@@ -285,8 +287,8 @@ public class ApplicationFacade {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         order.setSystemUser(requester);
         // Check if the authenticated user is authorized to perform the requested operation
-        this.authorizationController.authorize(requester, order.getCloudName(), Operation.CREATE.getValue(),
-                order.getType().getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
+                order.getType(), order.getCloudName()));
         // Set an initial state for the resource instance that is yet to be created in the cloud
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
@@ -312,8 +314,8 @@ public class ApplicationFacade {
                                          ResourceType resourceType) throws FogbowException, UnexpectedException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET_USER_ALLOCATION.getValue(),
-                resourceType.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_USER_ALLOCATION,
+                resourceType, cloudName));
         return this.orderController.getUserAllocation(memberId, requester, resourceType);
     }
 
@@ -321,8 +323,8 @@ public class ApplicationFacade {
                                ResourceType resourceType) throws FogbowException, UnexpectedException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
-        this.authorizationController.authorize(requester, cloudName, Operation.GET_USER_QUOTA.getValue(),
-                resourceType.getValue());
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_USER_QUOTA,
+                resourceType, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.getUserQuota(requester, resourceType);
     }
@@ -339,7 +341,7 @@ public class ApplicationFacade {
 		if (!ownerUserId.equals(requestUserId)) {
 			throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
 		}
-		this.authorizationController.authorize(requester, cloudName, operation.getValue(), type.getValue());
+		this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName));
 	}
 
     public RSAPublicKey getAsPublicKey() throws FogbowException {
