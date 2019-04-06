@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.intercomponent;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -96,7 +95,7 @@ public class RemoteFacade {
     public FogbowGenericResponse genericRequest(String requestingMember, String cloudName, String genericRequest,
                                                 SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE, cloudName));
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE, cloudName, genericRequest));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, systemUser);
     }
@@ -112,7 +111,7 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName()));
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(), order));
         return securityRuleController.createSecurityRule(order, securityRule, systemUser);
     }
 
@@ -121,7 +120,7 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName()));
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(), order));
         return securityRuleController.getAllSecurityRules(order, systemUser);
     }
 
@@ -205,6 +204,6 @@ public class RemoteFacade {
         if (!orderOwner.getId().equals(requester.getId())) {
             throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
         }
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName));
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
     }
 }

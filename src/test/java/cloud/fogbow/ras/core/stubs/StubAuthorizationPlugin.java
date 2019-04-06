@@ -16,16 +16,6 @@ public class StubAuthorizationPlugin implements AuthorizationPlugin<RasOperation
     }
 
     @Override
-    public boolean isAuthorized(SystemUser systemUser, String s, String s1, String s2) throws UnauthorizedRequestException, UnexpectedException {
-        return true;
-    }
-
-    @Override
-    public boolean isAuthorized(SystemUser systemUser, String s, String s1) throws UnauthorizedRequestException, UnexpectedException {
-        return true;
-    }
-
-    @Override
     public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException, UnexpectedException {
         return true;
     }

@@ -28,7 +28,7 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
-import cloud.fogbow.ras.core.plugins.authorization.RasAuthPlugin;
+import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -103,17 +103,18 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = createFederationUser();
 
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.COMPUTE,
-				DEFAULT_CLOUD_NAME
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		// checking if the order has no state and is null
 		Assert.assertNull(order.getOrderState());
@@ -149,18 +150,19 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		SystemUser systemUser = createFederationUser();
 
-		RasOperation operation = new RasOperation(
-				Operation.GET,
-				ResourceType.COMPUTE,
-				DEFAULT_CLOUD_NAME
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		Instance expectedInstance = new ComputeInstance(FAKE_INSTANCE_ID);
 		Mockito.doReturn(expectedInstance).when(orderController).getResourceInstance(Mockito.any(Order.class));
@@ -180,7 +182,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = createFederationUser();
 
-		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(RasAuthPlugin.class);
+		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
 		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(new RasOperation(Operation.GET, ResourceType.COMPUTE)))).thenReturn(true);
 
 		this.facade.setAuthorizationPlugin(authorization);
@@ -205,18 +207,19 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = createFederationUser();
 
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.COMPUTE,
-				DEFAULT_CLOUD_NAME
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		// checking that the order has a state and is not null
 		Assert.assertNotNull(order.getOrderState());
@@ -274,14 +277,6 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = createFederationUser();
 
-		RasOperation operation = new RasOperation(
-				Operation.GENERIC_REQUEST,
-				ResourceType.GENERIC_RESOURCE,
-				DEFAULT_CLOUD_NAME
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 		HttpMethod method = HttpMethod.GET;
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
@@ -291,6 +286,15 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		String responseContent = FAKE_CONTENT;
 		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
+
+		RasOperation operation = new RasOperation(
+				Operation.GENERIC_REQUEST,
+				ResourceType.GENERIC_RESOURCE,
+				DEFAULT_CLOUD_NAME,
+				serializedGenericRequest
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory factory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(factory);
@@ -415,18 +419,19 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = createFederationUser();
 
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
@@ -453,18 +458,19 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		SystemUser systemUser = createFederationUser();
 
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET_ALL,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 		List<SecurityRule> expectedSecurityRules = new ArrayList<>();
@@ -662,7 +668,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)
 			throws UnexpectedException, UnauthorizedRequestException {
-		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(RasAuthPlugin.class);
+		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
 
 		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation))).thenReturn(true);
 

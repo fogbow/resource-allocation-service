@@ -5,7 +5,6 @@ import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.CryptoUtil;
@@ -24,17 +23,15 @@ import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
-import cloud.fogbow.ras.core.plugins.authorization.RasAuthPlugin;
+import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import sun.security.krb5.internal.crypto.RsaMd5CksumType;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
@@ -247,15 +244,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.COMPUTE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
@@ -263,7 +253,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		List<String> networkIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
-		
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
+
 		CloudListController cloudListController = Mockito.mock(CloudListController.class);
 		this.facade.setCloudListController(cloudListController);
 		
@@ -298,16 +296,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 
-		RasOperation operation = new RasOperation(
-				Operation.GET,
-				ResourceType.COMPUTE,
-				cloudName
-		);
-		
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
 
 		String publicKey = FAKE_PUBLIC_KEY;
 		ArrayList<UserData> userData = super.mockUserData();
@@ -315,6 +305,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.COMPUTE,
+				cloudName,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -346,16 +344,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.COMPUTE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
@@ -364,6 +354,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -441,17 +439,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());;
+
+		VolumeOrder order = spyVolumeOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.VOLUME,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());;
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		VolumeOrder order = spyVolumeOrder(systemUser);
 
 		VolumeInstance volumeInstance = new VolumeInstance(order.getId());
 		order.setInstanceId(volumeInstance.getId());
@@ -482,18 +481,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.GET,
-				ResourceType.VOLUME,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());;
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		VolumeOrder order = spyVolumeOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.VOLUME,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -525,18 +525,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.VOLUME,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		VolumeOrder order = spyVolumeOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.VOLUME,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -609,17 +610,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		NetworkOrder order = spyNetworkOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.NETWORK,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		NetworkOrder order = spyNetworkOrder(systemUser);
 
 		NetworkInstance networkInstance = new NetworkInstance(order.getId());
 		order.setInstanceId(networkInstance.getId());
@@ -650,18 +652,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-			Operation.GET,
-			ResourceType.NETWORK,
-			DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.NETWORK,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -693,18 +696,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-			Operation.DELETE,
-			ResourceType.NETWORK,
-			DEFAULT_CLOUD_NAME
-		);
-		
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.NETWORK,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -740,15 +744,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-			Operation.CREATE,
-			ResourceType.COMPUTE,
-			DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		NetworkOrder netOrder1 = new NetworkOrder();
 		netOrder1.setSystemUser(systemUser);
@@ -763,6 +760,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		networkIds.add(netOrder2.getId());
 
 		ComputeOrder order = spyComputeOrder(systemUser, DEFAULT_CLOUD_NAME, null, null, networkIds);
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.COMPUTE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		ComputeInstance computeInstance = new ComputeInstance(order.getId());
 		order.setInstanceId(computeInstance.getId());
@@ -834,17 +839,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		AttachmentOrder order = spyAttachmentOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.ATTACHMENT,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		AttachmentOrder order = spyAttachmentOrder(systemUser);
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(order.getId());
 		order.setInstanceId(attachmentInstance.getId());
@@ -875,18 +881,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-			Operation.GET,
-			ResourceType.ATTACHMENT,
-			DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		AttachmentOrder order = spyAttachmentOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.ATTACHMENT,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -918,18 +925,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-			Operation.DELETE,
-			ResourceType.ATTACHMENT,
-			DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		AttachmentOrder order = spyAttachmentOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.ATTACHMENT,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -965,17 +973,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		AttachmentOrder order = spyAttachmentOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.ATTACHMENT,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		AttachmentOrder order = spyAttachmentOrder(systemUser);
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(order.getId());
 		order.setInstanceId(attachmentInstance.getId());
@@ -1011,17 +1020,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		AttachmentOrder order = spyAttachmentOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.ATTACHMENT,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		AttachmentOrder order = spyAttachmentOrder(systemUser);
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(order.getId());
 		order.setInstanceId(attachmentInstance.getId());
@@ -1094,17 +1104,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		PublicIpOrder order = spyPublicIpOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.PUBLIC_IP,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-		
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
 
 		PublicIpInstance publicIpInstance = new PublicIpInstance(order.getId());
 		order.setInstanceId(publicIpInstance.getId());
@@ -1135,18 +1146,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.GET,
-				ResourceType.PUBLIC_IP,
-				DEFAULT_CLOUD_NAME
-		);
-		
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET,
+				ResourceType.PUBLIC_IP,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -1178,18 +1190,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.PUBLIC_IP,
-				DEFAULT_CLOUD_NAME
-		);
-		
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.PUBLIC_IP,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -1225,17 +1238,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		PublicIpOrder order = spyPublicIpOrder(systemUser);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.PUBLIC_IP,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
 
 		PublicIpInstance publicIpInstance = new PublicIpInstance(order.getId());
 		order.setInstanceId(publicIpInstance.getId());
@@ -1396,18 +1410,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.CREATE,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1449,18 +1464,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
+		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
+				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+
+		NetworkOrder order = spyNetworkOrder(systemUser);
+		this.orderController.activateOrder(order);
+
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
 				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				order
 		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
-				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-		
-		NetworkOrder order = spyNetworkOrder(systemUser);
-		this.orderController.activateOrder(order);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1502,18 +1518,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET_ALL,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1560,18 +1577,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.GET_ALL,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1618,18 +1636,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		PublicIpOrder order = spyPublicIpOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1672,18 +1691,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		NetworkOrder order = spyNetworkOrder(systemUser);
 		this.orderController.activateOrder(order);
+
+		RasOperation operation = new RasOperation(
+				Operation.DELETE,
+				ResourceType.SECURITY_RULE,
+				DEFAULT_CLOUD_NAME,
+				order
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade.setSecurityRuleController(securityRuleController);
@@ -1725,15 +1745,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
 		Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
 
-		RasOperation operation = new RasOperation(
-				Operation.GENERIC_REQUEST,
-				ResourceType.GENERIC_RESOURCE,
-				FAKE_CLOUD_NAME
-		);
-
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String url = FAKE_URL;
 		HashMap<String, String> headers = new HashMap<>();
@@ -1743,6 +1756,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String responseContent = FAKE_CONTENT;
 		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
+
+		RasOperation operation = new RasOperation(
+				Operation.GENERIC_REQUEST,
+				ResourceType.GENERIC_RESOURCE,
+				FAKE_CLOUD_NAME,
+				serializedGenericRequest
+		);
+		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
@@ -1854,7 +1875,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 
-		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(RasAuthPlugin.class);
+		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
 		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(new RasOperation(Operation.GET, ResourceType.COMPUTE)))).thenReturn(true);
 
 		this.facade.setAuthorizationPlugin(authorization);
@@ -2160,7 +2181,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private AuthorizationPlugin<RasOperation> mockAuthorizationPlugin(SystemUser systemUser, RasOperation rasOperation)
 			throws UnexpectedException, UnauthorizedRequestException {
 
-		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(RasAuthPlugin.class);
+		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
 
 		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(rasOperation))).thenReturn(true);
 

@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core;
 import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.plugins.authorization.AuthorizationController;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.CryptoUtil;
@@ -28,7 +27,6 @@ import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.authorization.RasAuthPlugin;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -240,7 +238,7 @@ public class ApplicationFacade {
 
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
-                ResourceType.SECURITY_RULE, order.getCloudName()));
+                ResourceType.SECURITY_RULE, order.getCloudName(), order));
         return securityRuleController.createSecurityRule(order, securityRule, requester);
     }
 
@@ -252,7 +250,7 @@ public class ApplicationFacade {
         }
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_ALL,
-                ResourceType.SECURITY_RULE, order.getCloudName()));
+                ResourceType.SECURITY_RULE, order.getCloudName(), order));
         return securityRuleController.getAllSecurityRules(order, requester);
     }
 
@@ -264,7 +262,7 @@ public class ApplicationFacade {
         }
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.DELETE,
-                ResourceType.SECURITY_RULE, order.getCloudName()));
+                ResourceType.SECURITY_RULE, order.getCloudName(), order));
         securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
     }
 
@@ -272,7 +270,7 @@ public class ApplicationFacade {
                                                 String userToken) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GENERIC_REQUEST,
-                ResourceType.GENERIC_RESOURCE, cloudName));
+                ResourceType.GENERIC_RESOURCE, cloudName, genericRequest));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, requester);
     }
@@ -288,7 +286,7 @@ public class ApplicationFacade {
         order.setSystemUser(requester);
         // Check if the authenticated user is authorized to perform the requested operation
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
-                order.getType(), order.getCloudName()));
+                order.getType(), order.getCloudName(), order));
         // Set an initial state for the resource instance that is yet to be created in the cloud
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
@@ -341,7 +339,7 @@ public class ApplicationFacade {
 		if (!ownerUserId.equals(requestUserId)) {
 			throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
 		}
-		this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName));
+		this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
 	}
 
     public RSAPublicKey getAsPublicKey() throws FogbowException {
