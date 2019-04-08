@@ -276,7 +276,7 @@ public class OpenNebulaClientUtil {
 		throw new UnauthorizedRequestException();
 	}
 	
-	public static PoolElement generateOnePoolElement(Client client, String poolElementId, Class classType)
+	protected static PoolElement generateOnePoolElement(Client client, String poolElementId, Class classType)
 			throws InvalidParameterException {
 		
 		int id;
