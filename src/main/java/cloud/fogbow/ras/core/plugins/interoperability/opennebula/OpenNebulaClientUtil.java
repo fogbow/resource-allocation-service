@@ -62,6 +62,24 @@ public class OpenNebulaClientUtil {
 		return group;
     }
 	
+	public static Image getImage(Client client, String imageId) throws UnexpectedException, InvalidParameterException,
+			UnauthorizedRequestException, InstanceNotFoundException {
+		
+		Image image = (Image) generateOnePoolElement(client, imageId, Image.class);
+		OneResponse response = image.info();
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(message);
+			// Not authorized to perform
+			if (message.contains(RESPONSE_NOT_AUTHORIZED)) {
+				throw new UnauthorizedRequestException();
+			}
+			// Error getting virtual network
+			throw new InstanceNotFoundException(message);
+		}
+		return image;
+	}
+	
 	public static ImagePool getImagePool(Client client) throws UnexpectedException {
         ImagePool imagePool = (ImagePool) generateOnePool(client, ImagePool.class);
 		OneResponse response = imagePool.infoAll();
@@ -268,7 +286,9 @@ public class OpenNebulaClientUtil {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, poolElementId), e);
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
-		if (classType.isAssignableFrom(SecurityGroup.class)) {
+		if (classType.isAssignableFrom(Image.class)) {
+			return new Image(id, client);
+		} else if (classType.isAssignableFrom(SecurityGroup.class)) {
 			return new SecurityGroup(id, client);
 		} else if (classType.isAssignableFrom(VirtualMachine.class)) {
 			return new VirtualMachine(id, client);
