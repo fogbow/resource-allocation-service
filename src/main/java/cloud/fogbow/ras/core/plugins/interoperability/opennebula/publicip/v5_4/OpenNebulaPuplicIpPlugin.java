@@ -17,6 +17,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
@@ -44,11 +45,12 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final String ID_SEPARATOR = " ";
 	private static final String INPUT_RULE_TYPE = "inbound"; // FIXME occurrence in two classes
 	private static final String INSTANCE_ID = "%s %s %s %s";
-	private static final String NIC_IP_PATH = "/VM/NIC/IP";
 	private static final String OUTPUT_RULE_TYPE = "outbound"; // FIXME occurrence in two classes
+	private static final String POWEROFF_STATE = "POWEROFF";
 	private static final String SECURITY_GROUPS_FORMAT = "%s,%s"; // FIXME occurrence in two classes
 
 	private static final int SIZE_ADDRESS_PUBLIC_IP = 1;
+	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
 
 	private String endpoint;
 	private String defaultPublicNetwork;
@@ -94,7 +96,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		
 		String template = createNicTemplate(publicNetworkInstanceId);
 		VirtualMachine virtualMachine = attachNetworkInterfaceConnected(client, computeInstanceId, template);
-		String nicId = getNicIdFromContenOf(virtualMachine);
+		String nicId = getContent(virtualMachine, OpenNebulaTagNameConstants.NIC_ID);
 
 		String instanceId = String.format(INSTANCE_ID, 
 				computeInstanceId, 
@@ -111,15 +113,23 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
 
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
 		String virtualNetworkId = instanceIds[1];
 		String securityGroupId = instanceIds[2];
 		String nicId = instanceIds[3];
-
-		detachNicFromVirtualMachine(client, computeInstanceId, nicId);
-		deleteSecurityGroup(client, securityGroupId);
-		deletePublicNetwork(client, virtualNetworkId);
+		
+		// A Network Interface Connected (NIC) can only be detached if a virtual machine is power-off.
+		if (isPowerOff(virtualMachine)) {
+			detachNic(virtualMachine, nicId);
+			deleteSecurityGroup(client, securityGroupId);
+			deletePublicNetwork(client, virtualNetworkId);
+			virtualMachine.resume();
+		} else {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, "Public IP", publicIpInstanceId));
+			throw new UnexpectedException();
+		}
 	}
 
 	@Override
@@ -132,11 +142,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		String virtualMachineId = instanceIds[0];
 
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
-		String publicIp = virtualMachine.xpath(NIC_IP_PATH);
+		String computeName = virtualMachine.getName();
+		String publicIp = getContent(virtualMachine, OpenNebulaTagNameConstants.IP);
 		InstanceState instanceState = InstanceState.READY;
 		
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, publicIpInstanceId));
 		PublicIpInstance publicIpInstance = new PublicIpInstance(publicIpInstanceId, instanceState, publicIp);
+		publicIpInstance.setComputeName(computeName);
 		return publicIpInstance;
 	}
 	
@@ -161,24 +173,42 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 		}
 	}
-	
-	protected void detachNicFromVirtualMachine(Client client, String virtualMachineId, String nicId)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-		
-		int id = Integer.parseInt(nicId);
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
+
+	protected void detachNic(VirtualMachine virtualMachine, String nicId) throws InvalidParameterException {
+		int id = convertToInteger(nicId);
 		OneResponse response = virtualMachine.nicDetach(id);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 		}
 	}
-
-	protected String getNicIdFromContenOf(VirtualMachine virtualMachine) {
+	
+	protected boolean isPowerOff(VirtualMachine virtualMachine) {
+		virtualMachine.poweroff(true);
+		String state;
+		int count = 0;
+		while (count > ATTEMPTS_LIMIT_NUMBER) {
+			count++;
+			try {
+				Thread.sleep(1200);
+				virtualMachine.info();
+				state = virtualMachine.stateStr();
+				if (state == POWEROFF_STATE) {
+					return true;
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				break;
+			}
+		}
+		return false;
+	}
+	
+	protected String getContent(VirtualMachine virtualMachine, String tag) {
 		OneResponse response = virtualMachine.info();
 		String xml = response.getMessage();
 		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
-		String content = xmlUnmarshaller.getContentOfLastElement(OpenNebulaTagNameConstants.NIC_ID);
+		String content = xmlUnmarshaller.getContentOfLastElement(tag);
 		return content;
 	}
 	
