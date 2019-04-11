@@ -13,11 +13,11 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.Image;
-import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import org.apache.log4j.Logger;
@@ -132,7 +132,7 @@ public class RemoteFacade {
 
     public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowException {
         // order is the java object that represents the order passed in the message
-        // actualOrder is the java object that represents this order inside the current server
+        // actualOrder is the java object that represents this order inside this server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
         if (!localOrder.getProvider().equals(signallingMember)) {
             throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
@@ -201,7 +201,7 @@ public class RemoteFacade {
             throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
         // Check whether requester owns order
         SystemUser orderOwner = order.getSystemUser();
-        if (!orderOwner.getId().equals(requester.getId())) {
+        if (!orderOwner.equals(requester)) {
             throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
         }
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));

@@ -38,13 +38,14 @@ public class OpenNebulaVolumePluginTest {
 	private static final String STATE_READY = "READY";
 	private static final String STRING_VALUE_ONE = "1";
 	private static final String EMPTY_STRING = "";
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private OpenNebulaVolumePlugin plugin;
 
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin(opennebulaConfFilePath));

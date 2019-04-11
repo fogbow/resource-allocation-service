@@ -14,6 +14,7 @@ public class Messages {
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
+        public static final String INVALID_NETWORK_ID_S = "Network <%s> does not belong to user or has been created on a different provider.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
@@ -36,7 +37,6 @@ public class Messages {
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
         public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
-        public static final String SYSTEM_USER_TYPE_MISMATCH = "The system user type is not the expected one.";
         public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
@@ -45,7 +45,6 @@ public class Messages {
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER = "Unable to retrieve response from providing member: %s.";
-        public static final String UNABLE_TO_MAP_SYSTEM_USER = "System user is not one-to-one mappable.";
         public static final String UNABLE_TO_MATCH_REQUIREMENTS = "Unable to match requirements.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -80,7 +79,6 @@ public class Messages {
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
-        public static final String INSTANCE_NOT_FOUND = "Instance associated with request %s was not found.";
         public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";

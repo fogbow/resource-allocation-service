@@ -23,6 +23,8 @@ public class PublicKey {
 
     private final Logger LOGGER = Logger.getLogger(PublicKey.class);
 
+    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
+
     @ApiOperation(value = ApiDocumentation.PublicKey.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<cloud.fogbow.ras.api.http.response.PublicKey> getPublicKey() throws UnexpectedException {

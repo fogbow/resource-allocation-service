@@ -51,13 +51,14 @@ public class OpenNebulaSecurityRulePluginTest {
 	private static final String IP_TWO = "20.20.0.0";
 	private static final String IP_TREE = "30.30.0.0";
 	private static final String SEPARATOR = ",";
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
     private OpenNebulaSecurityRulePlugin plugin;
 
     @Before
     public void setUp() {
     	String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
     	
         this.plugin = Mockito.spy(new OpenNebulaSecurityRulePlugin(opennebulaConfFilePath));

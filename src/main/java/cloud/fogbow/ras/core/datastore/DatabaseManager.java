@@ -44,7 +44,7 @@ public class DatabaseManager implements StableStorage {
     }
 
     @Override
-    public SynchronizedDoublyLinkedList<Order> readActiveOrders(OrderState orderState) throws UnexpectedException {
+    public SynchronizedDoublyLinkedList<Order> readActiveOrders(OrderState orderState) {
 
         SynchronizedDoublyLinkedList<Order> synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList<>();
 
