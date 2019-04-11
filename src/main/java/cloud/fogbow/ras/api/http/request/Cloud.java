@@ -28,6 +28,8 @@ public class Cloud {
 
     private final Logger LOGGER = Logger.getLogger(Cloud.class);
 
+    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
+
     @ApiOperation(value = ApiDocumentation.Cloud.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CloudList> getCloudNamesNoMemberId(

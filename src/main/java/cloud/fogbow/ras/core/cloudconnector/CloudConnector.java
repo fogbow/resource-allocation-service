@@ -4,9 +4,9 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 
@@ -41,20 +41,20 @@ public interface CloudConnector {
     Instance getInstance(Order order) throws FogbowException;
 
     /**
-     * Gets the quota of the federation user for resourceType.
+     * Gets the quota of the system user for resourceType.
      *
-     * @param systemUserToken the attributes of the user
-     * @param resourceType    the type of instance for which the quota was requested
+     * @param systemUser the attributes that identify the user
+     * @param resourceType the type of instance for which the quota was requested
      * @return the quota associated to the user
      * @throws FogbowException
      */
-    Quota getUserQuota(SystemUser systemUserToken, ResourceType resourceType) throws FogbowException;
+    Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException;
 
     /**
-     * Gets the list of images that the federation user can see in the target cloud.
+     * Gets the list of images that the system user can see in the target cloud.
      *
-     * @param systemUser the attributes of the user
-     * @return a getCloudUser where each element is a pair (image name, image id)
+     * @param systemUser the attributes that identify the user
+     * @return a map where each element is a pair (image name, image id)
      * @throws FogbowException
      */
     Map<String, String> getAllImages(SystemUser systemUser) throws FogbowException;
@@ -63,7 +63,7 @@ public interface CloudConnector {
      * Gets the information about a given image.
      *
      * @param imageId    the Id of the image to be retrieved
-     * @param systemUser the attributes of the user
+     * @param systemUser the attributes that identify the user
      * @return the requested image
      * @throws FogbowException
      */
@@ -71,10 +71,10 @@ public interface CloudConnector {
     Image getImage(String imageId, SystemUser systemUser) throws FogbowException;
 
     /**
-     * Redirects a generic request to the cloud then answer the response.
+     * Submits a generic request to the cloud.
      *
-     * @param genericRequest
-     * @param systemUser
+     * @param genericRequest a json representation of the request to be sent.
+     * @param systemUser the attributes that identify the user
      * @return the response received from the cloud
      * @throws FogbowException
      */
@@ -84,7 +84,7 @@ public interface CloudConnector {
      * Gets all security rules associated to an Order (must be either a publicIp or a network order)
      *
      * @param order             the order to which the security rules have been associated
-     * @param systemUser        the attributes of the user
+     * @param systemUser        the attributes that identify the user
      * @return a list containing all security rules
      * @throws FogbowException
      */
@@ -92,22 +92,22 @@ public interface CloudConnector {
 
     /**
      * Requests a new security group rule in the cloud (either locally or remotely) using the requirements contained
-     * security group rule.
+     * in the security group rule.
      *
      * @param order             the order to which the security rule will be associated
      * @param securityRule      the rule to be added
-     * @param systemUser        the attributes of the user
+     * @param systemUser        the attributes that identify the user
      * @return the string that represents the security rule Id
      * @throws FogbowException
      */
     String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException;
 
     /**
-     * Deletes in the cloud the indicated security rule that had been associated to either a publicIp or
-     * a network.
+     * Deletes in the cloud the indicated security rule that had been previously associated to either a publicIp or
+     * a network order.
      *
      * @param securityRuleId    the Id of the security rule to be deleted
-     * @param systemUser        the attributes of the user
+     * @param systemUser        the attributes that identify the user
      * @throws FogbowException
      */
     void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException;

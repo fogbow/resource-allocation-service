@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
-import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;

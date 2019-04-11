@@ -8,7 +8,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
-import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -16,12 +15,13 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
+import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
@@ -309,7 +309,7 @@ public class ApplicationFacade {
     }
 
     private Allocation getUserAllocation(String memberId, String cloudName, String userToken,
-                                         ResourceType resourceType) throws FogbowException, UnexpectedException {
+                                         ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_USER_ALLOCATION,
@@ -318,7 +318,7 @@ public class ApplicationFacade {
     }
 
     private Quota getUserQuota(String memberId, String cloudName, String userToken,
-                               ResourceType resourceType) throws FogbowException, UnexpectedException {
+                               ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_USER_QUOTA,
@@ -334,9 +334,7 @@ public class ApplicationFacade {
 			throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
 		// Check whether requester owns order
 		SystemUser orderOwner = order.getSystemUser();
-		String ownerUserId = orderOwner.getId();
-		String requestUserId = requester.getId();
-		if (!ownerUserId.equals(requestUserId)) {
+		if (!orderOwner.equals(requester)) {
 			throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
 		}
 		this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));

@@ -40,13 +40,14 @@ public class OpenNebulaPublicIpPluginTest {
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
 	private static final String VIRTUAL_MACHINE_CONTENT = "<NIC_ID>1</NIC_ID>";
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private OpenNebulaPuplicIpPlugin plugin;
 	
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin(opennebulaConfFilePath));

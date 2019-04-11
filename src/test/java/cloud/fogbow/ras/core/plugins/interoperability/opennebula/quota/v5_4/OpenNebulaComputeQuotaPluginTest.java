@@ -47,6 +47,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String QUOTA_VMS_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_VMS_PATH;
 	private static final String VMS_MAX_VALUE = "5";
 	private static final String VMS_USED_VALUE = "1";
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private static final int CPU_EXPECTED = 6;
 	private static final int MEMORY_EXPECTED = 30720;
@@ -58,7 +59,7 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin(opennebulaConfFilePath));

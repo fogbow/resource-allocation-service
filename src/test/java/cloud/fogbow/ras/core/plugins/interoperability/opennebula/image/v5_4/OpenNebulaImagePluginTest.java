@@ -32,6 +32,7 @@ public class OpenNebulaImagePluginTest {
 	private static final String FAKE_NAME = "fake-name";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String ID_VALUE_ONE = "1";
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private static final int VALUE_ONE = 1;
 
@@ -40,7 +41,7 @@ public class OpenNebulaImagePluginTest {
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
 		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(opennebulaConfFilePath));

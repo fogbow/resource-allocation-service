@@ -6,9 +6,9 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import org.apache.log4j.Logger;
@@ -27,10 +27,6 @@ public class RemoteCloudConnector implements CloudConnector {
         this.cloudName = cloudName;
     }
 
-    public RemoteCloudConnector(String memberId) {
-        this(memberId, "");
-    }
-
     @Override
     public String requestInstance(Order order) throws FogbowException {
         try {
@@ -38,7 +34,7 @@ public class RemoteCloudConnector implements CloudConnector {
             remoteCreateOrderRequest.send();
             // At the requesting member, the instance Id should be null, since the instance
             // was not created at the requesting member's cloud.
-        return null;
+            return null;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);

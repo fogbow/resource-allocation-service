@@ -74,12 +74,12 @@ public abstract class Order implements Serializable {
     private String userId;
 
     @Column
-    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
-    private String serializedSystemUser;
+    @Size(max = FIELDS_MAX_SIZE)
+    private String identityProviderId;
 
     @Column
-    @Size(max = FIELDS_MAX_SIZE)
-    private String providerId;
+    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
+    private String serializedSystemUser;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -189,28 +189,20 @@ public abstract class Order implements Serializable {
         this.requirements = requirements;
     }
 
-    public void setUserId(String userId) {
+    private void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public String getUserId() {
-        return this.userId;
+    private void setIdentityProviderId(String identityProviderId) {
+        this.identityProviderId = identityProviderId;
     }
 
-    public void setSerializedSystemUser(String serializedSystemUser) {
+    private void setSerializedSystemUser(String serializedSystemUser) {
         this.serializedSystemUser = serializedSystemUser;
     }
 
-    public String getSerializedSystemUser() {
+    private String getSerializedSystemUser() {
         return this.serializedSystemUser;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
-    }
-
-    public String getProviderId() {
-        return this.providerId;
     }
 
     // Cannot be called at @PrePersist because the transient field systemUser is set to null at this stage
@@ -219,7 +211,7 @@ public abstract class Order implements Serializable {
         SerializedEntityHolder<SystemUser> serializedSystemUserHolder = new SerializedEntityHolder<SystemUser>(this.getSystemUser());
         this.setSerializedSystemUser(GsonHolder.getInstance().toJson(serializedSystemUserHolder));
         this.setUserId(this.getSystemUser().getId());
-        this.setProviderId(this.getSystemUser().getIdentityProviderId());
+        this.setIdentityProviderId(this.getSystemUser().getIdentityProviderId());
     }
 
     @PostLoad

@@ -97,14 +97,15 @@ public class OpenNebulaComputePluginTest {
 	private static final int DISK_VALUE_8GB = 8192;
 	private static final int ZERO_VALUE = 0;
 	private static final int DEFAULT_NETWORK_ID = ZERO_VALUE;
-	
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
+
 	private OpenNebulaComputePlugin plugin;
 	private TreeSet<HardwareRequirements> flavors;
 
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
 		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(opennebulaConfFilePath));

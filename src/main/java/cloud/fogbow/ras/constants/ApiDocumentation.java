@@ -129,5 +129,4 @@ public class ApiDocumentation {
         public static final String MEMBER_ID = "The ID of the specific target provider.";
         public static final String CLOUD_NAME = "The name of the specific target cloud.";
     }
-
 }

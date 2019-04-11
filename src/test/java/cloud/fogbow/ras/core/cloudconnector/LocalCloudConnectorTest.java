@@ -17,7 +17,6 @@ import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.junit.Assert;
@@ -106,7 +105,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.genericRequestPlugin = Mockito.mock(GenericRequestPlugin.class);
         this.systemToCloudMapperPlugin = Mockito.mock(SystemToCloudMapperPlugin.class);
 
-        // mocking system user token calls
+        // mocking system user calls
         Mockito.when(systemUser.getId()).thenReturn(FAKE_USER_ID);
 
         // mocking instances/image and the return of getID method
@@ -144,14 +143,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.setGenericRequestPlugin(this.genericRequestPlugin);
     }
 
-    // test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return
+    // test case: When calling the method getNetworkInstanceIdsFromNetworkOrders(), it must return
     // the collection of NetworkInstancesIds corresponding to the list of NetworkOrderIds in the order received.
     @Test
-    public void testGetNetworkInstanceIdsFromNetworkOrderIds() throws InvalidParameterException, UnexpectedException {
+    public void testGetNetworkInstanceIdsFromNetworkOrders() throws InvalidParameterException {
         // set up
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
-        SystemUser systemUser = new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider"
-        );;
+        SystemUser systemUser = new SystemUser("fake-user-id", "fake-user-name", "fake-token-provider");
         Mockito.when(networkOrder.getSystemUser()).thenReturn(systemUser);
 
         Mockito.doReturn(FAKE_ORDER_ID).when(networkOrder).getId();
@@ -162,6 +160,9 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         List<String> networkOrderIdsList = new ArrayList<>();
         networkOrderIdsList.add(FAKE_ORDER_ID);
 
+        List<NetworkOrder> networkOrdersList = new ArrayList<>();
+        networkOrdersList.add(networkOrder);
+
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setSystemUser(systemUser);
         computeOrder.setNetworkIds(networkOrderIdsList);
@@ -170,7 +171,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         expectedList.add(FAKE_INSTANCE_ID);
 
         // exercise 1
-        List<String> returnedList = this.localCloudConnector.getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
+        List<String> returnedList = this.localCloudConnector.getNetworkInstanceIdsFromNetworkOrders(networkOrdersList);
 
         // verify
         Assert.assertEquals(expectedList, returnedList);

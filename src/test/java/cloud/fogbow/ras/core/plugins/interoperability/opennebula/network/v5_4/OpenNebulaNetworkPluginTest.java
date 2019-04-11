@@ -47,7 +47,8 @@ public class OpenNebulaNetworkPluginTest {
 	private static final String ID_VALUE_ZERO = "0";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_ORDER_ID = "fake-order-id";
-	
+	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
+
 	private static final int MAXIMUM_INTEGER_VALUE = 2147483647;
 	private static final int NEGATIVE_SIZE_VALUE = -1;
 	private static final int ZERO_VALUE = 0;
@@ -57,7 +58,7 @@ public class OpenNebulaNetworkPluginTest {
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + SystemConstants.OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
 		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(opennebulaConfFilePath));

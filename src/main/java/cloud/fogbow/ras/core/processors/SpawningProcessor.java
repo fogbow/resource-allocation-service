@@ -8,10 +8,10 @@ import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
 public class SpawningProcessor implements Runnable {

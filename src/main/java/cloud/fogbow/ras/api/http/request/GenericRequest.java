@@ -4,8 +4,8 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -20,8 +20,11 @@ import static cloud.fogbow.ras.api.http.request.GenericRequest.GENERIC_REQUEST_E
 public class GenericRequest {
 
     public static final String GENERIC_REQUEST_ENDPOINT = "genericRequest";
+    public static final String ORDER_CONTROLLER_TYPE = "generic request";
 
     private final Logger LOGGER = Logger.getLogger(GenericRequest.class);
+
+    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
 
     @RequestMapping(method = RequestMethod.POST, value = "/{memberId}" + "/{cloudName}")
     public ResponseEntity<FogbowGenericResponse> genericRequest(
@@ -34,8 +37,14 @@ public class GenericRequest {
             @RequestBody String genericRequest)
             throws FogbowException {
 
-        FogbowGenericResponse fogbowGenericResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
-                memberId, genericRequest, systemUserToken);
-        return new ResponseEntity<>(fogbowGenericResponse, HttpStatus.OK);
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+            FogbowGenericResponse fogbowGenericResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
+                    memberId, genericRequest, systemUserToken);
+            return new ResponseEntity<>(fogbowGenericResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            throw e;
+        }
     }
 }

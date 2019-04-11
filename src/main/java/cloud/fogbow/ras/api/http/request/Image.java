@@ -25,6 +25,8 @@ public class Image {
 
     private final Logger LOGGER = Logger.getLogger(Image.class);
 
+    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
+
     @ApiOperation(value = ApiDocumentation.Image.GET_OPERATION)
     @RequestMapping(value = "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<Map<String, String>> getAllImages(
