@@ -44,12 +44,15 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String INSTANCE_ID = "%s %s %s %s";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
+	private static final String PUBLIC_IP_RESOURCE = "Public IP";
 	private static final String SECURITY_GROUPS_FORMAT = "%s,%s";
 
 	private static final int SIZE_ADDRESS_PUBLIC_IP = 1;
 	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
 
 	protected static final String POWEROFF_STATE = "POWEROFF";
+	
+	protected static final long TWO_TENTHS_SECONDS = 1200;
 
 	private String endpoint;
 	private String defaultPublicNetwork;
@@ -82,7 +85,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		String publicNetworkInstanceId = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultPublicNetworkId,
 				publicNetworkReserveTemplate);
 
-		String securityGroupInstanceId = createSecurityGroups(client, publicIpOrder);
+		String securityGroupInstanceId = createSecurityGroup(client, publicIpOrder);
 		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, 
 				this.defaultSecurityGroup,
 				securityGroupInstanceId);
@@ -125,19 +128,18 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		// is power-off.
 		virtualMachine.poweroff(true);
 		if (isPowerOff(virtualMachine)) {
-			detachNic(virtualMachine, nicId);
+			detachNetworkInterfaceConnected(virtualMachine, nicId);
 			deleteSecurityGroup(client, securityGroupId);
 			deletePublicNetwork(client, virtualNetworkId);
 			virtualMachine.resume();
 		} else {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, "Public IP", publicIpInstanceId));
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, PUBLIC_IP_RESOURCE, publicIpInstanceId));
 			throw new UnexpectedException();
 		}
 	}
 
 	@Override
 	public PublicIpInstance getInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
-
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
@@ -175,7 +177,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected void detachNic(VirtualMachine virtualMachine, String nicId) throws InvalidParameterException {
+	protected void detachNetworkInterfaceConnected(VirtualMachine virtualMachine, String nicId)
+			throws InvalidParameterException {
+		
 		int id = convertToInteger(nicId);
 		OneResponse response = virtualMachine.nicDetach(id);
 		if (response.isError()) {
@@ -187,21 +191,24 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	protected boolean isPowerOff(VirtualMachine virtualMachine) {
 		String state;
 		int count = 0;
-		while (count > ATTEMPTS_LIMIT_NUMBER) {
+		while (count < ATTEMPTS_LIMIT_NUMBER) {
 			count++;
-			try {
-				Thread.sleep(1200);
-				virtualMachine.info();
-				state = virtualMachine.stateStr();
-				if (state == POWEROFF_STATE) {
-					return true;
-				}
-			} catch (InterruptedException e) {
-				LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
-				break;
+			waitMoment();
+			virtualMachine.info();
+			state = virtualMachine.stateStr();
+			if (state == POWEROFF_STATE) {
+				return true;
 			}
 		}
 		return false;
+	}
+
+	protected void waitMoment() {
+		try {
+			Thread.sleep(TWO_TENTHS_SECONDS);
+		} catch (InterruptedException e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
+		}
 	}
 	
 	protected String getContent(VirtualMachine virtualMachine, String tag) {
@@ -236,7 +243,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return template;
 	}
 	
-	protected String createSecurityGroups(Client client, PublicIpOrder publicIpOrder) throws InvalidParameterException {
+	protected String createSecurityGroup(Client client, PublicIpOrder publicIpOrder) throws InvalidParameterException {
 		String name = SECURITY_GROUP_PREFIX + publicIpOrder.getId();
 
 		// "ALL" setting applies to all protocols if a port range is not defined
