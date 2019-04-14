@@ -78,7 +78,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.DOWN_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -152,7 +152,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.DETACHING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -164,7 +164,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.MAINTENANCE_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -176,7 +176,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.DELETING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -188,7 +188,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.AWAITING_TRANSFER_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -200,7 +200,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.BACKING_UP_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -212,7 +212,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.RESTORING_BACKUP_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -224,7 +224,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.DOWNLOADING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -236,7 +236,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.UPLOADING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -248,7 +248,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.RETYPING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -260,7 +260,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.EXTENDING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -272,7 +272,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.ATTACHING_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test
@@ -284,7 +284,7 @@ public class OpenStackStateMapperTest {
         InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.IN_USE_STATUS);
 
         // verify
-        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
+        Assert.assertEquals(InstanceState.BUSY, instanceState);
     }
 
     @Test

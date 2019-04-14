@@ -46,6 +46,16 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(AttachmentOrder attachmentOrder, CloudStackUser cloudUser)
             throws FogbowException {
         
@@ -131,20 +141,17 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     private AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
             AttachmentJobStatusResponse response) throws UnexpectedException {
         
-        InstanceState instanceState;
         int status = response.getJobStatus();
         switch (status) {
             case JOB_STATUS_PENDING:
-                instanceState = CloudStackStateMapper.map(ResourceType.ATTACHMENT, PENDING_STATE);
-                return new AttachmentInstance(attachmentInstanceId, instanceState, null, null, null);
+                return new AttachmentInstance(attachmentInstanceId, PENDING_STATE, null, null, null);
 
             case JOB_STATUS_COMPLETE:
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
                 return mountInstance(volume);
                 
             case JOB_STATUS_FAILURE:
-                instanceState = CloudStackStateMapper.map(ResourceType.ATTACHMENT, FAILURE_STATE);
-                return new AttachmentInstance(attachmentInstanceId, instanceState, null, null, null);
+                return new AttachmentInstance(attachmentInstanceId, FAILURE_STATE, null, null, null);
                 
             default:
                 throw new UnexpectedException();
@@ -158,10 +165,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         String attachmentId = String.format(ATTACHMENT_ID_FORMAT, target, jobId);
         String device = String.valueOf(volume.getDeviceId());
         String state = volume.getState();
-        
-        InstanceState instanceState = CloudStackStateMapper.map(ResourceType.ATTACHMENT, state);
-        
-        AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentId, instanceState, source, target, device);
+
+        AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentId, state, source, target, device);
         return attachmentInstance;
     }
 

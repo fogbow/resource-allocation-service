@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
 import java.io.File;
 
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +23,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -90,7 +90,7 @@ public class OpenNebulaPublicIpPluginTest {
 		String computeInstanceId = ID_VALUE_ONE;
 
 		// exercise
-		this.plugin.requestInstance(publicIpOrder, computeInstanceId, cloudUser);
+		this.plugin.requestInstance(publicIpOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -149,7 +149,7 @@ public class OpenNebulaPublicIpPluginTest {
 		int id = Integer.parseInt(ID_VALUE_ONE);
 		
 		// exercise
-		this.plugin.deleteInstance(instanceId, computeInstanceId, cloudUser);
+		this.plugin.deleteInstance(instanceId, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -202,7 +202,7 @@ public class OpenNebulaPublicIpPluginTest {
 		
 		Mockito.verify(virtualMachine, Mockito.times(1)).xpath(Mockito.anyString());
 		
-		PublicIpInstance expected = new PublicIpInstance(instanceId, InstanceState.READY, publicIp);
+		PublicIpInstance expected = new PublicIpInstance(instanceId, OpenNebulaStateMapper.DEFAULT_READY_STATE, publicIp);
 		Assert.assertEquals(expected, publicIpInstance);
 	}
 	

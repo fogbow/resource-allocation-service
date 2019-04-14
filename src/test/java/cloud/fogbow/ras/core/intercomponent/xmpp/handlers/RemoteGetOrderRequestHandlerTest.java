@@ -31,7 +31,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
     private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <query xmlns=\"remoteGetOrder\">\n"
-            + "    <instance>{\"id\":\"fake-instance-id\"}</instance>\n"
+            + "    <instance>{\"id\":\"fake-instance-id\",\"isReady\":false,\"hasFailed\":false}</instance>\n"
             + "    <instanceClassName>cloud.fogbow.ras.api.http.response.Instance</instanceClassName>\n"
             + "  </query>\n" + "</iq>";
 

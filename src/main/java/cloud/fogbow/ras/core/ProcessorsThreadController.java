@@ -49,13 +49,13 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationPropertyKeys.FAILED_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
         
-        FailedProcessor failedProcessor = new FailedProcessor(localMemberId, failedOrdersProcSleepTimeStr);
+        UnableToCheckStatusProcessor unableToCheckStatusProcessor = new UnableToCheckStatusProcessor(localMemberId, failedOrdersProcSleepTimeStr);
 
         this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
         this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);
         this.fulfilledProcessorThread = new Thread(fulfilledProcessor, FULFILLED_PROCESSOR_THREAD_NAME);
         this.closedProcessorThread = new Thread(closedProcessor, CLOSED_PROCESSOR_THREAD_NAME);
-        this.failedProcessorThread = new Thread(failedProcessor, FAILED_PROCESSOR_THREAD_NAME);
+        this.failedProcessorThread = new Thread(unableToCheckStatusProcessor, FAILED_PROCESSOR_THREAD_NAME);
     }
 
     /**

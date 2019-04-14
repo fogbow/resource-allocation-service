@@ -47,6 +47,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     public static final String IPV4_ETHER_TYPE = "IPv4";
 
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
+    protected static final String ID_SEPARATOR = "!@!";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -62,14 +63,26 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     @Override
-    public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, OpenStackV3User cloudUser)
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.PUBLIC_IP, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.PUBLIC_IP, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
+    public String requestInstance(PublicIpOrder publicIpOrder, OpenStackV3User cloudUser)
             throws FogbowException {
         boolean requestFailed = true;
         String securityGroupName = null;
         String securityGroupId = null;
         String floatingIpId = null;
+        String computeInstanceId = null;
 
         try {
+            computeInstanceId = publicIpOrder.getComputeId();
             // Network port id is the connection between the virtual machine and the network
             String networkPortId = getNetworkPortIp(computeInstanceId, cloudUser);
             String floatingNetworkId = getExternalNetworkId();
@@ -102,7 +115,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 requestFailed = false;
             }
 
-            return floatingIpId;
+            return floatingIpId + ID_SEPARATOR + computeInstanceId;
         } finally {
             if (requestFailed) {
                 if (securityGroupName != null) {
@@ -112,7 +125,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                     removeSecurityGroup(securityGroupId, cloudUser);
                 }
                 if (floatingIpId != null) {
-                    deleteInstance(floatingIpId, computeInstanceId, cloudUser);
+                    deleteInstance(floatingIpId, cloudUser);
                 }
             }
         }
@@ -121,6 +134,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     @Override
     public PublicIpInstance getInstance(String publicIpInstanceId, OpenStackV3User cloudUser) throws FogbowException {
         String responseGetFloatingIp = null;
+        String ids[] = publicIpInstanceId.split(ID_SEPARATOR);
+        publicIpInstanceId = ids[0];
         try {
             String floatingIpEndpointPrefix = getFloatingIpEndpoint();
             String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, publicIpInstanceId);
@@ -132,17 +147,18 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         GetFloatingIpResponse getFloatingIpResponse = GetFloatingIpResponse.fromJson(responseGetFloatingIp);
 
         String floatingIpStatus = getFloatingIpResponse.getFloatingIp().getStatus();
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.PUBLIC_IP, floatingIpStatus);
-
         String ipAddressId = getFloatingIpResponse.getFloatingIp().getId();
         String floatingIpAddress = getFloatingIpResponse.getFloatingIp().getFloatingIpAddress();
-        PublicIpInstance publicIpInstance = new PublicIpInstance(ipAddressId, fogbowState, floatingIpAddress);
+        PublicIpInstance publicIpInstance = new PublicIpInstance(ipAddressId, floatingIpStatus, floatingIpAddress);
         return publicIpInstance;
     }
 
     @Override
-    public void deleteInstance(String floatingIpId, String computeInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+    public void deleteInstance(String floatingIpId, OpenStackV3User cloudUser) throws FogbowException {
         try {
+            String ids[] = floatingIpId.split(ID_SEPARATOR);
+            floatingIpId = ids[0];
+            String computeInstanceId = ids[1];
             String securityGroupName = getSecurityGroupName(floatingIpId);
 
             if (computeInstanceId != null) {
@@ -177,7 +193,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
             return null;
         }
     }
-
 
     private String createAndAssociateSecurityGroup(String computeInstanceId, OpenStackV3User cloudUser, String securityGroupName) throws FogbowException {
         String securityGroupId = createSecurityGroup(cloudUser, securityGroupName);

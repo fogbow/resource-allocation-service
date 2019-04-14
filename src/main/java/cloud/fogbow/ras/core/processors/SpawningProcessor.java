@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
@@ -18,6 +19,9 @@ public class SpawningProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
     private ChainedList<Order> spawningOrderList;
+    /**
+     * Attribute that represents the thread sleep time when there are no orders to be processed.
+     */
     private Long sleepTime;
     private String localMemberId;
 
@@ -28,6 +32,10 @@ public class SpawningProcessor implements Runnable {
         this.localMemberId = memberId;
     }
 
+    /**
+     * Iterates over the spawning orders list and tries to process one order at a time. When the order
+     * is null, it indicates that the iteration ended. A new iteration is started after some time.
+     */
     @Override
     public void run() {
         boolean isActive = true;
@@ -45,9 +53,9 @@ public class SpawningProcessor implements Runnable {
                 isActive = false;
                 LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
             } catch (UnexpectedException e) {
-                handleError(order, e.getMessage(), e);
+                LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                handleError(order, Messages.Error.UNEXPECTED_ERROR, e);
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
         }
     }
@@ -59,40 +67,32 @@ public class SpawningProcessor implements Runnable {
         // that has been requested in the cloud.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-            // Check if the order is still in the Spawning state (it could have been changed by another thread)
-            if (orderState.equals(OrderState.SPAWNING)) {
-                processInstance(order);
+            // Check if the order is still in the SPAWNING state (it could have been changed by another thread)
+            if (!orderState.equals(OrderState.SPAWNING)) {
+                return;
             }
-        }
-    }
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
+            // and change state when that provider notifies state changes.
+            if (order.isProviderRemote(this.localMemberId)) {
+                return;
+            }
+            // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
+            LocalCloudConnector localCloudConnector = (LocalCloudConnector)
+                    CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, order.getCloudName());
+            // we won't audit requests we make
+            localCloudConnector.switchOffAuditing();
 
-    private void processInstance(Order order) throws FogbowException {
-        LocalCloudConnector localCloudConnector = (LocalCloudConnector) CloudConnectorFactory.getInstance().
-                getCloudConnector(this.localMemberId, order.getCloudName());
+            try {
+                Instance instance = localCloudConnector.getInstance(order);
 
-        // we won't audit requests we make
-        localCloudConnector.switchOffAuditing();
-
-        Instance instance = localCloudConnector.getInstance(order);
-
-        InstanceState instanceState = instance.getState();
-
-        if (instanceState.equals(InstanceState.FAILED)) {
-            OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-        } else if (instanceState.equals(InstanceState.READY)) {
-            OrderStateTransitioner.transition(order, OrderState.FULFILLED);
-        }
-    }
-
-    private void handleError(Order order, String message, Throwable e) {
-        LOGGER.error(message, e);
-        if (order != null) {
-            if (!order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)) {
-                try {
-                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-                } catch (UnexpectedException e1) {
-                    LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
+                if (instance.hasFailed()) {
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                } else if (instance.isReady()) {
+                    OrderStateTransitioner.transition(order, OrderState.FULFILLED);
                 }
+            } catch (UnavailableProviderException e) {
+                OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
+                throw e;
             }
         }
     }

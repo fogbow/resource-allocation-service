@@ -136,7 +136,6 @@ public class OpenStackAttachmentPluginTest {
         Mockito.doReturn(FAKE_GET_REQUEST_BODY).when(this.client).doGetRequest(Mockito.anyString(),
                 Mockito.eq(this.localUserAttributes));
         String openStackState = "";
-        InstanceState expectedFogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
 
         //exercise
         AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(instanceId, this.localUserAttributes);
@@ -146,7 +145,7 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(FAKE_SERVER_ID, attachmentInstance.getComputeId());
         Assert.assertEquals(FAKE_VOLUME_ID, attachmentInstance.getVolumeId());
         Assert.assertEquals(FAKE_INSTANCE_ID, attachmentInstance.getId());
-        Assert.assertEquals(expectedFogbowState, attachmentInstance.getState());
+        Assert.assertEquals(openStackState, attachmentInstance.getCloudState());
     }
 
     //test case: Check if getInstance is properly forwarding UnexpectedException thrown by getInstance.

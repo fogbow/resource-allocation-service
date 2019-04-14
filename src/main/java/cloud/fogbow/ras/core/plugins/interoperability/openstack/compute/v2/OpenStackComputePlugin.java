@@ -59,6 +59,17 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
     }
 
+    @Override
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, cloudUser);
         String flavorId = hardwareRequirements.getFlavorId();
@@ -363,7 +374,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     private ComputeInstance getInstanceFromJson(String getRawResponse, OpenStackV3User cloudUser)
-            throws FogbowException, UnexpectedException {
+            throws FogbowException {
         GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
 
         String flavorId = getComputeResponse.getFlavor().getId();
@@ -378,8 +389,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         int disk = hardwareRequirements.getDisk();
 
         String openStackState = getComputeResponse.getStatus();
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openStackState);
-
         String instanceId = getComputeResponse.getId();
         String hostName = getComputeResponse.getName();
 
@@ -395,7 +404,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         }
 
         ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, ipAddresses);
+                openStackState, hostName, vcpusCount, memory, disk, ipAddresses);
 
         return computeInstance;
     }

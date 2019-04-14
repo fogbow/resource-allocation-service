@@ -4,8 +4,8 @@ public class VolumeInstance extends Instance {
     private String name;
     private int volumeSize;
 
-    public VolumeInstance(String id, InstanceState instanceState, String name, int volumeSize) {
-        super(id, instanceState);
+    public VolumeInstance(String id, String cloudState, String name, int volumeSize) {
+        super(id, cloudState);
         this.name = name;
         this.volumeSize = volumeSize;
     }

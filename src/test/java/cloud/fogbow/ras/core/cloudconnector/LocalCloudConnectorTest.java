@@ -83,9 +83,10 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         PowerMockito.mockStatic(DatabaseManager.class);
@@ -352,6 +353,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.order = Mockito.mock(NetworkOrder.class);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FULFILLED);
         Mockito.when(networkPlugin.getInstance(Mockito.any(String.class), Mockito.any(CloudUser.class))).thenReturn(this.networkInstance);
 
         // exercise
@@ -373,6 +375,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.order = Mockito.mock(VolumeOrder.class);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FULFILLED);
         Mockito.when(volumePlugin.getInstance(Mockito.any(String.class), Mockito.any(CloudUser.class))).thenReturn(this.volumeInstance);
 
         // exercise
@@ -399,6 +402,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FULFILLED);
         Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(CloudUser.class)))
                 .thenReturn(this.attachmentInstance);
 
@@ -421,7 +425,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
-    // addReverseTunnelInfo() is called in this case.
     @Test
     public void testGetComputeInstance() throws FogbowException {
 
@@ -433,6 +436,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.order = Mockito.mock(ComputeOrder.class);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FULFILLED);
         Mockito.when(computePlugin.getInstance(Mockito.any(String.class), Mockito.any(CloudUser.class))).thenReturn(this.computeInstance);
 
         // exercise
@@ -455,18 +459,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.CLOSED);
 
         //exercise
-        this.localCloudConnector.getInstance(order);
-    }
-
-    // test case: If order instance is DEACTIVATED, an exception must be throw
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetInstanceWithDeactivatedOrder() throws FogbowException {
-
-        // set up
-        this.order = Mockito.mock(NetworkOrder.class);
-        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.DEACTIVATED);
-
-        // exercise
         this.localCloudConnector.getInstance(order);
     }
 
@@ -519,7 +511,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
     // test case: The order doesn't have an InstanceID, so an empty NetworkInstance is returned with the same id of order.
-    // The order state is FAILED_AFTER_SUCCESSUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSUL_REQUEST.
+    // The order state is FAILED_AFTER_SUCCESSFUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSFUL_REQUEST.
     @Test
     public void testGetEmptyNetworkInstanceWithFailedOrder() throws FogbowException {
 
@@ -528,7 +520,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(this.order.getInstanceId()).thenReturn(null);
         Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
-        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
         Instance instance = this.localCloudConnector.getInstance(order);
@@ -591,7 +583,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
     // test case: The order doesn't have an InstanceID, so an empty VolumeInstance is returned with the same id of order.
-    // The order state is FAILED_AFTER_SUCCESSUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSUL_REQUEST.
+    // The order state is FAILED_AFTER_SUCCESSFUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSFUL_REQUEST.
     @Test
     public void testGetEmptyVolumeInstanceWithFailedOrder() throws FogbowException {
 
@@ -600,7 +592,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(this.order.getInstanceId()).thenReturn(null);
         Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
-        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
         Instance instance = this.localCloudConnector.getInstance(order);
@@ -663,7 +655,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
     // test case: The order doesn't have an InstanceID, so an empty AttachmentInstance is returned with the same id of order.
-    // The order state is FAILED_AFTER_SUCCESSUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSUL_REQUEST.
+    // The order state is FAILED_AFTER_SUCCESSFUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSFUL_REQUEST.
     @Test
     public void testGetEmptyAttachmentInstanceWithFailedOrder() throws FogbowException {
 
@@ -672,7 +664,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.order.getInstanceId()).thenReturn(null);
         Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
-        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
         Instance instance = this.localCloudConnector.getInstance(order);
@@ -735,7 +727,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
     // test case: The order doesn't have an InstanceID, so an empty ComputeInstance is returned with the same id of order.
-    // The order state is FAILED_AFTER_SUCCESSUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSUL_REQUEST.
+    // The order state is FAILED_AFTER_SUCCESSFUL_REQUEST, so the instance state must be FAILED_AFTER_SUCCESSFUL_REQUEST.
     @Test
     public void testGetEmptyComputeInstanceWithFailedOrder() throws FogbowException {
 
@@ -744,7 +736,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(this.order.getInstanceId()).thenReturn(null);
         Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
-        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
         Instance instance = this.localCloudConnector.getInstance(order);

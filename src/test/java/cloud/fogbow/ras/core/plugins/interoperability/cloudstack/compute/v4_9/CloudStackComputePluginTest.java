@@ -11,6 +11,7 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
@@ -43,7 +44,7 @@ public class CloudStackComputePluginTest {
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_INSTANCE_NAME = "fake-name";
-    public static final String FAKE_STATE = "Running";
+    public static final String FAKE_STATE = "ready";
     public static final String FAKE_CPU_NUMBER = "4";
     public static final String FAKE_MEMORY = "2024";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
@@ -614,7 +615,7 @@ public class CloudStackComputePluginTest {
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
         Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
-        Assert.assertEquals("READY", retrievedInstance.getState().name());
+        Assert.assertEquals(CloudStackStateMapper.READY_STATUS, retrievedInstance.getCloudState());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getMemory()));
         Assert.assertEquals(FAKE_DISK, String.valueOf(retrievedInstance.getDisk()));
@@ -664,7 +665,7 @@ public class CloudStackComputePluginTest {
 
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
         Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
-        Assert.assertEquals("READY", retrievedInstance.getState().name());
+        Assert.assertEquals(CloudStackStateMapper.READY_STATUS, retrievedInstance.getCloudState());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getMemory()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance.getDisk()));
@@ -675,7 +676,7 @@ public class CloudStackComputePluginTest {
 
         Assert.assertEquals(FAKE_ID, retrievedInstance2.getId());
         Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getName());
-        Assert.assertEquals("READY", retrievedInstance2.getState().name());
+        Assert.assertEquals(CloudStackStateMapper.READY_STATUS, retrievedInstance2.getCloudState());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance2.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getMemory()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance2.getDisk()));

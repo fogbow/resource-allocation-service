@@ -25,10 +25,12 @@ public class OrderController {
 
     private final SharedOrderHolders orderHolders;
     private Map<String, List<String>> orderDependencies;
+    private String localMemberId;
 
     public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
         this.orderDependencies = new ConcurrentHashMap<>();
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
@@ -46,21 +48,32 @@ public class OrderController {
             throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
         }
 
+        // One might think that the synchronized block is not really needed, since the order should not exist
+        // until now, and no other thread could be manipulating it at this time; although highly unlikely, it
+        // is possible that ids randomly assigned clash, or that a malicious user submit requests with random
+        // generated ids that may clash with the id assigned to this order. The cost of being extra safe is low.
         synchronized (order) {
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
             ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
             String orderId = order.getId();
-
             if (activeOrdersMap.containsKey(orderId)) {
                 String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
                 throw new UnexpectedException(message);
             }
+
             order.setOrderState(OrderState.OPEN);
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
-            this.updateOrderDependencies(order, Operation.CREATE);
+            // Sometimes an order depends on other orders (ex. an attachment depends on a volume and a compute).
+            // We need to keep this information, so to disallow the deletion of an order on which another order
+            // depends (ex. we should not allow the deletion of a volume, for which there is an active attachment),
+            // but the information needs only to be kept at the member that received the create request through its
+            // REST API.
+            if (order.isRequesterLocal(this.localMemberId)) {
+                this.updateOrderDependencies(order, Operation.CREATE);
+            }
         }
     }
 
@@ -86,21 +99,49 @@ public class OrderController {
         if (order == null)
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
 
+        // This code may be executed by two different members for the same logical order. This is the case when the
+        // provider member is remote. In this case, some parts of the code should be executed only at the member that
+        // receives the request through its REST API, while other parts should be executed only by the member that
+        // is providing resources to the order.
         synchronized (order) {
-            checkOrderDependencies(order.getId());
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
+                // Sometimes an order depends on other orders (ex. an attachment depends on a volume and a compute).
+                // We need to verify whether another order depends on this order, and if this is the case, throw a
+                // DependencyDetectedException. Only the member that is receiving the delete request through its
+                // REST API needs to check order dependencies.
+                if (order.isRequesterLocal(this.localMemberId)) {
+                    checkOrderDependencies(order.getId());
+                }
                 CloudConnector cloudConnector = getCloudConnector(order);
                 try {
-                    cloudConnector.deleteInstance(order);
-                } catch (InstanceNotFoundException e) {
-                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, order.getId()), e);
+                    // When the order is remote, there is no local instance; also, a previous call to deleteOrder might
+                    // have failed after the instance had already been removed from the cloud. In both cases, the
+                    // instanceId will be null, and there is no need to call deleteInstance.
+                    if ((order.isProviderLocal(this.localMemberId) && order.getInstanceId() != null) ||
+                        order.isProviderRemote(this.localMemberId)) {
+                        cloudConnector.deleteInstance(order);
+                        order.setInstanceId(null);
+                    }
+                } catch (FogbowException e) {
+                    LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
+                    throw e;
                 }
-                OrderStateTransitioner.transition(order, OrderState.CLOSED);
-                updateOrderDependencies(order, Operation.DELETE);
+                // Only the member that is providing the order should update the order's state. Thus, when the
+                // provider is remote, the remote order is updated here, while the local order  state is updated
+                // when the remote provider sends a message to the local member.
+                if (order.isProviderLocal(this.localMemberId)) {
+                    OrderStateTransitioner.transition(order, OrderState.CLOSED);
+                 }
+                // Remove any references that related dependencies of other orders with the order that has
+                // just been deleted. Only the member that is receiving the delete request through its
+                // REST API needs to update order dependencies.
+                if (order.isRequesterLocal(this.localMemberId)) {
+                    updateOrderDependencies(order, Operation.DELETE);
+                }
+
             } else {
                 String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());
-                LOGGER.error(message);
                 throw new InstanceNotFoundException(message);
             }
         }
@@ -113,7 +154,6 @@ public class OrderController {
         synchronized (order) {
             CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
-            order.setCachedInstanceState(instance.getState());
             return instance;
         }
     }
@@ -141,7 +181,7 @@ public class OrderController {
         }
     }
 
-	public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) {
+	public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws UnexpectedException {
 		List<InstanceStatus> instanceStatusList = new ArrayList<>();
 		List<Order> allOrders = getAllOrders(systemUser, resourceType);
 
@@ -162,13 +202,15 @@ public class OrderController {
 				break;
 			}
 
-			// The state of the instance can be inferred from the state of the order
+			// The state of the instance can be inferred from the state of the order. This is not the cloud-dependent
+            // state of the instance (that can be consulted by issuing a GET request on a particular instance), but a
+            // more generic (and cloud-independent) indication of the instance's state.
 			InstanceStatus instanceStatus = new InstanceStatus(
 					order.getId(), 
 					name, 
 					order.getProvider(),
 					order.getCloudName(), 
-					order.getCachedInstanceState());
+					InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
 			
 			instanceStatusList.add(instanceStatus);
 		}
@@ -243,7 +285,7 @@ public class OrderController {
                 break;
             case PUBLIC_IP:
                 PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-                dependentOrderIds.add(publicIpOrder.getComputeOrderId());
+                dependentOrderIds.add(publicIpOrder.getComputeId());
                 break;
             default:
                 // Dependencies apply only to attachment, compute and public IP orders for now.

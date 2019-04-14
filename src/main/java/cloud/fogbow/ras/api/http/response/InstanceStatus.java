@@ -1,5 +1,9 @@
 package cloud.fogbow.ras.api.http.response;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.orders.OrderState;
+
 public class InstanceStatus {
     private String instanceId;
     private String instanceName;
@@ -48,6 +52,28 @@ public class InstanceStatus {
 
     public void setState(InstanceState state) {
         this.state = state;
+    }
+
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
+        switch(orderState) {
+            case OPEN:
+            case PENDING:
+                return InstanceState.DISPATCHED;
+            case SPAWNING:
+                return InstanceState.CREATING;
+            case FAILED_ON_REQUEST:
+                return InstanceState.ERROR;
+            case FULFILLED:
+                return InstanceState.READY;
+            case FAILED_AFTER_SUCCESSFUL_REQUEST:
+                return InstanceState.FAILED;
+            case UNABLE_TO_CHECK_STATUS:
+                return InstanceState.UNKNOWN;
+            case CLOSED:
+            case DEACTIVATED:
+            default:
+                throw new UnexpectedException(String.format(Messages.Exception.INVALID_ORDER_STATE_S, orderState));
+        }
     }
 
     @Override

@@ -62,6 +62,16 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String tenantId = cloudUser.getProjectId();
 
@@ -280,8 +290,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
         NetworkInstance instance = null;
         if (networkId != null) {
-            InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.NETWORK, instanceState);
-            instance = new NetworkInstance(networkId, fogbowState, name, cidr, gateway,
+            instance = new NetworkInstance(networkId, instanceState, name, cidr, gateway,
                     vlan, allocationMode, null, null, null);
         }
         return instance;

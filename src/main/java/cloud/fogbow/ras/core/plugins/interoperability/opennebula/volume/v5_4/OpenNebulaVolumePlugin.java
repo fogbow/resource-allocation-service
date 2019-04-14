@@ -45,7 +45,17 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 	}
-    
+
+	@Override
+	public boolean isReady(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.READY);
+	}
+
+	@Override
+	public boolean hasFailed(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.FAILED);
+	}
+
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
@@ -86,8 +96,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		int imageSize = Integer.parseInt(image.xpath(OpenNebulaTagNameConstants.SIZE));
 		String imageName = image.getName();
 		String imageState = image.stateString();
-		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.VOLUME, imageState);
-		return new VolumeInstance(volumeInstanceId, instanceState, imageName, imageSize);
+		return new VolumeInstance(volumeInstanceId, imageState, imageName, imageSize);
 	}
 
 	@Override

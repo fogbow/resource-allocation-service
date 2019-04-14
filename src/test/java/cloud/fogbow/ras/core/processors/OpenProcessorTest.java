@@ -84,7 +84,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(1000);
 
         //verify
         assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
@@ -182,7 +182,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
-        // the failedList is with the localOrder
+        // the pendingList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
@@ -360,7 +360,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
-        Thread.sleep(400);
+        Thread.sleep(1000);
 
         synchronized (localOrder) {
             Thread.sleep(1000);

@@ -287,8 +287,6 @@ public class ApplicationFacade {
         // Check if the authenticated user is authorized to perform the requested operation
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
                 order.getType(), order.getCloudName(), order));
-        // Set an initial state for the resource instance that is yet to be created in the cloud
-        order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
         this.orderController.activateOrder(order);
         return order.getId();

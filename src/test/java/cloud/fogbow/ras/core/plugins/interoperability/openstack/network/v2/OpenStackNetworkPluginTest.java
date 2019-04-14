@@ -494,7 +494,7 @@ public class OpenStackNetworkPluginTest {
         Assert.assertEquals(networkId, instance.getId());
         Assert.assertEquals(networkName, instance.getName());
         Assert.assertEquals(vlan, instance.getvLAN());
-        Assert.assertEquals(InstanceState.READY, instance.getState());
+        Assert.assertEquals(OpenStackStateMapper.ACTIVE_STATUS, instance.getCloudState());
         Assert.assertEquals(gatewayIp, instance.getGateway());
         Assert.assertEquals(cidr, instance.getCidr());
         Assert.assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocationMode());

@@ -12,6 +12,9 @@ public class ClosedProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClosedProcessor.class);
 
     private ChainedList<Order> closedOrders;
+    /**
+     * Attribute that represents the thread sleep time when there are no orders to be processed.
+     */
     private Long sleepTime;
     private OrderController orderController;
 
@@ -22,6 +25,10 @@ public class ClosedProcessor implements Runnable {
         this.orderController = orderController;
     }
 
+    /**
+     * Iterates over the closed orders list and tries to process one order at a time. When the order
+     * is null, it indicates that the iteration ended. A new iteration is started after some time.
+     */
     @Override
     public void run() {
         boolean isActive = true;
@@ -47,6 +54,8 @@ public class ClosedProcessor implements Runnable {
 
     protected void processClosedOrder(Order order) throws UnexpectedException {
         synchronized (order) {
+            // No need to check the state of the order because no other thread will attempt to change the
+            // state of an order that is in the CLOSED state.
            this.orderController.deactivateOrder(order);
         }
     }

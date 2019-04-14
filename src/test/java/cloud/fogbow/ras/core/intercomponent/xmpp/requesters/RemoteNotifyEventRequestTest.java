@@ -2,12 +2,12 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.jamppa.component.PacketSender;
@@ -29,20 +29,20 @@ public class RemoteNotifyEventRequestTest {
 
     private final String requestingMember = "requesting-member";
     private final String providingMember = "providing-member";
-    private final Event event = Event.INSTANCE_FULFILLED;
+    private final OrderState newState = OrderState.FULFILLED;
 
     @Before
     public void setUp() {
         this.order = new ComputeOrder(null, this.requestingMember, this.providingMember, "default", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
-        this.remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.event);
+        this.remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.newState);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
         this.iqResponse = new IQ();
     }
 
     //test case: check if IQ attributes is according to both RemoteNotifyEventRequest constructor parameters
-    //and remote notify event request rules
+    //and remote notify newState request rules
     @Test
     public void testSend() throws Exception {
         //set up
@@ -67,9 +67,9 @@ public class RemoteNotifyEventRequestTest {
         String iqQueryOrderClassName = iqElementQuery.element(IqElement.ORDER_CLASS_NAME.toString()).getText();
         Assert.assertEquals(this.order.getClass().getName(), iqQueryOrderClassName);
 
-        String iqQueryOrderEvent = iqElementQuery.element(IqElement.EVENT.toString()).getText();
-        Event eventObjectFromJson = new Gson().fromJson(iqQueryOrderEvent, Event.class);
-        Assert.assertEquals(this.event, eventObjectFromJson);
+        String iqQueryOrderEvent = iqElementQuery.element(IqElement.NEW_STATE.toString()).getText();
+        OrderState orderStateObjectFromJson = new Gson().fromJson(iqQueryOrderEvent, OrderState.class);
+        Assert.assertEquals(this.newState, orderStateObjectFromJson);
 
         Assert.assertEquals(null, output);
     }

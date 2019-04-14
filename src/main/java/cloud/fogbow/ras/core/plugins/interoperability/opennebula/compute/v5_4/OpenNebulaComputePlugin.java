@@ -70,7 +70,17 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		this.flavors = new TreeSet<HardwareRequirements>();
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 	}
-	
+
+	@Override
+	public boolean isReady(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.READY);
+	}
+
+	@Override
+	public boolean hasFailed(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.FAILED);
+	}
+
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
@@ -255,13 +265,11 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
 
 		String state = virtualMachine.lcmStateStr();
-		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
-
 		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
 		List<String> ipAddresses = xmlUnmarshaller.getContextListOf(NIC_IP_EXPRESSION);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
-		ComputeInstance computeInstance = new ComputeInstance(id, instanceState, name, cpu, memory, disk, ipAddresses);
+		ComputeInstance computeInstance = new ComputeInstance(id, state, name, cpu, memory, disk, ipAddresses);
 		return computeInstance;
 	}
 

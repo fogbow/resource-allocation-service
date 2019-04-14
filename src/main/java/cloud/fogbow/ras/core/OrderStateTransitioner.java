@@ -5,7 +5,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -19,19 +18,11 @@ public class OrderStateTransitioner {
         synchronized (order) {
             if (order.isRequesterRemote(localMemberId)) {
                 try {
-                    switch (newState) {
-                        case FAILED_AFTER_SUCCESSUL_REQUEST:
-                        case FAILED_ON_REQUEST:
-                            notifyRequester(order, Event.INSTANCE_FAILED);
-                            break;
-                        case FULFILLED:
-                            notifyRequester(order, Event.INSTANCE_FULFILLED);
-                            break;
-                    }
+                    notifyRequester(order, order.getOrderState());
                 } catch (Exception e) {
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequester(), order.getId());
                     LOGGER.warn(message, e);
-                    // Keep trying to notify until the site is up again
+                    // Do not transition order to keep trying to notify until the site is up again.
                     // The site admin might want to monitor the warn log in case a site never
                     // recovers. In this case the site admin may delete the order using an
                     // appropriate tool.
@@ -71,9 +62,9 @@ public class OrderStateTransitioner {
         }
     }
 
-    private static void notifyRequester(Order order, Event instanceFailed) throws RemoteCommunicationException {
+    private static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
         try {
-            RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
+            RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, newState);
             remoteNotifyEventRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);

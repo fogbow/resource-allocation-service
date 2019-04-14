@@ -5,11 +5,11 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class RemoteNotifyEventHandlerTest {
     private RemoteFacade remoteFacade;
     private PacketSender packetSender;
     private Order order;
-    private Event event;
+    private OrderState newState;
 
     @Before
     public void setUp() {
@@ -61,13 +61,13 @@ public class RemoteNotifyEventHandlerTest {
     @Test
     public void testWithValidIQ() throws Exception {
         // set up
-        this.event = Event.INSTANCE_FULFILLED;
+        this.newState = OrderState.FULFILLED;
 
         String orderId = createOrder();
 
-        Mockito.doNothing().when(this.remoteFacade).handleRemoteEvent(REQUESTING_MEMBER, this.event, this.order);
+        Mockito.doNothing().when(this.remoteFacade).handleRemoteEvent(REQUESTING_MEMBER, this.newState, this.order);
 
-        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
+        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.newState);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -75,7 +75,7 @@ public class RemoteNotifyEventHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
+                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
 
         String requestingMember = this.order.getRequester();
         String expected = String.format(IQ_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
@@ -90,9 +90,9 @@ public class RemoteNotifyEventHandlerTest {
         // set up
         String orderId = createOrder();
         Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).
-                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
+                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
 
-        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
+        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.newState);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -100,7 +100,7 @@ public class RemoteNotifyEventHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
+                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
 
         String requestingMember = this.order.getRequester();
         String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember, REQUESTING_MEMBER);

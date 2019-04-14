@@ -10,6 +10,7 @@ import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -51,9 +52,6 @@ public class CloudStackAttachmentPluginTest {
     private static final String ATTACH_VOLUME_RESPONSE_KEY = "attachvolumeresponse";
     private static final String DETACH_VOLUME_RESPONSE_KEY = "detachvolumeresponse";
     private static final String EMPTY_INSTANCE = "";
-    private static final String CREATING_STATE = String.valueOf(InstanceState.CREATING);
-    private static final String READY_STATE = String.valueOf(InstanceState.READY);
-    private static final String FAILED_STATE = String.valueOf(InstanceState.FAILED);
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String CLOUD_NAME = "cloudstack";
     private static final int JOB_STATUS_PENDING = 0;
@@ -313,7 +311,7 @@ public class CloudStackAttachmentPluginTest {
         int deviceId = DEVICE_ID;
         String id = FAKE_VOLUME_ID;
         String virtualMachineId = VIRTUAL_MACHINE_ID;
-        String state = READY_STATE;
+        String state = CloudStackStateMapper.READY_STATUS;
 
         int status = JOB_STATUS_COMPLETE;
         String volume = getVolumeResponse(id, deviceId, virtualMachineId, state, jobId);
@@ -334,7 +332,7 @@ public class CloudStackAttachmentPluginTest {
         String device = String.valueOf(deviceId);
         Assert.assertEquals(device, recoveredInstance.getDevice());
         Assert.assertEquals(virtualMachineId, String.valueOf(recoveredInstance.getComputeId()));
-        Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
+        Assert.assertEquals(state, recoveredInstance.getCloudState());
         Assert.assertEquals(id, String.valueOf(recoveredInstance.getVolumeId()));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudUser);
@@ -376,8 +374,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-        String state = CREATING_STATE;
-        Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
+        Assert.assertEquals(CloudStackStateMapper.PENDING_STATUS, recoveredInstance.getCloudState());
         Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());
         Assert.assertNull(recoveredInstance.getComputeId());
@@ -422,8 +419,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-        String state = FAILED_STATE;
-        Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
+        Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, recoveredInstance.getCloudState());
         Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());
         Assert.assertNull(recoveredInstance.getComputeId());

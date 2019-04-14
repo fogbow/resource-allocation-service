@@ -27,4 +27,14 @@ public class StubVolumePlugin implements VolumePlugin<CloudUser> {
     @Override
     public void deleteInstance(String volumeInstanceId, CloudUser cloudUser) {
     }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return true;
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return false;
+    }
 }

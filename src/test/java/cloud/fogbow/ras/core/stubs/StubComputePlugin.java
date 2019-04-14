@@ -27,4 +27,14 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
     @Override
     public void deleteInstance(String computeInstanceId, CloudUser cloudUser) {
     }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return true;
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return false;
+    }
 }

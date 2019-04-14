@@ -35,6 +35,16 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = cloudUser.getProjectId();
         String serverId = attachmentOrder.getComputeId();
@@ -115,11 +125,9 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
             String device = getAttachmentResponse.getDevice();
 
             // There is no OpenStackState for attachments; we set it to empty string to allow its mapping
-            // by the OpenStackStateMapper.getCloudUser() function.
+            // by the OpenStackStateMapper.map() function.
             String openStackState = "";
-            InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
-
-            AttachmentInstance attachmentInstance = new AttachmentInstance(id, fogbowState, computeId, volumeId, device);
+            AttachmentInstance attachmentInstance = new AttachmentInstance(id, openStackState, computeId, volumeId, device);
             return attachmentInstance;
 
         } catch (JSONException e) {

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -65,6 +67,16 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		this.defaultNetwork = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 		this.defaultSecurityGroup = properties.getProperty(DEFAULT_SECURITY_GROUP_ID_KEY);
+	}
+
+	@Override
+	public boolean isReady(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.READY);
+	}
+
+	@Override
+	public boolean hasFailed(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.FAILED);
 	}
 
 	@Override
@@ -197,12 +209,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		String networkInterface = null;
 		String macInterface = null;
 		String interfaceState = null;
-		InstanceState instanceState = InstanceState.READY;
 		NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
 		
 		NetworkInstance networkInstance = new NetworkInstance(
 				id, 
-				instanceState, 
+				OpenNebulaStateMapper.DEFAULT_READY_STATE,
 				name, 
 				address, 
 				gateway, 

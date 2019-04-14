@@ -3,6 +3,7 @@ package cloud.fogbow.ras.constants;
 public class Messages {
 
     public static class Exception {
+        public static final String COMPUTE_INSTANCE_NULL_S = "There is no active instance with the ptovided id: <%S>.";
         public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FATAL_ERROR = "Fatal error.";
@@ -15,6 +16,7 @@ public class Messages {
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String INVALID_NETWORK_ID_S = "Network <%s> does not belong to user or has been created on a different provider.";
+        public static final String INVALID_ORDER_STATE_S = "Invalid order state: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
@@ -68,6 +70,7 @@ public class Messages {
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
+        public static final String UNABLE_TO_LOCATE_ORDER_S_S = "Unable to locate order <%s> notified by <%s>.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
     }

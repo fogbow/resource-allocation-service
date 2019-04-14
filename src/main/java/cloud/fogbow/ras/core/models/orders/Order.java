@@ -58,9 +58,6 @@ public abstract class Order implements Serializable {
     @Size(max = FIELDS_MAX_SIZE)
     private String instanceId;
 
-    @Column
-    private InstanceState cachedInstanceState;
-
     @ElementCollection
     @MapKeyColumn
     @Column
@@ -173,14 +170,6 @@ public abstract class Order implements Serializable {
         this.instanceId = instanceId;
     }
 
-    public InstanceState getCachedInstanceState() {
-        return this.cachedInstanceState;
-    }
-
-    public void setCachedInstanceState(InstanceState cachedInstanceState) {
-        this.cachedInstanceState = cachedInstanceState;
-    }
-
     public Map<String, String> getRequirements() {
         return requirements;
     }
@@ -228,8 +217,16 @@ public abstract class Order implements Serializable {
         return this.provider.equals(localMemberId);
     }
 
+    public boolean isProviderRemote(String localMemberId) {
+        return !(this.provider.equals(localMemberId));
+    }
+
+    public boolean isRequesterLocal(String localMemberId) {
+        return this.requester.equals(localMemberId);
+    }
+
     public boolean isRequesterRemote(String localMemberId) {
-        return !this.requester.equals(localMemberId);
+        return !(this.requester.equals(localMemberId));
     }
 
     @Override

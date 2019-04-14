@@ -42,6 +42,16 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(VolumeOrder volumeOrder, CloudStackUser cloudUser) throws FogbowException {
         String diskOfferingId = getDiskOfferingId(volumeOrder, cloudUser);
 
@@ -230,9 +240,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         long sizeInBytes = volume.getSize();
         int sizeInGigabytes = (int) (sizeInBytes / Math.pow(1024, 3));
 
-        InstanceState instanceState = CloudStackStateMapper.map(ResourceType.VOLUME, state);
-
-        VolumeInstance volumeInstance = new VolumeInstance(id, instanceState, name, sizeInGigabytes);
+        VolumeInstance volumeInstance = new VolumeInstance(id, state, name, sizeInGigabytes);
         return volumeInstance;
     }
 

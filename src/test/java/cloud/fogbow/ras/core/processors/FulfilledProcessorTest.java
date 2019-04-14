@@ -29,6 +29,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
@@ -38,7 +40,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-    private static final String FAKE_IMAGE_NAME = "fake-image-name";
+    private static final String FAKE_IMAGE_ID = "fake-image";
+    private static final String FAKE_IMAGE_NAME = "fake-image";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
     private static final String FAKE_SOURCE = "fake-source";
     private static final String FAKE_TARGET = "fake-target";
@@ -97,7 +100,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -124,8 +127,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order order = this.createOrder();
         order.setOrderStateInTestMode(OrderState.FULFILLED);
 
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.FAILED);
+        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setHasFailed();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
@@ -144,7 +147,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
@@ -156,7 +159,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.failedOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -207,7 +210,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -234,8 +237,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.FAILED);
+        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setHasFailed();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
@@ -253,7 +256,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
@@ -269,8 +272,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.FAILED);
+        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setHasFailed();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
@@ -284,7 +287,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
@@ -292,7 +295,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // ThrowableException.
     @Test
     public void testRunThrowableExceptionWhileTryingToProcessOrderStateNull()
-            throws InterruptedException, UnexpectedException {
+            throws InterruptedException, FogbowException {
 
         // set up
         Order order = Mockito.mock(Order.class);
@@ -318,7 +321,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // UnexpectedException.
     @Test
     public void testThrowUnexpectedExceptionWhileTryingToProcessOrder()
-            throws InterruptedException, UnexpectedException {
+            throws InterruptedException, FogbowException {
 
         // set up
         Order order = Mockito.mock(Order.class);
@@ -353,20 +356,19 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
 
         Order order = new ComputeOrder(systemUser, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
-                30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
+                30, FAKE_IMAGE_ID, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
     }
 
-    private void mockCloudConnectorFactory(Instance orderInstance)
+    private void mockCloudConnectorFactory(ComputeInstance orderInstance)
             throws FogbowException {
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
-        Mockito.doReturn(orderInstance).when(this.localCloudConnector)
-                .getInstance(Mockito.any(Order.class));
+        Mockito.doReturn(orderInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
@@ -376,7 +378,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     private void spyFulfiledProcessor() {
         this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                //this.tunnelingService, this.sshConnectivity,
                 ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME));
     }
 

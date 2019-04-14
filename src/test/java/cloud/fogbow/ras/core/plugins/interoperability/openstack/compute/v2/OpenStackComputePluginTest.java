@@ -206,13 +206,12 @@ public class OpenStackComputePluginTest {
     @Test
     public void testGetInstance() throws FogbowException, HttpResponseException {
         // set up
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         String computeInstanceJson = generateComputeInstanceJson(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
         List<String> ipAddresses = new ArrayList<>();
         ipAddresses.add(localIpAddress);
 
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, ipAddresses);
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, vCPU, ram, disk, ipAddresses);
 
         Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -419,10 +418,9 @@ public class OpenStackComputePluginTest {
     @Test
     public void testGetInstanceWhenThereIsNoAddressFieldOnResponse() throws FogbowException, HttpResponseException {
         // set up
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
         String localIpAddress = null;
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, new ArrayList());
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, vCPU, ram, disk, new ArrayList());
         String computeInstanceJson = generateComputeInstanceJsonWithoutAddressField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
         Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -444,10 +442,9 @@ public class OpenStackComputePluginTest {
     @Test
     public void testGetInstanceWhenThereIsNoProviderNetworkFieldOnResponse() throws FogbowException, HttpResponseException {
         // set up
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         String computeInstanceJson = generateComputeInstanceJsonWithoutProviderNetworkField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, new ArrayList());
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, vCPU, ram, disk, new ArrayList());
 
         Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);

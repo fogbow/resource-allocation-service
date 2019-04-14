@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CloudStackNetworkPlugin;
@@ -47,7 +48,7 @@ public class CloudStackNetworkPluginTest {
     public static final String FAKE_DOMAIN = "fake-domain";
     public static final String FAKE_GATEWAY = "10.0.0.1";
     public static final String FAKE_ADDRESS = "10.0.0.0/24";
-    public static final String FAKE_STATE = "Allocated";
+    public static final String FAKE_STATE = "ready";
     public static final String FAKE_MEMBER = "fake-member";
 
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -153,7 +154,7 @@ public class CloudStackNetworkPluginTest {
         Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getCidr());
         Assert.assertEquals(FAKE_GATEWAY, retrievedInstance.getGateway());
         Assert.assertEquals(FAKE_NAME, retrievedInstance.getName());
-        Assert.assertEquals(InstanceState.READY, retrievedInstance.getState());
+        Assert.assertEquals(CloudStackStateMapper.READY_STATUS, retrievedInstance.getCloudState());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());

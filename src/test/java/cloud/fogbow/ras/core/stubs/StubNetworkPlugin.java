@@ -27,4 +27,14 @@ public class StubNetworkPlugin implements NetworkPlugin<CloudUser> {
     @Override
     public void deleteInstance(String networkInstanceId, CloudUser cloudUser) {
     }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return true;
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return false;
+    }
 }

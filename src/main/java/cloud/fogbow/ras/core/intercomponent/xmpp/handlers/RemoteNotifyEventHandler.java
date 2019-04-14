@@ -2,11 +2,11 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -29,12 +29,12 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
 
         Gson gson = new Gson();
         Order order = null;
-        Event event = null;
+        OrderState orderState = null;
         try {
             order = unmarshalOrder(iq, gson);
-            event = unmarshalEvent(iq, gson);
+            orderState = unmarshalEvent(iq, gson);
 
-            RemoteFacade.getInstance().handleRemoteEvent(iq.getFrom().toBareJID(), event, order);
+            RemoteFacade.getInstance().handleRemoteEvent(iq.getFrom().toBareJID(), orderState, order);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -53,11 +53,11 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
         return (Order) gson.fromJson(orderJsonStr, Class.forName(className));
     }
 
-    private Event unmarshalEvent(IQ iq, Gson gson) {
+    private OrderState unmarshalEvent(IQ iq, Gson gson) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element eventElement = queryElement.element(IqElement.EVENT.toString());
+        Element newStateElement = queryElement.element(IqElement.NEW_STATE.toString());
 
-        Event event = gson.fromJson(eventElement.getText(), Event.class);
-        return event;
+        OrderState newState = gson.fromJson(newStateElement.getText(), OrderState.class);
+        return newState;
     }
 }

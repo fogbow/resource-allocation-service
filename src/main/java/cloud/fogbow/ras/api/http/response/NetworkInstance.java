@@ -12,10 +12,10 @@ public class NetworkInstance extends Instance {
     private String MACInterface;
     private String interfaceState;
 
-    public NetworkInstance(String id, InstanceState instanceState, String name, String cidr, String gateway,
+    public NetworkInstance(String id, String cloudState, String name, String cidr, String gateway,
                            String vLAN, NetworkAllocationMode networkAllocationMode, String networkInterface,
                            String MACInterface, String interfaceState) {
-        super(id, instanceState);
+        super(id, cloudState);
         this.name = name;
         this.cidr = cidr;
         this.gateway = gateway;

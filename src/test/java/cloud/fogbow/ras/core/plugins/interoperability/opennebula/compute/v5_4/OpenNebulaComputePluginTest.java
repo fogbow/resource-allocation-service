@@ -18,6 +18,7 @@ import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 
@@ -343,7 +344,6 @@ public class OpenNebulaComputePluginTest {
 	public void testGetComputeInstanceSuccessfully() {
 		// set up
 		String id = FAKE_ID;
-		InstanceState state = InstanceState.READY;
 		String name = FAKE_NAME;
 		int cpu = CPU_VALUE_1;
 		int memory = MEMORY_VALUE_1024;
@@ -368,7 +368,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(response.isError()).thenReturn(false);
 		Mockito.when(response.getMessage()).thenReturn(xml);
 
-		ComputeInstance expected = new ComputeInstance(id, state, name, cpu, memory, disk, ipAddresses);
+		ComputeInstance expected = new ComputeInstance(id, OpenNebulaStateMapper.COMPUTE_RUNNING_STATE, name, cpu, memory, disk, ipAddresses);
 
 		// exercise
 		ComputeInstance computeInstance = this.plugin.getComputeInstance(virtualMachine);
@@ -966,12 +966,11 @@ public class OpenNebulaComputePluginTest {
 		String publicKey = FAKE_PUBLIC_KEY;
 		List<UserData> userData = FAKE_LIST_USER_DATA;
 		
-		InstanceState state = InstanceState.READY;
 		List<String> ipAddresses = null;
 		
 		ComputeInstance computeInstance = new ComputeInstance(
-				id, 
-				state, 
+				id,
+				OpenNebulaStateMapper.COMPUTE_RUNNING_STATE,
 				hostName, 
 				cpu, 
 				ram, 

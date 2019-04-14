@@ -27,4 +27,14 @@ public class StubAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     public AttachmentInstance getInstance(String attachmentInstanceId, CloudUser cloudUser) {
         return null;
     }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return true;
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return false;
+    }
 }

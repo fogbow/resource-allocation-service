@@ -61,6 +61,16 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     public CloudStackComputePlugin() {}
 
     @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
@@ -265,8 +275,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         String cloudStackState = vm.getState();
-        InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
-
         GetVirtualMachineResponse.Nic[] nics = vm.getNic();
         List<String> addresses = new ArrayList<>();
 
@@ -275,7 +283,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         ComputeInstance computeInstance = new ComputeInstance(
-                instanceId, fogbowState, hostName, vcpusCount, memory, disk, addresses);
+                instanceId, cloudStackState, hostName, vcpusCount, memory, disk, addresses);
 
         Map<String, String> computeNetworks = new HashMap<>();
         computeNetworks.put(this.defaultNetworkId, DEFAULT_NETWORK_NAME);

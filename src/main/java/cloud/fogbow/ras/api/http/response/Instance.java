@@ -3,16 +3,21 @@ package cloud.fogbow.ras.api.http.response;
 public class Instance {
     private String id;
     private InstanceState state;
+    private String cloudState;
+    private boolean isReady;
+    private boolean hasFailed;
     private String provider;
     private String cloudName;
 
     public Instance(String id) {
         this.id = id;
+        this.isReady = false;
+        this.hasFailed = false;
     }
 
-    public Instance(String id, InstanceState state) {
+    public Instance(String id, String cloudState) {
         this(id);
-        this.state = state;
+        this.cloudState = cloudState;
     }
 
     public String getId() {
@@ -29,6 +34,32 @@ public class Instance {
 
     public void setState(InstanceState state) {
         this.state = state;
+    }
+
+    public String getCloudState() {
+        return cloudState;
+    }
+
+    public void setCloudState(String cloudState) {
+        cloudState = cloudState;
+    }
+
+    public boolean isReady() {
+        return isReady;
+    }
+
+    public void setReady() {
+        isReady = true;
+        hasFailed = false;
+    }
+
+    public boolean hasFailed() {
+        return hasFailed;
+    }
+
+    public void setHasFailed() {
+        this.hasFailed = true;
+        this.isReady = false;
     }
 
     public String getProvider() {

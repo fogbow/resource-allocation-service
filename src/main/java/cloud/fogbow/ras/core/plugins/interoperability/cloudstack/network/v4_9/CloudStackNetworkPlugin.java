@@ -48,6 +48,16 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         if (subnetInfo == null) {
@@ -138,15 +148,13 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
     private NetworkInstance getNetworkInstance(GetNetworkResponse.Network network) {
         String state = network.getState();
-        InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.NETWORK, state);
-
         String networkId = network.getId();
         String label = network.getName();
         String address = network.getCidr();
         String gateway = network.getGateway();
         NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
 
-        return new NetworkInstance(networkId, fogbowState, label, address, gateway, null, allocationMode,
+        return new NetworkInstance(networkId, state, label, address, gateway, null, allocationMode,
                 null, null, null);
     }
 

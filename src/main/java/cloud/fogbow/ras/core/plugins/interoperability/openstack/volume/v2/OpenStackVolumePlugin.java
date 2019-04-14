@@ -39,6 +39,16 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String tenantId = cloudUser.getProjectId();
         if (tenantId == null) {
@@ -128,9 +138,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
             String name = getVolumeResponse.getName();
             int size = getVolumeResponse.getSize();
             String status = getVolumeResponse.getStatus();
-            InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.VOLUME, status);
-
-            return new VolumeInstance(id, fogbowState, name, size);
+            return new VolumeInstance(id, status, name, size);
         } catch (Exception e) {
             String message = Messages.Error.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
             LOGGER.error(message, e);

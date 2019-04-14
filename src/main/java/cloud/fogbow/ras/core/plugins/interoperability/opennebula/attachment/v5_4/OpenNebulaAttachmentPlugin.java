@@ -43,6 +43,16 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 	}
 
 	@Override
+	public boolean isReady(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.READY);
+	}
+
+	@Override
+	public boolean hasFailed(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.FAILED);
+	}
+
+	@Override
 	public String requestInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
@@ -93,11 +103,10 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		Image image = imagePool.getById(Integer.parseInt(imageId));
 		String imageDevice = image.xpath(DEFAULT_DEVICE_PREFIX);
 		String imageState = image.stateString();
-		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, imageState);
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(
 				attachmentInstanceId, 
-				instanceState, 
+				imageState,
 				virtualMachineId, 
 				imageId, 
 				imageDevice);

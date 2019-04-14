@@ -9,17 +9,16 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
 import java.util.List;
@@ -130,35 +129,33 @@ public class RemoteFacade {
         this.securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, systemUser);
     }
 
-    public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowException {
+    public void handleRemoteEvent(String signallingMember, OrderState newState, Order remoteOrder) throws FogbowException {
         // order is the java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside this server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
-        if (!localOrder.getProvider().equals(signallingMember)) {
-            throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
-                    signallingMember, localOrder.getProvider()));
-        }
-        updateLocalOrder(localOrder, remoteOrder, event);
-        switch (event) {
-            case INSTANCE_FULFILLED:
-                OrderStateTransitioner.transition(localOrder, OrderState.FULFILLED);
-                break;
-            case INSTANCE_FAILED:
-                OrderStateTransitioner.transition(localOrder, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-                break;
+        if (localOrder != null) {
+            if (!localOrder.getProvider().equals(signallingMember)) {
+                throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
+                        signallingMember, localOrder.getProvider()));
+            }
+            updateLocalOrder(localOrder, remoteOrder, newState);
+            OrderStateTransitioner.transition(localOrder, newState);
+        } else {
+            // The order no longer exists locally. This should never happen.
+            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrder.getId(), signallingMember));
+            return;
         }
     }
 
-    private void updateLocalOrder(Order localOrder, Order remoteOrder, Event event) {
+    private void updateLocalOrder(Order localOrder, Order remoteOrder, OrderState orderState) {
         synchronized (localOrder) {
-            if (localOrder.getOrderState() != OrderState.PENDING) {
+            if (localOrder.getOrderState() == OrderState.CLOSED) {
                 // The order has been deleted or already updated
                 return;
             }
             // The Order fields that have been changed remotely, need to be copied to the local Order.
             // Check the several cloud plugins to see which fields are changed.
             // The exception is the instanceId, which is only required at the providing member side.
-            localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
             if (localOrder.getType().equals(ResourceType.COMPUTE)) {
                 ComputeOrder localCompute = (ComputeOrder) localOrder;
                 ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;

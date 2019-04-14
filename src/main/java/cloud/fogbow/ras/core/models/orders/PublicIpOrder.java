@@ -21,7 +21,7 @@ public class PublicIpOrder extends Order {
 
     @Size(max = Order.ID_FIXED_SIZE)
     @Column
-    private String computeOrderId;
+    private String computeId;
 
     public PublicIpOrder() {
         this(UUID.randomUUID().toString());
@@ -33,20 +33,24 @@ public class PublicIpOrder extends Order {
         this.type = ResourceType.PUBLIC_IP;
     }
 
-    public PublicIpOrder(String providingMember, String cloudName, String computeOrderId) {
-        this(null, null, providingMember, cloudName, computeOrderId);
+    public PublicIpOrder(String providingMember, String cloudName, String computeId) {
+        this(null, null, providingMember, cloudName, computeId);
         this.type = ResourceType.PUBLIC_IP;
     }
 
     public PublicIpOrder(SystemUser systemUser, String requestingMember,
-                         String providingMember, String cloudName, String computeOrderId) {
+                         String providingMember, String cloudName, String computeId) {
         super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
-        this.computeOrderId = computeOrderId;
+        this.computeId = computeId;
         this.type = ResourceType.PUBLIC_IP;
     }
 
-    public String getComputeOrderId() {
-        return computeOrderId;
+    public String getComputeId() {
+        return computeId;
+    }
+
+    public void setComputeId(String computeId) {
+        this.computeId = computeId;
     }
 
     @Override
