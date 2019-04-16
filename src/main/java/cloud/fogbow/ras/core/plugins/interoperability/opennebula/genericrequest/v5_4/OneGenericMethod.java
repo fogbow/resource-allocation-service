@@ -4,8 +4,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import cloud.fogbow.ras.api.http.request.GenericRequest;
+import cloud.fogbow.ras.constants.Messages;
+
 public class OneGenericMethod {
 
+	private static final Logger LOGGER = Logger.getLogger(OneGenericMethod.class);
+	
 	public static Method generate(Class classType, String method, List<Class> parameters) {
 		try {
 			if (parameters.isEmpty()) {
@@ -14,7 +21,8 @@ public class OneGenericMethod {
 				return classType.getMethod(method, parameters.toArray(new Class[parameters.size()]));
 			}
         } catch (NoSuchMethodException | SecurityException e) {
-            e.printStackTrace();
+            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
+            // FIXME throw exception
         }
 		return null;
 	}
@@ -29,8 +37,9 @@ public class OneGenericMethod {
 			} else {
 				return method.invoke(instance, values.toArray(new Object[values.size()]));
 			}
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-            e1.printStackTrace();
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        	LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
+        	// FIXME throw exception
         }
 		return null;
 	}

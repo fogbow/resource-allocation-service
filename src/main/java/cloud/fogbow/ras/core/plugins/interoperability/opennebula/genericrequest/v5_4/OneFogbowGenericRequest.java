@@ -13,7 +13,7 @@ import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
  * 		"oneGenericRequest":{
  *     		"url":"http://10.11.5.20:2633/RPC2",
  *     		"oneResource":"VirtualMachine",
- *     		"oneMethod":"powerOff",
+ *     		"oneMethod":"poweroff",
  *     		"resourceId":"125",
  *     		"oneParameters":{
  *     			"hard":"true"
@@ -23,7 +23,7 @@ import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
  */
 public class OneFogbowGenericRequest implements FogbowGenericRequest {
 	
-	@SerializedName("oneGenericRequest")
+	@SerializedName("oneGenericRequest") // FIXME add constant
     private OneGenericRequest genericRequest;
 	
 	public String getUrl() {
@@ -52,19 +52,19 @@ public class OneFogbowGenericRequest implements FogbowGenericRequest {
 	
 	public class OneGenericRequest {
 		
-		@SerializedName("url")
+		@SerializedName("url") // FIXME add constant
 		private String url;
 		
-		@SerializedName("oneResource")
+		@SerializedName("oneResource") // FIXME add constant
 		private String resource;
 		
-		@SerializedName("oneMethod")
+		@SerializedName("oneMethod") // FIXME add constant
 		private String method;
 		
-		@SerializedName("resourceId")
+		@SerializedName("resourceId") // FIXME add constant
 		private String resourceId;
 		
-		@SerializedName("oneParameters")
+		@SerializedName("oneParameters") // FIXME add constant
 		private Map<String, String> parameters;
 		
 	}

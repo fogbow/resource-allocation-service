@@ -8,14 +8,11 @@ import java.util.Map;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 
-import com.google.gson.Gson;
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenNebulaUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
-import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaFogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaResponse;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
@@ -29,17 +26,16 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 	public FogbowGenericResponse redirectGenericRequest(String genericRequest, OpenNebulaUser cloudUser)
 			throws FogbowException {
 		
-		OpenNebulaFogbowGenericRequest oneGenericRequest = new Gson().fromJson(genericRequest, OpenNebulaFogbowGenericRequest.class);
+		OneFogbowGenericRequest oneGenericRequest = OneFogbowGenericRequest.fromJson(genericRequest);
 		Client client = OpenNebulaClientUtil.createClient(oneGenericRequest.getUrl(), cloudUser.getToken());
 
-		OpenNebulaFogbowGenericRequest request = (OpenNebulaFogbowGenericRequest) oneGenericRequest;
-		if (request.getOneResource() == null || request.getOneMethod() == null) {
+		if (oneGenericRequest.getResource() == null || oneGenericRequest.getMethod() == null) {
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
 		
-		Object instance = instantiateResource(request, client, cloudUser.getToken());
-		Parameters parameters = generateParametersMap(request, instance, client);
-		Method method = generateMethod(request, parameters);
+		Object instance = instantiateResource(oneGenericRequest, client, cloudUser.getToken());
+		Parameters parameters = generateParametersMap(oneGenericRequest, instance, client);
+		Method method = generateMethod(oneGenericRequest, parameters);
 		Object response = invokeGenericMethod(instance, parameters, method);
 		return reproduceMessage(response);
 	}
@@ -64,17 +60,18 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		return response;
 	}
 
-	protected Method generateMethod(OpenNebulaFogbowGenericRequest request, Parameters parameters) {
+	protected Method generateMethod(OneFogbowGenericRequest request, Parameters parameters) {
 		
-		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
+		OneResource oneResource = OneResource.getValueOf(request.getResource());
 		Class resourceClassType = oneResource.getClassType();
-		Method method = OneGenericMethod.generate(resourceClassType, request.getOneMethod(), parameters.getClasses());
+		// FIXME treat exception here ...
+		Method method = OneGenericMethod.generate(resourceClassType, request.getMethod(), parameters.getClasses());
 		return method;
 	}
 
-	protected Parameters generateParametersMap(OpenNebulaFogbowGenericRequest request, Object instance, Client client) {
+	protected Parameters generateParametersMap(OneFogbowGenericRequest request, Object instance, Client client) {
 		Parameters parameters = new Parameters();
-		if (!request.getOneResource().endsWith(RESOURCE_POOL_SUFFIX) && !request.getParameters().isEmpty()
+		if (!request.getResource().endsWith(RESOURCE_POOL_SUFFIX) && !request.getParameters().isEmpty()
 				&& instance == null) {
 			
 			parameters.getClasses().add(Client.class);
@@ -88,14 +85,14 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		return parameters;
 	}
 
-	protected Object instantiateResource(OpenNebulaFogbowGenericRequest request, Client client, String secret)
+	protected Object instantiateResource(OneFogbowGenericRequest request, Client client, String secret)
 			throws InvalidParameterException {
 
-		OneResource oneResource = OneResource.getValueOf(request.getOneResource());
+		OneResource oneResource = OneResource.getValueOf(request.getResource());
 		Object instance = null;
 		if (oneResource.equals(OneResource.CLIENT)) {
 			instance = (Client) oneResource.createInstance(secret, request.getUrl());
-		} else if (request.getOneResource().endsWith(RESOURCE_POOL_SUFFIX)) {
+		} else if (request.getResource().endsWith(RESOURCE_POOL_SUFFIX)) {
 			instance = oneResource.createInstance(client);
 		} else if (request.getResourceId() != null) {
 			if (!request.getResourceId().isEmpty()) {
