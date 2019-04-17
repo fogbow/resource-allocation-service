@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import cloud.fogbow.ras.api.http.request.GenericRequest;
 import cloud.fogbow.ras.constants.Messages;
 
 public class OneGenericMethod {
@@ -22,7 +21,6 @@ public class OneGenericMethod {
 			}
         } catch (NoSuchMethodException | SecurityException e) {
             LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
-            // FIXME throw exception
         }
 		return null;
 	}
@@ -39,7 +37,6 @@ public class OneGenericMethod {
 			}
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
         	LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
-        	// FIXME throw exception
         }
 		return null;
 	}
