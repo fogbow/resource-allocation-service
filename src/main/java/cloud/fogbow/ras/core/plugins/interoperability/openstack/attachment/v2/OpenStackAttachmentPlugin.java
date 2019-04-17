@@ -4,14 +4,15 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -24,7 +25,6 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
     private Properties properties;
     private OpenStackHttpClient client;
@@ -50,6 +50,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String device = attachmentOrder.getDevice();
+        String instanceId = null;
 
         String jsonRequest = null;
         try {
@@ -62,15 +63,22 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
         try {
-            this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
+            instanceId = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        return attachmentOrder.getComputeId() + SEPARATOR_ID + attachmentOrder.getVolumeId();
+        return instanceId;
     }
 
     @Override
     public void deleteInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
+        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        String serverId = order.getComputeId();
+        String volumeId = order.getVolumeId();
+
         String projectId = cloudUser.getProjectId();
         if (projectId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -78,11 +86,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
             throw new UnauthenticatedUserException(message);
         }
 
-        String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
-        String serverId = separatorInstanceId[0];
-        String volumeId = separatorInstanceId[1];
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
-
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -93,17 +97,16 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     @Override
     public AttachmentInstance getInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, cloudUser));
+        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        String serverId = order.getComputeId();
+        String volumeId = order.getVolumeId();
+
         String projectId = cloudUser.getProjectId();
 
-        String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
-
-        // this variable refers to computeInstanceId received in the first part of the vector
-        String computeId = separatorInstanceId[0];
-
-        // this variable refers to volumeInstanceId received in the second part of the vector
-        String volumeId = separatorInstanceId[1];
-
-        String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + computeId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
+        String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
 
         String jsonResponse = null;
         try {

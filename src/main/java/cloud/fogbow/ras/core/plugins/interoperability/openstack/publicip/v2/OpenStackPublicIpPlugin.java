@@ -2,19 +2,21 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.*;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -47,7 +49,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     public static final String IPV4_ETHER_TYPE = "IPv4";
 
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
-    protected static final String ID_SEPARATOR = "!@!";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -115,7 +116,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 requestFailed = false;
             }
 
-            return floatingIpId + ID_SEPARATOR + computeInstanceId;
+            return floatingIpId;
         } finally {
             if (requestFailed) {
                 if (securityGroupName != null) {
@@ -132,13 +133,17 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     @Override
-    public PublicIpInstance getInstance(String publicIpInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+    public PublicIpInstance getInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
         String responseGetFloatingIp = null;
-        String ids[] = publicIpInstanceId.split(ID_SEPARATOR);
-        publicIpInstanceId = ids[0];
+        PublicIpOrder order = (PublicIpOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        String floatingIpInstanceId = order.getInstanceId();
+
         try {
             String floatingIpEndpointPrefix = getFloatingIpEndpoint();
-            String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, publicIpInstanceId);
+            String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, floatingIpInstanceId);
             responseGetFloatingIp = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
@@ -154,11 +159,14 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     @Override
-    public void deleteInstance(String floatingIpId, OpenStackV3User cloudUser) throws FogbowException {
+    public void deleteInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
         try {
-            String ids[] = floatingIpId.split(ID_SEPARATOR);
-            floatingIpId = ids[0];
-            String computeInstanceId = ids[1];
+            PublicIpOrder order = (PublicIpOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+            if (order == null) {
+                throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+            }
+            String computeInstanceId = order.getComputeId();
+            String floatingIpId = order.getInstanceId();
             String securityGroupName = getSecurityGroupName(floatingIpId);
 
             if (computeInstanceId != null) {

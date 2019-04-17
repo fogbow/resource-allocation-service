@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -33,8 +34,6 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 	
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
-    private static final String INSTANCE_ID= "%s %s %s";
-	private static final String SEPARATOR_ID = " ";
 	private String endpoint;
 
 	public OpenNebulaAttachmentPlugin(String confFilePath) throws FatalErrorException {
@@ -68,18 +67,23 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		
 		VirtualMachine virtualMachine = attachVolumeImageDisk(client, virtualMachineId, imageId, template);
 		String diskId = getDiskIdFromContenOf(virtualMachine);
-		String instanceId = String.format(INSTANCE_ID, virtualMachineId, imageId, diskId);
-		return instanceId;
+		return diskId;
 	}
 
 	@Override
-	public void deleteInstance(String attachmentInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, cloudUser));
+	public void deleteInstance(String instanceId, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, cloudUser));
+		AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+		if (order == null) {
+			throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+		}
+		String virtualMachineIdStr = order.getComputeId();
+		String diskIdStr = order.getInstanceId();
+
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
-		int virtualMachineId = Integer.parseInt(instanceIds[0]);
-		int diskId = Integer.parseInt(instanceIds[2]);
+		int virtualMachineId = Integer.parseInt(virtualMachineIdStr);
+		int diskId = Integer.parseInt(diskIdStr);
 
 		// This detach operation is returning ok status but the volume is not being
 		// detached from the virtual machine in the opennebula cloud, preventing
@@ -94,18 +98,21 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 	}
 
 	@Override
-	public AttachmentInstance getInstance(String attachmentInstanceId, CloudUser cloudUser) throws FogbowException {
+	public AttachmentInstance getInstance(String instanceId, CloudUser cloudUser) throws FogbowException {
+		AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+		if (order == null) {
+			throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+		}
+		String virtualMachineId = order.getComputeId();
+		String imageId = order.getVolumeId();
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
-		String virtualMachineId = instanceIds[0];
-		String imageId = instanceIds[1];
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(imageId));
 		String imageDevice = image.xpath(DEFAULT_DEVICE_PREFIX);
 		String imageState = image.stateString();
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(
-				attachmentInstanceId, 
+				instanceId,
 				imageState,
 				virtualMachineId, 
 				imageId, 

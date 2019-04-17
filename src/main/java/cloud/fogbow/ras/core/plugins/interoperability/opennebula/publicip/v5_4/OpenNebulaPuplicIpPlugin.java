@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.apache.log4j.Logger;
@@ -41,7 +42,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaPuplicIpPlugin.class);
 
 	private static final String ALL_PROTOCOLS = "ALL";
-	private static final String FOGBOW_PUBLIC_IP_NAME = "ras-public-ip-";
 	private static final String ID_SEPARATOR = " ";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String INSTANCE_ID = "%s %s %s %s";
@@ -85,7 +85,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		int defaultPublicNetworkId = convertToInteger(this.defaultPublicNetwork);
-		String name = FOGBOW_PUBLIC_IP_NAME + getRandomUUID();
+		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
 		int size = SIZE_ADDRESS_PUBLIC_IP;
 
 		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()

@@ -65,7 +65,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         publicIpSubState.put(publicIpOrder.getId(), currentAsyncRequest);
 
         // we don't have the id of the ip address yet, but since the instance id is only used
-        // by the plugin, we can getCloudUser an orderId to an instanceId in the plugin
+        // by the plugin, we can return an orderId as an instanceId in the plugin
         return publicIpOrder.getId();
     }
 

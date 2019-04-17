@@ -1,19 +1,22 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -22,8 +25,6 @@ import java.util.Properties;
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    private static final String SEPARATOR_ID = " ";
-    protected static final String ATTACHMENT_ID_FORMAT = "%s %s";
     protected static final int JOB_STATUS_COMPLETE = 1;
     protected static final int JOB_STATUS_PENDING = 0;    
     protected static final int JOB_STATUS_FAILURE = 2;
@@ -56,9 +57,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, CloudStackUser cloudUser)
-            throws FogbowException {
-        
+    public String requestInstance(AttachmentOrder attachmentOrder, CloudStackUser cloudUser) throws FogbowException {
         String virtualMachineId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         
@@ -77,22 +76,23 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         }
         
         AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
-        
-        if (response.getJobId() != null) {
-            String jobId = response.getJobId();
-            String attachmentId = String.format(ATTACHMENT_ID_FORMAT, volumeId, jobId);
-            return attachmentId;
+
+        String jobId;
+        if ((jobId = response.getJobId()) != null) {
+            return jobId;
         } else {
             throw new UnexpectedException();
         }
     }
 
     @Override
-    public void deleteInstance(String attachmentInstanceId, CloudStackUser cloudUser) throws FogbowException {
-        
-        String[] separatorInstanceId = attachmentInstanceId.split(SEPARATOR_ID);
-        String volumeId = separatorInstanceId[0];
-        
+    public void deleteInstance(String instanceId, CloudStackUser cloudUser) throws FogbowException {
+        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        String volumeId = order.getVolumeId();
+
         DetachVolumeRequest request = new DetachVolumeRequest.Builder()
                 .id(volumeId)
                 .build(this.cloudStackUrl);
@@ -114,11 +114,13 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public AttachmentInstance getInstance(String attachmentInstanceId, CloudStackUser cloudUser)
+    public AttachmentInstance getInstance(String instanceId, CloudStackUser cloudUser)
             throws FogbowException {
-        
-        String[] separatorInstanceId = attachmentInstanceId.split(SEPARATOR_ID);
-        String jobId = separatorInstanceId[1];
+        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        String jobId = order.getInstanceId();
 
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
                 .jobId(jobId)
@@ -135,7 +137,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
         
-        return loadInstanceByJobStatus(attachmentInstanceId, response);
+        return loadInstanceByJobStatus(instanceId, response);
     }
 
     private AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
@@ -162,11 +164,10 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
-        String attachmentId = String.format(ATTACHMENT_ID_FORMAT, target, jobId);
         String device = String.valueOf(volume.getDeviceId());
         String state = volume.getState();
 
-        AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentId, state, source, target, device);
+        AttachmentInstance attachmentInstance = new AttachmentInstance(jobId, state, source, target, device);
         return attachmentInstance;
     }
 

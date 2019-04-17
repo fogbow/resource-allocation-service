@@ -83,7 +83,7 @@ public class OpenStackPublicIpPluginTest {
 				Mockito.eq(floatingIpEndpoint),
                 Mockito.eq(createFloatingIpRequestBody), Mockito.eq(this.openStackV3Token)
         );
-		Assert.assertEquals(floatingIpId + OpenStackPublicIpPlugin.ID_SEPARATOR + computeInstanceId, publicIpId);
+		Assert.assertEquals(floatingIpId, publicIpId);
 	}
 	
 	// test case: throw exception when trying to get the network port
@@ -240,8 +240,7 @@ public class OpenStackPublicIpPluginTest {
 				.thenReturn(listSecurityGroups.toJson());
 
 		// exercise
-		this.openStackPublicIpPlugin.deleteInstance(floatingIpId + OpenStackPublicIpPlugin.ID_SEPARATOR +
-				"computeId", openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1))
@@ -253,7 +252,7 @@ public class OpenStackPublicIpPluginTest {
 	public void testDeleteInstanceHttpException()
 			throws Exception {
 		// set up
-		String floatingIpId = "floatingIpId" + OpenStackPublicIpPlugin.ID_SEPARATOR + "computeId";
+		String floatingIpId = "floatingIpId";
 		String floatingIpEndpoint = "http://endpoint";
 		Mockito.doReturn(floatingIpEndpoint).when(this.openStackPublicIpPlugin).getFloatingIpEndpoint();
 
