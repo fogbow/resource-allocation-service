@@ -26,9 +26,11 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 
-	private static final String RESOURCE_NAME = "image";
+	private static final String RESOURCE_NAME = "images";
 
+	protected static final String FORMAT_IMAGE_TYPE_PATH = "//IMAGE[%s]/TYPE";
 	protected static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
+	protected static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
 
 	private String endpoint;
 	
@@ -42,11 +44,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, RESOURCE_NAME));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Map<String, String> allImages = new HashMap<>();
-		for (org.opennebula.client.image.Image image : imagePool) {
-			allImages.put(image.getId(), image.getName());
-		}
-		return allImages;
+		return getImagesMap(imagePool);
 	}
 
 	@Override
@@ -57,6 +55,20 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return mount(image);
 	}
 
+	protected Map<String, String> getImagesMap(ImagePool imagePool) {
+		String type;
+		int index = 1;
+		Map<String, String> images = new HashMap<>();
+		for (org.opennebula.client.image.Image image : imagePool) {
+			type = image.xpath(String.format(FORMAT_IMAGE_TYPE_PATH, index));
+			if (type != null && type.equals(OPERATIONAL_SYSTEM_IMAGE_TYPE)) {
+				images.put(image.getId(), image.getName());
+			}
+			index++;
+		}
+		return images;
+	}
+	
 	protected Image mount(org.opennebula.client.image.Image image) throws InvalidParameterException {
 		String id = image.getId();
 		String name = image.getName();
