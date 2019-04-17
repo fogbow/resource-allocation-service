@@ -32,15 +32,15 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		}
 		
 		if (!isValidUrl(oneGenericRequest.getUrl())) {
-			throw new InvalidParameterException("URL parameter invalid.");
+			throw new InvalidParameterException("Invalid content of url parameter."); // FIXME
 		}
 		
 		if (!isValidResource(oneGenericRequest.getResource())) {
-			throw new InvalidParameterException("OneResource parameter invalid.");
+			throw new InvalidParameterException("Invalid content of oneResource parameter."); // FIXME
 		}
 		
 		if (!isValid(oneGenericRequest.getMethod())) {
-			throw new InvalidParameterException("OneMethod parameter invalid.");
+			throw new InvalidParameterException("Invalid content of oneMethod parameter."); // FIXME
 		}
 		
 		Client client = OpenNebulaClientUtil.createClient(oneGenericRequest.getUrl(), cloudUser.getToken());
@@ -80,15 +80,25 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		return method;
 	}
 
-	protected Parameters generateParametersMap(OneFogbowGenericRequest request, Object instance, Client client) {
+	protected Parameters generateParametersMap(OneFogbowGenericRequest request, Object instance, Client client)
+			throws InvalidParameterException {
+		
 		Parameters parameters = new Parameters();
 		if (!request.getResource().endsWith(RESOURCE_POOL_SUFFIX) && !request.getParameters().isEmpty()
 				&& instance == null) {
-			
+
 			parameters.getClasses().add(Client.class);
 			parameters.getValues().add(client);
 		}
 		for (Map.Entry<String, String> entries : request.getParameters().entrySet()) {
+			if (!isValidParameter(entries.getKey())) {
+				throw new InvalidParameterException(String.format("Parameter: %s is not valid.", entries.getKey())); // FIXME
+			}
+			
+			if (!isValid(entries.getValue())) {
+				throw new InvalidParameterException(String.format("Content: %s is not valid.", entries.getValue())); // FIXME
+			}
+			
 			OneParameter oneParameter = OneParameter.getValueOf(entries.getKey());
 			parameters.getClasses().add(oneParameter.getClassType());
 			parameters.getValues().add(oneParameter.getValue(entries.getValue()));
@@ -120,6 +130,17 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		} catch (NumberFormatException e) {
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
+	}
+	
+	protected boolean isValidParameter(String parameter) {
+		if (isValid(parameter)) {
+			for (OneParameter element : OneParameter.values()) {
+				if (element.getName().equals(parameter)) {
+					return true;
+				}
+			}
+		}		
+		return false;
 	}
 	
 	protected boolean isValidResource(String resource) {
