@@ -276,16 +276,16 @@ public class OrderController {
         switch (order.getType()) {
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                dependentOrderIds.add(attachmentOrder.getComputeId());
-                dependentOrderIds.add(attachmentOrder.getVolumeId());
+                dependentOrderIds.add(attachmentOrder.getComputeOrderId());
+                dependentOrderIds.add(attachmentOrder.getVolumeOrderId());
                 break;
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
-                dependentOrderIds.addAll(computeOrder.getNetworkIds());
+                dependentOrderIds.addAll(computeOrder.getNetworkOrderIds());
                 break;
             case PUBLIC_IP:
                 PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-                dependentOrderIds.add(publicIpOrder.getComputeId());
+                dependentOrderIds.add(publicIpOrder.getComputeOrderId());
                 break;
             default:
                 // Dependencies apply only to attachment, compute and public IP orders for now.

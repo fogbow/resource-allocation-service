@@ -19,12 +19,12 @@ public class AttachmentOrder extends Order {
     private transient final Logger LOGGER = Logger.getLogger(AttachmentOrder.class);
 
     // this attribute refers to the instance of the computer where the volume will be attached
+    @Size(max = Order.FIELDS_MAX_SIZE)
     @Column
-    @Size(max = Order.ID_FIXED_SIZE)
     private String computeId;
 
     // this attribute refers to the volumeId of the volume that will be attached attachment
-    @Size(max = Order.ID_FIXED_SIZE)
+    @Size(max = Order.FIELDS_MAX_SIZE)
     @Column
     private String volumeId;
 
@@ -32,6 +32,16 @@ public class AttachmentOrder extends Order {
     @Size(max = Order.FIELDS_MAX_SIZE)
     @Column(name = DEVICE_COLUMN_NAME)
     private String device;
+
+    // this attribute refers to the order associated to the computeId
+    @Size(max = Order.ID_FIXED_SIZE)
+    @Column
+    private String computeOrderId;
+
+    // this attribute refers to the order associated to the volumeId
+    @Size(max = Order.ID_FIXED_SIZE)
+    @Column
+    private String volumeOrderId;
 
     public AttachmentOrder() {
         this(UUID.randomUUID().toString());
@@ -43,16 +53,17 @@ public class AttachmentOrder extends Order {
         this.type = ResourceType.ATTACHMENT;
     }
 
-    public AttachmentOrder(String providingMember, String cloudName, String computeId, String volumeId, String device) {
-        this(null, null, providingMember, cloudName, computeId, volumeId, device);
+    public AttachmentOrder(String providingMember, String cloudName, String computeOrderId, String volumeOrderId,
+                           String device) {
+        this(null, null, providingMember, cloudName, computeOrderId, volumeOrderId, device);
         this.type = ResourceType.ATTACHMENT;
     }
 
-    public AttachmentOrder(SystemUser systemUser, String requestingMember,
-                           String providingMember, String cloudName, String computeId, String volumeId, String device) {
+    public AttachmentOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+                           String computeOrderId, String volumeOrderId, String device) {
         super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
-        this.computeId = computeId;
-        this.volumeId = volumeId;
+        this.computeOrderId = computeOrderId;
+        this.volumeOrderId = volumeOrderId;
         this.device = device;
         this.type = ResourceType.ATTACHMENT;
     }
@@ -75,6 +86,14 @@ public class AttachmentOrder extends Order {
 
     public String getDevice() {
         return this.device;
+    }
+
+    public String getComputeOrderId() {
+        return computeOrderId;
+    }
+
+    public String getVolumeOrderId() {
+        return volumeOrderId;
     }
 
     @Override

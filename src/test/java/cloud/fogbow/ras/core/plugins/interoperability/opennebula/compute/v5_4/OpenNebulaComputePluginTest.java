@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -996,8 +997,10 @@ public class OpenNebulaComputePluginTest {
 	}
 
 	private List<String> listNetworkIds() {
+		String defaultNetwork = PropertiesHolder.getInstance().getProperty(OpenNebulaComputePlugin.DEFAULT_NETWORK_ID_KEY);
 		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
 		List<String> networksId = new ArrayList<>();
+		networksId.add(defaultNetwork);
 		networksId.add(privateNetworkId);
 		return networksId;
 	}

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -46,7 +47,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final String DEFAULT_DISK_TYPE = "fs";
 	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
-	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+	protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
@@ -92,7 +93,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
 		String architecture = DEFAULT_ARCHITECTURE;
-		List<String> networks = resolveNetworkIds(computeOrder);
+		addDefaultNetworkToNetworkIds(computeOrder);
+		List<String> networks = computeOrder.getNetworkIds();
 
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
 		String cpu = String.valueOf(foundFlavor.getCpu());
@@ -152,7 +154,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		}
 	}
 
-	protected List<String> resolveNetworkIds(ComputeOrder computeOrder) {
+	protected void addDefaultNetworkToNetworkIds(ComputeOrder computeOrder) {
 		List<String> requestedNetworkIds = new ArrayList<>();
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 		requestedNetworkIds.add(defaultNetworkId);
@@ -160,7 +162,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			requestedNetworkIds.addAll(computeOrder.getNetworkIds());
 		}
 		computeOrder.setNetworkIds(requestedNetworkIds);
-		return requestedNetworkIds;
 	}
 	
 	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, CloudUser token)
@@ -270,6 +271,13 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		ComputeInstance computeInstance = new ComputeInstance(id, state, name, cpu, memory, disk, ipAddresses);
+		// The default network is always included in the order by the OpenNebula plugin, thus it should be added
+		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
+		// are appended by the LocalCloudConnector.
+		Map<String, String> computeNetworks = new HashMap<>();
+		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		computeNetworks.put(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
+		computeInstance.setNetworks(computeNetworks);
 		return computeInstance;
 	}
 

@@ -251,9 +251,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
 		ArrayList<UserData> userData = super.mockUserData();
-		List<String> networkIds = null;
+		List<String> networkOrderIds = new ArrayList<>();
 
-		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
+		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkOrderIds);
 
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
@@ -302,9 +302,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String publicKey = FAKE_PUBLIC_KEY;
 		ArrayList<UserData> userData = super.mockUserData();
-		List<String> networkIds = null;
+		List<String> networkOrderIds = null;
 
-		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
+		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkOrderIds);
 		this.orderController.activateOrder(order);
 
 		RasOperation operation = new RasOperation(
@@ -1011,7 +1011,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 
 		// exercise
-		this.facade.deleteCompute(order.getComputeId(), SYSTEM_USER_TOKEN_VALUE);
+		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
 	}
@@ -1058,7 +1058,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 
 		// exercise
-		this.facade.deleteVolume(order.getVolumeId(), SYSTEM_USER_TOKEN_VALUE);
+		this.facade.deleteVolume(order.getVolumeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
 	}
@@ -1276,7 +1276,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 
 		// exercise
-		this.facade.deleteCompute(order.getComputeId(), SYSTEM_USER_TOKEN_VALUE);
+		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
 		Mockito.verify(this.orderController, Mockito.times(1)).deleteOrder(null);
@@ -2179,7 +2179,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	private ComputeOrder spyComputeOrder(SystemUser systemUser, String cloudName, String publicKey, ArrayList<UserData> userData,
-										 List<String> networkIds) {
+										 List<String> networkOrderIds) {
 		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 
 		ComputeOrder order = Mockito.spy(
@@ -2194,7 +2194,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 						FAKE_IMAGE_NAME, 
 						userData,
 						publicKey, 
-						networkIds));
+						networkOrderIds));
 
 		return order;
 	}

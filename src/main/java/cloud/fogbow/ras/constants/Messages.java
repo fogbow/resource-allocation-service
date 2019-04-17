@@ -14,7 +14,7 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
-        public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
+        public static final String INVALID_COMPUTE_ID_S = "Invalid compute: <%s>.";
         public static final String INVALID_NETWORK_ID_S = "Network <%s> does not belong to user or has been created on a different provider.";
         public static final String INVALID_ORDER_STATE_S = "Invalid order state: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
@@ -49,6 +49,7 @@ public class Messages {
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER = "Unable to retrieve response from providing member: %s.";
         public static final String UNABLE_TO_MATCH_REQUIREMENTS = "Unable to match requirements.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
+        public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
     }

@@ -5,6 +5,7 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -32,8 +33,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
-    public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
-    public static final String DEFAULT_NETWORK_NAME = "default";
     public static final String FOGBOW_TAG_SEPARATOR = ":";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
@@ -80,7 +79,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
-        String networksId = resolveNetworksId(computeOrder);
+        addDefaultNetworkToNetworkIds(computeOrder);
+        String networksId = StringUtils.join(computeOrder.getNetworkIds(), ",");
 
         String serviceOfferingId = getServiceOfferingId(computeOrder, cloudUser);
         if (serviceOfferingId == null) {
@@ -95,7 +95,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudUser) : null;
 
         String instanceName = computeOrder.getName();
-        if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
+        if (instanceName == null) instanceName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
 
         // NOTE(pauloewerton): hypervisor param is required in case of ISO image. i haven't found any clue pointing that
         // ISO images were being used in mono though.
@@ -166,14 +166,13 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
     }
 
-    private String resolveNetworksId(ComputeOrder computeOrder) {
+    private void addDefaultNetworkToNetworkIds(ComputeOrder computeOrder) {
         List<String> requestedNetworksId = new ArrayList<>();
-
         requestedNetworksId.add(this.defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworkIds());
+        if (!computeOrder.getNetworkIds().isEmpty()) {
+            requestedNetworksId.addAll(computeOrder.getNetworkIds());
+        }
         computeOrder.setNetworkIds(requestedNetworksId);
-
-        return StringUtils.join(requestedNetworksId, ",");
     }
 
     private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
@@ -285,8 +284,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         ComputeInstance computeInstance = new ComputeInstance(
                 instanceId, cloudStackState, hostName, vcpusCount, memory, disk, addresses);
 
+        // The default network is always included in the order by the CloudStack plugin, thus it should be added
+        // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
+        // are appended by the LocalCloudConnector.
         Map<String, String> computeNetworks = new HashMap<>();
-        computeNetworks.put(this.defaultNetworkId, DEFAULT_NETWORK_NAME);
+        computeNetworks.put(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
         computeInstance.setNetworks(computeNetworks);
 
         return computeInstance;

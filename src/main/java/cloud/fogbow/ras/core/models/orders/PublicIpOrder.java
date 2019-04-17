@@ -19,9 +19,14 @@ public class PublicIpOrder extends Order {
     @Transient
     private transient static final Logger LOGGER = Logger.getLogger(PublicIpOrder.class);
 
+    // this attribute refers to the instance of the computer where the public IP will be attached
     @Size(max = Order.ID_FIXED_SIZE)
     @Column
     private String computeId;
+
+    @Size(max = Order.ID_FIXED_SIZE)
+    @Column
+    private String computeOrderId;
 
     public PublicIpOrder() {
         this(UUID.randomUUID().toString());
@@ -33,15 +38,15 @@ public class PublicIpOrder extends Order {
         this.type = ResourceType.PUBLIC_IP;
     }
 
-    public PublicIpOrder(String providingMember, String cloudName, String computeId) {
-        this(null, null, providingMember, cloudName, computeId);
+    public PublicIpOrder(String providingMember, String cloudName, String computeOrderId) {
+        this(null, null, providingMember, cloudName, computeOrderId);
         this.type = ResourceType.PUBLIC_IP;
     }
 
-    public PublicIpOrder(SystemUser systemUser, String requestingMember,
-                         String providingMember, String cloudName, String computeId) {
+    public PublicIpOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+                         String computeOrderId) {
         super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
-        this.computeId = computeId;
+        this.computeOrderId = computeOrderId;
         this.type = ResourceType.PUBLIC_IP;
     }
 
@@ -51,6 +56,10 @@ public class PublicIpOrder extends Order {
 
     public void setComputeId(String computeId) {
         this.computeId = computeId;
+    }
+
+    public String getComputeOrderId() {
+        return computeOrderId;
     }
 
     @Override

@@ -53,9 +53,15 @@ public class ComputeOrder extends Order {
     @Embedded
     private ComputeAllocation actualAllocation;
 
+    // this attribute refers to the list of networkIds to be attached to the compute
     @Column
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> networkIds;
+
+    @Column
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> networkOrderIds;
+
 
     public ComputeOrder() {
         this(UUID.randomUUID().toString());
@@ -68,8 +74,8 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(String id, SystemUser systemUser, String requestingMember, String providingMember,
-                        String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
-                        List<String> networkIds) {
+                        String cloudName, String name, int vCPU, int memory, int disk, String imageId,
+                        ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
         super(id, providingMember, cloudName, systemUser, requestingMember);
         this.name = name;
         this.vCPU = vCPU;
@@ -78,23 +84,23 @@ public class ComputeOrder extends Order {
         this.imageId = imageId;
         this.userData = userData;
         this.publicKey = publicKey;
-        this.networkIds = networkIds;
+        this.networkOrderIds = networkOrderIds;
         this.actualAllocation = new ComputeAllocation();
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(String providingMember, String cloudName, String name, int vCPU, int memory, int disk, String imageId,
-                        ArrayList<UserData> userData, String publicKey, List<String> networkIds) {
+    public ComputeOrder(String providingMember, String cloudName, String name, int vCPU, int memory, int disk,
+                        String imageId, ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
         this(null, null, providingMember, cloudName, name, vCPU, memory, disk, imageId,
-                userData, publicKey, networkIds);
+                userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(SystemUser systemUser, String requestingMember, String providingMember,
-                        String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
-                        List<String> networkIds) {
+    public ComputeOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData,
+                        String publicKey, List<String> networkOrderIds) {
         this(UUID.randomUUID().toString(), systemUser, requestingMember, providingMember, cloudName, name, vCPU, memory,
-                disk, imageId, userData, publicKey, networkIds);
+                disk, imageId, userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
 
@@ -155,6 +161,13 @@ public class ComputeOrder extends Order {
 
     public void setNetworkIds(List<String> networkIds) {
         this.networkIds = networkIds;
+    }
+
+    public List<String> getNetworkOrderIds() {
+        if (networkOrderIds == null) {
+            return Collections.unmodifiableList(new ArrayList<>());
+        }
+        return Collections.unmodifiableList(this.networkOrderIds);
     }
 
     @Override

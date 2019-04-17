@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -741,7 +742,7 @@ public class OpenStackComputePluginTest {
             networkIds.add(defaultNetworkId);
         }
 
-        server.put(OpenStackConstants.Compute.NAME_KEY_JSON, OpenStackComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
+        server.put(OpenStackConstants.Compute.NAME_KEY_JSON, SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomUUID);
         server.put(OpenStackConstants.Compute.IMAGE_REFERENCE_KEY_JSON, imageId);
         server.put(OpenStackConstants.Compute.FLAVOR_REFERENCE_KEY_JSON, flavorId);
         server.put(OpenStackConstants.Compute.USER_DATA_KEY_JSON, userData);
