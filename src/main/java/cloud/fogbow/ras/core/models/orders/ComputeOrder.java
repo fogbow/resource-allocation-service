@@ -5,6 +5,8 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.apache.log4j.Logger;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -55,11 +57,17 @@ public class ComputeOrder extends Order {
 
     // this attribute refers to the list of networkIds to be attached to the compute
     @Column
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<String> networkIds;
 
+    /**
+     * Using FetchType.EAGER in both networkIds and networkOrderIds didn't work;
+     * @LazyCollection(LazyCollectionOption.FALSE) is a workaround.
+     */
     @Column
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<String> networkOrderIds;
 
 
