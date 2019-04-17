@@ -27,19 +27,30 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 			throws FogbowException {
 		
 		OneFogbowGenericRequest oneGenericRequest = OneFogbowGenericRequest.fromJson(genericRequest);
-		Client client = OpenNebulaClientUtil.createClient(oneGenericRequest.getUrl(), cloudUser.getToken());
-
-		if (oneGenericRequest.getResource() == null || oneGenericRequest.getMethod() == null) {
+		if (oneGenericRequest == null) {
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
 		
+		if (!isValidUrl(oneGenericRequest.getUrl())) {
+			throw new InvalidParameterException("URL parameter invalid.");
+		}
+		
+		if (!isValidResource(oneGenericRequest.getResource())) {
+			throw new InvalidParameterException("OneResource parameter invalid.");
+		}
+		
+		if (!isValid(oneGenericRequest.getMethod())) {
+			throw new InvalidParameterException("OneMethod parameter invalid.");
+		}
+		
+		Client client = OpenNebulaClientUtil.createClient(oneGenericRequest.getUrl(), cloudUser.getToken());
 		Object instance = instantiateResource(oneGenericRequest, client, cloudUser.getToken());
 		Parameters parameters = generateParametersMap(oneGenericRequest, instance, client);
 		Method method = generateMethod(oneGenericRequest, parameters);
 		Object response = invokeGenericMethod(instance, parameters, method);
 		return reproduceMessage(response);
 	}
-	
+
 	protected FogbowGenericResponse reproduceMessage(Object response) {
 		String message;
 		if (response instanceof OneResponse) {
@@ -109,6 +120,31 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 		} catch (NumberFormatException e) {
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
+	}
+	
+	protected boolean isValidResource(String resource) {
+		if (isValid(resource)) {
+			for (OneResource element : OneResource.values()) {
+				if (element.getName().equals(resource)) {
+					return true;
+				}
+			}
+		}		
+		return false;
+	}
+
+	protected boolean isValidUrl(String url) {
+		if (url != null && url.startsWith("http://") && url.endsWith(":2633/RPC2")) {
+			return true;
+		}
+		return false;
+	}
+	
+	protected boolean isValid(String arg) {
+		if (arg == null || arg.isEmpty()) {
+			return false;
+		}
+		return true;
 	}
 	
 	protected static class Parameters {
