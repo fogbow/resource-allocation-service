@@ -1,11 +1,17 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.v5_4;
 
+import static cloud.fogbow.common.constants.OpenNebulaConstants.ONE_GENERIC_REQUEST;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.ONE_METHOD;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.ONE_PARAMETERS;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.ONE_RESOURCE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RESOURCE_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.URL;
+
 import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 
 /**
  * Request Example:
@@ -21,50 +27,54 @@ import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
  *  	}
  *	}
  */
-public class OneFogbowGenericRequest implements FogbowGenericRequest {
+public class CreateOneGenericRequest {
 	
-	@SerializedName("oneGenericRequest") // FIXME add constant
-    private OneGenericRequest genericRequest;
+	@SerializedName(ONE_GENERIC_REQUEST)
+    private OneGenericRequest request;
 	
+	public OneGenericRequest getRequest() {
+		return request;
+	}
+
 	public String getUrl() {
-        return genericRequest.url;
+        return request.url;
     }
 	
 	public String getResource() {
-        return genericRequest.resource;
+        return request.resource;
     }
 	
 	public String getMethod() {
-        return genericRequest.method;
+        return request.method;
     }
 	
 	public String getResourceId() {
-        return genericRequest.resourceId;
+        return request.resourceId;
     }
 	
 	public Map<String, String> getParameters() {
-        return genericRequest.parameters;
+        return request.parameters;
     }
 	
-	public static OneFogbowGenericRequest fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, OneFogbowGenericRequest.class);
+	public static CreateOneGenericRequest fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, CreateOneGenericRequest.class);
     }
 	
 	public class OneGenericRequest {
 		
-		@SerializedName("url") // FIXME add constant
+		@SerializedName(URL)
 		private String url;
 		
-		@SerializedName("oneResource") // FIXME add constant
+		@SerializedName(ONE_RESOURCE)
 		private String resource;
 		
-		@SerializedName("oneMethod") // FIXME add constant
+		@SerializedName(ONE_METHOD)
 		private String method;
 		
-		@SerializedName("resourceId") // FIXME add constant
+		@SerializedName(RESOURCE_ID)
 		private String resourceId;
 		
-		@SerializedName("oneParameters") // FIXME add constant
+		@SerializedName(ONE_PARAMETERS)
 		private Map<String, String> parameters;
 		
 	}
