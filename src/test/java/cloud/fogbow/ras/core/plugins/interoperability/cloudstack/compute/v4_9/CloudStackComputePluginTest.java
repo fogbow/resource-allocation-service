@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -13,6 +14,7 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
@@ -64,6 +66,7 @@ public class CloudStackComputePluginTest {
 
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-name";
+    private static final String FAKE_ID_PROVIDER = "fake-id-provider";
     private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
@@ -140,8 +143,6 @@ public class CloudStackComputePluginTest {
         ArrayList<UserData> userData = new ArrayList<>();
         userData.add(fakeUserData);
 
-        List<String> fakeNetworkdIds = new ArrayList<>();
-        fakeNetworkdIds.add(FAKE_NETWORK_ID);
         String fakeNetworkIdsString = this.defaultNetworkId + "," + FAKE_NETWORK_ID;
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
@@ -176,9 +177,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        ComputeOrder order = createComputeOrder(userData, fakeImageId);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -250,9 +249,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME,
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        ComputeOrder order = createComputeOrder(userData, fakeImageId);
         order.setRequirements(fakeRequirements);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -506,9 +503,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        ComputeOrder order = createComputeOrder(userData, fakeImageId);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -576,9 +571,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(new HttpResponseException(503, "service unavailable"));
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        ComputeOrder order = createComputeOrder(userData, fakeImageId);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -885,5 +878,24 @@ public class CloudStackComputePluginTest {
         String response = "{\"deployvirtualmachineresponse\":{\"id\":\"%s\"}}";
 
         return String.format(response, id);
+    }
+
+    private ComputeOrder createComputeOrder(ArrayList<UserData> fakeUserData, String fakeImageId) {
+        SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_ID_PROVIDER);
+        NetworkOrder networkOrder = new NetworkOrder(FAKE_NETWORK_ID);
+        networkOrder.setSystemUser(requester);
+        networkOrder.setProvider(FAKE_MEMBER);
+        networkOrder.setCloudName(CLOUD_NAME);
+        networkOrder.setInstanceId(FAKE_NETWORK_ID);
+        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
+        List<String> networkOrderIds = new ArrayList<>();
+        networkOrderIds.add(networkOrder.getId());
+        ComputeOrder computeOrder = new ComputeOrder(requester, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
+                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, networkOrderIds);
+        computeOrder.setInstanceId(FAKE_ID);
+        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+        return computeOrder;
     }
 }

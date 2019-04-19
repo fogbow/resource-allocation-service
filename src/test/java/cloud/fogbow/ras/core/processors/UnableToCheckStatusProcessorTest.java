@@ -290,7 +290,6 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 
 		String requestingMember = localMemberId;
 		String providingMember = localMemberId;
-		System.out.println("RM: " + requestingMember);
 		ArrayList<UserData> userData = super.mockUserData();
 		List<String> networkIds = null;
 

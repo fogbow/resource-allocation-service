@@ -429,8 +429,6 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(this.argCloudToken.getAllValues().get(1), this.openStackV3User);
         // ToDo: fix the assertion below
         // JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
-        System.out.println(computeJson.toString());
-        System.out.println(this.argBodyString.getAllValues().get(1));
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 

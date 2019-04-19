@@ -63,7 +63,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         CurrentAsyncRequest currentAsyncRequest = new CurrentAsyncRequest(PublicIpSubState.ASSOCIATING_IP_ADDRESS,
                 jobId, publicIpOrder.getComputeId());
         publicIpSubState.put(publicIpOrder.getId(), currentAsyncRequest);
-
         // we don't have the id of the ip address yet, but since the instance id is only used
         // by the plugin, we can return an orderId as an instanceId in the plugin
         return publicIpOrder.getId();
@@ -71,19 +70,20 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @Override
     public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudStackUser cloudUser) throws FogbowException {
-        // since we returned the id of the order on requestInstance, publicIpInstanceId
-        // should be the id of the order
         CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(publicIpOrder.getId());
 
         PublicIpInstance result;
         if (currentAsyncRequest == null) {
+            // This may happen due to a failure in the RAS while this operation was being carried out; since the
+            // order was still spawning, the spawning processor will start monitoring this order after the RAS
+            // is restarted. Unfortunately, even if the operation succeeded, we cannot retrieve this information
+            // and will have to signal that the order has failed.
             result = new PublicIpInstance(null, CloudStackStateMapper.FAILURE_STATUS, null);
         } else if (currentAsyncRequest.getState().equals(PublicIpSubState.READY)) {
             result = instanceFromCurrentAsyncRequest(currentAsyncRequest, CloudStackStateMapper.READY_STATUS);
         } else {
             result = getCurrentInstance(publicIpOrder, cloudUser);
         }
-
         return result;
     }
 
@@ -286,5 +286,4 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             this.ipInstanceId = ipInstanceId;
         }
     }
-
 }

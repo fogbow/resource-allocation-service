@@ -34,7 +34,6 @@ import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -100,7 +99,6 @@ public class OpenNebulaPublicIpPluginTest {
 				.willReturn(client);
 
 		Mockito.doReturn(FAKE_INSTANCE_NAME).when(this.plugin).getRandomUUID();
-		System.out.println(this.plugin.getRandomUUID());
 
 		String publicNetworkReserveTemplate = getPublicNetworkReserveTemplate();
 		BDDMockito
@@ -281,9 +279,9 @@ public class OpenNebulaPublicIpPluginTest {
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(virtualMachineId)))
 				.willReturn(virtualMachine);
+		Mockito.when(virtualMachine.stateStr()).thenReturn("fail");
 
 		String publicIpInstanceId = FAKE_INSTANCE_ID;
-		String computeInstanceId = STRING_ID_ONE;
 		CloudUser cloudUser = createCloudUser();
 
 		PublicIpOrder publicIpOrder = new PublicIpOrder();

@@ -427,19 +427,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrderWithInvalidId() throws InstanceNotFoundException {
         this.ordersController.getOrder("invalid-order-id");
     }
-
-    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetOrderWithInvalidInstanceType() throws FogbowException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
-    }
-
+    
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException, UnexpectedException {
         SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider");
 
