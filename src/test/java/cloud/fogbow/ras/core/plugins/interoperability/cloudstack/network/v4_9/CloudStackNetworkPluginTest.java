@@ -146,8 +146,11 @@ public class CloudStackNetworkPluginTest {
 
         Mockito.when(this.client.doGetRequest(expectedRequestUrl, FAKE_CLOUD_USER)).thenReturn(successfulResponse);
 
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setInstanceId(FAKE_ID);
+
         // exercise
-        NetworkInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_CLOUD_USER);
+        NetworkInstance retrievedInstance = this.plugin.getInstance(networkOrder, FAKE_CLOUD_USER);
 
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
@@ -172,9 +175,12 @@ public class CloudStackNetworkPluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setInstanceId(FAKE_ID);
+
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, FAKE_CLOUD_USER);
+            this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
@@ -193,8 +199,11 @@ public class CloudStackNetworkPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setInstanceId(FAKE_ID);
+
         // exercise
-        this.plugin.deleteInstance(FAKE_ID, FAKE_CLOUD_USER);
+        this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -214,9 +223,12 @@ public class CloudStackNetworkPluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
 
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setInstanceId(FAKE_ID);
+
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, FAKE_CLOUD_USER);
+            this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))
@@ -234,9 +246,12 @@ public class CloudStackNetworkPluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
 
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setInstanceId(FAKE_ID);
+
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_ID, FAKE_CLOUD_USER);
+            this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))

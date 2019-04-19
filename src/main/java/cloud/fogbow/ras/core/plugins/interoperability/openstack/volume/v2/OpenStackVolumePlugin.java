@@ -4,13 +4,14 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -27,7 +28,6 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     private final String V2_API_ENDPOINT = "/v2/";
     protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
     protected static final String SUFIX_ENDPOINT_VOLUME_TYPES = "/types";
-    protected static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
     private OpenStackHttpClient client;
     private String volumeV2APIEndpoint;
@@ -64,7 +64,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         try {
             String size = String.valueOf(order.getVolumeSize());
             String instanceName = order.getName();
-            String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
+            String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
             String volumeTypeId = null;
             if(requirements != null && requirements.size() > 0) {
                 volumeTypeId = getValidVolumeTypeId(requirements, tenantId, cloudUser);
@@ -90,7 +90,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     }
 
     @Override
-    public VolumeInstance getInstance(String storageOrderInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+    public VolumeInstance getInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String tenantId = cloudUser.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -98,8 +98,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
             throw new UnauthenticatedUserException(message);
         }
 
-        String endpoint = this.volumeV2APIEndpoint + tenantId
-                + SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
+        String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES + "/" + order.getInstanceId();
         String responseStr = null;
         try {
             responseStr = this.client.doGetRequest(endpoint, cloudUser);
@@ -110,7 +109,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     }
 
     @Override
-    public void deleteInstance(String storageOrderInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+    public void deleteInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String tenantId = cloudUser.getProjectId();
         if (tenantId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
@@ -118,8 +117,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
             throw new UnauthenticatedUserException(message);
         }
 
-        String endpoint = this.volumeV2APIEndpoint + tenantId
-                + SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
+        String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES + "/" + order.getInstanceId();
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {

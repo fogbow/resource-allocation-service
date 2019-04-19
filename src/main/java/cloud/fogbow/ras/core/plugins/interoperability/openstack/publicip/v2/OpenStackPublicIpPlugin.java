@@ -8,7 +8,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
@@ -47,8 +47,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     public static final String IPV6_ETHER_TYPE = "IPv6";
     public static final String IPV4_ETHER_TYPE = "IPv4";
-
-    protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -126,16 +124,15 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                     removeSecurityGroup(securityGroupId, cloudUser);
                 }
                 if (floatingIpId != null) {
-                    deleteInstance(floatingIpId, cloudUser);
+                    deleteInstance(publicIpOrder, cloudUser);
                 }
             }
         }
     }
 
     @Override
-    public PublicIpInstance getInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
+    public PublicIpInstance getInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String responseGetFloatingIp = null;
-        PublicIpOrder order = (PublicIpOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
@@ -159,9 +156,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     @Override
-    public void deleteInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
+    public void deleteInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
         try {
-            PublicIpOrder order = (PublicIpOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
             if (order == null) {
                 throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
             }
@@ -401,7 +397,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     public static String getSecurityGroupName(String publicIpId) {
-        return SECURITY_GROUP_PREFIX + publicIpId;
+        return SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpId;
     }
 
 }

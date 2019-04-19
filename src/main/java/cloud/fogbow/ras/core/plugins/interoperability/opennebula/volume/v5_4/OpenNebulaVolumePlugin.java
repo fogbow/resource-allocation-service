@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 import java.util.Properties;
 import java.util.UUID;
 
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -33,7 +34,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
     private static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
     private static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
-    private static final String FOGBOW_VOLUME_NAME = "ras-volume-";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
     
     protected static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
@@ -62,7 +62,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
-		String name = volumeName == null ? FOGBOW_VOLUME_NAME + getRandomUUID() : volumeName;
+		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
 		String imagePersistent = PERSISTENT_DISK_CONFIRMATION;
 		String imageType = DATABLOCK_IMAGE_TYPE;
 		String fileSystemType = FILE_SYSTEM_TYPE_RAW;
@@ -86,29 +86,29 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	}
 	
 	@Override
-	public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
+	public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
+		Image image = imagePool.getById(Integer.parseInt(volumeOrder.getInstanceId()));
 
 		int imageSize = Integer.parseInt(image.xpath(OpenNebulaTagNameConstants.SIZE));
 		String imageName = image.getName();
 		String imageState = image.stateString();
-		return new VolumeInstance(volumeInstanceId, imageState, imageName, imageSize);
+		return new VolumeInstance(volumeOrder.getInstanceId(), imageState, imageName, imageSize);
 	}
 
 	@Override
-	public void deleteInstance(String volumeInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeInstanceId, cloudUser.getToken()));
+	public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
+		Image image = imagePool.getById(Integer.parseInt(volumeOrder.getInstanceId()));
 		OneResponse response = image.delete();
 		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_VOLUME_IMAGE, volumeInstanceId, response.getMessage()));
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_VOLUME_IMAGE, volumeOrder.getInstanceId(), response.getMessage()));
 		}
 	}
 

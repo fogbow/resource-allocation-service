@@ -9,22 +9,17 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClie
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
 
 import java.util.Properties;
 
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
-    private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
-
     protected static final int JOB_STATUS_COMPLETE = 1;
     protected static final int JOB_STATUS_PENDING = 0;    
     protected static final int JOB_STATUS_FAILURE = 2;
@@ -86,8 +81,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public void deleteInstance(String instanceId, CloudStackUser cloudUser) throws FogbowException {
-        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+    public void deleteInstance(AttachmentOrder order, CloudStackUser cloudUser) throws FogbowException {
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
@@ -114,9 +108,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public AttachmentInstance getInstance(String instanceId, CloudStackUser cloudUser)
-            throws FogbowException {
-        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+    public AttachmentInstance getInstance(AttachmentOrder order, CloudStackUser cloudUser) throws FogbowException {
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
@@ -137,24 +129,21 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
         
-        return loadInstanceByJobStatus(instanceId, response);
+        return loadInstanceByJobStatus(order.getInstanceId(), response);
     }
 
     private AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
-            AttachmentJobStatusResponse response) throws UnexpectedException {
+                                       AttachmentJobStatusResponse response) throws UnexpectedException {
         
         int status = response.getJobStatus();
         switch (status) {
             case JOB_STATUS_PENDING:
                 return new AttachmentInstance(attachmentInstanceId, PENDING_STATE, null, null, null);
-
             case JOB_STATUS_COMPLETE:
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
                 return mountInstance(volume);
-                
             case JOB_STATUS_FAILURE:
                 return new AttachmentInstance(attachmentInstanceId, FAILURE_STATE, null, null, null);
-                
             default:
                 throw new UnexpectedException();
         }
@@ -174,5 +163,4 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     protected void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
-
 }

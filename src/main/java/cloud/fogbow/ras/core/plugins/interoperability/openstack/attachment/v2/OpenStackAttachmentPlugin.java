@@ -6,7 +6,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
@@ -52,7 +51,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String device = attachmentOrder.getDevice();
         String instanceId = null;
 
-        String jsonRequest = null;
+        String jsonRequest;
         try {
             jsonRequest = generateJsonToAttach(volumeId, device);
         } catch (JSONException e) {
@@ -62,30 +61,29 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         }
 
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
+        String jsonResponse = null;
         try {
-            instanceId = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
+            jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        return instanceId;
+        CreateAttachmentResponse createAttachmentResponse = CreateAttachmentResponse.fromJson(jsonResponse);
+        return createAttachmentResponse.getVolumeId();
     }
 
     @Override
-    public void deleteInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
-        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+    public void deleteInstance(AttachmentOrder order, OpenStackV3User cloudUser) throws FogbowException {
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
-
         String projectId = cloudUser.getProjectId();
         if (projectId == null) {
             String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
             LOGGER.error(message);
             throw new UnauthenticatedUserException(message);
         }
-
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
@@ -95,19 +93,14 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     }
 
     @Override
-    public AttachmentInstance getInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, cloudUser));
-        AttachmentOrder order = (AttachmentOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(instanceId);
+    public AttachmentInstance getInstance(AttachmentOrder order, OpenStackV3User cloudUser) throws FogbowException {
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
-
         String projectId = cloudUser.getProjectId();
-
         String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
-
         String jsonResponse = null;
         try {
             jsonResponse = this.client.doGetRequest(requestEndpoint, cloudUser);
@@ -115,7 +108,6 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
         AttachmentInstance attachmentInstance = getInstanceFromJson(jsonResponse);
-
         return attachmentInstance;
     }
 
@@ -126,13 +118,11 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
             String computeId = getAttachmentResponse.getServerId();
             String volumeId = getAttachmentResponse.getVolumeId();
             String device = getAttachmentResponse.getDevice();
-
             // There is no OpenStackState for attachments; we set it to empty string to allow its mapping
             // by the OpenStackStateMapper.map() function.
             String openStackState = "";
             AttachmentInstance attachmentInstance = new AttachmentInstance(id, openStackState, computeId, volumeId, device);
             return attachmentInstance;
-
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GET_ATTACHMENT_INSTANCE;
             LOGGER.error(message, e);

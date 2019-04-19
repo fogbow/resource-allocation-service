@@ -1,8 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.UUID;
 
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,7 +41,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class, SecurityGroup.class, Thread.class, VirtualNetwork.class})
+@PrepareForTest({SharedOrderHolders.class, OpenNebulaClientUtil.class, SecurityGroup.class, Thread.class, VirtualNetwork.class})
 public class OpenNebulaPublicIpPluginTest {
 
 	private static final String ACTIVE_STATE = "ACTIVE";
@@ -49,11 +54,20 @@ public class OpenNebulaPublicIpPluginTest {
 	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 	private static final String STRING_ID_ONE = "1";
 
+	private static final String FAKE_USER_ID = "fake-user-id";
+	private static final String FAKE_NAME = "fake-name";
+	private static final String FAKE_ID_PROVIDER = "fake-id-provider";
+	private static final String FAKE_PROVIDER = "fake-provider";
+	private static final String DEFAULT_CLOUD = "default";
+	private static final String FAKE_SERVER_ID = "1";
+
 	private static final int FAKE_PUBLIC_NETWORK_ID = 100;
 	private static final int ID_VALUE_ONE = 1;
 
 	private OpenNebulaPuplicIpPlugin plugin;
-	
+	private SharedOrderHolders sharedOrderHolders;
+	private PublicIpOrder publicIpOrder;
+
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
@@ -61,6 +75,16 @@ public class OpenNebulaPublicIpPluginTest {
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 		
 		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin(opennebulaConfFilePath));
+		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+
+		PowerMockito.mockStatic(SharedOrderHolders.class);
+		BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+
+		Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+				.thenReturn(new SynchronizedDoublyLinkedList<>());
+		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
+
+		this.publicIpOrder = createPublicIpOrder();
 	}
 	
 	// test case: When calling the requestInstance method, with a client and an
@@ -75,7 +99,6 @@ public class OpenNebulaPublicIpPluginTest {
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
 
-		PublicIpOrder publicIpOrder = createPublicIpOrder();
 		Mockito.doReturn(FAKE_INSTANCE_NAME).when(this.plugin).getRandomUUID();
 		System.out.println(this.plugin.getRandomUUID());
 
@@ -92,17 +115,15 @@ public class OpenNebulaPublicIpPluginTest {
 		BDDMockito.given(OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(ID_VALUE_ONE),
 				Mockito.eq(publicNetworkUpdateTemplate))).willReturn(STRING_ID_ONE);
 
-		String computeInstanceId = STRING_ID_ONE;
-		publicIpOrder.setComputeId(computeInstanceId);
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(computeInstanceId)))
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(FAKE_SERVER_ID)))
 				.willReturn(virtualMachine);
 
 		String nicTemplate = getNicTemplate();
 		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(virtualMachine.nicAttach(nicTemplate)).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.doReturn(STRING_ID_ONE).when(this.plugin).getContent(Mockito.eq(virtualMachine),
+		Mockito.doReturn(FAKE_SERVER_ID).when(this.plugin).getContent(Mockito.eq(virtualMachine),
 				Mockito.eq(OpenNebulaTagNameConstants.NIC_ID));
 
 		CloudUser cloudUser = createCloudUser();
@@ -124,7 +145,7 @@ public class OpenNebulaPublicIpPluginTest {
 				Mockito.eq(publicNetworkUpdateTemplate));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(computeInstanceId));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(FAKE_SERVER_ID));
 
 		Mockito.verify(this.plugin, Mockito.times(2)).convertToInteger(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.eq(client),
@@ -162,8 +183,11 @@ public class OpenNebulaPublicIpPluginTest {
 		CloudUser cloudUser = createCloudUser();
 		PublicIpInstance expected = createPublicIpInstance();
 
+		PublicIpOrder publicIpOrder = new PublicIpOrder();
+		publicIpOrder.setInstanceId(publicIpInstanceId);
+
 		// exercise
-		PublicIpInstance instance = this.plugin.getInstance(publicIpInstanceId, cloudUser);
+		PublicIpInstance instance = this.plugin.getInstance(publicIpOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -214,11 +238,13 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(response.isError()).thenReturn(false);
 
 		String publicIpInstanceId = FAKE_INSTANCE_ID;
-		String computeInstanceId = STRING_ID_ONE;
 		CloudUser cloudUser = createCloudUser();
 
+		PublicIpOrder publicIpOrder = new PublicIpOrder();
+		publicIpOrder.setInstanceId(publicIpInstanceId);
+
 		// exercise
-		this.plugin.deleteInstance(publicIpInstanceId, cloudUser);
+		this.plugin.deleteInstance(publicIpOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -260,8 +286,11 @@ public class OpenNebulaPublicIpPluginTest {
 		String computeInstanceId = STRING_ID_ONE;
 		CloudUser cloudUser = createCloudUser();
 
+		PublicIpOrder publicIpOrder = new PublicIpOrder();
+		publicIpOrder.setInstanceId(publicIpInstanceId);
+
 		// exercise
-		this.plugin.deleteInstance(publicIpInstanceId, cloudUser);
+		this.plugin.deleteInstance(publicIpOrder, cloudUser);
 	}
 	
 	// test case: When calling the deletePublicNetwork method and not get a
@@ -495,7 +524,7 @@ public class OpenNebulaPublicIpPluginTest {
 	private String getSecurityGroupTemplate() {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
-				"    <NAME>ras-sg-pip-fake-order-id</NAME>\n" + 
+				"    <NAME>fogbow-sg-pip-fake-order-id</NAME>\n" +
 				"    <RULE>\n" + 
 				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
 				"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
@@ -531,7 +560,7 @@ public class OpenNebulaPublicIpPluginTest {
 	private String getPublicNetworkReserveTemplate() {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
 				+ "<TEMPLATE>\n" 
-				+ "    <NAME>ras-public-ip-fake-instance-name</NAME>\n"
+				+ "    <NAME>fogbow-fake-instance-name</NAME>\n"
 				+ "    <SIZE>1</SIZE>\n" 
 				+ "</TEMPLATE>\n";
 		
@@ -552,11 +581,18 @@ public class OpenNebulaPublicIpPluginTest {
 	}
 	
 	private PublicIpOrder createPublicIpOrder() {
-		SystemUser systemUser = null;
-		String requestingMember = null;
-		String providingMember = null;
-		String computeOrderId = FAKE_ORDER_ID;
-		String cloudName = null;
-		return new PublicIpOrder(systemUser, requestingMember, providingMember, cloudName, computeOrderId);
+		String instanceId = FAKE_INSTANCE_ID;
+		SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
+		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setSystemUser(requester);
+		computeOrder.setProvider(FAKE_PROVIDER);
+		computeOrder.setCloudName(DEFAULT_CLOUD);
+		computeOrder.setInstanceId(FAKE_SERVER_ID);
+		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+		PublicIpOrder publicIpOrder = new PublicIpOrder(FAKE_PROVIDER, DEFAULT_CLOUD, computeOrder.getId());
+		publicIpOrder.setInstanceId(instanceId);
+		this.sharedOrderHolders.getActiveOrdersMap().put(publicIpOrder.getId(), publicIpOrder);
+		return publicIpOrder;
 	}
 }

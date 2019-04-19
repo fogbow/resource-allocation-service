@@ -33,7 +33,7 @@ public class RecoveryService extends FogbowDatabaseService<Order> {
 
     public void update(Order order) throws UnexpectedException {
         if (!this.orderRepository.exists(order.getId())) {
-            throw new UnexpectedException(Messages.Exception.INEXISTENT_REQUEST);
+            throw new UnexpectedException(Messages.Exception.NON_EXISTENT_REQUEST);
         }
         safeSave(order, this.orderRepository);
     }

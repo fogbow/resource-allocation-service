@@ -83,7 +83,7 @@ public class OpenNebulaNetworkPluginTest {
 
 		NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
 		networkOrder.setId(FAKE_ORDER_ID);
-		String securityGroupName = NetworkPlugin.SECURITY_GROUP_PREFIX + FAKE_ORDER_ID;
+		String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + FAKE_ORDER_ID;
 		String securityGroupTemplate = getSecurityGroupTemplate(securityGroupName);
 
 		String securityGroupID = ID_VALUE_ONE;
@@ -233,7 +233,7 @@ public class OpenNebulaNetworkPluginTest {
 		String networkName = null;
 		NetworkOrder networkOrder = createNetworkOrder(networkName);
 
-		networkName = OpenNebulaNetworkPlugin.FOGBOW_NETWORK_NAME + FAKE_NETWORK_NAME;
+		networkName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_NETWORK_NAME;
 		String networkReserveTemplate = getNetworkReserveTemplate(networkName);
 		Mockito.doReturn(FAKE_NETWORK_NAME).when(this.plugin).getRandomUUID();
 
@@ -359,8 +359,11 @@ public class OpenNebulaNetworkPluginTest {
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = ID_VALUE_ONE;
 
+		NetworkOrder networkOrder = new NetworkOrder();
+		networkOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.deleteInstance(instanceId, cloudUser);
+		this.plugin.deleteInstance(networkOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -410,8 +413,11 @@ public class OpenNebulaNetworkPluginTest {
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = ID_VALUE_ONE;
 
+		NetworkOrder networkOrder = new NetworkOrder();
+		networkOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.deleteInstance(instanceId, cloudUser);
+		this.plugin.deleteInstance(networkOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -462,8 +468,11 @@ public class OpenNebulaNetworkPluginTest {
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
+		NetworkOrder networkOrder = new NetworkOrder();
+		networkOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.getInstance(instanceId, cloudUser);
+		this.plugin.getInstance(networkOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -589,7 +598,7 @@ public class OpenNebulaNetworkPluginTest {
 	private String getSecurityGroupTemplate(String securityGroupName) {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
 				+ "<TEMPLATE>\n"
-				+ "    <NAME>ras-sg-pn-fake-order-id</NAME>\n"
+				+ "    <NAME>fogbow-sg-pn-fake-order-id</NAME>\n"
 				+ "    <RULE>\n"
 				+ "        <PROTOCOL>ALL</PROTOCOL>\n"
 				+ "        <RULE_TYPE>inbound</RULE_TYPE>\n"

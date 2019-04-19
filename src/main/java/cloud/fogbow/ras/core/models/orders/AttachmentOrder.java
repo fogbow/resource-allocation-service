@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -10,23 +11,13 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "attachment_order_table")
-public class AttachmentOrder extends Order {
+public class AttachmentOrder extends Order<AttachmentOrder> {
     private static final long serialVersionUID = 1L;
 
     private static final String DEVICE_COLUMN_NAME = "device";
 
     @Transient
     private transient final Logger LOGGER = Logger.getLogger(AttachmentOrder.class);
-
-    // this attribute refers to the instance of the computer where the volume will be attached
-    @Size(max = Order.FIELDS_MAX_SIZE)
-    @Column
-    private String computeId;
-
-    // this attribute refers to the volumeId of the volume that will be attached attachment
-    @Size(max = Order.FIELDS_MAX_SIZE)
-    @Column
-    private String volumeId;
 
     // this attribute refers to the mount point of the volume device
     @Size(max = Order.FIELDS_MAX_SIZE)
@@ -69,19 +60,21 @@ public class AttachmentOrder extends Order {
     }
 
     public String getComputeId() {
-        return this.computeId;
-    }
-
-    public void setComputeId(String computeId) {
-        this.computeId = computeId;
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(this.computeOrderId);
+        if (computeOrder == null) {
+            return null;
+        } else {
+            return computeOrder.getInstanceId();
+        }
     }
 
     public String getVolumeId() {
-        return this.volumeId;
-    }
-
-    public void setVolumeId(String volumeId) {
-        this.volumeId = volumeId;
+        VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(this.volumeOrderId);
+        if (volumeOrder == null) {
+            return null;
+        } else {
+            return volumeOrder.getInstanceId();
+        }
     }
 
     public String getDevice() {
@@ -98,7 +91,10 @@ public class AttachmentOrder extends Order {
 
     @Override
     public String getSpec() {
-        // TODO
         return "";
+    }
+
+    @Override
+    public void updateFromRemote(AttachmentOrder remoteOrder) {
     }
 }

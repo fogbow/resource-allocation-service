@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
@@ -60,7 +61,7 @@ public class OpenProcessor implements Runnable {
      * set to FAILED_ON_REQUEST state, else, it is set to the SPAWNING state if the order is local, or the PENDING
      * state if the order is remote.
      */
-    protected void processOpenOrder(Order order) throws UnexpectedException {
+    protected void processOpenOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete an open
         // order while this method is trying to get an Instance for this order.
@@ -73,10 +74,10 @@ public class OpenProcessor implements Runnable {
             try {
                 CloudConnector cloudConnector = CloudConnectorFactory.getInstance().
                         getCloudConnector(order.getProvider(), order.getCloudName());
-                String orderInstanceId = cloudConnector.requestInstance(order);
-                order.setInstanceId(orderInstanceId);
+                String instanceId = cloudConnector.requestInstance(order);
+                order.setInstanceId(instanceId);
                 if (order.isProviderLocal(this.localMemberId)) {
-                    if (orderInstanceId != null) {
+                    if (instanceId != null) {
                         OrderStateTransitioner.transition(order, OrderState.SPAWNING);
                     } else {
                         throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
@@ -85,8 +86,8 @@ public class OpenProcessor implements Runnable {
                     OrderStateTransitioner.transition(order, OrderState.PENDING);
                 }
             } catch (Exception e) {
-                LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST, order), e);
                 OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
+                throw e;
             }
         }
     }

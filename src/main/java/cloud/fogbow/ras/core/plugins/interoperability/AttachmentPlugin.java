@@ -9,7 +9,7 @@ public interface AttachmentPlugin<S extends CloudUser> extends OrderPlugin<Attac
 
     public String requestInstance(AttachmentOrder attachmentOrder, S cloudUser) throws FogbowException;
 
-    public void deleteInstance(String attachmentInstanceId, S cloudUser) throws FogbowException;
+    public void deleteInstance(AttachmentOrder attachmentOrder, S cloudUser) throws FogbowException;
 
-    public AttachmentInstance getInstance(String attachmentInstanceId, S cloudUser) throws FogbowException;
+    public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, S cloudUser) throws FogbowException;
 }

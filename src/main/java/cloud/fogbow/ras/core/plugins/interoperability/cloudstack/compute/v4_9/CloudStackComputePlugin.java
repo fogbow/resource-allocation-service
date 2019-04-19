@@ -79,8 +79,13 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
-        addDefaultNetworkToNetworkIds(computeOrder);
-        String networksId = StringUtils.join(computeOrder.getNetworkIds(), ",");
+        List<String> networks = new ArrayList<>();
+        networks.add(this.defaultNetworkId);
+        List<String> userDefinedNetworks = computeOrder.getNetworkIds();
+        if (!userDefinedNetworks.isEmpty()) {
+            networks.addAll(userDefinedNetworks);
+        }
+        String networksId = StringUtils.join(networks, ",");
 
         String serviceOfferingId = getServiceOfferingId(computeOrder, cloudUser);
         if (serviceOfferingId == null) {
@@ -124,9 +129,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public ComputeInstance getInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
-                .id(computeInstanceId)
+                .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -148,9 +153,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
-                .id(computeInstanceId)
+                .id(order.getInstanceId())
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
 
@@ -159,20 +164,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId), e);
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, order.getInstanceId()), e);
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
-    }
-
-    private void addDefaultNetworkToNetworkIds(ComputeOrder computeOrder) {
-        List<String> requestedNetworksId = new ArrayList<>();
-        requestedNetworksId.add(this.defaultNetworkId);
-        if (!computeOrder.getNetworkIds().isEmpty()) {
-            requestedNetworksId.addAll(computeOrder.getNetworkIds());
-        }
-        computeOrder.setNetworkIds(requestedNetworksId);
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
     private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
@@ -290,7 +286,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         Map<String, String> computeNetworks = new HashMap<>();
         computeNetworks.put(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
         computeInstance.setNetworks(computeNetworks);
-
         return computeInstance;
     }
 

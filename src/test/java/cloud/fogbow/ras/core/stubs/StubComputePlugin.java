@@ -20,12 +20,12 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, CloudUser cloudUser) {
+    public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, CloudUser cloudUser) {
+    public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) {
     }
 
     @Override

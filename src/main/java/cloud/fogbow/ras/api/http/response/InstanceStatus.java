@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.api.http.response;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
@@ -54,7 +54,7 @@ public class InstanceStatus {
         this.state = state;
     }
 
-    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws InstanceNotFoundException {
         switch(orderState) {
             case OPEN:
             case PENDING:
@@ -72,7 +72,7 @@ public class InstanceStatus {
             case CLOSED:
             case DEACTIVATED:
             default:
-                throw new UnexpectedException(String.format(Messages.Exception.INVALID_ORDER_STATE_S, orderState));
+                throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
     }
 

@@ -4,16 +4,20 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
@@ -25,6 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -37,9 +42,8 @@ import java.util.*;
 
 import static org.mockito.Mockito.never;
 
-
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class})
+@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class})
 public class CloudStackComputePluginTest {
 
     public static final String FAKE_ID = "fake-id";
@@ -87,18 +91,30 @@ public class CloudStackComputePluginTest {
     private CloudStackHttpClient client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private Properties properties;
+    private String defaultNetworkId;
+    private SharedOrderHolders sharedOrderHolders;
 
     @Before
     public void setUp() {
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+        this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackComputePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
         this.fakeZoneId = this.properties.getProperty(CloudStackComputePlugin.ZONE_ID_KEY);
+
+        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+
+        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+                .thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
     }
 
     // Test case: when deploying virtual machine, the token should be signed and five HTTP GET requests should be made:
@@ -126,7 +142,7 @@ public class CloudStackComputePluginTest {
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
-        String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
+        String fakeNetworkIdsString = this.defaultNetworkId + "," + FAKE_NETWORK_ID;
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
                 RESPONSE_KEY, JSON);
@@ -197,7 +213,7 @@ public class CloudStackComputePluginTest {
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
-        String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
+        String fakeNetworkIdsString = this.defaultNetworkId + "," + FAKE_NETWORK_ID;
 
         Map<String, String> fakeRequirements = new HashMap<>();
         fakeRequirements.put("tag1", "value1");
@@ -264,7 +280,7 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -297,7 +313,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -379,7 +395,7 @@ public class CloudStackComputePluginTest {
                 .thenReturn(serviceOfferingResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -423,7 +439,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -456,7 +472,7 @@ public class CloudStackComputePluginTest {
         String fakeUserDataString = Base64.getEncoder().encodeToString(
                 fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
 
-        String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
+        String fakeNetworkIdsString = this.defaultNetworkId + "," + FAKE_NETWORK_ID;
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
                 RESPONSE_KEY, JSON);
@@ -490,7 +506,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -526,7 +542,7 @@ public class CloudStackComputePluginTest {
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
-        String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
+        String fakeNetworkIdsString = this.defaultNetworkId + "," + FAKE_NETWORK_ID;
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
                 RESPONSE_KEY, JSON);
@@ -560,7 +576,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(new HttpResponseException(503, "service unavailable"));
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
@@ -609,8 +625,11 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN)).thenReturn(successfulComputeResponse);
         Mockito.when(this.client.doGetRequest(expectedVolumeRequestUrl, FAKE_TOKEN)).thenReturn(successfulVolumeResponse);
 
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setInstanceId(FAKE_ID);
+
         // exercise
-        ComputeInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
+        ComputeInstance retrievedInstance = this.plugin.getInstance(computeOrder, FAKE_TOKEN);
 
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
@@ -660,8 +679,11 @@ public class CloudStackComputePluginTest {
                 .thenThrow(new HttpResponseException(503, "service unavailable")) // http request failed
                 .thenReturn(emptyVolumeResponse); // no volume found with this vm id
 
-        // exercise http request failed
-        ComputeInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setInstanceId(FAKE_ID);
+
+        // exercise
+        ComputeInstance retrievedInstance = this.plugin.getInstance(computeOrder, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
         Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
@@ -671,8 +693,11 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance.getDisk()));
         Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
-        // exercise empty response from volume request
-        ComputeInstance retrievedInstance2 = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
+        ComputeOrder computeOrder2 = new ComputeOrder();
+        computeOrder2.setInstanceId(FAKE_ID);
+
+        // exercise
+        ComputeInstance retrievedInstance2 = this.plugin.getInstance(computeOrder, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance2.getId());
         Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getName());
@@ -705,7 +730,11 @@ public class CloudStackComputePluginTest {
 
         Mockito.when(this.client.doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN)).thenReturn(emptyComputeResponse);
 
-        ComputeInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setInstanceId(FAKE_ID);
+
+        // exercise
+        ComputeInstance retrievedInstance = this.plugin.getInstance(computeOrder, FAKE_TOKEN);
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
     }
@@ -729,8 +758,11 @@ public class CloudStackComputePluginTest {
         // Delete response is unused
         Mockito.when(this.client.doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN)).thenReturn("");
 
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setInstanceId(FAKE_ID);
+
         // exercise
-        this.plugin.deleteInstance(FAKE_ID, FAKE_TOKEN);
+        this.plugin.deleteInstance(computeOrder, FAKE_TOKEN);
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
     }
@@ -754,8 +786,11 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN)).thenThrow(
                 new HttpResponseException(503, "service unavailable"));
 
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setInstanceId(FAKE_ID);
+
         // exercise
-        this.plugin.deleteInstance(FAKE_ID, FAKE_TOKEN);
+        this.plugin.deleteInstance(computeOrder, FAKE_TOKEN);
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
     }

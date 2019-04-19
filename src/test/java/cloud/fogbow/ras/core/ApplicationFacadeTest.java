@@ -752,9 +752,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		NetworkOrder netOrder1 = new NetworkOrder();
 		netOrder1.setSystemUser(systemUser);
 		netOrder1.setRequester(localMemberId);
+		netOrder1.setProvider(localMemberId);
+		netOrder1.setCloudName(DEFAULT_CLOUD_NAME);
+		netOrder1.setInstanceId(FAKE_INSTANCE_ID);
 		NetworkOrder netOrder2 = new NetworkOrder();
 		netOrder2.setSystemUser(systemUser);
 		netOrder2.setRequester(localMemberId);
+		netOrder2.setProvider(localMemberId);
+		netOrder2.setCloudName(DEFAULT_CLOUD_NAME);
+		netOrder2.setInstanceId(FAKE_INSTANCE_ID);
 
 		this.orderController.activateOrder(netOrder1);
 		this.orderController.activateOrder(netOrder2);
@@ -2054,6 +2060,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		computeOrder.setRequester(localMemberId);
 		computeOrder.setProvider(localMemberId);
+		computeOrder.setCloudName(DEFAULT_CLOUD_NAME);
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
 		
@@ -2080,6 +2087,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		computeOrder.setRequester(localMemberId);
 		computeOrder.setProvider(localMemberId);
+		computeOrder.setCloudName(DEFAULT_CLOUD_NAME);
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
 		
@@ -2088,6 +2096,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		volumeOrder.setRequester(localMemberId);
 		volumeOrder.setProvider(localMemberId);
+		volumeOrder.setCloudName(DEFAULT_CLOUD_NAME);
 		VolumeInstance volumeInstance = new VolumeInstance(FAKE_TARGET_ID);
 		volumeOrder.setInstanceId(volumeInstance.getId());
 		
@@ -2139,7 +2148,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		return order;
 	}
 
-	private List<InstanceStatus> generateInstancesStatus(Order order) throws UnexpectedException {
+	private List<InstanceStatus> generateInstancesStatus(Order order) throws InstanceNotFoundException {
 		List<InstanceStatus> instancesExpected = new ArrayList<>();
 		InstanceStatus instanceStatus = new InstanceStatus(
 				order.getId(), 

@@ -97,7 +97,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
     // were added on the lists.
     @Test
-    public void testGetAllInstancesStatus() throws UnexpectedException {
+    public void testGetAllInstancesStatus() throws InstanceNotFoundException {
         // set up
         SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
         );
@@ -433,19 +433,6 @@ public class OrderControllerTest extends BaseUnitTests {
     @Ignore
     @Test(expected = InstanceNotFoundException.class)
     public void testGetOrderWithInvalidInstanceType() throws FogbowException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
-    }
-
-    // test case: Getting order with an invalid systemUser (any systemUser with another ID)
-    // must throw InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetOrderWithInvalidFedUser() throws FogbowException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
 

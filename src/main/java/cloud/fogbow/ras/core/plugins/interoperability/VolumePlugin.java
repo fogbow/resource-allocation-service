@@ -9,7 +9,7 @@ public interface VolumePlugin<S extends CloudUser> extends OrderPlugin<VolumeIns
 
     public String requestInstance(VolumeOrder volumeOrder, S cloudUser) throws FogbowException;
 
-    public VolumeInstance getInstance(String volumeInstanceId, S cloudUser) throws FogbowException;
+    public VolumeInstance getInstance(VolumeOrder volumeOrder, S cloudUser) throws FogbowException;
 
-    public void deleteInstance(String volumeInstanceId, S cloudUser) throws FogbowException;
+    public void deleteInstance(VolumeOrder volumeOrder, S cloudUser) throws FogbowException;
 }

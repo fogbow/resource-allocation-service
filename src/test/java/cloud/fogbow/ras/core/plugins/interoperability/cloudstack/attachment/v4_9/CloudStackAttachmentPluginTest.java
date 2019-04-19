@@ -2,14 +2,19 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -18,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -29,7 +35,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, DetachVolumeResponse.class})
+@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DetachVolumeResponse.class})
 public class CloudStackAttachmentPluginTest {
 
     private static final String JSON_FORMAT = "json";
@@ -43,12 +49,16 @@ public class CloudStackAttachmentPluginTest {
     private static final String ID_FIELD = "&id=%s";
     private static final String JOB_ID_FIELD = "&jobid=%s";
     private static final String VM_ID_FIELD = "&virtualmachineid=%s";
-    private static final String ATTACHMENT_ID_FORMAT = "%s %s";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
-    private static final String FAKE_JOB_ID = "fake-job-id";
     private static final String FAKE_MEMBER = "fake-member";
     private static final String FAKE_VIRTUAL_MACHINE_ID = "fake-virtual-machine-id";
-    private static final String VIRTUAL_MACHINE_ID = "fake-virtual-machine-id";
+
+    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_DEVICE = "/dev/sdd";
+    private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_ID_PROVIDER = "fake-id-provider";
+    private static final String FAKE_PROVIDER = "fake-provider";
+
     private static final String ATTACH_VOLUME_RESPONSE_KEY = "attachvolumeresponse";
     private static final String DETACH_VOLUME_RESPONSE_KEY = "detachvolumeresponse";
     private static final String EMPTY_INSTANCE = "";
@@ -64,6 +74,8 @@ public class CloudStackAttachmentPluginTest {
     private CloudStackHttpClient client;
     private CloudStackUser cloudUser;
     private Properties properties;
+    private SharedOrderHolders sharedOrderHolders;
+    private AttachmentOrder attachmentOrder;
 
     @Before
     public void setUp() {
@@ -75,6 +87,17 @@ public class CloudStackAttachmentPluginTest {
         this.plugin = new CloudStackAttachmentPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.cloudUser =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+
+        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+
+        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+                .thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
+
+        this.attachmentOrder = createAttachmentOrder();
     }
 
     // test case: When calling the requestInstance method a HTTP GET request must be made with a
@@ -98,7 +121,7 @@ public class CloudStackAttachmentPluginTest {
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id, virtualMachineId);
 
         int status = JOB_STATUS_COMPLETE;
-        String jobId = FAKE_JOB_ID;
+        String jobId = FAKE_INSTANCE_ID;
         String attributeKey = ATTACH_VOLUME_RESPONSE_KEY;
         String response = getAttachmentResponse(status, attributeKey, jobId);
 
@@ -106,9 +129,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         // exercise
-        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
-
-        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
+        String volumeId = this.plugin.requestInstance(this.attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -117,8 +138,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
                 Mockito.eq(this.cloudUser));
 
-        String expectedId = String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-        Assert.assertEquals(expectedId, volumeId);
+        Assert.assertEquals(FAKE_INSTANCE_ID, volumeId);
     }
 
     // test case: When calling the requestInstance method with a user without permission, an
@@ -271,9 +291,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         // exercise
-        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
-
-        this.plugin.requestInstance(order, this.cloudUser);
+        this.plugin.requestInstance(this.attachmentOrder, this.cloudUser);
 
         PowerMockito.mockStatic(AttachVolumeResponse.class);
         PowerMockito.when(AttachVolumeResponse.fromJson(response)).thenCallRealMethod();
@@ -288,7 +306,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.verifyStatic(AttachVolumeResponse.class, VerificationModeFactory.times(1));
     }
     
- // test case: When calling the getInstance method for a resource created, an HTTP GET request
+    // test case: When calling the getInstance method for a resource created, an HTTP GET request
     // must be made with a signed cloudUser, which returns a response in the JSON format for the
     // retrieval of the complete AttachmentInstance object.
     @Test
@@ -297,20 +315,19 @@ public class CloudStackAttachmentPluginTest {
 
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito
-                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
-        String jobId = FAKE_JOB_ID;
+        String jobId = FAKE_INSTANCE_ID;
         String jsonFormat = JSON_FORMAT;
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
         int deviceId = DEVICE_ID;
         String id = FAKE_VOLUME_ID;
-        String virtualMachineId = VIRTUAL_MACHINE_ID;
+        String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
         String state = CloudStackStateMapper.READY_STATUS;
 
         int status = JOB_STATUS_COMPLETE;
@@ -320,15 +337,13 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         // exercise
-        String attachmentInstanceId = String.format(ATTACHMENT_ID_FORMAT, id, jobId);
-        AttachmentInstance recoveredInstance =
-                this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+        AttachmentInstance recoveredInstance = this.plugin.getInstance(attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-        Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
+        Assert.assertEquals(jobId, recoveredInstance.getId());
         String device = String.valueOf(deviceId);
         Assert.assertEquals(device, recoveredInstance.getDevice());
         Assert.assertEquals(virtualMachineId, String.valueOf(recoveredInstance.getComputeId()));
@@ -354,7 +369,7 @@ public class CloudStackAttachmentPluginTest {
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
-        String jobId = FAKE_JOB_ID;
+        String jobId = FAKE_INSTANCE_ID;
         String jsonFormat = JSON_FORMAT;
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
@@ -365,17 +380,14 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         // exercise
-        String attachmentInstanceId =
-                String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-        AttachmentInstance recoveredInstance =
-                this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+        AttachmentInstance recoveredInstance = this.plugin.getInstance(attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Assert.assertEquals(CloudStackStateMapper.PENDING_STATUS, recoveredInstance.getCloudState());
-        Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
+        Assert.assertEquals(FAKE_INSTANCE_ID, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());
         Assert.assertNull(recoveredInstance.getComputeId());
         Assert.assertNull(recoveredInstance.getVolumeId());
@@ -399,7 +411,7 @@ public class CloudStackAttachmentPluginTest {
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
-        String jobId = FAKE_JOB_ID;
+        String jobId = FAKE_INSTANCE_ID;
         String jsonFormat = JSON_FORMAT;
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
@@ -410,17 +422,14 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
 
         // exercise
-        String attachmentInstanceId =
-                String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-        AttachmentInstance recoveredInstance =
-                this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+        AttachmentInstance recoveredInstance = this.plugin.getInstance(attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, recoveredInstance.getCloudState());
-        Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
+        Assert.assertEquals(FAKE_INSTANCE_ID, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());
         Assert.assertNull(recoveredInstance.getComputeId());
         Assert.assertNull(recoveredInstance.getVolumeId());
@@ -446,9 +455,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            String attachmentInstanceId =
-                    String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-            this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+            this.plugin.getInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -477,10 +484,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            String attachmentInstanceId =
-                    String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-
-            this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+            this.plugin.getInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -509,9 +513,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            String attachmentInstanceId =
-                    String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-            this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+            this.plugin.getInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -540,9 +542,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            String attachmentInstanceId =
-                    String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-            this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+            this.plugin.getInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -568,7 +568,7 @@ public class CloudStackAttachmentPluginTest {
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
-        String jobId = FAKE_JOB_ID;
+        String jobId = FAKE_INSTANCE_ID;
         String jsonFormat = JSON_FORMAT;
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
@@ -580,9 +580,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.when(DetachVolumeResponse.fromJson(response)).thenCallRealMethod();
 
         // exercise
-        String attachmentInstanceId =
-                String.format(ATTACHMENT_ID_FORMAT, FAKE_VOLUME_ID, FAKE_JOB_ID);
-        this.plugin.getInstance(attachmentInstanceId, this.cloudUser);
+        this.plugin.getInstance(attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -612,7 +610,7 @@ public class CloudStackAttachmentPluginTest {
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         int status = JOB_STATUS_COMPLETE;
-        String jobId = FAKE_JOB_ID;
+        String jobId = FAKE_INSTANCE_ID;
         String attributeKey = DETACH_VOLUME_RESPONSE_KEY;
         String response = getAttachmentResponse(status, attributeKey, jobId);
 
@@ -622,7 +620,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.when(DetachVolumeResponse.fromJson(response)).thenCallRealMethod();
 
         // exercise
-        this.plugin.deleteInstance(FAKE_VOLUME_ID, this.cloudUser);
+        this.plugin.deleteInstance(attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -652,7 +650,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_VOLUME_ID, this.cloudUser);
+            this.plugin.deleteInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -681,7 +679,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_VOLUME_ID, this.cloudUser);
+            this.plugin.deleteInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -710,7 +708,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_VOLUME_ID, this.cloudUser);
+            this.plugin.deleteInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -739,7 +737,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            this.plugin.deleteInstance(FAKE_VOLUME_ID, this.cloudUser);
+            this.plugin.deleteInstance(attachmentOrder, this.cloudUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -778,7 +776,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.when(DetachVolumeResponse.fromJson(response)).thenCallRealMethod();
 
         // exercise
-        this.plugin.deleteInstance(FAKE_VOLUME_ID, this.cloudUser);
+        this.plugin.deleteInstance(attachmentOrder, this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -827,4 +825,26 @@ public class CloudStackAttachmentPluginTest {
         return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
+    private AttachmentOrder createAttachmentOrder() {
+        String instanceId = FAKE_INSTANCE_ID;
+        SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
+        ComputeOrder computeOrder = new ComputeOrder();
+        VolumeOrder volumeOrder = new VolumeOrder();
+        computeOrder.setSystemUser(requester);
+        computeOrder.setProvider(FAKE_PROVIDER);
+        computeOrder.setCloudName(CLOUD_NAME);
+        computeOrder.setInstanceId(FAKE_VIRTUAL_MACHINE_ID);
+        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        volumeOrder.setSystemUser(requester);
+        volumeOrder.setProvider(FAKE_PROVIDER);
+        volumeOrder.setCloudName(CLOUD_NAME);
+        volumeOrder.setInstanceId(FAKE_VOLUME_ID);
+        volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+        this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
+        AttachmentOrder attachmentOrder = new AttachmentOrder(FAKE_PROVIDER, CLOUD_NAME, computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
+        attachmentOrder.setInstanceId(instanceId);
+        this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
+        return attachmentOrder;
+    }
 }

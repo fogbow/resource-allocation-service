@@ -20,11 +20,11 @@ public class StubPublicIpPlugin implements PublicIpPlugin<CloudUser> {
     }
 
     @Override
-    public void deleteInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
+    public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
     }
 
     @Override
-    public PublicIpInstance getInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
+    public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
         return null;
     }
 

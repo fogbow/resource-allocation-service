@@ -19,7 +19,7 @@ import java.util.Map;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-public abstract class Order implements Serializable {
+public abstract class Order<T extends Order> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected static final String REQUESTER_COLUMN_NAME = "requester";
@@ -109,15 +109,15 @@ public abstract class Order implements Serializable {
         this.id = id;
     }
 
-    public synchronized OrderState getOrderState() {
+    public OrderState getOrderState() {
         return this.orderState;
     }
 
-    public synchronized void setOrderStateInTestMode(OrderState state) {
+    public void setOrderStateInTestMode(OrderState state) {
         this.orderState = state;
     }
 
-    public synchronized void setOrderState(OrderState state) throws UnexpectedException {
+    public void setOrderState(OrderState state) throws UnexpectedException {
         this.orderState = state;
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         if (state.equals(OrderState.OPEN)) {
@@ -166,7 +166,7 @@ public abstract class Order implements Serializable {
         return this.instanceId;
     }
 
-    public synchronized void setInstanceId(String instanceId) {
+    public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
     }
 
@@ -265,4 +265,6 @@ public abstract class Order implements Serializable {
     }
 
     public abstract String getSpec();
+
+    public abstract void updateFromRemote(T remoteOrder);
 }

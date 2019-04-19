@@ -10,15 +10,17 @@ import java.util.Map;
 import java.util.TreeSet;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -49,8 +51,12 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class, VirtualMachine.class})
+@PrepareForTest({SharedOrderHolders.class, OpenNebulaClientUtil.class, VirtualMachine.class})
 public class OpenNebulaComputePluginTest {
+	private static final String FAKE_USER_ID = "fake-user-id";
+	private static final String FAKE_NAME = "fake-name";
+	private static final String FAKE_ID_PROVIDER = "fake-id-provider";
+	private static final String FAKE_PROVIDER = "fake-provider";
 
 	private static final String ANOTHER_FAKE_NAME = "another-fake-name";
 	private static final String DECIMAL_STRING_VALUE = "0.1";
@@ -60,7 +66,6 @@ public class OpenNebulaComputePluginTest {
 	private static final String FAKE_IMAGE = "fake-image";
 	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_NAME = "fake-name";
 	private static final String FAKE_PRIVATE_NETWORK_ID = "fake-private-network-id";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 	private static final String FAKE_TAG = "fake-tag";
@@ -99,19 +104,29 @@ public class OpenNebulaComputePluginTest {
 	private static final int DISK_VALUE_8GB = 8192;
 	private static final int ZERO_VALUE = 0;
 	private static final int DEFAULT_NETWORK_ID = ZERO_VALUE;
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
+	private static final String CLOUD_NAME = "opennebula";
 
 	private OpenNebulaComputePlugin plugin;
 	private TreeSet<HardwareRequirements> flavors;
+	private SharedOrderHolders sharedOrderHolders;
 
 	@Before
 	public void setUp() {
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
+				+ File.separator + CLOUD_NAME + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
 		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(opennebulaConfFilePath));
 		this.flavors = Mockito.spy(new TreeSet<>());
+
+		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+
+		PowerMockito.mockStatic(SharedOrderHolders.class);
+		BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+
+		Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+				.thenReturn(new SynchronizedDoublyLinkedList<>());
+		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
 	}
 
 	// test case: When calling the updateHardwareRequirements method with a set of
@@ -857,8 +872,11 @@ public class OpenNebulaComputePluginTest {
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
+		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.getInstance(instanceId, cloudUser);
+		this.plugin.getInstance(computeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -891,8 +909,11 @@ public class OpenNebulaComputePluginTest {
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
+		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.deleteInstance(instanceId, cloudUser);
+		this.plugin.deleteInstance(computeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -926,8 +947,11 @@ public class OpenNebulaComputePluginTest {
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
 
+		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.deleteInstance(instanceId, cloudUser);
+		this.plugin.deleteInstance(computeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -997,11 +1021,16 @@ public class OpenNebulaComputePluginTest {
 	}
 
 	private List<String> listNetworkIds() {
-		String defaultNetwork = PropertiesHolder.getInstance().getProperty(OpenNebulaComputePlugin.DEFAULT_NETWORK_ID_KEY);
-		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
+		NetworkOrder networkOrder = new NetworkOrder();
+		SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
+		networkOrder.setSystemUser(requester);
+		networkOrder.setProvider(FAKE_PROVIDER);
+		networkOrder.setCloudName(CLOUD_NAME);
+		networkOrder.setInstanceId(FAKE_PRIVATE_NETWORK_ID);
+		networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
 		List<String> networksId = new ArrayList<>();
-		networksId.add(defaultNetwork);
-		networksId.add(privateNetworkId);
+		networksId.add(networkOrder.getId());
 		return networksId;
 	}
 	

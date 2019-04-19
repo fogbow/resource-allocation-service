@@ -6,6 +6,8 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -13,9 +15,7 @@ import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -94,9 +94,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public NetworkInstance getInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         GetNetworkRequest request = new GetNetworkRequest.Builder()
-                .id(networkInstanceId)
+                .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -120,9 +120,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
-                .id(networkInstanceId)
+                .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());

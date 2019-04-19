@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
@@ -98,14 +99,18 @@ public class UnableToCheckStatusProcessor implements Runnable {
                 localCloudConnector.switchOffAuditing();
 
                 instance = localCloudConnector.getInstance(order);
-            } catch (UnavailableProviderException e) {
-                LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
-                return;
-            }
-            if (instance.isReady()) {
-                OrderStateTransitioner.transition(order, OrderState.FULFILLED);
-            } else if (instance.hasFailed()) {
+                if (instance.isReady()) {
+                    OrderStateTransitioner.transition(order, OrderState.FULFILLED);
+                } else if (instance.hasFailed()) {
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                }
+            } catch (UnavailableProviderException e1) {
+                LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e1);
+                throw e1;
+            } catch (InstanceNotFoundException e2) {
+                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                return;
             }
         }
 	}

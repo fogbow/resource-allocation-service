@@ -21,7 +21,7 @@ public interface ComputePlugin<S extends CloudUser> extends OrderPlugin<ComputeI
      */
     public String requestInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 
-    public ComputeInstance getInstance(String computeInstanceId, S cloudUser) throws FogbowException;
+    public ComputeInstance getInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 
-    public void deleteInstance(String computeInstanceId, S cloudUser) throws FogbowException;
+    public void deleteInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 }

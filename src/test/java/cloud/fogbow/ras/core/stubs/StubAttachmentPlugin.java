@@ -20,11 +20,11 @@ public class StubAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     }
 
     @Override
-    public void deleteInstance(String attachmentInstanceId, CloudUser cloudUser) {
+    public void deleteInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) {
     }
 
     @Override
-    public AttachmentInstance getInstance(String attachmentInstanceId, CloudUser cloudUser) {
+    public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) {
         return null;
     }
 

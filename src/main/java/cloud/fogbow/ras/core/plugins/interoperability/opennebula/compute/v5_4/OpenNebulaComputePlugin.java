@@ -93,8 +93,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
 		String architecture = DEFAULT_ARCHITECTURE;
-		addDefaultNetworkToNetworkIds(computeOrder);
-		List<String> networks = computeOrder.getNetworkIds();
+
+		List<String> networks = new ArrayList<>();
+		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		networks.add(defaultNetworkId);
+		List<String> userDefinedNetworks = computeOrder.getNetworkIds();
+		if (!userDefinedNetworks.isEmpty()) {
+			networks.addAll(userDefinedNetworks);
+		}
 
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
 		String cpu = String.valueOf(foundFlavor.getCpu());
@@ -135,35 +141,25 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	@Override
-	public ComputeInstance getInstance(String computeInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeInstanceId, cloudUser.getToken()));
+	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		return getComputeInstance(virtualMachine);
 	}
 
 	@Override
-	public void deleteInstance(String computeInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
+	public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-			LOGGER.error(
-					String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeInstanceId, response.getMessage()));
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
+					response.getMessage()));
 		}
 	}
 
-	protected void addDefaultNetworkToNetworkIds(ComputeOrder computeOrder) {
-		List<String> requestedNetworkIds = new ArrayList<>();
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-		requestedNetworkIds.add(defaultNetworkId);
-		if (!computeOrder.getNetworkIds().isEmpty()) {
-			requestedNetworkIds.addAll(computeOrder.getNetworkIds());
-		}
-		computeOrder.setNetworkIds(requestedNetworkIds);
-	}
-	
 	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, CloudUser token)
 			throws NoAvailableResourcesException, UnexpectedException {
 
@@ -274,8 +270,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		// The default network is always included in the order by the OpenNebula plugin, thus it should be added
 		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
 		// are appended by the LocalCloudConnector.
-		Map<String, String> computeNetworks = new HashMap<>();
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		Map<String, String> computeNetworks = new HashMap<>();
 		computeNetworks.put(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
 		computeInstance.setNetworks(computeNetworks);
 		return computeInstance;

@@ -1,12 +1,11 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.apache.log4j.Logger;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -14,7 +13,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "compute_order_table")
-public class ComputeOrder extends Order {
+public class ComputeOrder extends Order<ComputeOrder> {
     private static final long serialVersionUID = 1L;
 
     private static final String NAME_COLUMN_NAME = "name";
@@ -55,21 +54,9 @@ public class ComputeOrder extends Order {
     @Embedded
     private ComputeAllocation actualAllocation;
 
-    // this attribute refers to the list of networkIds to be attached to the compute
     @Column
     @ElementCollection
-    @LazyCollection(LazyCollectionOption.FALSE)
-    private List<String> networkIds;
-
-    /**
-     * Using FetchType.EAGER in both networkIds and networkOrderIds didn't work;
-     * @LazyCollection(LazyCollectionOption.FALSE) is a workaround.
-     */
-    @Column
-    @ElementCollection
-    @LazyCollection(LazyCollectionOption.FALSE)
     private List<String> networkOrderIds;
-
 
     public ComputeOrder() {
         this(UUID.randomUUID().toString());
@@ -161,14 +148,26 @@ public class ComputeOrder extends Order {
     }
 
     public List<String> getNetworkIds() {
-        if (networkIds == null) {
-            return Collections.unmodifiableList(new ArrayList<>());
+        List<String> networkIds = new LinkedList<String>();
+        List<NetworkOrder> networkOrders = getNetworkOrders(this.getNetworkOrderIds());
+
+        for (NetworkOrder order : networkOrders) {
+            if (order != null) {
+                String instanceId = order.getInstanceId();
+                networkIds.add(instanceId);
+            }
         }
-        return Collections.unmodifiableList(this.networkIds);
+        return Collections.unmodifiableList(networkIds);
     }
 
-    public void setNetworkIds(List<String> networkIds) {
-        this.networkIds = networkIds;
+    private List<NetworkOrder> getNetworkOrders(List<String> networkOrderIds) {
+        List<NetworkOrder> networkOrders = new LinkedList<>();
+
+        for (String orderId : networkOrderIds) {
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+            networkOrders.add((NetworkOrder) networkOrder);
+        }
+        return networkOrders;
     }
 
     public List<String> getNetworkOrderIds() {
@@ -184,5 +183,10 @@ public class ComputeOrder extends Order {
             return "";
         }
         return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
+    }
+
+    @Override
+    public void updateFromRemote(ComputeOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 }

@@ -151,8 +151,11 @@ public class OpenStackVolumePluginTest {
         Mockito.doReturn(FAKE_VOLUME_JSON).when(
                 this.client).doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
+        VolumeOrder volumeOrder = new VolumeOrder();
+        volumeOrder.setInstanceId(FAKE_INSTANCE_ID);
+
         // exercise
-        VolumeInstance volumeInstance = this.openStackVolumePlugin.getInstance(FAKE_INSTANCE_ID,
+        VolumeInstance volumeInstance = this.openStackVolumePlugin.getInstance(volumeOrder,
                 this.openStackV3Token);
 
         // verify
@@ -168,8 +171,11 @@ public class OpenStackVolumePluginTest {
         Mockito.doNothing().when(this.client).doDeleteRequest(Mockito.anyString(),
                 Mockito.any(OpenStackV3User.class));
 
+        VolumeOrder volumeOrder = new VolumeOrder();
+        volumeOrder.setInstanceId(FAKE_INSTANCE_ID);
+
         // exercise
-        this.openStackVolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
+        this.openStackVolumePlugin.deleteInstance(volumeOrder, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.client).doDeleteRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
@@ -181,8 +187,11 @@ public class OpenStackVolumePluginTest {
         // set up
         this.openStackV3Token.setProjectId(null);
 
+        VolumeOrder volumeOrder = new VolumeOrder();
+        volumeOrder.setInstanceId(FAKE_INSTANCE_ID);
+
         // exercise
-        this.openStackVolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
+        this.openStackVolumePlugin.deleteInstance(volumeOrder, this.openStackV3Token);
     }
 
     @Test

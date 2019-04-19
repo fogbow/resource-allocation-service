@@ -134,33 +134,18 @@ public class RemoteFacade {
         // actualOrder is the java object that represents this order inside this server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
         if (localOrder != null) {
-            if (!localOrder.getProvider().equals(signallingMember)) {
-                throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
-                        signallingMember, localOrder.getProvider()));
+            synchronized (localOrder) {
+                if (!localOrder.getProvider().equals(signallingMember)) {
+                    throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
+                            signallingMember, localOrder.getProvider()));
+                }
+                localOrder.updateFromRemote(remoteOrder);
+                OrderStateTransitioner.transition(localOrder, newState);
             }
-            updateLocalOrder(localOrder, remoteOrder, newState);
-            OrderStateTransitioner.transition(localOrder, newState);
         } else {
             // The order no longer exists locally. This should never happen.
             LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrder.getId(), signallingMember));
             return;
-        }
-    }
-
-    private void updateLocalOrder(Order localOrder, Order remoteOrder, OrderState orderState) {
-        synchronized (localOrder) {
-            if (localOrder.getOrderState() == OrderState.CLOSED) {
-                // The order has been deleted or already updated
-                return;
-            }
-            // The Order fields that have been changed remotely, need to be copied to the local Order.
-            // Check the several cloud plugins to see which fields are changed.
-            // The exception is the instanceId, which is only required at the providing member side.
-            if (localOrder.getType().equals(ResourceType.COMPUTE)) {
-                ComputeOrder localCompute = (ComputeOrder) localOrder;
-                ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
-                localCompute.setActualAllocation(remoteCompute.getActualAllocation());
-            }
         }
     }
 
@@ -182,11 +167,11 @@ public class RemoteFacade {
 
     private void checkOrderConsistency(String requestingMember, Order order) throws InstanceNotFoundException,
             InvalidParameterException {
+        if (order == null || !order.getProvider().equals(this.localMemberId)) {
+            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
+        }
         if (!order.getRequester().equals(requestingMember)) {
             throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_MEMBER);
-        }
-        if (!order.getProvider().equals(this.localMemberId)) {
-            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
         }
     }
 

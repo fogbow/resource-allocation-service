@@ -20,12 +20,12 @@ public class StubNetworkPlugin implements NetworkPlugin<CloudUser> {
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, CloudUser cloudUser) {
+    public NetworkInstance getInstance(NetworkOrder networkOrder, CloudUser cloudUser) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, CloudUser cloudUser) {
+    public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) {
     }
 
     @Override

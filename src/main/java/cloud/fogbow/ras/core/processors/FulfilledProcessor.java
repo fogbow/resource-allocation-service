@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
@@ -73,9 +74,7 @@ public class FulfilledProcessor implements Runnable {
      * @param order {@link Order}
      */
     protected void processFulfilledOrder(Order order) throws FogbowException {
-
         Instance instance = null;
-        InstanceState instanceState = null;
 
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete a fulfilled
@@ -100,15 +99,16 @@ public class FulfilledProcessor implements Runnable {
                 localCloudConnector.switchOffAuditing();
 
                 instance = localCloudConnector.getInstance(order);
-            } catch (UnavailableProviderException e) {
-                LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
+                if (instance.hasFailed()) {
+                    LOGGER.info(String.format(Messages.Info.INSTANCE_HAS_FAILED, order.getId()));
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                }
+            } catch (UnavailableProviderException e1) {
                 OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
-                return;
-            }
-            if (instance.hasFailed()) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_HAS_FAILED, order.getId()));
+                throw e1;
+            } catch (InstanceNotFoundException e2) {
+                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
-                return;
             }
         }
     }

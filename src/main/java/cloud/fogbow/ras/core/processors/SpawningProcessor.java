@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
@@ -84,15 +85,17 @@ public class SpawningProcessor implements Runnable {
 
             try {
                 Instance instance = localCloudConnector.getInstance(order);
-
                 if (instance.hasFailed()) {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 } else if (instance.isReady()) {
                     OrderStateTransitioner.transition(order, OrderState.FULFILLED);
                 }
-            } catch (UnavailableProviderException e) {
+            } catch (UnavailableProviderException e1) {
                 OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
-                throw e;
+                throw e1;
+            } catch (InstanceNotFoundException e2) {
+                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
+                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
     }

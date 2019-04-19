@@ -78,6 +78,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		Order order = new ComputeOrder();
 		order.setRequester(FAKE_LOCAL_IDENTITY_MEMBER);
+		order.setProvider(FAKE_LOCAL_IDENTITY_MEMBER);
 
 		// exercise
 		this.facade.activateOrder(FAKE_REQUESTING_MEMBER_ID, order);

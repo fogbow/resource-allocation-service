@@ -20,12 +20,12 @@ public class StubVolumePlugin implements VolumePlugin<CloudUser> {
     }
 
     @Override
-    public VolumeInstance getInstance(String volumeInstanceId, CloudUser cloudUser) {
+    public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String volumeInstanceId, CloudUser cloudUser) {
+    public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) {
     }
 
     @Override

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -13,16 +14,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "public_ip_order_table")
-public class PublicIpOrder extends Order {
+public class PublicIpOrder extends Order<PublicIpOrder> {
     private static final long serialVersionUID = 1L;
 
     @Transient
     private transient static final Logger LOGGER = Logger.getLogger(PublicIpOrder.class);
-
-    // this attribute refers to the instance of the computer where the public IP will be attached
-    @Size(max = Order.ID_FIXED_SIZE)
-    @Column
-    private String computeId;
 
     @Size(max = Order.ID_FIXED_SIZE)
     @Column
@@ -51,11 +47,16 @@ public class PublicIpOrder extends Order {
     }
 
     public String getComputeId() {
-        return computeId;
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(this.computeOrderId);
+        if (computeOrder == null) {
+            return null;
+        } else {
+            return computeOrder.getInstanceId();
+        }
     }
 
-    public void setComputeId(String computeId) {
-        this.computeId = computeId;
+    public void setComputeOrderId(String computeOrderId) {
+        this.computeOrderId = computeOrderId;
     }
 
     public String getComputeOrderId() {
@@ -65,5 +66,9 @@ public class PublicIpOrder extends Order {
     @Override
     public String getSpec() {
         return "";
+    }
+
+    @Override
+    public void updateFromRemote(PublicIpOrder remoteOrder) {
     }
 }

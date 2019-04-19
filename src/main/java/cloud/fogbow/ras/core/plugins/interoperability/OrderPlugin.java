@@ -8,9 +8,9 @@ import cloud.fogbow.ras.core.models.orders.Order;
 public interface OrderPlugin<R extends Instance, T extends Order, S extends CloudUser> {
     public String requestInstance(T Order, S cloudUser) throws FogbowException;
 
-    public void deleteInstance(String instanceId, S cloudUser) throws FogbowException;
+    public void deleteInstance(T Order, S cloudUser) throws FogbowException;
 
-    public R getInstance(String instanceId, S cloudUser) throws FogbowException;
+    public R getInstance(T Order, S cloudUser) throws FogbowException;
 
     public boolean isReady(String instanceState);
 

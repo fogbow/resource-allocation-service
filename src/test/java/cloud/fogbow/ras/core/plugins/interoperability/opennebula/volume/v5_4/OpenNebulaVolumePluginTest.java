@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 import java.io.File;
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -170,9 +171,12 @@ public class OpenNebulaVolumePluginTest {
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = STRING_VALUE_ONE;
+
+		VolumeOrder volumeOrder = new VolumeOrder();
+		volumeOrder.setInstanceId(instanceId);
 		
 		// exercise
-		this.plugin.getInstance(instanceId, cloudUser);
+		this.plugin.getInstance(volumeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -209,9 +213,12 @@ public class OpenNebulaVolumePluginTest {
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = STRING_VALUE_ONE;
-		
+
+		VolumeOrder volumeOrder = new VolumeOrder();
+		volumeOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.deleteInstance(instanceId, cloudUser);
+		this.plugin.deleteInstance(volumeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -246,9 +253,12 @@ public class OpenNebulaVolumePluginTest {
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = STRING_VALUE_ONE;
-		
+
+		VolumeOrder volumeOrder = new VolumeOrder();
+		volumeOrder.setInstanceId(instanceId);
+
 		// exercise
-		this.plugin.deleteInstance(instanceId, cloudUser);
+		this.plugin.deleteInstance(volumeOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -284,7 +294,7 @@ public class OpenNebulaVolumePluginTest {
 				+ "    <FSTYPE>raw</FSTYPE>\n"
 				+ "    <PERSISTENT>YES</PERSISTENT>\n"
 				+ "    <TYPE>DATABLOCK</TYPE>\n"
-				+ "    <NAME>ras-volume-fake-volume-name</NAME>\n"
+				+ "    <NAME>fogbow-fake-volume-name</NAME>\n"
 				+ "    <SIZE>1</SIZE>\n"
 				+ "</IMAGE>\n";
 		return template;
