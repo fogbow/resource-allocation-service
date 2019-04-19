@@ -427,7 +427,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrderWithInvalidId() throws InstanceNotFoundException {
         this.ordersController.getOrder("invalid-order-id");
     }
-    
+
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException, UnexpectedException {
         SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider");
 
