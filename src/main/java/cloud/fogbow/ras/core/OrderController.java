@@ -97,6 +97,7 @@ public class OrderController {
     }
 
     public void deleteOrder(Order order) throws FogbowException {
+        LOGGER.info("Received delete request at :" + this.localMemberId + " for: " + order.toString());
         if (order == null)
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
 
@@ -128,12 +129,9 @@ public class OrderController {
                     LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
                     throw e;
                 }
-                // Only the member that is providing the order should update the order's state. Thus, when the
-                // provider is remote, the remote order is updated here, while the local order  state is updated
-                // when the remote provider sends a message to the local member.
-                if (order.isProviderLocal(this.localMemberId)) {
-                    OrderStateTransitioner.transition(order, OrderState.CLOSED);
-                }
+                // When the provider is remote, both local and remote members call this code and move their
+                // respective orders to CLOSED.
+                OrderStateTransitioner.transition(order, OrderState.CLOSED);
                 // Remove any references that related dependencies of other orders with the order that has
                 // just been deleted. Only the member that is receiving the delete request through its
                 // REST API needs to update order dependencies.
@@ -386,12 +384,12 @@ public class OrderController {
 
     private Map<String, String> mapNetworkOrderIdsFromInstanceNetworks(Map<String, String> networks, ComputeOrder order) {
         Map<String, String> mappedNetworks = new HashMap<>();
-
-        List<String> networkIds = order.getNetworkIds();
-        for (String networkId : networks.keySet()) {
-            if (!networkIds.contains(networkId)) {
-                mappedNetworks.put(networkId, networks.get(networkId));
-            }
+        Set<String> networkIds = networks.keySet();
+        for (String networkId : networkIds) {
+            mappedNetworks.put(networkId, networks.get(networkId));
+        }
+        for (NetworkOrder networkOrder : order.getNetworkOrders()) {
+            mappedNetworks.put(networkOrder.getId(), networkOrder.getName());
         }
         return mappedNetworks;
     }

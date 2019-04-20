@@ -149,7 +149,7 @@ public class ComputeOrder extends Order<ComputeOrder> {
 
     public List<String> getNetworkIds() {
         List<String> networkIds = new LinkedList<String>();
-        List<NetworkOrder> networkOrders = getNetworkOrders(this.getNetworkOrderIds());
+        List<NetworkOrder> networkOrders = getNetworkOrders();
 
         for (NetworkOrder order : networkOrders) {
             if (order != null) {
@@ -160,10 +160,10 @@ public class ComputeOrder extends Order<ComputeOrder> {
         return Collections.unmodifiableList(networkIds);
     }
 
-    private List<NetworkOrder> getNetworkOrders(List<String> networkOrderIds) {
+    public List<NetworkOrder> getNetworkOrders() {
         List<NetworkOrder> networkOrders = new LinkedList<>();
 
-        for (String orderId : networkOrderIds) {
+        for (String orderId : this.networkOrderIds) {
             Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
             networkOrders.add((NetworkOrder) networkOrder);
         }

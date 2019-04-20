@@ -35,7 +35,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
 public class ApplicationFacade {
-    private static final String COULD_NOT_RETRIEVE_IMAGE_NAME = "could not retrieve image name";
     private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
 
     private static ApplicationFacade instance;
@@ -390,8 +389,7 @@ public class ApplicationFacade {
         checkConsistencyOfEmbeddedOrder(publicIpOrder, computeOrder);
     }
 
-    private void checkConsistencyOfEmbeddedOrder(Order mainOrder, Order embeddedOrder)
-            throws InvalidParameterException {
+    private void checkConsistencyOfEmbeddedOrder(Order mainOrder, Order embeddedOrder) throws InvalidParameterException {
         if (embeddedOrder == null) {
             throw new InvalidParameterException(String.format(Messages.Exception.INVALID_RESOURCE_S, embeddedOrder.getId()));
         }
@@ -404,8 +402,7 @@ public class ApplicationFacade {
         if (!mainOrder.getCloudName().equals(embeddedOrder.getCloudName())) {
             throw new InvalidParameterException(Messages.Exception.CLOUD_NAMES_DONT_MATCH);
         }
-        String instanceId = embeddedOrder.getInstanceId();
-        if (instanceId == null) {
+        if (embeddedOrder.getProvider().equals(this.memberId) && embeddedOrder.getInstanceId() == null) {
             throw new InvalidParameterException(String.format(Messages.Exception.INSTANCE_NULL_S, embeddedOrder.getId()));
         }
     }

@@ -130,8 +130,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser));
-
         String projectId = getProjectId(cloudUser);
         String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
 
@@ -155,7 +153,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser));
         String endpoint = getComputeEndpoint(getProjectId(cloudUser), SERVERS + "/" + computeOrder.getInstanceId());
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);

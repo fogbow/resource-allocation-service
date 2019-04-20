@@ -118,7 +118,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		} else {
 			diskImageId = computeOrder.getImageId();
 		}
-		
+
+		// ToDo: check if there is a way to define a name for the VM
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
 				.contextEncoding(encoding)
 				.contextUserdata(userData)

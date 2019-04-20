@@ -16,9 +16,12 @@ public class OrderStateTransitioner {
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
         synchronized (order) {
-            if (order.isRequesterRemote(localMemberId)) {
+            if (order.isRequesterRemote(localMemberId) && !newState.equals(OrderState.CLOSED)) {
                 try {
-                    notifyRequester(order, order.getOrderState());
+                    // The delete request issued by the remote requesting member that sent the local order to CLOSE
+                    // is a synchronous event, thus it does not require an asynchronous notification to be sent to
+                    // the remote requesting member.
+                    notifyRequester(order, newState);
                 } catch (Exception e) {
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequester(), order.getId());
                     LOGGER.warn(message, e);
