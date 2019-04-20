@@ -161,13 +161,14 @@ public class ComputeOrder extends Order<ComputeOrder> {
     }
 
     public List<NetworkOrder> getNetworkOrders() {
-        List<NetworkOrder> networkOrders = new LinkedList<>();
+        if (this.networkOrderIds == null) return Collections.unmodifiableList(new LinkedList<>());
 
+        List<NetworkOrder> networkOrders = new LinkedList<>();
         for (String orderId : this.networkOrderIds) {
             Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
             networkOrders.add((NetworkOrder) networkOrder);
         }
-        return networkOrders;
+        return Collections.unmodifiableList(networkOrders);
     }
 
     public List<String> getNetworkOrderIds() {

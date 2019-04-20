@@ -97,7 +97,6 @@ public class OrderController {
     }
 
     public void deleteOrder(Order order) throws FogbowException {
-        LOGGER.info("Received delete request at :" + this.localMemberId + " for: " + order.toString());
         if (order == null)
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
 
@@ -350,7 +349,7 @@ public class OrderController {
         // Remember that the instance ids seen by the user are really order ids, thus, when an order embeds other
         // orders, the instance that is returned needs to display order ids for these embedded orders, and not the
         // corresponding instance ids.
-        Map<String, String> mappedNetworks = mapNetworkOrderIdsFromInstanceNetworks(instanceNetworks, order);
+        Map<String, String> mappedNetworks = addPrivateNetworksToMap(instanceNetworks, order);
         instance.setNetworks(mappedNetworks);
         instance.setPublicKey(publicKey);
         instance.setUserData(userData);
@@ -382,13 +381,14 @@ public class OrderController {
         instance.setComputeId(computeInstanceId);
     }
 
-    private Map<String, String> mapNetworkOrderIdsFromInstanceNetworks(Map<String, String> networks, ComputeOrder order) {
+    private Map<String, String> addPrivateNetworksToMap(Map<String, String> networks, ComputeOrder order) {
         Map<String, String> mappedNetworks = new HashMap<>();
         Set<String> networkIds = networks.keySet();
         for (String networkId : networkIds) {
             mappedNetworks.put(networkId, networks.get(networkId));
         }
-        for (NetworkOrder networkOrder : order.getNetworkOrders()) {
+        List<NetworkOrder> networkOrders = order.getNetworkOrders();
+        for (NetworkOrder networkOrder : networkOrders) {
             mappedNetworks.put(networkOrder.getId(), networkOrder.getName());
         }
         return mappedNetworks;
