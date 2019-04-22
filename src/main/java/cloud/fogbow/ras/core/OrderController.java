@@ -272,6 +272,7 @@ public class OrderController {
 		List<Order> requestedOrders = orders.stream()
 				.filter(order -> order.getType().equals(resourceType))
 				.filter(order -> order.getSystemUser().equals(systemUser))
+                .filter(order -> !order.getOrderState().equals(OrderState.DEACTIVATED))
 				.filter(order -> !order.getOrderState().equals(OrderState.CLOSED)).collect(Collectors.toList());
 
 		return requestedOrders;
