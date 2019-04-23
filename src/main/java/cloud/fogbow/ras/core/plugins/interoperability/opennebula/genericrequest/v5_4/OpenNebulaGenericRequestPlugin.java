@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -21,8 +23,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<OpenNebulaUser> {
 	
 	private static final String RESOURCE_POOL_SUFFIX = "Pool";
-	private static final String URL_PREFIX = "http://";
-	private static final String URL_SUFFIX = ":2633/RPC2";
+	protected static final String URL_REGEX_EXPRESSION = "^(https?://)?([\\w]+.)+(:2633/RPC2)$";
 
 	@Override
 	public FogbowGenericResponse redirectGenericRequest(String genericRequest, OpenNebulaUser cloudUser)
@@ -150,12 +151,14 @@ public class OpenNebulaGenericRequestPlugin implements GenericRequestPlugin<Open
 	}
 
 	protected boolean isValidUrl(String url) {
-		if (url != null && url.startsWith(URL_PREFIX) && url.endsWith(URL_SUFFIX)) {
-			return true;
-		}
+		if (isValid(url)) {
+			Pattern pattern = Pattern.compile(URL_REGEX_EXPRESSION);
+            Matcher matcher = pattern.matcher(url);
+            return matcher.matches();
+	    }
 		return false;
 	}
-	
+
 	protected boolean isValid(String arg) {
 		if (arg == null || arg.isEmpty()) {
 			return false;
