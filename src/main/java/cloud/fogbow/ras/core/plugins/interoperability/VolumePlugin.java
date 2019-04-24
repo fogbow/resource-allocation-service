@@ -5,11 +5,11 @@ import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
-public interface VolumePlugin<T extends CloudUser> {
+public interface VolumePlugin<S extends CloudUser> extends OrderPlugin<VolumeInstance, VolumeOrder, S> {
 
-    public String requestInstance(VolumeOrder volumeOrder, T cloudUser) throws FogbowException;
+    public String requestInstance(VolumeOrder volumeOrder, S cloudUser) throws FogbowException;
 
-    public VolumeInstance getInstance(String volumeInstanceId, T cloudUser) throws FogbowException;
+    public VolumeInstance getInstance(VolumeOrder volumeOrder, S cloudUser) throws FogbowException;
 
-    public void deleteInstance(String volumeInstanceId, T cloudUser) throws FogbowException;
+    public void deleteInstance(VolumeOrder volumeOrder, S cloudUser) throws FogbowException;
 }

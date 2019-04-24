@@ -185,19 +185,19 @@ public class Rule {
 			LOGGER.warn("The protocol is null");
 		}
 		switch (this.protocol) {
-		case TCP_XML_TEMPLATE_VALUE:
-			return Protocol.TCP;
-		case UDP_XML_TEMPLATE_VALUE:
-			return Protocol.UDP;
-		case ICMP_XML_TEMPLATE_VALUE:
-		case ICMPV6_XML_TEMPLATE_VALUE:
-			return Protocol.ICMP;
-		case ALL_XML_TEMPLATE_VALUE:
-		case IPSEC_XML_TEMPLATE_VALUE: // TODO think more about this ipsec value.
-			return Protocol.ANY;
-		default:
-			LOGGER.warn(String.format("The protocol(%s) is inconsistent", this.protocol));
-			return null;
+			case TCP_XML_TEMPLATE_VALUE:
+				return Protocol.TCP;
+			case UDP_XML_TEMPLATE_VALUE:
+				return Protocol.UDP;
+			case ICMP_XML_TEMPLATE_VALUE:
+			case ICMPV6_XML_TEMPLATE_VALUE:
+				return Protocol.ICMP;
+			case ALL_XML_TEMPLATE_VALUE:
+			case IPSEC_XML_TEMPLATE_VALUE: // TODO think more about this ipsec value.
+				return Protocol.ANY;
+			default:
+				LOGGER.warn(String.format("The protocol(%s) is inconsistent", this.protocol));
+				return null;
 		}		
 	}
 	
@@ -223,7 +223,6 @@ public class Rule {
 		return this.ip + CIRD_SEPARATOR + calculateSubnetMask();
 	}
 
-	// TODO the size must be a BigInteger because the ipv6 amount
 	protected String calculateSubnetMask() {
 		try {
 			if (CidrUtils.isIpv4(this.ip)) {
@@ -231,11 +230,11 @@ public class Rule {
 			} else if (CidrUtils.isIpv6(this.ip)) {
 				return getSubnetIPV6(this.size);
 			} else {
-				LOGGER.warn(String.format("The IP is inconsistent"));
+				LOGGER.warn(String.format(Messages.Error.INCONSISTENT_IP_S, this.ip));
 				return null;
 			}
 		} catch (Exception e) {
-			LOGGER.warn("There is a problem when it is trying to calculate the subnet mask", e);
+			LOGGER.warn(Messages.Error.UNABLE_TO_CALCULATE_SUBNET_MASK, e);
 			return String.valueOf(INT_ERROR_CODE);
 		}
 	}

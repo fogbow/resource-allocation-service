@@ -33,7 +33,7 @@ import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
-public class FailedProcessorTest extends BaseUnitTests {
+public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 
 	private static final int CPU_VALUE = 8;
 	private static final long DEFAULT_SLEEP_TIME = 500;
@@ -44,18 +44,16 @@ public class FailedProcessorTest extends BaseUnitTests {
 	private static final String FAKE_IMAGE_NAME = "fake-image-name";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 	private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-	private static final String FAKE_FEDERATION_USER_TOKEN_VALUE = "fake-token-value";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 	private static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
 	private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	
-	private ChainedList<Order> failedOrderList;
+	private ChainedList<Order> unableToCheckStatus;
     private ChainedList<Order> fulfilledOrderList;
-    private FailedProcessor failedProcessor;
+    private UnableToCheckStatusProcessor unableToCheckStatusProcessor;
     private LocalCloudConnector localCloudConnector;
-    private Properties properties;
     private Thread thread;
     
     @Before
@@ -63,14 +61,10 @@ public class FailedProcessorTest extends BaseUnitTests {
     	super.mockReadOrdersFromDataBase();
     	this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         this.thread = null;
-    	
-    	PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-        this.properties = propertiesHolder.getProperties();
-        this.properties.put(ConfigurationPropertyKeys.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
-        this.failedOrderList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
+        this.unableToCheckStatus = sharedOrderHolders.getUnableToCheckStatusOrdersList();
     }
     
     @After
@@ -81,8 +75,8 @@ public class FailedProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
     
-	// test case: When running thread in the FailedProcessor with a remote member
-	// ID, the processFailedOrder method must not change its state, remaining in the
+	// test case: When running thread in the UnableToCheckStatusProcessor with a remote member
+	// ID, the processUnableToCheckStatusOrder method must not change its state, remaining in the
 	// failed list.
 	@Test
 	public void testRunProcessLocalOrderWithRemoteMember()
@@ -90,20 +84,20 @@ public class FailedProcessorTest extends BaseUnitTests {
 
 		// set up
 		Order order = this.createOrder();
-		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-		this.failedOrderList.addItem(order);
+		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+		this.unableToCheckStatus.addItem(order);
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
-		this.failedProcessor = new FailedProcessor(FAKE_REMOTE_MEMBER_ID,
+		this.unableToCheckStatusProcessor = new UnableToCheckStatusProcessor(FAKE_REMOTE_MEMBER_ID,
 				ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
 
 		// exercise
-		this.thread = new Thread(this.failedProcessor);
+		this.thread = new Thread(this.unableToCheckStatusProcessor);
 		this.thread.start();
 		Thread.sleep(DEFAULT_SLEEP_TIME);
 
 		// verify
-		Assert.assertEquals(order, this.failedOrderList.getNext());
+		Assert.assertEquals(order, this.unableToCheckStatus.getNext());
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 	}
 	
@@ -117,19 +111,19 @@ public class FailedProcessorTest extends BaseUnitTests {
 		Order order = this.createOrder();
 		order.setOrderStateInTestMode(OrderState.FULFILLED);
 		this.fulfilledOrderList.addItem(order);
-		Assert.assertNull(this.failedOrderList.getNext());
+		Assert.assertNull(this.unableToCheckStatus.getNext());
 
 		// exercise
 		spyFailedProcessor();
-		this.failedProcessor.processFailedOrder(order);
+		this.unableToCheckStatusProcessor.processUnableToCheckStatusOrder(order);
 
 		// verify
 		Assert.assertEquals(order, this.fulfilledOrderList.getNext());
-		Assert.assertNull(this.failedOrderList.getNext());
+		Assert.assertNull(this.unableToCheckStatus.getNext());
 	}
     
-	// test case: When executing the thread in FailedProcessor, if the instance
-	// state is still Failed after a successful request, the processFailedOrder
+	// test case: When executing the thread in UnableToCheckStatusProcessor, if the instance
+	// state is still Failed after a successful request, the processUnableToCheckStatusOrder
 	// method should not change its state and it must remain in the list of
 	// failures.
 	@Test
@@ -138,8 +132,8 @@ public class FailedProcessorTest extends BaseUnitTests {
 		
 		// set up
 		Order order = createOrder();
-		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-		this.failedOrderList.addItem(order);
+		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+		this.unableToCheckStatus.addItem(order);
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
 		Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
@@ -149,47 +143,47 @@ public class FailedProcessorTest extends BaseUnitTests {
 		mockCloudConnectorFactory(orderInstance);
 
 		// exercise
-		this.thread = new Thread(this.failedProcessor);
+		this.thread = new Thread(this.unableToCheckStatusProcessor);
 		this.thread.start();
 		Thread.sleep(DEFAULT_SLEEP_TIME);
 
 		// verify
-		Assert.assertNotNull(this.failedOrderList.getNext());
+		Assert.assertNotNull(this.unableToCheckStatus.getNext());
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 	}
 	
-	// test case: When executing the thread in the FailedProcessor, if the instance
-	// is back to the Ready state, the processFailedOrder method must change
-	// OrderState from Failed to Fulfilled and the order must be removed from the
-	// failed list and put in the fulfilled list.
+	// test case: When executing the thread in the UnableToCheckStatusProcessor, if the instance
+	// is back to the Ready state, the processUnableToCheckStatusOrder method must change
+	// OrderState from UnableToCheckStatus to Fulfilled and the order must be removed from the
+	// unableToCheckStatus list and put in the fulfilled list.
 	@Test
 	public void testRunProcessLocalOrderWithInstanceReady()
 			throws InterruptedException, FogbowException {
 
 		// set up
 		Order order = createOrder();
-		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-		this.failedOrderList.addItem(order);
+		order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
+		this.unableToCheckStatus.addItem(order);
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
 		Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-		orderInstance.setState(InstanceState.READY);
+		orderInstance.setReady();
 		order.setInstanceId(FAKE_INSTANCE_ID);
 
 		mockCloudConnectorFactory(orderInstance);
 
 		// exercise
-		this.thread = new Thread(this.failedProcessor);
+		this.thread = new Thread(this.unableToCheckStatusProcessor);
 		this.thread.start();
 		Thread.sleep(DEFAULT_SLEEP_TIME);
 
 		// verify
 		Assert.assertNotNull(this.fulfilledOrderList.getNext());
-		Assert.assertNull(this.failedOrderList.getNext());
+		Assert.assertNull(this.unableToCheckStatus.getNext());
 	}
 	
-	// test case: During a thread running in FailedProcessor, if any errors occur
-	// when attempting to get a cloud provider instance, the processFailedOrder
+	// test case: During a thread running in UnableToCheckStatusProcessor, if any errors occur
+	// when attempting to get a cloud provider instance, the processUnableToCheckStatusOrder
 	// method will catch an exception.
 	@Test
 	public void testRunProcessLocalOrderToCatchExceptionWhileTryingToGetInstance()
@@ -197,8 +191,8 @@ public class FailedProcessorTest extends BaseUnitTests {
 
 		// set up
 		Order order = createOrder();
-		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-		this.failedOrderList.addItem(order);
+		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+		this.unableToCheckStatus.addItem(order);
 
 		CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 
@@ -213,61 +207,61 @@ public class FailedProcessorTest extends BaseUnitTests {
 		spyFailedProcessor();
 
 		// exercise
-		this.thread = new Thread(this.failedProcessor);
+		this.thread = new Thread(this.unableToCheckStatusProcessor);
 		this.thread.start();
 		Thread.sleep(DEFAULT_SLEEP_TIME);
 
 		// verify
-		Mockito.verify(this.failedProcessor, Mockito.times(1)).processFailedOrder(order);
+		Mockito.verify(this.unableToCheckStatusProcessor, Mockito.times(1)).processUnableToCheckStatusOrder(order);
 	}
 	
 	// test case: Check the throw of UnexpectedException when running the thread in
-	// the FailedProcessor, while running a local order.
+	// the UnableToCheckStatusProcessor, while running a local order.
 	@Test
 	public void testRunProcessLocalOrderThrowsUnexpectedException()
 			throws InterruptedException, FogbowException {
 
 		// set up
 		Order order = createOrder();
-		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-		this.failedOrderList.addItem(order);
+		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+		this.unableToCheckStatus.addItem(order);
 
 		spyFailedProcessor();
 
-		Mockito.doThrow(new UnexpectedException()).when(this.failedProcessor).processFailedOrder(order);
+		Mockito.doThrow(new UnexpectedException()).when(this.unableToCheckStatusProcessor).processUnableToCheckStatusOrder(order);
 
 		// exercise
-		this.thread = new Thread(this.failedProcessor);
+		this.thread = new Thread(this.unableToCheckStatusProcessor);
 		this.thread.start();
 		Thread.sleep(DEFAULT_SLEEP_TIME);
 
 		// verify
-		Mockito.verify(this.failedProcessor, Mockito.times(1)).processFailedOrder(order);
+		Mockito.verify(this.unableToCheckStatusProcessor, Mockito.times(1)).processUnableToCheckStatusOrder(order);
 	}
 	
 	// test case: Check the throw of RuntimeException when running the thread in
-	// the FailedProcessor, while running a local order.
+	// the UnableToCheckStatusProcessor, while running a local order.
     @Test
     public void testRunProcessLocalOrderThrowsRuntimeException()
-            throws InterruptedException, UnexpectedException {
+			throws InterruptedException, FogbowException {
 
         // set up
 		Order order = createOrder();
-		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-		this.failedOrderList.addItem(order);
+		order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+		this.unableToCheckStatus.addItem(order);
 
         spyFailedProcessor();
 
         // exercise
-        Mockito.doThrow(new RuntimeException()).when(this.failedProcessor)
-                .processFailedOrder(order);
+        Mockito.doThrow(new RuntimeException()).when(this.unableToCheckStatusProcessor)
+                .processUnableToCheckStatusOrder(order);
 
-        this.thread = new Thread(this.failedProcessor);
+        this.thread = new Thread(this.unableToCheckStatusProcessor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.failedProcessor, Mockito.times(1)).processFailedOrder(order);
+        Mockito.verify(this.unableToCheckStatusProcessor, Mockito.times(1)).processUnableToCheckStatusOrder(order);
     }
     
 	private void mockCloudConnectorFactory(Instance orderInstance) throws FogbowException {
@@ -285,16 +279,17 @@ public class FailedProcessorTest extends BaseUnitTests {
 	}
 
 	private void spyFailedProcessor() {
-		this.failedProcessor = Mockito.spy(new FailedProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+		this.unableToCheckStatusProcessor = Mockito.spy(new UnableToCheckStatusProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
 				ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME));
 	}
 
 	private Order createOrder() {
 		SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_PROVIDER);
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 
 
-		String requestingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
-		String providingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+		String requestingMember = localMemberId;
+		String providingMember = localMemberId;
 		ArrayList<UserData> userData = super.mockUserData();
 		List<String> networkIds = null;
 

@@ -9,8 +9,8 @@ public class PublicIpInstance extends Instance {
         super(id);
     }
 
-    public PublicIpInstance(String id, InstanceState state, String ip) {
-        super(id, state);
+    public PublicIpInstance(String id, String cloudState, String ip) {
+        super(id, cloudState);
         this.ip = ip;
     }
 

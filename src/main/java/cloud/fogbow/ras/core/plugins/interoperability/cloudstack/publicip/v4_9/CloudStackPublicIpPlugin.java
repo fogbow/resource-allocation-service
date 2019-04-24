@@ -7,8 +7,10 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -45,46 +47,49 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     @Override
-    public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId,
-                                  CloudStackUser cloudUser) throws FogbowException {
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.PUBLIC_IP, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.PUBLIC_IP, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
+    public String requestInstance(PublicIpOrder publicIpOrder, CloudStackUser cloudUser) throws FogbowException {
         String jobId = requestIpAddressAssociation(defaultNetworkId, cloudUser);
 
         CurrentAsyncRequest currentAsyncRequest = new CurrentAsyncRequest(PublicIpSubState.ASSOCIATING_IP_ADDRESS,
-                jobId, computeInstanceId);
+                jobId, publicIpOrder.getComputeId());
         publicIpSubState.put(publicIpOrder.getId(), currentAsyncRequest);
-
         // we don't have the id of the ip address yet, but since the instance id is only used
-        // by the plugin, we can getCloudUser an orderId to an instanceId in the plugin
+        // by the plugin, we can return an orderId as an instanceId in the plugin
         return publicIpOrder.getId();
     }
 
     @Override
-    public PublicIpInstance getInstance(String publicIpInstanceId, CloudStackUser cloudUser) throws FogbowException {
-        // since we returned the id of the order on requestInstance, publicIpInstanceId
-        // should be the id of the order
-        String publicIpOrderId = publicIpInstanceId;
-
-        CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(publicIpOrderId);
+    public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudStackUser cloudUser) throws FogbowException {
+        CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(publicIpOrder.getId());
 
         PublicIpInstance result;
         if (currentAsyncRequest == null) {
-            result = new PublicIpInstance(null, InstanceState.FAILED, null);
+            // This may happen due to a failure in the RAS while this operation was being carried out; since the
+            // order was still spawning, the spawning processor will start monitoring this order after the RAS
+            // is restarted. Unfortunately, even if the operation succeeded, we cannot retrieve this information
+            // and will have to signal that the order has failed.
+            result = new PublicIpInstance(null, CloudStackStateMapper.FAILURE_STATUS, null);
         } else if (currentAsyncRequest.getState().equals(PublicIpSubState.READY)) {
-            result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.READY);
+            result = instanceFromCurrentAsyncRequest(currentAsyncRequest, CloudStackStateMapper.READY_STATUS);
         } else {
-            result = getCurrentInstance(publicIpOrderId, cloudUser);
+            result = getCurrentInstance(publicIpOrder, cloudUser);
         }
-
         return result;
     }
 
     @Override
-    public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudStackUser cloudUser)
-            throws FogbowException {
-        // since we returned the id of the order on requestInstance, publicIpInstanceId
-        // should be the id of the order
-        String orderId = publicIpInstanceId;
-        String ipAddressId = publicIpSubState.get(orderId).getIpInstanceId();
+    public void deleteInstance(PublicIpOrder publicIpOrder, CloudStackUser cloudUser) throws FogbowException {
+        String ipAddressId = publicIpSubState.get(publicIpOrder.getId()).getIpInstanceId();
 
         DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
                 .id(ipAddressId)
@@ -93,8 +98,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         CloudStackUrlUtil.sign(disassociateIpAddressRequest.getUriBuilder(), cloudUser.getToken());
 
         try {
-            this.client.doGetRequest(disassociateIpAddressRequest.getUriBuilder().toString(),
-                    cloudUser);
+            this.client.doGetRequest(disassociateIpAddressRequest.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -110,8 +114,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         publicIpSubState.put(orderId, currentAsyncRequest);
     }
 
-    private PublicIpInstance getCurrentInstance(String orderId, CloudStackUser cloudUser) throws FogbowException {
-        CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(orderId);
+    private PublicIpInstance getCurrentInstance(PublicIpOrder publicIpOrder, CloudStackUser cloudUser) throws FogbowException {
+        CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(publicIpOrder.getId());
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(this.client, this.cloudStackUrl,
                 currentAsyncRequest.getCurrentJobId(), cloudUser);
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
@@ -119,7 +123,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         PublicIpInstance result;
         switch (queryAsyncJobResult.getJobStatus()) {
             case CloudStackQueryJobResult.PROCESSING:
-                result = new PublicIpInstance(null, InstanceState.CREATING, null);
+                result = new PublicIpInstance(null, CloudStackStateMapper.PROCESSING_STATUS, null);
                 break;
             case CloudStackQueryJobResult.SUCCESS:
                 switch (currentAsyncRequest.getState()) {
@@ -134,11 +138,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                         String createFirewallRuleJobId = createFirewallRule(ipAddressId, cloudUser);
                         currentAsyncRequest.setCurrentJobId(createFirewallRuleJobId);
                         currentAsyncRequest.setState(PublicIpSubState.CREATING_FIREWALL_RULE);
-                        result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.CREATING);
+                        result = instanceFromCurrentAsyncRequest(currentAsyncRequest, CloudStackStateMapper.ASSOCIATING_IP_ADDRESS_STATUS);
                         break;
                     case CREATING_FIREWALL_RULE:
                         currentAsyncRequest.setState(PublicIpSubState.READY);
-                        result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.READY);
+                        result = instanceFromCurrentAsyncRequest(currentAsyncRequest, CloudStackStateMapper.CREATING_FIREWALL_RULE_STATUS);
                         break;
                     default:
                         result = null;
@@ -147,8 +151,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 break;
             case CloudStackQueryJobResult.FAILURE:
                 // any failure should lead to a disassociation of the ip address
-                deleteInstance(orderId, null, cloudUser);
-                result = new PublicIpInstance(null, InstanceState.FAILED, null);
+                deleteInstance(publicIpOrder, cloudUser);
+                result = new PublicIpInstance(null, CloudStackStateMapper.FAILURE_STATUS, null);
                 break;
             default:
                 LOGGER.error(Messages.Error.UNEXPECTED_JOB_STATUS);
@@ -158,14 +162,15 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         return result;
     }
 
-    private PublicIpInstance instanceFromCurrentAsyncRequest(CurrentAsyncRequest currentAsyncRequest, InstanceState state) {
-        String ipInstanceId = currentAsyncRequest == null ? null : currentAsyncRequest.getIpInstanceId();
+    private PublicIpInstance instanceFromCurrentAsyncRequest(CurrentAsyncRequest currentAsyncRequest, String state) {
+        String id = currentAsyncRequest == null ? null : currentAsyncRequest.getIpInstanceId();
         String ip = currentAsyncRequest == null ? null : currentAsyncRequest.getIp();
-        return new PublicIpInstance(ipInstanceId, state, ip);
+
+        PublicIpInstance publicIpInstance = new PublicIpInstance(id, state, ip);
+        return publicIpInstance;
     }
 
-    protected String requestIpAddressAssociation(String networkId, CloudStackUser cloudUser)
-            throws FogbowException {
+    protected String requestIpAddressAssociation(String networkId, CloudStackUser cloudUser) throws FogbowException {
         AssociateIpAddressRequest associateIpAddressRequest = new AssociateIpAddressRequest.Builder()
                 .networkId(networkId)
                 .build(this.cloudStackUrl);
@@ -174,9 +179,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client
-                    .doGetRequest(associateIpAddressRequest.getUriBuilder().toString(),
-                            cloudUser);
+            jsonResponse = this.client.doGetRequest(associateIpAddressRequest.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -283,5 +286,4 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             this.ipInstanceId = ipInstanceId;
         }
     }
-
 }

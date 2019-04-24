@@ -5,15 +5,16 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -38,8 +39,6 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
     protected static final String QUERY_NAME = "name";
     protected static final int DEFAULT_IP_VERSION = 4;
-    protected static final String DEFAULT_NETWORK_NAME = "ras-network";
-    protected static final String DEFAULT_SUBNET_NAME = "ras-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[]{"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_CIDR = "192.168.0.1/24";
     // security group properties
@@ -47,8 +46,6 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final String UDP_PROTOCOL = "udp";
     protected static final String ICMP_PROTOCOL = "icmp";
-
-    protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pn-";
 
     private OpenStackHttpClient client;
     private String networkV2APIEndpoint;
@@ -59,6 +56,16 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;
         setDNSList(properties);
         initClient();
+    }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.FAILED);
     }
 
     @Override
@@ -76,8 +83,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     }
 
     @Override
-    public NetworkInstance getInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + instanceId;
+    public NetworkInstance getInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + order.getInstanceId();
         String responseStr = null;
         try {
             responseStr = this.client.doGetRequest(endpoint, cloudUser);
@@ -88,18 +95,18 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     }
 
     @Override
-    public void deleteInstance(String networkId, OpenStackV3User cloudUser) throws FogbowException {
+    public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         try {
-            removeNetwork(cloudUser, networkId);
+            removeNetwork(cloudUser, order.getInstanceId());
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId), e);
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, order.getInstanceId()), e);
         } catch (FogbowException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId), e);
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, order.getInstanceId()), e);
             throw e;
         }
 
-        String securityGroupId = retrieveSecurityGroupId(getSGNameForPrivateNetwork(networkId), cloudUser);
+        String securityGroupId = retrieveSecurityGroupId(getSGNameForPrivateNetwork(order.getInstanceId()), cloudUser);
 
         try {
             removeSecurityGroup(cloudUser, securityGroupId);
@@ -119,8 +126,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     private CreateNetworkResponse createNetwork(String name, OpenStackV3User cloudUser, String tenantId) throws FogbowException {
         CreateNetworkResponse createNetworkResponse = null;
         try {
-            String prefixName = name == null ? getRandomUUID() : name;
-            String networkName = DEFAULT_NETWORK_NAME + "-" + prefixName;
+            String networkName = (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : name);
 
             CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                     .name(networkName)
@@ -280,8 +286,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
         NetworkInstance instance = null;
         if (networkId != null) {
-            InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.NETWORK, instanceState);
-            instance = new NetworkInstance(networkId, fogbowState, name, cidr, gateway,
+            instance = new NetworkInstance(networkId, instanceState, name, cidr, gateway,
                     vlan, allocationMode, null, null, null);
         }
         return instance;
@@ -313,9 +318,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return networkId;
     }
 
-    protected String generateJsonEntityToCreateSubnet(String networkId, String tenantId,
-                                                      NetworkOrder order) {
-        String subnetName = DEFAULT_SUBNET_NAME + "-" + order.getName();
+    protected String generateJsonEntityToCreateSubnet(String networkId, String tenantId, NetworkOrder order) {
+        String subnetName = order.getName() + "-subnet";
         int ipVersion = DEFAULT_IP_VERSION;
 
         String gateway = order.getGateway();
@@ -365,6 +369,6 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     }
 
     public static String getSGNameForPrivateNetwork(String networkId) {
-        return SECURITY_GROUP_PREFIX + networkId;
+        return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkId;
     }
 }

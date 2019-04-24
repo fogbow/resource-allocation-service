@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.ras.core.intercomponent.xmpp.*;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -11,23 +12,23 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
     private static final Logger LOGGER = Logger.getLogger(RemoteNotifyEventRequest.class);
 
     private Order order;
-    private Event event;
+    private OrderState newState;
 
-    public RemoteNotifyEventRequest(Order order, Event event) {
+    public RemoteNotifyEventRequest(Order order, OrderState newState) {
         this.order = order;
-        this.event = event;
+        this.newState = newState;
     }
 
     @Override
     public Void send() throws Exception {
-        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
+        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.newState);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequester());
         return null;
     }
 
-    public static IQ marshall(Order order, Event event) {
+    public static IQ marshall(Order order, OrderState newState) {
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(order.getRequester());
         iq.setID(order.getId());
@@ -42,9 +43,9 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
         orderClassNameElement.setText(order.getClass().getName());
 
-        //marshall event parcel
-        Element eventElement = queryElement.addElement(IqElement.EVENT.toString());
-        eventElement.setText(new Gson().toJson(event));
+        //marshall newState parcel
+        Element newStateElement = queryElement.addElement(IqElement.NEW_STATE.toString());
+        newStateElement.setText(new Gson().toJson(newState));
 
         return iq;
     }

@@ -5,6 +5,7 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -32,8 +33,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
-    public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
-    public static final String DEFAULT_NETWORK_NAME = "default";
     public static final String FOGBOW_TAG_SEPARATOR = ":";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
@@ -61,6 +60,16 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     public CloudStackComputePlugin() {}
 
     @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
@@ -70,7 +79,13 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
-        String networksId = resolveNetworksId(computeOrder);
+        List<String> networks = new ArrayList<>();
+        networks.add(this.defaultNetworkId);
+        List<String> userDefinedNetworks = computeOrder.getNetworkIds();
+        if (!userDefinedNetworks.isEmpty()) {
+            networks.addAll(userDefinedNetworks);
+        }
+        String networksId = StringUtils.join(networks, ",");
 
         String serviceOfferingId = getServiceOfferingId(computeOrder, cloudUser);
         if (serviceOfferingId == null) {
@@ -85,7 +100,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudUser) : null;
 
         String instanceName = computeOrder.getName();
-        if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
+        if (instanceName == null) instanceName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
 
         // NOTE(pauloewerton): hypervisor param is required in case of ISO image. i haven't found any clue pointing that
         // ISO images were being used in mono though.
@@ -114,9 +129,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public ComputeInstance getInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
-                .id(computeInstanceId)
+                .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -138,9 +153,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
-                .id(computeInstanceId)
+                .id(order.getInstanceId())
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
 
@@ -149,21 +164,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId), e);
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, order.getInstanceId()), e);
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudUser.getToken()));
-    }
-
-    private String resolveNetworksId(ComputeOrder computeOrder) {
-        List<String> requestedNetworksId = new ArrayList<>();
-
-        requestedNetworksId.add(this.defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworkIds());
-        computeOrder.setNetworkIds(requestedNetworksId);
-
-        return StringUtils.join(requestedNetworksId, ",");
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
     private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
@@ -265,8 +270,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         String cloudStackState = vm.getState();
-        InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
-
         GetVirtualMachineResponse.Nic[] nics = vm.getNic();
         List<String> addresses = new ArrayList<>();
 
@@ -275,12 +278,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         ComputeInstance computeInstance = new ComputeInstance(
-                instanceId, fogbowState, hostName, vcpusCount, memory, disk, addresses);
+                instanceId, cloudStackState, hostName, vcpusCount, memory, disk, addresses);
 
+        // The default network is always included in the order by the CloudStack plugin, thus it should be added
+        // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
+        // are appended by the LocalCloudConnector.
         Map<String, String> computeNetworks = new HashMap<>();
-        computeNetworks.put(this.defaultNetworkId, DEFAULT_NETWORK_NAME);
+        computeNetworks.put(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
         computeInstance.setNetworks(computeNetworks);
-
         return computeInstance;
     }
 

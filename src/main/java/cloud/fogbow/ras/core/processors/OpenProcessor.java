@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
@@ -9,7 +10,6 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
 public class OpenProcessor implements Runnable {
@@ -18,7 +18,7 @@ public class OpenProcessor implements Runnable {
     private String localMemberId;
     private ChainedList<Order> openOrdersList;
     /**
-     * Attribute that represents the thread sleep time when there is no orders to be processed.
+     * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
 
@@ -30,8 +30,8 @@ public class OpenProcessor implements Runnable {
     }
 
     /**
-     * Iterates over the open orders list and try to process one open order per time. The order
-     * being null indicates that the iteration is in the end of the list or the list is empty.
+     * Iterates over the open orders list and tries to process one order at a time. When the order
+     * is null, it indicates that the iteration ended. A new iteration is started after some time.
      */
     @Override
     public void run() {
@@ -57,47 +57,38 @@ public class OpenProcessor implements Runnable {
     }
 
     /**
-     * Get an instance for an open order. If the method fails to get the instance, then the order is
-     * set to failed, else, is set to spawning or pending if the order is localidentity or intercomponent,
-     * respectively.
+     * Get an instance for an order in the OPEN state. If the method fails to get the instance, then the order is
+     * set to FAILED_ON_REQUEST state, else, it is set to the SPAWNING state if the order is local, or the PENDING
+     * state if the order is remote.
      */
-    protected void processOpenOrder(Order order) throws UnexpectedException {
+    protected void processOpenOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete an open
         // order while this method is trying to get an Instance for this order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             // Check if the order is still in the Open state (it could have been changed by another thread)
-            if (orderState.equals(OrderState.OPEN)) {
-                try {
-                    CloudConnector cloudConnector = CloudConnectorFactory.getInstance().
-                            getCloudConnector(order.getProvider(), order.getCloudName());
-                    String orderInstanceId = cloudConnector.requestInstance(order);
-                    order.setInstanceId(orderInstanceId);
-                    updateOrderStateAfterProcessing(order);
-                } catch (Exception e) {
-                    LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST, order), e);
-                    order.setCachedInstanceState(InstanceState.FAILED);
-                    OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
+            if (!orderState.equals(OrderState.OPEN)) {
+                return;
+            }
+            try {
+                CloudConnector cloudConnector = CloudConnectorFactory.getInstance().
+                        getCloudConnector(order.getProvider(), order.getCloudName());
+                String instanceId = cloudConnector.requestInstance(order);
+                order.setInstanceId(instanceId);
+                if (order.isProviderLocal(this.localMemberId)) {
+                    if (instanceId != null) {
+                        OrderStateTransitioner.transition(order, OrderState.SPAWNING);
+                    } else {
+                        throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
+                    }
+                } else {
+                    OrderStateTransitioner.transition(order, OrderState.PENDING);
                 }
+            } catch (Exception e) {
+                OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
+                throw e;
             }
-        }
-    }
-
-    /**
-     * Update the order state and do the order state transition after the open order process.
-     */
-    private void updateOrderStateAfterProcessing(Order order) throws UnexpectedException {
-        if (order.isProviderLocal(this.localMemberId)) {
-            String orderInstanceId = order.getInstanceId();
-
-            if (orderInstanceId != null) {
-                OrderStateTransitioner.transition(order, OrderState.SPAWNING);
-            } else {
-                throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
-            }
-        } else {
-            OrderStateTransitioner.transition(order, OrderState.PENDING);
         }
     }
 }

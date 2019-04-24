@@ -9,29 +9,28 @@ public class OpenNebulaStateMapper {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaStateMapper.class);
 
-    private static final String ATTACMENT_USED_PERSISTENT_STATE = "used_pers";
-    
-    private static final String COMPUTE_FAILURE_STATE = "failure";
-    private static final String COMPUTE_PENDING_STATE = "pending";
-    private static final String COMPUTE_RUNNING_STATE = "running";
-    private static final String COMPUTE_SUSPENDED_STATE = "suspended";
+    public static final String ATTACHMENT_USED_STATE = "used";
+    public static final String ATTACHMENT_USED_PERSISTENT_STATE = "used_pers";
+    public static final String COMPUTE_FAILURE_STATE = "failure";
+    public static final String COMPUTE_PENDING_STATE = "pending";
+    public static final String COMPUTE_RUNNING_STATE = "running";
+    public static final String COMPUTE_SUSPENDED_STATE = "suspended";
+    public static final String DEFAULT_ERROR_STATE = "error";
+    public static final String DEFAULT_READY_STATE = "ready";
 
-    private static final String DEFAULT_ERROR_STATE = "error";
-    
-    private static final int IMAGE_INIT_STATE = 0;
-    private static final int IMAGE_READY_STATE = 1;
-    private static final int IMAGE_ERROR_STATE = 5;
-    
-	private static final String VOLUME_READY_STATE = "ready";
+    public static final int IMAGE_INIT_STATE = 0;
+    public static final int IMAGE_READY_STATE = 1;
+    public static final int IMAGE_ERROR_STATE = 5;
 
+    public static final String ATTACHMENT_PLUGIN = "OpenNebulaAttachmentPlugin";
     public static final String COMPUTE_PLUGIN = "OpenNebulaComputePlugin";
     public static final String IMAGE_PLUGIN = "OpenNebulaImagePlugin";
+    public static final String NETWORK_PLUGIN = "OpenNebulaComputePlugin";
+    public static final String PUBLIC_IP_PLUGIN = "OpenNebulaPublicIpPlugin";
     public static final String VOLUME_PLUGIN = "OpenNebulaVolumePlugin";
 
     public static InstanceState map(ResourceType type, String state){
         state = state.toLowerCase();
-        
-
         switch (type){
             case COMPUTE:
                 switch (state) {
@@ -40,37 +39,58 @@ public class OpenNebulaStateMapper {
                 	case COMPUTE_RUNNING_STATE:
                         return InstanceState.READY;
                     case COMPUTE_SUSPENDED_STATE:
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                     case COMPUTE_FAILURE_STATE:
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                 }
             case VOLUME:
                 switch (state) {
-                    case VOLUME_READY_STATE:
+                    case DEFAULT_READY_STATE:
                         return InstanceState.READY;
                     case DEFAULT_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                 }
             case ATTACHMENT:
                 switch (state) {
-                    case ATTACMENT_USED_PERSISTENT_STATE:
+                	case ATTACHMENT_USED_STATE:
+                		return InstanceState.READY;
+                    case ATTACHMENT_USED_PERSISTENT_STATE:
                         return InstanceState.READY;
                     case DEFAULT_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
-                        return InstanceState.UNAVAILABLE;
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, ATTACHMENT_PLUGIN));
+                        return InstanceState.BUSY;
+                }
+            case NETWORK:
+                switch (state) {
+                    case DEFAULT_READY_STATE:
+                        return InstanceState.READY;
+                    case DEFAULT_ERROR_STATE:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+                        return InstanceState.BUSY;
+                }
+            case PUBLIC_IP:
+                switch (state) {
+                    case DEFAULT_READY_STATE:
+                        return InstanceState.READY;
+                    case DEFAULT_ERROR_STATE:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, PUBLIC_IP_PLUGIN));
+                        return InstanceState.BUSY;
                 }
             default:
                 LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
-            
         }
     }
 
@@ -86,7 +106,7 @@ public class OpenNebulaStateMapper {
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, IMAGE_PLUGIN));
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                 }
             default:
                 LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);

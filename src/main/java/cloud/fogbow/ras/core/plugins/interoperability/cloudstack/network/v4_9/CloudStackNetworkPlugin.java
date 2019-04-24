@@ -6,16 +6,17 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -48,6 +49,16 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         if (subnetInfo == null) {
@@ -55,6 +66,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         }
 
         String name = networkOrder.getName();
+        if (name == null) name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString();
+
         String startingIp = subnetInfo.getLowAddress();
         String endingIp = subnetInfo.getHighAddress();
         String gateway = networkOrder.getGateway();
@@ -84,9 +97,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public NetworkInstance getInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         GetNetworkRequest request = new GetNetworkRequest.Builder()
-                .id(networkInstanceId)
+                .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -110,9 +123,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
-                .id(networkInstanceId)
+                .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -138,15 +151,13 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
     private NetworkInstance getNetworkInstance(GetNetworkResponse.Network network) {
         String state = network.getState();
-        InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.NETWORK, state);
-
         String networkId = network.getId();
         String label = network.getName();
         String address = network.getCidr();
         String gateway = network.getGateway();
         NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
 
-        return new NetworkInstance(networkId, fogbowState, label, address, gateway, null, allocationMode,
+        return new NetworkInstance(networkId, state, label, address, gateway, null, allocationMode,
                 null, null, null);
     }
 

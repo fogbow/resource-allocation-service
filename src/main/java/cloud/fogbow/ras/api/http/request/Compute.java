@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @CrossOrigin
 @RestController
@@ -50,15 +51,7 @@ public class Compute {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-
-            ComputeOrder computeOrder = compute.getOrder();
-            // if userData is null we need to prevent a NullPointerException when trying to save the order
-            // in the database
-            if (computeOrder.getUserData() == null) {
-                computeOrder.setUserData(new ArrayList<>());
-            }
-
-            String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, systemUserToken);
+            String computeId = ApplicationFacade.getInstance().createCompute(compute.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(computeId), HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

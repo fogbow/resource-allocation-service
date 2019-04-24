@@ -6,7 +6,7 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 
-public interface ComputePlugin<T extends CloudUser> {
+public interface ComputePlugin<S extends CloudUser> extends OrderPlugin<ComputeInstance, ComputeOrder, S> {
 
     /**
      * This method requests the virtual machine creation on a provider.
@@ -19,10 +19,9 @@ public interface ComputePlugin<T extends CloudUser> {
      * @return Instance ID.
      * @throws FogbowException {@link FogbowException} When request fails.
      */
-    public String requestInstance(ComputeOrder computeOrder, T cloudUser) throws FogbowException;
+    public String requestInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 
-    public ComputeInstance getInstance(String computeInstanceId, T cloudUser) throws FogbowException;
+    public ComputeInstance getInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 
-    public void deleteInstance(String computeInstanceId, T cloudUser) throws FogbowException;
-
+    public void deleteInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 }

@@ -97,7 +97,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
     // were added on the lists.
     @Test
-    public void testGetAllInstancesStatus() throws InvalidParameterException, UnexpectedException {
+    public void testGetAllInstancesStatus() throws InstanceNotFoundException {
         // set up
         SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
         );
@@ -107,14 +107,12 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setRequester(this.localMember);
         computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-        computeOrder.setCachedInstanceState(InstanceState.READY);
 
         ComputeOrder computeOrder2 = new ComputeOrder();
         computeOrder2.setSystemUser(systemUser);
         computeOrder2.setRequester(this.localMember);
         computeOrder2.setProvider(this.localMember);
-        computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-        computeOrder2.setCachedInstanceState(InstanceState.FAILED);
+        computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
         this.fulfilledOrdersList.addItem(computeOrder);
@@ -122,10 +120,10 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
         this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
 
-        InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
-                computeOrder.getProvider(), computeOrder.getCloudName(), computeOrder.getCachedInstanceState());
-        InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(),
-                computeOrder2.getProvider(), computeOrder.getCloudName(), computeOrder2.getCachedInstanceState());
+        InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(), computeOrder.getProvider(),
+                computeOrder.getCloudName(), InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState()));
+        InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(), computeOrder2.getProvider(),
+                computeOrder.getCloudName(), InstanceStatus.mapInstanceStateFromOrderState(computeOrder2.getOrderState()));
 
         // exercise
         List<InstanceStatus> instances = this.ordersController.getInstancesStatus(systemUser,
@@ -277,7 +275,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateFailed()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        String orderId = getComputeOrderCreationId(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
@@ -430,31 +428,6 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder("invalid-order-id");
     }
 
-    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetOrderWithInvalidInstanceType() throws FogbowException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
-    }
-
-    // test case: Getting order with an invalid systemUser (any systemUser with another ID)
-    // must throw InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetOrderWithInvalidFedUser() throws FogbowException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
-    }
-
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException, UnexpectedException {
         SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider");
 
@@ -481,7 +454,7 @@ public class OrderControllerTest extends BaseUnitTests {
             case FULFILLED:
                 this.fulfilledOrdersList.addItem(computeOrder);
                 break;
-            case FAILED_AFTER_SUCCESSUL_REQUEST:
+            case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder);
                 break;
             case FAILED_ON_REQUEST:

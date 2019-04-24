@@ -7,8 +7,8 @@ public class AttachmentInstance extends Instance {
     private String computeName;
     private String volumeName;
 
-    public AttachmentInstance(String id, InstanceState state, String computeId, String volumeId, String device) {
-        super(id, state);
+    public AttachmentInstance(String id, String cloudState, String computeId, String volumeId, String device) {
+        super(id, cloudState);
         this.computeId = computeId;
         this.volumeId = volumeId;
         this.device = device;

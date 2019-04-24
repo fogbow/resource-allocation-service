@@ -9,6 +9,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Before;
@@ -158,6 +159,6 @@ public class NetworkTest {
         String address = "fake-address";
         String gateway = "fake-gateway";
         String vLan = "fake-vlan";
-        return new NetworkInstance(id, InstanceState.READY, label, address, gateway, vLan, NetworkAllocationMode.STATIC, null, null, null);
+        return new NetworkInstance(id, "fake-state", label, address, gateway, vLan, NetworkAllocationMode.STATIC, null, null, null);
     }
 }

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "network_order_table")
-public class NetworkOrder extends Order {
+public class NetworkOrder extends Order<NetworkOrder> {
     private static final long serialVersionUID = 1L;
 
     private transient static final Logger LOGGER = Logger.getLogger(NetworkOrder.class);
@@ -81,5 +81,9 @@ public class NetworkOrder extends Order {
     @Override
     public String getSpec() {
         return "";
+    }
+
+    @Override
+    public void updateFromRemote(NetworkOrder remoteOrder) {
     }
 }

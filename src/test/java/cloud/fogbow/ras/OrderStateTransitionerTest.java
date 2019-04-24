@@ -3,6 +3,7 @@ package cloud.fogbow.ras;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -42,8 +43,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     // test case: When calling the transition() method, it must change the state of Order
-    // passed per parameter to a specific OrderState. This Order defined originally with Open, will
-    // be change to the Spawning state, removing of the open orders list, and adding in the spawning
+    // passed as parameter to a specific OrderState. This Order defined originally with Open, will
+    // be changed to the Spawning state, removed from the open orders list, and added to the spawning
     // orders list.
     @Test
     public void testTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
@@ -61,6 +62,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
         Order order = createOrder(originState);
         openOrdersList.addItem(order);
+
         Assert.assertNull(spawningOrdersList.getNext());
 
         // exercise
@@ -72,7 +74,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     // test case: When calling the transition() method and the origin list of the 'Order' is Null,
-    // will be throws an unexpected exception.
+    // an unexpected exception is thrown.
     @Test(expected = UnexpectedException.class) // verify
     public void testOriginListCannotBeFound() throws UnexpectedException {
 
@@ -95,7 +97,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     // test case: When calling the transition() method and the destination list of the 'Order' is
-    // Null, will be throws an unexpected exception.
+    // Null, an unexpected exception is thrown.
     @Test(expected = UnexpectedException.class) // verify
     public void testDestinationListCannotBeFound() throws UnexpectedException {
 

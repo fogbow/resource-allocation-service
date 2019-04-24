@@ -25,9 +25,9 @@ public class ComputeInstance extends Instance {
     private String publicKey;
     private List<UserData> userData;
 
-    public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
                            List<String> ipAddresses) {
-        super(id, state);
+        super(id, cloudState);
         this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
@@ -35,9 +35,9 @@ public class ComputeInstance extends Instance {
         this.ipAddresses = ipAddresses;
     }
 
-    public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
                            List<String> ipAddresses, String imageId, String publicKey, List<UserData> userData) {
-        super(id, state);
+        super(id, cloudState);
         this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;

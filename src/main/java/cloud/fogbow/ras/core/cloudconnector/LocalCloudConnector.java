@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
@@ -13,11 +12,9 @@ import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
-import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
@@ -26,8 +23,6 @@ import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -63,11 +58,11 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestInstance(Order order) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(order.getSystemUser());
+        CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
 
         String response = null;
         try {
-            response = doRequestInstance(order, token);
+            response = doRequestInstance(order, cloudUser);
         } catch (Throwable e) {
             response = e.getClass().getName();
             throw e;
@@ -80,11 +75,11 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteInstance(Order order) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(order.getSystemUser());
+        CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
 
         String response = null;
         try {
-            doDeleteInstance(order, token);
+            doDeleteInstance(order, cloudUser);
         } catch (Throwable e) {
             response = e.getClass().getName();
             throw e;
@@ -101,6 +96,7 @@ public class LocalCloudConnector implements CloudConnector {
         Instance instance = null;
         try {
             instance = doGetInstance(order, token);
+            instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
             if (instance != null) {
                 auditableResponse = instance.toString();
             }
@@ -116,12 +112,12 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         String auditableResponse = null;
         Quota quota = null;
         try {
-            quota = doGetUserQuota(token, resourceType);
+            quota = doGetUserQuota(cloudUser, resourceType);
             if (quota != null) {
                 auditableResponse = quota.toString();
             }
@@ -137,12 +133,12 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Map<String, String> getAllImages(SystemUser systemUser) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         Map<String, String> images = null;
         String auditableResponse = null;
         try {
-            images = doGetAllImages(token);
+            images = doGetAllImages(cloudUser);
             if (images != null) {
                 auditableResponse = images.toString();
             }
@@ -158,12 +154,12 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Image getImage(String imageId, SystemUser systemUser) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         Image image = null;
         String auditableResponse = null;
         try {
-            image = doGetImage(imageId, token);
+            image = doGetImage(imageId, cloudUser);
             if (image != null) {
                 auditableResponse = image.toString();
             }
@@ -179,12 +175,12 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         FogbowGenericResponse fogbowGenericResponse = null;
         String auditableResponse = null;
         try {
-            fogbowGenericResponse = doGenericRequest(genericRequest, token);
+            fogbowGenericResponse = doGenericRequest(genericRequest, cloudUser);
             if (fogbowGenericResponse != null) {
                 auditableResponse = fogbowGenericResponse.toString();
             }
@@ -200,12 +196,12 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public List<SecurityRule> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         List<SecurityRule> securityRules = null;
         String auditableResponse = null;
         try {
-            securityRules = doGetAllSecurityRules(order, token);
+            securityRules = doGetAllSecurityRules(order, cloudUser);
             if (securityRules != null) {
                 auditableResponse = securityRules.toString();
             }
@@ -221,11 +217,11 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         String response = null;
         try {
-            response = doRequestSecurityRule(order, securityRule, token);
+            response = doRequestSecurityRule(order, securityRule, cloudUser);
         } catch (Exception e) {
             response = e.getClass().getName();
             throw e;
@@ -238,11 +234,11 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(systemUser);
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
         String response = null;
         try {
-            doDeleteSecurityRule(securityRuleId, token);
+            doDeleteSecurityRule(securityRuleId, cloudUser);
         } catch (Exception e) {
             response = e.getClass().getName();
             throw e;
@@ -251,131 +247,21 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private String doRequestInstance(Order order, CloudUser token) throws FogbowException {
-        String requestInstance = null;
-        switch (order.getType()) {
-            case COMPUTE:
-                ComputeOrder computeOrder = (ComputeOrder) order;
-                // As the order parameter came from the rest API, the NetworkInstanceIds in the order are actually
-                // NetworkOrderIds, since these are the Ids that are known to users/applications using the API.
-                // Thus, before requesting the plugin to create the Compute, we need to replace NetworkOrderIds by
-                // NetworkInstanceIds, which are contained in the respective NetworkOrder.
-                List<String> networkOrderIds = computeOrder.getNetworkIds();
-                List<NetworkOrder> networkOrders = getNetworkOrders(computeOrder.getNetworkIds());
-                // Before extracting the networkIds, let us first check whether all networkOrders belong to the
-                // user who is requesting the compute instance, and have been created at the same provider where
-                // the compute order is to be created.
-                checkSystemUserAndProvider(computeOrder.getSystemUser(), computeOrder.getProvider(), networkOrders);
-                // Extracting network ids.
-                List<String> networkInstanceIds = getNetworkInstanceIdsFromNetworkOrders(networkOrders);
-                computeOrder.setNetworkIds(networkInstanceIds);
-                try {
-                    requestInstance = this.computePlugin.requestInstance(computeOrder, token);
-                } catch (Throwable e) {
-                    throw e;
-                } finally {
-                    // We need to restore the saved NetworkOrderIds, after the Compute instance is requested in the cloud.
-                    computeOrder.setNetworkIds(networkOrderIds);
-                }
-                break;
-            case NETWORK:
-                NetworkOrder networkOrder = (NetworkOrder) order;
-                requestInstance = this.networkPlugin.requestInstance(networkOrder, token);
-                break;
-            case VOLUME:
-                VolumeOrder volumeOrder = (VolumeOrder) order;
-                requestInstance = this.volumePlugin.requestInstance(volumeOrder, token);
-                break;
-            case ATTACHMENT:
-                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                String attachComputeOrderId = attachmentOrder.getComputeId();
-                String attachVolumeOrderId = attachmentOrder.getVolumeId();
-                Order attachmentComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachComputeOrderId);
-                Order attachmentVolumeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachVolumeOrderId);
-                SystemUser attachmentOrderSystemUser = attachmentOrder.getSystemUser();
-                SystemUser computeOrderSystemUser = attachmentComputeOrder.getSystemUser();
-                SystemUser volumeOrderSystemUser = attachmentVolumeOrder.getSystemUser();
-                // Check if both the compute and the volume orders belong to the user issuing the attachment order
-                if (!attachmentOrderSystemUser.equals(computeOrderSystemUser) ||
-                        !attachmentOrderSystemUser.equals(volumeOrderSystemUser)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
-                }
-                String attachmentProvider = attachmentOrder.getProvider();
-                String computeProvider = attachmentComputeOrder.getProvider();
-                String volumeProvider = attachmentVolumeOrder.getProvider();
-                // Check if both compute and volume belong to the requested provider
-                if (!attachmentProvider.equals(computeProvider) || !attachmentProvider.equals(volumeProvider)) {
-                    throw new InvalidParameterException(Messages.Exception.PROVIDERS_DONT_MATCH);
-                }
-                // As the order parameter came from the rest API, the Compute and Volume fields are actually
-                // ComputeOrder and VolumeOrder Ids, since these are the Ids that are known to users/applications
-                // using the API. Thus, before requesting the plugin to create the Attachment, we need to replace the
-                // ComputeOrderId and the VolumeOrderId by their corresponding ComputeInstanceId and VolumeInstanceId.
-                attachmentOrder.setComputeId(attachmentComputeOrder.getInstanceId());
-                attachmentOrder.setVolumeId(attachmentVolumeOrder.getInstanceId());
-                try {
-                    requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, token);
-                } catch (Throwable e) {
-                    throw e;
-                } finally {
-                    // We need to restore the original order id values, after the Attachment is requested in the cloud.
-                    attachmentOrder.setComputeId(attachComputeOrderId);
-                    attachmentOrder.setVolumeId(attachVolumeOrderId);
-                }
-                break;
-            case PUBLIC_IP:
-                PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-
-                String computeOrderId = publicIpOrder.getComputeOrderId();
-
-                Order retrievedComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap()
-                        .get(computeOrderId);
-
-                SystemUser publicIpOrderSystemUser = publicIpOrder.getSystemUser();
-                SystemUser retrievedComputeOrderSystemUser = retrievedComputeOrder.getSystemUser();
-                if (!publicIpOrderSystemUser.equals(retrievedComputeOrderSystemUser)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
-                }
-
-                String computeInstanceId = retrievedComputeOrder.getInstanceId();
-                if (computeInstanceId != null) {
-                    requestInstance = this.publicIpPlugin.requestInstance(publicIpOrder, computeInstanceId, token);
-                }
-                break;
-            default:
-                throw new UnexpectedException(String.format(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED, order.getType()));
-        }
-        if (requestInstance == null) {
+    private String doRequestInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        String instanceId;
+        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
+        instanceId = plugin.requestInstance(order, cloudUser);
+        if (instanceId == null) {
             throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
         }
-
-        return requestInstance;
+        return instanceId;
     }
 
-    private void doDeleteInstance(Order order, CloudUser token) throws FogbowException, UnexpectedException {
+    private void doDeleteInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
         try {
             if (order.getInstanceId() != null) {
-                switch (order.getType()) {
-                    case COMPUTE:
-                        this.computePlugin.deleteInstance(order.getInstanceId(), token);
-                        break;
-                    case VOLUME:
-                        this.volumePlugin.deleteInstance(order.getInstanceId(), token);
-                        break;
-                    case NETWORK:
-                        this.networkPlugin.deleteInstance(order.getInstanceId(), token);
-                        break;
-                    case ATTACHMENT:
-                        this.attachmentPlugin.deleteInstance(order.getInstanceId(), token);
-                        break;
-                    case PUBLIC_IP:
-                        String computeInstanceId = getComputeInstanceId((PublicIpOrder) order);
-                        this.publicIpPlugin.deleteInstance(order.getInstanceId(), computeInstanceId, token);
-                        break;
-                    default:
-                        LOGGER.error(String.format(Messages.Error.DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED, order.getType()));
-                        break;
-                }
+                plugin.deleteInstance(order, cloudUser);
             } else {
                 // If instanceId is null, then there is nothing to do.
                 return;
@@ -388,53 +274,49 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private String getComputeInstanceId(PublicIpOrder order) {
-        PublicIpOrder publicIpOrder = order;
-        String computeOrderId = publicIpOrder.getComputeOrderId();
-        Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(computeOrderId);
-        return computeOrder == null ? null : computeOrder.getInstanceId();
+    private Instance doGetInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        Instance instance;
+        String instanceId = order.getInstanceId();
+        if (instanceId != null) {
+            instance = getResourceInstance(order, order.getType(), cloudUser);
+        } else {
+            // When there is no instance, an empty one is created with the appropriate state
+            instance = createEmptyInstance(order);
+        }
+        return instance;
     }
 
-    private Instance doGetInstance(Order order, CloudUser token) throws FogbowException, UnexpectedException {
-        Instance instance;
-        synchronized (order) {
-            if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
-                throw new InstanceNotFoundException();
-            }
-            String instanceId = order.getInstanceId();
-            if (instanceId != null) {
-                instance = getResourceInstance(order, order.getType(), token);
-                // Setting instance common fields that do not need to be set by the plugin
-                instance.setProvider(order.getProvider());
-                instance.setCloudName(order.getCloudName());
-                // The user believes that the order id is actually the instance id.
-                // So we need to set the instance id accordingly before returning the instance.
-                instance.setId(order.getId());
-            } else {
-                // When there is no instance, an empty one is created with the appropriate state
-                switch (order.getType()) {
-                    case COMPUTE:
-                        instance = new ComputeInstance(order.getId());
-                        break;
-                    case VOLUME:
-                        instance = new VolumeInstance(order.getId());
-                        break;
-                    case NETWORK:
-                        instance = new NetworkInstance(order.getId());
-                        break;
-                    case ATTACHMENT:
-                        instance = new AttachmentInstance(order.getId());
-                        break;
-                    case PUBLIC_IP:
-                        instance = new PublicIpInstance(order.getId());
-                        break;
-                    default:
-                        throw new UnexpectedException(Messages.Exception.UNSUPPORTED_REQUEST_TYPE);
-                }
-                InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
-                instance.setState(instanceState);
-            }
+    private Instance createEmptyInstance(Order order) throws UnexpectedException {
+        Instance instance = null;
+        switch (order.getType()) {
+            case COMPUTE:
+                instance = new ComputeInstance(order.getId());
+                break;
+            case VOLUME:
+                instance = new VolumeInstance(order.getId());
+                break;
+            case NETWORK:
+                instance = new NetworkInstance(order.getId());
+                break;
+            case ATTACHMENT:
+                instance = new AttachmentInstance(order.getId());
+                break;
+            case PUBLIC_IP:
+                instance = new PublicIpInstance(order.getId());
+                break;
+            default:
+                throw new UnexpectedException(Messages.Exception.UNSUPPORTED_REQUEST_TYPE);
         }
+        return instance;
+    }
+
+    private Instance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {
+        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, resourceType);
+        Instance instance = plugin.getInstance(order, cloudUser);
+        boolean instanceHasFailed = plugin.hasFailed(instance.getCloudState());
+        boolean instanceIsReady = plugin.isReady(instance.getCloudState());
+        if (instanceHasFailed) instance.setHasFailed();
+        if (instanceIsReady) instance.setReady();
         return instance;
     }
 
@@ -475,119 +357,45 @@ public class LocalCloudConnector implements CloudConnector {
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }
 
-    public void switchOnAuditing() {
-        this.auditRequestsOn = true;
+    private OrderPlugin checkOrderCastingAndSetPlugin(Order order, ResourceType resourceType)
+            throws UnexpectedException {
+        OrderPlugin plugin;
+        boolean orderTypeMatch = false;
+
+        // Orders that embed other orders (compute, attachment and publicip) need to check the consistency
+        // of these orders when the order is being dispatched by the LocalCloudConnector.
+        switch (resourceType) {
+            case COMPUTE:
+                orderTypeMatch = order instanceof ComputeOrder;
+                plugin = this.computePlugin;
+                break;
+            case NETWORK:
+                orderTypeMatch = order instanceof NetworkOrder;
+                plugin = this.networkPlugin;
+                break;
+            case VOLUME:
+                orderTypeMatch = order instanceof VolumeOrder;
+                plugin = this.volumePlugin;
+                break;
+            case ATTACHMENT:
+                orderTypeMatch = order instanceof AttachmentOrder;
+                plugin = this.attachmentPlugin;
+                break;
+            case PUBLIC_IP:
+                orderTypeMatch = order instanceof PublicIpOrder;
+                plugin = this.publicIpPlugin;
+                break;
+            default:
+                throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
+        }
+        if (!orderTypeMatch) {
+            throw new UnexpectedException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+        }
+        return plugin;
     }
 
     public void switchOffAuditing() {
         this.auditRequestsOn = false;
-    }
-
-    private ComputeInstance getFullComputeInstance(ComputeOrder order, ComputeInstance instance)
-            throws FogbowException {
-        ComputeInstance fullInstance = instance;
-        String imageId = order.getImageId();
-        String imageName = getAllImages(order.getSystemUser()).get(imageId);
-        String publicKey = order.getPublicKey();
-
-        List<UserData> userData = order.getUserData();
-
-        // If no network ids were informed by the user, the default network is used and the compute is attached
-        // to this network. The plugin has already added this information to the instance. Otherwise, the information
-        // added by the plugin needs to be overwritten, since a compute instance is either attached to the networks
-        // informed by the user in the request, or to default network (if no networks are informed).
-        Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(order);
-        if (!computeNetworks.isEmpty()) {
-            fullInstance.setNetworks(computeNetworks);
-        }
-
-        fullInstance.setImageId(imageId + " : " + imageName);
-        fullInstance.setPublicKey(publicKey);
-        fullInstance.setUserData(userData);
-
-        return fullInstance;
-    }
-
-    private AttachmentInstance getFullAttachmentInstance(AttachmentOrder order, AttachmentInstance instance) {
-        AttachmentInstance fullInstance = instance;
-        String savedVolumeId = order.getVolumeId();
-        String savedComputeId = order.getComputeId();
-        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedComputeId);
-        VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedVolumeId);
-
-        fullInstance.setComputeName(computeOrder.getName());
-        fullInstance.setComputeId(computeOrder.getId());
-        fullInstance.setVolumeName(volumeOrder.getName());
-        fullInstance.setVolumeId(volumeOrder.getId());
-
-        return fullInstance;
-    }
-
-    private PublicIpInstance getFullPublicIpInstance(PublicIpOrder order, PublicIpInstance instance) {
-        PublicIpInstance publicIpInstance = instance;
-        String computeOrderId = order.getComputeOrderId();
-
-        ComputeOrder retrievedComputeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap()
-                .get(computeOrderId);
-
-        String computeInstanceName = retrievedComputeOrder.getName();
-        String computeInstanceId = retrievedComputeOrder.getId();
-        publicIpInstance.setComputeName(computeInstanceName);
-        publicIpInstance.setComputeId(computeInstanceId);
-
-        return publicIpInstance;
-    }
-
-    private Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
-        List<String> networkOrdersId = order.getNetworkIds();
-        Map<String, String> computeNetworks = new HashMap<>();
-
-        for (String orderId : networkOrdersId) {
-            NetworkOrder networkOrder = (NetworkOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
-            String networkId = networkOrder.getId();
-            String networkName = networkOrder.getName();
-
-            computeNetworks.put(networkId, networkName);
-        }
-
-        return computeNetworks;
-    }
-
-    private List<NetworkOrder> getNetworkOrders(List<String> networkIds) throws InvalidParameterException {
-        List<NetworkOrder> networkOrders = new LinkedList<>();
-
-        for (String orderId : networkIds) {
-            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
-
-            if (networkOrder == null) {
-                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-            }
-            networkOrders.add((NetworkOrder) networkOrder);
-        }
-        return networkOrders;
-    }
-
-    private void checkSystemUserAndProvider(SystemUser systemUser, String provider, List<NetworkOrder> networkOrders)
-            throws InvalidParameterException {
-        for (NetworkOrder order : networkOrders) {
-            if (!systemUser.equals(order.getSystemUser()) || !provider.equalsIgnoreCase(order.getProvider())) {
-                throw new InvalidParameterException(String.format(Messages.Exception.INVALID_NETWORK_ID_S, order.getId()));
-            }
-        }
-    }
-
-    /**
-     * protected visibility for tests
-     * @param networkOrders
-     */
-    protected List<String> getNetworkInstanceIdsFromNetworkOrders(List<NetworkOrder> networkOrders) throws InvalidParameterException {
-        List<String> networkInstanceIDs = new LinkedList<String>();
-
-        for (NetworkOrder order : networkOrders) {
-            String instanceId = order.getInstanceId();
-            networkInstanceIDs.add(instanceId);
-        }
-        return networkInstanceIDs;
     }
 
     // Used only in tests
@@ -595,6 +403,7 @@ public class LocalCloudConnector implements CloudConnector {
     protected void setMapperPlugin(SystemToCloudMapperPlugin mapperPlugin) {
         this.mapperPlugin = mapperPlugin;
     }
+
     protected void setPublicIpPlugin(PublicIpPlugin publicIpPlugin) {
         this.publicIpPlugin = publicIpPlugin;
     }
@@ -625,49 +434,6 @@ public class LocalCloudConnector implements CloudConnector {
 
     protected void setGenericRequestPlugin(GenericRequestPlugin genericRequestPlugin) {
         this.genericRequestPlugin = genericRequestPlugin;
-    }
-
-    private Instance getResourceInstance(Order order, ResourceType resourceType, CloudUser token) throws FogbowException {
-        Instance instance;
-        String instanceId = order.getInstanceId();
-        switch (resourceType) {
-            case COMPUTE:
-                instance = this.computePlugin.getInstance(instanceId, token);
-                instance = this.getFullComputeInstance(((ComputeOrder) order), ((ComputeInstance) instance));
-                break;
-            case NETWORK:
-                instance = this.networkPlugin.getInstance(instanceId, token);
-                break;
-            case VOLUME:
-                instance = this.volumePlugin.getInstance(instanceId, token);
-                break;
-            case ATTACHMENT:
-                instance = this.attachmentPlugin.getInstance(instanceId, token);
-                instance = this.getFullAttachmentInstance(((AttachmentOrder) order), ((AttachmentInstance) instance));
-                break;
-            case PUBLIC_IP:
-                instance = this.publicIpPlugin.getInstance(instanceId, token);
-                instance = this.getFullPublicIpInstance(((PublicIpOrder) order), ((PublicIpInstance) instance));
-                break;
-            default:
-                throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
-        }
-        order.setCachedInstanceState(instance.getState());
-        instance.setProvider(order.getProvider());
-        return instance;
-    }
-
-    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
-        InstanceState instanceState = null;
-        // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
-        // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
-        if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.PENDING)) {
-            instanceState = InstanceState.DISPATCHED;
-        } else if (order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST) ||
-                order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
-            instanceState = InstanceState.FAILED;
-        }
-        return instanceState;
     }
 
     private void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,

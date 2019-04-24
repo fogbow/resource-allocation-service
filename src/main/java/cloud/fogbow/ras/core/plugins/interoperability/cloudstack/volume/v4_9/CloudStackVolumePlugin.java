@@ -7,14 +7,15 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -26,7 +27,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
-    private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     private static final String FOGBOW_TAG_SEPARATOR = ":";
     private CloudStackHttpClient client;
     private boolean diskOfferingCompatible;
@@ -39,6 +39,16 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
         this.client = new CloudStackHttpClient();
+    }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return CloudStackStateMapper.map(ResourceType.VOLUME, cloudState).equals(InstanceState.FAILED);
     }
 
     @Override
@@ -68,11 +78,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
-    public VolumeInstance getInstance(String volumeInstanceId, CloudStackUser cloudUser) throws FogbowException {
+    public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudStackUser cloudUser) throws FogbowException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
-                .id(volumeInstanceId)
+                .id(volumeOrder.getInstanceId())
                 .build(this.cloudStackUrl);
-
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
@@ -94,11 +103,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(String volumeInstanceId, CloudStackUser cloudUser)
-            throws FogbowException, UnexpectedException {
+    public void deleteInstance(VolumeOrder volumeOrder, CloudStackUser cloudUser) throws FogbowException {
 
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
-                .id(volumeInstanceId)
+                .id(volumeOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -119,10 +127,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         }
     }
 
-    private String getDiskOfferingId(VolumeOrder volumeOrder, CloudStackUser cloudUser)
-            throws FogbowException {
-
-        int volumeSize = volumeOrder.getVolumeSize();
+    private String getDiskOfferingId(VolumeOrder volumeOrder, CloudStackUser cloudUser) throws FogbowException {
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -202,7 +207,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder, String diskOfferingId) throws InvalidParameterException {
 
         String instanceName = volumeOrder.getName();
-        String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
+        String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
         String size = String.valueOf(volumeOrder.getVolumeSize());
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
@@ -215,7 +220,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     private CreateVolumeRequest createVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId) throws InvalidParameterException {
 
         String instanceName = volumeOrder.getName();
-        String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
+        String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
                 .name(name)
@@ -230,9 +235,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         long sizeInBytes = volume.getSize();
         int sizeInGigabytes = (int) (sizeInBytes / Math.pow(1024, 3));
 
-        InstanceState instanceState = CloudStackStateMapper.map(ResourceType.VOLUME, state);
-
-        VolumeInstance volumeInstance = new VolumeInstance(id, instanceState, name, sizeInGigabytes);
+        VolumeInstance volumeInstance = new VolumeInstance(id, state, name, sizeInGigabytes);
         return volumeInstance;
     }
 

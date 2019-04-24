@@ -22,6 +22,7 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList<Order> failedAfterSuccessfulRequestOrders;
     private SynchronizedDoublyLinkedList<Order> failedOnRequestOrders;
     private SynchronizedDoublyLinkedList<Order> fulfilledOrders;
+    private SynchronizedDoublyLinkedList<Order> unableToCheckStatus;
     private SynchronizedDoublyLinkedList<Order> pendingOrders;
     private SynchronizedDoublyLinkedList<Order> closedOrders;
 
@@ -36,15 +37,18 @@ public class SharedOrderHolders {
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
             addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.SPAWNING, this.activeOrdersMap.size()));
-            this.failedAfterSuccessfulRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+            this.failedAfterSuccessfulRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             addOrdersToMap(this.failedAfterSuccessfulRequestOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, this.activeOrdersMap.size()));
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, this.activeOrdersMap.size()));
             this.failedOnRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST);
             addOrdersToMap(this.failedOnRequestOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FAILED_ON_REQUEST, this.activeOrdersMap.size()));
             this.fulfilledOrders = databaseManager.readActiveOrders(OrderState.FULFILLED);
             addOrdersToMap(this.fulfilledOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FULFILLED, this.activeOrdersMap.size()));
+            this.unableToCheckStatus = databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS);
+            addOrdersToMap(this.unableToCheckStatus, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.UNABLE_TO_CHECK_STATUS, this.activeOrdersMap.size()));
             this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.PENDING, this.activeOrdersMap.size()));
@@ -52,7 +56,7 @@ public class SharedOrderHolders {
             addOrdersToMap(this.closedOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CLOSED, this.activeOrdersMap.size()));
         } catch (Exception e) {
-            throw new FatalErrorException(e.getMessage());
+            throw new FatalErrorException(e.getMessage(), e);
         }
     }
 
@@ -98,6 +102,10 @@ public class SharedOrderHolders {
         return fulfilledOrders;
     }
 
+    public SynchronizedDoublyLinkedList<Order> getUnableToCheckStatusOrdersList() {
+        return unableToCheckStatus;
+    }
+
     public SynchronizedDoublyLinkedList<Order> getPendingOrdersList() {
         return pendingOrders;
     }
@@ -124,11 +132,14 @@ public class SharedOrderHolders {
             case CLOSED:
                 list = SharedOrderHolders.getInstance().getClosedOrdersList();
                 break;
-            case FAILED_AFTER_SUCCESSUL_REQUEST:
+            case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 list = SharedOrderHolders.getInstance().getFailedAfterSuccessfulRequestOrdersList();
                 break;
             case FAILED_ON_REQUEST:
                 list = SharedOrderHolders.getInstance().getFailedOnRequestOrdersList();
+                break;
+            case UNABLE_TO_CHECK_STATUS:
+                list = SharedOrderHolders.getInstance().getUnableToCheckStatusOrdersList();
                 break;
             default:
                 break;

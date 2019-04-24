@@ -32,9 +32,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class ApplicationFacade {
     private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
@@ -110,14 +108,18 @@ public class ApplicationFacade {
         }
     }
 
-    // This method is only protected to be used in testing
+    // This method is protected to be used in testing
 	protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String memberId, SystemUser requester) {
 		RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(memberId, requester);
 		return remoteGetCloudNames;
 	}
 
     public String createCompute(ComputeOrder order, String userToken) throws FogbowException {
-        if (order.getUserData() != null) {
+        // if userData is null we need to prevent a NullPointerException when trying to save the order
+        // in the database
+        if (order.getUserData() == null) {
+            order.setUserData(new ArrayList<>());
+        } else {
             for (UserData userDataScript : order.getUserData()) {
                 if (userDataScript != null && userDataScript.getExtraUserDataFileContent() != null &&
                     userDataScript.getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
@@ -125,7 +127,6 @@ public class ApplicationFacade {
                 }
             }
         }
-
         return activateOrder(order, userToken);
     }
 
@@ -172,8 +173,7 @@ public class ApplicationFacade {
     }
 
     public String createAttachment(AttachmentOrder attachmentOrder, String userToken) throws FogbowException {
-        String attachmentOrderId = activateOrder(attachmentOrder, userToken);
-        return attachmentOrderId;
+        return activateOrder(attachmentOrder, userToken);
     }
 
     public AttachmentInstance getAttachment(String orderId, String userToken) throws FogbowException {
@@ -185,8 +185,7 @@ public class ApplicationFacade {
     }
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String userToken) throws FogbowException {
-        String publicIpOrderId = activateOrder(publicIpOrder, userToken);
-        return publicIpOrderId;
+        return activateOrder(publicIpOrder, userToken);
     }
 
     public PublicIpInstance getPublicIp(String publicIpOrderId, String userToken) throws FogbowException {
@@ -287,11 +286,11 @@ public class ApplicationFacade {
         // Check if the authenticated user is authorized to perform the requested operation
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
                 order.getType(), order.getCloudName(), order));
-        // Set an initial state for the resource instance that is yet to be created in the cloud
-        order.setCachedInstanceState(InstanceState.DISPATCHED);
+        // Check consistency of orders that have other orders embedded (eg. an AttachmentOrder embeds
+        // both a ComputeOrder and a VolumeOrder).
+        checkEmbeddedOrdersConsistency(order);
         // Add order to the poll of active orders and to the OPEN linked list
-        this.orderController.activateOrder(order);
-        return order.getId();
+        return this.orderController.activateOrder(order);
     }
 
     private Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
@@ -347,7 +346,82 @@ public class ApplicationFacade {
         return this.asPublicKey;
     }
 
-    // Used for testing
+    private void checkEmbeddedOrdersConsistency(Order order) throws InvalidParameterException, UnexpectedException {
+        // Orders that embed other orders (compute, attachment and publicip) need to check the consistency
+        // of these orders when the order is being dispatched by the LocalCloudConnector.
+        switch (order.getType()) {
+            case COMPUTE:
+                checkComputeOrderConsistency((ComputeOrder) order);
+                break;
+            case ATTACHMENT:
+                checkAttachmentOrderConsistency((AttachmentOrder) order);
+                break;
+            case PUBLIC_IP:
+                checkPublicIpOrderConsistency((PublicIpOrder) order);
+                break;
+            case NETWORK:
+            case VOLUME:
+                break;
+            default:
+                throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
+        }
+    }
+
+    private void checkComputeOrderConsistency(ComputeOrder computeOrder) throws InvalidParameterException {
+        List<NetworkOrder> networkOrders = getNetworkOrders(computeOrder.getNetworkOrderIds());
+        for (NetworkOrder networkOrder : networkOrders) {
+            checkConsistencyOfEmbeddedOrder(computeOrder, networkOrder);
+        }
+    }
+
+    private void checkAttachmentOrderConsistency(AttachmentOrder attachmentOrder) throws InvalidParameterException {
+        String attachComputeOrderId = attachmentOrder.getComputeOrderId();
+        String attachVolumeOrderId = attachmentOrder.getVolumeOrderId();
+        Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachComputeOrderId);
+        Order volumeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachVolumeOrderId);
+        checkConsistencyOfEmbeddedOrder(attachmentOrder, computeOrder);
+        checkConsistencyOfEmbeddedOrder(attachmentOrder, volumeOrder);
+    }
+
+    private void checkPublicIpOrderConsistency(PublicIpOrder publicIpOrder) throws InvalidParameterException {
+        String computeOrderId = publicIpOrder.getComputeOrderId();
+        Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(computeOrderId);
+        checkConsistencyOfEmbeddedOrder(publicIpOrder, computeOrder);
+    }
+
+    private void checkConsistencyOfEmbeddedOrder(Order mainOrder, Order embeddedOrder) throws InvalidParameterException {
+        if (embeddedOrder == null) {
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_RESOURCE_S, embeddedOrder.getId()));
+        }
+        if (!mainOrder.getSystemUser().equals(embeddedOrder.getSystemUser())) {
+            throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
+        }
+        if (!mainOrder.getProvider().equals(embeddedOrder.getProvider())) {
+            throw new InvalidParameterException(Messages.Exception.PROVIDERS_DONT_MATCH);
+        }
+        if (!mainOrder.getCloudName().equals(embeddedOrder.getCloudName())) {
+            throw new InvalidParameterException(Messages.Exception.CLOUD_NAMES_DONT_MATCH);
+        }
+        if (embeddedOrder.getProvider().equals(this.memberId) && embeddedOrder.getInstanceId() == null) {
+            throw new InvalidParameterException(String.format(Messages.Exception.INSTANCE_NULL_S, embeddedOrder.getId()));
+        }
+    }
+
+    private List<NetworkOrder> getNetworkOrders(List<String> networkOrderIds) throws InvalidParameterException {
+        List<NetworkOrder> networkOrders = new LinkedList<>();
+
+        for (String orderId : networkOrderIds) {
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+
+            if (networkOrder == null) {
+                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+            }
+            networkOrders.add((NetworkOrder) networkOrder);
+        }
+        return networkOrders;
+    }
+
+    // used for testing only
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
         this.buildNumber = properties.getProperty(ConfigurationPropertyKeys.BUILD_NUMBER_KEY,

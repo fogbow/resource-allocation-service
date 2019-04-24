@@ -79,8 +79,9 @@ public class RecoveryServiceTest extends BaseUnitTests {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         PowerMockito.mockStatic(DatabaseManager.class);
@@ -112,7 +113,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
         List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
         List<Order> spawningOrders = recoveryService.readActiveOrders(OrderState.SPAWNING);
         List<Order> fulfilledOrders = recoveryService.readActiveOrders(OrderState.FULFILLED);
-        List<Order> failedOrders = recoveryService.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+        List<Order> unableToCheckStatus = recoveryService.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS);
+        List<Order> failedOrders = recoveryService.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         List<Order> closedorders = recoveryService.readActiveOrders(OrderState.CLOSED);
         List<Order> deactivatedOrders = recoveryService.readActiveOrders(OrderState.DEACTIVATED);
 
@@ -122,6 +124,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         Assert.assertTrue(pendingOrders.isEmpty());
         Assert.assertTrue(spawningOrders.isEmpty());
         Assert.assertTrue(fulfilledOrders.isEmpty());
+        Assert.assertTrue(unableToCheckStatus.isEmpty());
         Assert.assertTrue(failedOrders.isEmpty());
         Assert.assertTrue(closedorders.isEmpty());
         Assert.assertTrue(deactivatedOrders.isEmpty());

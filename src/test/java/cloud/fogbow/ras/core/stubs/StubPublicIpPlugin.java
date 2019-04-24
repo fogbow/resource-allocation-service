@@ -10,22 +10,31 @@ import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
  * This class is a stub for the PublicIpPlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubPublicIpPlugin implements PublicIpPlugin {
+public class StubPublicIpPlugin implements PublicIpPlugin<CloudUser> {
     public StubPublicIpPlugin(String confFilePath) {
     }
 
     @Override
-    public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudUser cloudUser) throws FogbowException {
+    public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
         return null;
     }
 
     @Override
-    public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudUser cloudUser) throws FogbowException {
-
+    public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
     }
 
     @Override
-    public PublicIpInstance getInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
+    public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
         return null;
+    }
+
+    @Override
+    public boolean isReady(String cloudState) {
+        return true;
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return false;
     }
 }

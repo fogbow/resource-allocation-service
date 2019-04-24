@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -39,7 +42,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaPuplicIpPlugin.class);
 
 	private static final String ALL_PROTOCOLS = "ALL";
-	private static final String FOGBOW_PUBLIC_IP_NAME = "ras-public-ip-";
 	private static final String ID_SEPARATOR = " ";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String INSTANCE_ID = "%s %s %s %s";
@@ -64,16 +66,23 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
 		this.defaultSecurityGroup = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_SECURITY_GROUP_ID_KEY);
 	}
-	
-	@Override
-	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, CloudUser cloudUser)
-			throws FogbowException {
 
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+	@Override
+	public boolean isReady(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.PUBLIC_IP, cloudState).equals(InstanceState.READY);
+	}
+
+	@Override
+	public boolean hasFailed(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.PUBLIC_IP, cloudState).equals(InstanceState.FAILED);
+	}
+
+	@Override
+	public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		int defaultPublicNetworkId = convertToInteger(this.defaultPublicNetwork);
-		String name = FOGBOW_PUBLIC_IP_NAME + getRandomUUID();
+		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
 		int size = SIZE_ADDRESS_PUBLIC_IP;
 
 		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()
@@ -86,9 +95,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 				publicNetworkReserveTemplate);
 
 		String securityGroupInstanceId = createSecurityGroup(client, publicIpOrder);
-		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, 
-				this.defaultSecurityGroup,
-				securityGroupInstanceId);
+		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, this.defaultSecurityGroup, securityGroupInstanceId);
 
 		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
 				.securityGroups(securityGroups)
@@ -97,6 +104,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		int virtualNetworkId = convertToInteger(publicNetworkInstanceId);
 		String publicNetworkUpdateTemplate = updateRequest.getVirtualNetworkUpdate().marshalTemplate();
 		OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkId, publicNetworkUpdateTemplate);
+		String computeInstanceId = publicIpOrder.getComputeId();
 
 		String template = createNicTemplate(publicNetworkInstanceId);
 		VirtualMachine virtualMachine = attachNetworkInterfaceConnected(client, computeInstanceId, template);
@@ -112,17 +120,16 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 
 	@Override
-	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudUser cloudUser)
-			throws FogbowException {
-
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
-
+	public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		String publicIpInstanceId = publicIpOrder.getInstanceId();
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
+		String computeInstanceId = instanceIds[0];
 		String virtualNetworkId = instanceIds[1];
 		String securityGroupId = instanceIds[2];
 		String nicId = instanceIds[3];
+
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
 
 		// A Network Interface Connected (NIC) can only be detached if a virtual machine
 		// is power-off.
@@ -139,19 +146,18 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 
 	@Override
-	public PublicIpInstance getInstance(String publicIpInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, cloudUser.getToken()));
+	public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
+		String[] instanceIds = publicIpOrder.getInstanceId().split(ID_SEPARATOR);
 		String virtualMachineId = instanceIds[0];
 
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
 		String publicIp = getContent(virtualMachine, OpenNebulaTagNameConstants.IP);
-		InstanceState instanceState = InstanceState.READY;
 
-		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, publicIpInstanceId));
-		PublicIpInstance publicIpInstance = new PublicIpInstance(publicIpInstanceId, instanceState, publicIp);
+		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, publicIpOrder.getInstanceId()));
+		PublicIpInstance publicIpInstance = new PublicIpInstance(publicIpOrder.getInstanceId(),
+				OpenNebulaStateMapper.DEFAULT_READY_STATE, publicIp);
 		return publicIpInstance;
 	}
 	
@@ -196,7 +202,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 			waitMoment();
 			virtualMachine.info();
 			state = virtualMachine.stateStr();
-			if (state == POWEROFF_STATE) {
+			if (state.equalsIgnoreCase(POWEROFF_STATE)) {
 				return true;
 			}
 		}
@@ -244,7 +250,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 	
 	protected String createSecurityGroup(Client client, PublicIpOrder publicIpOrder) throws InvalidParameterException {
-		String name = SECURITY_GROUP_PREFIX + publicIpOrder.getId();
+		String name = SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpOrder.getId();
 
 		// "ALL" setting applies to all protocols if a port range is not defined
 		String protocol = ALL_PROTOCOLS;
@@ -291,5 +297,4 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 			throw new InvalidParameterException();
 		}
 	}
-	
 }

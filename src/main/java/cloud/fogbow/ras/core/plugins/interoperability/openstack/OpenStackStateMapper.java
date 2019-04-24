@@ -81,7 +81,7 @@ public class OpenStackStateMapper {
                     case SOFT_DELETED_STATUS:
                     case SUSPENDED_STATUS:
                     case VERIFY_RESIZE_STATUS:
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                     case UNKNOWN_STATUS:
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, COMPUTE_PLUGIN));
@@ -96,7 +96,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     case DOWN_STATUS:
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, NETWORK_PLUGIN));
                         return InstanceState.INCONSISTENT;
@@ -119,7 +119,7 @@ public class OpenStackStateMapper {
                     case EXTENDING_STATUS:
                     case ATTACHING_STATUS:
                     case IN_USE_STATUS:
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                     case ERROR_BACKING_UP_STATUS:
                     case ERROR_DELETING_STATUS:
                     case ERROR_EXTENDING_STATUS:
@@ -140,7 +140,7 @@ public class OpenStackStateMapper {
                     case ACTIVE_STATUS:
                         return InstanceState.READY;
                     default:
-                        return InstanceState.UNAVAILABLE;
+                        return InstanceState.BUSY;
                 }
             default:
                 LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);

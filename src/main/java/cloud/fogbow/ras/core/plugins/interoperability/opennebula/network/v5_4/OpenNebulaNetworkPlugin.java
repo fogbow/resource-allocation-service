@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -47,7 +50,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	private static final int BASE_VALUE = 2;
 	private static final int SECURITY_GROUP_VALID_POSITION = 1;
 	
-	protected static final String FOGBOW_NETWORK_NAME = "ras-network-";
 	protected static final String SECURITY_GROUPS_SEPARATOR = ",";
 	protected static final String VNET_ADDRESS_RANGE_IP_PATH = "/VNET/AR_POOL/AR/IP";
 	protected static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
@@ -68,13 +70,23 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 
 	@Override
+	public boolean isReady(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.READY);
+	}
+
+	@Override
+	public boolean hasFailed(String cloudState) {
+		return OpenNebulaStateMapper.map(ResourceType.NETWORK, cloudState).equals(InstanceState.FAILED);
+	}
+
+	@Override
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		int defaultNetworkID = convertToInteger(this.defaultNetwork);
 		String networkName = networkOrder.getName();
-		String name = networkName == null ? FOGBOW_NETWORK_NAME + getRandomUUID() : networkName;
+		String name = networkName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : networkName;
 		int size = getAddressRangeSize(networkOrder.getCidr());
 
 		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()
@@ -99,18 +111,18 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 
 	@Override
-	public NetworkInstance getInstance(String networkInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, networkInstanceId, cloudUser.getToken()));
+	public NetworkInstance getInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, networkOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkInstanceId);
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkOrder.getInstanceId());
 		return createInstance(virtualNetwork);
 	}
 
 	@Override
-	public void deleteInstance(String networkInstanceId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, networkInstanceId, cloudUser.getToken()));
+	public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, networkOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkInstanceId);
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkOrder.getInstanceId());
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);
 		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
 		deleteVirtualNetwork(virtualNetwork);
@@ -184,7 +196,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 	
 	protected String generateSecurityGroupName(NetworkOrder networkOrder) {
-		return SECURITY_GROUP_PREFIX + networkOrder.getId();
+		return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkOrder.getId();
 	}
 	
 	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) throws InvalidParameterException {
@@ -197,12 +209,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		String networkInterface = null;
 		String macInterface = null;
 		String interfaceState = null;
-		InstanceState instanceState = InstanceState.READY;
 		NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
 		
 		NetworkInstance networkInstance = new NetworkInstance(
 				id, 
-				instanceState, 
+				OpenNebulaStateMapper.DEFAULT_READY_STATE,
 				name, 
 				address, 
 				gateway, 

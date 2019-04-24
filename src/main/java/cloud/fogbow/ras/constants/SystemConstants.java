@@ -11,4 +11,10 @@ public class SystemConstants {
     public static final String INTEROPERABILITY_CONF_FILE_NAME = "plugins.conf";
     public static final String CLOUD_SPECIFICITY_CONF_FILE_NAME = "cloud.conf";
     public static final String MAPPER_CONF_FILE_NAME = "mapper.conf";
+
+    // DEFAULT INSTANCE NAME PREFIX AND OTHER DEFAULT CONSTANTS
+    public static final String FOGBOW_INSTANCE_NAME_PREFIX = "fogbow-";
+    public static final String PN_SECURITY_GROUP_PREFIX = FOGBOW_INSTANCE_NAME_PREFIX + "sg-pn-";
+    public static final String PIP_SECURITY_GROUP_PREFIX = FOGBOW_INSTANCE_NAME_PREFIX + "sg-pip-";
+    public static final String DEFAULT_NETWORK_NAME = "default";
 }

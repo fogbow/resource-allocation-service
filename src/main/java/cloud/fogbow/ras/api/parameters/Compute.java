@@ -71,8 +71,7 @@ public class Compute implements OrderApiParameter {
     @Override
     public ComputeOrder getOrder() {
         ComputeOrder order = new ComputeOrder(provider, cloudName, name, vCPU, memory, disk, imageId, userData,
-                publicKey, networkIds
-        );
+                publicKey, networkIds);
         order.setRequirements(requirements);
         return order;
     }

@@ -4,8 +4,10 @@ public enum InstanceState {
     DISPATCHED("dispatched"),
     READY("ready"),
     CREATING("creating"),
-    UNAVAILABLE("unavailable"),
+    BUSY("busy"),
     FAILED("failed"),
+    ERROR("error"),
+    UNKNOWN("unknown"),
     INCONSISTENT("inconsistent");
 
     private String value;

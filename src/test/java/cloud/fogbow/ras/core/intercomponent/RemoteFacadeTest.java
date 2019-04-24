@@ -7,11 +7,11 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -21,13 +21,13 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
@@ -78,6 +78,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		Order order = new ComputeOrder();
 		order.setRequester(FAKE_LOCAL_IDENTITY_MEMBER);
+		order.setProvider(FAKE_LOCAL_IDENTITY_MEMBER);
 
 		// exercise
 		this.facade.activateOrder(FAKE_REQUESTING_MEMBER_ID, order);
@@ -104,8 +105,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
-		Order order = spyComputeOrder(systemUser, cloudName, provider);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+		Order order = spyComputeOrder(systemUser, cloudName, requester);
 
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
@@ -118,10 +119,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		// checking if the order has no state and is null
 		Assert.assertNull(order.getOrderState());
-		OrderState expectedOrderState = OrderState.OPEN;
+		cloud.fogbow.ras.core.models.orders.OrderState expectedOrderState = cloud.fogbow.ras.core.models.orders.OrderState.OPEN;
 
 		// exercise
-		this.facade.activateOrder(FAKE_REQUESTING_MEMBER_ID, order);
+		this.facade.activateOrder(requester, order);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -151,8 +152,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
-		Order order = spyComputeOrder(systemUser, cloudName, provider);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+		Order order = spyComputeOrder(systemUser, cloudName, requester);
 		this.orderController.activateOrder(order);
 
 		RasOperation operation = new RasOperation(
@@ -168,7 +169,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.doReturn(expectedInstance).when(orderController).getResourceInstance(Mockito.any(Order.class));
 
 		// exercise
-		Instance instance = this.facade.getResourceInstance(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser,
+		Instance instance = this.facade.getResourceInstance(requester, order.getId(), systemUser,
 				order.getType());
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
@@ -205,10 +206,11 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	@Test
 	public void testRemoteDeleteOrderSuccessfully() throws Exception {
 		// set up
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
+		String provider = localMemberId;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 		this.orderController.activateOrder(order);
 
@@ -226,7 +228,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		OrderState expectedOrderState = OrderState.CLOSED;
 
 		// exercise
-		this.facade.deleteOrder(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser, order.getType());
+		this.facade.deleteOrder(localMemberId, order.getId(), systemUser, order.getType());
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -420,8 +422,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
-		Order order = spyComputeOrder(systemUser, cloudName, provider);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+		Order order = spyComputeOrder(systemUser, cloudName, requester);
 		this.orderController.activateOrder(order);
 
 		RasOperation operation = new RasOperation(
@@ -441,7 +443,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.setSecurityRuleController(securityRuleController);
 
 		// exercise
-		this.facade.createSecurityRule(FAKE_REQUESTING_MEMBER_ID, order.getId(), securityRule, systemUser);
+		this.facade.createSecurityRule(requester, order.getId(), securityRule, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -459,8 +461,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
-		Order order = spyComputeOrder(systemUser, cloudName, provider);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+		Order order = spyComputeOrder(systemUser, cloudName, requester);
 		this.orderController.activateOrder(order);
 
 		RasOperation operation = new RasOperation(
@@ -482,7 +484,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.setSecurityRuleController(securityRuleController);
 
 		// exercise
-		List<SecurityRule> securityRules = this.facade.getAllSecurityRules(FAKE_REQUESTING_MEMBER_ID, order.getId(),
+		List<SecurityRule> securityRules = this.facade.getAllSecurityRules(requester, order.getId(),
 				systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
@@ -576,7 +578,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	@Test
 	public void testRemoteHandleRemoteEventWithInstanceFulfilled() throws Exception {
 		// set up
-		Event event = Event.INSTANCE_FULFILLED;
+		OrderState orderState = OrderState.FULFILLED;
 
 		String signallingMember = LOCAL_MEMBER_ID;
 		String requester = FAKE_REQUESTING_MEMBER_ID;
@@ -585,7 +587,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
+		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
 
@@ -596,24 +598,24 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(response);
 
 		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(OrderState.PENDING);
+		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
 		origin.addItem(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
+		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
 
 		// verify
-		OrderState expectedOrderState = OrderState.FULFILLED;
+		cloud.fogbow.ras.core.models.orders.OrderState expectedOrderState = cloud.fogbow.ras.core.models.orders.OrderState.FULFILLED;
 		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
 	}
 
 	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order, it must return its OrderState FAILED_AFTER_SUCCESSUL_REQUEST,
+	// remote order, it must return its OrderState FAILED_AFTER_SUCCESSFUL_REQUEST,
 	// based on the match of the event passed by parameter.
 	@Test
 	public void testRemoteHandleRemoteEventWithInstanceFailed() throws Exception {
 		// set up
-		Event event = Event.INSTANCE_FAILED;
+		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 
 		String signallingMember = LOCAL_MEMBER_ID;
 		String requester = FAKE_REQUESTING_MEMBER_ID;
@@ -622,7 +624,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
+		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
 
@@ -633,14 +635,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(iqResponse);
 
 		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(OrderState.PENDING);
+		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
 		origin.addItem(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
+		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
 
 		// verify
-		OrderState expectedOrderState = OrderState.FAILED_AFTER_SUCCESSUL_REQUEST;
+		cloud.fogbow.ras.core.models.orders.OrderState expectedOrderState = cloud.fogbow.ras.core.models.orders.OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
 	}
 
@@ -649,7 +651,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	@Test(expected = UnexpectedException.class) // verify
 	public void testRemoteHandleRemoteEvent() throws Exception {
 		// set up
-		Event event = Event.INSTANCE_FAILED;
+		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 
 		String signallingMember = FAKE_REQUESTING_MEMBER_ID;
 		String requester = signallingMember;
@@ -658,12 +660,12 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
+		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, event, remoteOrder);
+		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
 	}
 
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)
@@ -677,9 +679,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private Order spyComputeOrder(SystemUser systemUser, String cloudName, String provider) {
+    	String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 		Order order = Mockito.spy(new ComputeOrder());
 		order.setSystemUser(systemUser);
-		order.setRequester(FAKE_REQUESTING_MEMBER_ID);
+		order.setRequester(localMemberId);
 		order.setProvider(provider);
 		order.setCloudName(cloudName);
 		return order;

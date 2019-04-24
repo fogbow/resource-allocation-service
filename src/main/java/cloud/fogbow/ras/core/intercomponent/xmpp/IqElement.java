@@ -15,7 +15,7 @@ public enum IqElement {
     CLOUD_NAME("cloudName"),
     CLOUD_NAMES_LIST("cloudNamesList"),
     CLOUD_NAMES_LIST_CLASS_NAME("cloudNamesListClassName"),
-    EVENT("event"),
+    NEW_STATE("newState"),
     IMAGE_CLASS_NAME("imageClassName"),
     IMAGE_ID("imageId"),
     IMAGE("image"),

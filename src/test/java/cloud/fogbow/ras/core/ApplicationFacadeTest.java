@@ -11,6 +11,7 @@ import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -250,9 +251,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
 		ArrayList<UserData> userData = super.mockUserData();
-		List<String> networkIds = null;
+		List<String> networkOrderIds = new ArrayList<>();
 
-		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
+		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkOrderIds);
 
 		RasOperation operation = new RasOperation(
 				Operation.CREATE,
@@ -301,9 +302,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String publicKey = FAKE_PUBLIC_KEY;
 		ArrayList<UserData> userData = super.mockUserData();
-		List<String> networkIds = null;
+		List<String> networkOrderIds = null;
 
-		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
+		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkOrderIds);
 		this.orderController.activateOrder(order);
 
 		RasOperation operation = new RasOperation(
@@ -746,11 +747,20 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		SystemUser systemUser = createFederationUserAuthenticate(keyRSA,
 				FAKE_MEMBER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 
 		NetworkOrder netOrder1 = new NetworkOrder();
 		netOrder1.setSystemUser(systemUser);
+		netOrder1.setRequester(localMemberId);
+		netOrder1.setProvider(localMemberId);
+		netOrder1.setCloudName(DEFAULT_CLOUD_NAME);
+		netOrder1.setInstanceId(FAKE_INSTANCE_ID);
 		NetworkOrder netOrder2 = new NetworkOrder();
 		netOrder2.setSystemUser(systemUser);
+		netOrder2.setRequester(localMemberId);
+		netOrder2.setProvider(localMemberId);
+		netOrder2.setCloudName(DEFAULT_CLOUD_NAME);
+		netOrder2.setInstanceId(FAKE_INSTANCE_ID);
 
 		this.orderController.activateOrder(netOrder1);
 		this.orderController.activateOrder(netOrder2);
@@ -1007,7 +1017,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 
 		// exercise
-		this.facade.deleteCompute(order.getComputeId(), SYSTEM_USER_TOKEN_VALUE);
+		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
 	}
@@ -1054,7 +1064,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 
 		// exercise
-		this.facade.deleteVolume(order.getVolumeId(), SYSTEM_USER_TOKEN_VALUE);
+		this.facade.deleteVolume(order.getVolumeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 
 		// verify
 	}
@@ -2043,8 +2053,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 	
 	private PublicIpOrder spyPublicIpOrder(SystemUser systemUser) {
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+
 		ComputeOrder computeOrder = new ComputeOrder();
 		computeOrder.setSystemUser(systemUser);
+		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		computeOrder.setRequester(localMemberId);
+		computeOrder.setProvider(localMemberId);
+		computeOrder.setCloudName(DEFAULT_CLOUD_NAME);
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
 		
@@ -2055,8 +2071,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String computeOrderId = computeOrder.getId();
 		PublicIpOrder order = Mockito.spy(
 				new PublicIpOrder(systemUser,
-						FAKE_MEMBER_ID,
-						SYSTEM_USER_TOKEN_VALUE,
+						localMemberId,
+						localMemberId,
 						DEFAULT_CLOUD_NAME, 
 						computeOrderId));
 
@@ -2064,13 +2080,23 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	private AttachmentOrder spyAttachmentOrder(SystemUser systemUser) {
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+
 		ComputeOrder computeOrder = new ComputeOrder();
 		computeOrder.setSystemUser(systemUser);
+		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		computeOrder.setRequester(localMemberId);
+		computeOrder.setProvider(localMemberId);
+		computeOrder.setCloudName(DEFAULT_CLOUD_NAME);
 		ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
 		computeOrder.setInstanceId(computeInstance.getId());
 		
 		VolumeOrder volumeOrder = new VolumeOrder();
 		volumeOrder.setSystemUser(systemUser);
+		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		volumeOrder.setRequester(localMemberId);
+		volumeOrder.setProvider(localMemberId);
+		volumeOrder.setCloudName(DEFAULT_CLOUD_NAME);
 		VolumeInstance volumeInstance = new VolumeInstance(FAKE_TARGET_ID);
 		volumeOrder.setInstanceId(volumeInstance.getId());
 		
@@ -2083,8 +2109,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		String volumeOrderId = volumeOrder.getId();
 		AttachmentOrder order = Mockito.spy(
 				new AttachmentOrder(systemUser,
-						FAKE_MEMBER_ID,
-						SYSTEM_USER_TOKEN_VALUE,
+						localMemberId,
+						localMemberId,
 						DEFAULT_CLOUD_NAME, 
 						computeOrderId, 
 						volumeOrderId, 
@@ -2094,10 +2120,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	private NetworkOrder spyNetworkOrder(SystemUser systemUser) {
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+
 		NetworkOrder order = Mockito.spy(
 				new NetworkOrder(systemUser,
-						FAKE_MEMBER_ID,
-						SYSTEM_USER_TOKEN_VALUE,
+						localMemberId,
+						localMemberId,
 						DEFAULT_CLOUD_NAME, 
 						FAKE_NAME_VALUE, 
 						FAKE_GATEWAY, 
@@ -2108,10 +2136,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	private VolumeOrder spyVolumeOrder(SystemUser systemUser) {
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 		VolumeOrder order = Mockito.spy(
 				new VolumeOrder(systemUser,
-						FAKE_MEMBER_ID,
-						SYSTEM_USER_TOKEN_VALUE,
+						localMemberId,
+						localMemberId,
 						DEFAULT_CLOUD_NAME, 
 						FAKE_VOLUME_NAME, 
 						DISK_VALUE));
@@ -2119,14 +2148,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		return order;
 	}
 
-	private List<InstanceStatus> generateInstancesStatus(Order order) {
+	private List<InstanceStatus> generateInstancesStatus(Order order) throws InstanceNotFoundException {
 		List<InstanceStatus> instancesExpected = new ArrayList<>();
 		InstanceStatus instanceStatus = new InstanceStatus(
 				order.getId(), 
 				null, 
 				order.getProvider(),
 				order.getCloudName(), 
-				order.getCachedInstanceState());
+				InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
 
 		instancesExpected.add(instanceStatus);
 		return instancesExpected;
@@ -2159,12 +2188,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	private ComputeOrder spyComputeOrder(SystemUser systemUser, String cloudName, String publicKey, ArrayList<UserData> userData,
-										 List<String> networkIds) {
+										 List<String> networkOrderIds) {
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
 
 		ComputeOrder order = Mockito.spy(
 				new ComputeOrder(systemUser,
-						FAKE_MEMBER_ID, 
-						FAKE_MEMBER_ID,
+						localMemberId,
+						localMemberId,
 						cloudName, 
 						FAKE_INSTANCE_NAME, 
 						CPU_VALUE, 
@@ -2173,7 +2203,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 						FAKE_IMAGE_NAME, 
 						userData,
 						publicKey, 
-						networkIds));
+						networkOrderIds));
 
 		return order;
 	}

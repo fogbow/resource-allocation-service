@@ -29,7 +29,6 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         try {
             Instance instance = RemoteFacade.getInstance().getResourceInstance(iq.getFrom().toBareJID(), orderId,
                     systemUser, resourceType);
-
             //on success, update response with instance data
             updateResponse(response, instance);
         } catch (Exception e) {

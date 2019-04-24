@@ -2,40 +2,49 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.common.models.OpenStackV3User;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.HashMap;
 import java.util.Properties;
 
-public class OpenStackAttachmentPluginTest {
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({SharedOrderHolders.class})
+public class OpenStackAttachmentPluginTest extends BaseUnitTests {
 
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
     private static final String FAKE_ENDPOINT = "fake-endpoint";
     private static final String FAKE_NET_ID = "fake-net-id";
     private static final String FAKE_SERVER_ID = "fake-server-id";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
-    private static final String MOUNT_POINT = "/dev/vdd";
-    private static final String SEPARATOR_ID = " ";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_POST_REQUEST_BODY = "{\"volumeAttachment\":{\"volumeId\":\"" + FAKE_INSTANCE_ID + "\"}}";
     private static final String FAKE_DEVICE = "/dev/sdd";
@@ -45,13 +54,16 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
+    private static final String FAKE_ID_PROVIDER = "fake-id-provider";
+    private static final String FAKE_PROVIDER = "fake-provider";
+    private static final String DEFAULT_CLOUD = "default";
     private AttachmentOrder attachmentOrder;
     private OpenStackAttachmentPlugin openStackAttachmentPlugin;
     private OpenStackV3User localUserAttributes;
     private OpenStackHttpClient client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
     private ArgumentCaptor<OpenStackV3User> argToken = ArgumentCaptor.forClass(OpenStackV3User.class);
-    private String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
+    private SharedOrderHolders sharedOrderHolders;
 
     @Before
     public void setUp() throws InvalidParameterException, UnexpectedException {
@@ -60,11 +72,20 @@ public class OpenStackAttachmentPluginTest {
         properties.put(OpenStackAttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
+        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+
+        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+                .thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
+
         this.localUserAttributes = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
-        this.attachmentOrder = new AttachmentOrder(null, "default", FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
+        this.attachmentOrder = createAttachmentOrder();
 
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
-                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+                + DEFAULT_CLOUD + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.openStackAttachmentPlugin = new OpenStackAttachmentPlugin(cloudConfPath);
         this.openStackAttachmentPlugin.setProperties(properties);
         this.client = Mockito.mock(OpenStackHttpClient.class);
@@ -82,7 +103,7 @@ public class OpenStackAttachmentPluginTest {
         String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
 
         //verify
-        Assert.assertEquals(FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID, instanceId);
+        Assert.assertEquals(FAKE_INSTANCE_ID, instanceId);
     }
 
     //test case: Check if requestInstance is properly forwarding UnexpectedException thrown by doPostRequest.
@@ -101,15 +122,14 @@ public class OpenStackAttachmentPluginTest {
 
     //test case: Check if HttpDeleteRequest parameters are correct according to the deleteInstance call parameters
     @Test
-    public void testDeleteInstance() throws FogbowException, ClientProtocolException,
-            IOException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+    public void testDeleteInstance() throws FogbowException, IOException, SecurityException, IllegalArgumentException {
         //set up
         Mockito.doNothing().when(this.client).doDeleteRequest(this.argString.capture(), this.argToken.capture());
         String expectedEndpoint = FAKE_ENDPOINT + "/v2/" + FAKE_PROJECT_ID + "/servers/" + FAKE_SERVER_ID
                 + "/os-volume_attachments" + "/" + FAKE_VOLUME_ID;
 
         //exercise
-        this.openStackAttachmentPlugin.deleteInstance(this.instanceId, this.localUserAttributes);
+        this.openStackAttachmentPlugin.deleteInstance(this.attachmentOrder, this.localUserAttributes);
 
         //verify
         Assert.assertEquals(expectedEndpoint, this.argString.getValue());
@@ -124,7 +144,7 @@ public class OpenStackAttachmentPluginTest {
         Mockito.doThrow(httpResponseException).when(this.client).doDeleteRequest(Mockito.any(), Mockito.any());
 
         //exercise/verify
-        this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localUserAttributes);
+        this.openStackAttachmentPlugin.deleteInstance(this.attachmentOrder, this.localUserAttributes);
     }
 
     //test case: Check if an attachment is correctly built according to the JSON returned by the getRequest
@@ -132,34 +152,30 @@ public class OpenStackAttachmentPluginTest {
     public void testGetInstance()
             throws FogbowException, HttpResponseException {
         //setup
-        String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
         Mockito.doReturn(FAKE_GET_REQUEST_BODY).when(this.client).doGetRequest(Mockito.anyString(),
                 Mockito.eq(this.localUserAttributes));
         String openStackState = "";
-        InstanceState expectedFogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
 
         //exercise
-        AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(instanceId, this.localUserAttributes);
+        AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(this.attachmentOrder, this.localUserAttributes);
 
         //verify
         Assert.assertEquals(FAKE_DEVICE, attachmentInstance.getDevice());
         Assert.assertEquals(FAKE_SERVER_ID, attachmentInstance.getComputeId());
         Assert.assertEquals(FAKE_VOLUME_ID, attachmentInstance.getVolumeId());
         Assert.assertEquals(FAKE_INSTANCE_ID, attachmentInstance.getId());
-        Assert.assertEquals(expectedFogbowState, attachmentInstance.getState());
+        Assert.assertEquals(openStackState, attachmentInstance.getCloudState());
     }
 
     //test case: Check if getInstance is properly forwarding UnexpectedException thrown by getInstance.
     @Test(expected = UnexpectedException.class)
-    public void testGetInstanceThrowsUnexpectedException()
-            throws FogbowException, HttpResponseException {
+    public void testGetInstanceThrowsUnexpectedException() throws FogbowException, HttpResponseException {
         //set up
         Mockito.doThrow(UnexpectedException.class).when(this.client)
                 .doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
-        String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
 
         //exercise/verify
-        this.openStackAttachmentPlugin.getInstance(instanceId, this.localUserAttributes);
+        this.openStackAttachmentPlugin.getInstance(this.attachmentOrder, this.localUserAttributes);
     }
 
     //test case: check if generateJsonAttach is generating a correct Json according to
@@ -179,4 +195,26 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(expected, json);
     }
 
+    private AttachmentOrder createAttachmentOrder() {
+        String instanceId = FAKE_INSTANCE_ID;
+        SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
+        ComputeOrder computeOrder = new ComputeOrder();
+        VolumeOrder volumeOrder = new VolumeOrder();
+        computeOrder.setSystemUser(requester);
+        computeOrder.setProvider(FAKE_PROVIDER);
+        computeOrder.setCloudName(DEFAULT_CLOUD);
+        computeOrder.setInstanceId(FAKE_SERVER_ID);
+        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        volumeOrder.setSystemUser(requester);
+        volumeOrder.setProvider(FAKE_PROVIDER);
+        volumeOrder.setCloudName(DEFAULT_CLOUD);
+        volumeOrder.setInstanceId(FAKE_VOLUME_ID);
+        volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+        this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
+        AttachmentOrder attachmentOrder = new AttachmentOrder(FAKE_PROVIDER, DEFAULT_CLOUD, computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
+        attachmentOrder.setInstanceId(instanceId);
+        this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
+        return attachmentOrder;
+    }
 }

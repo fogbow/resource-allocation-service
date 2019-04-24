@@ -3,17 +3,18 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -30,12 +31,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     public static final String SERVERS = "/servers";
     public static final String ACTION = "action";
-    protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     protected static final String SUFFIX_FLAVOR_EXTRA_SPECS = "/os-extra_specs";
-    protected static final String PROVIDER_NETWORK_FIELD = "default";
-
 
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
@@ -59,11 +57,34 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
     }
 
+    @Override
+    public boolean isReady(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.READY);
+    }
+
+    @Override
+    public boolean hasFailed(String cloudState) {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, cloudUser);
         String flavorId = hardwareRequirements.getFlavorId();
         String projectId = getProjectId(cloudUser);
-        List<String> networksId = resolveNetworksId(computeOrder);
+        // Even if one or more private networks are informed in networkIds, we still need to include the default
+        // network, since this is the only network that has external set to true, and a floating IP can only
+        // be attached to such type of network.
+        // We add the default network before any other network, because the order is very important to Openstack
+        // request. Openstack will configure the routes to the external network using the first network found on
+        // the request body.
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        List<String> networkIds = new ArrayList<>();
+        networkIds.add(defaultNetworkId);
+        List<String> userDefinedNetworks = computeOrder.getNetworkIds();
+        if (!userDefinedNetworks.isEmpty()) {
+            networkIds.addAll(userDefinedNetworks);
+        }
         String imageId = computeOrder.getImageId();
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String keyName = getKeyName(projectId, cloudUser, computeOrder.getPublicKey());
@@ -72,7 +93,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String instanceName = computeOrder.getName();
 
         try {
-            instanceId = doRequestInstance(cloudUser, flavorId, networksId, imageId, instanceName, userData,
+            instanceId = doRequestInstance(cloudUser, flavorId, networkIds, imageId, instanceName, userData,
                     keyName, endpoint);
 
             synchronized (computeOrder) {
@@ -95,10 +116,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return instanceId;
     }
 
-    private String doRequestInstance(OpenStackV3User cloudUser, String flavorId, List<String> networksId,
+    private String doRequestInstance(OpenStackV3User cloudUser, String flavorId, List<String> networkIds,
                                      String imageId, String instanceName, String userData, String keyName, String endpoint)
             throws FogbowException, HttpResponseException {
-        CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networksId);
+        CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networkIds);
 
         String body = createBody.toJson();
         String response = this.client.doPostRequest(endpoint, body, cloudUser);
@@ -108,11 +129,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     @Override
-    public ComputeInstance getInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, cloudUser));
-
+    public ComputeInstance getInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = getProjectId(cloudUser);
-        String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + instanceId);
+        String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
 
         String jsonResponse = null;
         try {
@@ -122,23 +141,19 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         }
 
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, cloudUser);
-
-        // Case the user has specified no private networks, than the compute instance was attached to
-        // the default network. When inserting the data that come from the order in the instance, if
-        // networks were set, then the default network was not inserted, and this information will be
-        // overwritten.
+        // The default network is always included in the order by the OpenStack plugin, thus it should be added
+        // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
+        // are appended by the LocalCloudConnector.
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         Map<String, String> computeNetworks = new HashMap<>();
-        computeNetworks.put(defaultNetworkId, PROVIDER_NETWORK_FIELD);
+        computeNetworks.put(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
         computeInstance.setNetworks(computeNetworks);
-
         return computeInstance;
     }
 
     @Override
-    public void deleteInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, instanceId, cloudUser));
-        String endpoint = getComputeEndpoint(getProjectId(cloudUser), SERVERS + "/" + instanceId);
+    public void deleteInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String endpoint = getComputeEndpoint(getProjectId(cloudUser), SERVERS + "/" + computeOrder.getInstanceId());
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -161,23 +176,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
         }
         return projectId;
-    }
-
-    private List<String> resolveNetworksId(ComputeOrder computeOrder) {
-        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-
-        // Even if one or more private networks are informed in networkIds, we still need to include the default
-        // network, since this is the only network that has external set to true, and a floating IP can only
-        // be attached to such type of network.
-        // We add the default network before any other network, because the order is very important to Openstack
-        // request. Openstack will configure the routes to the external network by the first network found on request
-        // body.
-        List<String> requestedNetworkIds = new ArrayList<>();
-        requestedNetworkIds.add(defaultNetworkId);
-        requestedNetworkIds.addAll(computeOrder.getNetworkIds());
-
-        computeOrder.setNetworkIds(requestedNetworkIds);
-        return requestedNetworkIds;
     }
 
     private String getKeyName(String projectId, OpenStackV3User cloudUser, String publicKey) throws FogbowException {
@@ -235,7 +233,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         // do not specify security groups if no additional network was given
         securityGroups = securityGroups.size() == 0 ? null : securityGroups;
 
-        String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
+        String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
                 .name(name)
                 .imageReference(imageRef)
@@ -363,7 +361,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     private ComputeInstance getInstanceFromJson(String getRawResponse, OpenStackV3User cloudUser)
-            throws FogbowException, UnexpectedException {
+            throws FogbowException {
         GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
 
         String flavorId = getComputeResponse.getFlavor().getId();
@@ -378,8 +376,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         int disk = hardwareRequirements.getDisk();
 
         String openStackState = getComputeResponse.getStatus();
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openStackState);
-
         String instanceId = getComputeResponse.getId();
         String hostName = getComputeResponse.getName();
 
@@ -395,7 +391,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         }
 
         ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, ipAddresses);
+                openStackState, hostName, vcpusCount, memory, disk, ipAddresses);
 
         return computeInstance;
     }

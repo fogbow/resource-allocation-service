@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "public_ip_order_table")
-public class PublicIpOrder extends Order {
+public class PublicIpOrder extends Order<PublicIpOrder> {
     private static final long serialVersionUID = 1L;
 
     @Transient
@@ -38,11 +39,24 @@ public class PublicIpOrder extends Order {
         this.type = ResourceType.PUBLIC_IP;
     }
 
-    public PublicIpOrder(SystemUser systemUser, String requestingMember,
-                         String providingMember, String cloudName, String computeOrderId) {
+    public PublicIpOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+                         String computeOrderId) {
         super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
         this.computeOrderId = computeOrderId;
         this.type = ResourceType.PUBLIC_IP;
+    }
+
+    public String getComputeId() {
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(this.computeOrderId);
+        if (computeOrder == null) {
+            return null;
+        } else {
+            return computeOrder.getInstanceId();
+        }
+    }
+
+    public void setComputeOrderId(String computeOrderId) {
+        this.computeOrderId = computeOrderId;
     }
 
     public String getComputeOrderId() {
@@ -52,5 +66,9 @@ public class PublicIpOrder extends Order {
     @Override
     public String getSpec() {
         return "";
+    }
+
+    @Override
+    public void updateFromRemote(PublicIpOrder remoteOrder) {
     }
 }

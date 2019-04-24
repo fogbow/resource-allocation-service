@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -12,7 +13,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "compute_order_table")
-public class ComputeOrder extends Order {
+public class ComputeOrder extends Order<ComputeOrder> {
     private static final long serialVersionUID = 1L;
 
     private static final String NAME_COLUMN_NAME = "name";
@@ -54,8 +55,8 @@ public class ComputeOrder extends Order {
     private ComputeAllocation actualAllocation;
 
     @Column
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> networkIds;
+    @ElementCollection
+    private List<String> networkOrderIds;
 
     public ComputeOrder() {
         this(UUID.randomUUID().toString());
@@ -68,8 +69,8 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(String id, SystemUser systemUser, String requestingMember, String providingMember,
-                        String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
-                        List<String> networkIds) {
+                        String cloudName, String name, int vCPU, int memory, int disk, String imageId,
+                        ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
         super(id, providingMember, cloudName, systemUser, requestingMember);
         this.name = name;
         this.vCPU = vCPU;
@@ -78,23 +79,23 @@ public class ComputeOrder extends Order {
         this.imageId = imageId;
         this.userData = userData;
         this.publicKey = publicKey;
-        this.networkIds = networkIds;
+        this.networkOrderIds = networkOrderIds;
         this.actualAllocation = new ComputeAllocation();
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(String providingMember, String cloudName, String name, int vCPU, int memory, int disk, String imageId,
-                        ArrayList<UserData> userData, String publicKey, List<String> networkIds) {
+    public ComputeOrder(String providingMember, String cloudName, String name, int vCPU, int memory, int disk,
+                        String imageId, ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
         this(null, null, providingMember, cloudName, name, vCPU, memory, disk, imageId,
-                userData, publicKey, networkIds);
+                userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(SystemUser systemUser, String requestingMember, String providingMember,
-                        String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
-                        List<String> networkIds) {
+    public ComputeOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData,
+                        String publicKey, List<String> networkOrderIds) {
         this(UUID.randomUUID().toString(), systemUser, requestingMember, providingMember, cloudName, name, vCPU, memory,
-                disk, imageId, userData, publicKey, networkIds);
+                disk, imageId, userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
 
@@ -147,14 +148,34 @@ public class ComputeOrder extends Order {
     }
 
     public List<String> getNetworkIds() {
-        if (networkIds == null) {
-            return Collections.unmodifiableList(new ArrayList<>());
+        List<String> networkIds = new LinkedList<String>();
+        List<NetworkOrder> networkOrders = getNetworkOrders();
+
+        for (NetworkOrder order : networkOrders) {
+            if (order != null) {
+                String instanceId = order.getInstanceId();
+                networkIds.add(instanceId);
+            }
         }
-        return Collections.unmodifiableList(this.networkIds);
+        return Collections.unmodifiableList(networkIds);
     }
 
-    public void setNetworkIds(List<String> networkIds) {
-        this.networkIds = networkIds;
+    public List<NetworkOrder> getNetworkOrders() {
+        if (this.networkOrderIds == null) return Collections.unmodifiableList(new LinkedList<>());
+
+        List<NetworkOrder> networkOrders = new LinkedList<>();
+        for (String orderId : this.networkOrderIds) {
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+            networkOrders.add((NetworkOrder) networkOrder);
+        }
+        return Collections.unmodifiableList(networkOrders);
+    }
+
+    public List<String> getNetworkOrderIds() {
+        if (networkOrderIds == null) {
+            return Collections.unmodifiableList(new ArrayList<>());
+        }
+        return Collections.unmodifiableList(this.networkOrderIds);
     }
 
     @Override
@@ -163,5 +184,10 @@ public class ComputeOrder extends Order {
             return "";
         }
         return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
+    }
+
+    @Override
+    public void updateFromRemote(ComputeOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 }

@@ -9,11 +9,9 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.intercomponent.xmpp.Event;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.Image;
@@ -130,40 +128,23 @@ public class RemoteFacade {
         this.securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, systemUser);
     }
 
-    public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowException {
+    public void handleRemoteEvent(String signallingMember, OrderState newState, Order remoteOrder) throws FogbowException {
         // order is the java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside this server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
-        if (!localOrder.getProvider().equals(signallingMember)) {
-            throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
-                    signallingMember, localOrder.getProvider()));
-        }
-        updateLocalOrder(localOrder, remoteOrder, event);
-        switch (event) {
-            case INSTANCE_FULFILLED:
-                OrderStateTransitioner.transition(localOrder, OrderState.FULFILLED);
-                break;
-            case INSTANCE_FAILED:
-                OrderStateTransitioner.transition(localOrder, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
-                break;
-        }
-    }
-
-    private void updateLocalOrder(Order localOrder, Order remoteOrder, Event event) {
-        synchronized (localOrder) {
-            if (localOrder.getOrderState() != OrderState.PENDING) {
-                // The order has been deleted or already updated
-                return;
+        if (localOrder != null) {
+            synchronized (localOrder) {
+                if (!localOrder.getProvider().equals(signallingMember)) {
+                    throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
+                            signallingMember, localOrder.getProvider()));
+                }
+                localOrder.updateFromRemote(remoteOrder);
+                OrderStateTransitioner.transition(localOrder, newState);
             }
-            // The Order fields that have been changed remotely, need to be copied to the local Order.
-            // Check the several cloud plugins to see which fields are changed.
-            // The exception is the instanceId, which is only required at the providing member side.
-            localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
-            if (localOrder.getType().equals(ResourceType.COMPUTE)) {
-                ComputeOrder localCompute = (ComputeOrder) localOrder;
-                ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
-                localCompute.setActualAllocation(remoteCompute.getActualAllocation());
-            }
+        } else {
+            // The order no longer exists locally. This should never happen.
+            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrder.getId(), signallingMember));
+            return;
         }
     }
 
@@ -185,11 +166,11 @@ public class RemoteFacade {
 
     private void checkOrderConsistency(String requestingMember, Order order) throws InstanceNotFoundException,
             InvalidParameterException {
+        if (order == null || !order.getProvider().equals(this.localMemberId)) {
+            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
+        }
         if (!order.getRequester().equals(requestingMember)) {
             throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_MEMBER);
-        }
-        if (!order.getProvider().equals(this.localMemberId)) {
-            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
         }
     }
 
