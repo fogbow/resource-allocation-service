@@ -301,7 +301,7 @@ public class OpenNebulaGenericRequestPluginTest {
 
 		String json = createGenericRequest(url, oneResource, null, resourceId, null, null);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
+
 		Client client = null;
 		String secret = null;
 
@@ -327,7 +327,7 @@ public class OpenNebulaGenericRequestPluginTest {
 
 		String json = createGenericRequest(url, oneResource, null, null, parameter, content);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
+
 		Client client = Mockito.mock(Client.class);
 		Object instance = null;
 
@@ -359,7 +359,7 @@ public class OpenNebulaGenericRequestPluginTest {
 
 		String json = createGenericRequest(null, oneResource, null, null, parameter, content);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
+
 		Client client = Mockito.mock(Client.class);
 		String secret = OPENNEBULA_TOKEN;
 		Object instance = this.plugin.instantiateResource(request, client, secret);
@@ -489,13 +489,18 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testIsValidParameterSuccessfully() {
 		// set up
-		String parameter = "action";
+		String[] parameters = getArrayValidOneParameters();
 
-		// exercise
-		boolean status = this.plugin.isValidParameter(parameter);
+		String parameter;
+		for (int i = 0; i < parameters.length; i++) {
+			parameter = parameters[i];
 
-		// verify
-		Assert.assertTrue(status);
+			// exercise
+			boolean status = this.plugin.isValidParameter(parameter);
+
+			// verify
+			Assert.assertTrue(status);
+		}
 	}
 	
 	// test case: When calling the isValidResource method with a content null, this
@@ -517,13 +522,18 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testIsValidResourceSuccessfully() {
 		// set up
-		String resource = "Client";
+		String[] resources = getArrayValidOneResources();
 
-		// exercise
-		boolean status = this.plugin.isValidResource(resource);
+		String resource;
+		for (int i = 0; i < resources.length; i++) {
+			resource = resources[i];
 
-		// verify
-		Assert.assertTrue(status);
+			// exercise
+			boolean status = this.plugin.isValidResource(resource);
+
+			// verify
+			Assert.assertTrue(status);
+		}
 	}
 	
 	// test case: When calling the isValidUrl method with a content null, this
@@ -563,7 +573,7 @@ public class OpenNebulaGenericRequestPluginTest {
 
 		// exercise
 		boolean status = this.plugin.isValid(content);
-		
+
 		// verify
 		Assert.assertTrue(status);
 	}
@@ -577,7 +587,7 @@ public class OpenNebulaGenericRequestPluginTest {
 
 		// exercise
 		boolean status = this.plugin.isValid(content);
-		
+
 		// verify
 		Assert.assertFalse(status);
 	}
@@ -594,6 +604,32 @@ public class OpenNebulaGenericRequestPluginTest {
 
 		// verify
 		Assert.assertFalse(status);
+	}
+	
+	private String[] getArrayValidOneParameters() {
+		String[] parameters = { "action", "append", "arId", "args", "auth", "capacityTemplate", "clusterId",
+				"datastoreId", "description", "diskId", "diskTemplate", "ds_id", "dsId", "egid", "enable", "endId",
+				"enforce", "expire", "extended", "filter", "gid", "gid", "group_a", "groupId", "group_m", "group_u",
+				"hard", "hid", "hostId", "hostname", "id", "im", "imageName", "imageType", "infoMethod", "ip", "live",
+				"marketId", "name", "new_conf", "new_document", "newSize", "new_template", "nicId", "nicTemplate",
+				"node", "nVMs", "octet", "onHold", "other_a", "other_m", "other_u", "owner", "owner_a", "owner_m",
+				"owner_u", "operation", "password", "persistent", "publish", "quota", "quota_template", "recover",
+				"recursive", "resource", "rights", "rule", "snapId", "startId", "state", "status", "targetDS",
+				"template", "templateId", "token", "type", "uid", "user", "username", "vmm", "vnetId", "zone",
+				"zoneId" };
+
+		return parameters;
+	}
+	
+	private String[] getArrayValidOneResources() {
+		String[] resources = { "Acl", "AclPool", "Client", "Client", "ClusterPool", "Datastore", "DatastorePool",
+				"Document", "DocumentPool", "GroupPool", "Host", "HostPool", "Image", "ImagePool", "MarketPlace",
+				"MarketPlaceApp", "MarketPlaceAppPool", "MarketPlacePool", "OneSystem", "SecurityGroup",
+				"SecurityGroupPool", "Template", "TemplatePool", "User", "UserPool", "Vdc", "VdcPool", "VirtualMachine",
+				"VirtualMachinePool", "VirtualNetwork", "VirtualNetworkPool", "VirtualRouter", "VirtualRouterPool",
+				"VMGroup", "VMGroupPool", "Zone", "ZonePool" };
+		
+		return resources;
 	}
 	
 	private String getAttachDiskTemplate() {
