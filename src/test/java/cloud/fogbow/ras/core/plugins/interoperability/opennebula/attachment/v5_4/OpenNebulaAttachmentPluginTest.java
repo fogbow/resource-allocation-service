@@ -3,11 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 import java.io.File;
 import java.util.HashMap;
 
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,33 +20,40 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SharedOrderHolders.class, VirtualMachine.class})
 public class OpenNebulaAttachmentPluginTest {
 
-	private static final String FAKE_DEVICE = "fake-image-device";
-	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String FAKE_INSTANCE_ID = "1";
+	private static final String CLOUD_NAME = "opennebula";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
+	private static final String FAKE_DEVICE = "fake-image-device";
+	private static final String FAKE_ID_PROVIDER = "fake-id-provider";
+	private static final String FAKE_INSTANCE_ID = "1";
+	private static final String FAKE_NAME = "fake-name";
+	private static final String FAKE_PROVIDER = "fake-provider";
+	private static final String FAKE_USER_ID = "fake-user-id";
+	private static final String FAKE_USER_NAME = "fake-user-name";
+	private static final String FAKE_VIRTUAL_MACHINE_ID = "1";
+	private static final String FAKE_VOLUME_ID = "1";
 	private static final String IMAGE_STATE_READY = "READY";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String VIRTUAL_MACHINE_CONTENT = "<DISK_ID>1</DISK_ID>";
-	private static final String CLOUD_NAME = "opennebula";
-
-	private static final String FAKE_USER_ID = "fake-user-id";
-	private static final String FAKE_NAME = "fake-name";
-	private static final String FAKE_ID_PROVIDER = "fake-id-provider";
-	private static final String FAKE_PROVIDER = "fake-provider";
-	private static final String FAKE_VIRTUAL_MACHINE_ID = "1";
-	private static final String FAKE_VOLUME_ID = "1";
+	private static final String VIRTUAL_MACHINE_STATE_FAIL = "fail";
 
 	private OpenNebulaAttachmentPlugin plugin;
 	private SharedOrderHolders sharedOrderHolders;
@@ -143,19 +146,37 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.verify(virtualMachine, Mockito.times(1)).diskAttach(Mockito.eq(template));
 	}
 
-	// test case: When calling the deleteInstance method, with the instance ID and a
-	// valid token, the volume image disk associated with a virtual machine will be
-	// detached.
+	// test case: When calling the deleteInstance method with an AttachmentOrder
+	// null, an InstanceNotFoundException will be thrown.
+	@Test(expected = InstanceNotFoundException.class) // verify
+	public void testDeleteInstanceThrowInstanceNotFoundException() throws FogbowException {
+		// set up
+		AttachmentOrder attachmentOrder = null;
+		CloudUser cloudUser = createCloudUser();
+
+		// exercise
+		this.plugin.deleteInstance(attachmentOrder, cloudUser);
+	}
+	
+	// test case: When calling the deleteInstance method, with an attachmentOrder
+	// and cloudUser valid, the volume image disk associated with a virtual machine
+	// will be detached.
 	@Test
 	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		int virtualMachineId, diskId;
-		virtualMachineId = diskId = 1;
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
+		String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
+		int diskId = Integer.parseInt(FAKE_VOLUME_ID);
+
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito
-				.given(VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), Mockito.eq(diskId)))
-				.willReturn(response);
+				.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineId)))
+				.willReturn(virtualMachine);
+
+		Mockito.doReturn(true).when(this.plugin).isPowerOff(virtualMachine);
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualMachine.diskDetach(diskId)).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
 		CloudUser cloudUser = createCloudUser();
@@ -164,34 +185,75 @@ public class OpenNebulaAttachmentPluginTest {
 		this.plugin.deleteInstance(attachmentOrder, cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(VirtualMachine.class, VerificationModeFactory.times(1));
-		VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), Mockito.eq(diskId));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineId));
+
+		Mockito.verify(this.plugin, Mockito.times(1)).isPowerOff(virtualMachine);
+		Mockito.verify(virtualMachine, Mockito.times(1)).diskDetach(diskId);
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
-	// test case: When calling the deleteInstance method, with the fake instance ID
-	// or an invalid token, an error will occur and an InvalidParameterException
-	// will be thrown.
+	// test case: When calling the deleteInstance method, with an attachmentOrder
+	// and cloudUser valid, an error will occur, an error message will be thrown.
 	@Test
 	public void testDeleteInstanceUnsuccessful() throws FogbowException {
 		// set up
-		int virtualMachineId, diskId;
-		virtualMachineId = diskId = 1;
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		BDDMockito.given(VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), 
-				Mockito.eq(diskId))).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
+		String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
+		int diskId = Integer.parseInt(FAKE_VOLUME_ID);
 
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito
+				.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineId)))
+				.willReturn(virtualMachine);
+
+		Mockito.doReturn(true).when(this.plugin).isPowerOff(virtualMachine);
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualMachine.diskDetach(diskId)).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(true);
+		
 		CloudUser cloudUser = createCloudUser();
 
 		// exercise
 		this.plugin.deleteInstance(attachmentOrder, cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(VirtualMachine.class, VerificationModeFactory.times(1));
-		VirtualMachine.diskDetach(Mockito.any(Client.class), Mockito.eq(virtualMachineId), Mockito.eq(diskId));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineId));
+
+		Mockito.verify(this.plugin, Mockito.times(1)).isPowerOff(virtualMachine);
+		Mockito.verify(virtualMachine, Mockito.times(1)).diskDetach(diskId);
 		Mockito.verify(response, Mockito.times(1)).isError();
+		Mockito.verify(response, Mockito.times(1)).getErrorMessage();
+	}
+	
+	// test case: When calling the deleteInstance method and unable to disconnect
+	// the virtual machine, to detach the resource, an UnexpectedException will be
+	// thrown.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testDeleteInstanceThrowUnexpectedException() throws FogbowException {
+		// set up
+		String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
+
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		BDDMockito
+				.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineId)))
+				.willReturn(virtualMachine);
+
+		Mockito.when(virtualMachine.stateStr()).thenReturn(VIRTUAL_MACHINE_STATE_FAIL);
+
+		CloudUser cloudUser = createCloudUser();
+
+		// exercise
+		this.plugin.deleteInstance(attachmentOrder, cloudUser);
 	}
 	
 	// test case: When calling the getInstance method, with the instance ID and a
@@ -227,6 +289,22 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.verify(imagePool, Mockito.times(1)).getById(Mockito.eq(diskId));
 		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.eq(DEFAULT_DEVICE_PREFIX));
 		Mockito.verify(image, Mockito.times(1)).stateString();
+	}
+	
+	// test case: When calling the isPowerOff method with a valid virtual machine,
+	// it must return true if the state of the virtual machine switches to
+	// power-off.
+	@Test
+	public void testIsPowerOffSuccessful() {
+		// set up
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		Mockito.when(virtualMachine.stateStr()).thenReturn(OpenNebulaAttachmentPlugin.POWEROFF_STATE);
+
+		// exercise
+		boolean powerOff = this.plugin.isPowerOff(virtualMachine);
+
+		// verify
+		Assert.assertTrue(powerOff);
 	}
 	
 	private String generateAttachmentTemplate() {
@@ -266,7 +344,6 @@ public class OpenNebulaAttachmentPluginTest {
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String tokenValue = LOCAL_TOKEN_VALUE;
-
 		return new CloudUser(userId, userName, tokenValue);
 	}
 }
