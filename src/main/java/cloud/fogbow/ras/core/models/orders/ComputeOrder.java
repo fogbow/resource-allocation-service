@@ -55,7 +55,7 @@ public class ComputeOrder extends Order<ComputeOrder> {
     private ComputeAllocation actualAllocation;
 
     @Column
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> networkOrderIds;
 
     public ComputeOrder() {
