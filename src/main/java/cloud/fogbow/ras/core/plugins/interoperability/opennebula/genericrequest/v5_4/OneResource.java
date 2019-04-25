@@ -440,7 +440,7 @@ public enum OneResource {
 		}
 	},
 	
-	TEMPLATE_POOL("Template") {
+	TEMPLATE_POOL("TemplatePool") {
 		@Override
 		public Class getClassType() {
 			return TemplatePool.class;

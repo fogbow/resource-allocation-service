@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -32,19 +31,22 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.genericrequest.
 @PrepareForTest({GsonHolder.class, OpenNebulaClientUtil.class, VirtualMachine.class})
 public class OpenNebulaGenericRequestPluginTest {
 	
-	private static final String ANYTHING_RESPONSE = "anything";
-	private static final String ATTACH_TEMPLATE_PARAMETER_KEY = "diskTemplate";
+	private static final String ANYTHING_STRING = "anything";
 	private static final String CLIENT_RESOURCE = "Client";
+	private static final String DEFAULT_URL = "http://localhost:2633/RPC2";
 	private static final String DISK_ATTACH_METHOD = "diskAttach";
-	private static final String FAKE_RESOURCE_ID = "fake-resource-id";
+	private static final String EMPTY_STRING = "";
 	private static final String ID_PARAMETER_KEY = "id";
 	private static final String INFO_METHOD = "info";
+	private static final String ONE_GENERIC_REQUEST_NULL_OBJECT = "{oneGenericRequest=null}";
 	private static final String ONE_VALUE = "1";
 	private static final String OPENNEBULA_TOKEN = "user:password";
-	private static final String RESOURCE_ID_EMPTY = "";
+	private static final String PARAMETER_HARD = "hard";
+	private static final String POWER_OFF_METHOD = "poweroff";
+	private static final String TRUE_VALUE = "true";
 	private static final String VIRTUAL_MACHINE_POOL_RESOURCE = "VirtualMachinePool";
 	private static final String VIRTUAL_MACHINE_RESOURCE = "VirtualMachine";
-
+	
 	private OpenNebulaGenericRequestPlugin plugin;
 	
 	@Before
@@ -52,83 +54,83 @@ public class OpenNebulaGenericRequestPluginTest {
 		this.plugin = Mockito.spy(OpenNebulaGenericRequestPlugin.class);
 	}
 	
-	// test case: When calling the redirectGenericRequest method without a valid
-	// resource in the request, InvalidParameterException must be thrown.
-	@Test(expected = InvalidParameterException.class)
-	public void testRedirectGenericRequestWithoutAValidResource() throws FogbowException {
+	// test case: When calling the redirectGenericRequest method with a null
+	// OneGenericRequest object, an InvalidParameterException must be thrown.
+	@Test(expected = InvalidParameterException.class) // verify
+	public void testRedirectGenericRequestWithNullContent() throws FogbowException {
 		// set up
-		String oneResource = null;
-		String oneMethod = INFO_METHOD;
-		String resourceId = null;
-		String parameter = null;
-		String content = null;
-		String genericRequest = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-
-		String userId = null;
-		String userName = null;
-		String token = OPENNEBULA_TOKEN;
-		OpenNebulaUser cloudUser = new OpenNebulaUser(userId, userName, token);
+		String genericRequest = ONE_GENERIC_REQUEST_NULL_OBJECT;
+		OpenNebulaUser cloudUser = Mockito.mock(OpenNebulaUser.class);
 
 		// exercise
 		this.plugin.redirectGenericRequest(genericRequest, cloudUser);
 	}
 	
 	// test case: When calling the redirectGenericRequest method without a valid
-	// method in the request, UnexpectedException must be thrown.
-	@Ignore
-	@Test(expected = UnexpectedException.class)
-	public void testRedirectGenericRequestWithoutAValidMethod() throws FogbowException {
+	// URL in the request, an InvalidParameterException must be thrown.
+	@Test(expected = InvalidParameterException.class) // verify
+	public void testRedirectGenericRequestWithoutAValidUrl() throws FogbowException {
 		// set up
-		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
-		String resourceId = null;
-		String parameter = "id";
-		String content = "1";
-		String genericRequest = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-
-		String userId = null;
-		String userName = null;
-		String token = OPENNEBULA_TOKEN;
-		OpenNebulaUser cloudUser = new OpenNebulaUser(userId, userName, token);
-
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
+		String url = EMPTY_STRING;
+		String genericRequest = createGenericRequest(url, null, null, null, null, null);
+		OpenNebulaUser cloudUser = Mockito.mock(OpenNebulaUser.class);
 
 		// exercise
 		this.plugin.redirectGenericRequest(genericRequest, cloudUser);
 	}
+	
+	// test case: When calling the redirectGenericRequest method without a valid
+	// resource in the request, an InvalidParameterException must be thrown.
+	@Test(expected = InvalidParameterException.class) // verify
+	public void testRedirectGenericRequestWithoutAValidResource() throws FogbowException {
+		// set up
+		String url = DEFAULT_URL;
+		String oneResource = EMPTY_STRING;
+		String genericRequest = createGenericRequest(url, oneResource, null, null, null, null);
+		OpenNebulaUser cloudUser = Mockito.mock(OpenNebulaUser.class);
 
-	// test case: When calling the redirectGenericRequest method with a resource,
-	// method, and other valid parameters in the request, a successful response must
-	// be returned.
-	@Ignore
+		// exercise
+		this.plugin.redirectGenericRequest(genericRequest, cloudUser);
+	}
+	
+	// test case: When calling the redirectGenericRequest method without a valid
+	// method in the request, an InvalidParameterException must be thrown.
+	@Test(expected = InvalidParameterException.class) // verify
+	public void testRedirectGenericRequestWithoutAValidMethod() throws FogbowException {
+		// set up
+		String url = DEFAULT_URL;
+		String oneResource = VIRTUAL_MACHINE_RESOURCE;
+		String oneMethod = EMPTY_STRING;
+		String genericRequest = createGenericRequest(url, oneResource, oneMethod, null, null, null);
+		OpenNebulaUser cloudUser = Mockito.mock(OpenNebulaUser.class);
+
+		// exercise
+		this.plugin.redirectGenericRequest(genericRequest, cloudUser);
+	}
+	
+	// test case: When calling the redirectGenericRequest method with a valid
+	// genericRequest and cloudUser, it must verify that a sequence of methods was
+	// executed correctly.
 	@Test
 	public void testRedirectGenericRequestSuccessfully() throws FogbowException {
 		// set up
-		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = INFO_METHOD;
-		String resourceId = null;
-		String parameter = null;
-		String content = null;
-		String genericRequest = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-
-		String userId = null;
-		String userName = null;
-		String token = OPENNEBULA_TOKEN;
-		OpenNebulaUser cloudUser = new OpenNebulaUser(userId, userName, token);
-
 		Client client = Mockito.mock(Client.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
 
-		OneResponse oneResponse = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		BDDMockito.given(VirtualMachine.info(Mockito.eq(client), Mockito.anyInt())).willReturn(oneResponse);
-		Mockito.when(oneResponse.isError()).thenReturn(true);
-		Mockito.when(oneResponse.getMessage()).thenReturn(ANYTHING_RESPONSE);
+		String url = DEFAULT_URL;
+		String oneResource = VIRTUAL_MACHINE_RESOURCE;
+		String oneMethod = POWER_OFF_METHOD;
+		String resourceId = ONE_VALUE;
+		String parameter = PARAMETER_HARD;
+		String content = TRUE_VALUE;
+		String genericRequest = createGenericRequest(url, oneResource, oneMethod, resourceId, parameter, content);
+
+		String userId = null;
+		String userName = null;
+		String tokenValue = OPENNEBULA_TOKEN;
+		OpenNebulaUser cloudUser = Mockito.spy(new OpenNebulaUser(userId, userName, tokenValue));
 
 		// exercise
 		this.plugin.redirectGenericRequest(genericRequest, cloudUser);
@@ -137,20 +139,15 @@ public class OpenNebulaGenericRequestPluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).instantiateResource(
-				Mockito.any(CreateOneGenericRequest.class), Mockito.any(Client.class), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).generateParametersMap(
-				Mockito.any(CreateOneGenericRequest.class),
-				Mockito.any(OpenNebulaGenericRequestPlugin.Parameters.class), Mockito.any(Client.class));
-
+		Mockito.verify(this.plugin, Mockito.times(1)).instantiateResource(Mockito.any(CreateOneGenericRequest.class),
+				Mockito.eq(client), Mockito.eq(tokenValue));
+		Mockito.verify(this.plugin, Mockito.times(1)).generateParametersMap(Mockito.any(CreateOneGenericRequest.class),
+				Mockito.any(Object.class), Mockito.eq(client));
 		Mockito.verify(this.plugin, Mockito.times(1)).generateMethod(Mockito.any(CreateOneGenericRequest.class),
 				Mockito.any(OpenNebulaGenericRequestPlugin.Parameters.class));
-
-		Mockito.verify(this.plugin, Mockito.times(1)).invokeGenericMethod(Mockito.isNull(),
+		Mockito.verify(this.plugin, Mockito.times(1)).invokeGenericMethod(Mockito.any(Object.class),
 				Mockito.any(OpenNebulaGenericRequestPlugin.Parameters.class), Mockito.any(Method.class));
-
-		Mockito.verify(this.plugin, Mockito.times(1)).reproduceMessage(Mockito.any(OneResponse.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).reproduceMessage(Mockito.any(Object.class));
 	}
 	
 	// test case: When calling the reproduceMessage method, passing a OneResponse
@@ -164,7 +161,7 @@ public class OpenNebulaGenericRequestPluginTest {
 		PowerMockito.mockStatic(VirtualMachine.class);
 		BDDMockito.given(VirtualMachine.info(Mockito.any(clientParameter), Mockito.anyInt())).willReturn(oneResponse);
 		Mockito.when(oneResponse.isError()).thenReturn(false);
-		Mockito.when(oneResponse.getMessage()).thenReturn(ANYTHING_RESPONSE);
+		Mockito.when(oneResponse.getMessage()).thenReturn(ANYTHING_STRING);
 
 		// exercise
 		this.plugin.reproduceMessage(oneResponse);
@@ -185,7 +182,7 @@ public class OpenNebulaGenericRequestPluginTest {
 		PowerMockito.mockStatic(VirtualMachine.class);
 		BDDMockito.given(VirtualMachine.info(Mockito.any(clientParameter), Mockito.anyInt())).willReturn(oneResponse);
 		Mockito.when(oneResponse.isError()).thenReturn(true);
-		Mockito.when(oneResponse.getMessage()).thenReturn(ANYTHING_RESPONSE);
+		Mockito.when(oneResponse.getMessage()).thenReturn(ANYTHING_STRING);
 
 		// exercise
 		this.plugin.reproduceMessage(oneResponse);
@@ -205,19 +202,19 @@ public class OpenNebulaGenericRequestPluginTest {
 		BDDMockito.given(GsonHolder.getInstance()).willReturn(gson);
 
 		// exercise
-		this.plugin.reproduceMessage(ANYTHING_RESPONSE);
+		this.plugin.reproduceMessage(ANYTHING_STRING);
 
 		// verify
 		PowerMockito.verifyStatic(GsonHolder.class, VerificationModeFactory.times(1));
 		GsonHolder.getInstance();
 	}
 	
-	// test case: The experimental method must be invoked when the
-	// invokeGenericMethod method is called.
+	// test case: When the invokeGenericMethod method is called, it must be executed
+	// invoke method successfully in the OneGenericMethod class.
 	@Test
 	public void testInvokeGenericMethodSuccessfully()
 			throws NoSuchMethodException, SecurityException, InvalidParameterException, UnexpectedException {
-		
+
 		// set up
 		String oneMethod = INFO_METHOD;
 		Class<Integer> intParameter = int.class;
@@ -252,18 +249,16 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testInstantiateResourceClientSuccessfully() throws InvalidParameterException {
 		// set up
+		String url = DEFAULT_URL;
 		String oneResource = CLIENT_RESOURCE;
-		String oneMethod = null;
-		String resourceId = null;
-		String parameter = null;
-		String content = null;
-		String genericRequest = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String genericRequest = createGenericRequest(url, oneResource, null, null, null, null);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(genericRequest);
 
 		Client client = null;
 		String secret = OPENNEBULA_TOKEN;
 
-		Class<Client> expected = Client.class;
+		OneResource clientResource = OneResource.CLIENT;
+		Class<Client> expected = clientResource.getClassType();
 
 		// exercise
 		Object instance = this.plugin.instantiateResource(request, client, secret);
@@ -277,12 +272,9 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testInstantiateResourcePoolSuccessfully() throws InvalidParameterException {
 		// set up
+		String url = DEFAULT_URL;
 		String oneResource = VIRTUAL_MACHINE_POOL_RESOURCE;
-		String oneMethod = null;
-		String resourceId = null;
-		String parameter = null;
-		String content = null;
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String json = createGenericRequest(url, oneResource, null, null, null, null);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
 
 		Client client = null;
@@ -303,15 +295,13 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testInstantiateResourceWithIdSuccessfully() throws InvalidParameterException {
 		// set up
+		String url = DEFAULT_URL;
 		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
 		String resourceId = ONE_VALUE;
-		String parameter = null;
-		String content = null;
 
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String json = createGenericRequest(url, oneResource, null, resourceId, null, null);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
+
 		Client client = null;
 		String secret = null;
 
@@ -324,102 +314,20 @@ public class OpenNebulaGenericRequestPluginTest {
 		Assert.assertEquals(expected, instance.getClass());
 	}
 	
-	// test case: When calling the instantiateResource method, with a resourceId
-	// empty in the request, this must return a null instance of the resource.
-	@Test
-	public void testInstantiateResourceWithEmptyID() throws InvalidParameterException {
-		// set up
-		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
-		String resourceId = RESOURCE_ID_EMPTY;
-		String parameter = null;
-		String content = null;
-
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
-		Client client = Mockito.mock(Client.class);
-		String secret = null;
-
-		// exercise
-		Object instance = this.plugin.instantiateResource(request, client, secret);
-
-		// verify
-		Assert.assertNull(instance);
-	}
-	
-	// test case: When calling the instantiateResource method, without a parsable
-	// integer value in the resourceId of the request, this must throw an
-	// InvalidParameterException.
-	@Test(expected = InvalidParameterException.class)
-	public void testInstantiateResourceWithoutParsableIntegerID()
-			throws InvalidParameterException {
-		
-		// set up
-		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
-		String resourceId = FAKE_RESOURCE_ID;
-		String parameter = null;
-		String content = null;
-
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-
-		Client client = null;
-		String secret = null;
-
-		// exercise
-		this.plugin.instantiateResource(request, client, secret);
-	}
-	
-	// test case: When calling the generateParametersMap method with a resource
-	// instance, this implies that a static method will not be invoked, and
-	// therefore you do not need to add a "Client" resource to the parameter map.
-	@Ignore
-	@Test
-	public void testGenerateParametersMapWithResourceInstance() throws InvalidParameterException {
-		// set up
-		String template = getAttachDiskTemplate();
-		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
-		String resourceId = ONE_VALUE;
-		String parameter = ATTACH_TEMPLATE_PARAMETER_KEY;
-		String content = getAttachDiskTemplate();
-
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-
-		Client client = Mockito.mock(Client.class);
-		String secret = OPENNEBULA_TOKEN;
-		Object instance = this.plugin.instantiateResource(request, client, secret);
-
-		Parameters expected = new OpenNebulaGenericRequestPlugin.Parameters();
-		expected.getClasses().add(String.class);
-		expected.getValues().add(template);
-
-		// exercise
-		Parameters parameters = this.plugin.generateParametersMap(request, instance, client);
-
-		// verify
-		Assert.assertEquals(expected.getClasses().get(0), parameters.getClasses().get(0));
-		Assert.assertEquals(expected.getValues().get(0), parameters.getValues().get(0));
-	}
-	
 	// test case: When calling the generateParametersMap method, without a resource
 	// instance, this implies that a static method will be invoked, and therefore
 	// you do need to add a "Client" resource to the parameter map.
 	@Test
 	public void testGenerateParametersMapWithoutResourceInstance() throws InvalidParameterException {
 		// set up
+		String url = DEFAULT_URL;
 		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
-		String resourceId = null;
 		String parameter = ID_PARAMETER_KEY;
 		String content = ONE_VALUE;
 
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String json = createGenericRequest(url, oneResource, null, null, parameter, content);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
+
 		Client client = Mockito.mock(Client.class);
 		Object instance = null;
 
@@ -445,16 +353,13 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testGenerateParametersMapWithResourcePool() throws InvalidParameterException {
 		// set up
-		String url = null;
 		String oneResource = VIRTUAL_MACHINE_POOL_RESOURCE;
-		String oneMethod = null;
-		String resourceId = null;
 		String parameter = ID_PARAMETER_KEY;
 		String content = ONE_VALUE;
 
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String json = createGenericRequest(null, oneResource, null, null, parameter, content);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-		
+
 		Client client = Mockito.mock(Client.class);
 		String secret = OPENNEBULA_TOKEN;
 		Object instance = this.plugin.instantiateResource(request, client, secret);
@@ -471,47 +376,18 @@ public class OpenNebulaGenericRequestPluginTest {
 		Assert.assertEquals(expected.getValues().get(0), parameters.getValues().get(0));
 	}
 	
-	// test case: When calling the generateParametersMap method, without parameters,
-	// this implies that the method does not receive parameters.
-	@Ignore
-	@Test
-	public void testGenerateParametersWithMapEmpty() throws InvalidParameterException {
-		// set up
-		String oneResource = VIRTUAL_MACHINE_RESOURCE;
-		String oneMethod = null;
-		String resourceId = null;
-		String parameter = null;
-		String content = null;
-
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
-		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
-
-		Client client = Mockito.mock(Client.class);
-		String secret = OPENNEBULA_TOKEN;
-		Object instance = this.plugin.instantiateResource(request, client, secret);
-
-		int expected = 0;
-
-		// exercise
-		Parameters parameters = this.plugin.generateParametersMap(request, instance, client);
-
-		// verify
-		Assert.assertEquals(expected, parameters.getClasses().size());
-		Assert.assertEquals(expected, parameters.getValues().size());
-	}
-	
 	// test case: When calling the generateMethod method, without a resource
 	// instance, this implies that a static method will be invoked.
 	@Test
 	public void testGenerateMethodWithoutResourceInstance() throws UnexpectedException {
 		// set up
+		String url = DEFAULT_URL;
 		String oneResource = VIRTUAL_MACHINE_RESOURCE;
 		String oneMethod = INFO_METHOD;
-		String resourceId = null;
 		String parameter = ID_PARAMETER_KEY;
 		String content = ONE_VALUE;
 
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String json = createGenericRequest(url, oneResource, oneMethod, null, parameter, content);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
 
 		Client client = Mockito.mock(Client.class);
@@ -538,16 +414,17 @@ public class OpenNebulaGenericRequestPluginTest {
 	@Test
 	public void testGenerateMethodWithResourceInstance() throws UnexpectedException {
 		// set up
-		String template = getAttachDiskTemplate();
+		String url = DEFAULT_URL;
 		String oneResource = VIRTUAL_MACHINE_RESOURCE;
 		String oneMethod = DISK_ATTACH_METHOD;
 		String resourceId = ONE_VALUE;
 		String parameter = ID_PARAMETER_KEY;
 		String content = ONE_VALUE;
 
-		String json = createGenericRequest(oneResource, oneMethod, resourceId, parameter, content);
+		String json = createGenericRequest(url, oneResource, oneMethod, resourceId, parameter, content);
 		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
 
+		String template = getAttachDiskTemplate();
 		Parameters parameters = new OpenNebulaGenericRequestPlugin.Parameters();
 		parameters.getClasses().add(String.class);
 		parameters.getValues().add(template);
@@ -563,6 +440,198 @@ public class OpenNebulaGenericRequestPluginTest {
 		Assert.assertEquals(parametersNumber, method.getParameterCount());
 	}
 	
+	// test case: When calling the convertToInteger method with an invalid numeric
+	// string, it must throw an InvalidParameterException.
+	@Test(expected = InvalidParameterException.class)
+	public void testConvertToIntegerUnsuccessfully() throws InvalidParameterException {
+		// set up
+		String number = EMPTY_STRING;
+		// exercise
+		this.plugin.convertToInteger(number);
+	}
+	
+	// test case: When calling the generateParametersMap method without a valid
+	// parameter, an InvalidParameterException will be thrown.
+	@Test(expected = InvalidParameterException.class) // verify
+	public void testGenerateParametersMapThrowInvalidParameterException() throws InvalidParameterException {
+		// set up
+		String url = DEFAULT_URL;
+		String oneResource = VIRTUAL_MACHINE_RESOURCE;
+		String oneMethod = INFO_METHOD;
+		String parameter = ANYTHING_STRING;
+		String content = ONE_VALUE;
+
+		String json = createGenericRequest(url, oneResource, oneMethod, null, parameter, content);
+		CreateOneGenericRequest request = CreateOneGenericRequest.fromJson(json);
+		Object instance = null;
+		Client client = Mockito.mock(Client.class);
+
+		// exercise
+		this.plugin.generateParametersMap(request, instance, client);
+	}
+	
+	// test case: When calling the isValidParameter method with a content null, this
+	// will return false.
+	@Test
+	public void testIsValidParameterWithNullContent() {
+		// set up
+		String content = null;
+
+		// exercise
+		boolean status = this.plugin.isValidParameter(content);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+
+	// test case: When calling the isValidParameter method with a valid parameter,
+	// this will return true.
+	@Test
+	public void testIsValidParameterSuccessfully() {
+		// set up
+		String[] parameters = getArrayValidOneParameters();
+
+		String parameter;
+		for (int i = 0; i < parameters.length; i++) {
+			parameter = parameters[i];
+
+			// exercise
+			boolean status = this.plugin.isValidParameter(parameter);
+
+			// verify
+			Assert.assertTrue(status);
+		}
+	}
+	
+	// test case: When calling the isValidResource method with a content null, this
+	// will return false.
+	@Test
+	public void testIsValidResourceWithNullContent() {
+		// set up
+		String content = null;
+
+		// exercise
+		boolean status = this.plugin.isValidResource(content);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+	
+	// test case: When calling the isValidResource method with a valid resource,
+	// this will return true.
+	@Test
+	public void testIsValidResourceSuccessfully() {
+		// set up
+		String[] resources = getArrayValidOneResources();
+
+		String resource;
+		for (int i = 0; i < resources.length; i++) {
+			resource = resources[i];
+
+			// exercise
+			boolean status = this.plugin.isValidResource(resource);
+
+			// verify
+			Assert.assertTrue(status);
+		}
+	}
+	
+	// test case: When calling the isValidUrl method with a content null, this
+	// will return false.
+	@Test
+	public void testIsValidUrlWithNullContent() {
+		// set up
+		String content = null;
+
+		// exercise
+		boolean status = this.plugin.isValidUrl(content);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+	
+	// test case: When calling the isValidUrl method with a valid url,
+	// this will return true.
+	@Test
+	public void testIsValidUrlSuccessfully() {
+		// set up
+		String url = DEFAULT_URL;
+
+		// exercise
+		boolean status = this.plugin.isValidUrl(url);
+
+		// verify
+		Assert.assertTrue(status);
+	}
+	
+	// test case: When calling the isValid method with a valid content,
+	// this will return true.
+	@Test
+	public void testIsValidSuccessfully() {
+		// set up
+		String content = ANYTHING_STRING;
+
+		// exercise
+		boolean status = this.plugin.isValid(content);
+
+		// verify
+		Assert.assertTrue(status);
+	}
+	
+	// test case: When calling the isValid method with a content null, this
+	// will return false.
+	@Test
+	public void testIsValidWithNullContent() {
+		// set up
+		String content = null;
+
+		// exercise
+		boolean status = this.plugin.isValid(content);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+	
+	// test case: When calling the isValid method with a content empty, this
+	// will return false.
+	@Test
+	public void testIsValidWithEmptyString() {
+		// set up
+		String content = EMPTY_STRING;
+
+		// exercise
+		boolean status = this.plugin.isValid(content);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+	
+	private String[] getArrayValidOneParameters() {
+		String[] parameters = { "action", "append", "arId", "args", "auth", "capacityTemplate", "clusterId",
+				"datastoreId", "description", "diskId", "diskTemplate", "ds_id", "dsId", "egid", "enable", "endId",
+				"enforce", "expire", "extended", "filter", "gid", "gid", "group_a", "groupId", "group_m", "group_u",
+				"hard", "hid", "hostId", "hostname", "id", "im", "imageName", "imageType", "infoMethod", "ip", "live",
+				"marketId", "name", "new_conf", "new_document", "newSize", "new_template", "nicId", "nicTemplate",
+				"node", "nVMs", "octet", "onHold", "other_a", "other_m", "other_u", "owner", "owner_a", "owner_m",
+				"owner_u", "operation", "password", "persistent", "publish", "quota", "quota_template", "recover",
+				"recursive", "resource", "rights", "rule", "snapId", "startId", "state", "status", "targetDS",
+				"template", "templateId", "token", "type", "uid", "user", "username", "vmm", "vnetId", "zone",
+				"zoneId" };
+
+		return parameters;
+	}
+	
+	private String[] getArrayValidOneResources() {
+		String[] resources = { "Acl", "AclPool", "Client", "Client", "ClusterPool", "Datastore", "DatastorePool",
+				"Document", "DocumentPool", "GroupPool", "Host", "HostPool", "Image", "ImagePool", "MarketPlace",
+				"MarketPlaceApp", "MarketPlaceAppPool", "MarketPlacePool", "OneSystem", "SecurityGroup",
+				"SecurityGroupPool", "Template", "TemplatePool", "User", "UserPool", "Vdc", "VdcPool", "VirtualMachine",
+				"VirtualMachinePool", "VirtualNetwork", "VirtualNetworkPool", "VirtualRouter", "VirtualRouterPool",
+				"VMGroup", "VMGroupPool", "Zone", "ZonePool" };
+		
+		return resources;
+	}
+	
 	private String getAttachDiskTemplate() {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
 				+ "<TEMPLATE>\n"
@@ -574,20 +643,32 @@ public class OpenNebulaGenericRequestPluginTest {
 		return template;
 	}
 	
-	private String createGenericRequest(String resource, String method, String id, String parameter, String content) {
+	private String addOneParameters(String parameter, String content) {
+		String template = "	,\"oneParameters\":{\"%s\":\"%s\"}\n";
+		return String.format(template, parameter, content);
+	}
+	
+	private String addResourceId(String id) {
+		String template = "	,\"resourceId\": \"%s\"\n";
+		return String.format(template, id);
+	}
+	
+	private String createGenericRequest(String url, String resource, String method, String id, String parameter,
+			String content) {
+		
+		String resourceId = id == null ? EMPTY_STRING : addResourceId(id);
+		String parameters = parameter == null ? EMPTY_STRING : addOneParameters(parameter, content);
 		String template = "{\n" 
 				+ " \"oneGenericRequest\":{\n" 
-				+ "     \"url\":\"http://localhost:2633/RPC2\",\n"
-				+ "     \"oneResource\":\"%s\",\n" 
-				+ "     \"oneMethod\":\"%s\",\n" 
-				+ "     \"resourceId\": \"%s\",\n"
-				+ "     \"oneParameters\":{\n" 
-				+ "     	\"%s\":\"%s\"\n" 
-				+ "     }\n" 
-				+ "  }\n" 
-				+ "	}";
+				+ "	\"url\":\"%s\",\n" 
+				+ "	\"oneResource\":\"%s\",\n"
+				+ "	\"oneMethod\":\"%s\"\n" 
+				+ "%s" 
+				+ "%s" 
+				+ "	}\n" 
+				+ "}";
 
-		return String.format(template, resource, method, id, parameter, content);
+		return String.format(template, url, resource, method, resourceId, parameters);
 	}
 	
 }
