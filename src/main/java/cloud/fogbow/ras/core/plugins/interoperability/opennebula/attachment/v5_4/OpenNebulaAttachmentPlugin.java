@@ -13,6 +13,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
@@ -32,6 +33,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 	
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
+
+	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
+
+	protected static final String POWEROFF_STATE = "POWEROFF";
+	
+	protected static final long ONE_POINT_TWO_SECONDS = 1200;
+
 	private String endpoint;
 
 	public OpenNebulaAttachmentPlugin(String confFilePath) throws FatalErrorException {
@@ -72,20 +80,18 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 			throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 		}
 		String virtualMachineIdStr = order.getComputeId();
-		String diskIdStr = order.getInstanceId();
+		int diskId = Integer.parseInt(order.getInstanceId());
 
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-
-		int virtualMachineId = Integer.parseInt(virtualMachineIdStr);
-		int diskId = Integer.parseInt(diskIdStr);
-
-		// This detach operation is returning ok status but the volume is not being
-		// detached from the virtual machine in the opennebula cloud, preventing
-		// removing this volume until the virtual machine is removed. This is a documented
-		// issue in OpenNebula v5.4.
-		OneResponse response = VirtualMachine.diskDetach(client, virtualMachineId, diskId);
-		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, diskId, response.getErrorMessage()));
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineIdStr);
+		
+		// A volume can only be detached if a virtual machine is power-off.
+		virtualMachine.poweroff(true);
+		if (isPowerOff(virtualMachine)) {
+			detachVolume(virtualMachine, diskId);
+			virtualMachine.resume();
+		} else {
+			throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
 		}
 	}
 
@@ -112,6 +118,37 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		return attachmentInstance;
 	}
 
+	protected void detachVolume(VirtualMachine virtualMachine, int diskId) {
+		OneResponse response = virtualMachine.diskDetach(diskId);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, diskId, message));
+		}
+	}
+
+	protected boolean isPowerOff(VirtualMachine virtualMachine) {
+		String state;
+		int count = 0;
+		while (count < ATTEMPTS_LIMIT_NUMBER) {
+			count++;
+			waitMoment();
+			virtualMachine.info();
+			state = virtualMachine.stateStr();
+			if (state.equalsIgnoreCase(POWEROFF_STATE)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected void waitMoment() {
+		try {
+			Thread.sleep(ONE_POINT_TWO_SECONDS);
+		} catch (InterruptedException e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
+		}
+	}
+	
     private String getDiskIdFromContenOf(VirtualMachine virtualMachine) {
 		OneResponse response = virtualMachine.info();
 		String xml = response.getMessage();
