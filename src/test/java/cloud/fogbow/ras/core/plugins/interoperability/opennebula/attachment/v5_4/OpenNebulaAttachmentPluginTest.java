@@ -34,6 +34,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SharedOrderHolders.class, VirtualMachine.class})
@@ -79,6 +80,76 @@ public class OpenNebulaAttachmentPluginTest {
 		this.attachmentOrder = createAttachmentOrder();
 	}
 	
+	// test case: When calling the isReady method with the cloud states USED or
+	// USED_PERS, this means that the state of attachment is READY and it must
+	// return true.
+	@Test
+	public void testIsReadySuccessful() {
+		// set up
+		String[] cloudStates = { OpenNebulaStateMapper.ATTACHMENT_USED_STATE,
+				OpenNebulaStateMapper.ATTACHMENT_USED_PERSISTENT_STATE };
+
+		String cloudState;
+		for (int i = 0; i < cloudStates.length; i++) {
+			cloudState = cloudStates[i];
+
+			// exercise
+			boolean status = this.plugin.isReady(cloudState);
+
+			// verify
+			Assert.assertTrue(status);
+		}
+	}
+	
+	// test case: When calling the isReady method with the cloud states ERROR, this
+	// means that the state of attachment is FAILED and it must return false.
+	@Test
+	public void testIsReadyUnsuccessful() {
+		// set up
+		String cloudState = OpenNebulaStateMapper.DEFAULT_ERROR_STATE;
+
+		// exercise
+		boolean status = this.plugin.isReady(cloudState);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+	
+	// test case: When calling the hasFailed method with the cloud states ERROR,
+	// this means that the state of attachment is FAILED and it must return true.
+	@Test
+	public void testHasFailedSuccessful() {
+		// set up
+		String cloudState = OpenNebulaStateMapper.DEFAULT_ERROR_STATE;
+
+		// exercise
+		boolean status = this.plugin.hasFailed(cloudState);
+
+		// verify
+		Assert.assertTrue(status);
+	}
+	
+	// test case: When calling the hasFailed method with the cloud states USED or
+	// USED_PERS, this means that the state of attachment is READY and it must
+	// return false.
+	@Test
+	public void testHasFailedUnsuccessful() {
+		// set up
+		String[] cloudStates = { OpenNebulaStateMapper.ATTACHMENT_USED_STATE,
+				OpenNebulaStateMapper.ATTACHMENT_USED_PERSISTENT_STATE };
+
+		String cloudState;
+		for (int i = 0; i < cloudStates.length; i++) {
+			cloudState = cloudStates[i];
+
+			// exercise
+			boolean status = this.plugin.hasFailed(cloudState);
+
+			// verify
+			Assert.assertFalse(status);
+		}
+	}
+	
 	// test case: When invoking the requestInstance method, with the valid client
 	// and template, a virtual machine will be instantiated to attach a volume image
 	// disk, returning the attached disk ID in conjunction with the other IDs of
@@ -88,7 +159,8 @@ public class OpenNebulaAttachmentPluginTest {
 		// set up
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString())).willReturn(virtualMachine);
+		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.willReturn(virtualMachine);
 
 		String template = generateAttachmentTemplate();
 		OneResponse response = Mockito.mock(OneResponse.class);
@@ -109,7 +181,7 @@ public class OpenNebulaAttachmentPluginTest {
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
-		
+
 		Mockito.verify(virtualMachine, Mockito.times(1)).diskAttach(Mockito.eq(template));
 		Mockito.verify(virtualMachine, Mockito.times(1)).info();
 		Mockito.verify(response, Mockito.times(1)).getMessage();
@@ -215,7 +287,7 @@ public class OpenNebulaAttachmentPluginTest {
 		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.when(virtualMachine.diskDetach(diskId)).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
-		
+
 		CloudUser cloudUser = createCloudUser();
 
 		// exercise
@@ -256,6 +328,18 @@ public class OpenNebulaAttachmentPluginTest {
 		this.plugin.deleteInstance(attachmentOrder, cloudUser);
 	}
 	
+	// test case: When calling the getInstance method with an AttachmentOrder
+	// null, an InstanceNotFoundException will be thrown.
+	@Test(expected = InstanceNotFoundException.class) // verify
+	public void testGetInstanceThrowInstanceNotFoundException() throws FogbowException {
+		// set up
+		AttachmentOrder attachmentOrder = null;
+		CloudUser cloudUser = createCloudUser();
+
+		// exercise
+		this.plugin.getInstance(attachmentOrder, cloudUser);
+	}
+	
 	// test case: When calling the getInstance method, with the instance ID and a
 	// valid token, a set of images will be loaded and the specific instance of the
 	// image must be loaded.
@@ -265,11 +349,11 @@ public class OpenNebulaAttachmentPluginTest {
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
-		
+
 		int diskId = 1;
 		Image image = Mockito.mock(Image.class);
 		Mockito.when(imagePool.getById(diskId)).thenReturn(image);
-		
+
 		String imageDevice = FAKE_DEVICE;
 		Mockito.when(image.xpath(DEFAULT_DEVICE_PREFIX)).thenReturn(imageDevice);
 		Mockito.when(image.stateString()).thenReturn(IMAGE_STATE_READY);
@@ -282,10 +366,10 @@ public class OpenNebulaAttachmentPluginTest {
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-		
+
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
-		
+
 		Mockito.verify(imagePool, Mockito.times(1)).getById(Mockito.eq(diskId));
 		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.eq(DEFAULT_DEVICE_PREFIX));
 		Mockito.verify(image, Mockito.times(1)).stateString();
