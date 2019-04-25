@@ -57,11 +57,6 @@ public class VolumeOrder extends Order<VolumeOrder> {
     }
 
     @Override
-    public String getSpec() {
-        return String.valueOf(this.volumeSize);
-    }
-
-    @Override
     public void updateFromRemote(VolumeOrder remoteOrder) {
     }
 }

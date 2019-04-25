@@ -79,11 +79,6 @@ public class NetworkOrder extends Order<NetworkOrder> {
     }
 
     @Override
-    public String getSpec() {
-        return "";
-    }
-
-    @Override
     public void updateFromRemote(NetworkOrder remoteOrder) {
     }
 }
