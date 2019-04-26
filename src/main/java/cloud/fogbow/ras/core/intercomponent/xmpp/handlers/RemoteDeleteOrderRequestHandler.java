@@ -29,8 +29,7 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            RemoteFacade.getInstance().deleteOrder(iq.getFrom().toBareJID(), orderId, systemUser,
-                    resourceType);
+            RemoteFacade.getInstance().deleteOrder(iq.getFrom().toBareJID(), orderId, systemUser, resourceType);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

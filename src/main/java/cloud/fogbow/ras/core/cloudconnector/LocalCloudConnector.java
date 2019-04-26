@@ -267,9 +267,10 @@ public class LocalCloudConnector implements CloudConnector {
                 return;
             }
         } catch (InstanceNotFoundException e) {
-            // This may happen if the resource-allocation-service crashed after the instance is deleted
-            // but before the new state is updated in stable storage.
-            LOGGER.warn(Messages.Warn.INSTANCE_ALREADY_DELETED);
+            // This may happen if the RAS crashed after the instance was deleted, but before the new state
+            // is updated in stable storage, or if the instance has been deleted directly in the cloud
+            // without the intervention of the RAS.
+            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
             return;
         }
     }

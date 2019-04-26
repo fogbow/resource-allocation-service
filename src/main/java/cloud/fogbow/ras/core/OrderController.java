@@ -120,7 +120,7 @@ public class OrderController {
                     // have failed after the instance had already been removed from the cloud. In both cases, the
                     // instanceId will be null, and there is no need to call deleteInstance.
                     if ((order.isProviderLocal(this.localMemberId) && order.getInstanceId() != null) ||
-                        order.isProviderRemote(this.localMemberId)) {
+                            order.isProviderRemote(this.localMemberId)) {
                         cloudConnector.deleteInstance(order);
                         order.setInstanceId(null);
                     }
