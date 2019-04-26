@@ -154,7 +154,7 @@ public class Network {
     }
 
     @ApiOperation(value = ApiDocumentation.Network.DELETE_SECURITY_RULE_OPERATION)
-    @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId:.+}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteSecurityRule(
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
