@@ -90,11 +90,6 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
     }
 
     @Override
-    public String getSpec() {
-        return "";
-    }
-
-    @Override
     public void updateFromRemote(AttachmentOrder remoteOrder) {
     }
 }

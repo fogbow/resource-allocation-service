@@ -179,14 +179,6 @@ public class ComputeOrder extends Order<ComputeOrder> {
     }
 
     @Override
-    public String getSpec() {
-        if (this.actualAllocation == null) {
-            return "";
-        }
-        return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
-    }
-
-    @Override
     public void updateFromRemote(ComputeOrder remoteOrder) {
         this.setActualAllocation(remoteOrder.getActualAllocation());
     }

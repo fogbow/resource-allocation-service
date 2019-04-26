@@ -264,7 +264,5 @@ public abstract class Order<T extends Order> implements Serializable {
         this.type = type;
     }
 
-    public abstract String getSpec();
-
     public abstract void updateFromRemote(T remoteOrder);
 }

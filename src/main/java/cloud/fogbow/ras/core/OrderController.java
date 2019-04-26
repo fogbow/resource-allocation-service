@@ -188,6 +188,11 @@ public class OrderController {
 
 		for (Order order : allOrders) {
 		    synchronized (order) {
+		        if (order.getOrderState() == OrderState.CLOSED || order.getOrderState() == OrderState.DEACTIVATED) {
+		            // The order might have been closed or deactivated between the time the list of orders were
+                    // fetched by the getAllOrders() call above and now.
+		            continue;
+                }
                 String name = null;
 
                 switch (resourceType) {
@@ -268,7 +273,7 @@ public class OrderController {
 		// Filter all orders of resourceType from the user systemUser that are not
 		// closed (closed orders have been deleted by the user and should not be seen;
 		// they will disappear from the system as soon as the closedProcessor thread
-		// process them).
+		// process them) or deactivated.
 		List<Order> requestedOrders = orders.stream()
 				.filter(order -> order.getType().equals(resourceType))
 				.filter(order -> order.getSystemUser().equals(systemUser))

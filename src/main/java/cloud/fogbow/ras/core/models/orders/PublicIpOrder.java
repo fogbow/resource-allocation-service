@@ -64,11 +64,6 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
     }
 
     @Override
-    public String getSpec() {
-        return "";
-    }
-
-    @Override
     public void updateFromRemote(PublicIpOrder remoteOrder) {
     }
 }
