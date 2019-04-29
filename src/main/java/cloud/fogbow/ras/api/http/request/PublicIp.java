@@ -155,7 +155,7 @@ public class PublicIp {
     }
 
     @ApiOperation(value = ApiDocumentation.PublicIp.DELETE_SECURITY_RULE_OPERATION)
-    @RequestMapping(value = "/{publicIpId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{publicIpId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId:.+}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteSecurityRule(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
