@@ -36,6 +36,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, OpenNebulaClientUtil.class, SecurityGroup.class, Thread.class, VirtualNetwork.class})
@@ -81,6 +82,62 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
 
 		this.publicIpOrder = createPublicIpOrder();
+	}
+	
+	// test case: When calling the isReady method, if the state of public IP is
+	// READY, it must return true.
+	@Test
+	public void testIsReadySuccessful() {
+		// set up
+		String cloudState = OpenNebulaStateMapper.DEFAULT_READY_STATE;
+
+		// exercise
+		boolean status = this.plugin.isReady(cloudState);
+
+		// verify
+		Assert.assertTrue(status);
+	}
+	
+	// test case: When calling the isReady method, if the state of public IP is
+	// ERROR, it must return false.
+	@Test
+	public void testIsReadyUnsuccessful() {
+		// set up
+		String cloudState = OpenNebulaStateMapper.DEFAULT_ERROR_STATE;
+
+		// exercise
+		boolean status = this.plugin.isReady(cloudState);
+
+		// verify
+		Assert.assertFalse(status);
+	}
+	
+	// test case: When calling the hasFailed method, if the state of public IP is
+	// ERROR, it must return true.
+	@Test
+	public void testHasFailedSuccessful() {
+		// set up
+		String cloudState = OpenNebulaStateMapper.DEFAULT_ERROR_STATE;
+
+		// exercise
+		boolean status = this.plugin.hasFailed(cloudState);
+
+		// verify
+		Assert.assertTrue(status);
+	}
+	
+	// test case: When calling the hasFailed method, if the state of public IP is
+	// READY, it must return false.
+	@Test
+	public void testHasFailedUnsuccessful() {
+		// set up
+		String cloudState = OpenNebulaStateMapper.DEFAULT_READY_STATE;
+
+		// exercise
+		boolean status = this.plugin.hasFailed(cloudState);
+
+		// verify
+		Assert.assertFalse(status);
 	}
 	
 	// test case: When calling the requestInstance method, with a client and an
