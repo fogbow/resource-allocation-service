@@ -10,6 +10,7 @@ public class Messages {
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
+        public static final String IMAGE_NOT_FOUND = "Image not found";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INCORRECT_REQUESTING_MEMBER = "Mismatch on requesting member information.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
