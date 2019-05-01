@@ -4,6 +4,7 @@ public class EmulatedPluginConstants {
 
     public static class Conf {
 
+        public static final String STATIC_RESOURCES_FOLDER = "static_resources_folder";
         public static final String RESOURCES_FOLDER = "resources_folder";
     }
 
