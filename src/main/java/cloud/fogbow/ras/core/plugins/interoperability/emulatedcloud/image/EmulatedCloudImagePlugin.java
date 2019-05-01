@@ -6,8 +6,8 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedPluginConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedPluginFileUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,14 +29,14 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
 
     @Override
     public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
-        String imagesPath = EmulatedPluginFileUtils.getResourcePath(
-                this.properties, EmulatedPluginConstants.File.ALL_IMAGES);
+        String imagesPath = EmulatedCloudUtils.getResourcePath(
+                this.properties, EmulatedCloudConstants.File.ALL_IMAGES);
 
         HashMap allImages;
 
         try {
 
-            allImages = EmulatedPluginFileUtils.readJsonAsHashMap(imagesPath);
+            allImages = EmulatedCloudUtils.readJsonAsHashMap(imagesPath);
         } catch (IOException e) {
             throw new FogbowException(e.getMessage());
         }

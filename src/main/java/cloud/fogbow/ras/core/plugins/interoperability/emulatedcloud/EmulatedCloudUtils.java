@@ -10,8 +10,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
-public class EmulatedPluginFileUtils {
+public class EmulatedCloudUtils {
     public static HashMap readJsonAsHashMap(String filePath) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(filePath));
         String fileContent = String.join("\n", lines);
@@ -27,7 +28,7 @@ public class EmulatedPluginFileUtils {
     }
 
     public static String getResourcePath(Properties properties, String path){
-        String resourcesPath = properties.getProperty(EmulatedPluginConstants.Conf.RESOURCES_FOLDER);
+        String resourcesPath = properties.getProperty(EmulatedCloudConstants.Conf.RESOURCES_FOLDER);
         return resourcesPath + "/" + path;
     }
 
@@ -37,5 +38,9 @@ public class EmulatedPluginFileUtils {
         if(file.exists()){
             file.delete();
         }
+    }
+
+    public static String getRandomUUID() {
+        return UUID.randomUUID().toString();
     }
 }

@@ -10,15 +10,13 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedPluginFileUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import org.apache.log4j.Logger;
-import sun.net.NetProperties;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
-import java.util.UUID;
 
 public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
@@ -48,10 +46,10 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         HashMap<String, String> network = createNetwork(networkOrder);
 
         String networkId = network.get(NETWORK_ID);
-        String networkPath = EmulatedPluginFileUtils.getResourcePath(this.properties, networkId);
+        String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
 
         try {
-            EmulatedPluginFileUtils.saveHashMapAsJson(networkPath, network);
+            EmulatedCloudUtils.saveHashMapAsJson(networkPath, network);
         } catch (IOException e) {
             throw new FogbowException((e.getMessage()));
         }
@@ -66,8 +64,8 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         HashMap<String, String> network;
 
         try {
-            String networkPath = EmulatedPluginFileUtils.getResourcePath(this.properties, networkId);
-            network = EmulatedPluginFileUtils.readJsonAsHashMap(networkPath);
+            String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
+            network = EmulatedCloudUtils.readJsonAsHashMap(networkPath);
         } catch (IOException e) {
 
             LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
@@ -114,9 +112,9 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
     @Override
     public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
         String networkId = networkOrder.getId();
-        String networkPath = EmulatedPluginFileUtils.getResourcePath(this.properties, networkId);
+        String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
 
-        EmulatedPluginFileUtils.deleteFile(networkPath);
+        EmulatedCloudUtils.deleteFile(networkPath);
     }
 
     private HashMap<String, String> createNetwork(NetworkOrder networkOrder) {
@@ -130,7 +128,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         String allocationMode = networkOrder.getAllocationMode().getValue();
 
         // Created by the cloud
-        String networkId = getRandomUUID();
+        String networkId = EmulatedCloudUtils.getRandomUUID();
         String macInterface = generateMac();
         String cloudState = "READY";
 
@@ -168,13 +166,9 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         return newMac;
     }
 
-    protected String getRandomUUID() {
-        return UUID.randomUUID().toString();
-    }
-
     protected String getName(NetworkOrder networkOrder){
         String name = networkOrder.getName();
-        return (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : name);
+        return (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + EmulatedCloudUtils.getRandomUUID() : name);
     }
 }
 
