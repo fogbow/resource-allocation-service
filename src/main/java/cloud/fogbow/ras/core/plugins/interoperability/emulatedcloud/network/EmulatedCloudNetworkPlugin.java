@@ -120,7 +120,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
     private HashMap<String, String> createNetwork(NetworkOrder networkOrder) {
 
         // Derived from order
-        String networkName = getName(networkOrder);
+        String networkName = EmulatedCloudUtils.getName(networkOrder.getName());
         String cidr = networkOrder.getCidr();
         String cloudName = networkOrder.getCloudName();
         String gateway = networkOrder.getGateway();
@@ -164,11 +164,6 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
         }
         return newMac;
-    }
-
-    protected String getName(NetworkOrder networkOrder){
-        String name = networkOrder.getName();
-        return (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + EmulatedCloudUtils.getRandomUUID() : name);
     }
 }
 

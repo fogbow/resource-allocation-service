@@ -134,7 +134,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         int memory = computeOrder.getMemory();
         String imageId = computeOrder.getImageId();
 
-        String name = getName(computeOrder);
+        String name = EmulatedCloudUtils.getName(computeOrder.getName());
         String cloudName = computeOrder.getCloudName();
         String provider = computeOrder.getProvider();
         String publicKey = computeOrder.getPublicKey();
