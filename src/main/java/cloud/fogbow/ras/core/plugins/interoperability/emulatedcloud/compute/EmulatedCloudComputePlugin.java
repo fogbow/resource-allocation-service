@@ -4,20 +4,21 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.request.Compute;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Properties;
 
 public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
@@ -62,20 +63,26 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
         String computeId = computeOrder.getInstanceId();
         HashMap<String, String> compute;
+        HashMap<String, Double> computeWithIntMembers;
 
         try {
             String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
-            compute = EmulatedCloudUtils.readJsonAsHashMap(computePath);
+
+            HashMap computeFromStorage = EmulatedCloudUtils.readJsonAsHashMap(computePath);
+            compute = computeFromStorage;
+            computeWithIntMembers = computeFromStorage;
+
         } catch (IOException e) {
 
             LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
             throw new InstanceNotFoundException(e.getMessage());
         }
 
+
+        int disk = computeWithIntMembers.get(COMPUTE_DISK).intValue();
+        int vcpu = computeWithIntMembers.get(COMPUTE_VCPU).intValue();
+        int memory = computeWithIntMembers.get(COMPUTE_MEMORY).intValue();
         String id = compute.get(COMPUTE_ID);
-        int disk = Integer.parseInt(compute.get(COMPUTE_DISK));
-        int vcpu = Integer.parseInt(compute.get(COMPUTE_VCPU));
-        int memory = Integer.parseInt(compute.get(COMPUTE_MEMORY));
         String imageId = compute.get(COMPUTE_IMAGE_ID);
         String name = compute.get(COMPUTE_NAME);
         String cloudName = compute.get(COMPUTE_CLOUD_NAME);
@@ -83,14 +90,21 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         String publicKey = compute.get(COMPUTE_PUBLIC_KEY);
 
 
+        // This doesn't smell good but works.
         HashMap computeWithNetworks = compute;
+        HashMap networks;
 
-        HashMap networks = (HashMap) computeWithNetworks.get(COMPUTE_NETWORKS);
+        LinkedTreeMap linkedTreeMap = (LinkedTreeMap) computeWithNetworks.get(COMPUTE_NETWORKS);
+        Gson gson = GsonHolder.getInstance();
+        networks = gson.fromJson(gson.toJson(linkedTreeMap), HashMap.class);
+
 
         ComputeInstance computeInstance = new ComputeInstance(id, "running", name,
                 vcpu, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
         
         computeInstance.setNetworks(networks);
+        computeInstance.setProvider(provider);
+        computeInstance.setCloudName(cloudName);
 
         return computeInstance;
     }
@@ -128,7 +142,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
         HashMap networks = getNetworks(computeOrder);
 
-        HashMap<String, Object> compute = new HashMap();
+        HashMap compute = new HashMap();
 
         compute.put(COMPUTE_ID, id);
         compute.put(COMPUTE_DISK, disk);
