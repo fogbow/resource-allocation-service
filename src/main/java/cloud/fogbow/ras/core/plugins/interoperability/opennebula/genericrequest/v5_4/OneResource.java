@@ -260,7 +260,7 @@ public enum OneResource {
 		}
 	},
 	
-	IMAGE("Image"){
+	IMAGE("ImageInstance"){
 		@Override
 		public Class getClassType() {
 			return Image.class;

@@ -2,11 +2,11 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetOrderRequest;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.jamppa.component.PacketSender;
@@ -31,8 +31,8 @@ public class RemoteGetOrderRequestHandlerTest {
 
     private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <query xmlns=\"remoteGetOrder\">\n"
-            + "    <instance>{\"id\":\"fake-instance-id\",\"isReady\":false,\"hasFailed\":false}</instance>\n"
-            + "    <instanceClassName>cloud.fogbow.ras.api.http.response.Instance</instanceClassName>\n"
+            + "    <instance>{\"isReady\":false,\"hasFailed\":false,\"id\":\"fake-instance-id\"}</instance>\n"
+            + "    <instanceClassName>cloud.fogbow.ras.api.http.response.OrderInstance</instanceClassName>\n"
             + "  </query>\n" + "</iq>";
 
     private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
@@ -69,7 +69,7 @@ public class RemoteGetOrderRequestHandlerTest {
         SystemUser systemUser = createFederationUser();
         Order order = createOrder(systemUser);
         String orderId = order.getId();
-        Instance instance = new Instance(FAKE_INSTANCE_ID);
+        OrderInstance instance = new OrderInstance(FAKE_INSTANCE_ID);
 
         Mockito.when(
                 this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),

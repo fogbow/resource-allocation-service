@@ -6,11 +6,9 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.CloudStackImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -122,12 +120,12 @@ public class CloudStackImagePluginTest {
         Mockito.when(this.client.doGetRequest(expectedRequestUrl, FAKE_TOKEN)).thenReturn(successfulResponse);
 
         // exercise
-        Image retrievedImage = this.plugin.getImage(FAKE_ID, FAKE_TOKEN);
+        ImageInstance retrievedImageInstance = this.plugin.getImage(FAKE_ID, FAKE_TOKEN);
 
         // verify
-        Assert.assertEquals(FAKE_ID, retrievedImage.getId());
-        Assert.assertEquals(FAKE_NAME, retrievedImage.getName());
-        Assert.assertEquals(FAKE_SIZE, retrievedImage.getSize());
+        Assert.assertEquals(FAKE_ID, retrievedImageInstance.getId());
+        Assert.assertEquals(FAKE_NAME, retrievedImageInstance.getName());
+        Assert.assertEquals(FAKE_SIZE, retrievedImageInstance.getSize());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
@@ -147,7 +145,7 @@ public class CloudStackImagePluginTest {
 
         try {
             // exercise
-            Image image = this.plugin.getImage("unexisting-id", FAKE_TOKEN);
+            ImageInstance imageInstance = this.plugin.getImage("unexisting-id", FAKE_TOKEN);
         } finally {
             // verify
             Mockito.verify(this.client, Mockito.times(1))

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -50,7 +51,7 @@ public class Image {
 
     @ApiOperation(value = ApiDocumentation.Image.GET_BY_ID_OPERATION)
     @RequestMapping(value = "/{memberId:.+}" + "/{cloudName}" + "/{imageId}", method = RequestMethod.GET)
-    public ResponseEntity<cloud.fogbow.ras.api.http.response.Image> getImage(
+    public ResponseEntity<ImageInstance> getImage(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
@@ -63,8 +64,8 @@ public class Image {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
-            cloud.fogbow.ras.api.http.response.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, systemUserToken);
-            return new ResponseEntity<>(image, HttpStatus.OK);
+            ImageInstance imageInstance = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, systemUserToken);
+            return new ResponseEntity<>(imageInstance, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

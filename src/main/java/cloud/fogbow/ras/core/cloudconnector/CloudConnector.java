@@ -3,10 +3,10 @@ package cloud.fogbow.ras.core.cloudconnector;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.Image;
-import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -36,10 +36,10 @@ public interface CloudConnector {
      * Gets from the cloud the instance currently associated to the order.
      *
      * @param order the order whose associated instance is requested
-     * @return the Instance whose instance Id is stored in the order
+     * @return the OrderInstance whose instance Id is stored in the order
      * @throws FogbowException
      */
-    Instance getInstance(Order order) throws FogbowException;
+    OrderInstance getInstance(Order order) throws FogbowException;
 
     /**
      * Gets the quota of the system user for resourceType.
@@ -69,7 +69,7 @@ public interface CloudConnector {
      * @throws FogbowException
      */
 
-    Image getImage(String imageId, SystemUser systemUser) throws FogbowException;
+    ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException;
 
     /**
      * Submits a generic request to the cloud.

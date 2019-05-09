@@ -2032,8 +2032,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		Image image = Mockito.mock(Image.class);
-		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(systemUser))).thenReturn(image);
+		ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
+		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(systemUser))).thenReturn(imageInstance);
 
 		String memberId = FAKE_MEMBER_ID;
 		String cloudName = DEFAULT_CLOUD_NAME;

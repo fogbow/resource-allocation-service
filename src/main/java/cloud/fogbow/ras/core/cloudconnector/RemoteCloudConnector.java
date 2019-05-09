@@ -5,13 +5,13 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.Image;
-import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import org.apache.log4j.Logger;
@@ -62,10 +62,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Instance getInstance(Order order) throws FogbowException {
+    public OrderInstance getInstance(Order order) throws FogbowException {
         try {
             RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
-            Instance instance = remoteGetOrderRequest.send();
+            OrderInstance instance = remoteGetOrderRequest.send();
             return instance;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
@@ -100,12 +100,12 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Image getImage(String imageId, SystemUser systemUser) throws FogbowException {
+    public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember,
                     this.cloudName, imageId, systemUser);
-            Image image = remoteGetImageRequest.send();
-            return image;
+            ImageInstance imageInstance = remoteGetImageRequest.send();
+            return imageInstance;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);

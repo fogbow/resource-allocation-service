@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -15,7 +16,6 @@ import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -77,7 +77,7 @@ public class RemoteFacade {
         return cloudConnector.getUserQuota(systemUser, resourceType);
     }
 
-    public Image getImage(String requestingMember, String cloudName, String imageId, SystemUser systemUser) throws FogbowException {
+    public ImageInstance getImage(String requestingMember, String cloudName, String imageId, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting member.
         this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);

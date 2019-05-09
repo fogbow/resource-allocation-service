@@ -17,7 +17,7 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -338,8 +338,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		Image image = Mockito.mock(Image.class);
-		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(systemUser))).thenReturn(image);
+		ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
+		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(systemUser))).thenReturn(imageInstance);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String imageId = FAKE_IMAGE_ID;
