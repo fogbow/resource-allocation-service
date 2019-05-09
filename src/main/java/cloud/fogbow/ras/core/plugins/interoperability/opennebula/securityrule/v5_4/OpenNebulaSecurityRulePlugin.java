@@ -179,8 +179,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 				SecurityRule.EtherType etherType = rule.getEtherType();
 				SecurityRule.Protocol protocol = rule.getSRProtocol();
 				rule.setSecurityGroupId(securityGroup.getId());
-				SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
-				SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(rule.serialize(), securityRule);
+				SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(rule.serialize(), direction, portFrom, portTo, cidr, etherType, protocol);
 				securityRuleInstances.add(securityRuleInstance);
 			}
 		} catch (Exception e) {

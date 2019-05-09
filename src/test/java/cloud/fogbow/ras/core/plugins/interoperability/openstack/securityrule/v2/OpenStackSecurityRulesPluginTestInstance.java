@@ -179,12 +179,12 @@ public class OpenStackSecurityRulesPluginTestInstance {
 
         //verify
         Assert.assertEquals(id, securityRuleInstance.getId());
-        Assert.assertEquals(cidr, securityRuleInstance.getRule().getCidr());
-        Assert.assertEquals(portFrom, securityRuleInstance.getRule().getPortFrom());
-        Assert.assertEquals(portTo, securityRuleInstance.getRule().getPortTo());
-        Assert.assertEquals(direction, securityRuleInstance.getRule().getDirection().toString());
-        Assert.assertEquals(etherType, securityRuleInstance.getRule().getEtherType().toString());
-        Assert.assertEquals(protocol, securityRuleInstance.getRule().getProtocol().toString());
+        Assert.assertEquals(cidr, securityRuleInstance.getCidr());
+        Assert.assertEquals(portFrom, securityRuleInstance.getPortFrom());
+        Assert.assertEquals(portTo, securityRuleInstance.getPortTo());
+        Assert.assertEquals(direction, securityRuleInstance.getDirection().toString());
+        Assert.assertEquals(etherType, securityRuleInstance.getEtherType().toString());
+        Assert.assertEquals(protocol, securityRuleInstance.getProtocol().toString());
     }
 
     //test case: Tests remove security rule

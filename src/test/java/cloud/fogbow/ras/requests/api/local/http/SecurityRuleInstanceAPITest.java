@@ -254,9 +254,9 @@ public class SecurityRuleInstanceAPITest {
         final String FAKE_ID_2 = "fake-Id-2";
         final String FAKE_ID_3 = "fake-Id-3";
 
-        SecurityRuleInstance rule1 = new SecurityRuleInstance(FAKE_ID_1, new SecurityRule());
-        SecurityRuleInstance rule2 = new SecurityRuleInstance(FAKE_ID_2, new SecurityRule());
-        SecurityRuleInstance rule3 = new SecurityRuleInstance(FAKE_ID_3, new SecurityRule());
+        SecurityRuleInstance rule1 = new SecurityRuleInstance(FAKE_ID_1, null, 0, 0, null, null, null);
+        SecurityRuleInstance rule2 = new SecurityRuleInstance(FAKE_ID_2, null, 0, 0, null, null, null);
+        SecurityRuleInstance rule3 = new SecurityRuleInstance(FAKE_ID_3, null, 0, 0, null, null, null);
 
         List<SecurityRuleInstance> securityRuleInstanceList = Arrays.asList(new SecurityRuleInstance[]{rule1, rule2, rule3});
         Mockito.doReturn(securityRuleInstanceList).when(this.facade).getAllSecurityRules(

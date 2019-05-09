@@ -277,12 +277,12 @@ public class OpenNebulaSecurityRuleInstancePluginTest {
 
 		// verify
 		SecurityRuleInstance securityRuleInstance = securityRuleInstances.iterator().next();
-		Assert.assertEquals(SecurityRule.Protocol.TCP, securityRuleInstance.getRule().getProtocol());
-		Assert.assertEquals(portFrom, securityRuleInstance.getRule().getPortFrom());
-		Assert.assertEquals(portTo, securityRuleInstance.getRule().getPortTo());
-		Assert.assertEquals(String.format(FORMAT_CONTENT, ipv4, Rule.CIRD_SEPARATOR, 24), securityRuleInstance.getRule().getCidr());
-		Assert.assertEquals(SecurityRule.Direction.IN, securityRuleInstance.getRule().getDirection());
-		Assert.assertEquals(SecurityRule.EtherType.IPv4, securityRuleInstance.getRule().getEtherType());
+		Assert.assertEquals(SecurityRule.Protocol.TCP, securityRuleInstance.getProtocol());
+		Assert.assertEquals(portFrom, securityRuleInstance.getPortFrom());
+		Assert.assertEquals(portTo, securityRuleInstance.getPortTo());
+		Assert.assertEquals(String.format(FORMAT_CONTENT, ipv4, Rule.CIRD_SEPARATOR, 24), securityRuleInstance.getCidr());
+		Assert.assertEquals(SecurityRule.Direction.IN, securityRuleInstance.getDirection());
+		Assert.assertEquals(SecurityRule.EtherType.IPv4, securityRuleInstance.getEtherType());
 		Assert.assertEquals(rule.serialize(), securityRuleInstance.getId());
 	}
 

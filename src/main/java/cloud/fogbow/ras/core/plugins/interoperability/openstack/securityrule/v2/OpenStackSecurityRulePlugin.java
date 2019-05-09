@@ -186,9 +186,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
                 } else {
                     protocol = SecurityRule.Protocol.ANY;
                 }
-
-                SecurityRule securityRule = new SecurityRule(direction, secRules.getPortFrom(), secRules.getPortTo(), secRules.getCidr(), etherType, protocol);
-                SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(secRules.getId(), securityRule);
+                SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(secRules.getId(), direction, secRules.getPortFrom(), secRules.getPortTo(), secRules.getCidr(), etherType, protocol);
                 rules.add(securityRuleInstance);
             }
         } catch (JSONException e) {

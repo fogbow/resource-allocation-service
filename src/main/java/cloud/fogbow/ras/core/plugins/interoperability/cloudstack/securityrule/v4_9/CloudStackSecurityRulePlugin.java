@@ -164,8 +164,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 			SecurityRule.EtherType etherType = inferEtherType(ipAddress);
 			SecurityRule.Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
 
-			SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
-            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(securityRuleResponse.getInstanceId(), securityRule);
+            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(securityRuleResponse.getInstanceId(), direction, portFrom, portTo, cidr, etherType, protocol);
 			securityRuleInstances.add(securityRuleInstance);
 		}
 		return securityRuleInstances;

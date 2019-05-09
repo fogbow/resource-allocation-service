@@ -92,8 +92,8 @@ public class CloudStackSecurityRuleInstancePluginTest {
         SecurityRule.EtherType etherType = SecurityRule.EtherType.IPv4;
         SecurityRule.Protocol protocol = SecurityRule.Protocol.TCP;
         List<SecurityRuleInstance> securityRulesExpected = new ArrayList<SecurityRuleInstance>();
-        securityRulesExpected.add(new SecurityRuleInstance("instance1", new SecurityRule(SecurityRule.Direction.IN, portFrom, portTo, cidr, etherType, protocol)));
-        securityRulesExpected.add(new SecurityRuleInstance("instance2", new SecurityRule(SecurityRule.Direction.IN, portFrom, portTo, cidr, etherType, protocol)));
+        securityRulesExpected.add(new SecurityRuleInstance("instance1", SecurityRule.Direction.IN, portFrom, portTo, cidr, etherType, protocol));
+        securityRulesExpected.add(new SecurityRuleInstance("instance2", SecurityRule.Direction.IN, portFrom, portTo, cidr, etherType, protocol));
         String listFirewallRulesResponse = getListFirewallRulesResponseJson(securityRulesExpected, etherType);
 
         Mockito.when(this.client.doGetRequest(
@@ -405,15 +405,15 @@ public class CloudStackSecurityRuleInstancePluginTest {
         for (SecurityRuleInstance securityRuleInstance : securityRuleInstances) {
             Map<String, Object> firewallRule = new HashMap<String, Object>();
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON,
-                    securityRuleInstance.getRule().getCidr());
+                    securityRuleInstance.getCidr());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.ID_KEY_JSON,
                     securityRuleInstance.getId());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.START_PORT_KEY_JSON,
-                    securityRuleInstance.getRule().getPortFrom());
+                    securityRuleInstance.getPortFrom());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.END_PORT_KEY_JSON,
-                    securityRuleInstance.getRule().getPortTo());
+                    securityRuleInstance.getPortTo());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON,
-                    securityRuleInstance.getRule().getProtocol().toString());
+                    securityRuleInstance.getProtocol().toString());
             if (etherType.equals(SecurityRule.EtherType.IPv4)) {
                 firewallRule.put(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON, "0.0.0.0");
             } else {
