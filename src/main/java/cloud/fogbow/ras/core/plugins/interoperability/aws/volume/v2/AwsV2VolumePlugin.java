@@ -43,7 +43,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 	public AwsV2VolumePlugin(String confFilePath) {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
+		this.zone = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
 	}
 	
 	@Override
