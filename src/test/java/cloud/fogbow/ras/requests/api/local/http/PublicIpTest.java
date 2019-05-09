@@ -1,17 +1,10 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.ras.api.http.request.Attachment;
-import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,39 +18,47 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.gson.Gson;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.request.PublicIp;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.core.ApplicationFacade;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = Attachment.class, secure = false)
+@WebMvcTest(value = PublicIp.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
 public class PublicIpTest {
-    private final String ATTACHMENT_ENDPOINT =
-            "/".concat(Attachment.ATTACHMENT_ENDPOINT);
+    
+    private static final String ADDRESS_SEPARATOR = "/";
+	private static final String FAKE_CLOUD_STATE = "fake-cloud-state";
+    private static final String FAKE_IDENTITY_PROVIDER_ID = "fake-identity-provider-id";
+	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_USER_TOKEN = "fake-user-token";
+    private static final String IP_ADDRESS_EXAMPLE = "192.168.0.1";
+    private static final String PUBLIC_IP_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.PUBLIC_IP_ENDPOINT;
+    private static final String PUBLIC_IP_ENDPOINT_BAR_STATUS = PUBLIC_IP_ENDPOINT + "/status";
+	private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
+	private static final String SECURITY_RULES_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.SECURITY_RULES_ENDPOINT;
 
-    private final String CORRECT_BODY =
-            "{"
-                    + "\"computeOrderId\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\""
-                    + "}";
-
-    private final String BODY_WITH_EMPTY_PROPERTIES =
-            "{"
-                    + "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
-                    + "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
-                    + "\"device\": \"/dev/sdd\""
-                    + "}";
-
-    @Autowired
+	@Autowired
     private MockMvc mockMvc;
 
     private ApplicationFacade facade;
@@ -65,265 +66,421 @@ public class PublicIpTest {
     @Before
     public void setUp() throws FogbowException {
         this.facade = Mockito.spy(ApplicationFacade.class);
-        PowerMockito.mockStatic(ApplicationFacade.class);
-        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
-    // test case: Request an attachment creation and test successfully return. 
-    // Check if the request response is compatible with the value produced by facade.
-    @Test
-    public void testCreateAttachment() throws Exception {
+	// test case: Create a public IP instance
+	@Test
+	public void testCreatePublicIp() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
 
-        // set up
-        String orderId = "fake-id";
-        Mockito.doReturn(orderId)
-                .when(this.facade)
-                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doReturn(publicIpOrder.getId()).when(this.facade).createPublicIp(Mockito.any(PublicIpOrder.class),
+				Mockito.anyString());
 
-        RequestBuilder requestBuilder =
-                createRequestBuilder(
-                        HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
+		String body = createPublicIpOrderBody();
+		HttpHeaders headers = getHttpHeaders();
+		int expectedStatus = HttpStatus.CREATED.value();
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post(PUBLIC_IP_ENDPOINT)
+						.headers(headers)
+						.accept(MediaType.APPLICATION_JSON)
+						.content(body)
+						.contentType(MediaType.APPLICATION_JSON))
+						.andReturn();
 
-        // verify
-        int expectedStatus = HttpStatus.CREATED.value();
-        String expectedResponse = String.format("{\"id\":\"%s\"}", orderId);
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(expectedResponse, result.getResponse().getContentAsString());
+		// verify
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).createPublicIp(Mockito.any(PublicIpOrder.class),
+				Mockito.anyString());
+	}
+	
+	// test case: Fail to create a public IP instance
+	@Test
+	public void testCreatePublicIpFailed() throws Exception {
+		// set up
+		String body = createPublicIpOrderBody();
+		HttpHeaders headers = getHttpHeaders();
 
-        Mockito.verify(this.facade, Mockito.times(1))
-                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
-    }
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders.post(PUBLIC_IP_ENDPOINT)
+					.headers(headers)
+					.accept(MediaType.APPLICATION_JSON).content(body)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-    // test case: Request an attachment creation without request body and test fail return
-    // Check if the correct http status is being sent in the request response
-    @Test
-    public void testPostAttachmentEmptyBody() throws Exception {
-        // set up
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.POST,
-                        ATTACHMENT_ENDPOINT,
-                        getHttpHeaders(),
-                        "");
+		} catch (Exception e) {
+			// verify
+			fail();
+		}
+	}	
+    
+	// test case: Get a list of public IP instance status
+	@Test
+	public void testGetAllPublicIpsStatus() throws Exception {
+		// set up
+		List<InstanceStatus> publicIpInstanceStatus = Mockito.spy(new ArrayList<InstanceStatus>());
 
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doReturn(publicIpInstanceStatus).when(this.facade).getAllInstancesStatus(Mockito.anyString(),
+				Mockito.eq(ResourceType.PUBLIC_IP));
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		HttpHeaders headers = getHttpHeaders();
+		int expectedStatus = HttpStatus.OK.value();
 
-        // verify
-        int expectedStatus = HttpStatus.BAD_REQUEST.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(0))
-                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
-    }
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(PUBLIC_IP_ENDPOINT_BAR_STATUS)
+				.headers(headers)
+				.contentType(MediaType.APPLICATION_JSON))
+				.andReturn();
 
-    // test case: Request an attachment creation with request body without properties and test fail return
-    // Check if the correct http status is being sent in the request response
-    @Test
-    public void testPostAttachmentEmptyJson() throws Exception {
-        // set up
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
+		// verify
+		List<InstanceStatus> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
+		Assert.assertNotNull(resultList);
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(),
+				Mockito.eq(ResourceType.PUBLIC_IP));
+	}
+	
+	// test case: Fail to get a list of public IP instance status
+	@Test
+	public void testGetAllPublicIpStatusFailed() throws Exception {
+		// set up
+		HttpHeaders headers = getHttpHeaders();
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders.get(PUBLIC_IP_ENDPOINT_BAR_STATUS)
+					.headers(headers)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-        // verify
-        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1))
-                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
-    }
+		} catch (Exception e) {
+			// verify
+			fail();
+		}
+	}
+	
+	// test case: Get a public ip instance
+	@Test
+	public void testGetPublicIp() throws Exception {
+		// set up
+		PublicIpInstance instance = createPublicIpInstance();
+		String instanceId = instance.getId();
 
-    // test case: Request an attachment creation with request body without property values and test fail return
-    // Check if the correct http status is being sent in the request response
-    @Test
-    public void testPostAttachmentBodyWithoutProperties() throws Exception {
-        // set up
-        RequestBuilder requestBuilder =
-                createRequestBuilder(
-                        HttpMethod.POST,
-                        ATTACHMENT_ENDPOINT,
-                        getHttpHeaders(),
-                        BODY_WITH_EMPTY_PROPERTIES);
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doReturn(instance).when(this.facade).getPublicIp(Mockito.anyString(), Mockito.anyString());
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		HttpHeaders headers = getHttpHeaders();
+		int expectedStatus = HttpStatus.OK.value();
 
-        // verify
-        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1))
-                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
-    }
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(PUBLIC_IP_ENDPOINT 
+				+ ADDRESS_SEPARATOR 
+				+ instanceId)
+				.headers(headers)
+				.contentType(MediaType.APPLICATION_JSON))
+				.andReturn();
 
-    // test case: Request the list of all attachments status when the facade returns an non-empty list. 
-    // Check if the request response is compatible with the value produced by facade.
-    @Test
-    public void testGetAllAttachmentsStatus() throws Exception {
-        InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", "fake-cloud-name", InstanceState.BUSY);
-        InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", "fake-cloud-name", InstanceState.BUSY);
-        InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", "fake-cloud-name", InstanceState.BUSY);
+		// verify
+		NetworkInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(),
+				NetworkInstance.class);
+		Assert.assertEquals(instance.getId(), resultInstance.getId());
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).getPublicIp(Mockito.anyString(), Mockito.anyString());
+	}
+	
+	// test case: Fail to get a public IP instance
+	@Test
+	public void testGetPublicIpFailed() throws Exception {
+		// set up
+		String instanceId = FAKE_INSTANCE_ID;
+		HttpHeaders headers = getHttpHeaders();
 
-        List<InstanceStatus> AttachmentStatusList =
-                Arrays.asList(AttachmentStatus1, AttachmentStatus2, AttachmentStatus3);
-        Mockito.doReturn(AttachmentStatusList)
-                .when(this.facade)
-                .getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders.get(PUBLIC_IP_ENDPOINT + ADDRESS_SEPARATOR + instanceId)
+					.headers(headers)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET,
-                        ATTACHMENT_ENDPOINT.concat("/status"),
-                        getHttpHeaders(), "");
+		} catch (Exception e) {
+			// verify
+			fail();
+		}
+	}
+	
+	// test case: Delete an existing public IP instance
+	@Test
+	public void testDeletePublicIp() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		String instanceId = publicIpOrder.getId();
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doNothing().when(this.facade).deletePublicIp(Mockito.anyString(), Mockito.anyString());
 
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		HttpHeaders headers = getHttpHeaders();
+		int expectedStatus = HttpStatus.OK.value();
 
-        TypeToken<List<InstanceStatus>> token = new TypeToken<List<InstanceStatus>>() {
-        };
-        List<InstanceStatus> resultList =
-                new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertEquals(3, resultList.size());
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(PUBLIC_IP_ENDPOINT 
+				+ ADDRESS_SEPARATOR 
+				+ instanceId)
+				.headers(headers)
+				.contentType(MediaType.APPLICATION_JSON))
+				.andReturn();
 
-        Mockito.verify(this.facade, Mockito.times(1))
-                .getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
-    }
+		// verify
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).deletePublicIp(Mockito.anyString(), Mockito.anyString());
+	}
+	
+	// test case: Fail to delete an existing public IP instance
+	@Test
+	public void testDeletePublicIpFailed() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		String instanceId = publicIpOrder.getId();
+		HttpHeaders headers = getHttpHeaders();
 
-    // test case: Request an attachment by his id and test successfully return. 
-    // Check if the request response is compatible with the value produced by facade.
-    @Test
-    public void testGetAttachmentById() throws Exception {
-        // set up
-        String fakeId = "fake-Id-1";
-        String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders.delete(PUBLIC_IP_ENDPOINT + ADDRESS_SEPARATOR + instanceId)
+					.headers(headers)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-        AttachmentInstance attachmentInstance = new AttachmentInstance(fakeId);
-        Mockito.doReturn(attachmentInstance).when(this.facade)
-                .getAttachment(Mockito.anyString(), Mockito.anyString());
+		} catch (Exception e) {
+			// Verify
+			fail();
+		}
+	}
+	
+	// test case: Create a instance of security rule
+	@Test
+	public void testCreateSecurityRule() throws Exception {
+		// set up
+		String ruleId = RULE_ID_EXAMPLE;
 
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET, attachmentIdEndpoint, getHttpHeaders(), "");
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doReturn(ruleId).when(this.facade).createSecurityRule(Mockito.anyString(),
+				Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		HttpHeaders headers = getHttpHeaders();
+		String body = createSecurityRuleBody();
 
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		int expectedStatus = HttpStatus.CREATED.value();
 
-        AttachmentInstance resultAttachmentInstance =
-                new Gson()
-                        .fromJson(
-                                result.getResponse().getContentAsString(),
-                                AttachmentInstance.class);
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders
+				.post(PUBLIC_IP_ENDPOINT + ADDRESS_SEPARATOR + publicIpOrder.getId() + SECURITY_RULES_ENDPOINT)
+				.headers(headers)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(body)
+				.contentType(MediaType.APPLICATION_JSON))
+				.andReturn();
 
-        Assert.assertEquals(attachmentInstance, resultAttachmentInstance);
+		// verify
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).createSecurityRule(Mockito.eq(publicIpOrder.getId()),
+				Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
+	}
+	
+	// test case: Fail to create a instance of security rule
+	@Test
+	public void testCreateSecurityRuleFailed() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		HttpHeaders headers = getHttpHeaders();
+		String body = createSecurityRuleBody();
 
-        Mockito.verify(this.facade, Mockito.times(1))
-                .getAttachment(Mockito.anyString(), Mockito.anyString());
-    }
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders
+					.post(PUBLIC_IP_ENDPOINT + ADDRESS_SEPARATOR + publicIpOrder.getId() + SECURITY_RULES_ENDPOINT)
+					.headers(headers)
+					.accept(MediaType.APPLICATION_JSON)
+					.content(body)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-    // test case: Request an attachment by his id when the instance is not found. 
-    // Check if the request response is compatible with the value produced by facade.
-    @Test
-    public void testGetNotFoundAttachmentById() throws Exception {
-        // set up
-        String fakeId = "fake-Id-1";
-        String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
-        Mockito.doThrow(new InstanceNotFoundException())
-                .when(this.facade)
-                .getAttachment(Mockito.anyString(), Mockito.anyString());
+		} catch (Exception e) {
+			// verify
+			fail();
+		}
+	}
+	
+	// test case: Get a list of security rules
+	@Test
+	public void testGetAllSecurityRules() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		List<SecurityRule> securityRules = Mockito.spy(new ArrayList<SecurityRule>());
 
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET, attachmentIdEndpoint, getHttpHeaders(), "");
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doReturn(securityRules).when(this.facade).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
+				Mockito.eq(ResourceType.PUBLIC_IP));
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		HttpHeaders headers = getHttpHeaders();
+		int expectedStatus = HttpStatus.OK.value();
 
-        // verify
-        int expectedStatus = HttpStatus.NOT_FOUND.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1))
-                .getAttachment(Mockito.anyString(), Mockito.anyString());
-    }
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(PUBLIC_IP_ENDPOINT 
+				+ ADDRESS_SEPARATOR 
+				+ publicIpOrder.getId() 
+				+ ADDRESS_SEPARATOR 
+				+ SECURITY_RULES_ENDPOINT)
+				.headers(headers)
+				.contentType(MediaType.APPLICATION_JSON))
+				.andReturn();
 
-    // test case: Delete an attachment by his id and test successfully return. 
-    // Check if the request response is compatible with the value produced by facade.
-    @Test
-    public void testDeleteExistingAttachment() throws Exception {
-        // set up
-        String fakeId = "fake-Id-1";
-        String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
-        Mockito.doNothing().when(this.facade)
-                .deleteAttachment(Mockito.anyString(), Mockito.anyString());
+		// verify
+		List<SecurityRule> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
+		Assert.assertNotNull(resultList);
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
+				Mockito.eq(ResourceType.PUBLIC_IP));
+	}
+	
+	// test case: Fail to get a list of security rules
+	@Test
+	public void testGetAllSecurityRulesFailed() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		HttpHeaders headers = getHttpHeaders();
 
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.DELETE, attachmentIdEndpoint, getHttpHeaders(), "");
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders.get(PUBLIC_IP_ENDPOINT 
+					+ ADDRESS_SEPARATOR 
+					+ publicIpOrder.getId() 
+					+ ADDRESS_SEPARATOR
+					+ SECURITY_RULES_ENDPOINT)
+					.headers(headers)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		} catch (Exception e) {
+			// verify
+			fail();
+		}
+	}
+	
+	// test case: Delete an existing public IP security rule instance
+	@Test
+	public void testDeleteSecurityRule() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		String orderId = publicIpOrder.getId();
+		String ruleId = RULE_ID_EXAMPLE;
 
-        int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1))
-                .deleteAttachment(Mockito.anyString(), Mockito.anyString());
-    }
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+		Mockito.doNothing().when(this.facade).deleteSecurityRule(Mockito.eq(orderId), Mockito.eq(ruleId),
+				Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
+		HttpHeaders headers = getHttpHeaders();
+		int expectedStatus = HttpStatus.OK.value();
 
-    // test case: Delete a not found attachment by his id and test fail return.
-    // Check the response of request and the call of facade for delete the attachment.
-    @Test
-    public void testDeleteNotFoundAttachment() throws Exception {
-        // set up
-        String fakeId = "fake-Id-1";
-        String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
-        Mockito.doThrow(new InstanceNotFoundException())
-                .when(this.facade)
-                .deleteAttachment(Mockito.anyString(), Mockito.anyString());
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.DELETE, attachmentIdEndpoint, getHttpHeaders(), "");
+		// exercise
+		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(PUBLIC_IP_ENDPOINT 
+				+ ADDRESS_SEPARATOR 
+				+ orderId 
+				+ SECURITY_RULES_ENDPOINT 
+				+ ADDRESS_SEPARATOR 
+				+ ruleId)
+				.headers(headers)
+				.contentType(MediaType.APPLICATION_JSON))
+				.andReturn();
 
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+		// verify
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(1)).deleteSecurityRule(Mockito.eq(orderId),
+				Mockito.eq(ruleId), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
+	}
+	
+	// test case: Fail to delete an existing public IP security rule instance
+	@Test
+	public void testDeleteSecurityRuleFailed() throws Exception {
+		// set up
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+		String ruleId = RULE_ID_EXAMPLE;
+		HttpHeaders headers = getHttpHeaders();
 
-        // verify
-        int expectedStatus = HttpStatus.NOT_FOUND.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		try {
+			// exercise
+			this.mockMvc.perform(MockMvcRequestBuilders.delete(PUBLIC_IP_ENDPOINT 
+					+ ADDRESS_SEPARATOR 
+					+ publicIpOrder.getId() 
+					+ SECURITY_RULES_ENDPOINT 
+					+ ADDRESS_SEPARATOR 
+					+ ruleId)
+					.headers(headers)
+					.contentType(MediaType.APPLICATION_JSON))
+					.andReturn();
 
-        Mockito.verify(this.facade, Mockito.times(1))
-                .deleteAttachment(Mockito.anyString(), Mockito.anyString());
-    }
+		} catch (Exception e) {
+			// verify
+			fail();
+		}
+	}
+	
+	private String createSecurityRuleBody() {
+		String requestBody = "{\n" 
+				+ "  \"cidr\": \"192.168.0.1/24\",\n" 
+				+ "  \"direction\": \"IN\",\n"
+				+ "  \"etherType\": \"IPv4\",\n" 
+				+ "  \"instanceId\": \"fake-instance-id\",\n"
+				+ "  \"portFrom\": 8080,\n" 
+				+ "  \"portTo\": 8081,\n" 
+				+ "  \"protocol\": \"TCP\"\n" 
+				+ "}";
 
-    private RequestBuilder createRequestBuilder(
-            HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
-        switch (method) {
-            case POST:
-                return MockMvcRequestBuilders.post(urlTemplate)
-                        .headers(headers)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content(body)
-                        .contentType(MediaType.APPLICATION_JSON);
-            case GET:
-                return MockMvcRequestBuilders.get(urlTemplate)
-                        .headers(headers)
-                        .accept(MediaType.APPLICATION_JSON);
-            case DELETE:
-                return MockMvcRequestBuilders.delete(urlTemplate).headers(headers);
-            default:
-                return null;
-        }
-    }
+		return requestBody;
+	}
 
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        String fakeUserToken = "fake-access-id";
-        headers.set(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, fakeUserToken);
+	private PublicIpInstance createPublicIpInstance() {
+		String id = FAKE_INSTANCE_ID;
+		String cloudState = FAKE_CLOUD_STATE;
+		String ip = IP_ADDRESS_EXAMPLE;
+		return new PublicIpInstance(id, cloudState, ip);
+	}
+
+	private HttpHeaders getHttpHeaders() {
+		HttpHeaders headers = new HttpHeaders();
+        String userToken = FAKE_USER_TOKEN;
+        headers.set(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, userToken);
         return headers;
-    }
+	}
+
+	private String createPublicIpOrderBody() {
+		String requestBody = "{\n" 
+				+ "  \"cloudName\": \"fake-cloud-name\",\n"
+				+ "  \"computeId\": \"fake-compute-order-id\",\n" 
+				+ "  \"provider\": \"fake-identity-provider\"\n"
+				+ "}";
+		return requestBody;
+	}
+	
+	private PublicIpOrder createPublicIpOrder() {
+		String userId = FAKE_USER_ID;
+        String userName = FAKE_USER_NAME;
+        String identityProviderId = FAKE_IDENTITY_PROVIDER_ID;
+    	SystemUser systemUser = new SystemUser(userId, userName, identityProviderId);
+
+        PublicIpOrder publicIpOrder = Mockito.spy(new PublicIpOrder());
+        publicIpOrder.setSystemUser(systemUser);
+        return publicIpOrder;
+	}
+
 }
