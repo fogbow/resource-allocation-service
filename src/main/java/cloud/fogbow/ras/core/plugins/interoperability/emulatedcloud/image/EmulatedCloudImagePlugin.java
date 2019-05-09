@@ -29,7 +29,7 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
 
     @Override
     public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
-        String imagesPath = EmulatedCloudUtils.getResourcePath(
+        String imagesPath = EmulatedCloudUtils.getStaticResourcesPath(
                 this.properties, EmulatedCloudConstants.File.ALL_IMAGES);
 
         HashMap allImages;

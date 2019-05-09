@@ -44,6 +44,11 @@ public class EmulatedCloudUtils {
         return resourcesPath + "/" + path;
     }
 
+    public static String getStaticResourcesPath(Properties properties, String path){
+        String resourcesPath = properties.getProperty(EmulatedCloudConstants.Conf.STATIC_RESOURCES_FOLDER);
+        return resourcesPath + "/" + path;
+    }
+
     public static void deleteFile(String path){
         File file = new File(path);
 
