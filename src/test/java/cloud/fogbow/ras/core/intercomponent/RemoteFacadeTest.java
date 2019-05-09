@@ -7,6 +7,7 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -24,7 +25,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -474,17 +475,17 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-		List<SecurityRule> expectedSecurityRules = new ArrayList<>();
-		expectedSecurityRules.add(securityRule);
+		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+		List<SecurityRuleInstance> expectedSecurityRuleInstances = new ArrayList<>();
+		expectedSecurityRuleInstances.add(securityRuleInstance);
 
 		SecurityRuleController securityRuleController = Mockito.mock(SecurityRuleController.class);
 		Mockito.when(securityRuleController.getAllSecurityRules(Mockito.eq(order), Mockito.eq(systemUser)))
-				.thenReturn(expectedSecurityRules);
+				.thenReturn(expectedSecurityRuleInstances);
 		this.facade.setSecurityRuleController(securityRuleController);
 
 		// exercise
-		List<SecurityRule> securityRules = this.facade.getAllSecurityRules(requester, order.getId(),
+		List<SecurityRuleInstance> securityRuleInstances = this.facade.getAllSecurityRules(requester, order.getId(),
 				systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
@@ -492,7 +493,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.verify(securityRuleController, Mockito.times(1)).getAllSecurityRules(Mockito.eq(order),
 				Mockito.eq(systemUser));
 
-		Assert.assertSame(expectedSecurityRules, securityRules);
+		Assert.assertSame(expectedSecurityRuleInstances, securityRuleInstances);
 	}
 
 	// case test: Verifies deleteSecurityRule method behavior inside Remote Facade,

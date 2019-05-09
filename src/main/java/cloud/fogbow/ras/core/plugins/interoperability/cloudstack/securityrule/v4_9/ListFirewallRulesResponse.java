@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -87,8 +87,8 @@ public class ListFirewallRulesResponse {
 			return portTo;
 		}
 
-		public Direction getDirection() {
-			return Direction.IN;
+		public SecurityRule.Direction getDirection() {
+			return SecurityRule.Direction.IN;
 		}
 
 		public String getProtocol() {

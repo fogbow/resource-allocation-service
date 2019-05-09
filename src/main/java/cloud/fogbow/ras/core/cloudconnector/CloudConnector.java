@@ -8,7 +8,8 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,7 @@ public interface CloudConnector {
      * @return a list containing all security rules
      * @throws FogbowException
      */
-    List<SecurityRule> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException;
+    List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException;
 
     /**
      * Requests a new security group rule in the cloud (either locally or remotely) using the requirements contained

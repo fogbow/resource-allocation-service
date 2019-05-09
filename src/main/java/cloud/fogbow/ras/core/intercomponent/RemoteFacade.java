@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
@@ -17,7 +18,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import org.apache.log4j.Logger;
 
 import java.util.List;
@@ -113,8 +114,8 @@ public class RemoteFacade {
         return securityRuleController.createSecurityRule(order, securityRule, systemUser);
     }
 
-    public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
-                                                  SystemUser systemUser) throws FogbowException {
+    public List<SecurityRuleInstance> getAllSecurityRules(String requestingMember, String orderId,
+                                                          SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingMember, order);
         // The user has already been authenticated by the requesting member.

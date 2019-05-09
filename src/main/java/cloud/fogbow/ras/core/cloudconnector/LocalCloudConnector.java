@@ -9,7 +9,8 @@ import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -195,15 +196,15 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityRule> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
+    public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
-        List<SecurityRule> securityRules = null;
+        List<SecurityRuleInstance> securityRuleInstances = null;
         String auditableResponse = null;
         try {
-            securityRules = doGetAllSecurityRules(order, cloudUser);
-            if (securityRules != null) {
-                auditableResponse = securityRules.toString();
+            securityRuleInstances = doGetAllSecurityRules(order, cloudUser);
+            if (securityRuleInstances != null) {
+                auditableResponse = securityRuleInstances.toString();
             }
         } catch (Exception e) {
             auditableResponse = e.getClass().getName();
@@ -212,7 +213,7 @@ public class LocalCloudConnector implements CloudConnector {
             auditRequest(Operation.GET_ALL, order.getType(), systemUser, auditableResponse);
         }
 
-        return securityRules;
+        return securityRuleInstances;
     }
 
     @Override
@@ -344,7 +345,7 @@ public class LocalCloudConnector implements CloudConnector {
         return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }
 
-    private List<SecurityRule> doGetAllSecurityRules(Order order, CloudUser token)
+    private List<SecurityRuleInstance> doGetAllSecurityRules(Order order, CloudUser token)
             throws FogbowException {
         return this.securityRulePlugin.getSecurityRules(order, token);
     }

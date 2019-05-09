@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -26,7 +27,7 @@ import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -241,8 +242,8 @@ public class ApplicationFacade {
         return securityRuleController.createSecurityRule(order, securityRule, requester);
     }
 
-    public List<SecurityRule> getAllSecurityRules(String orderId, String userToken,
-                      ResourceType resourceTypeFromEndpoint) throws FogbowException {
+    public List<SecurityRuleInstance> getAllSecurityRules(String orderId, String userToken,
+                                                          ResourceType resourceTypeFromEndpoint) throws FogbowException {
         Order order = orderController.getOrder(orderId);
         if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();

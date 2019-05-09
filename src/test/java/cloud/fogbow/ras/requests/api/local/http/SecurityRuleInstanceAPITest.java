@@ -6,9 +6,10 @@ import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Network;
 import cloud.fogbow.ras.api.http.request.PublicIp;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import org.junit.Assert;
@@ -41,7 +42,7 @@ import java.util.List;
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest({Network.class, PublicIp.class})
 @PrepareForTest(ApplicationFacade.class)
-public class SecurityRuleAPITest {
+public class SecurityRuleInstanceAPITest {
 
     private static final String CORRECT_BODY =
             "{\n" +
@@ -214,7 +215,7 @@ public class SecurityRuleAPITest {
     @Test
     public void testGetAllSecurityRulesEmptyList() throws Exception {
         // set up
-        Mockito.doReturn(new ArrayList<SecurityRule>()).when(this.facade).getAllSecurityRules(
+        Mockito.doReturn(new ArrayList<SecurityRuleInstance>()).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, NETWORK_ENDPOINT, getHttpHeaders(), "");
 
@@ -230,7 +231,7 @@ public class SecurityRuleAPITest {
 
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.GET, PUBLIC_IP_ENDPOINT, getHttpHeaders(), "");
-        Mockito.doReturn(new ArrayList<SecurityRule>()).when(this.facade).getAllSecurityRules(
+        Mockito.doReturn(new ArrayList<SecurityRuleInstance>()).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -253,15 +254,15 @@ public class SecurityRuleAPITest {
         final String FAKE_ID_2 = "fake-Id-2";
         final String FAKE_ID_3 = "fake-Id-3";
 
-        SecurityRule rule1 = new SecurityRule();
-        rule1.setInstanceId(FAKE_ID_1);
-        SecurityRule rule2 = new SecurityRule();
-        rule2.setInstanceId(FAKE_ID_2);
-        SecurityRule rule3 = new SecurityRule();
-        rule3.setInstanceId(FAKE_ID_3);
+        SecurityRuleInstance rule1 = new SecurityRuleInstance();
+        rule1.setId(FAKE_ID_1);
+        SecurityRuleInstance rule2 = new SecurityRuleInstance();
+        rule2.setId(FAKE_ID_2);
+        SecurityRuleInstance rule3 = new SecurityRuleInstance();
+        rule3.setId(FAKE_ID_3);
 
-        List<SecurityRule> securityRuleList = Arrays.asList(new SecurityRule[]{rule1, rule2, rule3});
-        Mockito.doReturn(securityRuleList).when(this.facade).getAllSecurityRules(
+        List<SecurityRuleInstance> securityRuleInstanceList = Arrays.asList(new SecurityRuleInstance[]{rule1, rule2, rule3});
+        Mockito.doReturn(securityRuleInstanceList).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, NETWORK_ENDPOINT, getHttpHeaders(), "");
@@ -273,18 +274,17 @@ public class SecurityRuleAPITest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        TypeToken<List<SecurityRule>> token = new TypeToken<List<SecurityRule>>() {};
+        TypeToken<List<SecurityRuleInstance>> token = new TypeToken<List<SecurityRuleInstance>>() {};
 
-        List<SecurityRule> resultList = new Gson().fromJson(result.getResponse().getContentAsString(),
-                token.getType());
+        List<SecurityRuleInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
         Assert.assertEquals(3, resultList.size());
-        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
-        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
-        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
+        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getId());
+        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getId());
+        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getId());
 
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.GET, NETWORK_ENDPOINT, getHttpHeaders(), "");
-        Mockito.doReturn(securityRuleList).when(this.facade).getAllSecurityRules(
+        Mockito.doReturn(securityRuleInstanceList).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -295,9 +295,9 @@ public class SecurityRuleAPITest {
 
         resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
         Assert.assertEquals(3, resultList.size());
-        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
-        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
-        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
+        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getId());
+        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getId());
+        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getId());
 
         Mockito.verify(this.facade, Mockito.times(2)).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }

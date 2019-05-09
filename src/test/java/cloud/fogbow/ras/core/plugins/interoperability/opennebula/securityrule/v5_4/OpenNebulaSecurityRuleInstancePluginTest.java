@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,10 +24,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -34,7 +32,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SecurityGroupInfo.class, VirtualNetwork.class})
-public class OpenNebulaSecurityRulePluginTest {
+public class OpenNebulaSecurityRuleInstancePluginTest {
 	
 	private static final String DEFAULT_SECURITY_GROUP_ID = "0";
     private static final String FAKE_CIDR = "10.10.10.0/24";
@@ -275,17 +273,17 @@ public class OpenNebulaSecurityRulePluginTest {
 		majorOrder.setInstanceId(networkId);
 
 		// exercise
-		List<SecurityRule> securityRules = this.plugin.getSecurityRules(majorOrder, cloudUser);
+		List<SecurityRuleInstance> securityRuleInstances = this.plugin.getSecurityRules(majorOrder, cloudUser);
 
 		// verify
-		SecurityRule securityRule = securityRules.iterator().next();
-		Assert.assertEquals(Protocol.TCP, securityRule.getProtocol());
-		Assert.assertEquals(portFrom, securityRule.getPortFrom());
-		Assert.assertEquals(portTo, securityRule.getPortTo());
-		Assert.assertEquals(String.format(FORMAT_CONTENT, ipv4, Rule.CIRD_SEPARATOR, 24), securityRule.getCidr());
-		Assert.assertEquals(Direction.IN, securityRule.getDirection());
-		Assert.assertEquals(EtherType.IPv4, securityRule.getEtherType());
-		Assert.assertEquals(rule.serialize(), securityRule.getInstanceId());
+		SecurityRuleInstance securityRuleInstance = securityRuleInstances.iterator().next();
+		Assert.assertEquals(SecurityRule.Protocol.TCP, securityRuleInstance.getRule().getProtocol());
+		Assert.assertEquals(portFrom, securityRuleInstance.getRule().getPortFrom());
+		Assert.assertEquals(portTo, securityRuleInstance.getRule().getPortTo());
+		Assert.assertEquals(String.format(FORMAT_CONTENT, ipv4, Rule.CIRD_SEPARATOR, 24), securityRuleInstance.getRule().getCidr());
+		Assert.assertEquals(SecurityRule.Direction.IN, securityRuleInstance.getRule().getDirection());
+		Assert.assertEquals(SecurityRule.EtherType.IPv4, securityRuleInstance.getRule().getEtherType());
+		Assert.assertEquals(rule.serialize(), securityRuleInstance.getId());
 	}
 
     // test case: error while trying to get rules.
@@ -549,12 +547,11 @@ public class OpenNebulaSecurityRulePluginTest {
 	private SecurityRule createSecurityRule() {
 		SecurityRule securityRule = new SecurityRule();
 		securityRule.setCidr(FAKE_CIDR);
-		securityRule.setDirection(Direction.IN);
-		securityRule.setEtherType(EtherType.IPv4);
-		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+		securityRule.setDirection(SecurityRule.Direction.IN);
+		securityRule.setEtherType(SecurityRule.EtherType.IPv4);
 		securityRule.setPortFrom(1);
 		securityRule.setPortTo(65536);
-		securityRule.setProtocol(Protocol.TCP);
+		securityRule.setProtocol(SecurityRule.Protocol.TCP);
 		return securityRule;
 	}
 

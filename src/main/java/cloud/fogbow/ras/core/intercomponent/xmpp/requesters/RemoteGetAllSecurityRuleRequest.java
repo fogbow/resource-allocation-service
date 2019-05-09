@@ -6,7 +6,7 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -14,7 +14,7 @@ import org.xmpp.packet.IQ;
 
 import java.util.List;
 
-public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<SecurityRule>> {
+public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<SecurityRuleInstance>> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllSecurityRuleRequest.class);
 
     private String provider;
@@ -28,7 +28,7 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
     }
 
     @Override
-    public List<SecurityRule> send() throws Exception {
+    public List<SecurityRuleInstance> send() throws Exception {
         IQ iq = marshal();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
@@ -53,15 +53,15 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
         return iq;
     }
 
-    private List<SecurityRule> unmarshalSecurityRules(IQ response) throws UnexpectedException {
+    private List<SecurityRuleInstance> unmarshalSecurityRules(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String listStr = queryElement.element(IqElement.SECURITY_RULE_LIST.toString()).getText();
 
         String instanceClassName = queryElement.element(IqElement.SECURITY_RULE_LIST_CLASS_NAME.toString()).getText();
 
-        List<SecurityRule> rulesList;
+        List<SecurityRuleInstance> rulesList;
         try {
-            rulesList = (List<SecurityRule>) new Gson().fromJson(listStr, Class.forName(instanceClassName));
+            rulesList = (List<SecurityRuleInstance>) new Gson().fromJson(listStr, Class.forName(instanceClassName));
         } catch (Exception e) {
             throw new UnexpectedException(e.getMessage());
         }

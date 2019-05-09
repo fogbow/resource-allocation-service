@@ -1,9 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -164,52 +162,52 @@ public class Rule {
 		}
 	}
 
-	public Direction getDirection() {
+	public SecurityRule.Direction getDirection() {
 		if (this.type == null || this.type.isEmpty()) {
 			LOGGER.warn("The type is null");
 			return null;
 		}
 		switch (this.type) {
 		case INBOUND_XML_TEMPLATE_VALUE:
-			return Direction.IN;
+			return SecurityRule.Direction.IN;
 		case OUTBOUND_XML_TEMPLATE_VALUE:
-			return Direction.OUT;
+			return SecurityRule.Direction.OUT;
 		default:
 			LOGGER.warn(String.format("The type(%s) is inconsistent", this.type));
 			return null;
 		}
 	}
 	
-	public Protocol getSRProtocol() {
+	public SecurityRule.Protocol getSRProtocol() {
 		if (this.protocol == null || this.protocol.isEmpty()) {
 			LOGGER.warn("The protocol is null");
 		}
 		switch (this.protocol) {
 			case TCP_XML_TEMPLATE_VALUE:
-				return Protocol.TCP;
+				return SecurityRule.Protocol.TCP;
 			case UDP_XML_TEMPLATE_VALUE:
-				return Protocol.UDP;
+				return SecurityRule.Protocol.UDP;
 			case ICMP_XML_TEMPLATE_VALUE:
 			case ICMPV6_XML_TEMPLATE_VALUE:
-				return Protocol.ICMP;
+				return SecurityRule.Protocol.ICMP;
 			case ALL_XML_TEMPLATE_VALUE:
 			case IPSEC_XML_TEMPLATE_VALUE: // TODO think more about this ipsec value.
-				return Protocol.ANY;
+				return SecurityRule.Protocol.ANY;
 			default:
 				LOGGER.warn(String.format("The protocol(%s) is inconsistent", this.protocol));
 				return null;
 		}		
 	}
 	
-	public EtherType getEtherType() {
+	public SecurityRule.EtherType getEtherType() {
 		if (this.ip == null) {
 			LOGGER.warn("The etherType is null");
 			return null;
 		}
 		if (CidrUtils.isIpv4(this.ip)) {
-			return EtherType.IPv4;
+			return SecurityRule.EtherType.IPv4;
 		} else if (CidrUtils.isIpv6(this.ip)) {
-			return EtherType.IPv6;
+			return SecurityRule.EtherType.IPv6;
 		} else {
 			LOGGER.warn(String.format("The etherType is inconsistent"));
 			return null;

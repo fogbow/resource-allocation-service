@@ -9,12 +9,8 @@ import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
@@ -89,7 +85,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     }
 
     @Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, OpenStackV3User cloudUser) throws FogbowException {
+    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, OpenStackV3User cloudUser) throws FogbowException {
         String securityGroupName = retrieveSecurityGroupName(majorOrder);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
 
@@ -159,40 +155,41 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
         }
     }
 
-    protected List<SecurityRule> getSecurityRulesFromJson(String json) throws FogbowException {
+    protected List<SecurityRuleInstance> getSecurityRulesFromJson(String json) throws FogbowException {
         GetSecurityRulesResponse getSecurityGroupResponse = GetSecurityRulesResponse.fromJson(json);
         List<GetSecurityRulesResponse.SecurityRules> securityRules = getSecurityGroupResponse.getSecurityRules();
 
-        List<SecurityRule> rules = new ArrayList<>();
+        List<SecurityRuleInstance> rules = new ArrayList<>();
         try {
             for (GetSecurityRulesResponse.SecurityRules secRules : securityRules) {
-                Direction direction = secRules.getDirection().equalsIgnoreCase("ingress") ? Direction.IN : Direction.OUT;
-                EtherType etherType = secRules.getEtherType().equals("IPv6") ? EtherType.IPv6 : EtherType.IPv4;
-                Protocol protocol;
+                SecurityRule.Direction direction = secRules.getDirection().
+                        equalsIgnoreCase("ingress") ? SecurityRule.Direction.IN : SecurityRule.Direction.OUT;
+                SecurityRule.EtherType etherType = secRules.getEtherType().
+                        equals("IPv6") ? SecurityRule.EtherType.IPv6 : SecurityRule.EtherType.IPv4;
+                SecurityRule.Protocol protocol;
 
                 if (secRules.getProtocol() != null) {
                     switch(secRules.getProtocol()) {
                         case "tcp":
-                            protocol = Protocol.TCP;
+                            protocol = SecurityRule.Protocol.TCP;
                             break;
                         case "udp":
-                            protocol = Protocol.UDP;
+                            protocol = SecurityRule.Protocol.UDP;
                             break;
                         case "icmp":
-                            protocol = Protocol.ICMP;
+                            protocol = SecurityRule.Protocol.ICMP;
                             break;
                         default:
                             throw new FogbowException(String.format(Messages.Exception.INVALID_PROTOCOL, secRules.getProtocol(),
-                                    Protocol.values()));
+                                    SecurityRule.Protocol.values()));
                     }
                 } else {
-                    protocol = Protocol.ANY;
+                    protocol = SecurityRule.Protocol.ANY;
                 }
 
-                SecurityRule rule = new SecurityRule(direction, secRules.getPortFrom(),
-                        secRules.getPortTo(), secRules.getCidr(), etherType, protocol);
-                rule.setInstanceId(secRules.getId());
-                rules.add(rule);
+                SecurityRule securityRule = new SecurityRule(direction, secRules.getPortFrom(), secRules.getPortTo(), secRules.getCidr(), etherType, protocol);
+                SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(secRules.getId(), securityRule);
+                rules.add(securityRuleInstance);
             }
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_GET_SECURITY_GROUP, json);

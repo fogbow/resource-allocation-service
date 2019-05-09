@@ -8,15 +8,13 @@ import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.HttpRequestClient;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.*;
@@ -39,7 +37,7 @@ import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class OpenStackSecurityRulesPluginTest {
+public class OpenStackSecurityRulesPluginTestInstance {
 
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
@@ -104,8 +102,7 @@ public class OpenStackSecurityRulesPluginTest {
         NetworkOrder order = createNetworkOrder();
 
         // exercise
-        this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order,
-                this.openStackV3Token);
+        this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.openStackHttpClient, Mockito.times(1)).doPostRequest(
@@ -176,18 +173,18 @@ public class OpenStackSecurityRulesPluginTest {
                 retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
 
         //exercise
-        List<SecurityRule> securityRules = this.openStackSecurityRulePlugin.getSecurityRules(order,
+        List<SecurityRuleInstance> securityRuleInstances = this.openStackSecurityRulePlugin.getSecurityRules(order,
                 this.openStackV3Token);
-        SecurityRule securityRule = securityRules.get(0);
+        SecurityRuleInstance securityRuleInstance = securityRuleInstances.get(0);
 
         //verify
-        Assert.assertEquals(id, securityRule.getInstanceId());
-        Assert.assertEquals(cidr, securityRule.getCidr());
-        Assert.assertEquals(portFrom, securityRule.getPortFrom());
-        Assert.assertEquals(portTo, securityRule.getPortTo());
-        Assert.assertEquals(direction, securityRule.getDirection().toString());
-        Assert.assertEquals(etherType, securityRule.getEtherType().toString());
-        Assert.assertEquals(protocol, securityRule.getProtocol().toString());
+        Assert.assertEquals(id, securityRuleInstance.getId());
+        Assert.assertEquals(cidr, securityRuleInstance.getRule().getCidr());
+        Assert.assertEquals(portFrom, securityRuleInstance.getRule().getPortFrom());
+        Assert.assertEquals(portTo, securityRuleInstance.getRule().getPortTo());
+        Assert.assertEquals(direction, securityRuleInstance.getRule().getDirection().toString());
+        Assert.assertEquals(etherType, securityRuleInstance.getRule().getEtherType().toString());
+        Assert.assertEquals(protocol, securityRuleInstance.getRule().getProtocol().toString());
     }
 
     //test case: Tests remove security rule
@@ -209,7 +206,7 @@ public class OpenStackSecurityRulesPluginTest {
     }
 
     private SecurityRule createEmptySecurityRule() {
-        return new SecurityRule(Direction.OUT, 0, 0, "0.0.0.0/0 ", EtherType.IPv4, Protocol.TCP);
+        return new SecurityRule(SecurityRule.Direction.OUT, 0, 0, "0.0.0.0/0 ", SecurityRule.EtherType.IPv4, SecurityRule.Protocol.TCP);
     }
 
     private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
