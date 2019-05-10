@@ -18,14 +18,14 @@ public class AwsV2ClientUtil {
 	public static Ec2Client createEc2Client(String tokenValue, String selectedRegion)
 			throws InvalidParameterException, UnexpectedException {
 
-		String[] token = tokenValue.split(AwsConstants.TOKEN_VALUE_SEPARATOR);
-		String accessKeyId = token[0];
-		String secretKeyId = token[1];
-
 		Region region = Region.of(selectedRegion);
 		if (!Region.regions().contains(region)) {
 			throw new InvalidParameterException();
 		}
+
+		String[] token = tokenValue.split(AwsConstants.TOKEN_VALUE_SEPARATOR);
+		String accessKeyId = token[0];
+		String secretKeyId = token[1];
 
 		Ec2Client client;
 		try {
