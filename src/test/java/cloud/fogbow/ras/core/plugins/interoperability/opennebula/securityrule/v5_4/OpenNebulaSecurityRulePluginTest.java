@@ -32,7 +32,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SecurityGroupInfo.class, VirtualNetwork.class})
-public class OpenNebulaSecurityRuleInstancePluginTest {
+public class OpenNebulaSecurityRulePluginTest {
 	
 	private static final String DEFAULT_SECURITY_GROUP_ID = "0";
     private static final String FAKE_CIDR = "10.10.10.0/24";

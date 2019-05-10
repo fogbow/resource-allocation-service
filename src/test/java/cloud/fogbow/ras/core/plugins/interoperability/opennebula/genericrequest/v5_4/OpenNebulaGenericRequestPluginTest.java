@@ -623,7 +623,7 @@ public class OpenNebulaGenericRequestPluginTest {
 	
 	private String[] getArrayValidOneResources() {
 		String[] resources = { "Acl", "AclPool", "Client", "Client", "ClusterPool", "Datastore", "DatastorePool",
-				"Document", "DocumentPool", "GroupPool", "Host", "HostPool", "ImageInstance", "ImagePool", "MarketPlace",
+				"Document", "DocumentPool", "GroupPool", "Host", "HostPool", "Image", "ImagePool", "MarketPlace",
 				"MarketPlaceApp", "MarketPlaceAppPool", "MarketPlacePool", "OneSystem", "SecurityGroup",
 				"SecurityGroupPool", "Template", "TemplatePool", "User", "UserPool", "Vdc", "VdcPool", "VirtualMachine",
 				"VirtualMachinePool", "VirtualNetwork", "VirtualNetworkPool", "VirtualRouter", "VirtualRouterPool",

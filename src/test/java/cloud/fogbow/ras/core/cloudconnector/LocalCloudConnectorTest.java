@@ -807,7 +807,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
-    // test case: Getting an imageInstance. ImageInstance plugin must be called
+    // test case: Getting an imageInstance. Image plugin must be called
     @Test
     public void testGetImage() throws FogbowException {
 
@@ -822,7 +822,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(imagePlugin, times(1)).getImage(Mockito.any(String.class), Mockito.any(CloudUser.class));
     }
 
-    // test case: Getting a null imageInstance. ImageInstance plugin must be called
+    // test case: Getting a null imageInstance. Image plugin must be called
     @Test
     public void testGetNullImage() throws FogbowException {
 
@@ -885,7 +885,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.getUserQuota(systemUser, ResourceType.NETWORK);
     }
 
-    // test case: Getting all images. ImageInstance plugin must be called
+    // test case: Getting all images. Image plugin must be called
     @Test
     public void testGetAllImages() throws FogbowException {
 
@@ -903,7 +903,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(imagePlugin, times(1)).getAllImages(Mockito.any(CloudUser.class));
     }
 
-    // test case: The return of getAllImages must be null. ImageInstance plugin must be called.
+    // test case: The return of getAllImages must be null. Image plugin must be called.
     @Test
     public void testGetAllImagesNullReturn() throws FogbowException {
 

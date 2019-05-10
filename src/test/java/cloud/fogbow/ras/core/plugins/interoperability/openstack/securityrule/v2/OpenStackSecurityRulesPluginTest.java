@@ -37,7 +37,7 @@ import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class OpenStackSecurityRulesPluginTestInstance {
+public class OpenStackSecurityRulesPluginTest {
 
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
