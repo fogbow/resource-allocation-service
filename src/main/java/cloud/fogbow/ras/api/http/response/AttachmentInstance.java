@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.api.http.response;
 
-public class AttachmentInstance extends Instance {
+public class AttachmentInstance extends OrderInstance {
     private String computeId;
     private String volumeId;
     private String device;

@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.processors;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -115,7 +116,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setReady();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -150,7 +151,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setReady();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -185,7 +186,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setReady();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -216,7 +217,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.DISPATCHED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -245,7 +246,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setReady();
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -279,7 +280,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
         String orderId = order.getId();
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setHasFailed();
         order.setInstanceId(FAKE_INSTANCE_ID);
 

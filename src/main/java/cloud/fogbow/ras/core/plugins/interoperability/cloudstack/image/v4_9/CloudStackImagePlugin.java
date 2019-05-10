@@ -5,7 +5,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
@@ -55,7 +55,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     }
 
     @Override
-    public Image getImage(String imageId, CloudStackUser cloudUser) throws FogbowException {
+    public ImageInstance getImage(String imageId, CloudStackUser cloudUser) throws FogbowException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
                 .build(this.cloudStackUrl);
@@ -74,7 +74,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
 
         if (images != null && images.size() > 0) {
             GetAllImagesResponse.Image image = images.get(0);
-            return new Image(image.getId(), image.getName(), image.getSize(), -1, -1, null);
+            return new ImageInstance(image.getId(), image.getName(), image.getSize(), -1, -1, null);
         } else {
             throw new InstanceNotFoundException();
         }

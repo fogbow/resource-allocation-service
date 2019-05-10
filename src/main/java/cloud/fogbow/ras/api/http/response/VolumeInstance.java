@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.api.http.response;
 
-public class VolumeInstance extends Instance {
+public class VolumeInstance extends OrderInstance {
     private String name;
     private int volumeSize;
 

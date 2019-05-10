@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.ImagePool;
@@ -13,7 +14,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -48,7 +48,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	}
 
 	@Override
-	public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+	public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		org.opennebula.client.image.Image image = OpenNebulaClientUtil.getImage(client, imageId);
@@ -69,7 +69,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return images;
 	}
 	
-	protected Image mount(org.opennebula.client.image.Image image) throws InvalidParameterException {
+	protected ImageInstance mount(org.opennebula.client.image.Image image) throws InvalidParameterException {
 		String id = image.getId();
 		String name = image.getName();
 		String imageSize = image.xpath(IMAGE_SIZE_PATH);
@@ -79,7 +79,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		int state = image.state();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.IMAGE, state);
 		String status = instanceState.getValue();
-		return new Image(id, name, size, minDisk, minRam, status);
+		return new ImageInstance(id, name, size, minDisk, minRam, status);
 	}
 	
 	protected int convertToInteger(String number) throws InvalidParameterException {

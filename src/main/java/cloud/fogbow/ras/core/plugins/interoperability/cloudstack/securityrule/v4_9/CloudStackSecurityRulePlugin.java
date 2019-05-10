@@ -7,13 +7,11 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
@@ -46,7 +44,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudStackUser cloudUser)
             throws FogbowException {
-        if (securityRule.getDirection() == Direction.OUT) {
+        if (securityRule.getDirection() == SecurityRule.Direction.OUT) {
             throw new UnsupportedOperationException();
         }
         if (majorOrder.getType() == ResourceType.PUBLIC_IP) {
@@ -81,7 +79,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudStackUser cloudUser) throws FogbowException {
+    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, CloudStackUser cloudUser) throws FogbowException {
         switch (majorOrder.getType()) {
         	case PUBLIC_IP:
         		return getFirewallRules(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()), cloudUser);
@@ -136,7 +134,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-	protected List<SecurityRule> getFirewallRules(String ipAddressId, CloudStackUser cloudUser) throws FogbowException {
+	protected List<SecurityRuleInstance> getFirewallRules(String ipAddressId, CloudStackUser cloudUser) throws FogbowException {
 		ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
 				.ipAddressId(ipAddressId)
 				.build(this.cloudStackUrl);
@@ -155,45 +153,43 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 		return convertToFogbowSecurityRules(securityRulesResponse);
 	}
 
-	protected List<SecurityRule> convertToFogbowSecurityRules(List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) throws UnexpectedException {
-		List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
+	protected List<SecurityRuleInstance> convertToFogbowSecurityRules(List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) throws UnexpectedException {
+		List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
 		for (ListFirewallRulesResponse.SecurityRuleResponse securityRuleResponse : securityRulesResponse) {
-			Direction direction = securityRuleResponse.getDirection();
+			SecurityRule.Direction direction = securityRuleResponse.getDirection();
 			int portFrom = securityRuleResponse.getPortFrom();
 			int portTo = securityRuleResponse.getPortTo();
 			String cidr = securityRuleResponse.getCidr();
 			String ipAddress = securityRuleResponse.getIpAddress();
-			EtherType etherType = inferEtherType(ipAddress);
-			Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
+			SecurityRule.EtherType etherType = inferEtherType(ipAddress);
+			SecurityRule.Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
 
-			SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
-			securityRule.setInstanceId(securityRuleResponse.getInstanceId());
-
-			securityRules.add(securityRule);
+            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(securityRuleResponse.getInstanceId(), direction, portFrom, portTo, cidr, etherType, protocol);
+			securityRuleInstances.add(securityRuleInstance);
 		}
-		return securityRules;
+		return securityRuleInstances;
 	}
 
-	private Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
+	private SecurityRule.Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
 		switch (protocol) {
 			case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
-				return Protocol.TCP;
+				return SecurityRule.Protocol.TCP;
 			case CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL:
-				return Protocol.UDP;
+				return SecurityRule.Protocol.UDP;
 			case CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL:
-				return Protocol.ICMP;
+				return SecurityRule.Protocol.ICMP;
 			case CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
-				return Protocol.ANY;
+				return SecurityRule.Protocol.ANY;
 			default:
 				throw new UnexpectedException(Messages.Exception.INVALID_CLOUDSTACK_PROTOCOL);
 		}
 	}
 
-	private EtherType inferEtherType(String ipAddress) {
+	private SecurityRule.EtherType inferEtherType(String ipAddress) {
 		if (CidrUtils.isIpv4(ipAddress)) {
-			return EtherType.IPv4;
+			return SecurityRule.EtherType.IPv4;
 		} else if (CidrUtils.isIpv6(ipAddress)) {
-			return EtherType.IPv6;
+			return SecurityRule.EtherType.IPv6;
 		} else {
 			return null;
 		}

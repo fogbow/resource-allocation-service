@@ -7,15 +7,13 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
@@ -39,7 +37,7 @@ import java.util.*;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
 @PrepareForTest({CloudStackUrlUtil.class, CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class})
-public class CloudStackSecurityRulePluginTest {
+public class CloudStackSecurityRuleInstancePluginTest {
 
     private static String FAKE_JOB_ID = "fake-job-id";
     private static String FAKE_SECURITY_RULE_ID = "fake-rule-id";
@@ -91,27 +89,26 @@ public class CloudStackSecurityRulePluginTest {
         int portFrom = 20;
         int portTo = 30;
         String cidr = "0.0.0.0/0";
-        EtherType etherType = EtherType.IPv4;
-        Protocol protocol = Protocol.TCP;
-        List<SecurityRule> securityRulesExpected = new ArrayList<SecurityRule>();
-        securityRulesExpected.add(new SecurityRule(Direction.IN, portFrom, portTo, cidr, etherType, protocol));
-        securityRulesExpected.add(new SecurityRule(Direction.IN, portFrom, portTo, cidr, etherType, protocol));
+        SecurityRule.EtherType etherType = SecurityRule.EtherType.IPv4;
+        SecurityRule.Protocol protocol = SecurityRule.Protocol.TCP;
+        List<SecurityRuleInstance> securityRulesExpected = new ArrayList<SecurityRuleInstance>();
+        securityRulesExpected.add(new SecurityRuleInstance("instance1", SecurityRule.Direction.IN, portFrom, portTo, cidr, etherType, protocol));
+        securityRulesExpected.add(new SecurityRuleInstance("instance2", SecurityRule.Direction.IN, portFrom, portTo, cidr, etherType, protocol));
         String listFirewallRulesResponse = getListFirewallRulesResponseJson(securityRulesExpected, etherType);
 
         Mockito.when(this.client.doGetRequest(
                 Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenReturn(listFirewallRulesResponse);
 
-        Assert.assertEquals(this.client.doGetRequest("", FAKE_CLOUD_USER), listFirewallRulesResponse);
-
         CloudStackPublicIpPlugin.setOrderidToInstanceIdMapping(publicIpOrder.getId(), instanceId);
 
         // exercise
-        List<SecurityRule> securityRules = this.plugin.getSecurityRules(publicIpOrder, FAKE_CLOUD_USER);
+        List<SecurityRuleInstance> securityRules = this.plugin.getSecurityRules(publicIpOrder, FAKE_CLOUD_USER);
 
         //verify
         Assert.assertEquals(securityRulesExpected.size(), securityRules.size());
-        Assert.assertArrayEquals(securityRulesExpected.toArray(), securityRules.toArray());
+        Assert.assertEquals(securityRulesExpected.get(0).toString(), securityRules.get(0).toString());
+        Assert.assertEquals(securityRulesExpected.get(1).toString(), securityRules.get(1).toString());
     }
 
     // test case: throw exception when trying to request to the cloudstack
@@ -128,7 +125,7 @@ public class CloudStackSecurityRulePluginTest {
         CloudStackPublicIpPlugin.setOrderidToInstanceIdMapping(publicIpOrder.getId(), publicIpOrder.getId());
 
         // exercise
-        List<SecurityRule> securityRules = null;
+        List<SecurityRuleInstance> securityRuleInstances = null;
         try {
             this.plugin.getSecurityRules(publicIpOrder, FAKE_CLOUD_USER);
             Assert.fail();
@@ -137,7 +134,7 @@ public class CloudStackSecurityRulePluginTest {
 
 
         // verify
-        Assert.assertNull(securityRules);
+        Assert.assertNull(securityRuleInstances);
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(
                 Mockito.anyString(),
                 Mockito.eq(FAKE_CLOUD_USER));
@@ -168,7 +165,7 @@ public class CloudStackSecurityRulePluginTest {
     public void testCreateEgressSecurityRule() throws FogbowException {
         // set up
         SecurityRule securityRule = createSecurityRule();
-        securityRule.setDirection(Direction.OUT);
+        securityRule.setDirection(SecurityRule.Direction.OUT);
 
         // exercise
         try {
@@ -387,7 +384,7 @@ public class CloudStackSecurityRulePluginTest {
             public void run() {
                 String processingJobResponse = getProcessingJobResponse(status);
                 try {
-                    BDDMockito.given(CloudStackSecurityRulePluginTest.this.queryJobResult.getQueryJobResult(
+                    BDDMockito.given(CloudStackSecurityRuleInstancePluginTest.this.queryJobResult.getQueryJobResult(
                             Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                             willReturn(processingJobResponse);
                 } catch (FogbowException e) {
@@ -398,26 +395,26 @@ public class CloudStackSecurityRulePluginTest {
     }
 
     private SecurityRule createSecurityRule() {
-        SecurityRule securityRule = new SecurityRule(Direction.IN, 10000, 10005, "10.0.0.0/24",
-                EtherType.IPv4, Protocol.TCP);
+        SecurityRule securityRule = new SecurityRule(SecurityRule.Direction.IN, 10000, 10005, "10.0.0.0/24",
+                SecurityRule.EtherType.IPv4, SecurityRule.Protocol.TCP);
         return securityRule;
     }
 
-    private String getListFirewallRulesResponseJson(List<SecurityRule> securityRules, EtherType etherType) {
+    private String getListFirewallRulesResponseJson(List<SecurityRuleInstance> securityRuleInstances, SecurityRule.EtherType etherType) {
         List<Map<String, Object>> listFirewallRule = new ArrayList<Map<String, Object>>();
-        for (SecurityRule securityRule : securityRules) {
+        for (SecurityRuleInstance securityRuleInstance : securityRuleInstances) {
             Map<String, Object> firewallRule = new HashMap<String, Object>();
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON,
-                    securityRule.getCidr());
+                    securityRuleInstance.getCidr());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.ID_KEY_JSON,
-                    securityRule.getInstanceId());
+                    securityRuleInstance.getId());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.START_PORT_KEY_JSON,
-                    securityRule.getPortFrom());
+                    securityRuleInstance.getPortFrom());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.END_PORT_KEY_JSON,
-                    securityRule.getPortTo());
+                    securityRuleInstance.getPortTo());
             firewallRule.put(CloudStackConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON,
-                    securityRule.getProtocol().toString());
-            if (etherType.equals(EtherType.IPv4)) {
+                    securityRuleInstance.getProtocol().toString());
+            if (etherType.equals(SecurityRule.EtherType.IPv4)) {
                 firewallRule.put(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON, "0.0.0.0");
             } else {
                 firewallRule.put(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON,

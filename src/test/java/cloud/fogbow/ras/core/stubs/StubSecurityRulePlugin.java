@@ -1,8 +1,9 @@
 package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 
 import java.util.List;
@@ -23,8 +24,8 @@ public class StubSecurityRulePlugin implements SecurityRulePlugin {
     }
 
     @Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder,
-                                               CloudUser cloudUser) {
+    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder,
+                                                       CloudUser cloudUser) {
         return null;
     }
 

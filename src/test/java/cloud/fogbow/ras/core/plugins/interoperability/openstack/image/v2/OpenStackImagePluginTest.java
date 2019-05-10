@@ -6,8 +6,8 @@ import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.api.http.response.Image;
 import cloud.fogbow.common.models.OpenStackV3User;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
@@ -138,41 +138,41 @@ public class OpenStackImagePluginTest {
                         + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
                         + "/"
                         + imageId;
-        Image expectedImage = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, OpenStackImagePlugin.ACTIVE_STATE);
+        ImageInstance expectedImageInstance = new ImageInstance(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, OpenStackImagePlugin.ACTIVE_STATE);
 
-        String jsonResponse = getImageJsonFromImage(expectedImage);
+        String jsonResponse = getImageJsonFromImage(expectedImageInstance);
 
         Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
         Mockito.when(this.client.doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.localUserAttributes))).thenReturn(jsonResponse);
 
         //exercise
-        Image imagePluginOutput = this.plugin.getImage(imageId, this.localUserAttributes);
+        ImageInstance imagePluginOutput = this.plugin.getImage(imageId, this.localUserAttributes);
 
         //verify
-        Assert.assertEquals(expectedImage, imagePluginOutput);
+        Assert.assertEquals(expectedImageInstance, imagePluginOutput);
     }
 
     //test case: Check if getImageId returns null when the state is not ACTIVE_STATE.
     @Test
     public void testGetImageWhenImageStateIsNotActivated() throws FogbowException, HttpResponseException {
         //set up
-        String imageId = "image-id";
-        String imageGlancev2UrlKey = "image-url-key";
+        String imageId = "imageInstance-id";
+        String imageGlancev2UrlKey = "imageInstance-url-key";
         String endpoint =
                 imageGlancev2UrlKey
                         + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
                         + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
                         + "/"
                         + imageId;
-        Image image = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, "it_is_not_activated");
-        String jsonResponse = getImageJsonFromImage(image);
+        ImageInstance imageInstance = new ImageInstance(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, "it_is_not_activated");
+        String jsonResponse = getImageJsonFromImage(imageInstance);
 
         Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
         Mockito.when(this.client.doGetRequest(endpoint, this.localUserAttributes)).thenReturn(jsonResponse);
-        Image expectedPluginOutput = null;
+        ImageInstance expectedPluginOutput = null;
 
         //exercise
-        Image imagePluginOutput = this.plugin.getImage(imageId, this.localUserAttributes);
+        ImageInstance imagePluginOutput = this.plugin.getImage(imageId, this.localUserAttributes);
 
         //verify
         Assert.assertEquals(expectedPluginOutput, imagePluginOutput);
@@ -347,14 +347,14 @@ public class OpenStackImagePluginTest {
         return images;
     }
 
-    private String getImageJsonFromImage(Image image) {
+    private String getImageJsonFromImage(ImageInstance imageInstance) {
         Map<String, String> jsonMap = new HashMap<String, String>();
-        jsonMap.put(OpenStackConstants.Image.ID_KEY_JSON, image.getId());
-        jsonMap.put(OpenStackConstants.Image.NAME_KEY_JSON, image.getName());
-        jsonMap.put(OpenStackConstants.Image.SIZE_KEY_JSON, Long.toString(image.getSize()));
-        jsonMap.put(OpenStackConstants.Image.MIN_DISK_KEY_JSON, Long.toString(image.getMinDisk()));
-        jsonMap.put(OpenStackConstants.Image.MIN_RAM_KEY_JSON, Long.toString(image.getMinRam()));
-        jsonMap.put(OpenStackConstants.Image.STATUS_KEY_JSON, image.getStatus());
+        jsonMap.put(OpenStackConstants.Image.ID_KEY_JSON, imageInstance.getId());
+        jsonMap.put(OpenStackConstants.Image.NAME_KEY_JSON, imageInstance.getName());
+        jsonMap.put(OpenStackConstants.Image.SIZE_KEY_JSON, Long.toString(imageInstance.getSize()));
+        jsonMap.put(OpenStackConstants.Image.MIN_DISK_KEY_JSON, Long.toString(imageInstance.getMinDisk()));
+        jsonMap.put(OpenStackConstants.Image.MIN_RAM_KEY_JSON, Long.toString(imageInstance.getMinRam()));
+        jsonMap.put(OpenStackConstants.Image.STATUS_KEY_JSON, imageInstance.getStatus());
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(jsonMap);
         return jsonResponse;
