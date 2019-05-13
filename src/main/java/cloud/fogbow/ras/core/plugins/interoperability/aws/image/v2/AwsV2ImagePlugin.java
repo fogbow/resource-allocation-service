@@ -10,9 +10,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ec2.model.*;
 
 import java.util.*;
 
@@ -53,14 +51,14 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
         if(imagesResponse.images().size() > 0) {
             software.amazon.awssdk.services.ec2.model.Image retrievedImage = imagesResponse.images().get(0);
-            image = getImageResponse(retrievedImage);
+            image = getImageResponse(retrievedImage, client);
         }
 
         return image;
     }
 
-    private Image getImageResponse(software.amazon.awssdk.services.ec2.model.Image awsImage) {
-        long size = getSize(awsImage.blockDeviceMappings());
+    private Image getImageResponse(software.amazon.awssdk.services.ec2.model.Image awsImage, Ec2Client client) {
+        long size = getSize(awsImage.blockDeviceMappings(), client);
 
         return new Image(
                 awsImage.imageId(),
@@ -72,7 +70,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         );
     }
 
-    private long getSize(List<BlockDeviceMapping> blocks) {
+    private long getSize(List<BlockDeviceMapping> blocks, Ec2Client client) {
         long size = 0;
 
         for (BlockDeviceMapping block : blocks) {
