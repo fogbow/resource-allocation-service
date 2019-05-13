@@ -2,18 +2,17 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.image.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
-import software.amazon.awssdk.regions.Region;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.DescribeAccountAttributesResponse;
+import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
-import software.amazon.awssdk.services.ec2.model.Filter;
 
 import java.util.*;
 
@@ -49,15 +48,38 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 
         DescribeImagesResponse imagesResponse = client.describeImages(imagesRequest);
-        software.amazon.awssdk.services.ec2.model.Image retrievedImage = imagesResponse.images().get(0);
 
-//        return new Image(
-//            retrievedImage.imageId(),
-//            retrievedImage.name(),
-//
-//        );
-        return null;
+        Image image = null;
+
+        if(imagesResponse.images().size() > 0) {
+            software.amazon.awssdk.services.ec2.model.Image retrievedImage = imagesResponse.images().get(0);
+            image = getImageResponse(retrievedImage);
+        }
+
+        return image;
     }
 
+    private Image getImageResponse(software.amazon.awssdk.services.ec2.model.Image awsImage) {
+        long size = getSize(awsImage.blockDeviceMappings());
+
+        return new Image(
+                awsImage.imageId(),
+                awsImage.name(),
+                size,
+                -1,
+                -1,
+                AwsV2StateMapper.map(ResourceType.IMAGE, awsImage.stateAsString()).getValue()
+        );
+    }
+
+    private long getSize(List<BlockDeviceMapping> blocks) {
+        long size = 0;
+
+        for (BlockDeviceMapping block : blocks) {
+            size += block.ebs().volumeSize();
+        }
+
+        return  size* (long) Math.pow(1024, 3);
+    }
 
 }
