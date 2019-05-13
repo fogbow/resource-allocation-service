@@ -34,12 +34,14 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<CloudUser>{
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
 	private static final String ANOTHER_DEVICE_TYPE = "xvdh";
-	private static final String ATTACHMENT_ID_PREFIX = "att-";
-	private static final String ATTACHMENT_ID_TAG = "attachment-id";
-	private static final String DEFAULT_DEVICE_NAME = "/dev/sdh";
 	private static final String FILTER_BY_TAG_ATTACHMENT_ID = "tag:attachment-id";
 	private static final String RESOURCE_NAME = "Attachment";
 	private static final int FIRST_POSITION = 0;
+	private static final int SECOND_POSITION = 1;
+
+	protected static final String ATTACHMENT_ID_PREFIX = "att-";
+	protected static final String ATTACHMENT_ID_TAG = "attachment-id";
+	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdh";
 	
 	private Properties properties;
 	private String region;
@@ -76,18 +78,9 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<CloudUser>{
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		client.attachVolume(attachmentRequest);
-
+		
 		String attachmentId = ATTACHMENT_ID_PREFIX + getRandomUUID();
-		Tag tagAttachmentId = Tag.builder()
-				.key(ATTACHMENT_ID_TAG)
-				.value(attachmentId)
-				.build();
-
-		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-				.resources(volumeId)
-				.tags(tagAttachmentId)
-				.build();
-
+		CreateTagsRequest tagRequest = createTagAttachmentId(attachmentId, volumeId);
 		client.createTags(tagRequest);
 
 		return attachmentId;
@@ -134,7 +127,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<CloudUser>{
 	
 	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response) {
 		Volume volume = response.volumes().get(FIRST_POSITION);
-		String id = volume.tags().get(1).value(); // TODO checked this... 
+		String id = volume.tags().get(SECOND_POSITION).value();
 		VolumeAttachment attachment = volume.attachments().get(FIRST_POSITION);
 		String cloudState = attachment.stateAsString();
 		String computeId = attachment.instanceId();
@@ -143,6 +136,20 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<CloudUser>{
 		return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
 	}
 
+	protected CreateTagsRequest createTagAttachmentId(String attachmentId, String volumeId) {
+		Tag tagAttachmentId = Tag.builder()
+				.key(ATTACHMENT_ID_TAG)
+				.value(attachmentId)
+				.build();
+
+		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
+				.resources(volumeId)
+				.tags(tagAttachmentId)
+				.build();
+
+		return tagRequest;
+	}
+	
 	// This method is used to aid in the tests
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
