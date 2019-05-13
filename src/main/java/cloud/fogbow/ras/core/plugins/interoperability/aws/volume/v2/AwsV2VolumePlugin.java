@@ -71,16 +71,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		
 		String volumeName = volumeOrder.getName();
 		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
-		Tag tagName = Tag.builder()
-	            .key(AWS_TAG_NAME)
-	            .value(name)
-	            .build();
-		
-		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-				.resources(volumeId)
-				.tags(tagName)
-				.build();
-		
+		CreateTagsRequest tagRequest = createVolumeTagName(volumeId, name);
 		client.createTags(tagRequest);
 
 		return volumeId;
@@ -128,6 +119,20 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		return new VolumeInstance(id, cloudState, name, size);
 	}
 
+	protected CreateTagsRequest createVolumeTagName(String volumeId, String name) {
+		Tag tagName = Tag.builder()
+	            .key(AWS_TAG_NAME)
+	            .value(name)
+	            .build();
+		
+		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
+				.resources(volumeId)
+				.tags(tagName)
+				.build();
+		
+		return tagRequest;
+	}
+	
 	// This method is used to aid in the tests
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
