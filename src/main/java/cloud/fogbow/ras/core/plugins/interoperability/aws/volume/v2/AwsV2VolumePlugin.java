@@ -71,16 +71,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		
 		String volumeName = volumeOrder.getName();
 		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
-		Tag tagName = Tag.builder()
-	            .key(AWS_TAG_NAME)
-	            .value(name)
-	            .build();
-		
-		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-				.resources(volumeId)
-				.tags(tagName)
-				.build();
-		
+		CreateTagsRequest tagRequest = createVolumeTagName(volumeId, name);
 		client.createTags(tagRequest);
 
 		return volumeId;
@@ -91,23 +82,13 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 
 		String volumeId = volumeOrder.getInstanceId();
-		DescribeVolumesRequest volumesRequest = DescribeVolumesRequest.builder()
+		DescribeVolumesRequest volumeRequest = DescribeVolumesRequest.builder()
 				.volumeIds(volumeId)
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeVolumesResponse volumesResponse = client.describeVolumes(volumesRequest);
-		VolumeInstance volumeInstance = mountVolumeInstance(volumesResponse);
-		return volumeInstance;
-	}
-
-	private VolumeInstance mountVolumeInstance(DescribeVolumesResponse volumesResponse) {
-		Volume volume = volumesResponse.volumes().get(FIRST_POSITION);
-		String id = volume.volumeId();
-		String cloudState = volume.stateAsString();
-		String name = volume.tags().get(FIRST_POSITION).value();
-		Integer size = volume.size();
-		VolumeInstance volumeInstance = new VolumeInstance(id, cloudState, name, size);
+		DescribeVolumesResponse volumeResponse = client.describeVolumes(volumeRequest);
+		VolumeInstance volumeInstance = mountVolumeInstance(volumeResponse);
 		return volumeInstance;
 	}
 
@@ -116,19 +97,42 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		
 		String volumeId = volumeOrder.getInstanceId();
-		DeleteVolumeRequest deleteVolumeRequest = DeleteVolumeRequest.builder()
+		DeleteVolumeRequest volumeRequest = DeleteVolumeRequest.builder()
 				.volumeId(volumeId)
 				.build();
 		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		try {
-			client.deleteVolume(deleteVolumeRequest);
+			client.deleteVolume(volumeRequest);
 		} catch (Exception e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
 			throw new UnexpectedException();
 		}
 	}
 
+	protected VolumeInstance mountVolumeInstance(DescribeVolumesResponse response) {
+		Volume volume = response.volumes().get(FIRST_POSITION);
+		String id = volume.volumeId();
+		String cloudState = volume.stateAsString();
+		String name = volume.tags().get(FIRST_POSITION).value();
+		Integer size = volume.size();
+		return new VolumeInstance(id, cloudState, name, size);
+	}
+
+	protected CreateTagsRequest createVolumeTagName(String volumeId, String name) {
+		Tag tagName = Tag.builder()
+	            .key(AWS_TAG_NAME)
+	            .value(name)
+	            .build();
+		
+		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
+				.resources(volumeId)
+				.tags(tagName)
+				.build();
+		
+		return tagRequest;
+	}
+	
 	// This method is used to aid in the tests
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
