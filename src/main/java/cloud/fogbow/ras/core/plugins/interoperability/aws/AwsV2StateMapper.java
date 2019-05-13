@@ -13,10 +13,10 @@ public class AwsV2StateMapper {
 	private static final String ATTACHMENT_PLUGIN = "AwsV2AttachmentPlugin";
 	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
 	
-	protected static final String ATTACHED_STATE = "attached";
-	protected static final String DEFAULT_ERROR_STATE = "error";
-	protected static final String VOLUME_AVAILABLE_STATE = "available";
-	protected static final String VOLUME_IN_USE_STATE = "in-use";
+	public static final String ATTACHED_STATE = "attached";
+	public static final String DEFAULT_ERROR_STATE = "error";
+	public static final String VOLUME_AVAILABLE_STATE = "available";
+	public static final String VOLUME_IN_USE_STATE = "in-use";
 
 	
 	public static InstanceState map(ResourceType type, String state) {
