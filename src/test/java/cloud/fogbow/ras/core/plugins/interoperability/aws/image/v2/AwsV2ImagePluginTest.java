@@ -5,7 +5,9 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,12 +70,32 @@ public class AwsV2ImagePluginTest {
     }
 
     @Test
-    public void testGetImage() throws FogbowException {
+    public void testGetImageWithResult() throws FogbowException {
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
+        List<software.amazon.awssdk.services.ec2.model.Image> imagesList = getMockedImages();
+
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+        DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().imageIds("mockedId").build();
+
+        Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
+
+        cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage("mockedId", cloudUser);
+
+        Assert.assertEquals(new cloud.fogbow.ras.api.http.response.Image(
+                "mockedId",
+                "first",
+                0,
+                -1,
+                -1,
+                AwsV2StateMapper.map(ResourceType.IMAGE, "available").getValue()
+        ), image);
     }
 
     private List<software.amazon.awssdk.services.ec2.model.Image> getMockedImages() {
-        software.amazon.awssdk.services.ec2.model.Image image = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId").name("first").build();
+        software.amazon.awssdk.services.ec2.model.Image image = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId").name("first").state("available").build();
         software.amazon.awssdk.services.ec2.model.Image image2 = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId2").name("second").build();
         software.amazon.awssdk.services.ec2.model.Image image3 = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId3").name("third").build();
 
