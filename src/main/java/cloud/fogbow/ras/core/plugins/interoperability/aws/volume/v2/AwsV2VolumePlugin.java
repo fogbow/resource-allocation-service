@@ -69,9 +69,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		CreateVolumeResponse volumeResponse = client.createVolume(volumeRequest);
 		String volumeId = volumeResponse.volumeId();
 		
-		String volumeName = volumeOrder.getName();
-		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
-		CreateTagsRequest tagRequest = createVolumeTagName(volumeId, name);
+		CreateTagsRequest tagRequest = createVolumeTagName(volumeOrder, volumeId);
 		client.createTags(tagRequest);
 
 		return volumeId;
@@ -119,17 +117,20 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 		return new VolumeInstance(id, cloudState, name, size);
 	}
 
-	protected CreateTagsRequest createVolumeTagName(String volumeId, String name) {
+	protected CreateTagsRequest createVolumeTagName(VolumeOrder volumeOrder, String volumeId) {
+		String volumeName = volumeOrder.getName();
+		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
+
 		Tag tagName = Tag.builder()
-	            .key(AWS_TAG_NAME)
-	            .value(name)
-	            .build();
-		
+				.key(AWS_TAG_NAME)
+				.value(name)
+				.build();
+
 		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
 				.resources(volumeId)
 				.tags(tagName)
 				.build();
-		
+
 		return tagRequest;
 	}
 	
