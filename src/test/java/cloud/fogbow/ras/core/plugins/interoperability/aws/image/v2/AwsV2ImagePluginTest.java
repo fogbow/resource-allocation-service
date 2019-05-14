@@ -51,8 +51,10 @@ public class AwsV2ImagePluginTest {
         this.plugin = Mockito.spy(new AwsV2ImagePlugin(awsConfFilePath));
     }
 
+    // test case: check if getAllImages returns all images expected in the expected format.
     @Test
     public void testGetAllImages() throws FogbowException {
+        // setup
         Ec2Client client = Mockito.mock(Ec2Client.class);
         PowerMockito.mockStatic(AwsV2ClientUtil.class);
         BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
@@ -68,13 +70,18 @@ public class AwsV2ImagePluginTest {
         }
 
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
+
+        // exercise
         Map<String, String> result = this.plugin.getAllImages(cloudUser);
 
+        //verify
         Assert.assertEquals(expectedResult, result);
     }
 
+    // test case: check if the getImage returns the correct image when there are some.
     @Test
     public void testGetImageWithResult() throws FogbowException {
+        //setup
         Ec2Client client = Mockito.mock(Ec2Client.class);
         PowerMockito.mockStatic(AwsV2ClientUtil.class);
         BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
@@ -86,8 +93,10 @@ public class AwsV2ImagePluginTest {
 
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
 
+        // exercise
         cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage(FIMAGE_ID, cloudUser);
 
+        // verify
         Assert.assertEquals(new cloud.fogbow.ras.api.http.response.Image(
                 FIMAGE_ID,
                 FIMAGE_NAME,
@@ -97,8 +106,10 @@ public class AwsV2ImagePluginTest {
                 AwsV2StateMapper.map(ResourceType.IMAGE, AVAILABLE_STATE).getValue()), image);
     }
 
+    // test case : check getImage behavior when there is no image to be returned.
     @Test
     public void testGetImageWithoutResult() throws FogbowException {
+        // setup
         Ec2Client client = Mockito.mock(Ec2Client.class);
         PowerMockito.mockStatic(AwsV2ClientUtil.class);
         BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
@@ -108,24 +119,41 @@ public class AwsV2ImagePluginTest {
 
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(new ArrayList<>()).build());
 
+        // exercise
         cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage("mockedNullId", cloudUser);
 
+        // verify
         Assert.assertEquals(null, image);
     }
 
+    // check if testSize works properly with some specific args.
     @Test
     public void testSize() {
+        // setup
         List<Integer> list = new ArrayList<>(
             Arrays.asList(0)
         );
 
-        Assert.assertEquals(0, this.plugin.getSize(getMockedBlocks(list)));
+        List<BlockDeviceMapping> blocks = getMockedBlocks(list);
 
+        // exercise
+        long size = this.plugin.getSize(blocks);
+
+        //verify
+        Assert.assertEquals(0, size);
+
+        // setup
         list = new ArrayList<>(
             Arrays.asList(1, 4, 2, 8, 10)
         );
 
-        Assert.assertEquals((long) Math.pow(1024, 3)*(1+4+2+8+10), this.plugin.getSize(getMockedBlocks(list)));
+        blocks = getMockedBlocks(list);
+
+        //exercise
+        size = this.plugin.getSize(blocks);
+
+        // verify
+        Assert.assertEquals((long) Math.pow(1024, 3)*(1+4+2+8+10), size);
     }
 
     private List<BlockDeviceMapping> getMockedBlocks(List<Integer> sizes) {
