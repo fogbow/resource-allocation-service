@@ -18,15 +18,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
-import software.amazon.awssdk.services.ec2.model.Image;
+import software.amazon.awssdk.services.ec2.model.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AwsV2ClientUtil.class})
@@ -87,17 +82,72 @@ public class AwsV2ImagePluginTest {
         Assert.assertEquals(new cloud.fogbow.ras.api.http.response.Image(
                 "mockedId",
                 "first",
-                0,
+                8*(long)Math.pow(1024, 3),
                 -1,
                 -1,
                 AwsV2StateMapper.map(ResourceType.IMAGE, "available").getValue()
         ), image);
     }
 
+    @Test
+    public void testGetImageWithoutResult() throws FogbowException {
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+        DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().imageIds("mockedNullId").build();
+
+        Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(new ArrayList<>()).build());
+
+        cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage("mockedNullId", cloudUser);
+
+        Assert.assertEquals(null, image);
+    }
+
+    @Test
+    public void testSize() {
+        List<Integer> list = new ArrayList<>(
+            Arrays.asList(0)
+        );
+
+        Assert.assertEquals(0, this.plugin.getSize(getMockedBlocks(list)));
+
+        list = new ArrayList<>(
+            Arrays.asList(1, 4, 2, 8, 10)
+        );
+
+        Assert.assertEquals((long) Math.pow(1024, 3)*(1+4+2+8+10), this.plugin.getSize(getMockedBlocks(list)));
+    }
+
+    private List<BlockDeviceMapping> getMockedBlocks(List<Integer> sizes) {
+        List<BlockDeviceMapping> blocks = new ArrayList<>();
+
+        BlockDeviceMapping block;
+        for(Integer size : sizes) {
+            block = BlockDeviceMapping.builder().ebs(EbsBlockDevice.builder().volumeSize(size).build()).build();
+            blocks.add(block);
+        }
+
+        return blocks;
+    }
+
     private List<software.amazon.awssdk.services.ec2.model.Image> getMockedImages() {
-        software.amazon.awssdk.services.ec2.model.Image image = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId").name("first").state("available").build();
-        software.amazon.awssdk.services.ec2.model.Image image2 = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId2").name("second").build();
-        software.amazon.awssdk.services.ec2.model.Image image3 = software.amazon.awssdk.services.ec2.model.Image.builder().imageId("mockedId3").name("third").build();
+        BlockDeviceMapping block = BlockDeviceMapping.builder().ebs(EbsBlockDevice.builder().volumeSize(8).build()).build();
+        software.amazon.awssdk.services.ec2.model.Image image = software.amazon.awssdk.services.ec2.model.Image.builder()
+            .imageId("mockedId")
+            .name("first")
+            .blockDeviceMappings(block)
+            .state("available")
+            .build();
+        software.amazon.awssdk.services.ec2.model.Image image2 = software.amazon.awssdk.services.ec2.model.Image.builder()
+            .imageId("mockedId2")
+            .name("second")
+            .build();
+        software.amazon.awssdk.services.ec2.model.Image image3 = software.amazon.awssdk.services.ec2.model.Image.builder()
+            .imageId("mockedId3")
+            .name("third")
+            .build();
 
         List<Image> imagesList = new ArrayList<>();
         imagesList.add(image);

@@ -16,6 +16,11 @@ import java.util.*;
 
 public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
+    private final Integer K_BYTES = 1024;
+    private final Integer K_BYTES_TO_GB = 3;
+    private final Integer NO_VALUE_FLAG = -1;
+    private final Integer EMPTY_LIST_FLAG = 0;
+
     private Properties properties;
     private String region;
 
@@ -26,7 +31,6 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
     public Map<String, String> getAllImages(AwsV2User cloudUser) throws FogbowException {
         DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().owners(cloudUser.getId()).build();
-
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 
         DescribeImagesResponse imagesResponse = client.describeImages(imagesRequest);
@@ -49,35 +53,35 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
         Image image = null;
 
-        if(imagesResponse.images().size() > 0) {
+        if(imagesResponse.images().size() > EMPTY_LIST_FLAG) {
             software.amazon.awssdk.services.ec2.model.Image retrievedImage = imagesResponse.images().get(0);
-            image = getImageResponse(retrievedImage, client);
+            image = getImageResponse(retrievedImage);
         }
 
         return image;
     }
 
-    private Image getImageResponse(software.amazon.awssdk.services.ec2.model.Image awsImage, Ec2Client client) {
-        long size = getSize(awsImage.blockDeviceMappings(), client);
+    private Image getImageResponse(software.amazon.awssdk.services.ec2.model.Image awsImage) {
+        long size = getSize(awsImage.blockDeviceMappings());
 
         return new Image(
                 awsImage.imageId(),
                 awsImage.name(),
                 size,
-                -1,
-                -1,
+                NO_VALUE_FLAG,
+                NO_VALUE_FLAG,
                 AwsV2StateMapper.map(ResourceType.IMAGE, awsImage.stateAsString()).getValue()
         );
     }
 
-    private long getSize(List<BlockDeviceMapping> blocks, Ec2Client client) {
-        long size = 0;
+    protected long getSize(List<BlockDeviceMapping> blocks) {
+        long size = EMPTY_LIST_FLAG;
 
         for (BlockDeviceMapping block : blocks) {
             size += block.ebs().volumeSize();
         }
 
-        return  size* (long) Math.pow(1024, 3);
+        return  size* (long) Math.pow(K_BYTES, K_BYTES_TO_GB);
     }
 
 }
