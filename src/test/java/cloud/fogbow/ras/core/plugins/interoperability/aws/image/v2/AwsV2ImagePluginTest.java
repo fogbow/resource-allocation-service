@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.image.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -28,6 +27,16 @@ import java.util.*;
 public class AwsV2ImagePluginTest {
 
     private static final String CLOUD_NAME = "amazon";
+    private static final String FIMAGE_ID = "mockedId";
+    private static final String FIMAGE_NAME = "first";
+    private static final String SIMAGE_ID = "mockedId2";
+    private static final String SIMAGE_NAME = "second";
+    private static final String TIMAGE_ID = "mockedId3";
+    private static final String TIMAGE_NAME = "third";
+    private static final String AVAILABLE_STATE = "available";
+    private static final long EXPECTED_FIMAGE_SIZE = 8*(long)Math.pow(1024, 3);
+    private final Integer NO_VALUE_FLAG = -1;
+
     private AwsV2ImagePlugin plugin;
 
     @Before
@@ -73,20 +82,19 @@ public class AwsV2ImagePluginTest {
         List<software.amazon.awssdk.services.ec2.model.Image> imagesList = getMockedImages();
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-        DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().imageIds("mockedId").build();
+        DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().imageIds(FIMAGE_ID).build();
 
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
 
-        cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage("mockedId", cloudUser);
+        cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage(FIMAGE_ID, cloudUser);
 
         Assert.assertEquals(new cloud.fogbow.ras.api.http.response.Image(
-                "mockedId",
-                "first",
-                8*(long)Math.pow(1024, 3),
-                -1,
-                -1,
-                AwsV2StateMapper.map(ResourceType.IMAGE, "available").getValue()
-        ), image);
+                FIMAGE_ID,
+                FIMAGE_NAME,
+                EXPECTED_FIMAGE_SIZE,
+                NO_VALUE_FLAG,
+                NO_VALUE_FLAG,
+                AwsV2StateMapper.map(ResourceType.IMAGE, AVAILABLE_STATE).getValue()), image);
     }
 
     @Test
@@ -135,18 +143,18 @@ public class AwsV2ImagePluginTest {
     private List<software.amazon.awssdk.services.ec2.model.Image> getMockedImages() {
         BlockDeviceMapping block = BlockDeviceMapping.builder().ebs(EbsBlockDevice.builder().volumeSize(8).build()).build();
         software.amazon.awssdk.services.ec2.model.Image image = software.amazon.awssdk.services.ec2.model.Image.builder()
-            .imageId("mockedId")
-            .name("first")
+            .imageId(FIMAGE_ID)
+            .name(FIMAGE_NAME)
             .blockDeviceMappings(block)
-            .state("available")
+            .state(AVAILABLE_STATE)
             .build();
         software.amazon.awssdk.services.ec2.model.Image image2 = software.amazon.awssdk.services.ec2.model.Image.builder()
-            .imageId("mockedId2")
-            .name("second")
+            .imageId(SIMAGE_ID)
+            .name(SIMAGE_NAME)
             .build();
         software.amazon.awssdk.services.ec2.model.Image image3 = software.amazon.awssdk.services.ec2.model.Image.builder()
-            .imageId("mockedId3")
-            .name("third")
+            .imageId(TIMAGE_ID)
+            .name(TIMAGE_NAME)
             .build();
 
         List<Image> imagesList = new ArrayList<>();
