@@ -44,15 +44,15 @@ public class LocalCloudConnector implements CloudConnector {
 
     public LocalCloudConnector(String cloudName) {
         InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator();
-//        this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
-//        this.computePlugin = instantiator.getComputePlugin(cloudName);
-//        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin(cloudName);
-//        this.networkPlugin = instantiator.getNetworkPlugin(cloudName);
-//        this.volumePlugin = instantiator.getVolumePlugin(cloudName);
+        this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
+        this.computePlugin = instantiator.getComputePlugin(cloudName);
+        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin(cloudName);
+        this.networkPlugin = instantiator.getNetworkPlugin(cloudName);
+        this.volumePlugin = instantiator.getVolumePlugin(cloudName);
         this.imagePlugin = instantiator.getImagePlugin(cloudName);
-//        this.publicIpPlugin = instantiator.getPublicIpPlugin(cloudName);
-//        this.securityRulePlugin = instantiator.getSecurityRulePlugin(cloudName);
-//        this.genericRequestPlugin = instantiator.getGenericRequestPlugin(cloudName);
+        this.publicIpPlugin = instantiator.getPublicIpPlugin(cloudName);
+        this.securityRulePlugin = instantiator.getSecurityRulePlugin(cloudName);
+        this.genericRequestPlugin = instantiator.getGenericRequestPlugin(cloudName);
         this.mapperPlugin = instantiator.getSystemToCloudMapperPlugin(cloudName);
     }
 
