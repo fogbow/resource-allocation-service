@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,9 +17,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
@@ -29,42 +33,49 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttachVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
+import software.amazon.awssdk.services.ec2.model.DetachVolumeRequest;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.Volume;
+import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
+import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AwsV2ClientUtil.class, SharedOrderHolders.class})
+@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class})
 public class AwsV2AttachmentPluginTest {
 
+	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
+	private static final String EMPTY_STRING = "";
 	private static final String FAKE_ATTACHMENT_ID = "fake-attachment-id";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+	private static final String FAKE_TAG_NAME = "fake-tag-name";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
-	
+
 	private AwsV2AttachmentPlugin plugin;
 	private SharedOrderHolders sharedOrderHolders;
-	
+
 	@Before
 	public void setUp() {
-		String awsConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ CLOUD_NAME 
-				+ File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
+		String awsConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+
 		this.plugin = Mockito.spy(new AwsV2AttachmentPlugin(awsConfFilePath));
 		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-		
+
 		PowerMockito.mockStatic(SharedOrderHolders.class);
 		BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-		
+
 		Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-			.thenReturn(new SynchronizedDoublyLinkedList<>());
-		
+				.thenReturn(new SynchronizedDoublyLinkedList<>());
+
 		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
 	}
-	
-	// test case: ...
+
+	// test case: When calling the isReady method with the cloud states ATTACHED,
+	// this means that the state of attachment is READY and it must return true.
 	@Test
 	public void testIsReadySuccessful() {
 		// set up
@@ -76,8 +87,9 @@ public class AwsV2AttachmentPluginTest {
 		// verify
 		Assert.assertTrue(status);
 	}
-	
-	// test case: ...
+
+	// test case: When calling the isReady method with the cloud states ERROR, this
+	// means that the state of attachment is FAILED and it must return false.
 	@Test
 	public void testIsReadyUnsuccessful() {
 		// set up
@@ -89,8 +101,9 @@ public class AwsV2AttachmentPluginTest {
 		// verify
 		Assert.assertFalse(status);
 	}
-	
-	// test case: ...
+
+	// test case: When calling the hasFailed method with the cloud states ERROR,
+	// this means that the state of attachment is FAILED and it must return true.
 	@Test
 	public void testHasFailedSuccessful() {
 		// set up
@@ -102,8 +115,10 @@ public class AwsV2AttachmentPluginTest {
 		// verify
 		Assert.assertTrue(status);
 	}
-	
-	// test case: ...
+
+	// test case: When calling the hasFailed method with the cloud states different
+	// than ERROR, this means that the state of attachment is not FAILED and it must
+	// return false.
 	@Test
 	public void testHasFailedUnsuccessful() {
 		// set up
@@ -115,80 +130,205 @@ public class AwsV2AttachmentPluginTest {
 		// verify
 		Assert.assertFalse(status);
 	}
-	
-	// test case: ...
+
+	// test case: When calling the requestInstance method, with an attachment order
+	// and cloud user valid, a client is invoked to attach a volume to an instance,
+	// returning the attachment ID.
 	@Test
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		
-		String device = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
-		AttachmentOrder attachmentOrder = createAttachmentOrder(device);
 
-		String instanceId = FAKE_INSTANCE_ID;
-		String volumeId = FAKE_VOLUME_ID;
-		AttachVolumeRequest attachmentRequest = AttachVolumeRequest.builder()
-				.device(device)
-				.instanceId(instanceId)
-				.volumeId(volumeId)
-				.build();
-		
 		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_ATTACHMENT_ID);
-		String expected = AwsV2AttachmentPlugin.ATTACHMENT_ID_PREFIX + FAKE_ATTACHMENT_ID;
-		
-		Tag tagAttachmentId = Tag.builder()
-				.key(AwsV2AttachmentPlugin.ATTACHMENT_ID_TAG)
-				.value(expected)
-				.build();
-		
-		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-				.resources(volumeId)
-				.tags(tagAttachmentId)
-				.build();
-		
-		Mockito.when(this.plugin.createTagAttachmentId(expected, volumeId)).thenReturn(tagRequest);
 
-		CloudUser cloudUser = Mockito.mock(CloudUser.class);
-		
+		AttachmentOrder attachmentOrder = createAttachmentOrder();
+		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+		String expected = AwsV2AttachmentPlugin.ATTACHMENT_ID_PREFIX + FAKE_ATTACHMENT_ID;
+
 		// exercise
 		String attachmentId = this.plugin.requestInstance(attachmentOrder, cloudUser);
-		
+
 		// verify
 		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-		
-		Mockito.verify(client, Mockito.times(1)).attachVolume((Mockito.eq(attachmentRequest)));
-		Mockito.verify(client, Mockito.times(1)).createTags(Mockito.eq(tagRequest));
-		
+
+		Mockito.verify(client, Mockito.times(1)).attachVolume((Mockito.any(AttachVolumeRequest.class)));
+		Mockito.verify(client, Mockito.times(1)).createTags(Mockito.any(CreateTagsRequest.class));
+
 		Assert.assertEquals(expected, attachmentId);
 	}
-		
-	// test case: ...
+
+	// test case: When calling the deleteInstance method, with an attachment order
+	// and cloud user valid, the volume associated with an instance will be
+	// detached.
 	@Test
-	public void test() {
+	public void testDeleteInstanceSuccessful() throws FogbowException {
 		// set up
-		
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		AttachmentOrder attachmentOrder = createAttachmentOrder();
+		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
 		// exercise
-		
+		this.plugin.deleteInstance(attachmentOrder, cloudUser);
+
 		// verify
+		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
+		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(client, Mockito.times(1)).detachVolume((Mockito.any(DetachVolumeRequest.class)));
+	}
+
+	// test case: When calling the deleteInstance method, with an attachment order
+	// and cloud user valid, and an error will occur, the UnexpectedException will
+	// be thrown.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testDeleteInstanceUnsuccessful() throws FogbowException {
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		Mockito.doThrow(Ec2Exception.class).when(client).detachVolume(Mockito.any(DetachVolumeRequest.class));
+
+		AttachmentOrder attachmentOrder = createAttachmentOrder();
+		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+		// exercise
+		this.plugin.deleteInstance(attachmentOrder, cloudUser);
+	}
+
+	// test case: When calling the getInstance method, with an attachment order and
+	// cloud user valid, a client is invoked to request a volume attachment in the
+	// cloud, and mount an attachment instance.
+	@Test
+	public void testGetInstanceSuccessful() throws FogbowException {
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		DescribeVolumesResponse response = createVolumeResponse();
+		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(response);
+
+		AttachmentOrder attachmentOrder = createAttachmentOrder();
+		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+		AttachmentInstance expected = createAttachmentInstance();
+
+		// exercise
+		AttachmentInstance attachmentInstance = this.plugin.getInstance(attachmentOrder, cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
+		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(client, Mockito.times(1)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
+
+		Mockito.verify(this.plugin, Mockito.times(1))
+				.mountAttachmentInstance(Mockito.any(DescribeVolumesResponse.class));
+
+		Assert.assertEquals(expected, attachmentInstance);
+	}
+
+	// test case: When calling the defineDeviceNameAttached method, with a device
+	// name null, it must return a default device name.
+	@Test
+	public void testDefineDeviceNameAttachedWithNullValue() {
+		// set up
+		String expected = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
+
+		// exercise
+		String actual = this.plugin.defineDeviceNameAttached(null);
+
+		// verify
+		Assert.assertEquals(expected, actual);
 	}
 	
-	private AttachmentOrder createAttachmentOrder(String device) {
+	// test case: When calling the defineDeviceNameAttached method, with an empty
+	// device name, it must return a default device name.
+	@Test
+	public void testDefineDeviceNameAttachedWithEmptyString() {
+		// set up
+		String expected = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
+
+		// exercise
+		String device = this.plugin.defineDeviceNameAttached(EMPTY_STRING);
+
+		// verify
+		Assert.assertEquals(expected, device);
+	}
+	
+	private AttachmentInstance createAttachmentInstance() {
+        String id = FAKE_ATTACHMENT_ID;
+        String cloudState = AwsV2StateMapper.ATTACHED_STATE;
+        String computeId = FAKE_INSTANCE_ID;
+        String volumeId = FAKE_VOLUME_ID;
+        String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
+        return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
+    }
+	
+	private DescribeVolumesResponse createVolumeResponse() {
+		List<Tag> tags = new ArrayList<Tag>();
+		tags.add(createVolumeTagName());
+		tags.add(createTagAttachmentId());
+		VolumeAttachment attachment = createVolumeAttachment();
+		Volume volume = createVolume(attachment, tags);
+		return DescribeVolumesResponse.builder().volumes(volume).build();
+	}
+
+	private Volume createVolume(VolumeAttachment attachment, List<Tag> tags) {
+		return Volume.builder().tags(tags).attachments(attachment).build();
+	}
+
+	private VolumeAttachment createVolumeAttachment() {
+		VolumeAttachment attachment = VolumeAttachment.builder()
+				.state(VolumeAttachmentState.ATTACHED)
+				.instanceId(FAKE_INSTANCE_ID)
+				.volumeId(FAKE_VOLUME_ID)
+				.device(AwsV2AttachmentPlugin.XVDH_DEVICE_NAME)
+				.build();
+		return attachment;
+	}
+
+	private Tag createTagAttachmentId() {
+		Tag tagAttachmentId = Tag.builder()
+				.key(AwsV2AttachmentPlugin.ATTACHMENT_ID_TAG)
+				.value(FAKE_ATTACHMENT_ID)
+				.build();
+		return tagAttachmentId;
+	}
+
+	private Tag createVolumeTagName() {
+		Tag tagName = Tag.builder()
+				.key(AWS_TAG_NAME)
+				.value(FAKE_TAG_NAME)
+				.build();
+		return tagName;
+	}
+	
+
+	private AttachmentOrder createAttachmentOrder() {
 		ComputeOrder computeOrder = new ComputeOrder();
 		computeOrder.setCloudName(CLOUD_NAME);
 		computeOrder.setInstanceId(FAKE_INSTANCE_ID);
 		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-		
+
 		VolumeOrder volumeOrder = new VolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
 		volumeOrder.setInstanceId(FAKE_VOLUME_ID);
 		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
-		AttachmentOrder attachmentOrder = new AttachmentOrder(null, CLOUD_NAME, computeOrder.getId(), volumeOrder.getId(), device);
+		String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
+		AttachmentOrder attachmentOrder = new AttachmentOrder(null, CLOUD_NAME, computeOrder.getId(),
+				volumeOrder.getId(), device);
 		attachmentOrder.setInstanceId(FAKE_ATTACHMENT_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
 		return attachmentOrder;
