@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.volume;
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2.GetVolumeResponse;
 import com.google.gson.annotations.SerializedName;
 
 import static cloud.fogbow.common.constants.OpenStackConstants.Volume.*;
