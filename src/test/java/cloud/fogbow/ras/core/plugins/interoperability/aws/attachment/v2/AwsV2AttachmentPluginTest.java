@@ -17,6 +17,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -269,6 +270,34 @@ public class AwsV2AttachmentPluginTest {
 		Assert.assertEquals(expected, device);
 	}
 	
+	// test case: When calling the mountAttachmentInstance method, with an empty
+	// attachment list, it must return an InstanceNotFoundException.
+	@Test (expected = InstanceNotFoundException.class) // verify
+	public void testMountAttachmentInstanceWithoutAttachments() throws InstanceNotFoundException {
+		// set up
+		Volume volume = Volume.builder()
+				.tags(createVolumeTagName(), createTagAttachmentId())
+				.build();
+
+		DescribeVolumesResponse response = DescribeVolumesResponse.builder()
+				.volumes(volume)
+				.build();
+
+		// exercise
+		this.plugin.mountAttachmentInstance(response);
+	}
+	
+	// test case: When calling the mountAttachmentInstance method, with an empty
+	// volume list, it must return an InstanceNotFoundException.
+	@Test (expected = InstanceNotFoundException.class) // verify
+	public void testMountAttachmentInstanceWithoutVolumes() throws InstanceNotFoundException {
+		// set up
+		DescribeVolumesResponse response = DescribeVolumesResponse.builder().build();
+
+		// exercise
+		this.plugin.mountAttachmentInstance(response);
+	}
+	
 	private AttachmentInstance createAttachmentInstance() {
         String id = FAKE_ATTACHMENT_ID;
         String cloudState = AwsV2StateMapper.ATTACHED_STATE;
@@ -298,6 +327,7 @@ public class AwsV2AttachmentPluginTest {
 				.volumeId(FAKE_VOLUME_ID)
 				.device(AwsV2AttachmentPlugin.XVDH_DEVICE_NAME)
 				.build();
+		
 		return attachment;
 	}
 
@@ -306,6 +336,7 @@ public class AwsV2AttachmentPluginTest {
 				.key(AwsV2AttachmentPlugin.ATTACHMENT_ID_TAG)
 				.value(FAKE_ATTACHMENT_ID)
 				.build();
+		
 		return tagAttachmentId;
 	}
 
@@ -314,6 +345,7 @@ public class AwsV2AttachmentPluginTest {
 				.key(AWS_TAG_NAME)
 				.value(FAKE_TAG_NAME)
 				.build();
+		
 		return tagName;
 	}
 

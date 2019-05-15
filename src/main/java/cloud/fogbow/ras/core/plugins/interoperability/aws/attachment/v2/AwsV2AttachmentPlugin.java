@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -125,15 +126,22 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User>{
 		return attachmentInstance;
 	}
 	
-	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response) {
-		Volume volume = response.volumes().get(FIRST_POSITION);
-		String id = volume.tags().get(SECOND_POSITION).value();
-		VolumeAttachment attachment = volume.attachments().get(FIRST_POSITION);
-		String cloudState = attachment.stateAsString();
-		String computeId = attachment.instanceId();
-		String volumeId = attachment.volumeId();
-		String device = attachment.device();
-		return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
+	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response)
+			throws InstanceNotFoundException {
+		
+		if (!response.volumes().isEmpty()) {
+			Volume volume = response.volumes().get(FIRST_POSITION);
+			String id = volume.tags().get(SECOND_POSITION).value();
+			if (!volume.attachments().isEmpty()) {
+				VolumeAttachment attachment = volume.attachments().get(FIRST_POSITION);
+				String cloudState = attachment.stateAsString();
+				String computeId = attachment.instanceId();
+				String volumeId = attachment.volumeId();
+				String device = attachment.device();
+				return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
+			}
+		}
+		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
 	protected CreateTagsRequest createTagAttachmentId(String attachmentId, String volumeId) {
