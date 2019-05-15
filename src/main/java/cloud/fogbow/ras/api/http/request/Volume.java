@@ -7,6 +7,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
 import io.swagger.annotations.Api;
@@ -24,8 +25,8 @@ import java.util.List;
 @RequestMapping(value = Volume.VOLUME_ENDPOINT)
 @Api(description = ApiDocumentation.Volume.API)
 public class Volume {
-
-    public static final String VOLUME_ENDPOINT = "volumes";
+    public static final String VOLUME_SUFFIX_ENDPOINT = "volumes";
+    public static final String VOLUME_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + VOLUME_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "volume";
 
     private final Logger LOGGER = Logger.getLogger(Volume.class);

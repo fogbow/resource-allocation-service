@@ -7,6 +7,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
 import io.swagger.annotations.Api;
@@ -24,8 +25,8 @@ import java.util.List;
 @RequestMapping(value = Attachment.ATTACHMENT_ENDPOINT)
 @Api(description = ApiDocumentation.Attachment.API)
 public class Attachment {
-
-    public static final String ATTACHMENT_ENDPOINT = "attachments";
+    public static final String ATTACHMENT_SUFFIX_ENDPOINT = "attachments";
+    public static final String ATTACHMENT_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + ATTACHMENT_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "attachment";
 
     private final Logger LOGGER = Logger.getLogger(Attachment.class);

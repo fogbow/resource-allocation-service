@@ -5,6 +5,7 @@ import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
@@ -18,8 +19,8 @@ import static cloud.fogbow.ras.api.http.request.GenericRequest.GENERIC_REQUEST_E
 @RestController
 @RequestMapping(value = GENERIC_REQUEST_ENDPOINT)
 public class GenericRequest {
-
-    public static final String GENERIC_REQUEST_ENDPOINT = "genericRequest";
+    public static final String GENERIC_REQUEST_SUFFIX_ENDPOINT = "genericRequest";
+    public static final String GENERIC_REQUEST_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + GENERIC_REQUEST_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "generic request";
 
     private final Logger LOGGER = Logger.getLogger(GenericRequest.class);

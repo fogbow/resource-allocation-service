@@ -157,7 +157,7 @@ public class ComputeTest {
 
         // set up
         Mockito.doReturn(new ArrayList<InstanceState>()).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
-        String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.STATUS_ENDPOINT;
+        String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.STATUS_SUFFIX_ENDPOINT;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_STATUS_ENDPOINT, getHttpHeaders(), "");
 
         // exercise
@@ -193,7 +193,7 @@ public class ComputeTest {
         List<InstanceStatus> computeStatusList = Arrays.asList(new InstanceStatus[]{instanceStatus1, instanceStatus2, instanceStatus3});
         Mockito.doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
 
-        String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.STATUS_ENDPOINT;
+        String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.STATUS_SUFFIX_ENDPOINT;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_STATUS_ENDPOINT, getHttpHeaders(), "");
 
         // exercise
@@ -397,7 +397,7 @@ public class ComputeTest {
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
         Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_ENDPOINT;
+        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_SUFFIX_ENDPOINT;
         final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
@@ -420,7 +420,7 @@ public class ComputeTest {
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_ENDPOINT;
+        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_SUFFIX_ENDPOINT;
         final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
@@ -449,7 +449,7 @@ public class ComputeTest {
 
         Mockito.doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_ENDPOINT;
+        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_SUFFIX_ENDPOINT;
         final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
@@ -485,7 +485,7 @@ public class ComputeTest {
 
         Mockito.doReturn(fakeUserQuota).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_ENDPOINT;
+        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
         final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
@@ -517,7 +517,7 @@ public class ComputeTest {
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
         Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_ENDPOINT;
+        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
         final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
@@ -539,7 +539,7 @@ public class ComputeTest {
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_ENDPOINT;
+        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
         final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 

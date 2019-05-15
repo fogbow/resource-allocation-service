@@ -5,6 +5,7 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -21,8 +22,8 @@ import java.util.Map;
 @RequestMapping(value = Image.IMAGE_ENDPOINT)
 @Api(description = ApiDocumentation.Image.API)
 public class Image {
-
-    public static final String IMAGE_ENDPOINT = "images";
+    public static final String IMAGE_SUFFIX_ENDPOINT = "images";
+    public static final String IMAGE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + IMAGE_SUFFIX_ENDPOINT;
 
     private final Logger LOGGER = Logger.getLogger(Image.class);
 

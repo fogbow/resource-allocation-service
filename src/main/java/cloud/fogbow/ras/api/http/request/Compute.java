@@ -9,9 +9,9 @@ import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -20,20 +20,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @CrossOrigin
 @RestController
 @RequestMapping(value = Compute.COMPUTE_ENDPOINT)
 @Api(description = ApiDocumentation.Compute.API)
 public class Compute {
-
-    public static final String COMPUTE_ENDPOINT = "computes";
-    public static final String STATUS_ENDPOINT = "status";
-    public static final String QUOTA_ENDPOINT = "quota";
-    public static final String ALLOCATION_ENDPOINT = "allocation";
+    public static final String COMPUTE_SUFFIX_ENDPOINT = "computes";
+    public static final String STATUS_SUFFIX_ENDPOINT = "status";
+    public static final String QUOTA_SUFFIX_ENDPOINT = "quota";
+    public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
+    public static final String COMPUTE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + COMPUTE_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "compute";
 
     private final Logger LOGGER = Logger.getLogger(Compute.class);
@@ -60,7 +58,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_OPERATION)
-    @RequestMapping(value = "/" + STATUS_ENDPOINT, method = RequestMethod.GET)
+    @RequestMapping(value = "/" + STATUS_SUFFIX_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
@@ -115,7 +113,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
-    @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + QUOTA_SUFFIX_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
@@ -126,7 +124,7 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));
+            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_SUFFIX_ENDPOINT, memberId));
             ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, cloudName, systemUserToken);
             return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
         } catch (Exception e) {
@@ -136,7 +134,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
-    @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeAllocation> getUserAllocation(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
@@ -147,7 +145,7 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_ENDPOINT, memberId));
+            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_SUFFIX_ENDPOINT, memberId));
             ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, cloudName, systemUserToken);
             return new ResponseEntity<>(computeAllocation, HttpStatus.OK);

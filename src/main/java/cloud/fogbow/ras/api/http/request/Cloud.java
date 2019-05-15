@@ -6,6 +6,7 @@ import cloud.fogbow.ras.api.http.response.CloudList;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import io.swagger.annotations.Api;
@@ -23,8 +24,8 @@ import java.util.List;
 @RequestMapping(value = Cloud.CLOUD_ENDPOINT)
 @Api(description = ApiDocumentation.Cloud.API)
 public class Cloud {
-
-    public static final String CLOUD_ENDPOINT = "clouds";
+    public static final String CLOUD_SUFFIX_ENDPOINT = "clouds";
+    public static final String CLOUD_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + CLOUD_SUFFIX_ENDPOINT;
 
     private final Logger LOGGER = Logger.getLogger(Cloud.class);
 

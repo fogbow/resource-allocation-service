@@ -64,9 +64,9 @@ public class SecurityRuleInstanceAPITest {
     private ApplicationFacade facade;
 
     private static final String NETWORK_ENDPOINT = "/" + Network.NETWORK_ENDPOINT + "/" + FAKE_ORDER_ID + "/" +
-            Network.SECURITY_RULES_ENDPOINT;
+            Network.SECURITY_RULES_SUFFIX_ENDPOINT;
     private static final String PUBLIC_IP_ENDPOINT = "/" + PublicIp.PUBLIC_IP_ENDPOINT + "/" + FAKE_ORDER_ID + "/" +
-            PublicIp.SECURITY_RULES_ENDPOINT;
+            PublicIp.SECURITY_RULES_SUFFIX_ENDPOINT;
 
     @Before
     public void setUp() {

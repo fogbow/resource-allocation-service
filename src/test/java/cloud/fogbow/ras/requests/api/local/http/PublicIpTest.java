@@ -57,7 +57,7 @@ public class PublicIpTest {
     private static final String PUBLIC_IP_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.PUBLIC_IP_ENDPOINT;
     private static final String PUBLIC_IP_ENDPOINT_BAR_STATUS = PUBLIC_IP_ENDPOINT + "/status";
 	private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
-	private static final String SECURITY_RULES_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.SECURITY_RULES_ENDPOINT;
+	private static final String SECURITY_RULES_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.SECURITY_RULES_SUFFIX_ENDPOINT;
 
 	@Autowired
     private MockMvc mockMvc;
