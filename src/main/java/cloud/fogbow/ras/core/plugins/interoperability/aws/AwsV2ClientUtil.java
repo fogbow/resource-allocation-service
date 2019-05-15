@@ -23,8 +23,9 @@ public class AwsV2ClientUtil {
 		String[] token = tokenValue.split(AwsConstants.TOKEN_VALUE_SEPARATOR);
 		String accessKeyId = token[ACCESS_KEY_ID_TOKEN_INDEX];
 		String secretKeyId = token[SECRET_KEY_ID_TOKEN_INDEX];
-
+    
 		Region region = validateRegion(regionName);
+
 		Ec2Client client;
 		try {
 			AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKeyId, secretKeyId);
