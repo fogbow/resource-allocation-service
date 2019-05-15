@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -44,12 +45,11 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User>{
 	protected static final String FILTER_BY_TAG_ATTACHMENT_ID = "tag:attachment-id";
 	protected static final String XVDH_DEVICE_NAME = "xvdh";
 	
-	private Properties properties;
 	private String region;
 	
 	public AwsV2AttachmentPlugin(String confFilePath) {
-		this.properties = PropertiesUtil.readProperties(confFilePath);
-		this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 	}
 	
 	@Override
@@ -126,15 +126,22 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User>{
 		return attachmentInstance;
 	}
 	
-	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response) {
-		Volume volume = response.volumes().get(FIRST_POSITION);
-		String id = volume.tags().get(SECOND_POSITION).value();
-		VolumeAttachment attachment = volume.attachments().get(FIRST_POSITION);
-		String cloudState = attachment.stateAsString();
-		String computeId = attachment.instanceId();
-		String volumeId = attachment.volumeId();
-		String device = attachment.device();
-		return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
+	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response)
+			throws InstanceNotFoundException {
+		
+		if (!response.volumes().isEmpty()) {
+			Volume volume = response.volumes().get(FIRST_POSITION);
+			String id = volume.tags().get(SECOND_POSITION).value();
+			if (!volume.attachments().isEmpty()) {
+				VolumeAttachment attachment = volume.attachments().get(FIRST_POSITION);
+				String cloudState = attachment.stateAsString();
+				String computeId = attachment.instanceId();
+				String volumeId = attachment.volumeId();
+				String device = attachment.device();
+				return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
+			}
+		}
+		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
 	protected CreateTagsRequest createTagAttachmentId(String attachmentId, String volumeId) {
