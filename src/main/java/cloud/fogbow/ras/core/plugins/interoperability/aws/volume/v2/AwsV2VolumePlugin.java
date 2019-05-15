@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
-public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
+public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
 	private static final String AWS_TAG_NAME = "Name";
@@ -57,7 +57,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	@Override
-	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+	public String requestInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		
 		CreateVolumeRequest volumeRequest = CreateVolumeRequest.builder()
@@ -76,7 +76,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	@Override
-	public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+	public VolumeInstance getInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 
 		String volumeId = volumeOrder.getInstanceId();
@@ -91,7 +91,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	@Override
-	public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+	public void deleteInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		
 		String volumeId = volumeOrder.getInstanceId();
