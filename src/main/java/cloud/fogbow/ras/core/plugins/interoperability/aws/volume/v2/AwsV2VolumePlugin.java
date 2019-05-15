@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -36,14 +37,13 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 	private static final String RESOURCE_NAME = "Volume";
 	private static final int FIRST_POSITION = 0;
 	
-	private Properties properties;
 	private String region;
 	private String zone;
 	
 	public AwsV2VolumePlugin(String confFilePath) {
-		this.properties = PropertiesUtil.readProperties(confFilePath);
-		this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.zone = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+		this.zone = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
 	}
 	
 	@Override
@@ -108,18 +108,20 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		}
 	}
 
-	protected VolumeInstance mountVolumeInstance(DescribeVolumesResponse response) {
-		Volume volume = response.volumes().get(FIRST_POSITION);
-		String id = volume.volumeId();
-		String cloudState = volume.stateAsString();
-		String name = volume.tags().get(FIRST_POSITION).value();
-		Integer size = volume.size();
-		return new VolumeInstance(id, cloudState, name, size);
+	protected VolumeInstance mountVolumeInstance(DescribeVolumesResponse response) throws InstanceNotFoundException {
+		if (!response.volumes().isEmpty()) {
+			Volume volume = response.volumes().get(FIRST_POSITION);
+			String id = volume.volumeId();
+			String cloudState = volume.stateAsString();
+			String name = volume.tags().get(FIRST_POSITION).value();
+			Integer size = volume.size();
+			return new VolumeInstance(id, cloudState, name, size);
+		}
+		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
 	protected CreateTagsRequest createVolumeTagName(VolumeOrder volumeOrder, String volumeId) {
-		String volumeName = volumeOrder.getName();
-		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
+		String name = defineVolumeName(volumeOrder.getName());
 
 		Tag tagName = Tag.builder()
 				.key(AWS_TAG_NAME)
@@ -132,6 +134,10 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 				.build();
 
 		return tagRequest;
+	}
+	
+	protected String defineVolumeName(String volumeName) {
+		return volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
 	}
 	
 	// This method is used to aid in the tests
