@@ -16,11 +16,9 @@ public class AwsV2StateMapper {
 	
 	public static final String ATTACHED_STATE = "attached";
 	public static final String DEFAULT_ERROR_STATE = "error";
-	public static final String VOLUME_AVAILABLE_STATE = "available";
+	public static final String DEFAULT_AVAILABLE_STATE = "available";
 	public static final String VOLUME_IN_USE_STATE = "in-use";
 
-	protected static final String IMAGE_AVAILABLE_STATE = "available";
-	protected static final String IMAGE_ERROR_STATE = "error";
 	protected static final String IMAGE_FAILED_STATE = "failed";
 	
 	public static InstanceState map(ResourceType type, String state) {
@@ -40,7 +38,7 @@ public class AwsV2StateMapper {
 		case VOLUME:
 			// cloud state values: [creating, available, in-use, deleting, deleted, error]
 			switch (state) {
-			case VOLUME_AVAILABLE_STATE:
+			case DEFAULT_AVAILABLE_STATE:
 				return InstanceState.READY;
 			case VOLUME_IN_USE_STATE:
 				return InstanceState.READY;
@@ -53,9 +51,9 @@ public class AwsV2StateMapper {
 			case IMAGE:
 				// cloud state values : [available, deregistered, error, failed, invalid, pending, transient, unknown_to_sdk_version]
 				switch (state) {
-					case IMAGE_AVAILABLE_STATE:
+					case DEFAULT_AVAILABLE_STATE:
 						return InstanceState.READY;
-					case IMAGE_ERROR_STATE:
+					case DEFAULT_ERROR_STATE	:
 						return InstanceState.ERROR;
 					case IMAGE_FAILED_STATE:
 						return InstanceState.FAILED;

@@ -19,7 +19,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
     private final Integer K_BYTES = 1024;
     private final Integer K_BYTES_TO_GB = 3;
     private final Integer NO_VALUE_FLAG = -1;
-    private final Integer EMPTY_LIST_FLAG = 0;
+    private final Integer FIRST_POSITION_VALUE = 0;
 
     private Properties properties;
     private String region;
@@ -53,8 +53,8 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
         Image image = null;
 
-        if(imagesResponse.images().size() > EMPTY_LIST_FLAG) {
-            software.amazon.awssdk.services.ec2.model.Image retrievedImage = imagesResponse.images().get(0);
+        if(!imagesResponse.images().isEmpty()) {
+            software.amazon.awssdk.services.ec2.model.Image retrievedImage = imagesResponse.images().get(FIRST_POSITION_VALUE);
             image = getImageResponse(retrievedImage);
         }
 
@@ -75,7 +75,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
     }
 
     protected long getSize(List<BlockDeviceMapping> blocks) {
-        long size = EMPTY_LIST_FLAG;
+        long size = 0;
 
         for (BlockDeviceMapping block : blocks) {
             size += block.ebs().volumeSize();

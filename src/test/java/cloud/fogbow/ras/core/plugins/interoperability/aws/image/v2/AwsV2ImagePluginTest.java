@@ -126,7 +126,7 @@ public class AwsV2ImagePluginTest {
         Assert.assertEquals(null, image);
     }
 
-    // check if testSize works properly with some specific args.
+    // test case: check if testSize works properly with some specific args.
     @Test
     public void testSize() {
         // setup
