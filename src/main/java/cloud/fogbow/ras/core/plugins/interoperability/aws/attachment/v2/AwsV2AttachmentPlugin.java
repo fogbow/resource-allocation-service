@@ -44,12 +44,11 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User>{
 	protected static final String FILTER_BY_TAG_ATTACHMENT_ID = "tag:attachment-id";
 	protected static final String XVDH_DEVICE_NAME = "xvdh";
 	
-	private Properties properties;
 	private String region;
 	
 	public AwsV2AttachmentPlugin(String confFilePath) {
-		this.properties = PropertiesUtil.readProperties(confFilePath);
-		this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 	}
 	
 	@Override

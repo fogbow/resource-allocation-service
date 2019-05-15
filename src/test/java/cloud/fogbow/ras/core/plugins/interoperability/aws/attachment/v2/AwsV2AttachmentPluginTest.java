@@ -43,9 +43,10 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class})
+@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
 public class AwsV2AttachmentPluginTest {
 
+	private static final String ATTACHMENT_BUSY_STATE = "busy";
 	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
 	private static final String EMPTY_STRING = "";
@@ -59,8 +60,12 @@ public class AwsV2AttachmentPluginTest {
 
 	@Before
 	public void setUp() {
-		String awsConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		String awsConfFilePath = HomeDir.getPath() 
+				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+				+ File.separator 
+				+ CLOUD_NAME 
+				+ File.separator 
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
 		this.plugin = Mockito.spy(new AwsV2AttachmentPlugin(awsConfFilePath));
 		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
@@ -122,7 +127,7 @@ public class AwsV2AttachmentPluginTest {
 	@Test
 	public void testHasFailedUnsuccessful() {
 		// set up
-		String cloudState = AwsV2StateMapper.ATTACHED_STATE;
+		String cloudState = ATTACHMENT_BUSY_STATE;
 
 		// exercise
 		boolean status = this.plugin.hasFailed(cloudState);
@@ -311,7 +316,6 @@ public class AwsV2AttachmentPluginTest {
 				.build();
 		return tagName;
 	}
-	
 
 	private AttachmentOrder createAttachmentOrder() {
 		ComputeOrder computeOrder = new ComputeOrder();
