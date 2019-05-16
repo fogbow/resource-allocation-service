@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User>{
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
+	private static final String CLEAR_ATTACHMENT_ID = "";
 	private static final String RESOURCE_NAME = "Attachment";
 	private static final int FIRST_POSITION = 0;
 	private static final int SECOND_POSITION = 1;
@@ -97,6 +98,8 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User>{
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		try {
 			client.detachVolume(detachVolumeRequest);
+			CreateTagsRequest tagRequest = createTagAttachmentId(CLEAR_ATTACHMENT_ID, volumeId);
+			client.createTags(tagRequest);
 		} catch (Ec2Exception e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME,
 					attachmentOrder.getInstanceId()), e);
