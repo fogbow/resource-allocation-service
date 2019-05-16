@@ -101,7 +101,6 @@ public class Messages {
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
-        public static final String REDIRECT_SWAGGER_DOCUMENTATION = "Redirecting swagger documentation to fixed location.";
         public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
