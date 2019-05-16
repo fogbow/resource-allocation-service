@@ -1,8 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,18 +14,18 @@ public class RuleTest {
         Rule rule = new Rule();
         rule.setIp("10.10.0.0");
         // exercise
-        EtherType etherType = rule.getEtherType();
+        SecurityRule.EtherType etherType = rule.getEtherType();
         //verify
-        Assert.assertEquals(EtherType.IPv4, etherType);
+        Assert.assertEquals(SecurityRule.EtherType.IPv4, etherType);
 
         // type ipv6
         // setup
         Rule ruleTwo = new Rule();
         ruleTwo.setIp("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
         // exercise
-        EtherType etherTypeTwo = ruleTwo.getEtherType();
+        SecurityRule.EtherType etherTypeTwo = ruleTwo.getEtherType();
         //verify
-        Assert.assertEquals(EtherType.IPv6, etherTypeTwo);
+        Assert.assertEquals(SecurityRule.EtherType.IPv6, etherTypeTwo);
     }
 
     // test case: ip not recognized
@@ -38,7 +36,7 @@ public class RuleTest {
         Rule rule = new Rule();
         rule.setIp("10.10");
         // exercise
-        EtherType etherType = rule.getEtherType();
+        SecurityRule.EtherType etherType = rule.getEtherType();
         //verify
         Assert.assertNull(etherType);
     }
@@ -50,18 +48,18 @@ public class RuleTest {
         Rule rule = new Rule();
         rule.setType(Rule.INBOUND_XML_TEMPLATE_VALUE);
         // exercise
-        Direction direction = rule.getDirection();
+        SecurityRule.Direction direction = rule.getDirection();
         // verify
-        Assert.assertEquals(Direction.IN, direction);
+        Assert.assertEquals(SecurityRule.Direction.IN, direction);
 
 
         // setup
         Rule ruleTwo = new Rule();
         ruleTwo.setType(Rule.OUTBOUND_XML_TEMPLATE_VALUE);
         // exercise
-        Direction directionTwo = ruleTwo.getDirection();
+        SecurityRule.Direction directionTwo = ruleTwo.getDirection();
         // verify
-        Assert.assertEquals(Direction.OUT, directionTwo);
+        Assert.assertEquals(SecurityRule.Direction.OUT, directionTwo);
     }
 
     // test case: unknown rule type
@@ -71,7 +69,7 @@ public class RuleTest {
         Rule rule = new Rule();
         rule.setType("unknown");
         // exercise
-        Direction direction = rule.getDirection();
+        SecurityRule.Direction direction = rule.getDirection();
         // verify
         Assert.assertNull(direction);
     }
@@ -189,7 +187,7 @@ public class RuleTest {
         rule.setProtocol(Rule.TCP_XML_TEMPLATE_VALUE);
 
         // exercise and verify
-        Assert.assertEquals(Protocol.TCP, rule.getSRProtocol());
+        Assert.assertEquals(SecurityRule.Protocol.TCP, rule.getSRProtocol());
     }
 
     // test case: get UDP protocol
@@ -200,7 +198,7 @@ public class RuleTest {
         rule.setProtocol(Rule.UDP_XML_TEMPLATE_VALUE);
 
         // exercise and verify
-        Assert.assertEquals(Protocol.UDP, rule.getSRProtocol());
+        Assert.assertEquals(SecurityRule.Protocol.UDP, rule.getSRProtocol());
     }
 
     // test case: get ICMP protocol
@@ -211,14 +209,14 @@ public class RuleTest {
         rule.setProtocol(Rule.ICMP_XML_TEMPLATE_VALUE);
 
         // exercise and verify
-        Assert.assertEquals(Protocol.ICMP, rule.getSRProtocol());
+        Assert.assertEquals(SecurityRule.Protocol.ICMP, rule.getSRProtocol());
 
         // setup
         new Rule();
         rule.setProtocol(Rule.ICMPV6_XML_TEMPLATE_VALUE);
 
         // exercise and verify
-        Assert.assertEquals(Protocol.ICMP, rule.getSRProtocol());
+        Assert.assertEquals(SecurityRule.Protocol.ICMP, rule.getSRProtocol());
     }
 
     // test case: get ALL protocol
@@ -229,7 +227,7 @@ public class RuleTest {
         rule.setProtocol(Rule.ALL_XML_TEMPLATE_VALUE);
 
         // exercise and verify
-        Assert.assertEquals(Protocol.ANY, rule.getSRProtocol());
+        Assert.assertEquals(SecurityRule.Protocol.ANY, rule.getSRProtocol());
     }
 
     // test case: inconsitent protocol

@@ -2,7 +2,7 @@ package cloud.fogbow.ras.api.http.response;
 
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 
-public class NetworkInstance extends Instance {
+public class NetworkInstance extends OrderInstance {
     private String name;
     private String cidr;
     private String gateway;

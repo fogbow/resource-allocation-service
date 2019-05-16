@@ -5,7 +5,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
@@ -39,19 +39,19 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     }
 
     @Override
-    public Image getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
+    public ImageInstance getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
         GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
         String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
         if (status.equals(ACTIVE_STATE)) {
-            Image image = new Image(id,
+            ImageInstance imageInstance = new ImageInstance(id,
                     getImageResponse.getName(),
                     getImageResponse.getSize(),
                     getImageResponse.getMinDisk(),
                     getImageResponse.getMinRam(),
                     status
             );
-            return image;
+            return imageInstance;
         }
 
         return null;

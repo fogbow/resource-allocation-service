@@ -4,14 +4,11 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -190,7 +187,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(order.getId(), order);
 
         String instanceId = "instanceid";
-        Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
+        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(instanceId);
 

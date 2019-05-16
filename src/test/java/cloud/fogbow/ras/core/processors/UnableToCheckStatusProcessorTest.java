@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -136,7 +137,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 		this.unableToCheckStatus.addItem(order);
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
-		Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+		OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
 		orderInstance.setState(InstanceState.FAILED);
 		order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -166,7 +167,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 		this.unableToCheckStatus.addItem(order);
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
-		Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+		OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
 		orderInstance.setReady();
 		order.setInstanceId(FAKE_INSTANCE_ID);
 

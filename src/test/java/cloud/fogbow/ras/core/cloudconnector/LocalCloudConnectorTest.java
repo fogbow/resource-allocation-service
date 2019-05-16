@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
@@ -28,11 +27,8 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import sun.nio.ch.Net;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.times;
@@ -44,8 +40,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String FAKE_ORDER_ID = "fake-order-id";
-    private static final String FAKE_IMAGE_ID = "fake-image-id";
-    private static final String FAKE_IMAGE_NAME = "fake-image-name";
+    private static final String FAKE_IMAGE_ID = "fake-imageInstance-id";
+    private static final String FAKE_IMAGE_NAME = "fake-imageInstance-name";
     private static final String FAKE_COMPUTE_ID = "fake-compute-id";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_PROVIDER = "fake-provider";
@@ -69,7 +65,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private SystemToCloudMapperPlugin systemToCloudMapperPlugin;
 
     private Order order;
-    private Image image;
+    private ImageInstance imageInstance;
     private SystemUser systemUser;
 
     private NetworkInstance networkInstance;
@@ -110,7 +106,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         // mocking system user calls
         Mockito.when(systemUser.getId()).thenReturn(FAKE_USER_ID);
 
-        // mocking instances/image and the return of getID method
+        // mocking instances/imageInstance and the return of getID method
         this.networkInstance = Mockito.mock(NetworkInstance.class);
         Mockito.when(networkInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
 
@@ -125,8 +121,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.computeInstance = Mockito.mock(ComputeInstance.class);
         Mockito.when(computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
 
-        this.image = Mockito.mock(Image.class);
-        Mockito.when(image.getId()).thenReturn(FAKE_IMAGE_ID);
+        this.imageInstance = Mockito.mock(ImageInstance.class);
+        Mockito.when(imageInstance.getId()).thenReturn(FAKE_IMAGE_ID);
 
         // mocking interoperabilityPluginsHolder to return the correct plugin for each call
         CloudUser cloudUser = new CloudUser("","", "");
@@ -442,7 +438,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -466,7 +462,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -490,7 +486,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -514,7 +510,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -538,7 +534,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -562,7 +558,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -586,7 +582,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -610,7 +606,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -634,7 +630,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -658,7 +654,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -682,7 +678,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -706,7 +702,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        Instance instance = this.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         //verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
@@ -811,12 +807,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
-    // test case: Getting an image. Image plugin must be called
+    // test case: Getting an imageInstance. Image plugin must be called
     @Test
     public void testGetImage() throws FogbowException {
 
         // set up
-        Mockito.when(this.imagePlugin.getImage(Mockito.any(String.class), Mockito.any(CloudUser.class))).thenReturn(this.image);
+        Mockito.when(this.imagePlugin.getImage(Mockito.any(String.class), Mockito.any(CloudUser.class))).thenReturn(this.imageInstance);
 
         // exercise
         String returnedImageId = this.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser).getId();
@@ -826,7 +822,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(imagePlugin, times(1)).getImage(Mockito.any(String.class), Mockito.any(CloudUser.class));
     }
 
-    // test case: Getting a null image. Image plugin must be called
+    // test case: Getting a null imageInstance. Image plugin must be called
     @Test
     public void testGetNullImage() throws FogbowException {
 
@@ -834,10 +830,10 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.imagePlugin.getImage(Mockito.any(String.class), Mockito.any(CloudUser.class))).thenReturn(null);
 
         // exercise
-        Image image = this.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser);
+        ImageInstance imageInstance = this.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser);
 
         // verify
-        Assert.assertNull(image);
+        Assert.assertNull(imageInstance);
         Mockito.verify(imagePlugin, times(1)).getImage(Mockito.any(String.class), Mockito.any(CloudUser.class));
     }
 

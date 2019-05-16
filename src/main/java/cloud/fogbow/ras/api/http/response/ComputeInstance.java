@@ -5,7 +5,7 @@ import cloud.fogbow.ras.core.models.UserData;
 import java.util.List;
 import java.util.Map;
 
-public class ComputeInstance extends Instance {
+public class ComputeInstance extends OrderInstance {
     private String name;
     private int vCPU;
     /**

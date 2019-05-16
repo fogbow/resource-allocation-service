@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -19,13 +20,13 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
     }
 
     @Override
-    public Instance send() throws Exception {
+    public OrderInstance send() throws Exception {
 
         IQ iq = marshal(this.order);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
-        Instance instance = unmarshalInstance(response);
+        OrderInstance instance = unmarshalInstance(response);
         return instance;
     }
 
@@ -50,16 +51,16 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         return iq;
     }
 
-    private Instance unmarshalInstance(IQ response) throws UnexpectedException {
+    private OrderInstance unmarshalInstance(IQ response) throws UnexpectedException {
 
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
 
         String instanceClassName = queryElement.element(IqElement.INSTANCE_CLASS_NAME.toString()).getText();
 
-        Instance instance = null;
+        OrderInstance instance = null;
         try {
-            instance = (Instance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
+            instance = (OrderInstance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
         } catch (Exception e) {
             throw new UnexpectedException(e.getMessage());
         }

@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -12,8 +13,6 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
 /**
@@ -74,7 +73,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
 	 * @param order {@link Order}
 	 */
 	protected void processUnableToCheckStatusOrder(Order order) throws FogbowException {
-		Instance instance = null;
+		OrderInstance instance = null;
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete the
         // order while this method is trying to check the status of an instance

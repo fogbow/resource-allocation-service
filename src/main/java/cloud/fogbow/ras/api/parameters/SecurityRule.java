@@ -1,9 +1,8 @@
-package cloud.fogbow.ras.api.http.response.securityrules;
+package cloud.fogbow.ras.api.parameters;
 
 import java.util.Objects;
 
 public class SecurityRule {
-    private String instanceId;
     private String cidr;
     private int portFrom;
     private int portTo;
@@ -21,14 +20,6 @@ public class SecurityRule {
         this.cidr = cidr;
         this.etherType = etherType;
         this.protocol = protocol;
-    }
-
-    public String getInstanceId() {
-        return instanceId;
-    }
-
-    public void setInstanceId(String instanceId) {
-        this.instanceId = instanceId;
     }
 
     public Direction getDirection() {
@@ -80,13 +71,17 @@ public class SecurityRule {
     }
 
     @Override
+    public String toString() {
+        return direction + ":" + portFrom + ":" + portTo + ":" + cidr + ":" + etherType + ":" + protocol;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SecurityRule that = (SecurityRule) o;
         return getPortFrom() == that.getPortFrom() &&
                 getPortTo() == that.getPortTo() &&
-                Objects.equals(getInstanceId(), that.getInstanceId()) &&
                 getDirection() == that.getDirection() &&
                 Objects.equals(getCidr(), that.getCidr()) &&
                 getEtherType() == that.getEtherType() &&
@@ -95,8 +90,40 @@ public class SecurityRule {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getInstanceId(), getDirection(), getPortFrom(), getPortTo(), getCidr(),
-                getEtherType(), getProtocol());
+        return Objects.hash(getDirection(), getPortFrom(), getPortTo(), getCidr(), getEtherType(), getProtocol());
     }
 
+    public enum Direction {
+        IN("ingress"), OUT("egress");
+
+        private String direction;
+
+        Direction(String direction) {
+            this.direction = direction;
+        }
+
+        @Override
+        public String toString() {
+            return this.direction;
+        }
+    }
+
+    public enum EtherType {
+        IPv4, IPv6
+    }
+
+    public enum Protocol {
+        TCP("tcp"), UDP("udp"), ICMP("icmp"), ANY("any");
+
+        private String protocol;
+
+        Protocol(String protocol) {
+            this.protocol = protocol;
+        }
+
+        @Override
+        public String toString() {
+            return this.protocol;
+        }
+    }
 }

@@ -11,6 +11,7 @@ import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -21,7 +22,7 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesR
 import cloud.fogbow.ras.core.models.*;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
@@ -1548,18 +1549,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+		securityRuleInstance.setId(FAKE_INSTANCE_ID);
 
-		List<SecurityRule> expectedSecurityRules = new ArrayList<>();
-		expectedSecurityRules.add(securityRule);
+		List<SecurityRuleInstance> expectedSecurityRuleInstances = new ArrayList<>();
+		expectedSecurityRuleInstances.add(securityRuleInstance);
 
-		Mockito.doReturn(expectedSecurityRules).when(cloudConnector).getAllSecurityRules(order, systemUser);
+		Mockito.doReturn(expectedSecurityRuleInstances).when(cloudConnector).getAllSecurityRules(order, systemUser);
 
 		// exercise
-		List<SecurityRule> securityRules = null;
+		List<SecurityRuleInstance> securityRuleInstances = null;
 		try {
-			securityRules = this.facade.getAllSecurityRules(order.getId(), SYSTEM_USER_TOKEN_VALUE,
+			securityRuleInstances = this.facade.getAllSecurityRules(order.getId(), SYSTEM_USER_TOKEN_VALUE,
 					ResourceType.PUBLIC_IP);
 		} catch (InstanceNotFoundException e) {
 			Assert.fail();
@@ -1575,7 +1576,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		Mockito.verify(cloudConnector, Mockito.times(1)).getAllSecurityRules(Mockito.any(), Mockito.eq(systemUser));
 
-		Assert.assertEquals(expectedSecurityRules, securityRules);
+		Assert.assertEquals(expectedSecurityRuleInstances, securityRuleInstances);
 	}
 
 	// test case: Get all security rules for a network via its endpoint, it must
@@ -1607,18 +1608,18 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+		securityRuleInstance.setId(FAKE_INSTANCE_ID);
 
-		List<SecurityRule> expectedSecurityRules = new ArrayList<>();
-		expectedSecurityRules.add(securityRule);
+		List<SecurityRuleInstance> expectedSecurityRuleInstances = new ArrayList<>();
+		expectedSecurityRuleInstances.add(securityRuleInstance);
 
-		Mockito.doReturn(expectedSecurityRules).when(cloudConnector).getAllSecurityRules(order, systemUser);
+		Mockito.doReturn(expectedSecurityRuleInstances).when(cloudConnector).getAllSecurityRules(order, systemUser);
 
 		// exercise
-		List<SecurityRule> securityRules = null;
+		List<SecurityRuleInstance> securityRuleInstances = null;
 		try {
-			securityRules = this.facade.getAllSecurityRules(order.getId(), SYSTEM_USER_TOKEN_VALUE,
+			securityRuleInstances = this.facade.getAllSecurityRules(order.getId(), SYSTEM_USER_TOKEN_VALUE,
 					ResourceType.NETWORK);
 		} catch (InstanceNotFoundException e) {
 			Assert.fail();
@@ -1634,7 +1635,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		Mockito.verify(cloudConnector, Mockito.times(1)).getAllSecurityRules(Mockito.any(), Mockito.eq(systemUser));
 
-		Assert.assertEquals(expectedSecurityRules, securityRules);
+		Assert.assertEquals(expectedSecurityRuleInstances, securityRuleInstances);
 	}
 	
 	// test case: Delete a security rule for a public IP through its endpoint, if the 
@@ -1666,15 +1667,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+		securityRuleInstance.setId(FAKE_INSTANCE_ID);
 
 		Mockito.doNothing().when(cloudConnector).deleteSecurityRule(Mockito.anyString(),
 				Mockito.any(SystemUser.class));
 
 		// exercise
 		try {
-			this.facade.deleteSecurityRule(order.getId(), securityRule.getInstanceId(), SYSTEM_USER_TOKEN_VALUE,
+			this.facade.deleteSecurityRule(order.getId(), securityRuleInstance.getId(), SYSTEM_USER_TOKEN_VALUE,
 					ResourceType.PUBLIC_IP);
 		} catch (InstanceNotFoundException e) {
 			Assert.fail();
@@ -1721,15 +1722,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-		securityRule.setInstanceId(FAKE_INSTANCE_ID);
+		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+		securityRuleInstance.setId(FAKE_INSTANCE_ID);
 
 		Mockito.doNothing().when(cloudConnector).deleteSecurityRule(Mockito.anyString(),
 				Mockito.any(SystemUser.class));
 
 		// exercise
 		try {
-			this.facade.deleteSecurityRule(order.getId(), securityRule.getInstanceId(), SYSTEM_USER_TOKEN_VALUE,
+			this.facade.deleteSecurityRule(order.getId(), securityRuleInstance.getId(), SYSTEM_USER_TOKEN_VALUE,
 					ResourceType.NETWORK);
 		} catch (InstanceNotFoundException e) {
 			Assert.fail();
@@ -2031,8 +2032,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		Image image = Mockito.mock(Image.class);
-		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(systemUser))).thenReturn(image);
+		ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
+		Mockito.when(cloudConnector.getImage(Mockito.anyString(), Mockito.eq(systemUser))).thenReturn(imageInstance);
 
 		String memberId = FAKE_MEMBER_ID;
 		String cloudName = DEFAULT_CLOUD_NAME;

@@ -2,11 +2,11 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
