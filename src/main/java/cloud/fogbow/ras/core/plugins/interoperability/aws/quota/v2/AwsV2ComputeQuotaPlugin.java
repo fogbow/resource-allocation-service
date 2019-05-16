@@ -9,17 +9,17 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationProp
 
 import java.util.Properties;
 
-public class AwsV2QuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
+public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 
     private String region;
     private Properties properties;
 
-    public AwsV2QuotaPlugin(String confFilePath) {
+    public AwsV2ComputeQuotaPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }
 
     public ComputeQuota getUserQuota(AwsV2User cloudUser) throws FogbowException {
-        return null;
+        throw new FogbowException("This feature has not yet been implemented for aws cloud.");
     }
 }
