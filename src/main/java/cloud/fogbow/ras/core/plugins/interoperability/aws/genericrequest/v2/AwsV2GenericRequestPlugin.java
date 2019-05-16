@@ -7,10 +7,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 
 public class AwsV2GenericRequestPlugin implements GenericRequestPlugin<AwsV2User> {
 
-    public AwsV2GenericRequestPlugin() {
-
-    }
+    @Override
     public FogbowGenericResponse redirectGenericRequest(String genericRequest, AwsV2User cloudUser) throws FogbowException {
-        return null;
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 }

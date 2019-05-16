@@ -21,15 +21,18 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }
 
+    @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, AwsV2User cloudUser) throws FogbowException {
-        return null;
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 
+    @Override
     public List<SecurityRule> getSecurityRules(Order majorOrder, AwsV2User cloudUser) throws FogbowException {
-        return null;
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 
+    @Override
     public void deleteSecurityRule(String securityRuleId, AwsV2User cloudUser) throws FogbowException {
-
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 }

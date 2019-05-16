@@ -20,22 +20,27 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }
 
+    @Override
     public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-        return null;
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 
+    @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-        return null;
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 
+    @Override
     public void deleteInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-
+    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 
+    @Override
     public boolean isReady(String instanceState) {
         return true;
     }
 
+    @Override
     public boolean hasFailed(String instanceState) {
         return true;
     }

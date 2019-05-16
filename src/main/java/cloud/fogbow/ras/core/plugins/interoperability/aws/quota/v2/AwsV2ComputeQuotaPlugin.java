@@ -19,7 +19,8 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
         this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }
 
+    @Override
     public ComputeQuota getUserQuota(AwsV2User cloudUser) throws FogbowException {
-        throw new FogbowException("This feature has not yet been implemented for aws cloud.");
+        throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
     }
 }
