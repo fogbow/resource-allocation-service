@@ -79,7 +79,7 @@ public class AwsV2VolumePluginTest {
 	@Test
 	public void testIsReadySuccessful() {
 		// set up
-		String[] cloudStates = { AwsV2StateMapper.VOLUME_AVAILABLE_STATE, AwsV2StateMapper.VOLUME_IN_USE_STATE };
+		String[] cloudStates = { AwsV2StateMapper.DEFAULT_AVAILABLE_STATE, AwsV2StateMapper.VOLUME_IN_USE_STATE };
 
 		String cloudState;
 		for (int i = 0; i < cloudStates.length; i++) {
@@ -271,7 +271,7 @@ public class AwsV2VolumePluginTest {
 	
 	private VolumeInstance createVolumeInstance() {
 		String id = FAKE_VOLUME_ID;
-		String cloudState = AwsV2StateMapper.VOLUME_AVAILABLE_STATE;
+		String cloudState = AwsV2StateMapper.DEFAULT_AVAILABLE_STATE;
 		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_VOLUME_ID;
 		int volumeSize = ONE_GIGABYTE;
 		return new VolumeInstance(id, cloudState, name, volumeSize);
