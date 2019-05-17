@@ -17,7 +17,7 @@ import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 @PrepareForTest({ Ec2Client.class })
 public class AwsV2ClientUtilTest {
 
-	private static final String ANYTHING_VALUE = "anything";
+	private static final String ANY_VALUE = "anything";
 	private static final String EAST_SOUTH_AMERICA_REGION = "sa-east-1";
 	private static final String EMPTY_STRING = "";
 	private static final String FAKE_TOKEN_VALUE = "fake-access-key:fake-secret-key";
@@ -80,7 +80,7 @@ public class AwsV2ClientUtilTest {
 	@Test(expected = InvalidParameterException.class) // verify
 	public void testValidateRegionWithAInconsistentRegionName() throws InvalidParameterException, UnexpectedException {
 		// set up
-		String regionName = ANYTHING_VALUE;
+		String regionName = ANY_VALUE;
 
 		// exercise
 		AwsV2ClientUtil.validateRegion(regionName);
