@@ -286,7 +286,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 
 	private Order createOrder() {
 		SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_PROVIDER);
-		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
 
 		String requestingMember = localMemberId;

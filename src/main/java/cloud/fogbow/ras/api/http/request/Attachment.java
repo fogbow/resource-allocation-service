@@ -38,7 +38,7 @@ public class Attachment {
     public ResponseEntity<ResourceId> createAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Attachment attachment,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -55,7 +55,7 @@ public class Attachment {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     @ApiOperation(value = ApiDocumentation.Attachment.GET_OPERATION)
     public ResponseEntity<List<InstanceStatus>> getAllAttachmentsStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -75,7 +75,7 @@ public class Attachment {
     public ResponseEntity<AttachmentInstance> getAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -95,7 +95,7 @@ public class Attachment {
     public ResponseEntity<Boolean> deleteAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 

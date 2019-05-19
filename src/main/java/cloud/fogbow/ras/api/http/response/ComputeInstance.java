@@ -1,28 +1,40 @@
 package cloud.fogbow.ras.api.http.response;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.models.UserData;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.List;
 import java.util.Map;
 
 public class ComputeInstance extends OrderInstance {
+    @ApiModelProperty(position = 7, example = ApiDocumentation.Model.COMPUTE_NAME)
     private String name;
+    @ApiModelProperty(position = 8, example = "1")
     private int vCPU;
     /**
      * Memory attribute, must be set in MB.
      */
+    @ApiModelProperty(position = 9, example = "1024", notes = ApiDocumentation.Model.VOLUME_SIZE_NOTE)
     private int memory;
     /**
      * Disk attribute, must be set in GB.
      */
+    @ApiModelProperty(position = 10, example = "30", notes = ApiDocumentation.Model.DISK_NOTE)
     private int disk;
+    @ApiModelProperty(position = 11, example = "10.11.4.23,10.10.0.2")
     private List<String> ipAddresses;
     /**
      * Order-related properties
      */
+    @ApiModelProperty(position = 12, example = "{\"name net1\": " + ApiDocumentation.Model.INSTANCE_ID +
+            ", \"name net2\": " + ApiDocumentation.Model.INSTANCE_ID2 + "}")
     private Map<String, String> networks;
+    @ApiModelProperty(position = 13, example = ApiDocumentation.Model.IMAGE_ID)
     private String imageId;
+    @ApiModelProperty(position = 14, example = ApiDocumentation.Model.SSH_PUBLIC_KEY, notes = ApiDocumentation.Model.SSH_PUBLIC_KEY_NOTE)
     private String publicKey;
+    @ApiModelProperty(position = 15, example = ApiDocumentation.Model.USER_DATA, notes = ApiDocumentation.Model.USER_DATA_NOTE)
     private List<UserData> userData;
 
     public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,

@@ -1,24 +1,19 @@
 package cloud.fogbow.ras.api.parameters;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
+@ApiModel
 public class PublicIp implements OrderApiParameter{
-    private String provider;
-    private String cloudName;
+    @ApiModelProperty(required = true, example = ApiDocumentation.Model.COMPUTE_ID)
     private String computeId;
 
     @Override
     public PublicIpOrder getOrder() {
-        PublicIpOrder order = new PublicIpOrder(provider, cloudName, computeId);
+        PublicIpOrder order = new PublicIpOrder(computeId);
         return order;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public String getCloudName() {
-        return cloudName;
     }
 
     public String getComputeId() {

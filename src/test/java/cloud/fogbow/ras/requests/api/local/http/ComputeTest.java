@@ -50,7 +50,7 @@ public class ComputeTest {
     private static final String ENDPOINT_SUFFIX = "/cloudName";
 
 	private static final String CORRECT_BODY =
-            "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", "
+            "{\"requestingProvider\":\"req-provider\", \"providingMember\":\"prov-provider\", "
                     + "\"publicKey\":\"pub-key\", \"vCPU\":\"2\", \"memory\":\"1024\", \"disk\":\"20\", "
                     + "\"imageName\":\"ubuntu\"}";
 
@@ -395,11 +395,11 @@ public class ComputeTest {
     public void testGetUserAllocationUnauthenticatedException() throws Exception {
 
         // set up
-        final String FAKE_MEMBER_ID = "fake-member-id";
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
         Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_SUFFIX_ENDPOINT;
-        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -418,11 +418,11 @@ public class ComputeTest {
 
 
         // set up
-        final String FAKE_MEMBER_ID = "fake-member-id";
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_SUFFIX_ENDPOINT;
-        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -440,7 +440,7 @@ public class ComputeTest {
     public void testGetUserAllocation() throws Exception {
 
         // set up
-        final String FAKE_MEMBER_ID = "fake-member-id";
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
         final int VCPU_TOTAL = 1;
         final int RAM_TOTAL = 1;
         final int INSTANCES_TOTAL = 1;
@@ -450,8 +450,8 @@ public class ComputeTest {
         Mockito.doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_SUFFIX_ENDPOINT;
-        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
         // set up
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -474,7 +474,7 @@ public class ComputeTest {
     public void testGetUserQuota() throws Exception {
 
         // set up
-        final String FAKE_MEMBER_ID = "fake-member-id";
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
         final int VCPU_TOTAL = 1;
         final int RAM_TOTAL = 1;
         final int INSTANCES_TOTAL = 1;
@@ -486,8 +486,8 @@ public class ComputeTest {
         Mockito.doReturn(fakeUserQuota).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
-        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        final String providerIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -515,11 +515,11 @@ public class ComputeTest {
     public void testGetUserQuotaUnauthenticatedException() throws Exception {
 
         // set up
-        final String FAKE_MEMBER_ID = "fake-member-id";
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
         Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
-        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        final String providerIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -537,11 +537,11 @@ public class ComputeTest {
     public void testGetUserQuotaUnauthorizedException() throws Exception {
 
         // set up
-        final String FAKE_MEMBER_ID = "fake-member-id";
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
-        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        final String providerIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();

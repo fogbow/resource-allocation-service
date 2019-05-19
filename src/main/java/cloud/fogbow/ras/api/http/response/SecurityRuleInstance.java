@@ -1,15 +1,23 @@
 package cloud.fogbow.ras.api.http.response;
 
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.util.Objects;
 
 public class SecurityRuleInstance extends Instance {
-    private String cidr;
-    private int portFrom;
-    private int portTo;
-    private SecurityRule.Direction direction;
-    private SecurityRule.EtherType etherType;
+    @ApiModelProperty(position = 3, required = true, example = "TCP")
     private SecurityRule.Protocol protocol;
+    @ApiModelProperty(position = 4, required = true, example = "IPv4")
+    private SecurityRule.EtherType etherType;
+    @ApiModelProperty(position = 5, required = true, example = "IN")
+    private SecurityRule.Direction direction;
+    @ApiModelProperty(position = 6, required = true, example = "22")
+    private int portFrom;
+    @ApiModelProperty(position = 7, required = true, example = "22")
+    private int portTo;
+    @ApiModelProperty(position = 8, required = true, example = "10.0.0.0/8")
+    private String cidr;
 
     public SecurityRuleInstance(String id, SecurityRule.Direction direction, int portFrom, int portTo, String cidr, SecurityRule.EtherType etherType, SecurityRule.Protocol protocol) {
         super(id);

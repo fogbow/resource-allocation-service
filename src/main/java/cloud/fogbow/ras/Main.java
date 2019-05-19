@@ -38,8 +38,8 @@ public class Main implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
-            // Getting the name of the local member
-            String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+            // Getting the name of the local provider
+            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
@@ -72,7 +72,7 @@ public class Main implements ApplicationRunner {
 
             // Setting up order processors
             ProcessorsThreadController processorsThreadController = new
-                    ProcessorsThreadController(localMemberId, orderController);
+                    ProcessorsThreadController(localProviderId, orderController);
 
             // Starting threads
             processorsThreadController.startRasThreads();

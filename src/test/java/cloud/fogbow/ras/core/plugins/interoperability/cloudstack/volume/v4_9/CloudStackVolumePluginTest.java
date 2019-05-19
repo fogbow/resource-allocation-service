@@ -480,7 +480,7 @@ public class CloudStackVolumePluginTest {
 
         Assert.assertEquals(id, recoveredInstance.getId());
         Assert.assertEquals(name, recoveredInstance.getName());
-        Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getVolumeSize());
+        Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getSize());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudUser);
     }

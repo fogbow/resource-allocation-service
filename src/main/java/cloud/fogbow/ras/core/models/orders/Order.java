@@ -213,20 +213,20 @@ public abstract class Order<T extends Order> implements Serializable {
         }
     }
 
-    public boolean isProviderLocal(String localMemberId) {
-        return this.provider.equals(localMemberId);
+    public boolean isProviderLocal(String localProviderId) {
+        return this.provider.equals(localProviderId);
     }
 
-    public boolean isProviderRemote(String localMemberId) {
-        return !(this.provider.equals(localMemberId));
+    public boolean isProviderRemote(String localProviderId) {
+        return !(this.provider.equals(localProviderId));
     }
 
-    public boolean isRequesterLocal(String localMemberId) {
-        return this.requester.equals(localMemberId);
+    public boolean isRequesterLocal(String localProviderId) {
+        return this.requester.equals(localProviderId);
     }
 
-    public boolean isRequesterRemote(String localMemberId) {
-        return !(this.requester.equals(localMemberId));
+    public boolean isRequesterRemote(String localProviderId) {
+        return !(this.requester.equals(localProviderId));
     }
 
     @Override

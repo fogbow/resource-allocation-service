@@ -43,7 +43,7 @@ public class Network {
     public ResponseEntity<ResourceId> createNetwork(
             @ApiParam(value = ApiDocumentation.Network.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Network network,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -60,7 +60,7 @@ public class Network {
     @ApiOperation(value = ApiDocumentation.Network.GET_OPERATION)
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllNetworksStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -80,7 +80,7 @@ public class Network {
     public ResponseEntity<NetworkInstance> getNetwork(
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -99,7 +99,7 @@ public class Network {
     public ResponseEntity<Boolean> deleteNetwork(
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -120,7 +120,7 @@ public class Network {
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.Network.CREATE_SECURITY_RULE_REQUEST_BODY)
             @RequestBody SecurityRule securityRule,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -140,7 +140,7 @@ public class Network {
     public ResponseEntity<List<SecurityRuleInstance>> getAllSecurityRules(
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -162,7 +162,7 @@ public class Network {
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.Network.SECURITY_RULE_ID)
             @PathVariable String ruleId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 

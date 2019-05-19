@@ -46,15 +46,15 @@ public class NetworkOrder extends Order<NetworkOrder> {
         this.type = ResourceType.NETWORK;
     }
 
-    public NetworkOrder(String providingMember, String cloudName, String name, String gateway, String cidr,
+    public NetworkOrder(String providingProvider, String cloudName, String name, String gateway, String cidr,
                         NetworkAllocationMode allocationMode) {
-        this(null, null, providingMember, cloudName, name, gateway, cidr, allocationMode);
+        this(null, null, providingProvider, cloudName, name, gateway, cidr, allocationMode);
         this.type = ResourceType.NETWORK;
     }
 
-    public NetworkOrder(SystemUser systemUser, String requestingMember, String providingMember,
+    public NetworkOrder(SystemUser systemUser, String requestingProvider, String providingProvider,
                         String cloudName, String name, String gateway, String cidr, NetworkAllocationMode allocationMode) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requestingProvider);
         this.name = name;
         this.gateway = gateway;
         this.cidr = cidr;

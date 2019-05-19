@@ -9,6 +9,9 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -36,8 +39,8 @@ import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
-@PrepareForTest({CloudStackUrlUtil.class, CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class})
-public class CloudStackSecurityRuleInstancePluginTest {
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class, CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class})
+public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
 
     private static String FAKE_JOB_ID = "fake-job-id";
     private static String FAKE_SECURITY_RULE_ID = "fake-rule-id";
@@ -62,7 +65,8 @@ public class CloudStackSecurityRuleInstancePluginTest {
     private CloudStackQueryJobResult queryJobResult;
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
+        mockReadOrdersFromDataBase();
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(CloudStackHttpClient.class);
         PowerMockito.mockStatic(CloudStackQueryJobResult.class);

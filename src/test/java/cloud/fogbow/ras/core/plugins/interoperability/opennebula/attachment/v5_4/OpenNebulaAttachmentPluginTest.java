@@ -418,7 +418,7 @@ public class OpenNebulaAttachmentPluginTest {
 		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
-		AttachmentOrder attachmentOrder = new AttachmentOrder(FAKE_PROVIDER, CLOUD_NAME, computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
+		AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
 		attachmentOrder.setInstanceId(instanceId);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
 		return attachmentOrder;

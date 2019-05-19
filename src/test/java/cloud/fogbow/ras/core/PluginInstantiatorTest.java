@@ -35,7 +35,7 @@ public class PluginInstantiatorTest {
     @Test
     public void testSetUpProperties() {
         // set up
-        String expected_xmpp_jid_value = "fake-localidentity-member";
+        String expected_xmpp_jid_value = "fake-localidentity-provider";
 
         // verify
         Assert.assertEquals(expected_xmpp_jid_value,

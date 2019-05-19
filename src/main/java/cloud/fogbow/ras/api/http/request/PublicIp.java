@@ -43,7 +43,7 @@ public class PublicIp {
     public ResponseEntity<ResourceId> createPublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.PublicIp publicIp,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -62,7 +62,7 @@ public class PublicIp {
     public ResponseEntity<PublicIpInstance> getPublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -82,7 +82,7 @@ public class PublicIp {
     public ResponseEntity<Boolean> deletePublicIp(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -99,7 +99,7 @@ public class PublicIp {
     @ApiOperation(value = ApiDocumentation.PublicIp.GET_OPERATION)
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllPublicIpStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -121,7 +121,7 @@ public class PublicIp {
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_REQUEST_BODY)
             @RequestBody SecurityRule securityRule,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -141,7 +141,7 @@ public class PublicIp {
     public ResponseEntity<List<SecurityRuleInstance>> getAllSecurityRules(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String publicIpId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -163,7 +163,7 @@ public class PublicIp {
             @PathVariable String publicIpId,
             @ApiParam(value = ApiDocumentation.PublicIp.SECURITY_RULE_ID)
             @PathVariable String ruleId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 

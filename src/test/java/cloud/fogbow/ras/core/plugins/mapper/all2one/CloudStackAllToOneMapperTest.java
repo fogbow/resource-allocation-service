@@ -5,7 +5,6 @@ import cloud.fogbow.as.core.systemidp.plugins.cloudstack.CloudStackSystemIdentit
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.cloudidp.cloudstack.CloudStackIdentityProviderPlugin;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -33,7 +32,7 @@ public class CloudStackAllToOneMapperTest {
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
-    private String memberId;
+    private String providerId;
     private CloudStackAllToOneMapper mapper;
     private CloudStackIdentityProviderPlugin cloudStackIdentityProviderPlugin;
 
@@ -43,7 +42,7 @@ public class CloudStackAllToOneMapperTest {
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "cloudstack" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
         this.cloudStackIdentityProviderPlugin = Mockito.spy(CloudStackIdentityProviderPlugin.class);
         this.mapper = new CloudStackAllToOneMapper(mapperConfPath);
         this.mapper.setIdentityProviderPlugin(this.cloudStackIdentityProviderPlugin);
@@ -54,9 +53,9 @@ public class CloudStackAllToOneMapperTest {
     public void testCreate2Tokens() throws FogbowException {
         //set up
         CloudStackUser cloudStackUser1 = new CloudStackUser(FAKE_LOGIN1, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
-        CloudStackSystemUser user1 = new CloudStackSystemUser(this.memberId, cloudStackUser1);
+        CloudStackSystemUser user1 = new CloudStackSystemUser(this.providerId, cloudStackUser1);
         CloudStackUser cloudStackUser2 = new CloudStackUser(FAKE_LOGIN2, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
-        CloudStackSystemUser user2 = new CloudStackSystemUser(this.memberId, cloudStackUser2);
+        CloudStackSystemUser user2 = new CloudStackSystemUser(this.providerId, cloudStackUser2);
 
         CloudStackUser systemUser = new CloudStackUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 

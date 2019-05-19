@@ -10,8 +10,8 @@ public class Messages {
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
-        public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
-        public static final String INCORRECT_REQUESTING_MEMBER = "Mismatch on requesting member information.";
+        public static final String INCORRECT_PROVIDER = "Incorrect provider.";
+        public static final String INCORRECT_REQUESTING_PROVIDER = "Mismatch on requesting provider information.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INSTANCE_NULL_S = "There is no active instance with id: <%s>.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
@@ -43,7 +43,7 @@ public class Messages {
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
-        public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
+        public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER = "Signalling provider %s is not the provider %s.";
         public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
@@ -52,7 +52,7 @@ public class Messages {
         public static final String UNABLE_TO_MATCH_REQUIREMENTS = "Unable to match requirements.";
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
-        public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER = "Unable to retrieve response from providing member: %s.";
+        public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -77,7 +77,7 @@ public class Messages {
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
         public static final String UNABLE_TO_LOCATE_ORDER_S_S = "Unable to locate order <%s> notified by <%s>.";
-        public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
+        public static final String UNABLE_TO_NOTIFY_REQUESTING_PROVIDER = "Unable to notify requesting provider %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
     }
 
@@ -90,7 +90,7 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
-        public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
+        public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for provider %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
         public static final String RECEIVING_DELETE_REQUEST = "Delete request for %s %s received.";
         public static final String RECEIVING_GET_ALL_IMAGES_REQUEST = "Get all images request received.";

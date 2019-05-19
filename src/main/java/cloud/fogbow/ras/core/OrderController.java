@@ -25,12 +25,12 @@ public class OrderController {
 
     private final SharedOrderHolders orderHolders;
     private Map<String, List<String>> orderDependencies;
-    private String localMemberId;
+    private String localProviderId;
 
     public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
         this.orderDependencies = new ConcurrentHashMap<>();
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
@@ -69,9 +69,9 @@ public class OrderController {
             // Sometimes an order depends on other orders (ex. an attachment depends on a volume and a compute).
             // We need to keep this information, so to disallow the deletion of an order on which another order
             // depends (ex. we should not allow the deletion of a volume, for which there is an active attachment),
-            // but the information needs only to be kept at the member that received the create request through its
+            // but the information needs only to be kept at the provider that received the create request through its
             // REST API.
-            if (order.isRequesterLocal(this.localMemberId)) {
+            if (order.isRequesterLocal(this.localProviderId)) {
                 this.updateOrderDependencies(order, Operation.CREATE);
             }
             return order.getId();
@@ -100,18 +100,18 @@ public class OrderController {
         if (order == null)
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
 
-        // This code may be executed by two different members for the same logical order. This is the case when the
-        // provider member is remote. In this case, some parts of the code should be executed only at the member that
-        // receives the request through its REST API, while other parts should be executed only by the member that
+        // This code may be executed by two different providers for the same logical order. This is the case when the
+        // provider provider is remote. In this case, some parts of the code should be executed only at the provider that
+        // receives the request through its REST API, while other parts should be executed only by the provider that
         // is providing resources to the order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
                 // Sometimes an order depends on other orders (ex. an attachment depends on a volume and a compute).
                 // We need to verify whether another order depends on this order, and if this is the case, throw a
-                // DependencyDetectedException. Only the member that is receiving the delete request through its
+                // DependencyDetectedException. Only the provider that is receiving the delete request through its
                 // REST API needs to check order dependencies.
-                if (order.isRequesterLocal(this.localMemberId)) {
+                if (order.isRequesterLocal(this.localProviderId)) {
                     checkOrderDependencies(order.getId());
                 }
                 CloudConnector cloudConnector = getCloudConnector(order);
@@ -119,8 +119,8 @@ public class OrderController {
                     // When the order is remote, there is no local instance; also, a previous call to deleteOrder might
                     // have failed after the instance had already been removed from the cloud. In both cases, the
                     // instanceId will be null, and there is no need to call deleteInstance.
-                    if ((order.isProviderLocal(this.localMemberId) && order.getInstanceId() != null) ||
-                            order.isProviderRemote(this.localMemberId)) {
+                    if ((order.isProviderLocal(this.localProviderId) && order.getInstanceId() != null) ||
+                            order.isProviderRemote(this.localProviderId)) {
                         cloudConnector.deleteInstance(order);
                         order.setInstanceId(null);
                     }
@@ -128,13 +128,13 @@ public class OrderController {
                     LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
                     throw e;
                 }
-                // When the provider is remote, both local and remote members call this code and move their
+                // When the provider is remote, both local and remote providers call this code and move their
                 // respective orders to CLOSED.
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
                 // Remove any references that related dependencies of other orders with the order that has
-                // just been deleted. Only the member that is receiving the delete request through its
+                // just been deleted. Only the provider that is receiving the delete request through its
                 // REST API needs to update order dependencies.
-                if (order.isRequesterLocal(this.localMemberId)) {
+                if (order.isRequesterLocal(this.localProviderId)) {
                     updateOrderDependencies(order, Operation.DELETE);
                 }
             } else {
@@ -151,7 +151,7 @@ public class OrderController {
         synchronized (order) {
             CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
-            if (order.isProviderLocal(this.localMemberId)) {
+            if (order.isProviderLocal(this.localProviderId)) {
                 return updateInstanceUsingOrderData(instance, order);
             } else {
                 return instance;
@@ -159,14 +159,14 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String memberId, SystemUser systemUser, ResourceType resourceType)
+    public Allocation getUserAllocation(String providerId, SystemUser systemUser, ResourceType resourceType)
             throws UnexpectedException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
         List<Order> filteredOrders = orders.stream()
                 .filter(order -> order.getType().equals(resourceType))
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
-                .filter(order -> order.isProviderLocal(memberId))
+                .filter(order -> order.isProviderLocal(providerId))
                 .filter(order -> order.getSystemUser().equals(systemUser))
                 .collect(Collectors.toList());
 
@@ -229,18 +229,18 @@ public class OrderController {
     protected CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
         synchronized (order) {
-            String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
-            if (order.isProviderLocal(localMemberId)) {
-                provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
+            if (order.isProviderLocal(localProviderId)) {
+                provider = CloudConnectorFactory.getInstance().getCloudConnector(localProviderId, order.getCloudName());
             } else {
                 if (order.getOrderState().equals(OrderState.OPEN) ||
                         order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
 
                     // This is an order for a remote provider that has never been received by that provider.
                     // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is
-                    // only necessary to call deleteInstance in the local member.
-                    provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
+                    // only necessary to call deleteInstance in the local provider.
+                    provider = CloudConnectorFactory.getInstance().getCloudConnector(localProviderId, order.getCloudName());
 
                 } else {
                     provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());

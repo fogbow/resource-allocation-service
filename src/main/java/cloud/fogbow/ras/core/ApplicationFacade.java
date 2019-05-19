@@ -44,12 +44,12 @@ public class ApplicationFacade {
     private OrderController orderController;
     private SecurityRuleController securityRuleController;
     private CloudListController cloudListController;
-    private String memberId;
+    private String providerId;
     private RSAPublicKey asPublicKey;
     private String buildNumber;
 
     private ApplicationFacade() {
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
         this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.BUILD_NUMBER_KEY,
                 ConfigurationPropertyDefaults.BUILD_NUMBER);
     }
@@ -92,14 +92,14 @@ public class ApplicationFacade {
         }
     }
 
-    public List<String> getCloudNames(String memberId, String userToken) throws FogbowException {
+    public List<String> getCloudNames(String providerId, String userToken) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES));
-        if (memberId.equals(this.memberId)) {
+        if (providerId.equals(this.providerId)) {
             return this.cloudListController.getCloudNames();
         } else {
             try {
-                RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(memberId, requester);
+                RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(providerId, requester);
                 List<String> cloudNames = remoteGetCloudNames.send();
                 return cloudNames;
             } catch (Exception e) {
@@ -110,8 +110,8 @@ public class ApplicationFacade {
     }
 
     // This method is protected to be used in testing
-	protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String memberId, SystemUser requester) {
-		RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(memberId, requester);
+	protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser requester) {
+		RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(providerId, requester);
 		return remoteGetCloudNames;
 	}
 
@@ -139,14 +139,14 @@ public class ApplicationFacade {
         deleteOrder(computeId, userToken, ResourceType.COMPUTE);
     }
 
-    public ComputeAllocation getComputeAllocation(String memberId, String cloudName, String userToken)
+    public ComputeAllocation getComputeAllocation(String providerId, String cloudName, String userToken)
             throws FogbowException {
-        return (ComputeAllocation) getUserAllocation(memberId, cloudName, userToken, ResourceType.COMPUTE);
+        return (ComputeAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.COMPUTE);
     }
 
-    public ComputeQuota getComputeQuota(String memberId, String cloudName, String userToken)
+    public ComputeQuota getComputeQuota(String providerId, String cloudName, String userToken)
             throws FogbowException {
-        return (ComputeQuota) getUserQuota(memberId, cloudName, userToken, ResourceType.COMPUTE);
+        return (ComputeQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.COMPUTE);
     }
 
     public String createVolume(VolumeOrder volumeOrder, String userToken) throws FogbowException {
@@ -204,27 +204,27 @@ public class ApplicationFacade {
         return this.orderController.getInstancesStatus(requester, resourceType);
     }
 
-    public Map<String, String> getAllImages(String memberId, String cloudName, String userToken)
+    public Map<String, String> getAllImages(String providerId, String cloudName, String userToken)
             throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName));
-        if (memberId == null) {
-            memberId = this.memberId;
+        if (providerId == null) {
+            providerId = this.providerId;
         }
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.getAllImages(requester);
     }
 
-    public ImageInstance getImage(String memberId, String cloudName, String imageId, String userToken)
+    public ImageInstance getImage(String providerId, String cloudName, String imageId, String userToken)
             throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName));
-        if (memberId == null) {
-            memberId = this.memberId;
+        if (providerId == null) {
+            providerId = this.providerId;
         }
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.getImage(imageId, requester);
     }
 
@@ -266,19 +266,19 @@ public class ApplicationFacade {
         securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
     }
 
-    public FogbowGenericResponse genericRequest(String cloudName, String memberId, String genericRequest,
+    public FogbowGenericResponse genericRequest(String cloudName, String providerId, String genericRequest,
                                                 String userToken) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GENERIC_REQUEST,
                 ResourceType.GENERIC_RESOURCE, cloudName, genericRequest));
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.genericRequest(genericRequest, requester);
     }
 
     private String activateOrder(Order order, String userToken) throws FogbowException {
         // Set order fields that have not been provided by the requester in the body of the HTTP request
-        order.setRequester(this.memberId);
-        if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.memberId);
+        order.setRequester(this.providerId);
+        if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.providerId);
         if (order.getCloudName() == null || order.getCloudName().isEmpty())
             order.setCloudName(this.cloudListController.getDefaultCloudName());
         // Check if the user is authentic
@@ -308,22 +308,22 @@ public class ApplicationFacade {
         this.orderController.deleteOrder(order);
     }
 
-    private Allocation getUserAllocation(String memberId, String cloudName, String userToken,
+    private Allocation getUserAllocation(String providerId, String cloudName, String userToken,
                                          ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_USER_ALLOCATION,
                 resourceType, cloudName));
-        return this.orderController.getUserAllocation(memberId, requester, resourceType);
+        return this.orderController.getUserAllocation(providerId, requester, resourceType);
     }
 
-    private Quota getUserQuota(String memberId, String cloudName, String userToken,
+    private Quota getUserQuota(String providerId, String cloudName, String userToken,
                                ResourceType resourceType) throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET_USER_QUOTA,
                 resourceType, cloudName));
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
@@ -403,7 +403,7 @@ public class ApplicationFacade {
         if (!mainOrder.getCloudName().equals(embeddedOrder.getCloudName())) {
             throw new InvalidParameterException(Messages.Exception.CLOUD_NAMES_DONT_MATCH);
         }
-        if (embeddedOrder.getProvider().equals(this.memberId) && embeddedOrder.getInstanceId() == null) {
+        if (embeddedOrder.getProvider().equals(this.providerId) && embeddedOrder.getInstanceId() == null) {
             throw new InvalidParameterException(String.format(Messages.Exception.INSTANCE_NULL_S, embeddedOrder.getId()));
         }
     }

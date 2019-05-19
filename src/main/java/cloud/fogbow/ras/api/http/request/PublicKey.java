@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.api.http.request;
 
+import cloud.fogbow.common.constants.ApiDocumentation;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;

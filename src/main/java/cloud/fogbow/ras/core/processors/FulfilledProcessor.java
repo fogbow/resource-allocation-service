@@ -22,15 +22,15 @@ import org.apache.log4j.Logger;
 public class FulfilledProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
-    private String localMemberId;
+    private String localProviderId;
     private ChainedList<Order> fulfilledOrdersList;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
 
-    public FulfilledProcessor(String localMemberId, String sleepTimeStr) {
-        this.localMemberId = localMemberId;
+    public FulfilledProcessor(String localProviderId, String sleepTimeStr) {
+        this.localProviderId = localProviderId;
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
@@ -87,13 +87,13 @@ public class FulfilledProcessor implements Runnable {
             }
             // Only local orders need to be monitored. Remote orders are monitored by the remote provider
             // and change state when that provider notifies state changes.
-            if (order.isProviderRemote(this.localMemberId)) {
+            if (order.isProviderRemote(this.localProviderId)) {
                 return;
             }
             try {
                 // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
                 LocalCloudConnector localCloudConnector = (LocalCloudConnector)
-                        CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, order.getCloudName());
+                        CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
                 // we won't audit requests we make
                 localCloudConnector.switchOffAuditing();
 

@@ -20,24 +20,24 @@ public class ProcessorsThreadController {
     private final static String CLOSED_PROCESSOR_THREAD_NAME = "closed-proc";
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
 
-    public ProcessorsThreadController(String localMemberId, OrderController orderController) {
+    public ProcessorsThreadController(String localProviderId, OrderController orderController) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
 
-        OpenProcessor openProcessor = new OpenProcessor(localMemberId, openOrdersProcSleepTimeStr);
+        OpenProcessor openProcessor = new OpenProcessor(localProviderId, openOrdersProcSleepTimeStr);
 
         String spawningOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.SPAWNING_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.SPAWNING_ORDERS_SLEEP_TIME);
 
-        SpawningProcessor spawningProcessor = new SpawningProcessor(localMemberId, spawningOrdersProcSleepTimeStr);
+        SpawningProcessor spawningProcessor = new SpawningProcessor(localProviderId, spawningOrdersProcSleepTimeStr);
 
         String fulfilledOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.FULFILLED_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
 
-        FulfilledProcessor fulfilledProcessor = new FulfilledProcessor(localMemberId, fulfilledOrdersProcSleepTimeStr);
+        FulfilledProcessor fulfilledProcessor = new FulfilledProcessor(localProviderId, fulfilledOrdersProcSleepTimeStr);
 
         String closedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.CLOSED_ORDERS_SLEEP_TIME_KEY,
@@ -49,7 +49,7 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationPropertyKeys.FAILED_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
         
-        UnableToCheckStatusProcessor unableToCheckStatusProcessor = new UnableToCheckStatusProcessor(localMemberId, failedOrdersProcSleepTimeStr);
+        UnableToCheckStatusProcessor unableToCheckStatusProcessor = new UnableToCheckStatusProcessor(localProviderId, failedOrdersProcSleepTimeStr);
 
         this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
         this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);

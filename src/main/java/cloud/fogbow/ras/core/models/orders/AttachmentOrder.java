@@ -44,15 +44,17 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
         this.type = ResourceType.ATTACHMENT;
     }
 
-    public AttachmentOrder(String providingMember, String cloudName, String computeOrderId, String volumeOrderId,
-                           String device) {
-        this(null, null, providingMember, cloudName, computeOrderId, volumeOrderId, device);
+    public AttachmentOrder(String computeOrderId, String volumeOrderId, String device) {
+        this(null, null, null, null, computeOrderId, volumeOrderId, device);
         this.type = ResourceType.ATTACHMENT;
+        VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(volumeOrderId);
+        setProvider(volumeOrder == null ? null : volumeOrder.getProvider());
+        setCloudName(volumeOrder == null ? null : volumeOrder.getCloudName());
     }
 
-    public AttachmentOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+    public AttachmentOrder(SystemUser systemUser, String requestingProvider, String providingProvider, String cloudName,
                            String computeOrderId, String volumeOrderId, String device) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requestingProvider);
         this.computeOrderId = computeOrderId;
         this.volumeOrderId = volumeOrderId;
         this.device = device;

@@ -43,7 +43,7 @@ public class Compute {
     public ResponseEntity<ResourceId> createCompute(
             @ApiParam(value = ApiDocumentation.Compute.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Compute compute,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -60,7 +60,7 @@ public class Compute {
     @ApiOperation(value = ApiDocumentation.Compute.GET_OPERATION)
     @RequestMapping(value = "/" + STATUS_SUFFIX_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
@@ -79,7 +79,7 @@ public class Compute {
     public ResponseEntity<ComputeInstance> getCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -98,7 +98,7 @@ public class Compute {
     public ResponseEntity<Boolean> deleteCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -113,19 +113,19 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
-    @RequestMapping(value = "/" + QUOTA_SUFFIX_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + QUOTA_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(
-            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_SUFFIX_ENDPOINT, memberId));
-            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, cloudName, systemUserToken);
+            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_SUFFIX_ENDPOINT, providerId));
+            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -134,20 +134,20 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
-    @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeAllocation> getUserAllocation(
-            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_SUFFIX_ENDPOINT, memberId));
+            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_SUFFIX_ENDPOINT, providerId));
             ComputeAllocation computeAllocation =
-                ApplicationFacade.getInstance().getComputeAllocation(memberId, cloudName, systemUserToken);
+                ApplicationFacade.getInstance().getComputeAllocation(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

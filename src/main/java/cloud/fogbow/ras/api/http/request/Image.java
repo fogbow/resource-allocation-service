@@ -3,11 +3,13 @@ package cloud.fogbow.ras.api.http.request;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageList;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
@@ -30,19 +32,19 @@ public class Image {
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
 
     @ApiOperation(value = ApiDocumentation.Image.GET_OPERATION)
-    @RequestMapping(value = "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<Map<String, String>> getAllImages(
-            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
-            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, systemUserToken);
+            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -51,21 +53,21 @@ public class Image {
     }
 
     @ApiOperation(value = ApiDocumentation.Image.GET_BY_ID_OPERATION)
-    @RequestMapping(value = "/{memberId:.+}" + "/{cloudName}" + "/{imageId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{providerId:.+}" + "/{cloudName}" + "/{imageId}", method = RequestMethod.GET)
     public ResponseEntity<ImageInstance> getImage(
-            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.Image.ID)
             @PathVariable String imageId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
-            ImageInstance imageInstance = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, systemUserToken);
+            ImageInstance imageInstance = ApplicationFacade.getInstance().getImage(providerId, cloudName, imageId, systemUserToken);
             return new ResponseEntity<>(imageInstance, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

@@ -102,7 +102,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
                         hardwareRequirements.getMemory(),
                         1);
                 // When the ComputeOrder is remote, this field must be copied into its local counterpart
-                // that is updated when the requestingMember receives the reply from the providingMember
+                // that is updated when the requestingProvider receives the reply from the providingProvider
                 // (see RemoteFacade.java)
                 computeOrder.setActualAllocation(actualAllocation);
             }
