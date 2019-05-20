@@ -33,7 +33,7 @@ public class Image {
 
     @ApiOperation(value = ApiDocumentation.Image.GET_OPERATION)
     @RequestMapping(value = "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
-    public ResponseEntity<Map<String, String>> getAllImages(
+    public ResponseEntity<ImageList> getAllImages(
             @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
             @PathVariable String providerId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
@@ -45,7 +45,7 @@ public class Image {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
             Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(providerId, cloudName, systemUserToken);
-            return new ResponseEntity<>(imagesMap, HttpStatus.OK);
+            return new ResponseEntity<>(new ImageList(imagesMap), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

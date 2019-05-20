@@ -22,13 +22,12 @@ public class ComputeInstance extends OrderInstance {
      */
     @ApiModelProperty(position = 10, example = "30", notes = ApiDocumentation.Model.DISK_NOTE)
     private int disk;
-    @ApiModelProperty(position = 11, example = "10.11.4.23,10.10.0.2")
+    @ApiModelProperty(position = 11, example = ApiDocumentation.Model.IP_ADDRESSES)
     private List<String> ipAddresses;
     /**
      * Order-related properties
      */
-    @ApiModelProperty(position = 12, example = "{\"name net1\": " + ApiDocumentation.Model.INSTANCE_ID +
-            ", \"name net2\": " + ApiDocumentation.Model.INSTANCE_ID2 + "}")
+    @ApiModelProperty(position = 12, example = ApiDocumentation.Model.NETWORKS)
     private Map<String, String> networks;
     @ApiModelProperty(position = 13, example = ApiDocumentation.Model.IMAGE_ID)
     private String imageId;

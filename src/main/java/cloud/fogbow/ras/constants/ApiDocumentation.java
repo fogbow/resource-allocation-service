@@ -155,24 +155,23 @@ public class ApiDocumentation {
         public static final String VOLUME_REQUIREMENTS = "{\"ssd\": \"true\"}";
         public static final String VOLUME_REQUIREMENTS_NOTE = "(this can be used to select particular features in the volume; each provider might " +
                 "use a different tagging standard)";
-        public static final String CLOUD_LIST = "cloud-A,cloud-B";
+        public static final String CLOUD_LIST = "[ \"cloudA\", \"cloudB\" ]";
         public static final String IMAGE_NAME = "image name";
         public static final String INSTANCE_ID = "9632af26-72ee-461a-99a9-1e5d59076a98";
         public static final String INSTANCE_NAME = "instance name";
         public static final String INSTANCE_ID2 = "13310a2c-5df3-4a0e-a1ee-202125583ffa";
-        public static final String IMAGE_LIST = "{\n" +
-                "    \"f1d97fdd-19af-45d1-bb91-f6a92183875f\": \"fedora-27\",\n" +
-                "    \"79724aa9-00e1-4590-b280-8004c23d3ecc\": \"ubuntu-14.04\",\n" +
-                "    \"670f78c3-5d50-4600-90bb-d01820fddb8d\": \"ubuntu-16.04\",\n" +
-                "    \"2ee823a2-6a36-4aeb-9a74-715960b2fcea\": \"centos6\",\n" +
-                "    \"b6de0caa-680b-4f5b-851b-11e53eed1733\": \"opensuse-42.3\",\n" +
-                "    \"03f6cf56-ac69-4d22-8e8e-9c0fc4777eb3\": \"fedora-atomic-magnum\",\n" +
-                "    \"54b4f5dd-7a11-46bd-8d6f-1d702051c900\": \"debian\",\n" +
-                "    \"1bf6e5e0-b988-415c-96b7-f78decc73750\": \"debian\",\n" +
-                "    \"d6039a41-e04a-4597-9d1a-8e37c85c265b\": \"fedora-atomic-26-20171030\",\n" +
-                "    \"6ccbb5ca-6c6c-43f8-a1d0-1390cfd7db70\": \"fedora-25\",\n" +
-                "    \"0586d2f3-c2ef-447d-925d-ee88a90218e1\": \"ubuntu-16.04\"\n" +
-                "}";
+        public static final String IMAGE_LIST = "\"images\": [\n" +
+                "    { \"id\": \"f1d97fdd-19af-45d1-bb91-f6a92183875f\", \"name\": \"fedora-27\"},\n" +
+                "    { \"id\": \"670f78c3-5d50-4600-90bb-d01820fddb8d\", \"name\": \"ubuntu-16.04\"},\n" +
+                "    { \"id\": \"2ee823a2-6a36-4aeb-9a74-715960b2fcea\", \"name\": \"centos6\"},\n" +
+                "    { \"id\": \"b6de0caa-680b-4f5b-851b-11e53eed1733\", \"name\": \"opensuse-42.3\"},\n" +
+                "    { \"id\": \"54b4f5dd-7a11-46bd-8d6f-1d702051c900\", \"name\": \"debian\"}\n" +
+                "]";
         public static final String IMAGE_LIST_NOTE = "(the list of IDs and names of the images that are available to the user.)";
+        public static final String NETWORKS = "";
+        public static final String IP_ADDRESSES = "[\n" +
+                "    \"10.11.4.94\",\n" +
+                "    \"10.0.0.6\"\n" +
+                "  ]";
     }
 }

@@ -18,19 +18,19 @@ public class Compute implements OrderApiParameter {
     private String cloudName;
     @ApiModelProperty(position = 2, example = ApiDocumentation.Model.COMPUTE_NAME, notes = ApiDocumentation.Model.COMPUTE_NAME_NOTE)
     private String name;
-    @ApiModelProperty(position = 3, required = true, example = "2", notes = ApiDocumentation.Model.VCPU_NOTE)
+    @ApiModelProperty(position = 3, example = "2", notes = ApiDocumentation.Model.VCPU_NOTE)
     private int vCPU;
-    @ApiModelProperty(position = 4, required = true, example = "1", notes = ApiDocumentation.Model.MEMORY_NOTE)
+    @ApiModelProperty(position = 4, example = "1", notes = ApiDocumentation.Model.MEMORY_NOTE)
     private int memory;
-    @ApiModelProperty(position = 5, required = true, example = "1", notes = ApiDocumentation.Model.DISK_NOTE)
+    @ApiModelProperty(position = 5, example = "1", notes = ApiDocumentation.Model.DISK_NOTE)
     private int disk;
     @ApiModelProperty(position = 6, required = true, example = ApiDocumentation.Model.IMAGE_ID, notes = ApiDocumentation.Model.IMAGE_NOTE)
     private String imageId;
     @ApiModelProperty(position = 7, example = ApiDocumentation.Model.SSH_PUBLIC_KEY, notes = ApiDocumentation.Model.SSH_PUBLIC_KEY_NOTE)
     private String publicKey;
-    @ApiModelProperty(position = 8, required = true, example = ApiDocumentation.Model.USER_DATA, notes = ApiDocumentation.Model.USER_DATA_NOTE)
+    @ApiModelProperty(position = 8, example = ApiDocumentation.Model.USER_DATA, notes = ApiDocumentation.Model.USER_DATA_NOTE)
     private ArrayList<UserData> userData;
-    @ApiModelProperty(position = 9, required = true, example = ApiDocumentation.Model.NETWORK_IDS, notes = ApiDocumentation.Model.NETWORK_IDS_NOTE)
+    @ApiModelProperty(position = 9, example = ApiDocumentation.Model.NETWORK_IDS, notes = ApiDocumentation.Model.NETWORK_IDS_NOTE)
     private List<String> networkIds;
     @ApiModelProperty(position = 10, example = ApiDocumentation.Model.COMPUTE_REQUIREMENTS, notes = ApiDocumentation.Model.COMPUTE_REQUIREMENTS_NOTE)
     private Map<String, String> requirements;

@@ -6,11 +6,11 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Objects;
 
 public class SecurityRuleInstance extends Instance {
-    @ApiModelProperty(position = 3, required = true, example = "TCP")
+    @ApiModelProperty(position = 3, required = true, example = "TCP", allowableValues = "TCP, UDP, ICMP, ANY")
     private SecurityRule.Protocol protocol;
-    @ApiModelProperty(position = 4, required = true, example = "IPv4")
+    @ApiModelProperty(position = 4, required = true, example = "IPv4", allowableValues = "IPv4, IPv6")
     private SecurityRule.EtherType etherType;
-    @ApiModelProperty(position = 5, required = true, example = "IN")
+    @ApiModelProperty(position = 5, required = true, example = "IN", allowableValues = "IN, OUT")
     private SecurityRule.Direction direction;
     @ApiModelProperty(position = 6, required = true, example = "22")
     private int portFrom;
