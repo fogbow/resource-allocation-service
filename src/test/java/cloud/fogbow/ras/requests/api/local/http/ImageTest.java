@@ -69,7 +69,7 @@ public class ImageTest {
 
         // verify
         int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals("{}", result.getResponse().getContentAsString());
+        Assert.assertEquals("[]", result.getResponse().getContentAsString());
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
@@ -93,7 +93,7 @@ public class ImageTest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        TypeToken<Map<String, String>> token = new TypeToken<Map<String, String>>() {};
+        TypeToken<List<ImageSummary>> token = new TypeToken<List<ImageSummary>>() {};
         List<ImageSummary> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
         Assert.assertEquals(3, resultList.size());
     }

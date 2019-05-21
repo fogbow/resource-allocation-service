@@ -70,9 +70,11 @@ public class OpenStackImagePluginTest {
         Mockito.when(this.client.doGetRequest(endpoint, localUserAttributes)).thenReturn(jsonResponse);
 
         List<ImageSummary> expectedOutput = generateJustPublicAndPrivateImagesFromProject(0, 100);
+        expectedOutput.sort(Comparator.comparing(ImageSummary::getId));
 
         //exercise
         List<ImageSummary> imagePluginOutput = this.plugin.getAllImages(localUserAttributes);
+        imagePluginOutput.sort(Comparator.comparing(ImageSummary::getId));
 
         //verify
         Assert.assertEquals(expectedOutput, imagePluginOutput);
@@ -114,11 +116,13 @@ public class OpenStackImagePluginTest {
         Mockito.when(this.client.doGetRequest(endpoint3, localUserAttributes)).thenReturn(jsonResponse3);
 
         List<ImageSummary> expectedOutput = generateJustPublicAndPrivateImagesFromProject(0, 100);
-//        expectedOutput.putAll(generateJustPublicAndPrivateImagesFromProject(200, 100));
-//        expectedOutput.putAll(generateJustPublicAndPrivateImagesFromProject(400, 100));
+        expectedOutput.addAll(generateJustPublicAndPrivateImagesFromProject(200, 100));
+        expectedOutput.addAll(generateJustPublicAndPrivateImagesFromProject(400, 100));
+        expectedOutput.sort(Comparator.comparing(ImageSummary::getId));
 
         //exercise
         List<ImageSummary> imagePluginOutput = this.plugin.getAllImages(localUserAttributes);
+        imagePluginOutput.sort(Comparator.comparing(ImageSummary::getId));
 
         //verify
         Assert.assertEquals(expectedOutput, imagePluginOutput);
@@ -326,6 +330,29 @@ public class OpenStackImagePluginTest {
             image.put("id", "id" + Integer.toString(qtdImages + i + startId));
             image.put("name", "name" + Integer.toString(qtdImages + i + startId));
             myList.add(image);
+        }
+
+        return myList;
+    }
+
+    private List<ImageSummary> generateImageSummaries(int startId, int qtdImages) {
+        String projectId2 = "2";
+        List<ImageSummary> myList = new ArrayList<ImageSummary>();
+
+        qtdImages /= 2;
+
+        for (int i = 0; i < qtdImages; i++) {
+            List<ImageSummary> image = new ArrayList<>();
+            ImageSummary imageSummary = new ImageSummary("id" + Integer.toString(i + startId),
+                    "name" + Integer.toString(i + startId));
+            myList.add(imageSummary);
+        }
+
+        for (int i = 0; i < qtdImages; i++) {
+            List<ImageSummary> image = new ArrayList<>();
+            ImageSummary imageSummary = new ImageSummary("id" + Integer.toString(i + startId),
+                    "name" + Integer.toString(i + startId));
+            myList.add(imageSummary);
         }
 
         return myList;
