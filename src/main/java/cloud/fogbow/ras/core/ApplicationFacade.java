@@ -204,7 +204,7 @@ public class ApplicationFacade {
         return this.orderController.getInstancesStatus(requester, resourceType);
     }
 
-    public Map<String, String> getAllImages(String providerId, String cloudName, String userToken)
+    public List<ImageSummary> getAllImages(String providerId, String cloudName, String userToken)
             throws FogbowException {
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();

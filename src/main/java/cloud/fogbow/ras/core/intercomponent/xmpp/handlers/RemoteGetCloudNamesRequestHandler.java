@@ -39,8 +39,8 @@ public class RemoteGetCloudNamesRequestHandler extends AbstractQueryHandler {
 
     private SystemUser unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        Element systemUserElement = queryElement.element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 

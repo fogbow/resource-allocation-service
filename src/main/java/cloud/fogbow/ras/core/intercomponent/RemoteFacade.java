@@ -5,6 +5,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -22,7 +23,6 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import org.apache.log4j.Logger;
 
 import java.util.List;
-import java.util.Map;
 
 public class RemoteFacade {
     private static final Logger LOGGER = Logger.getLogger(RemoteFacade.class);
@@ -84,7 +84,7 @@ public class RemoteFacade {
         return cloudConnector.getImage(imageId, systemUser);
     }
 
-    public Map<String, String> getAllImages(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
         this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
@@ -165,10 +165,10 @@ public class RemoteFacade {
         this.securityRuleController = securityRuleController;
     }
 
-    private void checkOrderConsistency(String requestingProvider, Order order) throws InstanceNotFoundException,
+    private void checkOrderConsistency(String requestingProvider, Order order) throws UnexpectedException,
             InvalidParameterException {
         if (order == null || !order.getProvider().equals(this.localProviderId)) {
-            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDER);
+            throw new UnexpectedException(Messages.Exception.INCORRECT_PROVIDER);
         }
         if (!order.getRequester().equals(requestingProvider)) {
             throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_PROVIDER);

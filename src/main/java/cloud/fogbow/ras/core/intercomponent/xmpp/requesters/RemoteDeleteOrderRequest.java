@@ -42,7 +42,7 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(order.getType().toString());
 
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = iq.getElement().addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(order.getSystemUser()));
 
         return iq;

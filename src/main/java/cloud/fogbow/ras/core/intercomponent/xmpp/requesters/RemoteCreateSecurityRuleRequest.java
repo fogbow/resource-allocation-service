@@ -48,7 +48,7 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(majorOrder.getId());
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         Element securityRuleElement = queryElement.addElement(IqElement.SECURITY_RULE.toString());

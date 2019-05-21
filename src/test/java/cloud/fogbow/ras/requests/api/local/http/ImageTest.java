@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Image;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -29,7 +30,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -56,8 +59,8 @@ public class ImageTest {
     @Test
     public void testGetAllImagesWhenHasNoData() throws Exception {
         // set up
-        Map<String, String> imagesMap = new HashMap<>();
-        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        List<ImageSummary> imageSummaryList = new ArrayList<>();
+        Mockito.doReturn(imageSummaryList).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT + "/provider/cloud", getHttpHeaders(), "");
 
@@ -74,12 +77,12 @@ public class ImageTest {
     @Test
     public void testGetAllImagesWhenHasData() throws Exception {
         // set up
-        Map<String, String> imagesMap = new HashMap<>();
-        imagesMap.put("image-id1", "image-name1");
-        imagesMap.put("image-id2", "image-name2");
-        imagesMap.put("image-id3", "image-name3");
+        List<ImageSummary> imageSummaryList = new ArrayList<>();
+        imageSummaryList.add(new ImageSummary("image-id1", "image-name1"));
+        imageSummaryList.add(new ImageSummary("image-id2", "image-name2"));
+        imageSummaryList.add(new ImageSummary("image-id3", "image-name3"));
 
-        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(imageSummaryList).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT + "/provider/cloud", getHttpHeaders(), "");
 
@@ -91,8 +94,8 @@ public class ImageTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         TypeToken<Map<String, String>> token = new TypeToken<Map<String, String>>() {};
-        Map<String, String> resultMap = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertEquals(3, resultMap.size());
+        List<ImageSummary> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+        Assert.assertEquals(3, resultList.size());
     }
 
     // test case: Test if given an existing image id, the getImageId() returns that image properly.

@@ -7,6 +7,7 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.*;
@@ -17,15 +18,11 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -44,7 +41,6 @@ import org.xmpp.packet.IQ;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudConnectorFactory.class, DatabaseManager.class, PacketSenderHolder.class})
@@ -54,10 +50,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	private static final String FAKE_CONTENT = "fooBar";
 	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    private static final String FAKE_LOCAL_IDENTITY_MEMBER = "fake-localidentity-provider";
+    private static final String FAKE_LOCALIDENTITY_PROVIDER = "fake-localidentity-provider";
 	private static final String FAKE_OWNER_USER_ID_VALUE = "fake-owner-user-id";
     private static final String FAKE_REQUESTER_USER_ID_VALUE = "fake-requester-user-id";
-    private static final String FAKE_REQUESTING_MEMBER_ID = "fake-requesting-provider-id";
+    private static final String FAKE_REQUESTER_ID = "fake-requester-id";
     private static final String FAKE_URL = "https://www.foo.bar";
 	private static final String FAKE_RULE_ID = "fake-rule-id";
 
@@ -73,29 +69,29 @@ public class RemoteFacadeTest extends BaseUnitTests {
     }
 
 	// test case: When calling the activateOrder method with a requesting member
-	// different of the order requester, it must throw an InvalidParameterException.
+	// different of the order requester, it must throw an UnexpectedException.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testRemoteActivateOrderThrowsUnexpectedException() throws Exception {
+		// set up
+		Order order = new ComputeOrder();
+		order.setRequester(FAKE_REQUESTER_ID);
+		order.setProvider(FAKE_REQUESTER_ID);
+
+		// exercise
+		this.facade.activateOrder(FAKE_REQUESTER_ID, order);
+	}
+
+	// test case: When calling the activateOrder method with a providing member
+	// different of the orders provider, it must throw an InvalidParameterException.
 	@Test(expected = InvalidParameterException.class) // verify
 	public void testRemoteActivateOrderThrowsInvalidParameterException() throws Exception {
 		// set up
 		Order order = new ComputeOrder();
-		order.setRequester(FAKE_LOCAL_IDENTITY_MEMBER);
-		order.setProvider(FAKE_LOCAL_IDENTITY_MEMBER);
+		order.setRequester(FAKE_LOCALIDENTITY_PROVIDER);
+		order.setProvider(FAKE_LOCALIDENTITY_PROVIDER);
 
 		// exercise
-		this.facade.activateOrder(FAKE_REQUESTING_MEMBER_ID, order);
-	}
-
-	// test case: When calling the activateOrder method with a providing member
-	// different of the orders provider, it must throw an InstanceNotFoundException.
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testRemoteActivateOrderThrowsInstanceNotFoundException() throws Exception {
-		// set up
-		Order order = new ComputeOrder();
-		order.setRequester(FAKE_REQUESTING_MEMBER_ID);
-		order.setProvider(FAKE_REQUESTING_MEMBER_ID);
-
-		// exercise
-		this.facade.activateOrder(FAKE_REQUESTING_MEMBER_ID, order);
+		this.facade.activateOrder(FAKE_REQUESTER_ID, order);
 	}
 
 	// test case: When calling the activateOrder method a new Order passed by
@@ -139,7 +135,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order order = new ComputeOrder();
 
 		// exercise
-		this.facade.getResourceInstance(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser, order.getType());
+		this.facade.getResourceInstance(FAKE_REQUESTER_ID, order.getId(), systemUser, order.getType());
 	}
 
 	// test case: When calling the getResourceInstance method, it must return an
@@ -190,7 +186,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.setAuthorizationPlugin(authorization);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
+		String provider = FAKE_LOCALIDENTITY_PROVIDER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 
 		CloudConnectorFactory factory = mockCloudConnectorFactory();
@@ -199,7 +195,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.doThrow(new InstanceNotFoundException()).when(cloudConnector).deleteInstance(Mockito.eq(order));
 
 		// exercise
-		this.facade.deleteOrder(FAKE_REQUESTING_MEMBER_ID, order.getId(), systemUser, order.getType());
+		this.facade.deleteOrder(FAKE_REQUESTER_ID, order.getId(), systemUser, order.getType());
 	}
 
 	// test case: When calling the deleteOrder method with an Order passed per
@@ -260,7 +256,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Mockito.doReturn(expectedQuota).when(cloudConnector).getUserQuota(systemUser, resourceType);
 
 		// exercise
-		Quota quota = this.facade.getUserQuota(FAKE_REQUESTING_MEMBER_ID, cloudName, systemUser, resourceType);
+		Quota quota = this.facade.getUserQuota(FAKE_REQUESTER_ID, cloudName, systemUser, resourceType);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -308,7 +304,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		String cloudName = DEFAULT_CLOUD_NAME;
 
 		// exercise
-		FogbowGenericResponse fogbowGenericResponse = facade.genericRequest(FAKE_REQUESTING_MEMBER_ID, cloudName,
+		FogbowGenericResponse fogbowGenericResponse = facade.genericRequest(FAKE_REQUESTER_ID, cloudName,
                 serializedGenericRequest, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
@@ -345,7 +341,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		String imageId = FAKE_IMAGE_ID;
 
 		// exercise
-		this.facade.getImage(FAKE_REQUESTING_MEMBER_ID, cloudName, imageId, systemUser);
+		this.facade.getImage(FAKE_REQUESTER_ID, cloudName, imageId, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -371,13 +367,13 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 
-		Map<String, String> images = new HashMap<>();
-		Mockito.when(cloudConnector.getAllImages(Mockito.eq(systemUser))).thenReturn(images);
+		List<ImageSummary> imageSummaryList = new ArrayList<>();
+		Mockito.when(cloudConnector.getAllImages(Mockito.eq(systemUser))).thenReturn(imageSummaryList);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 
 		// exercise
-		this.facade.getAllImages(FAKE_REQUESTING_MEMBER_ID, cloudName, systemUser);
+		this.facade.getAllImages(FAKE_REQUESTER_ID, cloudName, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -406,7 +402,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.setCloudListController(cloudListController);
 
 		// exercise
-		this.facade.getCloudNames(FAKE_REQUESTING_MEMBER_ID, systemUser);
+		this.facade.getCloudNames(FAKE_REQUESTER_ID, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -514,7 +510,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String provider = FAKE_LOCAL_IDENTITY_MEMBER;
+		String provider = FAKE_LOCALIDENTITY_PROVIDER;
 		Order order = spyComputeOrder(systemUser, cloudName, provider);
 		this.orderController.activateOrder(order);
 
@@ -526,7 +522,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		String ruleId = FAKE_RULE_ID;
 
 		// exercise
-		this.facade.deleteSecurityRule(FAKE_REQUESTING_MEMBER_ID, cloudName, ruleId, systemUser);
+		this.facade.deleteSecurityRule(FAKE_REQUESTER_ID, cloudName, ruleId, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
@@ -582,7 +578,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		OrderState orderState = OrderState.FULFILLED;
 
 		String signallingMember = LOCAL_MEMBER_ID;
-		String requester = FAKE_REQUESTING_MEMBER_ID;
+		String requester = FAKE_REQUESTER_ID;
 		String provider = signallingMember;
 
 		Order remoteOrder = new ComputeOrder();
@@ -619,7 +615,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 
 		String signallingMember = LOCAL_MEMBER_ID;
-		String requester = FAKE_REQUESTING_MEMBER_ID;
+		String requester = FAKE_REQUESTER_ID;
 		String provider = signallingMember;
 
 		Order remoteOrder = new ComputeOrder();
@@ -654,7 +650,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 
-		String signallingMember = FAKE_REQUESTING_MEMBER_ID;
+		String signallingMember = FAKE_REQUESTER_ID;
 		String requester = signallingMember;
 		String provider = LOCAL_MEMBER_ID;
 

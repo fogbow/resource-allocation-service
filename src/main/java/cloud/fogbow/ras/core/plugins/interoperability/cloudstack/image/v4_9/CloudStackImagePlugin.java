@@ -6,15 +6,13 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.client.HttpResponseException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
 
@@ -31,7 +29,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     }
 
     @Override
-    public Map<String, String> getAllImages(CloudStackUser cloudUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(CloudStackUser cloudUser) throws FogbowException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder().build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -46,9 +44,10 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         GetAllImagesResponse response = GetAllImagesResponse.fromJson(jsonResponse);
         List<GetAllImagesResponse.Image> images = response.getImages();
 
-        Map<String, String> idToImageNames = new HashMap<>();
+        List<ImageSummary> idToImageNames = new ArrayList<>();
         for (GetAllImagesResponse.Image image : images) {
-            idToImageNames.put(image.getId(), image.getName());
+            ImageSummary imageSummary = new ImageSummary(image.getId(), image.getName());
+            idToImageNames.add(imageSummary);
         }
 
         return idToImageNames;

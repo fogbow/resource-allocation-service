@@ -41,7 +41,7 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_CLOUD_NAMES.toString());
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         return iq;

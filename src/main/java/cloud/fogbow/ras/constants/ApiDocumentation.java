@@ -132,7 +132,7 @@ public class ApiDocumentation {
         public static final String MEMORY_NOTE = "(the minimum memory size of the compute in Mega bytes)";
         public static final String DISK_NOTE = "(the minimum disk size of the compute in Giga bytes)";
         public static final String IMAGE_ID = "4489-82a0-622ee-461a-99a9-1e5d59076a98";
-        public static final String IMAGE_NOTE = "(the ID of the image to be used to create the compute)";
+        public static final String IMAGE_ID_NOTE = "(the ID of the image to be used to create the compute)";
         public static final String SSH_PUBLIC_KEY = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDesnSKdu1oTNYXNo8HXGf/0c8iI3qHmjdGJB7KFNtRCUJ2Ix\n" +
                 "l8JDNMXn8XsZb3+kyAJ29xfmoVlTeSVW4k51YBuJ6MJC0oUH/ipcfcveK7xQAvxU/v8eABC4tZsSEA\n" +
                 "NuJRXE2N5OcG7FwsZDfjtAeEVl3Ed8H3GLmWbDIXH2fYSODWeyW5x61wjxd9l8WsEvromZej2tMKyw\n" +
@@ -156,7 +156,7 @@ public class ApiDocumentation {
         public static final String VOLUME_REQUIREMENTS_NOTE = "(this can be used to select particular features in the volume; each provider might " +
                 "use a different tagging standard)";
         public static final String CLOUD_LIST = "[ \"cloudA\", \"cloudB\" ]";
-        public static final String IMAGE_NAME = "image name";
+        public static final String IMAGE_NAME = "ubuntu-16.04";
         public static final String INSTANCE_ID = "9632af26-72ee-461a-99a9-1e5d59076a98";
         public static final String INSTANCE_NAME = "instance name";
         public static final String INSTANCE_ID2 = "13310a2c-5df3-4a0e-a1ee-202125583ffa";
@@ -173,5 +173,6 @@ public class ApiDocumentation {
                 "    \"10.11.4.94\",\n" +
                 "    \"10.0.0.6\"\n" +
                 "  ]";
+        public static final String IMAGE_NAME_NOTE = "(the name of the image)";
     }
 }

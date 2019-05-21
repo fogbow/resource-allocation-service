@@ -3,13 +3,12 @@ package cloud.fogbow.ras.api.http.request;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.ImageList;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin
@@ -33,7 +33,7 @@ public class Image {
 
     @ApiOperation(value = ApiDocumentation.Image.GET_OPERATION)
     @RequestMapping(value = "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
-    public ResponseEntity<ImageList> getAllImages(
+    public ResponseEntity<List<ImageSummary>> getAllImages(
             @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
             @PathVariable String providerId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
@@ -44,8 +44,8 @@ public class Image {
 
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
-            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(providerId, cloudName, systemUserToken);
-            return new ResponseEntity<>(new ImageList(imagesMap), HttpStatus.OK);
+            List<ImageSummary> imagesMap = ApplicationFacade.getInstance().getAllImages(providerId, cloudName, systemUserToken);
+            return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

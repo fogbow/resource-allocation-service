@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -19,7 +20,9 @@ import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RemoteGetAllImagesRequestTest {
@@ -29,7 +32,7 @@ public class RemoteGetAllImagesRequestTest {
     private PacketSender packetSender;
     private RemoteGetAllImagesRequest remoteGetAllImagesRequest;
 
-    private HashMap<String, String> imagesMap;
+    private List<ImageSummary> imageSummaryList;
     private SystemUser systemUser;
 
     private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
@@ -43,19 +46,19 @@ public class RemoteGetAllImagesRequestTest {
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
 
-        this.imagesMap = new HashMap<String, String>();
-        this.imagesMap.put("key-1", "value-1");
-        this.imagesMap.put("key-2", "value-2");
-        this.imagesMap.put("key-3", "value-3");
+        this.imageSummaryList = new ArrayList<>();
+        this.imageSummaryList.add(new ImageSummary("key-1", "value-1"));
+        this.imageSummaryList.add(new ImageSummary("key-2", "value-2"));
+        this.imageSummaryList.add(new ImageSummary("key-3", "value-3"));
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetAllImagesRequestTest constructor parameters
-    // and remote get all images request rules. In addition, it checks if the image getCloudUser from a possible response is
+    // and remote get all images request rules. In addition, it checks if the image list from a possible response is
     // properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {
         // set up
-        IQ response = getImagesResponse(this.imagesMap, this.imagesMap.getClass().getName());
+        IQ response = getImagesResponse(this.imageSummaryList, this.imageSummaryList.getClass().getName());
         Mockito.doReturn(response).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
         // exercise
@@ -97,29 +100,28 @@ public class RemoteGetAllImagesRequestTest {
     @Test(expected = UnexpectedException.class)
     public void testSendWhenImageClassIsUndefined() throws Exception {
         // set up
-        IQ iqResponse = getImagesMapIQResponseWithWrongClass(this.imagesMap);
+        IQ iqResponse = getImagesMapIQResponseWithWrongClass(this.imageSummaryList);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
         // exercise/verify
         this.remoteGetAllImagesRequest.send();
     }
 
-    private IQ getImagesResponse(Map<String, String> imagesMap,
-                                 String className) {
+    private IQ getImagesResponse(List<ImageSummary> imageSummaryList, String className) {
         IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement()
                 .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
-        Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
+        Element imagesMapElement = queryEl.addElement(IqElement.IMAGE_SUMMARY_LIST.toString());
 
         Element imagesMapClassNameElement = queryEl
-                .addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
+                .addElement(IqElement.IMAGE_SUMMARY_LIST_CLASS_NAME.toString());
         imagesMapClassNameElement.setText(className);
 
-        imagesMapElement.setText(new Gson().toJson(imagesMap));
+        imagesMapElement.setText(new Gson().toJson(imageSummaryList));
         return iqResponse;
     }
 
-    private IQ getImagesMapIQResponseWithWrongClass(Map<String, String> imagesMap) {
-        return getImagesResponse(imagesMap, "wrongClassName");
+    private IQ getImagesMapIQResponseWithWrongClass(List<ImageSummary> imageSummaryList) {
+        return getImagesResponse(imageSummaryList, "wrongClassName");
     }
 }

@@ -1991,8 +1991,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		CloudConnectorFactory cloudConnectorFactory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(cloudConnectorFactory);
 		
-		Map<String, String> images = new HashMap<>();
-		Mockito.when(cloudConnector.getAllImages(Mockito.eq(systemUser))).thenReturn(images);
+		List<ImageSummary> imageSummaryList = new ArrayList<>();
+		Mockito.when(cloudConnector.getAllImages(Mockito.eq(systemUser))).thenReturn(imageSummaryList);
 		
 		String providerId = null;
 		String cloudName = DEFAULT_CLOUD_NAME;

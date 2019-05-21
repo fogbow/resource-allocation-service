@@ -2,9 +2,10 @@ package cloud.fogbow.ras.core.stubs;
 
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * This class is a stub for the ImagePlugin interface used for tests only.
@@ -16,7 +17,7 @@ public class StubImagePlugin implements ImagePlugin<CloudUser> {
     }
 
     @Override
-    public Map<String, String> getAllImages(CloudUser cloudUser) {
+    public List<ImageSummary> getAllImages(CloudUser cloudUser) {
         return null;
     }
 

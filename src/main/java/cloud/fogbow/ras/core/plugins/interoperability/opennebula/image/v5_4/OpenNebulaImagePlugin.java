@@ -1,10 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.ImagePool;
@@ -40,11 +39,11 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	}
 	
 	@Override
-	public Map<String, String> getAllImages(CloudUser cloudUser) throws FogbowException {
+	public List<ImageSummary> getAllImages(CloudUser cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, RESOURCE_NAME));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		return getImagesMap(imagePool);
+		return getImageSummaryList(imagePool);
 	}
 
 	@Override
@@ -55,14 +54,15 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return mount(image);
 	}
 
-	protected Map<String, String> getImagesMap(ImagePool imagePool) {
+	protected List<ImageSummary> getImageSummaryList(ImagePool imagePool) {
 		String type;
 		int index = 1;
-		Map<String, String> images = new HashMap<>();
+		List<ImageSummary> images = new ArrayList<>();
 		for (org.opennebula.client.image.Image image : imagePool) {
 			type = image.xpath(String.format(FORMAT_IMAGE_TYPE_PATH, index));
 			if (type != null && type.equals(OPERATIONAL_SYSTEM_IMAGE_TYPE)) {
-				images.put(image.getId(), image.getName());
+				ImageSummary imageSummary = new ImageSummary(image.getId(), image.getName());
+				images.add(imageSummary);
 			}
 			index++;
 		}

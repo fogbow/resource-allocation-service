@@ -49,7 +49,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());

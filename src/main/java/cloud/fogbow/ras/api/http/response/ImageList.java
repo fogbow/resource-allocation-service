@@ -3,21 +3,21 @@ package cloud.fogbow.ras.api.http.response;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.util.Map;
+import java.util.List;
 
 public class ImageList {
-    @ApiModelProperty(example = ApiDocumentation.Model.IMAGE_LIST, notes = ApiDocumentation.Model.IMAGE_LIST_NOTE)
-    private Map<String, String> images;
+    @ApiModelProperty(position = 0, example = ApiDocumentation.Model.IMAGE_LIST, notes = ApiDocumentation.Model.IMAGE_LIST_NOTE)
+    public List<ImageSummary> images;
 
-    public ImageList(Map<String, String> images) {
+    public ImageList(List<ImageSummary> images) {
         this.images = images;
     }
 
-    public Map<String, String> getImages() {
+    public List<ImageSummary> getImages() {
         return images;
     }
 
-    public void setImages(Map<String, String> images) {
+    public void setImages(List<ImageSummary> images) {
         this.images = images;
     }
 }

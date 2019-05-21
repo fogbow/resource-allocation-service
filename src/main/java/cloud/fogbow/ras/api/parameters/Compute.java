@@ -24,7 +24,7 @@ public class Compute implements OrderApiParameter {
     private int memory;
     @ApiModelProperty(position = 5, example = "1", notes = ApiDocumentation.Model.DISK_NOTE)
     private int disk;
-    @ApiModelProperty(position = 6, required = true, example = ApiDocumentation.Model.IMAGE_ID, notes = ApiDocumentation.Model.IMAGE_NOTE)
+    @ApiModelProperty(position = 6, required = true, example = ApiDocumentation.Model.IMAGE_ID, notes = ApiDocumentation.Model.IMAGE_ID_NOTE)
     private String imageId;
     @ApiModelProperty(position = 7, example = ApiDocumentation.Model.SSH_PUBLIC_KEY, notes = ApiDocumentation.Model.SSH_PUBLIC_KEY_NOTE)
     private String publicKey;

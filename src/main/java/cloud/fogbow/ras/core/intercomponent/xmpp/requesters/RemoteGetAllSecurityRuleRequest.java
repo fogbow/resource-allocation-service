@@ -44,7 +44,7 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_SECURITY_RULES.toString());
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());

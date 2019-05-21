@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
@@ -87,12 +88,12 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public HashMap<String, String> getAllImages(SystemUser systemUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationProvider,
                     this.cloudName, systemUser);
-            HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
-            return imagesMap;
+            List<ImageSummary> imagesSummaryList = remoteGetAllImagesRequest.send();
+            return imagesSummaryList;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);

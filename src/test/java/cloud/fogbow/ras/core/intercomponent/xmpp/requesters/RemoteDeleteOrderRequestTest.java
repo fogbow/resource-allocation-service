@@ -73,7 +73,7 @@ public class RemoteDeleteOrderRequestTest {
         Assert.assertEquals(this.order.getType().toString(), iqQueryInstanceType.toString());
 
         Element iqElementFederationUser = iq.getElement()
-                .element(IqElement.FEDERATION_USER.toString());
+                .element(IqElement.SYSTEM_USER.toString());
         Assert.assertEquals(federationUserJson, iqElementFederationUser.getText());
     }
 
