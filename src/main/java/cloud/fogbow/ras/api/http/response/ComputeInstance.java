@@ -5,7 +5,6 @@ import cloud.fogbow.ras.core.models.UserData;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.List;
-import java.util.Map;
 
 public class ComputeInstance extends OrderInstance {
     @ApiModelProperty(position = 7, example = ApiDocumentation.Model.COMPUTE_NAME)
@@ -28,7 +27,7 @@ public class ComputeInstance extends OrderInstance {
      * Order-related properties
      */
     @ApiModelProperty(position = 12, example = ApiDocumentation.Model.NETWORKS)
-    private Map<String, String> networks;
+    private List<NetworkSummary> networks;
     @ApiModelProperty(position = 13, example = ApiDocumentation.Model.IMAGE_ID)
     private String imageId;
     @ApiModelProperty(position = 14, example = ApiDocumentation.Model.SSH_PUBLIC_KEY, notes = ApiDocumentation.Model.SSH_PUBLIC_KEY_NOTE)
@@ -83,11 +82,11 @@ public class ComputeInstance extends OrderInstance {
         return this.vCPU;
     }
 
-    public Map<String, String> getNetworks() {
+    public List<NetworkSummary> getNetworks() {
         return networks;
     }
 
-    public void setNetworks(Map<String, String> networks) {
+    public void setNetworks(List<NetworkSummary> networks) {
         this.networks = networks;
     }
 

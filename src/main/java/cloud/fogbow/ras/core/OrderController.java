@@ -348,14 +348,14 @@ public class OrderController {
         String publicKey = order.getPublicKey();
         instance.setImageId(order.getImageId());
         List<UserData> userData = order.getUserData();
-        Map<String, String> instanceNetworks = instance.getNetworks();
+        List<NetworkSummary> instanceNetworks = instance.getNetworks();
         if (instanceNetworks == null) {
-            instanceNetworks = new HashMap<>();
+            instanceNetworks = new ArrayList<>();
         }
         // Remember that the instance ids seen by the user are really order ids, thus, when an order embeds other
         // orders, the instance that is returned needs to display order ids for these embedded orders, and not the
         // corresponding instance ids.
-        Map<String, String> mappedNetworks = addPrivateNetworksToMap(instanceNetworks, order);
+        List<NetworkSummary> mappedNetworks = addPrivateNetworksToMap(instanceNetworks, order);
         instance.setNetworks(mappedNetworks);
         instance.setPublicKey(publicKey);
         instance.setUserData(userData);
@@ -387,15 +387,15 @@ public class OrderController {
         instance.setComputeId(computeInstanceId);
     }
 
-    private Map<String, String> addPrivateNetworksToMap(Map<String, String> networks, ComputeOrder order) {
-        Map<String, String> mappedNetworks = new HashMap<>();
-        Set<String> networkIds = networks.keySet();
-        for (String networkId : networkIds) {
-            mappedNetworks.put(networkId, networks.get(networkId));
+    private List<NetworkSummary> addPrivateNetworksToMap(List<NetworkSummary> networks, ComputeOrder order) {
+        List<NetworkSummary> mappedNetworks = new ArrayList<>();
+        Iterator<NetworkSummary> iterator = networks.iterator();
+        while (iterator.hasNext()) {
+            mappedNetworks.add(networks.iterator().next());
         }
         List<NetworkOrder> networkOrders = order.getNetworkOrders();
         for (NetworkOrder networkOrder : networkOrders) {
-            mappedNetworks.put(networkOrder.getId(), networkOrder.getName());
+            mappedNetworks.add(new NetworkSummary(networkOrder.getId(), networkOrder.getName()));
         }
         return mappedNetworks;
     }

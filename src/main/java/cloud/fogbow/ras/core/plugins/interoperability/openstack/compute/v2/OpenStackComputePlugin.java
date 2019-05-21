@@ -5,6 +5,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
@@ -145,8 +146,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
         // are appended by the LocalCloudConnector.
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-        Map<String, String> computeNetworks = new HashMap<>();
-        computeNetworks.put(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
+        List<NetworkSummary> computeNetworks = new ArrayList<>();
+        computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
         computeInstance.setNetworks(computeNetworks);
         return computeInstance;
     }

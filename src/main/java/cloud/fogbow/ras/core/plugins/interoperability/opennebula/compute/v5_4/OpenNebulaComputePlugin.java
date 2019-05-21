@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 
+import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -272,8 +273,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
 		// are appended by the LocalCloudConnector.
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-		Map<String, String> computeNetworks = new HashMap<>();
-		computeNetworks.put(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
+		List<NetworkSummary> computeNetworks = new ArrayList<>();
+		computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
 		computeInstance.setNetworks(computeNetworks);
 		return computeInstance;
 	}

@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -283,8 +284,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         // The default network is always included in the order by the CloudStack plugin, thus it should be added
         // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
         // are appended by the LocalCloudConnector.
-        Map<String, String> computeNetworks = new HashMap<>();
-        computeNetworks.put(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
+        List<NetworkSummary> computeNetworks = new ArrayList<>();
+        computeNetworks.add(new NetworkSummary(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
         computeInstance.setNetworks(computeNetworks);
         return computeInstance;
     }

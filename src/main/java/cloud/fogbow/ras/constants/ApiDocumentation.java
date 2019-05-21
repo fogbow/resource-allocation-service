@@ -174,5 +174,9 @@ public class ApiDocumentation {
                 "    \"10.0.0.6\"\n" +
                 "  ]";
         public static final String IMAGE_NAME_NOTE = "(the name of the image)";
+        public static final String NETWORK_ID = "13310a2c-5df3-4a0e-a1ee-202125583ffa";
+        public static final String NETWORK_ID_NOTE = "(the network ID)";
+        public static final String NETWORK_NAME_NOTE = "(the network name)";
+        public static final String COMPUTE_ID_NOTE = "(the ID of the compute to which the IP has been assigned)";
     }
 }
