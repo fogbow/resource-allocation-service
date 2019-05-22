@@ -391,7 +391,7 @@ public class OrderController {
         List<NetworkSummary> mappedNetworks = new ArrayList<>();
         Iterator<NetworkSummary> iterator = networks.iterator();
         while (iterator.hasNext()) {
-            mappedNetworks.add(networks.iterator().next());
+            mappedNetworks.add(iterator.next());
         }
         List<NetworkOrder> networkOrders = order.getNetworkOrders();
         for (NetworkOrder networkOrder : networkOrders) {
