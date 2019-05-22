@@ -58,9 +58,7 @@ public abstract class Order<T extends Order> implements Serializable {
     @Size(max = FIELDS_MAX_SIZE)
     private String instanceId;
 
-    @ElementCollection
-    @MapKeyColumn
-    @Column
+    @Transient
     private Map<String, String> requirements = new HashMap<>();
 
     @Transient
@@ -145,7 +143,6 @@ public abstract class Order<T extends Order> implements Serializable {
         this.requester = requester;
     }
 
-    // When the provider is not set, then the request is assumed to be local, i.e. provider and request are the same.
     public String getProvider() {
         return this.provider;
     }
