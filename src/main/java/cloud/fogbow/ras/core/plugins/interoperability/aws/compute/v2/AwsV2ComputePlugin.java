@@ -39,16 +39,12 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeNetworkInterfacesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeNetworkInterfacesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceSpecification;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
-import software.amazon.awssdk.services.ec2.model.NetworkInterface;
-import software.amazon.awssdk.services.ec2.model.PrivateIpAddressSpecification;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
@@ -88,13 +84,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		String imageId = flavour.getFlavorId();
 		InstanceType instanceType = selectInstanceTypeBy(flavour);
 
-		List<PrivateIpAddressSpecification> ipAddresses = getIpAddressesSpecificationFrom(computeOrder, cloudUser);
-
 		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
-				.subnetId(this.subnetId) // Default subnet in the available zone of the selected region.
+				.subnetId(this.subnetId) // Default sub-net in the available zone of the selected region.
 				.deviceIndex(FIRST_POSITION) // The first position of the network interface.
 				.groups(this.securityGroup)
-				.privateIpAddresses(ipAddresses)
 				.build();
 
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
@@ -260,47 +253,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	// This method is used to aid in the tests
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
-	}
-
-	protected List<PrivateIpAddressSpecification> getIpAddressesSpecificationFrom(ComputeOrder computeOrder,
-			AwsV2User cloudUser) throws InvalidParameterException, UnexpectedException {
-
-		List<PrivateIpAddressSpecification> ipAddressList = new ArrayList<PrivateIpAddressSpecification>();
-
-		PrivateIpAddressSpecification ipAddress;
-		for (String networkId : computeOrder.getNetworkIds()) {
-			ipAddress = loadPrivateIpAddress(networkId, cloudUser);
-			if (ipAddress != null) {
-				ipAddressList.add(ipAddress);
-			}
-		}
-		return ipAddressList;
-	}
-
-	protected PrivateIpAddressSpecification loadPrivateIpAddress(String networkId, AwsV2User cloudUser)
-			throws InvalidParameterException, UnexpectedException {
-
-		String ipAddress;
-		List<NetworkInterface> networkInterfaceList = getNetworkInterfaces(networkId, cloudUser);
-		if (!networkInterfaceList.isEmpty()) {
-			ipAddress = networkInterfaceList.get(FIRST_POSITION).privateIpAddress();
-			return PrivateIpAddressSpecification.builder()
-					.privateIpAddress(ipAddress)
-					.build();
-		}
-		return null;
-	}
-
-	protected List<NetworkInterface> getNetworkInterfaces(String networkId, AwsV2User cloudUser)
-			throws InvalidParameterException, UnexpectedException {
-
-		DescribeNetworkInterfacesRequest request = DescribeNetworkInterfacesRequest.builder()
-				.networkInterfaceIds(networkId)
-				.build();
-
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeNetworkInterfacesResponse response = client.describeNetworkInterfaces(request);
-		return response.networkInterfaces();
 	}
 
 	protected InstanceType selectInstanceTypeBy(HardwareRequirements flavour) throws NoAvailableResourcesException {
