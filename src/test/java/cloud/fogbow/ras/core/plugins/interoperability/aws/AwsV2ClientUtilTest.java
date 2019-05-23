@@ -72,7 +72,7 @@ public class AwsV2ClientUtilTest {
 		String regionName = null;
 
 		// exercise
-		AwsV2ClientUtil.validateRegion(regionName);
+		AwsV2ClientUtil.parseRegion(regionName);
 	}
 	
 	// test case: When calling the validateRegion method with any value in region
@@ -83,7 +83,7 @@ public class AwsV2ClientUtilTest {
 		String regionName = ANY_VALUE;
 
 		// exercise
-		AwsV2ClientUtil.validateRegion(regionName);
+		AwsV2ClientUtil.parseRegion(regionName);
 	}
 	
 	// test case: When calling the validateRegion method with an empty string in
@@ -94,7 +94,7 @@ public class AwsV2ClientUtilTest {
 		String regionName = EMPTY_STRING;
 
 		// exercise
-		AwsV2ClientUtil.validateRegion(regionName);
+		AwsV2ClientUtil.parseRegion(regionName);
 	}
 	
 }

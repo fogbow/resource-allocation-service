@@ -1,9 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,12 +31,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttachVolumeRequest;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.DetachVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
-import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
@@ -48,12 +44,9 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 public class AwsV2AttachmentPluginTest {
 
 	private static final String ATTACHMENT_BUSY_STATE = "busy";
-	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
 	private static final String EMPTY_STRING = "";
-	private static final String FAKE_ATTACHMENT_ID = "fake-attachment-id";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_TAG_NAME = "fake-tag-name";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
 	private AwsV2AttachmentPlugin plugin;
@@ -138,8 +131,7 @@ public class AwsV2AttachmentPluginTest {
 	}
 
 	// test case: When calling the requestInstance method, with an attachment order
-	// and cloud user valid, a client is invoked to attach a volume to an instance,
-	// returning the attachment ID.
+	// and cloud user valid, a client is invoked to attach a volume to an instance.
 	@Test
 	public void testRequestInstanceSuccessful() throws FogbowException {
 		// set up
@@ -147,24 +139,17 @@ public class AwsV2AttachmentPluginTest {
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
-		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_ATTACHMENT_ID);
-
 		AttachmentOrder attachmentOrder = createAttachmentOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		String expected = AwsV2AttachmentPlugin.ATTACHMENT_ID_PREFIX + FAKE_ATTACHMENT_ID;
-
 		// exercise
-		String attachmentId = this.plugin.requestInstance(attachmentOrder, cloudUser);
+		this.plugin.requestInstance(attachmentOrder, cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
 		Mockito.verify(client, Mockito.times(1)).attachVolume((Mockito.any(AttachVolumeRequest.class)));
-		Mockito.verify(client, Mockito.times(1)).createTags(Mockito.any(CreateTagsRequest.class));
-
-		Assert.assertEquals(expected, attachmentId);
 	}
 
 	// test case: When calling the deleteInstance method, with an attachment order
@@ -276,7 +261,6 @@ public class AwsV2AttachmentPluginTest {
 	public void testMountAttachmentInstanceWithoutAttachments() throws InstanceNotFoundException {
 		// set up
 		Volume volume = Volume.builder()
-				.tags(createVolumeTagName(), createTagAttachmentId())
 				.build();
 
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder()
@@ -299,7 +283,7 @@ public class AwsV2AttachmentPluginTest {
 	}
 	
 	private AttachmentInstance createAttachmentInstance() {
-        String id = FAKE_ATTACHMENT_ID;
+        String id = FAKE_VOLUME_ID;
         String cloudState = AwsV2StateMapper.ATTACHED_STATE;
         String computeId = FAKE_INSTANCE_ID;
         String volumeId = FAKE_VOLUME_ID;
@@ -308,16 +292,13 @@ public class AwsV2AttachmentPluginTest {
     }
 	
 	private DescribeVolumesResponse createVolumeResponse() {
-		List<Tag> tags = new ArrayList<Tag>();
-		tags.add(createVolumeTagName());
-		tags.add(createTagAttachmentId());
 		VolumeAttachment attachment = createVolumeAttachment();
-		Volume volume = createVolume(attachment, tags);
+		Volume volume = createVolume(attachment);
 		return DescribeVolumesResponse.builder().volumes(volume).build();
 	}
 
-	private Volume createVolume(VolumeAttachment attachment, List<Tag> tags) {
-		return Volume.builder().tags(tags).attachments(attachment).build();
+	private Volume createVolume(VolumeAttachment attachment) {
+		return Volume.builder().attachments(attachment).build();
 	}
 
 	private VolumeAttachment createVolumeAttachment() {
@@ -329,24 +310,6 @@ public class AwsV2AttachmentPluginTest {
 				.build();
 		
 		return attachment;
-	}
-
-	private Tag createTagAttachmentId() {
-		Tag tagAttachmentId = Tag.builder()
-				.key(AwsV2AttachmentPlugin.ATTACHMENT_ID_TAG)
-				.value(FAKE_ATTACHMENT_ID)
-				.build();
-		
-		return tagAttachmentId;
-	}
-
-	private Tag createVolumeTagName() {
-		Tag tagName = Tag.builder()
-				.key(AWS_TAG_NAME)
-				.value(FAKE_TAG_NAME)
-				.build();
-		
-		return tagName;
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
@@ -365,7 +328,7 @@ public class AwsV2AttachmentPluginTest {
 		String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
 		AttachmentOrder attachmentOrder = new AttachmentOrder(null, CLOUD_NAME, computeOrder.getId(),
 				volumeOrder.getId(), device);
-		attachmentOrder.setInstanceId(FAKE_ATTACHMENT_ID);
+		attachmentOrder.setInstanceId(FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
 		return attachmentOrder;
 	}

@@ -24,7 +24,7 @@ public class AwsV2ClientUtil {
 		String accessKeyId = token[ACCESS_KEY_ID_TOKEN_INDEX];
 		String secretKeyId = token[SECRET_KEY_ID_TOKEN_INDEX];
     
-		Region region = validateRegion(regionName);
+		Region region = parseRegion(regionName);
 
 		Ec2Client client;
 		try {
@@ -42,7 +42,7 @@ public class AwsV2ClientUtil {
 		}
 	}
 
-	protected static Region validateRegion(String regionName) throws InvalidParameterException {
+	protected static Region parseRegion(String regionName) throws InvalidParameterException {
 		Region region;
 		if (regionName != null && !regionName.isEmpty()) {
 			region = Region.of(regionName);
