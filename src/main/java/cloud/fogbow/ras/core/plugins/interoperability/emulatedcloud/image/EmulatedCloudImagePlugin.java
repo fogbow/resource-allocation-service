@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.image;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
@@ -45,7 +45,7 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
     }
 
     @Override
-    public Image getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+    public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
 
         Map<String, String> allImages = this.getAllImages(cloudUser);
 
@@ -55,7 +55,7 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
 
         String imageName = allImages.get(imageId);
 
-        return new Image(
+        return new ImageInstance(
                 imageId,
                 imageName,
                 DEFAULT_IMAGE_SIZE,

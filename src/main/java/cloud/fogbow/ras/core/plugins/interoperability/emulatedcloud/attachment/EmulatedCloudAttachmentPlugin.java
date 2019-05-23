@@ -8,15 +8,13 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Properties;
 
 public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser> {
-
-    private static final Logger LOGGER = Logger.getLogger(EmulatedCloudAttachmentPlugin.class);
 
     private Properties properties;
 
@@ -85,9 +83,10 @@ public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser
 
     private EmulatedAttachment generateJsonEntityToCreateAttachment(String compute, String volume, String instanceId){
         EmulatedAttachment emulatedAttachment = new EmulatedAttachment.Builder()
-                .device(compute)
+                .computeId(compute)
                 .volumeId(volume)
                 .instanceId(instanceId)
+                .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
                 .build();
 
         return  emulatedAttachment;
