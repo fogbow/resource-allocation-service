@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2;
 
-public enum AwsFlavour {
+public enum AwsFlavor {
 
 	T1_MICRO("t1.micro") {
 
@@ -21,7 +21,7 @@ public enum AwsFlavour {
 
 	private String name;
 
-	AwsFlavour(String name) {
+	AwsFlavor(String name) {
 		this.name = name;
 	}
 

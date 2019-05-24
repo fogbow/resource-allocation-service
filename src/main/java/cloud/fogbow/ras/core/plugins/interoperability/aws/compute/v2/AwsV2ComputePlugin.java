@@ -61,28 +61,30 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private static final int INSTANCES_LAUNCH_NUMBER = 1;
 	private static final int ONE_GIGABYTE = 1024;
 
-	private TreeSet<HardwareRequirements> flavors;
+	private TreeSet<HardwareRequirements> hardwareRequirementsList;
 	private LaunchCommandGenerator launchCommandGenerator;
 	private String region;
 	private String subnetId;
 	private String securityGroup;
+	private String flavorsFilePath;
 
 	public AwsV2ComputePlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 		this.subnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_SUBNET_ID_KEY);
 		this.securityGroup = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_SECURITY_GROUP_KEY);
+		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-		this.flavors = new TreeSet<HardwareRequirements>();
+		this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
 	}
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 
-		HardwareRequirements flavour = findSmallestFlavour(computeOrder, cloudUser);
-		String imageId = flavour.getFlavorId();
-		InstanceType instanceType = selectInstanceTypeBy(flavour);
+		HardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
+		String imageId = flavor.getFlavorId();
+		InstanceType instanceType = selectInstanceTypeBy(flavor);
 
 		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
 				.subnetId(this.subnetId) // Default sub-net in the available zone of the selected region.
@@ -190,7 +192,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected int getMemoryValueFrom(InstanceType instanceType) {
-		Double memory = AwsFlavour.valueOf(instanceType.name()).getMemory() * ONE_GIGABYTE;
+		Double memory = AwsFlavor.valueOf(instanceType.name()).getMemory() * ONE_GIGABYTE;
 		return memory.intValue();
 	}
 
@@ -261,7 +263,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return AwsV2InstanceTypeMapper.map(cpu, memory);
 	}
 
-	protected HardwareRequirements findSmallestFlavour(ComputeOrder computeOrder, AwsV2User cloudUser)
+	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
 			throws NoAvailableResourcesException, InvalidParameterException, UnexpectedException {
 
 		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
@@ -275,7 +277,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			throws InvalidParameterException, UnexpectedException {
 
 		updateHardwareRequirements(cloudUser);
-		for (HardwareRequirements hardwareRequirements : getFlavors()) {
+		for (HardwareRequirements hardwareRequirements : getHardwareRequirementsList()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
 					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
@@ -285,32 +287,32 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return null;
 	}
 
-	protected TreeSet<HardwareRequirements> getFlavors() {
-		synchronized (this.flavors) {
-			return this.flavors;
+	protected TreeSet<HardwareRequirements> getHardwareRequirementsList() {
+		synchronized (this.hardwareRequirementsList) {
+			return this.hardwareRequirementsList;
 		}
 	}
 
 	protected void updateHardwareRequirements(AwsV2User cloudUser)
 			throws InvalidParameterException, UnexpectedException {
 
-		HardwareRequirements flavour = null;
+		HardwareRequirements hardwareRequirements = null;
 		Map<String, Integer> imagesMap = getImagesMap(cloudUser);
 		for (Entry<String, Integer> image : imagesMap.entrySet()) {
-			for (AwsFlavour awsflavour : AwsFlavour.values()) {
-				flavour = mountFlavour(image, awsflavour);
-				this.flavors.add(flavour);
+			for (AwsFlavor awsflavor : AwsFlavor.values()) {
+				hardwareRequirements = mountHardwareRequirements(image, awsflavor);
+				this.hardwareRequirementsList.add(hardwareRequirements);
 			}
 		}
 	}
 
-	protected HardwareRequirements mountFlavour(Entry<String, Integer> image, AwsFlavour awsflavour) {
-		String name = awsflavour.getName();
-		String flavourId = image.getKey();
-		int cpu = awsflavour.getVCpu();
-		Double memory = awsflavour.getMemory() * ONE_GIGABYTE; // AWS calculate memory value in gigabytes
+	protected HardwareRequirements mountHardwareRequirements(Entry<String, Integer> image, AwsFlavor awsflavor) {
+		String name = awsflavor.getName();
+		String flavorId = image.getKey();
+		int cpu = awsflavor.getVCpu();
+		Double memory = awsflavor.getMemory() * ONE_GIGABYTE; // AWS calculate memory value in gigabytes
 		int disk = image.getValue();
-		return new HardwareRequirements(name, flavourId, cpu, memory.intValue(), disk);
+		return new HardwareRequirements(name, flavorId, cpu, memory.intValue(), disk);
 	}
 
 	protected Map<String, Integer> getImagesMap(AwsV2User cloudUser)
