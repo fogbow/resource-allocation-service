@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -16,10 +17,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.securityrules.Direction;
-import cloud.fogbow.ras.api.http.response.securityrules.EtherType;
-import cloud.fogbow.ras.api.http.response.securityrules.Protocol;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
@@ -80,7 +78,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     }
 
 	@Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
+    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
     	LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, majorOrder.getInstanceId(), cloudUser.getToken()));
     	Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
@@ -152,7 +150,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 		return template;
 	}
 
-	private String mapRuleType(Direction direction) {
+	private String mapRuleType(SecurityRule.Direction direction) {
 		String type = null;
 		switch (direction) {
 		case IN:
@@ -168,29 +166,27 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 		return type;
 	}    
     
-	protected List<SecurityRule> getSecurityRules(SecurityGroup securityGroup) throws FogbowException {
-		List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
+	protected List<SecurityRuleInstance> getSecurityRules(SecurityGroup securityGroup) throws FogbowException {
+		List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
 		try {
 			SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
 			List<Rule> rules = getRules(securityGroupInfo);
 			for (Rule rule : rules) {
-				Direction direction = rule.getDirection();
+				SecurityRule.Direction direction = rule.getDirection();
 				int portFrom = rule.getPortFrom();
 				int portTo = rule.getPortTo();
 				String cidr = rule.getCIDR();
-				EtherType etherType = rule.getEtherType();
-				Protocol protocol = rule.getSRProtocol();
+				SecurityRule.EtherType etherType = rule.getEtherType();
+				SecurityRule.Protocol protocol = rule.getSRProtocol();
 				rule.setSecurityGroupId(securityGroup.getId());
-				
-				SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
-				securityRule.setInstanceId(rule.serialize());
-				securityRules.add(securityRule);
+				SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(rule.serialize(), direction, portFrom, portTo, cidr, etherType, protocol);
+				securityRuleInstances.add(securityRuleInstance);
 			}
 		} catch (Exception e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE), e);
 			throw new FogbowException(e.getMessage(), e);
 		}
-		return securityRules;
+		return securityRuleInstances;
 	}
 
 	protected List<Rule> getRules(SecurityGroupInfo securityGroupInfo) throws FogbowException {

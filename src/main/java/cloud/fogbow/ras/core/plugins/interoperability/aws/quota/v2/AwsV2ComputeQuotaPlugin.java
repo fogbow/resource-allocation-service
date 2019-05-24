@@ -12,15 +12,14 @@ import java.util.Properties;
 public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 
     private String region;
-    private Properties properties;
 
     public AwsV2ComputeQuotaPlugin(String confFilePath) {
-        this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.region = this.properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }
 
     @Override
     public ComputeQuota getUserQuota(AwsV2User cloudUser) throws FogbowException {
-        throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
+        throw new UnsupportedOperationException("This feature has not been implemented for aws cloud, yet.");
     }
 }

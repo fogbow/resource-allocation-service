@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import cloud.fogbow.ras.api.http.request.PublicIp;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -324,11 +325,11 @@ public class PublicIpTest {
 	public void testGetAllSecurityRules() throws Exception {
 		// set up
 		PublicIpOrder publicIpOrder = createPublicIpOrder();
-		List<SecurityRule> securityRules = Mockito.spy(new ArrayList<SecurityRule>());
+		List<SecurityRuleInstance> securityRuleInstances = Mockito.spy(new ArrayList<SecurityRuleInstance>());
 
 		PowerMockito.mockStatic(ApplicationFacade.class);
 		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doReturn(securityRules).when(this.facade).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
+		Mockito.doReturn(securityRuleInstances).when(this.facade).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
 				Mockito.eq(ResourceType.PUBLIC_IP));
 
 		HttpHeaders headers = getHttpHeaders();
@@ -345,7 +346,7 @@ public class PublicIpTest {
 				.andReturn();
 
 		// verify
-		List<SecurityRule> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
+		List<SecurityRuleInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
 		Assert.assertNotNull(resultList);
 		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 		Mockito.verify(this.facade, Mockito.times(1)).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),

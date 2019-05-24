@@ -2,17 +2,17 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import cloud.fogbow.ras.api.http.response.Image;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-public class RemoteGetImageRequest implements RemoteRequest<Image> {
+public class RemoteGetImageRequest implements RemoteRequest<ImageInstance> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetImageRequest.class);
 
     private String provider;
@@ -28,7 +28,7 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
     }
 
     @Override
-    public Image send() throws Exception {
+    public ImageInstance send() throws Exception {
         IQ request = marshal(this.provider, this.cloudName, this.imageId, this.systemUser);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(request);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -54,14 +54,14 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
         return iq;
     }
 
-    private Image unmarshalImage(IQ response) throws UnexpectedException {
+    private ImageInstance unmarshalImage(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String imageStr = queryElement.element(IqElement.IMAGE.toString()).getText();
 
         String instanceClassName = queryElement.element(IqElement.IMAGE_CLASS_NAME.toString()).getText();
 
         try {
-            return (Image) new Gson().fromJson(imageStr, Class.forName(instanceClassName));
+            return (ImageInstance) new Gson().fromJson(imageStr, Class.forName(instanceClassName));
         } catch (Exception e) {
             throw new UnexpectedException(e.getMessage());
         }

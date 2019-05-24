@@ -5,7 +5,8 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -135,7 +136,7 @@ public class Network {
 
     @ApiOperation(value = ApiDocumentation.Network.GET_SECURITY_RULE_OPERATION)
     @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.GET)
-    public ResponseEntity<List<SecurityRule>> getAllSecurityRules(
+    public ResponseEntity<List<SecurityRuleInstance>> getAllSecurityRules(
             @ApiParam(value = ApiDocumentation.Network.ID)
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
@@ -144,9 +145,9 @@ public class Network {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
-            List<SecurityRule> securityRules = ApplicationFacade.getInstance().
+            List<SecurityRuleInstance> securityRuleInstances = ApplicationFacade.getInstance().
                     getAllSecurityRules(networkId, systemUserToken, ResourceType.NETWORK);
-            return new ResponseEntity<>(securityRules, HttpStatus.OK);
+            return new ResponseEntity<>(securityRuleInstances, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

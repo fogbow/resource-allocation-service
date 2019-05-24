@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -12,8 +13,6 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import org.apache.log4j.Logger;
 
 public class SpawningProcessor implements Runnable {
@@ -84,7 +83,7 @@ public class SpawningProcessor implements Runnable {
             localCloudConnector.switchOffAuditing();
 
             try {
-                Instance instance = localCloudConnector.getInstance(order);
+                OrderInstance instance = localCloudConnector.getInstance(order);
                 if (instance.hasFailed()) {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 } else if (instance.isReady()) {

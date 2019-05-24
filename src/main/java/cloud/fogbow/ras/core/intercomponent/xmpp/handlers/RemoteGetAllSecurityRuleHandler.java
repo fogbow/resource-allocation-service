@@ -5,7 +5,7 @@ import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
@@ -28,9 +28,9 @@ public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            List<SecurityRule> securityRuleList =  RemoteFacade.getInstance().
+            List<SecurityRuleInstance> securityRuleInstanceList =  RemoteFacade.getInstance().
                     getAllSecurityRules(iq.getFrom().toBareJID(), orderId, systemUser);
-            updateResponse(response, securityRuleList);
+            updateResponse(response, securityRuleInstanceList);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -44,14 +44,14 @@ public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
         return orderIdElement.getText();
     }
 
-    private void updateResponse(IQ response, List<SecurityRule> securityRuleList) {
+    private void updateResponse(IQ response, List<SecurityRuleInstance> securityRuleInstanceList) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_SECURITY_RULES);
         Element securityRuleListElement = queryEl.addElement(IqElement.SECURITY_RULE_LIST.toString());
 
         Element imagesMapClassNameElement = queryEl.addElement(IqElement.SECURITY_RULE_LIST_CLASS_NAME.toString());
-        imagesMapClassNameElement.setText(securityRuleList.getClass().getName());
+        imagesMapClassNameElement.setText(securityRuleInstanceList.getClass().getName());
 
-        securityRuleListElement.setText(new Gson().toJson(securityRuleList));
+        securityRuleListElement.setText(new Gson().toJson(securityRuleInstanceList));
     }
 
     private SystemUser unmarshalFederationUserToken(IQ iq) {

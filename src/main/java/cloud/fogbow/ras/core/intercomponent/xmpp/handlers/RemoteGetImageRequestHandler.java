@@ -1,11 +1,11 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.api.http.response.Image;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -30,9 +30,9 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Image image = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), cloudName, imageId,
+            ImageInstance imageInstance = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), cloudName, imageId,
                     systemUser);
-            updateResponse(response, image);
+            updateResponse(response, imageInstance);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -40,16 +40,16 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         return response;
     }
 
-    private void updateResponse(IQ response, Image image) {
+    private void updateResponse(IQ response, ImageInstance imageInstance) {
         Element queryEl = response.getElement()
                 .addElement(IqElement.QUERY.toString(), REMOTE_GET_IMAGE);
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
 
         Element imageClassNameElement = queryEl
                 .addElement(IqElement.IMAGE_CLASS_NAME.toString());
-        imageClassNameElement.setText(image.getClass().getName());
+        imageClassNameElement.setText(imageInstance.getClass().getName());
 
-        imageElement.setText(new Gson().toJson(image));
+        imageElement.setText(new Gson().toJson(imageInstance));
     }
 
     private String unmarshalImageId(IQ iq) {

@@ -19,22 +19,22 @@ notFoundHttpStatus=404
 ### Post compute functions
 
 function testPostCompute {
-  instanceId=$(doPostCompute)
+  ruleId=$(doPostCompute)
   echo "Created order"
   for try in `seq 1 $maxTries`
   do
     echo "Get compute. Try:" $try/$maxTries 
-    getInstanceResponse=$(doGetCompute $instanceId)
+    getInstanceResponse=$(doGetCompute $ruleId)
     echo ${getInstanceResponse} | grep READY
     if [ $? -eq 0 ]; then
       echo "Test ok. Deleting compute..."
-      $(doDeleteCompute $instanceId)
+      $(doDeleteCompute $ruleId)
       return 0
     fi
     sleep $sleepTimeSecs
   done
   echo "Error when retrieving the compute created"
-  $(doDeleteCompute $instanceId)
+  $(doDeleteCompute $ruleId)
   return 1
 }
 
@@ -77,29 +77,29 @@ function testGetAllNonExistentCompute {
 }
 
 function testGetAllCompute {
-  instanceId=$(doPostCompute)
+  ruleId=$(doPostCompute)
   local emptyResponseMsg="[]"
   local responseStatus=$(doGetAllComputeReturningStatus)
   local responseMsg=$(doGetAllCompute)
   if [ $responseStatus -eq $okHttpStatus -a "$responseMsg" != "$emptyResponseMsg" ]; then
     echo "Test ok. Deleting compute"
-    $(doDeleteCompute $instanceId)
+    $(doDeleteCompute $ruleId)
     return 0
   fi
   echo "Test failed, deleting compute. Expected empty response message, but got:" $responseMsg
-  $(doDeleteCompute $instanceId)
+  $(doDeleteCompute $ruleId)
   return 1
 }
 
 function doGetCompute {
-  local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$ruleId 2> /dev/null)
   echo $response
 }
 
 function doGetComputeReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -116,9 +116,9 @@ function doGetAllComputeReturningStatus {
 ### Delete compute functions
 
 function testDeleteCompute {
-  local instanceId=$(doPostCompute)
+  local ruleId=$(doPostCompute)
   echo "Testing delete compute"
-  local deleteStatus=$(doDeleteComputeReturningStatus $instanceId)
+  local deleteStatus=$(doDeleteComputeReturningStatus $ruleId)
   if [ $deleteStatus -eq $noContentHttpStatus ]; then
     echo "Delete status was the expected:" $deleteStatus
   else
@@ -126,7 +126,7 @@ function testDeleteCompute {
     #return 1
   fi
   echo "Testing if the instance can still be retrieved"
-  getInstanceStatus=$(doGetComputeReturningStatus $instanceId)
+  getInstanceStatus=$(doGetComputeReturningStatus $ruleId)
   if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
     return 0
@@ -147,14 +147,14 @@ function testDeleteNonExistentCompute {
 }
 
 function doDeleteCompute {
-  local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$ruleId 2> /dev/null)
   sleep $sleepTimeSecs
 }
 
 function doDeleteComputeReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$computesEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   sleep $sleepTimeSecs
   echo $responseStatus
 }
@@ -164,9 +164,9 @@ function doDeleteComputeReturningStatus {
 ### Delete network functions
 
 function testDeleteNetwork {
-  local instanceId=$(doPostNetwork)
+  local ruleId=$(doPostNetwork)
   echo "Testing delete network"
-  local deleteStatus=$(doDeleteNetworkReturningStatus $instanceId)
+  local deleteStatus=$(doDeleteNetworkReturningStatus $ruleId)
   sleep $sleepTimeSecs
   if [ $deleteStatus -eq $noContentHttpStatus ]; then
     echo "Delete status was the expected:" $deleteStatus
@@ -175,7 +175,7 @@ function testDeleteNetwork {
     #return 1
   fi
   echo "Testing if the instance can still be retrieved"
-  getInstanceStatus=$(doGetNetworkReturningStatus $instanceId)
+  getInstanceStatus=$(doGetNetworkReturningStatus $ruleId)
   if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
     return 0
@@ -197,34 +197,34 @@ function testDeleteNonExistentNetwork {
 }
 
 function doDeleteNetwork {
-  local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$ruleId 2> /dev/null)
 }
 
 function doDeleteNetworkReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
 ### Post network functions
 
 function testPostNetwork {
-  local instanceId=$(doPostNetwork)
+  local ruleId=$(doPostNetwork)
   for try in `seq 1 $maxTries`
   do
     echo "Get network. Try:" $try/$maxTries 
-    getInstanceResponse=$(doGetNetwork $instanceId)
+    getInstanceResponse=$(doGetNetwork $ruleId)
     echo ${getInstanceResponse} | grep READY
     if [ $? -eq 0 ]; then
       echo "Test ok. Deleting network..."
-      $(doDeleteNetwork $instanceId)
+      $(doDeleteNetwork $ruleId)
       return 0
     fi
     sleep $sleepTimeSecs
   done
   echo "Error when retrieving the network created"
-  $(doDeleteNetwork $instanceId)
+  $(doDeleteNetwork $ruleId)
   return 1
 }
 
@@ -252,14 +252,14 @@ function testGetNonExistentNetwork {
 }
 
 function doGetNetwork {
-  local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$ruleId 2> /dev/null)
   echo $response
 }
 
 function doGetNetworkReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$networksEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -268,9 +268,9 @@ function doGetNetworkReturningStatus {
 ### Delete volume functions
 
 function testDeleteVolume {
-  local instanceId=$(doPostVolume)
+  local ruleId=$(doPostVolume)
   echo "Testing delete volume"
-  local deleteStatus=$(doDeleteVolumeReturningStatus $instanceId)
+  local deleteStatus=$(doDeleteVolumeReturningStatus $ruleId)
   sleep $sleepTimeSecs
   if [ $deleteStatus -eq $noContentHttpStatus ]; then
     echo "Delete status was the expected:" $deleteStatus
@@ -279,7 +279,7 @@ function testDeleteVolume {
     #return 1
   fi
   echo "Testing if the instance can still be retrieved"
-  getInstanceStatus=$(doGetVolumeReturningStatus $instanceId)
+  getInstanceStatus=$(doGetVolumeReturningStatus $ruleId)
   if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
     return 0
@@ -301,34 +301,34 @@ function testDeleteNonExistentVolume {
 }
 
 function doDeleteVolume {
-  local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$ruleId 2> /dev/null)
 }
 
 function doDeleteVolumeReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
 ### Post volume functions
 
 function testPostVolume {
-  local instanceId=$(doPostVolume)
+  local ruleId=$(doPostVolume)
   for try in `seq 1 $maxTries`
   do
     echo "Get volume. Try:" $try/$maxTries 
-    getInstanceResponse=$(doGetVolume $instanceId)
+    getInstanceResponse=$(doGetVolume $ruleId)
     echo ${getInstanceResponse} | grep READY
     if [ $? -eq 0 ]; then
       echo "Test ok. Deleting volume..."
-      $(doDeleteVolume $instanceId)
+      $(doDeleteVolume $ruleId)
       return 0
     fi
     sleep $sleepTimeSecs
   done
   echo "Error when retrieving the volume created"
-  $(doDeleteVolume $instanceId)
+  $(doDeleteVolume $ruleId)
   return 1
 }
 
@@ -354,14 +354,14 @@ function testGetNonExistentVolume {
 }
 
 function doGetVolume {
-  local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$ruleId 2> /dev/null)
   echo $response
 }
 
 function doGetVolumeReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$volumesEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -372,15 +372,15 @@ function doGetVolumeReturningStatus {
 function testPostAttachment {
   local computeId=$(doPostCompute)
   local volumeId=$(doPostVolume)
-  local instanceId=$(doPostAttachment $computeId $volumeId)
+  local ruleId=$(doPostAttachment $computeId $volumeId)
   for try in `seq 1 $maxTries`
   do
     echo "Get attachment. Try:" $try/$maxTries 
-    getInstanceResponse=$(doGetAttachment $instanceId)
+    getInstanceResponse=$(doGetAttachment $ruleId)
     echo ${getInstanceResponse} | grep READY
     if [ $? -eq 0 ]; then
       echo "Test ok. Deleting attachment..."
-      $(doDeleteAttachment $instanceId)
+      $(doDeleteAttachment $ruleId)
       $(doDeleteCompute $computeId)
       $(doDeleteVolume $volumeId)
       return 0
@@ -388,7 +388,7 @@ function testPostAttachment {
     sleep $sleepTimeSecs
   done
   echo "Error when retrieving the attachment created"
-  $(doDeleteAttachment $instanceId)
+  $(doDeleteAttachment $ruleId)
   $(doDeleteCompute $computeId)
   $(doDeleteVolume $volumeId)
   return 1
@@ -448,14 +448,14 @@ function testGetNonExistentAttachment {
 }
 
 function doGetAttachment {
-  local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$ruleId 2> /dev/null)
   echo $response
 }
 
 function doGetAttachmentReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -464,9 +464,9 @@ function doGetAttachmentReturningStatus {
 function testDeleteAttachment {
   local computeId=$(doPostCompute)
   local volumeId=$(doPostVolume)
-  local instanceId=$(doPostAttachment $computeId $volumeId)
+  local ruleId=$(doPostAttachment $computeId $volumeId)
   echo "Testing delete attachment"
-  local deleteStatus=$(doDeleteAttachmentReturningStatus $instanceId)
+  local deleteStatus=$(doDeleteAttachmentReturningStatus $ruleId)
   sleep $sleepTimeSecs
   if [ $deleteStatus -eq $noContentHttpStatus ]; then
     echo "Delete status was the expected:" $deleteStatus
@@ -475,7 +475,7 @@ function testDeleteAttachment {
     #return 1
   fi
   echo "Testing if the instance can still be retrieved"
-  getInstanceStatus=$(doGetAttachmentReturningStatus $instanceId)
+  getInstanceStatus=$(doGetAttachmentReturningStatus $ruleId)
   if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
     return 0
@@ -497,13 +497,13 @@ function testDeleteNonExistentAttachment {
 }
 
 function doDeleteAttachment {
-  local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
+  local ruleId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$ruleId 2> /dev/null)
 }
 
 function doDeleteAttachmentReturningStatus {
-  local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local ruleId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "Fogbow-User-Token: token" $baseUrl$attachmentsEndpoint$ruleId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 

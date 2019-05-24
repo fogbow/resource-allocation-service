@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Image;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -101,9 +102,9 @@ public class ImageTest {
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/provider/cloud/" + fakeId;
 
-        cloud.fogbow.ras.api.http.response.Image image = new cloud.fogbow.ras.api.http.response.Image(fakeId, "fake-name", 1, 1, 1, "READY");
+        ImageInstance imageInstance = new ImageInstance(fakeId, "fake-name", 1, 1, 1, "READY");
 
-        Mockito.doReturn(image).when(this.facade).getImage(Mockito.anyString(), Mockito.anyString(),
+        Mockito.doReturn(imageInstance).when(this.facade).getImage(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");
@@ -115,13 +116,13 @@ public class ImageTest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        cloud.fogbow.ras.api.http.response.Image resultImage = new Gson().fromJson(result.getResponse().getContentAsString(), cloud.fogbow.ras.api.http.response.Image.class);
-        Assert.assertEquals(image.getId(), resultImage.getId());
-        Assert.assertEquals(image.getName(), resultImage.getName());
-        Assert.assertEquals(image.getStatus(), resultImage.getStatus());
-        Assert.assertEquals(image.getMinDisk(), resultImage.getMinDisk());
-        Assert.assertEquals(image.getMinRam(), resultImage.getMinRam());
-        Assert.assertEquals(image.getSize(), resultImage.getSize());
+        ImageInstance resultImageInstance = new Gson().fromJson(result.getResponse().getContentAsString(), ImageInstance.class);
+        Assert.assertEquals(imageInstance.getId(), resultImageInstance.getId());
+        Assert.assertEquals(imageInstance.getName(), resultImageInstance.getName());
+        Assert.assertEquals(imageInstance.getStatus(), resultImageInstance.getStatus());
+        Assert.assertEquals(imageInstance.getMinDisk(), resultImageInstance.getMinDisk());
+        Assert.assertEquals(imageInstance.getMinRam(), resultImageInstance.getMinRam());
+        Assert.assertEquals(imageInstance.getSize(), resultImageInstance.getSize());
     }
 
     // test case: Test if given an invalid image id, the getImageId() returns just NOT_FOUND.

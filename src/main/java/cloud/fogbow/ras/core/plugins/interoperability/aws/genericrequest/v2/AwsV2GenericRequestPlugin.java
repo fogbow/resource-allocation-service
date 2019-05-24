@@ -9,6 +9,6 @@ public class AwsV2GenericRequestPlugin implements GenericRequestPlugin<AwsV2User
 
     @Override
     public FogbowGenericResponse redirectGenericRequest(String genericRequest, AwsV2User cloudUser) throws FogbowException {
-    	throw new FogbowException("This feature has not been implemented for aws cloud, yet.");
+    	throw new UnsupportedOperationException("This feature has not been implemented for aws cloud, yet.");
     }
 }

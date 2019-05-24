@@ -4,11 +4,11 @@ import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
-import cloud.fogbow.ras.api.http.response.Image;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.jamppa.component.PacketSender;
@@ -42,8 +42,8 @@ public class RemoteGetImageRequestTest {
     @Test
     public void testSend() throws Exception {
         // set up
-        Image image = new Image("image-id", "image-name", 10, 20, 30, "status");
-        IQ iqResponse = getImageIQResponse(image);
+        ImageInstance imageInstance = new ImageInstance("imageInstance-id", "imageInstance-name", 10, 20, 30, "status");
+        IQ iqResponse = getImageIQResponse(imageInstance);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
         // exercise
@@ -84,33 +84,33 @@ public class RemoteGetImageRequestTest {
     @Test(expected = UnexpectedException.class)
     public void testSendWhenImageClassIsUndefined() throws Exception {
         //set up
-        Image image = new Image("image-id", "image-name", 10, 20, 30, "status");
-        IQ iqResponse = getImageIQResponseWithWrongClass(image);
+        ImageInstance imageInstance = new ImageInstance("imageInstance-id", "imageInstance-name", 10, 20, 30, "status");
+        IQ iqResponse = getImageIQResponseWithWrongClass(imageInstance);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
         // exercise/verify
         this.remoteGetImageRequest.send();
     }
 
-    private IQ getImageIQResponse(Image image) {
+    private IQ getImageIQResponse(ImageInstance imageInstance) {
         IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement()
                 .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
         Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
-        imageClassNameElement.setText(image.getClass().getName());
-        imageElement.setText(new Gson().toJson(image));
+        imageClassNameElement.setText(imageInstance.getClass().getName());
+        imageElement.setText(new Gson().toJson(imageInstance));
         return iqResponse;
     }
 
-    private IQ getImageIQResponseWithWrongClass(Image image) {
+    private IQ getImageIQResponseWithWrongClass(ImageInstance imageInstance) {
         IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement()
                 .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
         Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
         imageClassNameElement.setText("wrong-class-name");
-        imageElement.setText(new Gson().toJson(image));
+        imageElement.setText(new Gson().toJson(imageInstance));
         return iqResponse;
     }
 }
