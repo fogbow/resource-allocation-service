@@ -79,7 +79,7 @@ public class AwsV2VolumePluginTest {
 	@Test
 	public void testIsReadySuccessful() {
 		// set up
-		String[] cloudStates = { AwsV2StateMapper.DEFAULT_AVAILABLE_STATE, AwsV2StateMapper.VOLUME_IN_USE_STATE };
+		String[] cloudStates = { AwsV2StateMapper.AVAILABLE_STATE, AwsV2StateMapper.IN_USE_STATE };
 
 		String cloudState;
 		for (int i = 0; i < cloudStates.length; i++) {
@@ -93,18 +93,22 @@ public class AwsV2VolumePluginTest {
 		}
 	}
 
-	// test case: When calling the isReady method with the cloud states ERROR, this
-	// means that the state of volume is FAILED and it must return false.
+	// test case: When calling the isReady method with the cloud states different
+	// than AVAILABLE or IN USE, this means that the state of volume is not READY
+	// and it must return false.
 	@Test
 	public void testIsReadyUnsuccessful() {
 		// set up
-		String cloudState = AwsV2StateMapper.DEFAULT_ERROR_STATE;
+		String[] cloudStates = { AwsV2StateMapper.CREATING_STATE, AwsV2StateMapper.DELETING_STATE,
+				AwsV2StateMapper.ERROR_STATE };
 
-		// exercise
-		boolean status = this.plugin.isReady(cloudState);
+		for (String cloudState : cloudStates) {
+			// exercise
+			boolean status = this.plugin.isReady(cloudState);
 
-		// verify
-		Assert.assertFalse(status);
+			// verify
+			Assert.assertFalse(status);
+		}
 	}
 
 	// test case: When calling the hasFailed method with the cloud states ERROR,
@@ -112,7 +116,7 @@ public class AwsV2VolumePluginTest {
 	@Test
 	public void testHasFailedSuccessful() {
 		// set up
-		String cloudState = AwsV2StateMapper.DEFAULT_ERROR_STATE;
+		String cloudState = AwsV2StateMapper.ERROR_STATE;
 
 		// exercise
 		boolean status = this.plugin.hasFailed(cloudState);
@@ -127,13 +131,16 @@ public class AwsV2VolumePluginTest {
 	@Test
 	public void testHasFailedUnsuccessful() {
 		// set up
-		String cloudState = VOLUME_DELETED_STATE;
+		String[] cloudStates = { AwsV2StateMapper.AVAILABLE_STATE, AwsV2StateMapper.BUSY_STATE,
+				AwsV2StateMapper.CREATING_STATE, AwsV2StateMapper.IN_USE_STATE };
 
-		// exercise
-		boolean status = this.plugin.hasFailed(cloudState);
+		for (String cloudState : cloudStates) {
+			// exercise
+			boolean status = this.plugin.hasFailed(cloudState);
 
-		// verify
-		Assert.assertFalse(status);
+			// verify
+			Assert.assertFalse(status);
+		}
 	}
 	
 	// test case: When calling the requestInstance method, with a volume order
@@ -271,7 +278,7 @@ public class AwsV2VolumePluginTest {
 	
 	private VolumeInstance createVolumeInstance() {
 		String id = FAKE_VOLUME_ID;
-		String cloudState = AwsV2StateMapper.DEFAULT_AVAILABLE_STATE;
+		String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
 		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_VOLUME_ID;
 		int volumeSize = ONE_GIGABYTE;
 		return new VolumeInstance(id, cloudState, name, volumeSize);

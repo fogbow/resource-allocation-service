@@ -3,7 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.securityrule.v2;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.securityrules.SecurityRule;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
@@ -26,7 +27,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     }
 
     @Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, AwsV2User cloudUser) throws FogbowException {
+    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AwsV2User cloudUser) throws FogbowException {
     	throw new UnsupportedOperationException("This feature has not been implemented for aws cloud, yet.");
     }
 
