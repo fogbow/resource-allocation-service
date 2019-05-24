@@ -8,7 +8,7 @@ import java.util.Properties;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.Image;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
@@ -48,7 +48,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
     }
 
     @Override
-    public Image getImage(String imageId, AwsV2User cloudUser) throws FogbowException {
+    public ImageInstance getImage(String imageId, AwsV2User cloudUser) throws FogbowException {
         DescribeImagesRequest request = DescribeImagesRequest.builder()
         		.imageIds(imageId)
         		.build();
@@ -56,7 +56,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         DescribeImagesResponse response = client.describeImages(request);
 
-        Image image = null;
+        ImageInstance image = null;
         if (!response.images().isEmpty()) {
         	software.amazon.awssdk.services.ec2.model.Image retrievedImage = getFirstImage(response);
         	image = mountImage(retrievedImage);
@@ -68,14 +68,14 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 			return response.images().get(FIRST_POSITION);
 	}
 
-	protected Image mountImage(software.amazon.awssdk.services.ec2.model.Image awsImage) {
+	protected ImageInstance mountImage(software.amazon.awssdk.services.ec2.model.Image awsImage) {
         String id = awsImage.imageId();
         String name = awsImage.name();
 		String status = awsImage.stateAsString();
 		long size = getSize(awsImage.blockDeviceMappings());
 		long minDisk = NO_VALUE_FLAG;
 		long minRam = NO_VALUE_FLAG;
-        return new Image(id, name, size, minDisk, minRam, status);
+        return new ImageInstance(id, name, size, minDisk, minRam, status);
     }
 
     protected long getSize(List<BlockDeviceMapping> blockDeviceMappings) {

@@ -20,6 +20,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
@@ -101,10 +102,10 @@ public class AwsV2ImagePluginTest {
 
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
 
-        cloud.fogbow.ras.api.http.response.Image expected = createImage();
+        ImageInstance expected = createImageInstance();
         
         // exercise
-        cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage(FIMAGE_ID, cloudUser);
+        ImageInstance image = this.plugin.getImage(FIMAGE_ID, cloudUser);
 
         // verify
         Assert.assertEquals(expected, image);
@@ -124,7 +125,7 @@ public class AwsV2ImagePluginTest {
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(new ArrayList<>()).build());
 
         // exercise
-        cloud.fogbow.ras.api.http.response.Image image = this.plugin.getImage("mockedNullId", cloudUser);
+        ImageInstance image = this.plugin.getImage("mockedNullId", cloudUser);
 
         // verify
         Assert.assertEquals(null, image);
@@ -172,14 +173,14 @@ public class AwsV2ImagePluginTest {
         return blocks;
     }
 
-    private cloud.fogbow.ras.api.http.response.Image createImage() {
-		return new cloud.fogbow.ras.api.http.response.Image(
+    private ImageInstance createImageInstance() {
+		return new ImageInstance(
                 FIMAGE_ID,
                 FIMAGE_NAME,
                 EXPECTED_FIMAGE_SIZE,
                 NO_VALUE_FLAG,
                 NO_VALUE_FLAG, 
-                AwsV2StateMapper.DEFAULT_AVAILABLE_STATE);
+                AwsV2StateMapper.AVAILABLE_STATE);
 	}
     
     private List<software.amazon.awssdk.services.ec2.model.Image> getMockedImages() {
@@ -188,7 +189,7 @@ public class AwsV2ImagePluginTest {
             .imageId(FIMAGE_ID)
             .name(FIMAGE_NAME)
             .blockDeviceMappings(block)
-            .state(AwsV2StateMapper.DEFAULT_AVAILABLE_STATE)
+            .state(AwsV2StateMapper.AVAILABLE_STATE)
             .build();
         software.amazon.awssdk.services.ec2.model.Image image2 = software.amazon.awssdk.services.ec2.model.Image.builder()
             .imageId(SIMAGE_ID)
