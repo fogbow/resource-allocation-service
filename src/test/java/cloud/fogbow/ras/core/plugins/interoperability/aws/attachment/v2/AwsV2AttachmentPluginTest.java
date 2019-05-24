@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -44,7 +43,7 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 @PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
 public class AwsV2AttachmentPluginTest {
 
-	private static final String ATTACHMENT_BUSY_STATE = "busy";
+	private static final String ANY_VALUE = "anything";
 	private static final String CLOUD_NAME = "amazon";
 	private static final String EMPTY_STRING = "";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
@@ -88,42 +87,29 @@ public class AwsV2AttachmentPluginTest {
 		Assert.assertTrue(status);
 	}
 
-	// test case: When calling the isReady method with the cloud states ERROR, this
-	// means that the state of attachment is FAILED and it must return false.
+	// test case: When calling the isReady method with the cloud states different
+	// than ATTACHED, this means that the state of attachment is not READY and it
+	// must return false.
 	@Test
 	public void testIsReadyUnsuccessful() {
 		// set up
-		String cloudState = AwsV2StateMapper.DEFAULT_ERROR_STATE;
+		String[] cloudStates = { AwsV2StateMapper.BUSY_STATE, AwsV2StateMapper.CREATING_STATE };
 
-		// exercise
-		boolean status = this.plugin.isReady(cloudState);
+		for (String cloudState : cloudStates) {
+			// exercise
+			boolean status = this.plugin.isReady(cloudState);
 
-		// verify
-		Assert.assertFalse(status);
+			// verify
+			Assert.assertFalse(status);
+		}
 	}
 
-	// test case: When calling the hasFailed method with the cloud states ERROR,
-	// this means that the state of attachment is FAILED and it must return true.
-	@Ignore
+	// test case: Whenever you call the hasFailed method, no matter the value, it
+	// must return false.
 	@Test
-	public void testHasFailedSuccessful() {
+	public void testHasFailed() {
 		// set up
-		String cloudState = AwsV2StateMapper.DEFAULT_ERROR_STATE;
-
-		// exercise
-		boolean status = this.plugin.hasFailed(cloudState);
-
-		// verify
-		Assert.assertTrue(status);
-	}
-
-	// test case: When calling the hasFailed method with the cloud states different
-	// than ERROR, this means that the state of attachment is not FAILED and it must
-	// return false.
-	@Test
-	public void testHasFailedUnsuccessful() {
-		// set up
-		String cloudState = ATTACHMENT_BUSY_STATE;
+		String cloudState = ANY_VALUE;
 
 		// exercise
 		boolean status = this.plugin.hasFailed(cloudState);

@@ -180,7 +180,7 @@ public class AwsV2ImagePluginTest {
                 EXPECTED_FIMAGE_SIZE,
                 NO_VALUE_FLAG,
                 NO_VALUE_FLAG, 
-                AwsV2StateMapper.DEFAULT_AVAILABLE_STATE);
+                AwsV2StateMapper.AVAILABLE_STATE);
 	}
     
     private List<software.amazon.awssdk.services.ec2.model.Image> getMockedImages() {
@@ -189,7 +189,7 @@ public class AwsV2ImagePluginTest {
             .imageId(FIMAGE_ID)
             .name(FIMAGE_NAME)
             .blockDeviceMappings(block)
-            .state(AwsV2StateMapper.DEFAULT_AVAILABLE_STATE)
+            .state(AwsV2StateMapper.AVAILABLE_STATE)
             .build();
         software.amazon.awssdk.services.ec2.model.Image image2 = software.amazon.awssdk.services.ec2.model.Image.builder()
             .imageId(SIMAGE_ID)
