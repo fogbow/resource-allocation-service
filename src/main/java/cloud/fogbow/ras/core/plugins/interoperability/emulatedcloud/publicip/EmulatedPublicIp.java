@@ -2,7 +2,11 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.publicip;
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.securityrule.EmulatedSecurityRule;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.*;
 
@@ -27,6 +31,9 @@ public class EmulatedPublicIp implements JsonSerializable {
 
     @SerializedName(STATE_KEY_JSON)
     private String state;
+
+    @SerializedName(SECURITY_RULES_KEY_JSON)
+    private List<EmulatedSecurityRule> securityRules;
 
     private EmulatedPublicIp(String cloudState, String computeId, String cloudName,
                             String id, String ip, String provider, String state) {
@@ -124,5 +131,14 @@ public class EmulatedPublicIp implements JsonSerializable {
 
     public String getState() {
         return state;
+    }
+
+    public void addSecurityRule(EmulatedSecurityRule securityRule) {
+
+        if (securityRules == null) {
+            securityRules = new ArrayList<EmulatedSecurityRule>();
+        }
+
+        securityRules.add(securityRule);
     }
 }

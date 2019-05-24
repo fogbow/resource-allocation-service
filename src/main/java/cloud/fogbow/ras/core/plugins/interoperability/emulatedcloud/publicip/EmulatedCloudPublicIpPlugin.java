@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
-    private final Properties properties;
+    private Properties properties;
 
     public EmulatedCloudPublicIpPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
@@ -23,7 +23,7 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
-        EmulatedPublicIp publicIp = generateJsonEntityToCreateInstanc(publicIpOrder);
+        EmulatedPublicIp publicIp = generateJsonEntityToCreateInstance(publicIpOrder);
 
         String publicIpInstanceId = publicIp.getId();
 
@@ -79,7 +79,7 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
         return false;
     }
 
-    private EmulatedPublicIp generateJsonEntityToCreateInstanc(PublicIpOrder publicIpOrder) {
+    private EmulatedPublicIp generateJsonEntityToCreateInstance(PublicIpOrder publicIpOrder) {
         String computeId = publicIpOrder.getComputeId();
         String provider = publicIpOrder.getProvider();
         String cloudName = publicIpOrder.getCloudName();
