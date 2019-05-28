@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.volume;
+package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels;
 
 
 import cloud.fogbow.common.util.GsonHolder;

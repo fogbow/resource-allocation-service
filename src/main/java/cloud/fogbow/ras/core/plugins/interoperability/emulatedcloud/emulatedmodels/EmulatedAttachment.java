@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.attachment;
+package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels;
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
@@ -18,7 +18,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.Emula
  *      }
  * }
  */
-public class EmulatedAttachment implements JsonSerializable {
+public class EmulatedAttachment extends EmulatedOrderWithSecurityRule {
     @SerializedName(VOLUME_ATTACHMENT_KEY_JSON)
     private Attachment attachment;
 

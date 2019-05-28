@@ -10,6 +10,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedVolume;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2.GetVolumeResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;

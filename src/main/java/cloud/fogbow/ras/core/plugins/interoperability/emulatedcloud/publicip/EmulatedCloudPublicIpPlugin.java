@@ -8,6 +8,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedPublicIp;
 
 import java.io.IOException;
 import java.util.Properties;

@@ -10,6 +10,7 @@ import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedAttachment;
 
 import java.io.IOException;
 import java.util.Properties;
