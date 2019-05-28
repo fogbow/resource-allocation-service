@@ -11,6 +11,15 @@ public class ComputeAllocation extends Allocation {
     private int ram;
     @Column(name = "allocation_instances")
     private int instances;
+    @Column(name = "allocation_disk")
+    private int disk;
+
+    public ComputeAllocation(int vCPU, int ram, int instances, int disk) {
+        this.vCPU = vCPU;
+        this.ram = ram;
+        this.instances = instances;
+        this.disk = disk;
+    }
 
     public ComputeAllocation(int vCPU, int ram, int instances) {
         this.vCPU = vCPU;
@@ -31,5 +40,9 @@ public class ComputeAllocation extends Allocation {
 
     public int getInstances() {
         return this.instances;
+    }
+
+    public int getDisk() {
+        return disk;
     }
 }

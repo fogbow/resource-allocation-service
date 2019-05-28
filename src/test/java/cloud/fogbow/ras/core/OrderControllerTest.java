@@ -223,7 +223,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
-        computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3));
+        computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3, 4));
 
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
         this.fulfilledOrdersList.addItem(computeOrder);
@@ -237,6 +237,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 allocation.getInstances());
         Assert.assertEquals(computeOrder.getActualAllocation().getRam(), allocation.getRam());
         Assert.assertEquals(computeOrder.getActualAllocation().getvCPU(), allocation.getvCPU());
+        Assert.assertEquals(computeOrder.getActualAllocation().getDisk(), allocation.getDisk());
     }
 
 

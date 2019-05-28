@@ -254,6 +254,7 @@ public class OrderController {
         int vCPU = 0;
         int ram = 0;
         int instances = 0;
+        int disk = 0;
 
         for (ComputeOrder order : computeOrders) {
             synchronized (order) {
@@ -261,10 +262,11 @@ public class OrderController {
                 vCPU += actualAllocation.getvCPU();
                 ram += actualAllocation.getRam();
                 instances += actualAllocation.getInstances();
+                disk += actualAllocation.getDisk();
             }
         }
 
-        return new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeAllocation(vCPU, ram, instances, disk);
     }
 
 	private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
@@ -352,6 +354,7 @@ public class OrderController {
         if (instanceNetworks == null) {
             instanceNetworks = new HashMap<>();
         }
+
         // Remember that the instance ids seen by the user are really order ids, thus, when an order embeds other
         // orders, the instance that is returned needs to display order ids for these embedded orders, and not the
         // corresponding instance ids.
@@ -359,6 +362,13 @@ public class OrderController {
         instance.setNetworks(mappedNetworks);
         instance.setPublicKey(publicKey);
         instance.setUserData(userData);
+
+        // NOTE(pauloewerton): in order to prevent extra plugin requests to retrieve the specified instance resources allocation,
+        // we get those from the order allocation
+        ComputeAllocation allocation = order.getActualAllocation();
+        instance.setvCPU(allocation.getvCPU());
+        instance.setMemory(allocation.getRam());
+        instance.setDisk(allocation.getDisk());
     }
 
     private void updateAttachmentInstanceUsingOrderData(AttachmentInstance instance, AttachmentOrder order) {
