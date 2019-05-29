@@ -35,6 +35,12 @@ public class ComputeInstance extends OrderInstance {
     @ApiModelProperty(position = 15, example = ApiDocumentation.Model.USER_DATA, notes = ApiDocumentation.Model.USER_DATA_NOTE)
     private List<UserData> userData;
 
+    public ComputeInstance(String id, String cloudState, String name, List<String> ipAddresses) {
+        super(id, cloudState);
+        this.name = name;
+        this.ipAddresses = ipAddresses;
+    }
+
     public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
                            List<String> ipAddresses) {
         super(id, cloudState);
@@ -66,6 +72,10 @@ public class ComputeInstance extends OrderInstance {
         return this.disk;
     }
 
+    public void setDisk(int disk) {
+        this.disk = disk;
+    }
+
     public String getName() {
         return this.name;
     }
@@ -78,8 +88,16 @@ public class ComputeInstance extends OrderInstance {
         return this.memory;
     }
 
+    public void setMemory(int memory) {
+        this.memory = memory;
+    }
+
     public int getvCPU() {
         return this.vCPU;
+    }
+
+    public void setvCPU(int vCPU) {
+        this.vCPU = vCPU;
     }
 
     public List<NetworkSummary> getNetworks() {

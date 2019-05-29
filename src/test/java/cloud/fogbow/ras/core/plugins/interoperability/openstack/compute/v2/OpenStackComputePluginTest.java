@@ -238,7 +238,7 @@ public class OpenStackComputePluginTest {
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(instanceId);
 
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, vCPU, ram, disk, ipAddresses);
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, ipAddresses);
 
         Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -250,10 +250,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
         Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
-        Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
-        Assert.assertEquals(expectedComputeInstance.getMemory(), pluginComputeInstance.getMemory());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
-        Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
 
     // test case: If a DeleteInstance method works as expected
@@ -432,31 +429,13 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 
-    // test case: Get Instance should throw NoAvailableResources when compute flavor id from request is not stored locally so that
-    // we can't get memory, cpu and disk information
-    @Test(expected = NoAvailableResourcesException.class)
-    public void testGetInstanceWhenThereIsNoFlavorIdOnGetFlavorById() throws FogbowException, HttpResponseException {
-        // set up
-        String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        String computeInstanceJson = generateComputeInstanceJson(instanceId, hostName, localIpAddress, flavorId,
-                openstackStateActive);
-        Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User))
-                .thenReturn(computeInstanceJson);
-        mockGetFlavorsRequest(flavorId + "wrong", vCPU, ram, disk);
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
-
-        // exercise
-        this.computePlugin.getInstance(computeOrder, this.openStackV3User);
-    }
-
     // test case: Get Instance should still work even if there is no address field on response
     @Test
     public void testGetInstanceWhenThereIsNoAddressFieldOnResponse() throws FogbowException, HttpResponseException {
         // set up
         String localIpAddress = null;
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, vCPU, ram, disk, new ArrayList());
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, new ArrayList());
         String computeInstanceJson = generateComputeInstanceJsonWithoutAddressField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
         Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -470,10 +449,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
         Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
-        Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
-        Assert.assertEquals(expectedComputeInstance.getMemory(), pluginComputeInstance.getMemory());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
-        Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
 
     // test case: Get Instance should still work even if there is no provider network field on response
@@ -482,7 +458,7 @@ public class OpenStackComputePluginTest {
         // set up
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         String computeInstanceJson = generateComputeInstanceJsonWithoutProviderNetworkField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, vCPU, ram, disk, new ArrayList());
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, new ArrayList());
 
         Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -496,10 +472,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
         Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
-        Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
-        Assert.assertEquals(expectedComputeInstance.getMemory(), pluginComputeInstance.getMemory());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
-        Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
 
     // test case: Request Instance should throw NoAvailableResources when there is no cpu that meets the criteria

@@ -49,7 +49,8 @@ public class ComputeQuota extends Quota {
         int availableVCpu = totalQuota.getvCPU() - usedQuota.getvCPU();
         int availableRam = totalQuota.getRam() - usedQuota.getRam();
         int availableInstance = totalQuota.getInstances() - usedQuota.getInstances();
-        return new ComputeAllocation(availableVCpu, availableRam, availableInstance);
+        int availableDisk = totalQuota.getDisk() - usedQuota.getDisk();
+        return new ComputeAllocation(availableVCpu, availableRam, availableInstance, availableDisk);
     }
 
     @Override

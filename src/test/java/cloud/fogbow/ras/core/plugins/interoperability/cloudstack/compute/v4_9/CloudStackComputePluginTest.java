@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -329,6 +330,7 @@ public class CloudStackComputePluginTest {
 
         String endpoint = getBaseEndpointFromCloudStackConf();
         String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+        String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
@@ -341,14 +343,20 @@ public class CloudStackComputePluginTest {
         fakeRequirements.put("tag3", "value3");
 
         String fakeServiceOfferingId = "fake-service-offering-id";
+        String fakeDiskOfferingId = "fake-disk-offering-id";
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
                 RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
+        String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(serviceOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(diskOfferingResponse);
 
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_CLOUD_NAME, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
@@ -371,6 +379,7 @@ public class CloudStackComputePluginTest {
 
         String endpoint = getBaseEndpointFromCloudStackConf();
         String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+        String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
@@ -381,15 +390,21 @@ public class CloudStackComputePluginTest {
 
         int lowerCpuNumber = 2;
         String fakeServiceOfferingId = "fake-service-offering-id";
+        String fakeDiskOfferingId = "fake-disk-offering-id";
 
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
                 lowerCpuNumber, Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
+        String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
                 RESPONSE_KEY, JSON);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(serviceOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(diskOfferingResponse);
 
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
@@ -446,9 +461,8 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedDiskOfferingsRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: send deploy virtual machine request with no disk parameter in case no minimum disk offering is found
-    // for the order
-    @Test
+    // Test case: raises exception in case no minimum disk offering is found for the order
+    @Test(expected = NoAvailableResourcesException.class)
     public void testRequestInstanceDiskOfferingNotFound() throws FogbowException, HttpResponseException, UnsupportedEncodingException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -457,7 +471,6 @@ public class CloudStackComputePluginTest {
         String endpoint = getBaseEndpointFromCloudStackConf();
         String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
         String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
-        String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
@@ -469,8 +482,6 @@ public class CloudStackComputePluginTest {
         String fakeUserDataString = Base64.getEncoder().encodeToString(
                 fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
 
-        String fakeNetworkIdsString = this.defaultNetworkId + "," + FAKE_NETWORK_ID;
-
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
                 RESPONSE_KEY, JSON);
         String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
@@ -478,16 +489,6 @@ public class CloudStackComputePluginTest {
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String fakeDiskOfferingId = "fake-disk-offering-id";
-
-        Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(COMMAND_KEY, computeCommand);
-        expectedParams.put(RESPONSE_KEY, JSON);
-        expectedParams.put(ZONE_ID_KEY, fakeZoneId);
-        expectedParams.put(TEMPLATE_ID_KEY, fakeImageId);
-        expectedParams.put(SERVICE_OFFERING_ID_KEY, fakeServiceOfferingId);
-        expectedParams.put(USER_DATA_KEY, fakeUserDataString);
-        expectedParams.put(NETWORK_IDS_KEY, fakeNetworkIdsString);
-        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams);
 
         int lowerDiskSize = 20;
         String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, lowerDiskSize,true);
@@ -500,19 +501,11 @@ public class CloudStackComputePluginTest {
                 .thenReturn(serviceOfferingResponse);
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(diskOfferingResponse);
-        Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
         ComputeOrder order = createComputeOrder(userData, fakeImageId);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
-
-        Mockito.verify(this.client, Mockito.times(1))
-                .doGetRequest(expectedServiceOfferingsRequestUrl, FAKE_TOKEN);
-        Mockito.verify(this.client, Mockito.times(1))
-                .doGetRequest(expectedDiskOfferingsRequestUrl, FAKE_TOKEN);
-        Mockito.verify(this.client, Mockito.times(1))
-                .doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN));
     }
 
     // Test case: http request fails on attempting to deploy a new virtual machine

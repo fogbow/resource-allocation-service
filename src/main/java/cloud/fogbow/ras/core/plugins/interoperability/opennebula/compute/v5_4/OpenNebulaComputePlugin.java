@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.TreeSet;
 
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -136,6 +137,16 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				.networks(networks)
 				.architecture(architecture)
 				.build();
+
+		// NOTE(pauloewerton): defaulting disk size value to the flavor size in case no size is explicitly assigned.
+		// not sure how the diskImageId replaces all of the other values though.
+		if (diskSize == null) diskSize = String.valueOf(disk);
+
+		synchronized (computeOrder) {
+			ComputeAllocation actualAllocation = new ComputeAllocation(
+					Integer.parseInt(cpu), Integer.parseInt(memory), 1, Integer.parseInt(diskSize));
+			computeOrder.setActualAllocation(actualAllocation);
+		}
 		
 		String template = request.getVirtualMachine().marshalTemplate();
 		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);

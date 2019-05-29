@@ -101,7 +101,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
                 ComputeAllocation actualAllocation = new ComputeAllocation(
                         hardwareRequirements.getCpu(),
                         hardwareRequirements.getMemory(),
-                        1);
+                        1,
+                        hardwareRequirements.getDisk());
                 // When the ComputeOrder is remote, this field must be copied into its local counterpart
                 // that is updated when the requestingProvider receives the reply from the providingProvider
                 // (see RemoteFacade.java)
@@ -141,7 +142,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, cloudUser);
+        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
         // The default network is always included in the order by the OpenStack plugin, thus it should be added
         // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
         // are appended by the LocalCloudConnector.
@@ -361,20 +362,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return newHardwareRequirements;
     }
 
-    private ComputeInstance getInstanceFromJson(String getRawResponse, OpenStackV3User cloudUser)
-            throws FogbowException {
+    private ComputeInstance getInstanceFromJson(String getRawResponse) {
         GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
-
-        String flavorId = getComputeResponse.getFlavor().getId();
-        HardwareRequirements hardwareRequirements = getFlavorById(flavorId, cloudUser);
-
-        if (hardwareRequirements == null) {
-            throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
-        }
-
-        int vcpusCount = hardwareRequirements.getCpu();
-        int memory = hardwareRequirements.getMemory();
-        int disk = hardwareRequirements.getDisk();
 
         String openStackState = getComputeResponse.getStatus();
         String instanceId = getComputeResponse.getId();
@@ -391,21 +380,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             }
         }
 
-        ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                openStackState, hostName, vcpusCount, memory, disk, ipAddresses);
+        ComputeInstance computeInstance = new ComputeInstance(instanceId, openStackState, hostName, ipAddresses);
 
         return computeInstance;
-    }
-
-    private HardwareRequirements getFlavorById(String id, OpenStackV3User cloudUser) throws FogbowException {
-        updateFlavors(cloudUser, null);
-        TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
-        for (HardwareRequirements hardwareRequirements : flavorsCopy) {
-            if (hardwareRequirements.getFlavorId().equals(id)) {
-                return hardwareRequirements;
-            }
-        }
-        return null;
     }
 
     protected String getRandomUUID() {
