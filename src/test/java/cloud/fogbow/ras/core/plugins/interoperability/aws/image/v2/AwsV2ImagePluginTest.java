@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,15 +74,15 @@ public class AwsV2ImagePluginTest {
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
         DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().owners(cloudUser.getId()).build();
 
-        Map<String, String> expectedResult = new HashMap<>();
+        List<ImageSummary> expectedResult = new ArrayList<>();
         for(Image each: imagesList) {
-            expectedResult.put(each.imageId(), each.name());
+            expectedResult.add(new ImageSummary(each.imageId(), each.name()));
         }
 
         Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
 
         // exercise
-        Map<String, String> result = this.plugin.getAllImages(cloudUser);
+       List<ImageSummary> result = this.plugin.getAllImages(cloudUser);
 
         //verify
         Assert.assertEquals(expectedResult, result);

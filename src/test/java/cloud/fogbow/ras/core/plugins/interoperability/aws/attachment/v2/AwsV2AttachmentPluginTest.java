@@ -314,7 +314,7 @@ public class AwsV2AttachmentPluginTest {
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
 		String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
-		AttachmentOrder attachmentOrder = new AttachmentOrder(null, CLOUD_NAME, computeOrder.getId(),
+		AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(),
 				volumeOrder.getId(), device);
 		attachmentOrder.setInstanceId(FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
