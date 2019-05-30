@@ -9,13 +9,12 @@ import cloud.fogbow.ras.core.models.ResourceType;
 public class AwsV2StateMapper {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2StateMapper.class);
-
 	private static final String ATTACHMENT_PLUGIN = "AwsV2AttachmentPlugin";
-	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
+	private static final String COMPUTE_PLUGIN = "AwsV2ComputePlugin";
 	private static final String IMAGE_PLUGIN = "AwsV2ImagePlugin";
+	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
 
 	public static final String ATTACHED_STATE = "attached";
-
 	public static final String ATTACHING_STATE = "attaching";
 	public static final String AVAILABLE_STATE = "available";
 	public static final String BUSY_STATE = "busy";
@@ -29,6 +28,8 @@ public class AwsV2StateMapper {
 	public static final String INVALID_STATE = "invalid";
 	public static final String PENDING_STATE = "pending";
 	public static final String RUNNING_STATE = "running";
+	public static final String SHUTTING_DOWN_STATE = "deleting";
+	public static final String STOPPING_STATE = "stopping";
 	public static final String TRANSIENT_STATE = "transient";
 	public static final String UNKNOWN_TO_SDK_VERSION_STATE = "unknown_to_sdk_version";
 
@@ -56,9 +57,12 @@ public class AwsV2StateMapper {
 				return InstanceState.CREATING;
 			case RUNNING_STATE:
 				return InstanceState.READY;
-			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, ATTACHMENT_PLUGIN));
+			case SHUTTING_DOWN_STATE:
+			case STOPPING_STATE:
 				return InstanceState.BUSY;
+			default:
+				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
+				return InstanceState.INCONSISTENT;
 			}
 		case VOLUME:
 			// cloud state values: [creating, available, in-use, deleting, deleted, error]
