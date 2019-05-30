@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -60,14 +61,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
 	private static final String AWS_TAG_NAME = "Name";
-	private static final String BANDWIDTH_REQUIREMENT = "bandwidth";
 	private static final String RESOURCE_NAME = "Compute";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
-	private static final String EBS_ONLY_VALUE = "EBS-Only";
-	private static final String PERFORMANCE_REQUIREMENT = "performance";
-	private static final String PROCESSOR_REQUIREMENT = "processor";
-	private static final String STORAGE_REQUIREMENT = "storage";
 	
 	private static final int INSTANCE_TYPE_COLUMN = 0;
 	private static final int VCPU_COLUMN = 1;
@@ -77,11 +73,16 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private static final int NETWORK_PERFORMANCE_COLUMN = 5;
 	private static final int DEDICATED_EBS_BANDWIDTH_COLUMN = 6;
 	
+	protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
+	protected static final String PERFORMANCE_REQUIREMENT = "performance";
+	protected static final String PROCESSOR_REQUIREMENT = "processor";
+	protected static final String STORAGE_REQUIREMENT = "storage";
+
 	protected static final int FIRST_POSITION = 0;
 	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 	protected static final int ONE_GIGABYTE = 1024;
 
-	private TreeSet<AwsHardwareRequirements> hardwareRequirementsList;
+	private TreeSet<AwsHardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
 	private String region;
 	private String subnetId;
@@ -95,7 +96,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		this.securityGroup = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_SECURITY_GROUP_KEY);
 		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-		this.hardwareRequirementsList = new TreeSet<AwsHardwareRequirements>();
+		this.flavors = new TreeSet<AwsHardwareRequirements>();
 	}
 	
 	@Override
@@ -173,7 +174,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	@Override
 	public boolean hasFailed(String instanceState) {
-		return AwsV2StateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
+		return false;
 	}
 
 	protected ComputeInstance mountComputeInstance(DescribeInstancesRequest request, Ec2Client client)
@@ -212,7 +213,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected int getMemoryValueFrom(InstanceType instanceType) {
-		for (AwsHardwareRequirements flavors : getHardwareRequirementsList()) {
+		for (AwsHardwareRequirements flavors : getFlavors()) {
 			if (flavors.getName().equals(instanceType.name())) {
 				return flavors.getMemory();
 			}
@@ -296,8 +297,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
 
 		updateHardwareRequirements(cloudUser);
-		TreeSet<AwsHardwareRequirements> resultList = filterFlavorsByRequirements(computeOrder);
-		for (AwsHardwareRequirements hardwareRequirements : resultList) {
+		TreeSet<AwsHardwareRequirements> resultset = getFlavorsBy(computeOrder.getRequirements());
+		for (AwsHardwareRequirements hardwareRequirements : resultset) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
 					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
@@ -307,27 +308,37 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return null;
 	}
 
-	protected TreeSet<AwsHardwareRequirements> filterFlavorsByRequirements(ComputeOrder computeOrder) {
-		TreeSet<AwsHardwareRequirements> flavorsList = null;
-		if (computeOrder.getRequirements() != null && !computeOrder.getRequirements().isEmpty()) {
-			flavorsList = new TreeSet<AwsHardwareRequirements>();
-			for (Entry<String, String> orderRequirements : computeOrder.getRequirements().entrySet()) {
-				for (AwsHardwareRequirements flavor : getHardwareRequirementsList()) {
-					String requirement = flavor.getRequirements().get(orderRequirements.getKey().trim());
-					if (requirement.equals(orderRequirements.getValue())) {
-						flavorsList.add(flavor);
-					}
+	protected TreeSet<AwsHardwareRequirements> getFlavorsBy(Map<String, String> orderRequirements) {
+		TreeSet<AwsHardwareRequirements> resultSet = getFlavors();
+		List<AwsHardwareRequirements> resultList = null;
+		if (orderRequirements != null && !orderRequirements.isEmpty()) {
+			for(Entry<String, String> requirements : orderRequirements.entrySet()) {
+				resultList = filterFlavors(requirements);
+				if (resultList.size() < resultSet.size()) {
+					resultSet = parseToTreeSet(resultList);
 				}
 			}
-		} else {
-			return getHardwareRequirementsList();
 		}
-		return flavorsList;
+		return resultSet;
+	}
+	
+	protected TreeSet<AwsHardwareRequirements> parseToTreeSet(List<AwsHardwareRequirements> list) {
+		TreeSet<AwsHardwareRequirements> resultSet = new TreeSet<AwsHardwareRequirements>();
+		resultSet.addAll(list);
+		return resultSet;
 	}
 
-	protected TreeSet<AwsHardwareRequirements> getHardwareRequirementsList() {
-		synchronized (this.hardwareRequirementsList) {
-			return this.hardwareRequirementsList;
+	protected List<AwsHardwareRequirements> filterFlavors(Entry<String, String> requirements) {
+		String key = requirements.getKey().trim();
+		String value = requirements.getValue().trim();
+		return getFlavors().stream()
+				.filter(flavor -> flavor.getRequirements().get(key).equalsIgnoreCase(value))
+				.collect(Collectors.toList());
+	}
+	
+	protected TreeSet<AwsHardwareRequirements> getFlavors() {
+		synchronized (this.flavors) {
+			return this.flavors;
 		}
 	}
 
@@ -341,10 +352,11 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		Map<String, Integer> imagesMap = getImagesMap(cloudUser);
 		for (Entry<String, Integer> images : imagesMap.entrySet()) {
 			for (String line : lines) {
+				System.out.println(line);
 				if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 					requirements = line.split(CSV_COLUMN_SEPARATOR);
 					flavor = mountHardwareRequirements(images, requirements);
-					this.hardwareRequirementsList.add(flavor);
+					this.flavors.add(flavor);
 				}
 			}
 		}
@@ -352,36 +364,25 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected AwsHardwareRequirements mountHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
 		String name = requirements[INSTANCE_TYPE_COLUMN];
-		String flavorId = image.getKey();
+		String flavorId = getRandomUUID();
 		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
 		int disk = image.getValue();
+		String imageId = image.getKey();
 		Map<String, String> requirementsMap = loadRequirementsMap(requirements);
-		return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, requirementsMap);
+		return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, imageId, requirementsMap);
 	}
 
 	protected Map<String, String> loadRequirementsMap(String[] requirements) {
 		Map<String, String> requirementsMap = new HashMap<String, String>();
-		
 		String processor = requirements[PROCESSOR_COLUMN];
-		requirementsMap.put(PROCESSOR_REQUIREMENT, processor);
-
+		String performance = requirements[NETWORK_PERFORMANCE_COLUMN];
 		String storage = requirements[STORAGE_COLUMN];
-		if (!storage.equals(EBS_ONLY_VALUE)) {
-			requirementsMap.put(STORAGE_REQUIREMENT, storage);
-		}
-		String performance = (requirements.length >= NETWORK_PERFORMANCE_COLUMN + 1)
-				? requirements[NETWORK_PERFORMANCE_COLUMN]
-				: null;
-		if (performance != null) {
-			requirementsMap.put(PERFORMANCE_REQUIREMENT, performance);
-		}
-		String dedicatedEbsBandwidth = (requirements.length == DEDICATED_EBS_BANDWIDTH_COLUMN + 1)
-				? requirements[DEDICATED_EBS_BANDWIDTH_COLUMN]
-				: null;
-		if (dedicatedEbsBandwidth != null) {
-			requirementsMap.put(BANDWIDTH_REQUIREMENT, requirements[DEDICATED_EBS_BANDWIDTH_COLUMN]);
-		}
+		String bandwidth = requirements[DEDICATED_EBS_BANDWIDTH_COLUMN];
+		requirementsMap.put(PROCESSOR_REQUIREMENT, processor);
+		requirementsMap.put(PERFORMANCE_REQUIREMENT, performance);
+		requirementsMap.put(STORAGE_REQUIREMENT, storage);
+		requirementsMap.put(BANDWIDTH_REQUIREMENT, bandwidth);
 		return requirementsMap;
 	}
 
@@ -389,7 +390,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			throws InvalidParameterException, UnexpectedException {
 
 		Map<String, Integer> imageMap = new HashMap<String, Integer>();
-		DescribeImagesRequest request = DescribeImagesRequest.builder().owners(cloudUser.getId()).build();
+		DescribeImagesRequest request = DescribeImagesRequest.builder()
+				.owners(cloudUser.getId())
+				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		DescribeImagesResponse response = client.describeImages(request);
@@ -419,8 +422,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 		return size;
 	}
+	
+	// This method is used to aid in the tests
+	protected void setFlavorsFilePath(String flavorsFilePath) {
+		this.flavorsFilePath = flavorsFilePath;
+	}
 
-	public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+	// This method is used to aid in the tests
+	protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
 		this.launchCommandGenerator = launchCommandGenerator;
 	}
 
