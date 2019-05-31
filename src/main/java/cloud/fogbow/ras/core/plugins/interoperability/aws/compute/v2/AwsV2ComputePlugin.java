@@ -213,22 +213,24 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected int getMemoryValueFrom(InstanceType instanceType) {
+		int memory = 0;
 		for (AwsHardwareRequirements flavors : getFlavors()) {
-			if (flavors.getName().equals(instanceType.name())) {
-				return flavors.getMemory();
+			if (flavors.getName().equals(instanceType.toString())) {
+				memory = flavors.getMemory();
 			}
 		}
-		return 0;
+		return memory;
 	}
 
 	protected List<Volume> getInstanceVolumes(List<String> volumeIds, Ec2Client client) {
+		List<Volume> volumes = null;
 		DescribeVolumesResponse response;
 		for (String volumeId : volumeIds) {
 			response = getDescribeVolume(volumeId, client);
-			return response.volumes();
+			volumes = response.volumes();
 
 		}
-		return null;
+		return volumes;
 	}
 
 	protected DescribeVolumesResponse getDescribeVolume(String volumeId, Ec2Client client) {
@@ -297,7 +299,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
 
 		updateHardwareRequirements(cloudUser);
-		TreeSet<AwsHardwareRequirements> resultset = getFlavorsBy(computeOrder.getRequirements());
+		TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
 		for (AwsHardwareRequirements hardwareRequirements : resultset) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
@@ -308,11 +310,11 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return null;
 	}
 
-	protected TreeSet<AwsHardwareRequirements> getFlavorsBy(Map<String, String> orderRequirements) {
+	protected TreeSet<AwsHardwareRequirements> getFlavorsByRequirements(Map<String, String> orderRequirements) {
 		TreeSet<AwsHardwareRequirements> resultSet = getFlavors();
 		List<AwsHardwareRequirements> resultList = null;
 		if (orderRequirements != null && !orderRequirements.isEmpty()) {
-			for(Entry<String, String> requirements : orderRequirements.entrySet()) {
+			for (Entry<String, String> requirements : orderRequirements.entrySet()) {
 				resultList = filterFlavors(requirements);
 				if (resultList.size() < resultSet.size()) {
 					resultSet = parseToTreeSet(resultList);
@@ -352,7 +354,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		Map<String, Integer> imagesMap = getImagesMap(cloudUser);
 		for (Entry<String, Integer> images : imagesMap.entrySet()) {
 			for (String line : lines) {
-				System.out.println(line);
 				if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 					requirements = line.split(CSV_COLUMN_SEPARATOR);
 					flavor = mountHardwareRequirements(images, requirements);
