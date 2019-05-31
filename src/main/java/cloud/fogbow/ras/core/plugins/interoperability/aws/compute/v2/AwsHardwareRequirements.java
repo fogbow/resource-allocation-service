@@ -46,7 +46,10 @@ public class AwsHardwareRequirements extends HardwareRequirements {
 			List<String> costLevels = Arrays.asList(COST_LEVEL);
 			Integer costX = getCostLevel(costLevels, this.getName());
 			Integer costY = getCostLevel(costLevels, hardwareRequirements.getName());
-			return costX.compareTo(costY);
+			comparisonValue = costX.compareTo(costY);
+			if (comparisonValue == ZERO_VALUE) {
+				return this.getFlavorId().compareTo(hardwareRequirements.getFlavorId());
+			}
 		}
 		return comparisonValue;
 	}
