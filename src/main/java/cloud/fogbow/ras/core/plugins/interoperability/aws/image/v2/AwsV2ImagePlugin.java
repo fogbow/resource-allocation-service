@@ -1,14 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.image.v2;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
@@ -31,7 +29,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
     }
 
     @Override
-    public Map<String, String> getAllImages(AwsV2User cloudUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(AwsV2User cloudUser) throws FogbowException {
         DescribeImagesRequest request = DescribeImagesRequest.builder()
         		.owners(cloudUser.getId())
         		.build();
@@ -39,10 +37,10 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         DescribeImagesResponse imagesResponse = client.describeImages(request);
         
-        Map<String, String> images = new HashMap<>();
+        List<ImageSummary> images = new ArrayList<>();
         List<software.amazon.awssdk.services.ec2.model.Image> retrievedImages = imagesResponse.images();
         for(software.amazon.awssdk.services.ec2.model.Image image : retrievedImages) {
-            images.put(image.imageId(), image.name());
+            images.add(new ImageSummary(image.imageId(), image.name()));
         }
         return images;
     }

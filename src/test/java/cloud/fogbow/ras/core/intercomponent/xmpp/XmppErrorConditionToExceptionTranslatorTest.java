@@ -9,7 +9,7 @@ import org.xmpp.packet.PacketError;
 
 public class XmppErrorConditionToExceptionTranslatorTest {
 
-    private final String memberId = "memberId";
+    private final String providerId = "providerId";
     private final String messageError = "message-error";
 
     //test case: checks if "handleError" is properly forwading "UnauthorizedRequestException" from
@@ -24,7 +24,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (UnauthorizedRequestException e) {
@@ -48,7 +48,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (UnauthenticatedUserException e) {
@@ -72,7 +72,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (InvalidParameterException e) {
@@ -96,7 +96,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (InstanceNotFoundException e) {
@@ -120,7 +120,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (QuotaExceededException e) {
@@ -144,7 +144,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (NoAvailableResourcesException e) {
@@ -168,7 +168,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (UnavailableProviderException e) {
@@ -192,7 +192,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (UnexpectedException e) {
@@ -216,7 +216,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
         try {
             //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
         } catch (Exception e) {
@@ -234,12 +234,12 @@ public class XmppErrorConditionToExceptionTranslatorTest {
     public void testHandleErrorThrowsUnavailableProviderExceptionWhenResponseIsNull() throws Exception {
         try {
             // exercise
-            XmppErrorConditionToExceptionTranslator.handleError(null, this.memberId);
+            XmppErrorConditionToExceptionTranslator.handleError(null, this.providerId);
             // verify
             Assert.fail();
         } catch (UnavailableProviderException e) {
-            String messageExpected = String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER,
-                    this.memberId);
+            String messageExpected = String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER,
+                    this.providerId);
             Assert.assertEquals(messageExpected, e.getMessage());
         }
     }
@@ -250,7 +250,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         //set up
         IQ iq = new IQ();
         //exercise//verify
-        XmppErrorConditionToExceptionTranslator.handleError(iq, this.memberId);
+        XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
     }
 
 }

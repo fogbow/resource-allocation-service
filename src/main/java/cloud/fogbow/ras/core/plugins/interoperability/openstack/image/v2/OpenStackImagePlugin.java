@@ -6,6 +6,7 @@ import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
@@ -33,8 +34,8 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     }
 
     @Override
-    public Map<String, String> getAllImages(OpenStackV3User cloudUser) throws FogbowException {
-        Map<String, String> availableImages = getAvailableImages(cloudUser);
+    public List<ImageSummary> getAllImages(OpenStackV3User cloudUser) throws FogbowException {
+        List<ImageSummary> availableImages = getAvailableImages(cloudUser);
         return availableImages;
     }
 
@@ -127,14 +128,15 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return privateImagesResponse;
     }
 
-    private Map<String, String> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
-        Map<String, String> availableImages = new HashMap<String, String>();
+    private List<ImageSummary> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
+        List<ImageSummary> availableImages = new ArrayList<>();
 
         List<GetImageResponse> allImagesResponse = getImagesResponse(cloudUser);
         List<GetImageResponse> filteredImagesResponse = filterImagesResponse(cloudUser.getProjectId(), allImagesResponse);
 
         for (GetImageResponse getImageResponse : filteredImagesResponse) {
-            availableImages.put(getImageResponse.getId(), getImageResponse.getName());
+            ImageSummary imageSummary = new ImageSummary(getImageResponse.getId(), getImageResponse.getName());
+            availableImages.add(imageSummary);
         }
         return availableImages;
     }

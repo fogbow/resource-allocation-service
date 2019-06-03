@@ -28,13 +28,13 @@ public class UnableToCheckStatusProcessor implements Runnable {
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
 	private Long sleepTime;
-	private String localMemberId;
+	private String localProviderId;
 
-	public UnableToCheckStatusProcessor(String localMemberId, String sleepTimeStr) {
+	public UnableToCheckStatusProcessor(String localProviderId, String sleepTimeStr) {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.unableToCheckStatusOrdersList = sharedOrderHolders.getUnableToCheckStatusOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.localMemberId = localMemberId;
+        this.localProviderId = localProviderId;
     }
 
     /**
@@ -87,13 +87,13 @@ public class UnableToCheckStatusProcessor implements Runnable {
             }
             // Only local orders need to be monitored. Remoted orders are monitored by the remote provider
             // and change state when that provider notifies state changes.
-            if (order.isProviderRemote(this.localMemberId)) {
+            if (order.isProviderRemote(this.localProviderId)) {
                 return;
             }
             try {
                 // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
                 LocalCloudConnector localCloudConnector = (LocalCloudConnector)
-                        CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, order.getCloudName());
+                        CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
                 // we won't audit requests we make
                 localCloudConnector.switchOffAuditing();
 

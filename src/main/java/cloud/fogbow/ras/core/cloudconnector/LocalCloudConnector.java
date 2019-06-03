@@ -133,10 +133,10 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Map<String, String> getAllImages(SystemUser systemUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
 
-        Map<String, String> images = null;
+        List<ImageSummary> images = null;
         String auditableResponse = null;
         try {
             images = doGetAllImages(cloudUser);
@@ -332,7 +332,7 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private Map<String, String> doGetAllImages(CloudUser token) throws FogbowException {
+    private List<ImageSummary> doGetAllImages(CloudUser token) throws FogbowException {
         return this.imagePlugin.getAllImages(token);
     }
 

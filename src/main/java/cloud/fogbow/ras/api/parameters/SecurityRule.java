@@ -1,14 +1,24 @@
 package cloud.fogbow.ras.api.parameters;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.util.Objects;
 
+@ApiModel
 public class SecurityRule {
-    private String cidr;
-    private int portFrom;
-    private int portTo;
-    private Direction direction;
-    private EtherType etherType;
+    @ApiModelProperty(position = 0, required = true, example = "TCP")
     private Protocol protocol;
+    @ApiModelProperty(position = 1, required = true, example = "IPv4")
+    private EtherType etherType;
+    @ApiModelProperty(position = 2, required = true, example = "IN")
+    private Direction direction;
+    @ApiModelProperty(position = 3, required = true, example = "22")
+    private int portFrom;
+    @ApiModelProperty(position = 4, required = true, example = "22")
+    private int portTo;
+    @ApiModelProperty(position = 5, required = true, example = "10.0.0.0/8")
+    private String cidr;
 
     public SecurityRule() {
     }

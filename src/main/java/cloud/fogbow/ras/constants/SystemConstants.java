@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.constants;
 
 public class SystemConstants {
+    public static final String SERVICE_BASE_ENDPOINT = "ras/";
     public static final String API_VERSION_NUMBER = "3.0.0";
 
     // CONFIGURATION FILES NAMES

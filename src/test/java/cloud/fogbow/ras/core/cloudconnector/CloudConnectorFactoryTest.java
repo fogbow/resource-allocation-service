@@ -8,7 +8,7 @@ import org.mockito.Mockito;
 
 public class CloudConnectorFactoryTest {
 
-    private static final String LOCAL_MEMBER_ID = "fake-localidentity-member";
+    private static final String LOCAL_PROVIDER_ID = "fake-localidentity-provider";
 
     private CloudConnectorFactory cloudConnectorFactory;
 
@@ -17,8 +17,8 @@ public class CloudConnectorFactoryTest {
         this.cloudConnectorFactory = Mockito.spy(CloudConnectorFactory.getInstance());
     }
 
-    // test case: When calling getCloudConnector by passing a memberId equal to a previously
-    // configured local member, it must return an instance of LocalCloudConnector.
+    // test case: When calling getCloudConnector by passing a providerId equal to a previously
+    // configured local provider, it must return an instance of LocalCloudConnector.
     @Test
     public void testGetCloudConnectorLocal() {
         // set up
@@ -27,14 +27,14 @@ public class CloudConnectorFactoryTest {
 
         // exercise
         CloudConnector localCloudConnector =
-                this.cloudConnectorFactory.getCloudConnector(LOCAL_MEMBER_ID, "default");
+                this.cloudConnectorFactory.getCloudConnector(LOCAL_PROVIDER_ID, "default");
 
         // verify
         Assert.assertTrue(localCloudConnector instanceof LocalCloudConnector);
     }
 
-    // test case: When calling getCloudConnector by passing a different memberId from a previously
-    // configured local member, it must return an instance of RemoteCloudConnector.
+    // test case: When calling getCloudConnector by passing a different providerId from a previously
+    // configured local provider, it must return an instance of RemoteCloudConnector.
     @Test
     public void testGetCloudConnectorRemote() {
         // exercise

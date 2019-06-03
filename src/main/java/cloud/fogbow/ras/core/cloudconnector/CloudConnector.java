@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -12,7 +13,6 @@ import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 
 import java.util.List;
-import java.util.Map;
 
 public interface CloudConnector {
     /**
@@ -55,10 +55,10 @@ public interface CloudConnector {
      * Gets the list of images that the system user can see in the target cloud.
      *
      * @param systemUser the attributes that identify the user
-     * @return a map where each element is a pair (image name, image id)
+     * @return a list where each element is an ImageSummary containing the image id and the image name
      * @throws FogbowException
      */
-    Map<String, String> getAllImages(SystemUser systemUser) throws FogbowException;
+    List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException;
 
     /**
      * Gets the information about a given image.

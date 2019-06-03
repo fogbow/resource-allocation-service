@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,8 +46,8 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = PublicIp.class, secure = false)
-@PrepareForTest(ApplicationFacade.class)
-public class PublicIpTest {
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, ApplicationFacade.class})
+public class PublicIpTest extends BaseUnitTests {
     
     private static final String ADDRESS_SEPARATOR = "/";
 	private static final String FAKE_CLOUD_STATE = "fake-cloud-state";
@@ -57,7 +60,7 @@ public class PublicIpTest {
     private static final String PUBLIC_IP_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.PUBLIC_IP_ENDPOINT;
     private static final String PUBLIC_IP_ENDPOINT_BAR_STATUS = PUBLIC_IP_ENDPOINT + "/status";
 	private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
-	private static final String SECURITY_RULES_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.SECURITY_RULES_ENDPOINT;
+	private static final String SECURITY_RULES_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.SECURITY_RULES_SUFFIX_ENDPOINT;
 
 	@Autowired
     private MockMvc mockMvc;
@@ -66,6 +69,7 @@ public class PublicIpTest {
 
     @Before
     public void setUp() throws FogbowException {
+    	mockReadOrdersFromDataBase();
         this.facade = Mockito.spy(ApplicationFacade.class);
     }
 

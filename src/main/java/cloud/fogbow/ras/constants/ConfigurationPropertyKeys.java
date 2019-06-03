@@ -9,7 +9,7 @@ public class ConfigurationPropertyKeys {
     public static final String XMPP_TIMEOUT_KEY = "xmpp_timeout";
 
     // RAS configuration
-    public static final String LOCAL_MEMBER_ID_KEY = XMPP_JID_KEY;
+    public static final String LOCAL_PROVIDER_ID_KEY = XMPP_JID_KEY;
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
     public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";

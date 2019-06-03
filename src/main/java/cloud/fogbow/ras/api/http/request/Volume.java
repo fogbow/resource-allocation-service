@@ -7,6 +7,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
 import io.swagger.annotations.Api;
@@ -24,8 +25,8 @@ import java.util.List;
 @RequestMapping(value = Volume.VOLUME_ENDPOINT)
 @Api(description = ApiDocumentation.Volume.API)
 public class Volume {
-
-    public static final String VOLUME_ENDPOINT = "volumes";
+    public static final String VOLUME_SUFFIX_ENDPOINT = "volumes";
+    public static final String VOLUME_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + VOLUME_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "volume";
 
     private final Logger LOGGER = Logger.getLogger(Volume.class);
@@ -37,7 +38,7 @@ public class Volume {
     public ResponseEntity<ResourceId> createVolume(
             @ApiParam(value = ApiDocumentation.Volume.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Volume volume,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -54,7 +55,7 @@ public class Volume {
     @ApiOperation(value = ApiDocumentation.Volume.GET_OPERATION)
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllVolumesStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -74,7 +75,7 @@ public class Volume {
     public ResponseEntity<VolumeInstance> getVolume(
             @ApiParam(value = ApiDocumentation.Volume.ID)
             @PathVariable String volumeId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -93,7 +94,7 @@ public class Volume {
     public ResponseEntity<Boolean> deleteVolume(
             @ApiParam(value = ApiDocumentation.Volume.ID)
             @PathVariable String volumeId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 

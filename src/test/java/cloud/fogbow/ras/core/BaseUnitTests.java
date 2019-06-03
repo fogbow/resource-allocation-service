@@ -24,7 +24,7 @@ import java.util.Map;
 public class BaseUnitTests {
 
     public static final String LOCAL_MEMBER_ID =
-            PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+            PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
     /**
      * Clears the orders from the lists on the SharedOrderHolders instance.

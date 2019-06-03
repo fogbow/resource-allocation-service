@@ -1,15 +1,25 @@
 package cloud.fogbow.ras.api.http.response;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import io.swagger.annotations.ApiModelProperty;
 
 public class NetworkInstance extends OrderInstance {
+    @ApiModelProperty(position = 7, example = ApiDocumentation.Model.NETWORK_NAME)
     private String name;
+    @ApiModelProperty(position = 8, example = "10.10.0.0/16")
     private String cidr;
+    @ApiModelProperty(position = 9, example = "10.10.0.1")
     private String gateway;
+    @ApiModelProperty(position = 10, example = "dynamic")
     private NetworkAllocationMode allocationMode;
+    @ApiModelProperty(position = 11, example = "1200")
     private String vLAN;
+    @ApiModelProperty(position = 11, example = "8415ca5b-6f11-4225-884e-543ed9ab9eed")
     private String networkInterface;
+    @ApiModelProperty(position = 11, example = "fa:16:3e:42:4b:19")
     private String MACInterface;
+    @ApiModelProperty(position = 11, example = "Up")
     private String interfaceState;
 
     public NetworkInstance(String id, String cloudState, String name, String cidr, String gateway,

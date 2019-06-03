@@ -11,7 +11,6 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -212,7 +211,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
         this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
-        AttachmentOrder attachmentOrder = new AttachmentOrder(FAKE_PROVIDER, DEFAULT_CLOUD, computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
+        AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
         attachmentOrder.setInstanceId(instanceId);
         this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
         return attachmentOrder;

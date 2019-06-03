@@ -53,12 +53,8 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
     }
 
     private SystemUser unmarshalFederationUser(IQ iq) {
-        Element federationUserElement =
-                iq.getElement().element(IqElement.FEDERATION_USER.toString());
-
-        SystemUser systemUser =
-                new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
-
+        Element systemUserElement = iq.getElement().element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 

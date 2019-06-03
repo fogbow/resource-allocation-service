@@ -28,7 +28,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.times;
@@ -890,15 +892,15 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     public void testGetAllImages() throws FogbowException {
 
         // set up
-        Map<String, String> fakeMapImages = new HashMap<>();
-        fakeMapImages.put(FAKE_IMAGE_ID, FAKE_IMAGE_NAME);
-        Mockito.when(this.imagePlugin.getAllImages(Mockito.any(CloudUser.class))).thenReturn(fakeMapImages);
+        List<ImageSummary> fakeImageSummaryList = new ArrayList<>();
+        fakeImageSummaryList.add(new ImageSummary(FAKE_IMAGE_ID, FAKE_IMAGE_NAME));
+        Mockito.when(this.imagePlugin.getAllImages(Mockito.any(CloudUser.class))).thenReturn(fakeImageSummaryList);
 
         // exercise
-        Map<String, String> returnedImages = this.localCloudConnector.getAllImages(systemUser);
+        List<ImageSummary> returnedImages = this.localCloudConnector.getAllImages(systemUser);
 
         // verify
-        Assert.assertEquals(FAKE_IMAGE_NAME, returnedImages.get(FAKE_IMAGE_ID));
+        Assert.assertEquals(FAKE_IMAGE_NAME, returnedImages.get(0).getName());
         Assert.assertEquals(1, returnedImages.size());
         Mockito.verify(imagePlugin, times(1)).getAllImages(Mockito.any(CloudUser.class));
     }
@@ -911,7 +913,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.imagePlugin.getAllImages(Mockito.any(CloudUser.class))).thenReturn(null);
 
         // exercise
-        Map<String, String> returnedImages = this.localCloudConnector.getAllImages(systemUser);
+        List<ImageSummary> returnedImages = this.localCloudConnector.getAllImages(systemUser);
 
         // verify
         Assert.assertNull(returnedImages);

@@ -8,7 +8,6 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
@@ -60,7 +59,7 @@ public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(GsonHolder.getInstance().toJson(systemUser));
 
         Element genericRequestElement = queryElement.addElement(IqElement.GENERIC_REQUEST.toString());

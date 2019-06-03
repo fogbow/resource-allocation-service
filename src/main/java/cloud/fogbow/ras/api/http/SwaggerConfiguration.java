@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.api.http;
 
 import cloud.fogbow.ras.constants.ApiDocumentation;
-import cloud.fogbow.ras.core.ApplicationFacade;
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -18,9 +18,9 @@ public class SwaggerConfiguration {
     public static final String BASE_PACKAGE = "cloud.fogbow.ras";
 
     public static final Contact CONTACT = new Contact(
-        ApiDocumentation.ApiInfo.CONTACT_NAME,
-            ApiDocumentation.ApiInfo.CONTACT_URL,
-            ApiDocumentation.ApiInfo.CONTACT_EMAIL);
+        cloud.fogbow.common.constants.ApiDocumentation.ApiInfo.CONTACT_NAME,
+        cloud.fogbow.common.constants.ApiDocumentation.ApiInfo.CONTACT_URL,
+        cloud.fogbow.common.constants.ApiDocumentation.ApiInfo.CONTACT_EMAIL);
 
     @Bean
     public Docket apiDetails() {
@@ -36,7 +36,7 @@ public class SwaggerConfiguration {
     }
 
     private ApiInfoBuilder apiInfo() {
-        String versionNumber = ApplicationFacade.getInstance().getVersionNumber();
+        String versionNumber = SystemConstants.API_VERSION_NUMBER;
 
         ApiInfoBuilder apiInfoBuilder = new ApiInfoBuilder();
 

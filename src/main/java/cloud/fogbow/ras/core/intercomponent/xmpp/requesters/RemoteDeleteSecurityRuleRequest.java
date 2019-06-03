@@ -45,7 +45,7 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         Element ruleIdElement = queryElement.addElement(IqElement.RULE_ID.toString());

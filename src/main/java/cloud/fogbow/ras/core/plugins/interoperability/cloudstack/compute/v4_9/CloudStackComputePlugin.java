@@ -4,6 +4,8 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.ras.api.http.response.NetworkSummary;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -87,29 +89,22 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
         String networksId = StringUtils.join(networks, ",");
 
-        String serviceOfferingId = getServiceOfferingId(computeOrder, cloudUser);
-        if (serviceOfferingId == null) {
-            LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
+        int disk = computeOrder.getDisk();
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering = getServiceOffering(computeOrder, cloudUser);
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(disk, cloudUser);
+        if (serviceOffering == null || diskOffering == null) {
             throw new NoAvailableResourcesException();
         }
-
-        int disk = computeOrder.getDisk();
-        // NOTE(pauloewerton): cloudstack allows creating a vm without explicitly choosing a disk size. in that case,
-        // a minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
-        // offering is found.
-        String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudUser) : null;
 
         String instanceName = computeOrder.getName();
         if (instanceName == null) instanceName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
 
-        // NOTE(pauloewerton): hypervisor param is required in case of ISO image. i haven't found any clue pointing that
-        // ISO images were being used in mono though.
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
-                .serviceOfferingId(serviceOfferingId)
+                .serviceOfferingId(serviceOffering.getId())
                 .templateId(templateId)
                 .zoneId(this.zoneId)
                 .name(instanceName)
-                .diskOfferingId(diskOfferingId)
+                .diskOfferingId(diskOffering.getId())
                 .userData(userData)
                 .networksId(networksId)
                 .build(this.cloudStackUrl);
@@ -119,6 +114,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String jsonResponse = null;
         try {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+
+            synchronized (computeOrder) {
+                ComputeAllocation actualAllocation = new ComputeAllocation(
+                        serviceOffering.getCpuNumber(),
+                        serviceOffering.getMemory(),
+                        1,
+                        diskOffering.getDiskSize());
+                computeOrder.setActualAllocation(actualAllocation);
+            }
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -171,7 +175,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
-    private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
+    private GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
@@ -202,7 +206,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
             if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
                     serviceOffering.getMemory() >= computeOrder.getMemory()) {
-                return serviceOffering.getId();
+                return serviceOffering;
             }
         }
 
@@ -225,14 +229,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return serviceOfferingsResponse;
     }
 
-    private String getDiskOfferingId(int diskSize, CloudStackUser cloudUser) throws FogbowException {
+    private GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize, CloudStackUser cloudUser) throws FogbowException {
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
         if (diskOfferings != null) {
             for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
                 if (diskOffering.getDiskSize() >= diskSize) {
-                    return diskOffering.getId();
+                    return diskOffering;
                 }
             }
         }
@@ -283,8 +287,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         // The default network is always included in the order by the CloudStack plugin, thus it should be added
         // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
         // are appended by the LocalCloudConnector.
-        Map<String, String> computeNetworks = new HashMap<>();
-        computeNetworks.put(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME);
+        List<NetworkSummary> computeNetworks = new ArrayList<>();
+        computeNetworks.add(new NetworkSummary(this.defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
         computeInstance.setNetworks(computeNetworks);
         return computeInstance;
     }

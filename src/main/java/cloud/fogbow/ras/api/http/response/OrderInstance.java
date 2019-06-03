@@ -1,9 +1,15 @@
 package cloud.fogbow.ras.api.http.response;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class OrderInstance extends Instance {
+    @ApiModelProperty(position = 3, example = "READY")
     private InstanceState state;
+    @ApiModelProperty(position = 4, example = "active")
     private String cloudState;
+    @ApiModelProperty(position = 5)
     private boolean isReady;
+    @ApiModelProperty(position = 6)
     private boolean hasFailed;
 
     public OrderInstance(String id) {

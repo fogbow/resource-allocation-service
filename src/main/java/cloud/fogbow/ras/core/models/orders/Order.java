@@ -58,9 +58,7 @@ public abstract class Order<T extends Order> implements Serializable {
     @Size(max = FIELDS_MAX_SIZE)
     private String instanceId;
 
-    @ElementCollection
-    @MapKeyColumn
-    @Column
+    @Transient
     private Map<String, String> requirements = new HashMap<>();
 
     @Transient
@@ -145,7 +143,6 @@ public abstract class Order<T extends Order> implements Serializable {
         this.requester = requester;
     }
 
-    // When the provider is not set, then the request is assumed to be local, i.e. provider and request are the same.
     public String getProvider() {
         return this.provider;
     }
@@ -213,20 +210,20 @@ public abstract class Order<T extends Order> implements Serializable {
         }
     }
 
-    public boolean isProviderLocal(String localMemberId) {
-        return this.provider.equals(localMemberId);
+    public boolean isProviderLocal(String localProviderId) {
+        return this.provider.equals(localProviderId);
     }
 
-    public boolean isProviderRemote(String localMemberId) {
-        return !(this.provider.equals(localMemberId));
+    public boolean isProviderRemote(String localProviderId) {
+        return !(this.provider.equals(localProviderId));
     }
 
-    public boolean isRequesterLocal(String localMemberId) {
-        return this.requester.equals(localMemberId);
+    public boolean isRequesterLocal(String localProviderId) {
+        return this.requester.equals(localProviderId);
     }
 
-    public boolean isRequesterRemote(String localMemberId) {
-        return !(this.requester.equals(localMemberId));
+    public boolean isRequesterRemote(String localProviderId) {
+        return !(this.requester.equals(localProviderId));
     }
 
     @Override
