@@ -28,7 +28,6 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
@@ -103,16 +102,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 
-		HardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
-		String imageId = flavor.getFlavorId();
-		InstanceType instanceType = InstanceType.valueOf(flavor.getName());
-
-		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
-				.subnetId(this.subnetId) // Default sub-net in the available zone of the selected region.
-				.deviceIndex(FIRST_POSITION) // The first position of the network interface.
-				.groups(this.securityGroup)
-				.build();
-
+		AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
+		String imageId = flavor.getImageId();
+		InstanceType instanceType = InstanceType.fromValue(flavor.getName());
+		List<InstanceNetworkInterfaceSpecification> networkInterfaces = loadNetworkInterfaces(computeOrder);
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
 		RunInstancesRequest instanceRequest = RunInstancesRequest.builder()
@@ -120,20 +113,23 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.instanceType(instanceType)
 				.maxCount(INSTANCES_LAUNCH_NUMBER)
 				.minCount(INSTANCES_LAUNCH_NUMBER)
-				.networkInterfaces(networkInterface)
+				.networkInterfaces(networkInterfaces)
 				.userData(userData)
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		RunInstancesResponse response = client.runInstances(instanceRequest);
-
-		String instanceId = null;
-		if (!response.instances().isEmpty()) {
-			instanceId = response.instances().get(FIRST_POSITION).instanceId();
-			CreateTagsRequest tagRequest = createInstanceTagName(computeOrder, instanceId);
-			client.createTags(tagRequest);
+		try {
+			RunInstancesResponse response = client.runInstances(instanceRequest);
+			String instanceId = null;
+			if (response != null && !response.instances().isEmpty()) {
+				instanceId = response.instances().get(FIRST_POSITION).instanceId();
+				CreateTagsRequest tagRequest = createInstanceTagName(computeOrder, instanceId);
+				client.createTags(tagRequest);
+			} 
+			return instanceId;
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
-		return instanceId;
 	}
 
 	@Override
@@ -145,8 +141,15 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		ComputeInstance computeInstance = mountComputeInstance(request, client);
-		return computeInstance;
+		try {
+			DescribeInstancesResponse response = client.describeInstances(request);
+			Instance instance = getInstanceReservation(response);
+			List<Volume> volumes = getInstanceVolumes(instance, client);
+			ComputeInstance computeInstance = mountComputeInstance(instance, volumes);
+			return computeInstance;
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
 	}
 
 	@Override
@@ -177,14 +180,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return false;
 	}
 
-	protected ComputeInstance mountComputeInstance(DescribeInstancesRequest request, Ec2Client client)
+	protected ComputeInstance mountComputeInstance(Instance instance, List<Volume> volumes)
 			throws InstanceNotFoundException {
-
-		DescribeInstancesResponse response = client.describeInstances(request);
-		Instance instance = getInstanceReservation(response);
-
-		List<String> volumeIds = getVolumeIds(instance);
-		List<Volume> volumes = getInstanceVolumes(volumeIds, client);
 
 		String id = instance.instanceId();
 		String cloudState = instance.state().nameAsString();
@@ -222,9 +219,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return memory;
 	}
 
-	protected List<Volume> getInstanceVolumes(List<String> volumeIds, Ec2Client client) {
+	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) {
 		List<Volume> volumes = null;
 		DescribeVolumesResponse response;
+		List<String> volumeIds = getVolumeIds(instance);
 		for (String volumeId : volumeIds) {
 			response = getDescribeVolume(volumeId, client);
 			volumes = response.volumes();
@@ -258,6 +256,35 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 		throw new InstanceNotFoundException();
 	}
+	
+	protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(ComputeOrder computeOrder) {
+		List<String> networkIds = getNetworkIds(computeOrder);
+		List<InstanceNetworkInterfaceSpecification> networkInterfaces = new ArrayList<>();
+		InstanceNetworkInterfaceSpecification nis = null;
+		for (String networkId : networkIds) {
+			nis = createInstanceNetworkInterface(networkId);
+			networkInterfaces.add(nis);
+		}
+		return networkInterfaces;
+	}
+
+	protected List<String> getNetworkIds(ComputeOrder computeOrder) {
+		List<String> networkIds = new ArrayList<String>();
+		networkIds.add(this.subnetId);
+		if (computeOrder.getNetworkIds() != null) {
+			networkIds.addAll(computeOrder.getNetworkIds());
+		}
+		return networkIds;
+	}
+
+	protected InstanceNetworkInterfaceSpecification createInstanceNetworkInterface(String networkId) {
+		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
+				.subnetId(networkId) // Default sub-net in the available zone of the selected region.
+				.deviceIndex(FIRST_POSITION) // The first position of the network interface.
+				.groups(this.securityGroup).build();
+		
+		return networkInterface;
+	}
 
 	protected CreateTagsRequest createInstanceTagName(ComputeOrder computeOrder, String instanceId) {
 		String name = defineInstanceName(computeOrder.getName());
@@ -284,18 +311,18 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return UUID.randomUUID().toString();
 	}
 
-	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
+	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
 			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException,
 			NoAvailableResourcesException {
 
-		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
+		AwsHardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
 		if (bestFlavor == null) {
-			throw new NoAvailableResourcesException();
+			throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
 		}
 		return bestFlavor;
 	}
 
-	protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
+	protected AwsHardwareRequirements getBestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
 			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
 
 		updateHardwareRequirements(cloudUser);
@@ -427,11 +454,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	// This method is used to aid in the tests
 	protected void setFlavorsFilePath(String flavorsFilePath) {
 		this.flavorsFilePath = flavorsFilePath;
-	}
-
-	// This method is used to aid in the tests
-	protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
-		this.launchCommandGenerator = launchCommandGenerator;
 	}
 
 }
