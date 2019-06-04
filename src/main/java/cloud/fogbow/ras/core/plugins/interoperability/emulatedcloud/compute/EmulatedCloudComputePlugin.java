@@ -7,18 +7,24 @@ import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import javafx.util.Pair;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
@@ -45,13 +51,13 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-        HashMap compute = createCompute(computeOrder);
+        EmulatedCompute compute = createCompute(computeOrder);
 
-        String computeId = (String) compute.get(COMPUTE_ID);
+        String computeId = compute.getInstanceId();
         String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
 
         try {
-            EmulatedCloudUtils.saveHashMapAsJson(computePath, compute);
+            EmulatedCloudUtils.saveFileContent(computePath, compute.toJson());
         } catch (IOException e) {
             throw new InvalidParameterException(e.getMessage());
         }
@@ -62,15 +68,12 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
         String computeId = computeOrder.getInstanceId();
-        HashMap<String, String> compute;
-        HashMap<String, Double> computeWithIntMembers;
 
+        EmulatedCompute compute;
         try {
             String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
-
-            HashMap computeFromStorage = EmulatedCloudUtils.readJsonAsHashMap(computePath);
-            compute = computeFromStorage;
-            computeWithIntMembers = computeFromStorage;
+            String jsonContent = EmulatedCloudUtils.getFileContent(computePath);
+            compute = EmulatedCompute.fromJson(jsonContent);
 
         } catch (IOException e) {
 
@@ -79,27 +82,20 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         }
 
 
-        int disk = computeWithIntMembers.get(COMPUTE_DISK).intValue();
-        int vcpu = computeWithIntMembers.get(COMPUTE_VCPU).intValue();
-        int memory = computeWithIntMembers.get(COMPUTE_MEMORY).intValue();
-        String id = compute.get(COMPUTE_ID);
-        String imageId = compute.get(COMPUTE_IMAGE_ID);
-        String name = compute.get(COMPUTE_NAME);
-        String cloudName = compute.get(COMPUTE_CLOUD_NAME);
-        String provider = compute.get(COMPUTE_PROVIDER);
-        String publicKey = compute.get(COMPUTE_PUBLIC_KEY);
+        int disk = compute.getDisk();
+        int vcpu = compute.getVcpu();
+        int memory = compute.getMemory();
+        String id = compute.getInstanceId();
+        String imageId = compute.getImageId();
+        String name = compute.getName();
+        String cloudName = compute.getCloudName();
+        String provider = compute.getProvider();
+        String publicKey = compute.getPublicKey();
 
 
-        // This doesn't smell good but works.
-        HashMap computeWithNetworks = compute;
-        HashMap networks;
+        List<NetworkSummary> networks = getNetworkSummaries(compute);
 
-        LinkedTreeMap linkedTreeMap = (LinkedTreeMap) computeWithNetworks.get(COMPUTE_NETWORKS);
-        Gson gson = GsonHolder.getInstance();
-        networks = gson.fromJson(gson.toJson(linkedTreeMap), HashMap.class);
-
-
-        ComputeInstance computeInstance = new ComputeInstance(id, "running", name,
+        ComputeInstance computeInstance = new ComputeInstance(id, EmulatedCloudConstants.Plugins.STATE_RUNNING, name,
                 vcpu, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
         
         computeInstance.setNetworks(networks);
@@ -107,6 +103,18 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         computeInstance.setCloudName(cloudName);
 
         return computeInstance;
+    }
+
+    private List<NetworkSummary> getNetworkSummaries(EmulatedCompute compute) {
+        List<NetworkSummary> summaries = new ArrayList<>();
+
+        for (Pair<String, String> pair : compute.getNetworks()) {
+            String id = pair.getKey();
+            String name = pair.getValue();
+            summaries.add(new NetworkSummary(id, name));
+        }
+
+        return summaries;
     }
 
     @Override
@@ -128,41 +136,39 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     }
 
 
-    protected HashMap createCompute(ComputeOrder computeOrder) {
+    protected EmulatedCompute createCompute(ComputeOrder computeOrder) {
         int disk = computeOrder.getDisk();
         int vcpu = computeOrder.getvCPU();
         int memory = computeOrder.getMemory();
         String imageId = computeOrder.getImageId();
 
         String name = EmulatedCloudUtils.getName(computeOrder.getName());
-        String cloudName = computeOrder.getCloudName();
-        String provider = computeOrder.getProvider();
         String publicKey = computeOrder.getPublicKey();
         String id = EmulatedCloudUtils.getRandomUUID();
 
-        HashMap networks = getNetworks(computeOrder);
+        List<Pair<String, String> > networks = getNetworks(computeOrder);
 
-        HashMap compute = new HashMap();
+        EmulatedCompute emulatedCompute = new EmulatedCompute.Builder()
+                .disk(disk)
+                .vcpu(vcpu)
+                .memory(memory)
+                .imageId(imageId)
+                .name(name)
+                .publicKey(publicKey)
+                .instanceId(id)
+                .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
+                .build();
 
-        compute.put(COMPUTE_ID, id);
-        compute.put(COMPUTE_DISK, disk);
-        compute.put(COMPUTE_VCPU, vcpu);
-        compute.put(COMPUTE_MEMORY, memory);
-        compute.put(COMPUTE_IMAGE_ID, imageId);
-        compute.put(COMPUTE_NAME, name);
-        compute.put(COMPUTE_CLOUD_NAME, cloudName);
-        compute.put(COMPUTE_PROVIDER, provider);
-        compute.put(COMPUTE_PUBLIC_KEY, publicKey);
-        compute.put(COMPUTE_NETWORKS, networks);
+        emulatedCompute.setNetworks(networks);
 
-        return compute;
+        return emulatedCompute;
     }
 
-    private HashMap getNetworks(ComputeOrder computeOrder) {
-        HashMap networks = new HashMap();
+    private List getNetworks(ComputeOrder computeOrder) {
+        List networks = new ArrayList();
 
         for (String network : computeOrder.getNetworkOrderIds()){
-            networks.put(network, "custom");
+            networks.add(new Pair<String, String>(network, network));
         }
 
         return networks;

@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.*;
 
-
 /**
  * Documentation: https://developer.openstack.org/api-ref/device/
  * <p>
@@ -18,7 +17,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.Emula
  *      }
  * }
  */
-public class EmulatedAttachment extends EmulatedOrderWithSecurityRule {
+public class EmulatedAttachment implements JsonSerializable {
     @SerializedName(VOLUME_ATTACHMENT_KEY_JSON)
     private Attachment attachment;
 
