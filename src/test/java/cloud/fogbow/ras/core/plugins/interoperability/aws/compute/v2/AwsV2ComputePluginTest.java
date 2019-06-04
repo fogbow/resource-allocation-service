@@ -323,9 +323,7 @@ public class AwsV2ComputePluginTest {
 	// and cloud user valid, and return the null result, the
 	// NoAvailableResourcesException will be thrown.
 	@Test(expected = NoAvailableResourcesException.class) // verify
-	public void testFindSmallestFlavorUnsuccessful() throws InvalidParameterException, UnexpectedException,
-			ConfigurationErrorException, NoAvailableResourcesException {
-
+	public void testFindSmallestFlavorUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -388,8 +386,7 @@ public class AwsV2ComputePluginTest {
 	// requirements map, it must filter the possibilities according to that map,
 	// returning the corresponding results.
 	@Test
-	public void testGetFlavorsByRequirementsSuccessful()
-			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
+	public void testGetFlavorsByRequirementsSuccessful() throws FogbowException {
 
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
@@ -424,9 +421,7 @@ public class AwsV2ComputePluginTest {
 	// there will be no filter to limit the results, returning all the flavors
 	// obtained in the last update.
 	@Test
-	public void testGetFlavorsByRequirementsWithNullMap()
-			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
-
+	public void testGetFlavorsByRequirementsWithNullMap() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -454,9 +449,7 @@ public class AwsV2ComputePluginTest {
 	// map, there will be no filter to limit the results, returning all the flavors
 	// obtained in the last update.
 	@Test
-	public void testGetFlavorsByRequirementsWithEmptyMap()
-			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
-
+	public void testGetFlavorsByRequirementsWithEmptyMap() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -485,7 +478,7 @@ public class AwsV2ComputePluginTest {
 	@Test(expected = ConfigurationErrorException.class) // verify
 	public void testLoadLinesFromFlavorFileUnsuccessful() throws ConfigurationErrorException {
 		// set up
-		this.plugin.setFlavorsFilePath(ANY_VALUE);
+		Mockito.doReturn(ANY_VALUE).when(this.plugin).getFlavorsFilePath();
 
 		// exercise
 		this.plugin.loadLinesFromFlavorFile();
@@ -494,9 +487,7 @@ public class AwsV2ComputePluginTest {
 	// test case: When calling the updateHardwareRequirements method, with a valid
 	// cloud user, there will be updating the set of available flavors.
 	@Test
-	public void testUpdateHardwareRequirementsSuccessful()
-			throws ConfigurationErrorException, InvalidParameterException, UnexpectedException {
-
+	public void testUpdateHardwareRequirementsSuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);

@@ -117,15 +117,21 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.userData(userData)
 				.build();
 
+		return doRunInstancesRequests(cloudUser, instanceRequest, computeOrder);
+	}
+
+	private String doRunInstancesRequests(AwsV2User cloudUser, RunInstancesRequest request, ComputeOrder computeOrder)
+			throws InvalidParameterException, UnexpectedException {
+
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		try {
-			RunInstancesResponse response = client.runInstances(instanceRequest);
+			RunInstancesResponse response = client.runInstances(request);
 			String instanceId = null;
 			if (response != null && !response.instances().isEmpty()) {
-				instanceId = response.instances().get(FIRST_POSITION).instanceId();
+				instanceId = response.instances().listIterator().next().instanceId();
 				CreateTagsRequest tagRequest = createInstanceTagName(computeOrder, instanceId);
 				client.createTags(tagRequest);
-			} 
+			}
 			return instanceId;
 		} catch (Exception e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
@@ -140,6 +146,12 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.instanceIds(computeOrder.getInstanceId())
 				.build();
 
+		return doDescribeInstancesRequests(cloudUser, request);
+	}
+
+	private ComputeInstance doDescribeInstancesRequests(AwsV2User cloudUser, DescribeInstancesRequest request)
+			throws InvalidParameterException, UnexpectedException {
+		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		try {
 			DescribeInstancesResponse response = client.describeInstances(request);
@@ -161,10 +173,16 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.instanceIds(instanceId)
 				.build();
 
+		doTerminateInstancesRequests(cloudUser, request);
+	}
+
+	private void doTerminateInstancesRequests(AwsV2User cloudUser, TerminateInstancesRequest request)
+			throws InvalidParameterException, UnexpectedException {
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		try {
 			client.terminateInstances(request);
 		} catch (Exception e) {
+			String instanceId = request.instanceIds().listIterator().next();
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId), e);
 			throw new UnexpectedException();
 		}
@@ -185,7 +203,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 		String id = instance.instanceId();
 		String cloudState = instance.state().nameAsString();
-		String name = instance.tags().get(FIRST_POSITION).value();
+		String name = instance.tags().listIterator().next().value();
 		int cpu = instance.cpuOptions().coreCount();
 		int memory = getMemoryValueFrom(instance.instanceType());
 		int disk = getAllDisksSize(volumes);
@@ -220,18 +238,17 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) {
-		List<Volume> volumes = null;
+		List<Volume> volumes = new ArrayList<>();
 		DescribeVolumesResponse response;
 		List<String> volumeIds = getVolumeIds(instance);
 		for (String volumeId : volumeIds) {
-			response = getDescribeVolume(volumeId, client);
-			volumes = response.volumes();
-
+			response = describeVolumes(volumeId, client);
+			volumes.addAll(response.volumes());
 		}
 		return volumes;
 	}
 
-	protected DescribeVolumesResponse getDescribeVolume(String volumeId, Ec2Client client) {
+	protected DescribeVolumesResponse describeVolumes(String volumeId, Ec2Client client) {
 		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
 				.volumeIds(volumeId)
 				.build();
@@ -249,9 +266,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected Instance getInstanceReservation(DescribeInstancesResponse response) throws InstanceNotFoundException {
 		if (!response.reservations().isEmpty()) {
-			Reservation reservation = response.reservations().get(FIRST_POSITION);
+			Reservation reservation = response.reservations().listIterator().next();
 			if (!reservation.instances().isEmpty()) {
-				return reservation.instances().get(FIRST_POSITION);
+				return reservation.instances().listIterator().next();
 			}
 		}
 		throw new InstanceNotFoundException();
@@ -306,14 +323,12 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
 	}
 
-	// This method is used to aid in the tests
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
 	}
 
 	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
-			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException,
-			NoAvailableResourcesException {
+			throws FogbowException {
 
 		AwsHardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
 		if (bestFlavor == null) {
@@ -323,7 +338,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected AwsHardwareRequirements getBestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
-			throws InvalidParameterException, UnexpectedException, ConfigurationErrorException {
+			throws FogbowException {
 
 		updateHardwareRequirements(cloudUser);
 		TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
@@ -337,6 +352,15 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return null;
 	}
 
+	/**
+	 * this method attempts to filter the set of flavors available from a
+	 * requirements map passed by parameter. If there are valid requirements on the
+	 * map, it will filter these insights, returning only the common flavors to the
+	 * requested order. Otherwise returns the complete flavor set without changes.
+	 * 
+	 * @param orderRequirements: a map of requirements in the compute order request.
+	 * @return a set of requirements-filtered flavors or the current set of flavors.
+	 */
 	protected TreeSet<AwsHardwareRequirements> getFlavorsByRequirements(Map<String, String> orderRequirements) {
 		TreeSet<AwsHardwareRequirements> resultSet = getFlavors();
 		List<AwsHardwareRequirements> resultList = null;
@@ -371,9 +395,15 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 	}
 
-	protected void updateHardwareRequirements(AwsV2User cloudUser)
-			throws ConfigurationErrorException, InvalidParameterException, UnexpectedException {
-
+	/**
+	 * This method loads all of the flavor file lines containing the hardware
+	 * requirements by instance type AWS, and a map of available images in the
+	 * cloud, to assemble a set of flavors ordered by the simplest requirements.
+	 * 
+	 * @param cloudUser: the user of the AWS cloud.
+	 * @throws FogbowException: if any error occurs.
+	 */
+	protected void updateHardwareRequirements(AwsV2User cloudUser) throws FogbowException {
 		List<String> lines = loadLinesFromFlavorFile();
 		String[] requirements = null;
 		AwsHardwareRequirements flavor = null;
@@ -434,7 +464,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
-		Path path = Paths.get(this.flavorsFilePath);
+		String file = getFlavorsFilePath();
+		Path path = Paths.get(file);
 		try {
 			return Files.readAllLines(path);
 		} catch (IOException e) {
@@ -452,8 +483,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 	
 	// This method is used to aid in the tests
-	protected void setFlavorsFilePath(String flavorsFilePath) {
-		this.flavorsFilePath = flavorsFilePath;
+	protected String getFlavorsFilePath() {
+		return flavorsFilePath;
 	}
 
 }
