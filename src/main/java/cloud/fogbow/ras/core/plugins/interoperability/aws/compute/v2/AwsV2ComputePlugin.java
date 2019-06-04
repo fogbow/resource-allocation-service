@@ -150,13 +150,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	private ComputeInstance doDescribeInstancesRequests(AwsV2User cloudUser, DescribeInstancesRequest request)
-			throws InvalidParameterException, UnexpectedException {
+			throws FogbowException {
 		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		try {
 			DescribeInstancesResponse response = client.describeInstances(request);
 			Instance instance = getInstanceReservation(response);
 			List<Volume> volumes = getInstanceVolumes(instance, client);
+			updateHardwareRequirements(cloudUser);
 			ComputeInstance computeInstance = mountComputeInstance(instance, volumes);
 			return computeInstance;
 		} catch (Exception e) {
@@ -228,13 +229,12 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected int getMemoryValueFrom(InstanceType instanceType) {
-		int memory = 0;
 		for (AwsHardwareRequirements flavors : getFlavors()) {
 			if (flavors.getName().equals(instanceType.toString())) {
-				memory = flavors.getMemory();
+				return flavors.getMemory();
 			}
 		}
-		return memory;
+		return 0;
 	}
 
 	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) {

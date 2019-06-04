@@ -24,7 +24,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -83,8 +82,9 @@ public class AwsV2ComputePluginTest {
 	private static final String FAKE_USER_DATA = "fake-user-data";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
-	private static final int ONE_GIGABYTE = 1024;
 	private static final int AMOUNT_SSD_STORAGE = 2;
+	private static final int ONE_GIGABYTE = 1024;
+	private static final int ZERO_VALUE = 0;
 	
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
 			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
@@ -204,7 +204,7 @@ public class AwsV2ComputePluginTest {
 		this.plugin.getInstance(computeOrder, cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(2));
+		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(3));
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
 		Mockito.verify(client, Mockito.times(1)).describeInstances(Mockito.any(DescribeInstancesRequest.class));
@@ -223,6 +223,7 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+		mockDescribeImagesResponse(client);
 
 		ComputeOrder computeOrder = createComputeOrder(null);
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -317,6 +318,22 @@ public class AwsV2ComputePluginTest {
 
 		// verify
 		Assert.assertFalse(status);
+	}
+	
+	// test case: When calling the getMemoryValueFrom method, with a empty set
+	// flavors, it must return a zero value.
+	@Test
+	public void testGetMemoryValueWithASetFlavorsEmpty() {
+		// set up
+		InstanceType instanceType = InstanceType.T1_MICRO;
+		int expected = ZERO_VALUE;
+
+		// exercise
+		int memory = this.plugin.getMemoryValueFrom(instanceType);
+
+		// verify
+		Assert.assertTrue(this.plugin.getFlavors().isEmpty());
+		Assert.assertEquals(expected, memory);
 	}
 	
 	// test case: When calling the findSmallestFlavor method, with a compute order
