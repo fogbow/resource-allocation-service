@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmod
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -33,5 +35,28 @@ public class EmulatedOrderWithSecurityRule implements JsonSerializable {
         }
 
         securityRules.add(securityRule);
+    }
+
+    public void removeSecurityRule(String securityRuleId) {
+        this.securityRules.remove(securityRuleId);
+    }
+
+    public static List<SecurityRuleInstance> getFogbowSecurityRules(List<EmulatedSecurityRule> securityRules){
+        List<SecurityRuleInstance> securityRuleInstances = new ArrayList<>();
+
+        for (EmulatedSecurityRule emulatedSecurityRule: securityRules) {
+            String id = emulatedSecurityRule.getId();
+            SecurityRule.Direction direction = SecurityRule.Direction.valueOf(emulatedSecurityRule.getDirection());
+            int portFrom = emulatedSecurityRule.getPortFrom();
+            int portTo = emulatedSecurityRule.getPortTo();
+            String cidr = emulatedSecurityRule.getCidr();
+            SecurityRule.EtherType etherType = SecurityRule.EtherType.valueOf(emulatedSecurityRule.getEtherType());
+            SecurityRule.Protocol protocol = SecurityRule.Protocol.valueOf(emulatedSecurityRule.getProtocol());
+
+            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
+            securityRuleInstances.add(securityRuleInstance);
+        }
+
+        return securityRuleInstances;
     }
 }

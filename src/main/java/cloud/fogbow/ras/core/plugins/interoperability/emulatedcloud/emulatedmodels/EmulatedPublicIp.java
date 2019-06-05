@@ -1,11 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.*;
 
-public class EmulatedPublicIp {
+public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
     @SerializedName(CLOUD_STATE_KEY_JSON)
     private String cloudState;
 
@@ -124,6 +129,4 @@ public class EmulatedPublicIp {
     public String getState() {
         return state;
     }
-
-
 }
