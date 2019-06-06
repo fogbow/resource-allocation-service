@@ -12,6 +12,7 @@ public class AwsV2StateMapper {
 	private static final String ATTACHMENT_PLUGIN = "AwsV2AttachmentPlugin";
 	private static final String COMPUTE_PLUGIN = "AwsV2ComputePlugin";
 	private static final String IMAGE_PLUGIN = "AwsV2ImagePlugin";
+	private static final String NETWORK_PLUGIN = "AwsV2NetworkPlugin";
 	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
 
 	public static final String ATTACHED_STATE = "attached";
@@ -64,6 +65,18 @@ public class AwsV2StateMapper {
 				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
+		case NETWORK:
+			// cloud state values: [available, pending, unknown_to_sdk_version]
+			switch (state) {
+			case AVAILABLE_STATE:
+				return InstanceState.READY;
+			case PENDING_STATE:
+				return InstanceState.BUSY;
+			case UNKNOWN_TO_SDK_VERSION_STATE:
+			default:
+				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+				return InstanceState.INCONSISTENT;
+			}
 		case VOLUME:
 			// cloud state values: [creating, available, in-use, deleting, deleted, error]
 			switch (state) {
@@ -85,15 +98,15 @@ public class AwsV2StateMapper {
 			switch (state) {
 			case AVAILABLE_STATE:
 				return InstanceState.READY;
-			case DEREGISTERED_STATE:
 			case ERROR_STATE:
 			case FAILED_STATE:
-			case INVALID_STATE:
-			case UNKNOWN_TO_SDK_VERSION_STATE:
 				return InstanceState.FAILED;
 			case PENDING_STATE:
 			case TRANSIENT_STATE:
 				return InstanceState.BUSY;
+			case DEREGISTERED_STATE:
+			case INVALID_STATE:
+			case UNKNOWN_TO_SDK_VERSION_STATE:
 			default:
 				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, IMAGE_PLUGIN));
 				return InstanceState.INCONSISTENT;
