@@ -35,7 +35,7 @@ public class EmulatedAttachment implements JsonSerializable {
         private final String volumeId;
         @SerializedName(DEVICE_KEY_JSON)
         private final String device;
-        @SerializedName(INSTANCE_KEY_JSON)
+        @SerializedName(INSTANCE_ID_KEY_JSON)
         private final String instanceId;
         @SerializedName(CLOUD_STATE_KEY_JSON)
         private final String cloudState;

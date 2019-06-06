@@ -12,7 +12,7 @@ import java.util.List;
 
 public class EmulatedCompute implements JsonSerializable {
 
-    @SerializedName(INSTANCE_KEY_JSON)
+    @SerializedName(INSTANCE_ID_KEY_JSON)
     private String instanceId;
 
     @SerializedName(CLOUD_STATE_KEY_JSON)

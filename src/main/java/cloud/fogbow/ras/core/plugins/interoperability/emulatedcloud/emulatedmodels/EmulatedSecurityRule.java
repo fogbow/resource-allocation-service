@@ -9,7 +9,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.Emula
 
 public class EmulatedSecurityRule implements JsonSerializable {
 
-    @SerializedName(INSTANCE_KEY_JSON)
+    @SerializedName(INSTANCE_ID_KEY_JSON)
     private String id;
 
     @SerializedName(DIRECTION_KEY_JSON)
