@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -21,11 +22,12 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
 
     @Override
     public Void send() throws Exception {
-
         IQ iq = RemoteCreateOrderRequest.marshal(this.order);
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
+        LOGGER.debug(Messages.Info.SUCCESS);
         return null;
     }
 

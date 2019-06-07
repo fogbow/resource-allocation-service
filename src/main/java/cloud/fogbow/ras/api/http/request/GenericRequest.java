@@ -49,7 +49,7 @@ public class GenericRequest {
                     providerId, genericRequest, systemUserToken);
             return new ResponseEntity<>(fogbowGenericResponse, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

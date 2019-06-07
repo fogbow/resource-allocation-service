@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -23,6 +24,7 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String imageId = unmarshalImageId(iq);
         String cloudName = unmarshalCloudName(iq);
         SystemUser systemUser = unmarshalFederationUser(iq);

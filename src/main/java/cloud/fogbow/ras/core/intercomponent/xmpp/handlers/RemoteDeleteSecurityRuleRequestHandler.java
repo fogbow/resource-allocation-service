@@ -1,16 +1,19 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import com.google.gson.Gson;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteDeleteSecurityRuleRequestHandler extends AbstractQueryHandler {
+    private static final Logger LOGGER = Logger.getLogger(RemoteDeleteSecurityRuleRequestHandler.class);
 
     public RemoteDeleteSecurityRuleRequestHandler() {
         super(RemoteMethod.REMOTE_DELETE_SECURITY_RULE.toString());
@@ -18,6 +21,7 @@ public class RemoteDeleteSecurityRuleRequestHandler extends AbstractQueryHandler
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         String ruleId = unmarshalRuleId(iq);
         SystemUser systemUser = unmarshalFederationUserToken(iq);
