@@ -61,7 +61,7 @@ public class LocalCloudConnector implements CloudConnector {
     public String requestInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "requestInstance", order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
@@ -82,7 +82,7 @@ public class LocalCloudConnector implements CloudConnector {
     public void deleteInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "deleteInstance", order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
@@ -101,7 +101,7 @@ public class LocalCloudConnector implements CloudConnector {
     public OrderInstance getInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getInstance", order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String auditableResponse = null;
         OrderInstance instance = null;
@@ -127,7 +127,7 @@ public class LocalCloudConnector implements CloudConnector {
     public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getQuota", systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String auditableResponse = null;
         Quota quota = null;
@@ -152,7 +152,7 @@ public class LocalCloudConnector implements CloudConnector {
     public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getAllImages", systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         List<ImageSummary> images = null;
         String auditableResponse = null;
@@ -177,7 +177,7 @@ public class LocalCloudConnector implements CloudConnector {
     public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getImage", systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         ImageInstance imageInstance = null;
         String auditableResponse = null;
@@ -202,7 +202,7 @@ public class LocalCloudConnector implements CloudConnector {
     public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "genericRequest", genericRequest));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         FogbowGenericResponse fogbowGenericResponse = null;
         String auditableResponse = null;
@@ -227,7 +227,7 @@ public class LocalCloudConnector implements CloudConnector {
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getAllSecurityRules", order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         List<SecurityRuleInstance> securityRuleInstances = null;
         String auditableResponse = null;
@@ -252,7 +252,7 @@ public class LocalCloudConnector implements CloudConnector {
     public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "requestSecurityRules", order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
@@ -273,7 +273,7 @@ public class LocalCloudConnector implements CloudConnector {
     public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "deleteSecurityRule", securityRuleId));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser.toString()));
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {

@@ -14,7 +14,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
-import javafx.util.Pair;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -64,7 +63,6 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
             throw new InstanceNotFoundException(e.getMessage());
         }
 
-
         int disk = compute.getDisk();
         int vcpu = compute.getVcpu();
         int memory = compute.getMemory();
@@ -76,7 +74,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         String publicKey = compute.getPublicKey();
 
 
-        List<NetworkSummary> networks = getNetworkSummaries(compute);
+        List<NetworkSummary> networks = compute.getNetworks();
 
         ComputeInstance computeInstance = new ComputeInstance(id, EmulatedCloudConstants.Plugins.STATE_RUNNING, name,
                 vcpu, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
@@ -86,18 +84,6 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         computeInstance.setCloudName(cloudName);
 
         return computeInstance;
-    }
-
-    private List<NetworkSummary> getNetworkSummaries(EmulatedCompute compute) {
-        List<NetworkSummary> summaries = new ArrayList<>();
-
-        for (Pair<String, String> pair : compute.getNetworks()) {
-            String id = pair.getKey();
-            String name = pair.getValue();
-            summaries.add(new NetworkSummary(id, name));
-        }
-
-        return summaries;
     }
 
     @Override
@@ -129,7 +115,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         String publicKey = computeOrder.getPublicKey();
         String id = EmulatedCloudUtils.getRandomUUID();
 
-        List<Pair<String, String> > networks = getNetworks(computeOrder);
+        List<NetworkSummary> networks = getNetworks(computeOrder);
 
         EmulatedCompute emulatedCompute = new EmulatedCompute.Builder()
                 .disk(disk)
@@ -151,7 +137,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         List networks = new ArrayList();
 
         for (String network : computeOrder.getNetworkOrderIds()){
-            networks.add(new Pair<String, String>(network, network));
+            networks.add(new NetworkSummary(network, network));
         }
 
         return networks;

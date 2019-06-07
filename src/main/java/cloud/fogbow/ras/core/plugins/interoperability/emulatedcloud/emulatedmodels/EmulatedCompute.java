@@ -4,9 +4,9 @@ import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.Emula
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
+import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.core.models.UserData;
 import com.google.gson.annotations.SerializedName;
-import javafx.util.Pair;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class EmulatedCompute implements JsonSerializable {
     private List<UserData> userData;
 
     @SerializedName(NETWORK_KEY_JSON)
-    private List<Pair<String, String> > networks;
+    private List<NetworkSummary> networks;
 
     @SerializedName(CLOUD_NAME_KEY_JSON)
     private String cloudName;
@@ -143,7 +143,7 @@ public class EmulatedCompute implements JsonSerializable {
         }
     }
 
-    public void setNetworks(List<Pair<String, String>> networks) {
+    public void setNetworks(List<NetworkSummary> networks) {
         this.networks = networks;
     }
 
@@ -187,7 +187,7 @@ public class EmulatedCompute implements JsonSerializable {
         return userData;
     }
 
-    public List<Pair<String, String>> getNetworks() {
+    public List<NetworkSummary> getNetworks() {
         return networks;
     }
 
