@@ -10,6 +10,7 @@ RUN \
   apt-get update -y && \
   apt-get upgrade -y && \
   apt-get install -y build-essential && \
+  apt-get install openjfx -y && \
   apt-get install -y software-properties-common && \
   apt-get install -y byobu curl git htop man unzip vim wget maven && \
   apt-get install -y net-tools iputils-ping && \
