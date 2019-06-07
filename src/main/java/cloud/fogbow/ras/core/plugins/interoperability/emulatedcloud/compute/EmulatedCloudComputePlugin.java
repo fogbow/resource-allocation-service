@@ -4,10 +4,8 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -16,14 +14,11 @@ import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import javafx.util.Pair;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -31,19 +26,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     private static final Logger LOGGER = Logger.getLogger(EmulatedCloudComputePlugin.class);
 
-    private static final String COMPUTE_CLOUD_NAME = "cloudName";
-    private static final String COMPUTE_DISK = "disk";
-    private static final String COMPUTE_IMAGE_ID = "imageId";
-    private static final String COMPUTE_MEMORY = "memory";
-    private static final String COMPUTE_NAME = "name";
-    private static final String COMPUTE_PROVIDER = "provider";
-    private static final String COMPUTE_PUBLIC_KEY = "publickKey";
-    private static final String COMPUTE_VCPU = "vcpu";
-    private static final String COMPUTE_NETWORKS = "networks";
-
     private Properties properties;
-
-    private static final String COMPUTE_ID = "id";
 
     public EmulatedCloudComputePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
