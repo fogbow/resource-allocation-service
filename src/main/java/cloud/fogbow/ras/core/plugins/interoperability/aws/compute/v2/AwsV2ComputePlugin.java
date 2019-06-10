@@ -63,7 +63,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private static final String RESOURCE_NAME = "Compute";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
-	
+
 	private static final int INSTANCE_TYPE_COLUMN = 0;
 	private static final int VCPU_COLUMN = 1;
 	private static final int MEMORY_COLUMN = 2;
@@ -71,7 +71,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private static final int PROCESSOR_COLUMN = 4;
 	private static final int NETWORK_PERFORMANCE_COLUMN = 5;
 	private static final int DEDICATED_EBS_BANDWIDTH_COLUMN = 6;
-	
+
 	protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
 	protected static final String PERFORMANCE_REQUIREMENT = "performance";
 	protected static final String PROCESSOR_REQUIREMENT = "processor";
@@ -97,7 +97,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 		this.flavors = new TreeSet<AwsHardwareRequirements>();
 	}
-	
+
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
@@ -105,10 +105,11 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
 		String imageId = flavor.getImageId();
 		InstanceType instanceType = InstanceType.fromValue(flavor.getName());
-		List<InstanceNetworkInterfaceSpecification> networkInterfaces = loadNetworkInterfaces(computeOrder);
+		List<String> subnetIds = getSubnetIdsFrom(computeOrder);
+		List<InstanceNetworkInterfaceSpecification> networkInterfaces = loadNetworkInterfaces(subnetIds);
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
-		RunInstancesRequest instanceRequest = RunInstancesRequest.builder()
+		RunInstancesRequest request = RunInstancesRequest.builder()
 				.imageId(imageId)
 				.instanceType(instanceType)
 				.maxCount(INSTANCES_LAUNCH_NUMBER)
@@ -117,25 +118,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.userData(userData)
 				.build();
 
-		return doRunInstancesRequests(cloudUser, instanceRequest, computeOrder);
-	}
-
-	private String doRunInstancesRequests(AwsV2User cloudUser, RunInstancesRequest request, ComputeOrder computeOrder)
-			throws InvalidParameterException, UnexpectedException {
-
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		try {
-			RunInstancesResponse response = client.runInstances(request);
-			String instanceId = null;
-			if (response != null && !response.instances().isEmpty()) {
-				instanceId = response.instances().listIterator().next().instanceId();
-				CreateTagsRequest tagRequest = createInstanceTagName(computeOrder, instanceId);
-				client.createTags(tagRequest);
-			}
-			return instanceId;
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
+		return doRunInstancesRequests(computeOrder, request, client);
 	}
 
 	@Override
@@ -146,23 +130,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.instanceIds(computeOrder.getInstanceId())
 				.build();
 
-		return doDescribeInstancesRequests(cloudUser, request);
-	}
-
-	private ComputeInstance doDescribeInstancesRequests(AwsV2User cloudUser, DescribeInstancesRequest request)
-			throws FogbowException {
-		
+		updateHardwareRequirements(cloudUser);
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		try {
-			DescribeInstancesResponse response = client.describeInstances(request);
-			Instance instance = getInstanceReservation(response);
-			List<Volume> volumes = getInstanceVolumes(instance, client);
-			updateHardwareRequirements(cloudUser);
-			ComputeInstance computeInstance = mountComputeInstance(instance, volumes);
-			return computeInstance;
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
+		ComputeInstance computeInstance = doDescribeInstancesRequests(request, client);
+		return computeInstance;
 	}
 
 	@Override
@@ -174,19 +145,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.instanceIds(instanceId)
 				.build();
 
-		doTerminateInstancesRequests(cloudUser, request);
-	}
-
-	private void doTerminateInstancesRequests(AwsV2User cloudUser, TerminateInstancesRequest request)
-			throws InvalidParameterException, UnexpectedException {
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		try {
-			client.terminateInstances(request);
-		} catch (Exception e) {
-			String instanceId = request.instanceIds().listIterator().next();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId), e);
-			throw new UnexpectedException();
-		}
+		doTerminateInstancesRequests(request, client);
 	}
 
 	@Override
@@ -197,6 +157,48 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	@Override
 	public boolean hasFailed(String instanceState) {
 		return false;
+	}
+
+	private void doTerminateInstancesRequests(TerminateInstancesRequest request, Ec2Client client)
+			throws InvalidParameterException, UnexpectedException {
+
+		try {
+			client.terminateInstances(request);
+		} catch (Exception e) {
+			String instanceId = request.instanceIds().listIterator().next();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId), e);
+			throw new UnexpectedException();
+		}
+	}
+	
+	private ComputeInstance doDescribeInstancesRequests(DescribeInstancesRequest request, Ec2Client client)
+			throws FogbowException {
+
+		try {
+			DescribeInstancesResponse response = client.describeInstances(request);
+			Instance instance = getInstanceReservation(response);
+			List<Volume> volumes = getInstanceVolumes(instance, client);
+			return mountComputeInstance(instance, volumes);
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
+	}
+	
+	private String doRunInstancesRequests(ComputeOrder computeOrder, RunInstancesRequest request, Ec2Client client)
+			throws UnexpectedException {
+
+		try {
+			RunInstancesResponse response = client.runInstances(request);
+			String instanceId = null;
+			if (response != null && !response.instances().isEmpty()) {
+				instanceId = response.instances().listIterator().next().instanceId();
+				String name = defineInstanceName(computeOrder.getName());
+				doCreateTagsRequests(AWS_TAG_NAME, name, instanceId, client);
+			}
+			return instanceId;
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
 	}
 
 	protected ComputeInstance mountComputeInstance(Instance instance, List<Volume> volumes)
@@ -237,23 +239,28 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return 0;
 	}
 
-	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) {
+	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) throws UnexpectedException {
 		List<Volume> volumes = new ArrayList<>();
 		DescribeVolumesResponse response;
 		List<String> volumeIds = getVolumeIds(instance);
 		for (String volumeId : volumeIds) {
-			response = describeVolumes(volumeId, client);
+			response = doDescribeVolumesRequests(volumeId, client);
 			volumes.addAll(response.volumes());
 		}
 		return volumes;
 	}
 
-	protected DescribeVolumesResponse describeVolumes(String volumeId, Ec2Client client) {
+	protected DescribeVolumesResponse doDescribeVolumesRequests(String volumeId, Ec2Client client)
+			throws UnexpectedException {
+		
 		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
 				.volumeIds(volumeId)
 				.build();
-
-		return client.describeVolumes(request);
+		try {
+			return client.describeVolumes(request);
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
 	}
 
 	protected List<String> getVolumeIds(Instance instance) {
@@ -273,51 +280,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 		throw new InstanceNotFoundException();
 	}
-	
-	protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(ComputeOrder computeOrder) {
-		List<String> networkIds = getNetworkIds(computeOrder);
-		List<InstanceNetworkInterfaceSpecification> networkInterfaces = new ArrayList<>();
-		InstanceNetworkInterfaceSpecification nis = null;
-		for (String networkId : networkIds) {
-			nis = createInstanceNetworkInterface(networkId);
-			networkInterfaces.add(nis);
-		}
-		return networkInterfaces;
-	}
-
-	protected List<String> getNetworkIds(ComputeOrder computeOrder) {
-		List<String> networkIds = new ArrayList<String>();
-		networkIds.add(this.subnetId);
-		if (computeOrder.getNetworkIds() != null) {
-			networkIds.addAll(computeOrder.getNetworkIds());
-		}
-		return networkIds;
-	}
-
-	protected InstanceNetworkInterfaceSpecification createInstanceNetworkInterface(String networkId) {
-		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
-				.subnetId(networkId) // Default sub-net in the available zone of the selected region.
-				.deviceIndex(FIRST_POSITION) // The first position of the network interface.
-				.groups(this.securityGroup).build();
-		
-		return networkInterface;
-	}
-
-	protected CreateTagsRequest createInstanceTagName(ComputeOrder computeOrder, String instanceId) {
-		String name = defineInstanceName(computeOrder.getName());
-
-		Tag tagName = Tag.builder()
-				.key(AWS_TAG_NAME)
-				.value(name)
-				.build();
-
-		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-				.resources(instanceId)
-				.tags(tagName)
-				.build();
-
-		return tagRequest;
-	}
 
 	protected String defineInstanceName(String instanceName) {
 		return instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
@@ -325,6 +287,58 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
+	}
+
+	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
+		List<String> networkIds = new ArrayList<String>();
+		if (computeOrder.getNetworkIds() != null) {
+			networkIds.addAll(computeOrder.getNetworkIds());
+		} else {
+			// Default sub-net in the available zone of the selected region.
+			networkIds.add(this.subnetId);
+		}
+		return networkIds;
+	}
+
+	protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(List<String> subnetIds) {
+		List<InstanceNetworkInterfaceSpecification> networkInterfaces = new ArrayList<>();
+		InstanceNetworkInterfaceSpecification nis;
+		String subnetId;
+		for (int i = 0; i < subnetIds.size(); i++) {
+			subnetId = subnetIds.get(i);
+			nis = buildNetworkInterface(subnetId, i);
+			networkInterfaces.add(nis);
+		}
+		return networkInterfaces;
+	}
+
+	protected InstanceNetworkInterfaceSpecification buildNetworkInterface(String subnetId, int deviceIndex) {
+		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
+				.subnetId(subnetId)
+				.deviceIndex(deviceIndex)
+				.groups(this.securityGroup)
+				.build();
+
+		return networkInterface;
+	}
+
+	protected void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
+			throws UnexpectedException {
+
+		Tag tag = Tag.builder()
+				.key(key)
+				.value(value)
+				.build();
+
+		CreateTagsRequest request = CreateTagsRequest.builder()
+				.resources(resourceId)
+				.tags(tag)
+				.build();
+		try {
+			client.createTags(request);
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
 	}
 
 	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
@@ -374,7 +388,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 		return resultSet;
 	}
-	
+
 	protected TreeSet<AwsHardwareRequirements> parseToTreeSet(List<AwsHardwareRequirements> list) {
 		TreeSet<AwsHardwareRequirements> resultSet = new TreeSet<AwsHardwareRequirements>();
 		resultSet.addAll(list);
@@ -384,11 +398,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	protected List<AwsHardwareRequirements> filterFlavors(Entry<String, String> requirements) {
 		String key = requirements.getKey().trim();
 		String value = requirements.getValue().trim();
-		return getFlavors().stream()
-				.filter(flavor -> flavor.getRequirements().get(key).equalsIgnoreCase(value))
+		return getFlavors().stream().filter(flavor -> flavor.getRequirements().get(key).equalsIgnoreCase(value))
 				.collect(Collectors.toList());
 	}
-	
+
 	protected TreeSet<AwsHardwareRequirements> getFlavors() {
 		synchronized (this.flavors) {
 			return this.flavors;
@@ -448,9 +461,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			throws InvalidParameterException, UnexpectedException {
 
 		Map<String, Integer> imageMap = new HashMap<String, Integer>();
-		DescribeImagesRequest request = DescribeImagesRequest.builder()
-				.owners(cloudUser.getId())
-				.build();
+		DescribeImagesRequest request = DescribeImagesRequest.builder().owners(cloudUser.getId()).build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		DescribeImagesResponse response = client.describeImages(request);
@@ -481,7 +492,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 		return size;
 	}
-	
+
 	// This method is used to aid in the tests
 	protected String getFlavorsFilePath() {
 		return flavorsFilePath;
