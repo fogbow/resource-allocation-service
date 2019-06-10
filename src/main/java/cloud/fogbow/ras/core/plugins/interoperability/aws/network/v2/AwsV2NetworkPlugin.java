@@ -50,6 +50,7 @@ import software.amazon.awssdk.services.ec2.model.DetachInternetGatewayRequest;
 import software.amazon.awssdk.services.ec2.model.InternetGateway;
 import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
 import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.Route;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
@@ -64,10 +65,12 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	private static final String AWS_TAG_NAME = "Name";
 	private static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
 	private static final String GATEWAY_RESOURCE = "Gateway";
+	private static final String LOCAL_GATEWAY_DESTINATION = "local";
 	private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
 	private static final String SECURITY_GROUP_RESOURCE = "Security Group";
 	private static final String SUBNET_RESOURCE = "Subnet";
 	private static final String VPC_RESOURCE = "VPC";
+
 
 	private String region;
 
@@ -99,7 +102,8 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		String subnetId = networkOrder.getInstanceId();
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		Subnet subnet = getSubnetById(subnetId, client);
-		RouteTable routeTable = getRouteTableByVpc(subnet.vpcId(), client);
+		String vpcId = subnet.vpcId();
+		RouteTable routeTable = getRouteTableByVpc(vpcId, client);
 		return mountNetworkInstance(subnet, routeTable);
 	}
 
@@ -110,16 +114,8 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		String subnetId = networkOrder.getInstanceId();
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		Subnet subnet = getSubnetById(subnetId, client);
-		String groupId = getGroupIdByVpc(subnet.vpcId(), client);
-		if (groupId != null) {
-			doDeleteSecurityGroupRequests(groupId, client);
-		} 
-		String gatewayId = getGatewayIdBySubnet(subnet.vpcId(), client);
-		if (gatewayId != null) {
-			doDetachInternetGatewayRequests(gatewayId, subnet.vpcId(), client);
-			doDeleteInternetGatewayRequests(gatewayId, client);
-		}
-		doDeleteSubnetRequests(subnet.vpcId(), subnetId, client);
+		String vpcId = subnet.vpcId();
+		doDeleteSubnetRequests(vpcId, subnetId, client);
 	}
 
 	protected String getGroupIdByVpc(String vpcId, Ec2Client client)
@@ -156,13 +152,15 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return false;
 	}
 	
-	protected void doDeleteSubnetRequests(String vpcId, String subnetId, Ec2Client client) throws UnexpectedException {
+	protected void doDeleteSubnetRequests(String vpcId, String subnetId, Ec2Client client)
+			throws UnexpectedException, InstanceNotFoundException {
+		
 		DeleteSubnetRequest request = DeleteSubnetRequest.builder()
 				.subnetId(subnetId)
 				.build();
 		try {
 			client.deleteSubnet(request);
-			doDeleteVpcRequests(vpcId, client);
+			doRollbackFromAllResourcesCreated(vpcId, client);
 		} catch (Exception e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SUBNET_RESOURCE, subnetId), e);
 			throw new UnexpectedException();
@@ -174,7 +172,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		String cloudState = subnet.stateAsString();
 		String name = subnet.tags().listIterator().next().value();
 		String cidr = subnet.cidrBlock();
-		String gateway = routeTable.routes().listIterator().next().destinationCidrBlock();
+		String gateway = getGatewayFromRouteTables(routeTable.routes());
 		String vLAN = null;
 		String networkInterface = null;
 		String macInterface = null;
@@ -182,6 +180,15 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		NetworkAllocationMode networkAllocationMode = NetworkAllocationMode.DYNAMIC;
 		return new NetworkInstance(id, cloudState, name, cidr, gateway, vLAN, networkAllocationMode, networkInterface,
 				macInterface, interfaceState);
+	}
+
+	protected String getGatewayFromRouteTables(List<Route> routes) {
+		for (Route route : routes) {
+			if (!route.gatewayId().equals(LOCAL_GATEWAY_DESTINATION)) {
+				return route.destinationCidrBlock();
+			}
+		}
+		return null;
 	}
 
 	protected DescribeSubnetsResponse doDescribeSubnetsRequests(String subnetId, Ec2Client client)
@@ -197,25 +204,44 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		}
 	}
 	
-	protected String doCreateSubnetResquests(String name, String cidr, String vpcId, Ec2Client client) throws UnexpectedException {
+	protected String doCreateSubnetResquests(String name, String cidr, String vpcId, Ec2Client client)
+			throws UnexpectedException, InstanceNotFoundException {
+		
 		CreateSubnetRequest request = CreateSubnetRequest.builder()
 				.cidrBlock(cidr)
 				.vpcId(vpcId)
 				.build();
+		
+		String subnetId = null;
 		try {
 			CreateSubnetResponse response = client.createSubnet(request);
-			String subnetId = response.subnet().subnetId();
+			subnetId = response.subnet().subnetId();
 			doCreateTagsRequests(AWS_TAG_NAME, name, subnetId, client);
 			return subnetId;
 		} catch (Exception e) {
-			doDeleteVpcRequests(vpcId, client);
+			if (subnetId != null) {
+				doDeleteSubnetRequests(vpcId, subnetId, client);
+			} else {
+				doRollbackFromAllResourcesCreated(vpcId, client);
+			}
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	protected void doCreateRouteRequests(String cidr, String gatewayId, String vpcId, Ec2Client client)
+	protected void doRollbackFromAllResourcesCreated(String vpcId, Ec2Client client)
 			throws UnexpectedException, InstanceNotFoundException {
 		
+		String groupId = getGroupIdByVpc(vpcId, client);
+		doDeleteSecurityGroupRequests(groupId, client);
+		String gatewayId = getGatewayIdByVpc(vpcId, client);
+		doDetachInternetGatewayRequests(gatewayId, vpcId, client);
+		doDeleteInternetGatewayRequests(gatewayId, client);
+		doDeleteVpcRequests(vpcId, client);
+	}
+
+	protected void doCreateRouteRequests(String cidr, String gatewayId, String vpcId, Ec2Client client)
+			throws UnexpectedException, InstanceNotFoundException {
+
 		RouteTable routeTable = getRouteTableByVpc(vpcId, client);
 		String routerId = routeTable.routeTableId();
 		CreateRouteRequest request = CreateRouteRequest.builder()
@@ -226,6 +252,8 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		try {
 			client.createRoute(request);
 		} catch (Exception e) {
+			String groupId = getGroupIdByVpc(vpcId, client);
+			doDeleteSecurityGroupRequests(groupId, client);
 			doDetachInternetGatewayRequests(gatewayId, vpcId, client);
 			doDeleteInternetGatewayRequests(gatewayId, client);
 			doDeleteVpcRequests(vpcId, client);
@@ -263,8 +291,8 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	}
 
 	protected void doAttachInternetGatewayRequests(String gatewayId, String vpcId, Ec2Client client)
-			throws UnexpectedException {
-		
+			throws UnexpectedException, InstanceNotFoundException {
+
 		AttachInternetGatewayRequest request = AttachInternetGatewayRequest.builder()
 				.internetGatewayId(gatewayId)
 				.vpcId(vpcId)
@@ -272,6 +300,8 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		try {
 			client.attachInternetGateway(request);
 		} catch (Exception e) {
+			String groupId = getGroupIdByVpc(vpcId, client);
+			doDeleteSecurityGroupRequests(groupId, client);
 			doDeleteInternetGatewayRequests(gatewayId, client);
 			doDeleteVpcRequests(vpcId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
@@ -304,7 +334,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		}
 	}
 
-	protected String getGatewayIdBySubnet(String vpcId, Ec2Client client)
+	protected String getGatewayIdByVpc(String vpcId, Ec2Client client)
 			throws UnexpectedException, InstanceNotFoundException {
 		
 		DescribeInternetGatewaysResponse response = client.describeInternetGateways();
@@ -319,18 +349,21 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	}
 
 	protected String doCreateInternetGatewayRequests(String vpcId, Ec2Client client)
-			throws UnexpectedException {
+			throws UnexpectedException, InstanceNotFoundException {
+
 		try {
 			CreateInternetGatewayResponse response = client.createInternetGateway();
 			return response.internetGateway().internetGatewayId();
 		} catch (Exception e) {
+			String groupId = getGroupIdByVpc(vpcId, client);
+			doDeleteSecurityGroupRequests(groupId, client);
 			doDeleteVpcRequests(vpcId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 	
 	protected void doModifyVpcAttributesRequests(String vpcId, Ec2Client client)
-			throws UnexpectedException {
+			throws UnexpectedException, InstanceNotFoundException {
 
 		ModifyVpcAttributeRequest[] modifyVpcAttributes = { doEnableDnsHostnamesRequest(vpcId),
 				doEnableDnsSupportRequest(vpcId) };
@@ -343,6 +376,8 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 			try {
 				client.modifyVpcAttribute(request);
 			} catch (Exception e) {
+				String groupId = getGroupIdByVpc(vpcId, client);
+				doDeleteSecurityGroupRequests(groupId, client);
 				doDeleteVpcRequests(vpcId, client);
 				throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 			}
@@ -371,19 +406,26 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 				.build();
 	}
 
-	protected void doCreateSecurityGroupRequests(String cidr, String vpcId, Ec2Client client) throws UnexpectedException {
+	protected void doCreateSecurityGroupRequests(String cidr, String vpcId, Ec2Client client)
+			throws UnexpectedException {
+
 		String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + vpcId;
 		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-                .description(SECURITY_GROUP_DESCRIPTION)
-                .groupName(groupName)
-                .vpcId(vpcId)
-                .build();
+				.description(SECURITY_GROUP_DESCRIPTION)
+				.groupName(groupName)
+				.vpcId(vpcId)
+				.build();
+
+		String groupId = null;
 		try {
 			CreateSecurityGroupResponse response = client.createSecurityGroup(request);
-			String groupId = response.groupId();
+			groupId = response.groupId();
 			doAuthorizeSecurityGroupIngressRequests(cidr, groupId, vpcId, client);
 			doCreateTagsRequests(AWS_TAG_GROUP_ID, groupId, vpcId, client);
 		} catch (Exception e) {
+			if (groupId != null) {
+				doDeleteSecurityGroupRequests(groupId, client);
+			}
 			doDeleteVpcRequests(vpcId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
@@ -406,14 +448,16 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		}
 	}
 
-	protected void doAuthorizeSecurityGroupIngressRequests(String cidr, String groupId, String vpcId, Ec2Client client) throws UnexpectedException {
-		AuthorizeSecurityGroupIngressRequest authorizeSecurityGroupIngressRequest = AuthorizeSecurityGroupIngressRequest.builder()
-                .cidrIp(cidr)
-                .groupId(groupId)
-                .ipProtocol(ALL_PROTOCOLS)
-                .build();
+	protected void doAuthorizeSecurityGroupIngressRequests(String cidr, String groupId, String vpcId, Ec2Client client)
+			throws UnexpectedException {
+
+		AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+				.cidrIp(cidr)
+				.groupId(groupId)
+				.ipProtocol(ALL_PROTOCOLS)
+				.build();
 		try {
-			client.authorizeSecurityGroupIngress(authorizeSecurityGroupIngressRequest);
+			client.authorizeSecurityGroupIngress(request);
 		} catch (Exception e) {
 			doDeleteSecurityGroupRequests(groupId, client);
 			doDeleteVpcRequests(vpcId, client);
