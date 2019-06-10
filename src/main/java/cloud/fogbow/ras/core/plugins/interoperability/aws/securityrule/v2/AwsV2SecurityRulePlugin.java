@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.securityrule.v2;
 
+import cloud.fogbow.common.constants.AwsConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -8,6 +9,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
@@ -16,8 +18,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
@@ -33,7 +34,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         validateRule(securityRule);
 
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        SecurityGroup group = getSecurityGroupByName(retrieveSecurityGroupName(majorOrder), client);
+        SecurityGroup group = getSecurityGroupByName(retrieveSecurityGroupName(majorOrder.getType(), majorOrder.getInstanceId()), client);
 
         switch (securityRule.getDirection()) {
             case IN:
@@ -51,12 +52,37 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AwsV2User cloudUser) throws FogbowException {
-        throw new UnsupportedOperationException("This feature has not been implemented for aws cloud, yet.");
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String groupName = retrieveSecurityGroupName(majorOrder.getType(), majorOrder.getInstanceId());
+        SecurityGroup group = getSecurityGroupByName(groupName, client);
+
+        List<SecurityRuleInstance> inboundInstances = getRules(majorOrder, group.ipPermissions());
+        List<SecurityRuleInstance> outboundInstances = getRules(majorOrder, group.ipPermissionsEgress());
+
+        List<SecurityRuleInstance> result = new ArrayList<>();
+        result.addAll(inboundInstances);
+        result.addAll(outboundInstances);
+
+        return result;
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AwsV2User cloudUser) throws FogbowException {
-        throw new UnsupportedOperationException("This feature has not been implemented for aws cloud, yet.");
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        Map<String, Object> ruleRepresentation = getRuleFromId(securityRuleId);
+        SecurityRule rule = (SecurityRule) ruleRepresentation.get("rule");
+        ResourceType type = ResourceType.valueOf((String) ruleRepresentation.get("type"));
+        String instanceId = (String) ruleRepresentation.get("instanceId");
+        SecurityGroup group = getSecurityGroupByName(retrieveSecurityGroupName(type, instanceId), client);
+
+        switch (rule.getDirection()) {
+            case IN:
+                revokeIngressRule(rule, group, client);
+                break;
+            case OUT:
+                revokeEgressRule(rule, group, client);
+        }
+
     }
 
     private SecurityGroup getSecurityGroupByName(String name, Ec2Client client) throws FogbowException {
@@ -70,14 +96,14 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return groups.get(0);
     }
 
-    private String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
+    private String retrieveSecurityGroupName(ResourceType type, String instanceId) throws InvalidParameterException {
         String securityGroupName;
-        switch (majorOrder.getType()) {
+        switch (type) {
             case NETWORK:
-                securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+                securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
                 break;
             case PUBLIC_IP:
-                securityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+                securityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + instanceId;
                 break;
             default:
                 throw new InvalidParameterException();
@@ -86,13 +112,12 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     }
 
     private void addIngressRule(SecurityGroup group, SecurityRule rule, Ec2Client client) throws FogbowException {
+        IpPermission ipPermission = getIpPermission(rule);
+
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
-                .cidrIp(rule.getCidr())
-                .fromPort(rule.getPortFrom())
-                .toPort(rule.getPortTo())
                 .groupId(group.groupId())
-                .ipProtocol(rule.getProtocol().toString())
                 .groupName(group.groupName())
+                .ipPermissions(ipPermission)
                 .build();
 
         try {
@@ -103,16 +128,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     }
 
     private void addEgressRule(SecurityGroup group, SecurityRule rule, Ec2Client client) throws FogbowException {
-        IpRange ipRange = IpRange.builder()
-                .cidrIp(rule.getCidr())
-                .build();
-
-        IpPermission ipPermission = IpPermission.builder()
-                .fromPort(rule.getPortFrom())
-                .toPort(rule.getPortTo())
-                .ipProtocol(rule.getProtocol().toString())
-                .ipRanges(ipRange)
-                .build();
+        IpPermission ipPermission = getIpPermission(rule);
 
         AuthorizeSecurityGroupEgressRequest request = AuthorizeSecurityGroupEgressRequest.builder()
                 .groupId(group.groupId())
@@ -138,9 +154,112 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     }
 
     private String getId(SecurityRule securityRule, Order order) {
-        String ruleKeySeparator = "";
+        String ruleKeySeparator = AwsConstants.SECURITY_RULE_ID_SEPARATOR;
         String id = order.getInstanceId() + ruleKeySeparator + securityRule.getCidr() + ruleKeySeparator + securityRule.getPortFrom() +
                 ruleKeySeparator + securityRule.getPortTo() + ruleKeySeparator + securityRule.getProtocol();
         return id;
     }
+
+    private String getId(SecurityRuleInstance securityRule, Order order) {
+        String ruleKeySeparator = AwsConstants.SECURITY_RULE_ID_SEPARATOR;
+
+        String id = order.getInstanceId() + ruleKeySeparator + securityRule.getCidr() + ruleKeySeparator + securityRule.getPortFrom() +
+                ruleKeySeparator + securityRule.getPortTo() + ruleKeySeparator + securityRule.getProtocol() + ruleKeySeparator + securityRule.getDirection().toString();
+        return id;
+    }
+
+    private List<SecurityRuleInstance> getRules(Order majorOrder, List<IpPermission> ipPermissions) {
+        List<SecurityRuleInstance> ruleInstances = new ArrayList<>();
+
+        for(IpPermission ipPermission : ipPermissions) {
+            int portFrom = ipPermission.fromPort();
+            int portTo = ipPermission.toPort();
+            String cidr = ipPermission.ipRanges().iterator().next().cidrIp();
+            String protocol = ipPermission.ipProtocol();
+
+            SecurityRuleInstance instance = new SecurityRuleInstance("",
+                    SecurityRule.Direction.IN,
+                    portFrom, portTo, cidr,
+                    SecurityRule.EtherType.IPv4,
+                    SecurityRule.Protocol.valueOf(protocol)
+            );
+
+            String id = getId(instance, majorOrder);
+            instance.setId(id);
+
+            ruleInstances.add(instance);
+        }
+
+        return ruleInstances;
+    }
+
+    private Map<String, Object> getRuleFromId(String ruleId) throws InvalidParameterException{
+        String fields[] = ruleId.split(AwsConstants.SECURITY_RULE_ID_SEPARATOR);
+
+        if (fields.length != 7) {
+            throw new InvalidParameterException("");
+        }
+
+        SecurityRule rule = new SecurityRule(
+            SecurityRule.Direction.valueOf(fields[5]),
+            Integer.valueOf(fields[2]),
+            Integer.valueOf(fields[3]),
+            fields[1],
+            SecurityRule.EtherType.IPv4,
+            SecurityRule.Protocol.valueOf(fields[4])
+        );
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("rule", rule);
+        result.put("type", fields[6]);
+        result.put("instanceId", fields[0]);
+        return result;
+    }
+
+    private void revokeIngressRule(SecurityRule rule, SecurityGroup group, Ec2Client client) throws FogbowException {
+        IpPermission ipPermission = getIpPermission(rule);
+
+        RevokeSecurityGroupIngressRequest request = RevokeSecurityGroupIngressRequest.builder()
+                .ipPermissions(ipPermission)
+                .groupName(group.groupName())
+                .groupId(group.groupId())
+                .build();
+
+        try {
+            client.revokeSecurityGroupIngress(request);
+        } catch (SdkException ex) {
+            throw new FogbowException(ex.getMessage());
+        }
+    }
+
+    private void revokeEgressRule(SecurityRule rule, SecurityGroup group, Ec2Client client) throws FogbowException{
+        IpPermission ipPermission = getIpPermission(rule);
+
+        RevokeSecurityGroupEgressRequest request = RevokeSecurityGroupEgressRequest.builder()
+                .ipPermissions(ipPermission)
+                .groupId(group.groupId())
+                .build();
+
+        try {
+            client.revokeSecurityGroupEgress(request);
+        } catch (SdkException ex) {
+            throw new FogbowException(ex.getMessage());
+        }
+    }
+
+    private IpPermission getIpPermission(SecurityRule rule) {
+        IpRange ipRange = IpRange.builder()
+                .cidrIp(rule.getCidr())
+                .build();
+
+        IpPermission ipPermission = IpPermission.builder()
+                .fromPort(rule.getPortFrom())
+                .toPort(rule.getPortTo())
+                .ipProtocol(rule.getProtocol().toString())
+                .ipRanges(ipRange)
+                .build();
+
+        return ipPermission;
+    }
+
 }
