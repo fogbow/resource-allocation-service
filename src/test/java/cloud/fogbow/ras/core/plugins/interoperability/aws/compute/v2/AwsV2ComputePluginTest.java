@@ -24,6 +24,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -39,6 +40,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.CpuOptions;
@@ -79,6 +81,7 @@ public class AwsV2ComputePluginTest {
 	private static final String FAKE_IP_ADDRESS = "0.0.0.0";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 	private static final String FAKE_TAG = "fake-tag";
+	private static final String FAKE_SUBNET_ID = "fake-subnet-id";
 	private static final String FAKE_USER_DATA = "fake-user-data";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
@@ -148,7 +151,7 @@ public class AwsV2ComputePluginTest {
 
 		Mockito.verify(client, Mockito.times(1)).runInstances(Mockito.any(RunInstancesRequest.class));
 		Mockito.verify(client, Mockito.times(1)).createTags(Mockito.any(CreateTagsRequest.class));
-		Mockito.verify(this.plugin, Mockito.times(1)).loadNetworkInterfaces(Mockito.eq(computeOrder));
+		Mockito.verify(this.plugin, Mockito.times(1)).loadNetworkInterfaces(Mockito.anyList());
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.eq(computeOrder),
 				Mockito.any(AwsV2User.class));
 	}
@@ -520,6 +523,46 @@ public class AwsV2ComputePluginTest {
 
 		// verify
 		Assert.assertEquals(expected, this.plugin.getFlavors().size());
+	}
+	
+	// case test: ...
+	@Test(expected = UnexpectedException.class) // verify
+	public void testDoDescribeVolumesRequestsThrowUnexpectedException()
+			throws UnexpectedException, InvalidParameterException {
+		
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class)))
+				.thenThrow(SdkClientException.builder().build());
+
+		String volumeId = FAKE_VOLUME_ID;
+
+		// exercise
+		this.plugin.doDescribeVolumesRequests(volumeId, client);
+	}
+	
+	// test case: ...
+	@Test(expected = UnexpectedException.class) // verify
+	public void testDoCreateTagsRequestsThrowUnexpectedException()
+			throws UnexpectedException, InvalidParameterException {
+		
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		Mockito.when(client.createTags(Mockito.any(CreateTagsRequest.class)))
+				.thenThrow(SdkClientException.builder().build());
+
+		String key = AWS_TAG_NAME;
+		String value = FAKE_TAG;
+		String instanceId = FAKE_INSTANCE_ID;
+
+		// exercise
+		this.plugin.doCreateTagsRequests(key, value, instanceId, client);
 	}
 	
 	private DescribeInstancesResponse createInstanceResponse() {
