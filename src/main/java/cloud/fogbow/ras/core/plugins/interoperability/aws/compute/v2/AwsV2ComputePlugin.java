@@ -60,6 +60,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
 	private static final String AWS_TAG_NAME = "Name";
+	private static final String KEY_NAME_LAUNCH_INSTANCE = "key-pair-launch-instance";
 	private static final String RESOURCE_NAME = "Compute";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
@@ -85,14 +86,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private LaunchCommandGenerator launchCommandGenerator;
 	private String region;
 	private String subnetId;
-	private String securityGroup;
+	private String securityGroupId;
 	private String flavorsFilePath;
 
 	public AwsV2ComputePlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.subnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_SUBNET_ID_KEY);
-		this.securityGroup = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_SECURITY_GROUP_KEY);
+		this.subnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
+		this.securityGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
 		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 		this.flavors = new TreeSet<AwsHardwareRequirements>();
@@ -116,6 +117,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.minCount(INSTANCES_LAUNCH_NUMBER)
 				.networkInterfaces(networkInterfaces)
 				.userData(userData)
+				.keyName(KEY_NAME_LAUNCH_INSTANCE)
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
@@ -290,14 +292,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
-		List<String> networkIds = new ArrayList<String>();
-		if (computeOrder.getNetworkIds() != null) {
-			networkIds.addAll(computeOrder.getNetworkIds());
-		} else {
-			// Default sub-net in the available zone of the selected region.
-			networkIds.add(this.subnetId);
-		}
-		return networkIds;
+		List<String> subnetIds = new ArrayList<String>();
+		subnetIds.add(this.subnetId);
+		subnetIds.addAll(computeOrder.getNetworkIds());
+		return subnetIds;
 	}
 
 	protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(List<String> subnetIds) {
@@ -316,7 +314,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
 				.subnetId(subnetId)
 				.deviceIndex(deviceIndex)
-				.groups(this.securityGroup)
+				.groups(this.securityGroupId)
 				.build();
 
 		return networkInterface;
