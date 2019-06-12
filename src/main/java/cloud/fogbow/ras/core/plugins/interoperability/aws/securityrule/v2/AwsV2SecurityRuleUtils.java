@@ -1,12 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.securityrule.v2;
 
 import cloud.fogbow.common.constants.AwsConstants;
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.Ipv4AddressValidator;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class AwsV2SecurityRuleUtils {
     private static AwsV2SecurityRuleUtils instance;
@@ -25,12 +25,24 @@ public class AwsV2SecurityRuleUtils {
     private final int FIRST_POSITION = 0;
     private final int INSTANCE_ID_POSITION = 0;
     private final int CIDR_ID_POSITION = 1;
-    private final int PORT_FROM_ID_POSITION = 2;
-    private final int PORT_TO_ID_POSITION = 3;
-    private final int PROTOCOL_ID_POSITION = 4;
-    private final int DIRECTION_ID_POSITION = 5;
-    private final int TYPE_ID_POSITION = 6;
-    private final int ID_SIZE = 7;
+    private final int PORT_FROM_ID_POSITION = 3;
+    private final int PORT_TO_ID_POSITION = 4;
+    private final int PROTOCOL_ID_POSITION = 5;
+    private final int DIRECTION_ID_POSITION = 6;
+    private final int TYPE_ID_POSITION = 7;
+    private final int ID_SIZE = 8;
+
+    private static final String AWS_TAG_GROUP_ID = "groupId";
+
+    private static final String INGRESS_DIRECTION = "IN";
+    private static final String EGRESS_DIRECTION = "OUT";
+    private static final String INGRESS_DIRECTION_VALUE = "ingress";
+
+    private static final String CIDR_NETWORK_BITS_SEPARATOR = "/";
+
+    private static final int DIRECTION_ENUM_POSITION = 0;
+    private static final int PROTOCOL_ENUM_POSITION = 1;
+    private static final int RESOURCE_TYPE_ENUM_POSITION = 2;
 
     private AwsV2SecurityRuleUtils() { }
 
@@ -41,30 +53,55 @@ public class AwsV2SecurityRuleUtils {
         return instance;
     }
 
-    public SecurityGroup getSecurityGroupByName(String name, Ec2Client client) throws FogbowException {
-        DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder().groupNames(name).build();
+    public SecurityGroup getSecurityGroupById(String instanceId, Ec2Client client) throws FogbowException {
+        String groupId = getGroupIdBySubnet(instanceId, client);
+
+        DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder()
+                .groupIds(groupId)
+                .build();
+
         List<SecurityGroup> groups = client.describeSecurityGroups(request).securityGroups();
 
         if (groups.isEmpty()) {
-            throw new FogbowException("There is no security group with the name " + name);
+            throw new FogbowException(String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND, groupId));
         }
 
         return groups.get(FIRST_POSITION);
     }
 
-    public String retrieveSecurityGroupName(ResourceType type, String instanceId) throws InvalidParameterException {
-        String securityGroupName;
-        switch (type) {
-            case NETWORK:
-                securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
-                break;
-            case PUBLIC_IP:
-                securityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + instanceId;
-                break;
-            default:
-                throw new InvalidParameterException();
+    protected String getGroupIdBySubnet(String subnetId, Ec2Client client)
+            throws UnexpectedException, InstanceNotFoundException {
+
+        Subnet subnet = getSubnetById(subnetId, client);
+        for (Tag tag : subnet.tags()) {
+            if (tag.key().equals(AWS_TAG_GROUP_ID)) {
+                return tag.value();
+            }
         }
-        return securityGroupName;
+        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+    }
+
+    private Subnet getSubnetById(String subnetId, Ec2Client client)
+            throws UnexpectedException, InstanceNotFoundException {
+
+        DescribeSubnetsResponse response = doDescribeSubnetsRequests(subnetId, client);
+        if (response != null && !response.subnets().isEmpty()) {
+            return response.subnets().listIterator().next();
+        }
+        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+    }
+
+    private DescribeSubnetsResponse doDescribeSubnetsRequests(String subnetId, Ec2Client client)
+            throws UnexpectedException {
+
+        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+                .subnetIds(subnetId)
+                .build();
+        try {
+            return client.describeSubnets(request);
+        } catch (Exception e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
     }
 
     public void addIngressRule(SecurityGroup group, SecurityRule rule, Ec2Client client) throws FogbowException {
@@ -72,7 +109,6 @@ public class AwsV2SecurityRuleUtils {
 
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
                 .groupId(group.groupId())
-                .groupName(group.groupName())
                 .ipPermissions(ipPermission)
                 .build();
 
@@ -100,33 +136,41 @@ public class AwsV2SecurityRuleUtils {
 
     public void validateRule(SecurityRule rule) throws InvalidParameterException {
         if(rule.getProtocol().equals(SecurityRule.Protocol.ANY)) {
-            throw new InvalidParameterException("The protocol must be specified");
+            throw new InvalidParameterException(Messages.Exception.NO_PROTOCOL_SPECIFIED);
         }
 
         Ipv4AddressValidator ipv4AddressValidator = new Ipv4AddressValidator();
-        if(!ipv4AddressValidator.validate(rule.getCidr())) {
-            throw new InvalidParameterException("The cidr must follow ipv4 pattern");
+        if(!ipv4AddressValidator.validate(rule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[0])) {
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR_FORMAT, rule.getCidr()));
         }
     }
 
     public String getId(SecurityRule securityRule, Order order) {
         String ruleKeySeparator = AwsConstants.SECURITY_RULE_ID_SEPARATOR;
-        String id = order.getInstanceId() + ruleKeySeparator + securityRule.getCidr() + ruleKeySeparator + securityRule.getPortFrom() +
-                ruleKeySeparator + securityRule.getPortTo() + ruleKeySeparator + securityRule.getProtocol() + ruleKeySeparator + securityRule.getDirection().toString() +
-                ruleKeySeparator + order.getType().getValue();
+        String requiredEnums[] = getRequiredEnums(securityRule.getDirection().toString(), securityRule.getProtocol().toString(), order.getType().getValue());
+
+        String id = order.getInstanceId() + ruleKeySeparator + securityRule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[0] + ruleKeySeparator +
+                securityRule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[1] + ruleKeySeparator + securityRule.getPortFrom() +
+                ruleKeySeparator + securityRule.getPortTo() + ruleKeySeparator + requiredEnums[PROTOCOL_ENUM_POSITION] + ruleKeySeparator +
+                requiredEnums[DIRECTION_ENUM_POSITION] + ruleKeySeparator + requiredEnums[RESOURCE_TYPE_ENUM_POSITION];
         return id;
     }
 
     public String getId(SecurityRuleInstance securityRule, Order order) {
         String ruleKeySeparator = AwsConstants.SECURITY_RULE_ID_SEPARATOR;
-        String id = order.getInstanceId() + ruleKeySeparator + securityRule.getCidr() + ruleKeySeparator + securityRule.getPortFrom() +
-                ruleKeySeparator + securityRule.getPortTo() + ruleKeySeparator + securityRule.getProtocol() + ruleKeySeparator + securityRule.getDirection().toString() +
-                ruleKeySeparator + order.getType().getValue();
+        String requiredEnums[] = getRequiredEnums(securityRule.getDirection().toString(), securityRule.getProtocol().toString(), order.getType().getValue());
+
+        String id = order.getInstanceId() + ruleKeySeparator + securityRule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[0] + ruleKeySeparator +
+                securityRule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[1] + ruleKeySeparator + securityRule.getPortFrom() +
+                ruleKeySeparator + securityRule.getPortTo() + ruleKeySeparator + requiredEnums[PROTOCOL_ENUM_POSITION] + ruleKeySeparator +
+                requiredEnums[DIRECTION_ENUM_POSITION] + ruleKeySeparator + requiredEnums[RESOURCE_TYPE_ENUM_POSITION];
         return id;
     }
 
-    public List<SecurityRuleInstance> getRules(Order majorOrder, List<IpPermission> ipPermissions) {
+    public List<SecurityRuleInstance> getRules(Order majorOrder, List<IpPermission> ipPermissions, SecurityRule.Direction direction) {
         List<SecurityRuleInstance> ruleInstances = new ArrayList<>();
+
+        ipPermissions = ipPermissions.stream().filter(ipPermission -> validateIpPermission(ipPermission)).collect(Collectors.toList());
 
         for(IpPermission ipPermission : ipPermissions) {
             int portFrom = ipPermission.fromPort();
@@ -135,10 +179,10 @@ public class AwsV2SecurityRuleUtils {
             String protocol = ipPermission.ipProtocol();
 
             SecurityRuleInstance instance = new SecurityRuleInstance("",
-                    SecurityRule.Direction.IN,
+                    direction,
                     portFrom, portTo, cidr,
                     SecurityRule.EtherType.IPv4,
-                    SecurityRule.Protocol.valueOf(protocol)
+                    SecurityRule.Protocol.valueOf(protocol.toUpperCase())
             );
 
             String id = getId(instance, majorOrder);
@@ -154,14 +198,16 @@ public class AwsV2SecurityRuleUtils {
         String fields[] = ruleId.split(AwsConstants.SECURITY_RULE_ID_SEPARATOR);
 
         if (fields.length != ID_SIZE) {
-            throw new InvalidParameterException("");
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, ruleId));
         }
+
+        String cidr = fields[CIDR_ID_POSITION] + CIDR_NETWORK_BITS_SEPARATOR + fields[CIDR_ID_POSITION+1];
 
         SecurityRule rule = new SecurityRule(
                 SecurityRule.Direction.valueOf(fields[DIRECTION_ID_POSITION]),
                 Integer.valueOf(fields[PORT_FROM_ID_POSITION]),
                 Integer.valueOf(fields[PORT_TO_ID_POSITION]),
-                fields[CIDR_ID_POSITION],
+                cidr,
                 SecurityRule.EtherType.IPv4,
                 SecurityRule.Protocol.valueOf(fields[PROTOCOL_ID_POSITION])
         );
@@ -179,7 +225,6 @@ public class AwsV2SecurityRuleUtils {
 
         RevokeSecurityGroupIngressRequest request = RevokeSecurityGroupIngressRequest.builder()
                 .ipPermissions(ipPermission)
-                .groupName(group.groupName())
                 .groupId(group.groupId())
                 .build();
 
@@ -218,5 +263,24 @@ public class AwsV2SecurityRuleUtils {
                 .build();
 
         return ipPermission;
+    }
+
+    private boolean validateIpPermission(IpPermission ipPermission) {
+        return ipPermission.fromPort() != null && ipPermission.toPort() != null && ipPermission.ipRanges() != null && ipPermission.ipProtocol() != null;
+    }
+
+    private String[] getRequiredEnums(String direction, String protocol, String type) {
+        String requiredEnums[] = new String[3];
+
+        if(direction.equals(INGRESS_DIRECTION_VALUE)) {
+            requiredEnums[DIRECTION_ENUM_POSITION] = INGRESS_DIRECTION;
+        } else {
+            requiredEnums[DIRECTION_ENUM_POSITION] = EGRESS_DIRECTION;
+        }
+
+        requiredEnums[PROTOCOL_ENUM_POSITION] = protocol.toUpperCase();
+        requiredEnums[RESOURCE_TYPE_ENUM_POSITION] = type.toUpperCase();
+
+        return requiredEnums;
     }
 }

@@ -5,7 +5,6 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
@@ -31,8 +30,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         awsV2SecurityRuleUtils.validateRule(securityRule);
 
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroupByName(
-                awsV2SecurityRuleUtils.retrieveSecurityGroupName(majorOrder.getType(), majorOrder.getInstanceId()), client);
+        SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroupById(majorOrder.getInstanceId(), client);
 
         switch (securityRule.getDirection()) {
             case IN:
@@ -51,11 +49,10 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AwsV2User cloudUser) throws FogbowException {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        String groupName = awsV2SecurityRuleUtils.retrieveSecurityGroupName(majorOrder.getType(), majorOrder.getInstanceId());
-        SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroupByName(groupName, client);
+        SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroupById(majorOrder.getInstanceId(), client);
 
-        List<SecurityRuleInstance> inboundInstances = awsV2SecurityRuleUtils.getRules(majorOrder, group.ipPermissions());
-        List<SecurityRuleInstance> outboundInstances = awsV2SecurityRuleUtils.getRules(majorOrder, group.ipPermissionsEgress());
+        List<SecurityRuleInstance> inboundInstances = awsV2SecurityRuleUtils.getRules(majorOrder, group.ipPermissions(), SecurityRule.Direction.IN);
+        List<SecurityRuleInstance> outboundInstances = awsV2SecurityRuleUtils.getRules(majorOrder, group.ipPermissionsEgress(), SecurityRule.Direction.OUT);
 
         List<SecurityRuleInstance> result = new ArrayList<>();
         result.addAll(inboundInstances);
@@ -69,10 +66,8 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         Map<String, Object> ruleRepresentation = awsV2SecurityRuleUtils.getRuleFromId(securityRuleId);
         SecurityRule rule = (SecurityRule) ruleRepresentation.get("rule");
-        ResourceType type = ResourceType.valueOf((String) ruleRepresentation.get("type"));
         String instanceId = (String) ruleRepresentation.get("instanceId");
-        SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroupByName(
-                awsV2SecurityRuleUtils.retrieveSecurityGroupName(type, instanceId), client);
+        SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroupById(instanceId, client);
 
         switch (rule.getDirection()) {
             case IN:
