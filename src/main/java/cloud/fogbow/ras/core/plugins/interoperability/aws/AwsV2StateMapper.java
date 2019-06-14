@@ -77,6 +77,18 @@ public class AwsV2StateMapper {
 				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
+		case PUBLIC_IP:
+			// this resource type has no cloud states. 
+			// the ones defined here are set by the plugin.
+			switch (state) {
+			case AVAILABLE_STATE:
+				return InstanceState.READY;
+			case ERROR_STATE:
+				return InstanceState.FAILED;
+			default:
+				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+				return InstanceState.INCONSISTENT;
+			}
 		case VOLUME:
 			// cloud state values: [creating, available, in-use, deleting, deleted, error]
 			switch (state) {
