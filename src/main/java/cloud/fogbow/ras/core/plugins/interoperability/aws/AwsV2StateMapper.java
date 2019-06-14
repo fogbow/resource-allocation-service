@@ -13,6 +13,7 @@ public class AwsV2StateMapper {
 	private static final String COMPUTE_PLUGIN = "AwsV2ComputePlugin";
 	private static final String IMAGE_PLUGIN = "AwsV2ImagePlugin";
 	private static final String NETWORK_PLUGIN = "AwsV2NetworkPlugin";
+	private static final String PUBLIC_IP_PLUGIN = "AwsV2PublicIpPlugin";
 	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
 
 	public static final String ATTACHED_STATE = "attached";
@@ -86,7 +87,7 @@ public class AwsV2StateMapper {
 			case ERROR_STATE:
 				return InstanceState.FAILED;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, PUBLIC_IP_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case VOLUME:
