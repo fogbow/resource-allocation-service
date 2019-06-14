@@ -47,7 +47,7 @@ public class Attachment {
             String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(attachmentId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -60,12 +60,12 @@ public class Attachment {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> attachmentInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.ATTACHMENT);
             return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -85,7 +85,7 @@ public class Attachment {
                 ApplicationFacade.getInstance().getAttachment(attachmentId, systemUserToken);
             return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -104,7 +104,7 @@ public class Attachment {
             ApplicationFacade.getInstance().deleteAttachment(attachmentId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

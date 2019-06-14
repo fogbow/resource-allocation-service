@@ -47,7 +47,7 @@ public class Volume {
             String volumeId = ApplicationFacade.getInstance().createVolume(volume.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(volumeId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -60,12 +60,12 @@ public class Volume {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> volumeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.VOLUME);
             return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -84,7 +84,7 @@ public class Volume {
             VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, systemUserToken);
             return new ResponseEntity<>(volume, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -103,7 +103,7 @@ public class Volume {
             ApplicationFacade.getInstance().deleteVolume(volumeId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

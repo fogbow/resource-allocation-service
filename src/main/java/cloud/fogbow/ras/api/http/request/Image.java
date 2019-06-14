@@ -47,7 +47,7 @@ public class Image {
             List<ImageSummary> imagesMap = ApplicationFacade.getInstance().getAllImages(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -70,7 +70,7 @@ public class Image {
             ImageInstance imageInstance = ApplicationFacade.getInstance().getImage(providerId, cloudName, imageId, systemUserToken);
             return new ResponseEntity<>(imageInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

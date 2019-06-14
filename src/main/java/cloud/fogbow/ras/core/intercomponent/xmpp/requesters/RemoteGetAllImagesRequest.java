@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -30,10 +31,11 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<List<ImageSummar
     @Override
     public List<ImageSummary> send() throws Exception {
         IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.cloudName, this.systemUser);
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-
+        LOGGER.debug(Messages.Info.SUCCESS);
         return unmarshalImages(response);
     }
 

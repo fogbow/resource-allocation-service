@@ -52,7 +52,7 @@ public class PublicIp {
             String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(publicIpId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -72,7 +72,7 @@ public class PublicIp {
                 ApplicationFacade.getInstance().getPublicIp(publicIpId, systemUserToken);
             return new ResponseEntity<>(publicIpInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -91,7 +91,7 @@ public class PublicIp {
             ApplicationFacade.getInstance().deletePublicIp(publicIpId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -104,12 +104,12 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> publicIpStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -131,7 +131,7 @@ public class PublicIp {
                     systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(new ResourceId(ruleId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -151,7 +151,7 @@ public class PublicIp {
                     getAllSecurityRules(publicIpId, systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(securityRuleInstances, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -173,7 +173,7 @@ public class PublicIp {
                     ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

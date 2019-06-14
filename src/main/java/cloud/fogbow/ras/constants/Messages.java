@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.constants;
 
+import java.util.Locale;
+
 public class Messages {
 
     public static class Exception {
@@ -10,6 +12,7 @@ public class Messages {
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
+        public static final String IMAGE_NOT_FOUND = "Image not found";
         public static final String INCORRECT_PROVIDER = "Incorrect provider.";
         public static final String INCORRECT_REQUESTING_PROVIDER = "Mismatch on requesting provider information.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
@@ -92,6 +95,8 @@ public class Messages {
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
+        public static final String MAPPED_USER = "User mapped to: %s.";
+        public static final String MAPPING_USER_OP = "Mapping user for operation %s on order/systemUser %s.";
         public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for provider %s received.";
@@ -103,10 +108,13 @@ public class Messages {
         public static final String RECEIVING_GET_IMAGE_REQUEST = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
-        public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
+        public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request: %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
+        public static final String RESPONSE_RECEIVED = "Received response: %s.";
+        public static final String SENDING_MSG = "Sending remote request for request: %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String SUCCESS = "Successfully executed operation.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
         public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }

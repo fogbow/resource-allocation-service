@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -24,6 +25,7 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         IQ response = IQ.createResultIQ(iq);
         try {
