@@ -29,6 +29,7 @@ public class Messages {
         public static final String INVALID_RESOURCE_S = "Invalid resource: <%s>.";
         public static final String INVALID_RESOURCE_ID_S = "Invalid resourceId: %s.";
         public static final String INVALID_URL_S = "Invalid url: %s.";
+        public static final String INVALID_CIDR_FORMAT = "The cidr %s does not follow the expected format";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";
@@ -36,6 +37,8 @@ public class Messages {
         public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
+        public static final String NO_PROTOCOL_SPECIFIED = "The protocol must be specified";
+        public static final String NO_SECURITY_GROUP_FOUND = "There is no security group with the id %s";
         public static final String NON_EXISTENT_REQUEST = "Request does not exist.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String PORT_NOT_FOUND = "No port found connecting virtual machine %s to default network %s.";
@@ -60,6 +63,7 @@ public class Messages {
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
+
     }
 
     public static class Fatal {
