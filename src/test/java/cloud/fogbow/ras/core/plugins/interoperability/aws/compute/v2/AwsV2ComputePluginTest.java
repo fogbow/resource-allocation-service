@@ -58,6 +58,7 @@ import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceBlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterface;
+import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceAssociation;
 import software.amazon.awssdk.services.ec2.model.InstancePrivateIpAddress;
 import software.amazon.awssdk.services.ec2.model.InstanceState;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
@@ -81,7 +82,6 @@ public class AwsV2ComputePluginTest {
 	private static final String FAKE_IP_ADDRESS = "0.0.0.0";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 	private static final String FAKE_TAG = "fake-tag";
-	private static final String FAKE_SUBNET_ID = "fake-subnet-id";
 	private static final String FAKE_USER_DATA = "fake-user-data";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
@@ -582,8 +582,13 @@ public class AwsV2ComputePluginTest {
 				.privateIpAddress(FAKE_IP_ADDRESS)
 				.build();
 		
+		InstanceNetworkInterfaceAssociation association = InstanceNetworkInterfaceAssociation.builder()
+				.publicIp(FAKE_IP_ADDRESS)
+				.build();
+		
 		InstanceNetworkInterface instanceNetworkInterface = InstanceNetworkInterface.builder()
 				.privateIpAddresses(instancePrivateIpAddress)
+				.association(association)
 				.build();
 		
 		InstanceState instanceState = InstanceState.builder()
