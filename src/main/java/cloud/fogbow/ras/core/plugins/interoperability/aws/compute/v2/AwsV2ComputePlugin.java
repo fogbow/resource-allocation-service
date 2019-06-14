@@ -47,7 +47,9 @@ import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceAssociation;
 import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceSpecification;
+import software.amazon.awssdk.services.ec2.model.InstancePrivateIpAddress;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
@@ -214,17 +216,40 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected List<String> getIpAddresses(Instance instance) {
-		List<String> ipAddresses = new ArrayList<String>();
-		String privateIpAddress;
+		List<String> ipAddresses = new ArrayList<>();
+		List<String> privateIpaddresses;
 		String publicIpAddress;
 		for (int i = 0; i < instance.networkInterfaces().size(); i++) {
-			privateIpAddress = instance.networkInterfaces().get(i).privateIpAddress();
-			publicIpAddress = instance.networkInterfaces().get(i).association().publicIp();
-			if (privateIpAddress != null) {
-				ipAddresses.add(privateIpAddress);
+			privateIpaddresses = addPrivateIpAddresses(instance, i);
+			if (!privateIpaddresses.isEmpty()) {
+				ipAddresses.addAll(privateIpaddresses);
 			}
+			publicIpAddress = addPublicIpAddress(instance, i);
 			if (publicIpAddress != null) {
 				ipAddresses.add(publicIpAddress);
+			}
+		}
+		return ipAddresses;
+	}
+
+	private String addPublicIpAddress(Instance instance, int index) {
+		String ipAddress = null;
+		InstanceNetworkInterfaceAssociation association;
+		association = instance.networkInterfaces().get(index).association();
+		if (association != null) {
+			ipAddress = association.publicIp();
+		}
+		return ipAddress;
+	}
+
+	private List<String> addPrivateIpAddresses(Instance instance, int index) {
+		List<String> ipAddresses = new ArrayList<String>();
+		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
+		instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
+		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
+			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
+				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
+				return ipAddresses;
 			}
 		}
 		return ipAddresses;
