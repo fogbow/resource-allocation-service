@@ -23,6 +23,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
@@ -51,14 +52,14 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	private static final Object SECURITY_GROUP_RESOURCE = "Security Groups";
 	private static final String SUBNET_RESOURCE = "Subnet";
 
+	private String defaultVpcId;
 	private String region;
-	private String vpcId;
 	private String zone;
 
 	public AwsV2NetworkPlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.defaultVpcId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_ID_KEY);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.vpcId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_ID_KEY);
 		this.zone = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
 	}
 
@@ -72,12 +73,13 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		CreateSubnetRequest request = CreateSubnetRequest.builder()
 				.availabilityZone(this.zone)
 				.cidrBlock(cidr)
-				.vpcId(this.vpcId)
+				.vpcId(this.defaultVpcId)
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String subnetId = doCreateSubnetResquests(name, request, client);
-		doCreateSecurityGroupRequests(cidr, subnetId, client);
+		doAssociateRouteTables(subnetId, client);
+		handleSecurityIssues(cidr, subnetId, client);
 		return subnetId;
 	}
 
@@ -98,7 +100,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String subnetId = networkOrder.getInstanceId();
-		doDeleteSubnetRequests(subnetId, client);
+		doDeleteSubnets(subnetId, client);
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return false;
 	}
 	
-	protected String getGroupIdBySubnet(String subnetId, Ec2Client client)
+	private String getGroupIdBySubnet(String subnetId, Ec2Client client)
 			throws UnexpectedException, InstanceNotFoundException {
 		
 		Subnet subnet = getSubnetById(subnetId, client);
@@ -147,36 +149,17 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return null;
 	}
 
-	private RouteTable getRouteTables(Ec2Client client) throws UnexpectedException, InstanceNotFoundException {
-		DescribeRouteTablesResponse response = doDescribeRouteTablesRequests(client);
-		List<RouteTable> routeTables = response.routeTables();
-		for (RouteTable routeTable : routeTables) {
-			if (routeTable.vpcId().equals(this.vpcId)) {
-				return routeTable;
-			}
-		}
-		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-	}
-
-	private DescribeRouteTablesResponse doDescribeRouteTablesRequests(Ec2Client client) throws UnexpectedException {
-		try {
-			return client.describeRouteTables();
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
-
 	private Subnet getSubnetById(String subnetId, Ec2Client client)
 			throws UnexpectedException, InstanceNotFoundException {
 
-		DescribeSubnetsResponse response = doDescribeSubnetsRequests(subnetId, client);
+		DescribeSubnetsResponse response = doDescribeSubnets(subnetId, client);
 		if (response != null && !response.subnets().isEmpty()) {
 			return response.subnets().listIterator().next();
 		}
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
-	private DescribeSubnetsResponse doDescribeSubnetsRequests(String subnetId, Ec2Client client)
+	private DescribeSubnetsResponse doDescribeSubnets(String subnetId, Ec2Client client)
 			throws UnexpectedException {
 
 		DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
@@ -189,14 +172,14 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		}
 	}
 
-	private void doCreateSecurityGroupRequests(String cidr, String subnetId, Ec2Client client)
+	private void handleSecurityIssues(String cidr, String subnetId, Ec2Client client)
 			throws UnexpectedException {
 
 		String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
 		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
 				.description(SECURITY_GROUP_DESCRIPTION)
 				.groupName(groupName)
-				.vpcId(this.vpcId)
+				.vpcId(this.defaultVpcId)
 				.build();
 
 		String groupId = null;
@@ -206,6 +189,10 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 			doCreateTagsRequests(AWS_TAG_GROUP_ID, groupId, subnetId, client);
 			doAuthorizeSecurityGroupIngressRequests(cidr, subnetId, groupId, client);
 		} catch (Exception e) {
+			if (groupId != null) {
+				doDeleteSecurityGroupRequests(groupId, client);
+			}
+			doDescribeSubnets(subnetId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
@@ -223,7 +210,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	}
 
 	private void doAuthorizeSecurityGroupIngressRequests(String cidr, String subnetId, String groupId, Ec2Client client)
-			throws UnexpectedException, InstanceNotFoundException {
+			throws FogbowException {
 
 		AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
 				.cidrIp(cidr)
@@ -233,12 +220,12 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		try {
 			client.authorizeSecurityGroupIngress(request);
 		} catch (Exception e) {
-			doDeleteSubnetRequests(subnetId, client);
+			doDeleteSubnets(subnetId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void doDeleteSubnetRequests(String subnetId, Ec2Client client)
+	private void doDeleteSubnets(String subnetId, Ec2Client client)
 			throws UnexpectedException, InstanceNotFoundException {
 
 		String groupId = getGroupIdBySubnet(subnetId, client);
@@ -252,6 +239,42 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		} catch (Exception e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SUBNET_RESOURCE, subnetId), e);
 			throw new UnexpectedException();
+		}
+	}
+	
+	private void doAssociateRouteTables(String subnetId, Ec2Client client)
+			throws UnexpectedException, InstanceNotFoundException {
+
+		RouteTable routeTable = getRouteTables(client);
+		String routeTableId = routeTable.routeTableId();
+		AssociateRouteTableRequest request = AssociateRouteTableRequest.builder()
+				.routeTableId(routeTableId)
+				.subnetId(subnetId)
+				.build();
+		try {
+			client.associateRouteTable(request);
+		} catch (Exception e) {
+			doDeleteSubnets(subnetId, client);
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
+	}
+	
+	private RouteTable getRouteTables(Ec2Client client) throws UnexpectedException, InstanceNotFoundException {
+		DescribeRouteTablesResponse response = doDescribeRouteTables(client);
+		List<RouteTable> routeTables = response.routeTables();
+		for (RouteTable routeTable : routeTables) {
+			if (routeTable.vpcId().equals(this.defaultVpcId)) {
+				return routeTable;
+			}
+		}
+		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+	}
+
+	private DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws UnexpectedException {
+		try {
+			return client.describeRouteTables();
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
