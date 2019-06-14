@@ -5,10 +5,10 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 
 public class CloudConnectorFactory {
     private static CloudConnectorFactory instance;
-    private String localMemberId;
+    private String localProviderId;
 
     private CloudConnectorFactory() {
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     }
 
     public static synchronized CloudConnectorFactory getInstance() {
@@ -18,12 +18,12 @@ public class CloudConnectorFactory {
         return instance;
     }
 
-    public CloudConnector getCloudConnector(String memberId, String cloudName) {
+    public CloudConnector getCloudConnector(String providerId, String cloudName) {
         CloudConnector cloudConnector;
-        if (memberId.equals(this.localMemberId)) {
+        if (providerId.equals(this.localProviderId)) {
             cloudConnector = new LocalCloudConnector(cloudName);
         } else {
-            cloudConnector = new RemoteCloudConnector(memberId, cloudName);
+            cloudConnector = new RemoteCloudConnector(providerId, cloudName);
         }
         return cloudConnector;
     }

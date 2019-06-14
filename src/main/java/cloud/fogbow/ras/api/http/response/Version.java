@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.api.http.response;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class Version {
+    @ApiModelProperty(example = "v.3.0.0-ras-ec6bf564-as-c803775-common-4e0d74e")
     private String version;
 
     public Version() {}

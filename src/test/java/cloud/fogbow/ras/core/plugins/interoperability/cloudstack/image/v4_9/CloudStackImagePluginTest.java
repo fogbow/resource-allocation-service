@@ -7,6 +7,7 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.HttpStatus;
@@ -86,10 +87,10 @@ public class CloudStackImagePluginTest {
         Mockito.when(this.client.doGetRequest(expectedRequestUrl, FAKE_TOKEN)).thenReturn(successfulResponse);
 
         // exercise
-        Map<String, String> retrievedImages = this.plugin.getAllImages(FAKE_TOKEN);
+        List<ImageSummary> retrievedImages = this.plugin.getAllImages(FAKE_TOKEN);
 
-        Assert.assertTrue(retrievedImages.values().contains(FAKE_NAME));
-        Assert.assertTrue(retrievedImages.keySet().contains(FAKE_ID));
+        Assert.assertTrue(retrievedImages.get(0).getName().equals(FAKE_NAME));
+        Assert.assertTrue(retrievedImages.get(0).getId().equals(FAKE_ID));
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));

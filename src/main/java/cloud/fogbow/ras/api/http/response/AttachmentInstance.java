@@ -1,11 +1,19 @@
 package cloud.fogbow.ras.api.http.response;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
+import io.swagger.annotations.ApiModelProperty;
+
 public class AttachmentInstance extends OrderInstance {
-    private String computeId;
+    @ApiModelProperty(position = 7, example = ApiDocumentation.Model.VOLUME_ID)
     private String volumeId;
-    private String device;
-    private String computeName;
+    @ApiModelProperty(position = 8, example = ApiDocumentation.Model.VOLUME_NAME)
     private String volumeName;
+    @ApiModelProperty(position = 9, example = ApiDocumentation.Model.COMPUTE_ID)
+    private String computeId;
+    @ApiModelProperty(position = 10, example = ApiDocumentation.Model.COMPUTE_NAME)
+    private String computeName;
+    @ApiModelProperty(position = 11, example = ApiDocumentation.Model.DEVICE, notes = ApiDocumentation.Model.DEVICE_NOTE)
+    private String device;
 
     public AttachmentInstance(String id, String cloudState, String computeId, String volumeId, String device) {
         super(id, cloudState);

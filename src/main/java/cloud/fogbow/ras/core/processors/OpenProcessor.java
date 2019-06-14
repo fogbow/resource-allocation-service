@@ -15,15 +15,15 @@ import org.apache.log4j.Logger;
 public class OpenProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
 
-    private String localMemberId;
+    private String localProviderId;
     private ChainedList<Order> openOrdersList;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
 
-    public OpenProcessor(String localMemberId, String sleepTimeStr) {
-        this.localMemberId = localMemberId;
+    public OpenProcessor(String localProviderId, String sleepTimeStr) {
+        this.localProviderId = localProviderId;
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
@@ -76,7 +76,7 @@ public class OpenProcessor implements Runnable {
                         getCloudConnector(order.getProvider(), order.getCloudName());
                 String instanceId = cloudConnector.requestInstance(order);
                 order.setInstanceId(instanceId);
-                if (order.isProviderLocal(this.localMemberId)) {
+                if (order.isProviderLocal(this.localProviderId)) {
                     if (instanceId != null) {
                         OrderStateTransitioner.transition(order, OrderState.SPAWNING);
                     } else {

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -30,8 +31,10 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
     public Void send() throws Exception {
         IQ iq = marshal();
 
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
+        LOGGER.debug(Messages.Info.SUCCESS);
         return null;
     }
 
@@ -45,7 +48,7 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         Element ruleIdElement = queryElement.addElement(IqElement.RULE_ID.toString());

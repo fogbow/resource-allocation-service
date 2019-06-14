@@ -23,13 +23,13 @@ public class SpawningProcessor implements Runnable {
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
-    private String localMemberId;
+    private String localProviderId;
 
-    public SpawningProcessor(String memberId, String sleepTimeStr) {
+    public SpawningProcessor(String providerId, String sleepTimeStr) {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.localMemberId = memberId;
+        this.localProviderId = providerId;
     }
 
     /**
@@ -73,12 +73,12 @@ public class SpawningProcessor implements Runnable {
             }
             // Only local orders need to be monitored. Remote orders are monitored by the remote provider
             // and change state when that provider notifies state changes.
-            if (order.isProviderRemote(this.localMemberId)) {
+            if (order.isProviderRemote(this.localProviderId)) {
                 return;
             }
             // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
             LocalCloudConnector localCloudConnector = (LocalCloudConnector)
-                    CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, order.getCloudName());
+                    CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
             // we won't audit requests we make
             localCloudConnector.switchOffAuditing();
 

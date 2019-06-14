@@ -7,6 +7,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.models.ResourceType;
 import io.swagger.annotations.Api;
@@ -24,8 +25,8 @@ import java.util.List;
 @RequestMapping(value = Attachment.ATTACHMENT_ENDPOINT)
 @Api(description = ApiDocumentation.Attachment.API)
 public class Attachment {
-
-    public static final String ATTACHMENT_ENDPOINT = "attachments";
+    public static final String ATTACHMENT_SUFFIX_ENDPOINT = "attachments";
+    public static final String ATTACHMENT_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + ATTACHMENT_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "attachment";
 
     private final Logger LOGGER = Logger.getLogger(Attachment.class);
@@ -37,7 +38,7 @@ public class Attachment {
     public ResponseEntity<ResourceId> createAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.CREATE_REQUEST_BODY)
             @RequestBody cloud.fogbow.ras.api.parameters.Attachment attachment,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -46,7 +47,7 @@ public class Attachment {
             String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(attachmentId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -54,17 +55,17 @@ public class Attachment {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     @ApiOperation(value = ApiDocumentation.Attachment.GET_OPERATION)
     public ResponseEntity<List<InstanceStatus>> getAllAttachmentsStatus(
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> attachmentInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.ATTACHMENT);
             return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -74,7 +75,7 @@ public class Attachment {
     public ResponseEntity<AttachmentInstance> getAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -84,7 +85,7 @@ public class Attachment {
                 ApplicationFacade.getInstance().getAttachment(attachmentId, systemUserToken);
             return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -94,7 +95,7 @@ public class Attachment {
     public ResponseEntity<Boolean> deleteAttachment(
             @ApiParam(value = ApiDocumentation.Attachment.ID)
             @PathVariable String attachmentId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
@@ -103,7 +104,7 @@ public class Attachment {
             ApplicationFacade.getInstance().deleteAttachment(attachmentId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

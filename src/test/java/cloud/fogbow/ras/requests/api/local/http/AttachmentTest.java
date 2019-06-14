@@ -6,6 +6,9 @@ import cloud.fogbow.ras.api.http.request.Attachment;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -40,22 +43,22 @@ import java.util.List;
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = Attachment.class, secure = false)
-@PrepareForTest(ApplicationFacade.class)
-public class AttachmentTest {
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, ApplicationFacade.class})
+public class AttachmentTest extends BaseUnitTests {
     private final String ATTACHMENT_ENDPOINT =
             "/".concat(Attachment.ATTACHMENT_ENDPOINT);
 
     private final String CORRECT_BODY =
             "{"
-                    + "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
-                    + "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
+                    + "\"volumeId\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
+                    + "\"computeId\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
                     + "\"device\": \"/dev/sdd\""
                     + "}";
 
     private final String BODY_WITH_EMPTY_PROPERTIES =
             "{"
-                    + "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
-                    + "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
+                    + "\"volumeId\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
+                    + "\"computeId\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
                     + "\"device\": \"/dev/sdd\""
                     + "}";
 
@@ -66,6 +69,7 @@ public class AttachmentTest {
 
     @Before
     public void setUp() throws FogbowException {
+        mockReadOrdersFromDataBase();
         this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
@@ -135,8 +139,6 @@ public class AttachmentTest {
         // verify
         int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1))
-                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
     // test case: Request an attachment creation with request body without property values and test fail return

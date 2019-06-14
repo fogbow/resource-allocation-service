@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -23,6 +24,7 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String orderId = unmarshalOrderId(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
         SystemUser systemUser = unmarshalFederationUser(iq);
@@ -51,8 +53,8 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
     }
 
     private SystemUser unmarshalFederationUser(IQ iq) {
-        Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        Element systemUserElement = iq.getElement().element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 }

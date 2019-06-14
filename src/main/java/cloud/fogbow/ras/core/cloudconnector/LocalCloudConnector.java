@@ -59,12 +59,16 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestInstance(Order order) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "requestInstance", order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
             response = doRequestInstance(order, cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, response));
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -76,12 +80,16 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteInstance(Order order) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "deleteInstance", order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
             doDeleteInstance(order, cloudUser);
+            LOGGER.debug(Messages.Info.SUCCESS);
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -91,17 +99,21 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public OrderInstance getInstance(Order order) throws FogbowException {
-        CloudUser token = this.mapperPlugin.map(order.getSystemUser());
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getInstance", order));
+        CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String auditableResponse = null;
         OrderInstance instance = null;
         try {
-            instance = doGetInstance(order, token);
+            instance = doGetInstance(order, cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, instance));
             instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
             if (instance != null) {
                 auditableResponse = instance.toString();
             }
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -113,16 +125,20 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getQuota", systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String auditableResponse = null;
         Quota quota = null;
         try {
             quota = doGetUserQuota(cloudUser, resourceType);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, quota));
             if (quota != null) {
                 auditableResponse = quota.toString();
             }
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -133,17 +149,21 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Map<String, String> getAllImages(SystemUser systemUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getAllImages", systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
-        Map<String, String> images = null;
+        List<ImageSummary> images = null;
         String auditableResponse = null;
         try {
             images = doGetAllImages(cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, images));
             if (images != null) {
                 auditableResponse = images.toString();
             }
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -155,16 +175,20 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getImage", systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         ImageInstance imageInstance = null;
         String auditableResponse = null;
         try {
             imageInstance = doGetImage(imageId, cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, imageInstance));
             if (imageInstance != null) {
                 auditableResponse = imageInstance.toString();
             }
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -176,16 +200,20 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "genericRequest", genericRequest));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         FogbowGenericResponse fogbowGenericResponse = null;
         String auditableResponse = null;
         try {
             fogbowGenericResponse = doGenericRequest(genericRequest, cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, fogbowGenericResponse));
             if (fogbowGenericResponse != null) {
                 auditableResponse = fogbowGenericResponse.toString();
             }
         } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -197,16 +225,20 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getAllSecurityRules", order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         List<SecurityRuleInstance> securityRuleInstances = null;
         String auditableResponse = null;
         try {
             securityRuleInstances = doGetAllSecurityRules(order, cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, securityRuleInstances));
             if (securityRuleInstances != null) {
                 auditableResponse = securityRuleInstances.toString();
             }
         } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -218,12 +250,16 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "requestSecurityRules", order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
             response = doRequestSecurityRule(order, securityRule, cloudUser);
+            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, response));
         } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -235,11 +271,14 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "deleteSecurityRule", securityRuleId));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
         String response = null;
         try {
             doDeleteSecurityRule(securityRuleId, cloudUser);
+            LOGGER.debug(Messages.Info.SUCCESS);
         } catch (Exception e) {
             response = e.getClass().getName();
             throw e;
@@ -332,7 +371,7 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private Map<String, String> doGetAllImages(CloudUser token) throws FogbowException {
+    private List<ImageSummary> doGetAllImages(CloudUser token) throws FogbowException {
         return this.imagePlugin.getAllImages(token);
     }
 

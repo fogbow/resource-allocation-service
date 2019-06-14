@@ -1,12 +1,14 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import com.google.gson.Gson;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -14,6 +16,7 @@ import org.xmpp.packet.IQ;
 import java.util.List;
 
 public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
+    private static final Logger LOGGER = Logger.getLogger(RemoteGetAllSecurityRuleHandler.class);
 
     private static final String REMOTE_GET_ALL_SECURITY_RULES = RemoteMethod.REMOTE_GET_ALL_SECURITY_RULES.toString();
 
@@ -23,6 +26,7 @@ public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String orderId = unmarshalOrderId(iq);
         SystemUser systemUser = unmarshalFederationUserToken(iq);
 
@@ -56,8 +60,8 @@ public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
 
     private SystemUser unmarshalFederationUserToken(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        Element systemUserElement = queryElement.element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 }

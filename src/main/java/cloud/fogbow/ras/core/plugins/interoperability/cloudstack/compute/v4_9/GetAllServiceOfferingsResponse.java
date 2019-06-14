@@ -9,7 +9,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
 
 
 /**
- * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listVirtualMachines.html
+ * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listServiceOfferings.html
  * <p>
  * Response example:
  * {

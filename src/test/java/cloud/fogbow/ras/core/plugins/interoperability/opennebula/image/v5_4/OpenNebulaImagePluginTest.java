@@ -2,8 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +52,7 @@ public class OpenNebulaImagePluginTest {
 	}
 	
 	// test case: When invoking the getAllImages method, with a valid client, a
-	// collection of images must be loaded, returning a map of operating systems
+	// collection of images must be loaded, returning a list of operating systems
 	// images with ID and name.
 	@Test
 	public void testGetAllImagesSuccessfully() throws FogbowException {
@@ -76,7 +78,7 @@ public class OpenNebulaImagePluginTest {
 		CloudUser cloudUser = createCloudUser();
 
 		// exercise
-		Map<String, String> imagens = this.plugin.getAllImages(cloudUser);
+		List<ImageSummary> imageSummaryList = this.plugin.getAllImages(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -90,8 +92,8 @@ public class OpenNebulaImagePluginTest {
 		Mockito.verify(image, Mockito.times(1)).getId();
 		Mockito.verify(image, Mockito.times(1)).getName();
 		
-		Assert.assertTrue(imagens.containsKey(FAKE_ID));
-		Assert.assertTrue(imagens.containsValue(FAKE_NAME));
+		Assert.assertTrue(imageSummaryList.get(0).getId().equals(FAKE_ID));
+		Assert.assertTrue(imageSummaryList.get(0).getName().equals(FAKE_NAME));
 	}
 	
 	// test case: When invoking the getAllImages method, with a collection of images
@@ -118,7 +120,7 @@ public class OpenNebulaImagePluginTest {
 		CloudUser cloudUser = createCloudUser();
 
 		// exercise
-		Map<String, String> imagens = this.plugin.getAllImages(cloudUser);
+		List<ImageSummary> imageSummaryList = this.plugin.getAllImages(cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -130,7 +132,7 @@ public class OpenNebulaImagePluginTest {
 		Mockito.verify(image, Mockito.times(1))
 				.xpath(Mockito.eq(String.format(OpenNebulaImagePlugin.FORMAT_IMAGE_TYPE_PATH, VALUE_ONE)));
 
-		Assert.assertTrue(imagens.isEmpty());
+		Assert.assertTrue(imageSummaryList.isEmpty());
 	}
 	
 	// test case: When invoking the getImage method, with a valid client, the image

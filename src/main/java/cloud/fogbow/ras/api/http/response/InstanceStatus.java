@@ -1,14 +1,21 @@
 package cloud.fogbow.ras.api.http.response;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import io.swagger.annotations.ApiModelProperty;
 
 public class InstanceStatus {
+    @ApiModelProperty(position = 0, example = ApiDocumentation.Model.INSTANCE_ID)
     private String instanceId;
+    @ApiModelProperty(position = 1, example = ApiDocumentation.Model.INSTANCE_NAME)
     private String instanceName;
+    @ApiModelProperty(position = 2, example = ApiDocumentation.Model.PROVIDER, notes = ApiDocumentation.Model.PROVIDER_NOTE)
     private String provider;
+    @ApiModelProperty(position = 3, example = ApiDocumentation.Model.CLOUD_NAME, notes = ApiDocumentation.Model.CLOUD_NAME_NOTE)
     private String cloudName;
+    @ApiModelProperty(position = 4, example = "READY")
     private InstanceState state;
 
     public InstanceStatus(String instanceId, String provider, String cloudName, InstanceState state) {

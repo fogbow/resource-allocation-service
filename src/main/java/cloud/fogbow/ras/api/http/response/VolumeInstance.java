@@ -1,13 +1,18 @@
 package cloud.fogbow.ras.api.http.response;
 
-public class VolumeInstance extends OrderInstance {
-    private String name;
-    private int volumeSize;
+import cloud.fogbow.ras.constants.ApiDocumentation;
+import io.swagger.annotations.ApiModelProperty;
 
-    public VolumeInstance(String id, String cloudState, String name, int volumeSize) {
+public class VolumeInstance extends OrderInstance {
+    @ApiModelProperty(position = 7, example = ApiDocumentation.Model.VOLUME_NAME)
+    private String name;
+    @ApiModelProperty(position = 8, required = true, example = "1", notes = ApiDocumentation.Model.VOLUME_SIZE_NOTE)
+    private int size;
+
+    public VolumeInstance(String id, String cloudState, String name, int size) {
         super(id, cloudState);
         this.name = name;
-        this.volumeSize = volumeSize;
+        this.size = size;
     }
 
     public VolumeInstance(String id) {
@@ -22,11 +27,11 @@ public class VolumeInstance extends OrderInstance {
         this.name = name;
     }
 
-    public int getVolumeSize() {
-        return this.volumeSize;
+    public int getSize() {
+        return this.size;
     }
 
-    public void setVolumeSize(int volumeSize) {
-        this.volumeSize = volumeSize;
+    public void setSize(int size) {
+        this.size = size;
     }
 }

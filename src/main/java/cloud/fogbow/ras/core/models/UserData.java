@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models;
 
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -12,6 +13,7 @@ public class UserData {
     @Column(length = MAX_EXTRA_USER_DATA_FILE_CONTENT)
     private String extraUserDataFileContent;
 
+    @ApiModelProperty(allowableValues = "CLOUD_BOOTHOOK, CLOUD_CONFIG, INCLUDE_URL, PART_HANDLER, SHELL_SCRIPT, UPSTART_JOB")
     private CloudInitUserDataBuilder.FileType extraUserDataFileType;
 
     private String tag;

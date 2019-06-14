@@ -29,19 +29,18 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
         this.type = ResourceType.PUBLIC_IP;
     }
 
-    public PublicIpOrder(String id) {
-        super(id);
+    public PublicIpOrder(String computeOrderId) {
+        this(null, null, null, null, computeOrderId);
         this.type = ResourceType.PUBLIC_IP;
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(computeOrderId);
+        setProvider(computeOrder == null ? null : computeOrder.getProvider());
+        setCloudName(computeOrder == null ? null : computeOrder.getCloudName());
+
     }
 
-    public PublicIpOrder(String providingMember, String cloudName, String computeOrderId) {
-        this(null, null, providingMember, cloudName, computeOrderId);
-        this.type = ResourceType.PUBLIC_IP;
-    }
-
-    public PublicIpOrder(SystemUser systemUser, String requestingMember, String providingMember, String cloudName,
+    public PublicIpOrder(SystemUser systemUser, String requestingProvider, String providingProvider, String cloudName,
                          String computeOrderId) {
-        super(UUID.randomUUID().toString(), providingMember, cloudName, systemUser, requestingMember);
+        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requestingProvider);
         this.computeOrderId = computeOrderId;
         this.type = ResourceType.PUBLIC_IP;
     }

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -30,10 +31,12 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
     @Override
     public List<SecurityRuleInstance> send() throws Exception {
         IQ iq = marshal();
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, provider);
 
+        LOGGER.debug(Messages.Info.SUCCESS);
         return unmarshalSecurityRules(response);
     }
 
@@ -44,7 +47,7 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_SECURITY_RULES.toString());
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());

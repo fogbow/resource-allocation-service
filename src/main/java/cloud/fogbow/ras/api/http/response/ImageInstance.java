@@ -1,10 +1,18 @@
 package cloud.fogbow.ras.api.http.response;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
+import io.swagger.annotations.ApiModelProperty;
+
 public class ImageInstance extends Instance {
+    @ApiModelProperty(position = 3, example = ApiDocumentation.Model.IMAGE_NAME)
     private String name;
+    @ApiModelProperty(position = 4, example = "1.47 GB")
     private long size; // in bytes
+    @ApiModelProperty(position = 5, example = "2")
     private long minDisk; // in GB
+    @ApiModelProperty(position = 6, example = "0")
     private long minRam; // in MB
+    @ApiModelProperty(position = 7, example = "Active")
     private String status;
 
     public ImageInstance(String id, String name, long size, long minDisk, long minRam, String status) {

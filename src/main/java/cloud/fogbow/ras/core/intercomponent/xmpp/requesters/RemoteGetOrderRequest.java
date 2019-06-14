@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -9,10 +10,13 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTr
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.core.models.orders.Order;
 import com.google.gson.Gson;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
+    private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequest.class);
+
     private Order order;
 
     public RemoteGetOrderRequest(Order order) {
@@ -23,10 +27,12 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
     public OrderInstance send() throws Exception {
 
         IQ iq = marshal(this.order);
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
         OrderInstance instance = unmarshalInstance(response);
+        LOGGER.debug(Messages.Info.SUCCESS);
         return instance;
     }
 
@@ -35,7 +41,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         iq.setTo(order.getProvider());
 
         //user
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = iq.getElement().addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(order.getSystemUser()));
 
         //order

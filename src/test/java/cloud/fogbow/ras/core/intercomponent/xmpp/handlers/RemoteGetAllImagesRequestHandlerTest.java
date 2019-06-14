@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetAllImagesRequest;
@@ -18,19 +19,21 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteGetAllImagesRequestHandlerTest {
 
-    private static final String REQUESTING_MEMBER = "requestingmember";
+    private static final String REQUESTING_MEMBER = "requester";
 
     private static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
             "  <query xmlns=\"remoteGetAllImages\">\n" +
-            "    <imagesMap>{\"image-id1\":\"%s\",\"image-id2\":\"%s\"}</imagesMap>\n" +
-            "    <imagesMapClassName>java.util.HashMap</imagesMapClassName>\n" +
+            "    <imageSummaryList>[{\"id\":\"image-id1\",\"name\":\"%s\"},{\"id\":\"image-id2\",\"name\":\"%s\"}]</imageSummaryList>\n" +
+            "    <imageSummaryListClassName>java.util.ArrayList</imageSummaryListClassName>\n" +
             "  </query>\n" +
             "</iq>";
 
@@ -62,7 +65,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
 
-        this.provider = "member";
+        this.provider = "provider";
         this.systemUser = new SystemUser("fake-user-id", "fake-user-name", this.provider
         );
     }
@@ -72,9 +75,9 @@ public class RemoteGetAllImagesRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws Exception {
         // set up
-        Map<String, String> images = new HashMap<>();
-        images.put("image-id1", IMAGE_NAME.concat("1"));
-        images.put("image-id2", IMAGE_NAME.concat("2"));
+        List<ImageSummary> images = new ArrayList<>();
+        images.add(new ImageSummary("image-id1", IMAGE_NAME.concat("1")));
+        images.add(new ImageSummary("image-id2", IMAGE_NAME.concat("2")));
 
         Mockito.doReturn(images).when(this.remoteFacade).getAllImages(Mockito.anyString(), Mockito.anyString(),
                 Mockito.any(SystemUser.class));

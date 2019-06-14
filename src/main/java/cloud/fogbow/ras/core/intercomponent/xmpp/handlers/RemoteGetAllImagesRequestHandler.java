@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -11,7 +13,7 @@ import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
-import java.util.Map;
+import java.util.List;
 
 public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequestHandler.class);
@@ -24,15 +26,16 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         SystemUser systemUser = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(),
+            List<ImageSummary> imageSummaryList = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(),
                     cloudName, systemUser);
-            updateResponse(response, imagesMap);
+            updateResponse(response, imageSummaryList);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -49,18 +52,18 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     private SystemUser unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        Element systemUserElement = queryElement.element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 
-    private void updateResponse(IQ response, Map<String, String> imagesMap) {
+    private void updateResponse(IQ response, List<ImageSummary> imageSummaryList) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
-        Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
+        Element imagesMapElement = queryEl.addElement(IqElement.IMAGE_SUMMARY_LIST.toString());
 
-        Element imagesMapClassNameElement = queryEl.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
-        imagesMapClassNameElement.setText(imagesMap.getClass().getName());
+        Element imagesMapClassNameElement = queryEl.addElement(IqElement.IMAGE_SUMMARY_LIST_CLASS_NAME.toString());
+        imagesMapClassNameElement.setText(imageSummaryList.getClass().getName());
 
-        imagesMapElement.setText(new Gson().toJson(imagesMap));
+        imagesMapElement.setText(new Gson().toJson(imageSummaryList));
     }
 }

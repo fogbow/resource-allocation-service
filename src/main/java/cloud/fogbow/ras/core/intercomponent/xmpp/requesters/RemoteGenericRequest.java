@@ -4,15 +4,17 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse> {
+    private static final Logger LOGGER = Logger.getLogger(RemoteGenericRequest.class);
 
     private SystemUser systemUser;
     private String genericRequest;
@@ -30,8 +32,10 @@ public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse
     public FogbowGenericResponse send() throws Exception {
         IQ iq = marshal(provider, cloudName, genericRequest, systemUser);
 
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
+        LOGGER.debug(Messages.Info.SUCCESS);
         return unmarshal(response);
     }
 
@@ -60,7 +64,7 @@ public class RemoteGenericRequest implements RemoteRequest<FogbowGenericResponse
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(GsonHolder.getInstance().toJson(systemUser));
 
         Element genericRequestElement = queryElement.addElement(IqElement.GENERIC_REQUEST.toString());

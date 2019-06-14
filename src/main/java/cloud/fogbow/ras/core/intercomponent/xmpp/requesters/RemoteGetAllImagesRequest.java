@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -11,9 +13,9 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-import java.util.HashMap;
+import java.util.List;
 
-public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, String>> {
+public class RemoteGetAllImagesRequest implements RemoteRequest<List<ImageSummary>> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequest.class);
 
     private String provider;
@@ -27,12 +29,13 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
     }
 
     @Override
-    public HashMap<String, String> send() throws Exception {
+    public List<ImageSummary> send() throws Exception {
         IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.cloudName, this.systemUser);
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-
+        LOGGER.debug(Messages.Info.SUCCESS);
         return unmarshalImages(response);
     }
 
@@ -46,26 +49,26 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
-        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
 
         return iq;
     }
 
-    private HashMap<String, String> unmarshalImages(IQ response) throws UnexpectedException {
+    private List<ImageSummary> unmarshalImages(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
-        String hashMapStr = queryElement.element(IqElement.IMAGES_MAP.toString()).getText();
+        String hashMapStr = queryElement.element(IqElement.IMAGE_SUMMARY_LIST.toString()).getText();
 
-        String instanceClassName = queryElement.element(IqElement.IMAGES_MAP_CLASS_NAME.toString()).getText();
+        String instanceClassName = queryElement.element(IqElement.IMAGE_SUMMARY_LIST_CLASS_NAME.toString()).getText();
 
-        HashMap<String, String> imagesMap;
+        List<ImageSummary> imageSummaryList;
 
         try {
-            imagesMap = (HashMap<String, String>) new Gson().fromJson(hashMapStr, Class.forName(instanceClassName));
+            imageSummaryList = (List<ImageSummary>) new Gson().fromJson(hashMapStr, Class.forName(instanceClassName));
         } catch (Exception e) {
             throw new UnexpectedException(e.getMessage());
         }
 
-        return imagesMap;
+        return imageSummaryList;
     }
 }

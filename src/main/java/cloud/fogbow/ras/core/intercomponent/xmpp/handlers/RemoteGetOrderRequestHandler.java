@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -8,11 +9,14 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTr
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.Instance;
 import com.google.gson.Gson;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
+    private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequestHandler.class);
+
     private static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_ORDER.toString();
 
     public RemoteGetOrderRequestHandler() {
@@ -21,6 +25,7 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String orderId = unmarshalOrderId(iq);
         ResourceType resourceType = unmarshalResourceType(iq);
         SystemUser systemUser = unmarshalFederationUser(iq);
@@ -53,12 +58,8 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
     }
 
     private SystemUser unmarshalFederationUser(IQ iq) {
-        Element federationUserElement =
-                iq.getElement().element(IqElement.FEDERATION_USER.toString());
-
-        SystemUser systemUser =
-                new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
-
+        Element systemUserElement = iq.getElement().element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 

@@ -568,7 +568,7 @@ public class OpenStackPublicIpPluginTest {
 		computeOrder.setInstanceId(FAKE_SERVER_ID);
 		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-		PublicIpOrder publicIpOrder = new PublicIpOrder(FAKE_PROVIDER, DEFAULT_CLOUD, computeOrder.getId());
+		PublicIpOrder publicIpOrder = new PublicIpOrder(computeOrder.getId());
 		publicIpOrder.setInstanceId(instanceId);
 		this.sharedOrderHolders.getActiveOrdersMap().put(publicIpOrder.getId(), publicIpOrder);
 		return publicIpOrder;

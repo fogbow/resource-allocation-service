@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.*;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -22,9 +23,11 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
     @Override
     public Void send() throws Exception {
         IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.newState);
+        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequester());
+        LOGGER.debug(Messages.Info.SUCCESS);
         return null;
     }
 

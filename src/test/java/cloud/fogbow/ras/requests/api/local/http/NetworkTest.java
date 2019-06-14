@@ -60,7 +60,7 @@ public class NetworkTest {
     private static final String NETWORK_ENDPOINT = ADDRESS_SEPARATOR + Network.NETWORK_ENDPOINT;
     private static final String NETWORK_ENDPOINT_BAR_STATUS = NETWORK_ENDPOINT + "/status";
 	private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
-	private static final String SECURITY_RULES_ENDPOINT = "/" + Network.SECURITY_RULES_ENDPOINT;
+	private static final String SECURITY_RULES_ENDPOINT = "/" + Network.SECURITY_RULES_SUFFIX_ENDPOINT;
 
     private ApplicationFacade facade;
 

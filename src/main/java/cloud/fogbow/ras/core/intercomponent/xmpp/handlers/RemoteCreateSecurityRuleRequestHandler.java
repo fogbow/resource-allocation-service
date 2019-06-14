@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -22,6 +23,7 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String orderId = unmarshalOrderId(iq);
         SystemUser systemUser = unmarshalFederationUserToken(iq);
         SecurityRule securityRule = unmarshalSecurityRule(iq);
@@ -51,8 +53,8 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
 
     private SystemUser unmarshalFederationUserToken(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        SystemUser systemUser = new Gson().fromJson(federationUserElement.getText(), SystemUser.class);
+        Element systemUserElement = queryElement.element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
     }
 

@@ -15,7 +15,7 @@ public class CloudListController {
     private List<String> cloudNames;
 
     public CloudListController() {
-        String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
+        String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
         this.cloudNames = new ArrayList<>();
         String cloudNamesList = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);
@@ -28,7 +28,7 @@ public class CloudListController {
             // Here we populate the list of clouds configured and, at the same time, check if all
             // clouds have been correctly configured. If not, the RAS won't even start, and will throw a
             // fatal exception.
-            CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloud);
+            CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloud);
             this.cloudNames.add(cloud);
         }
     }

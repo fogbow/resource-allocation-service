@@ -4,11 +4,11 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
@@ -25,6 +25,7 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         IQ response = IQ.createResultIQ(iq);
         try {
@@ -51,8 +52,8 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
 
     private SystemUser unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        SystemUser systemUser = GsonHolder.getInstance().fromJson(federationUserElement.getText(),
+        Element systemUserElement = queryElement.element(IqElement.SYSTEM_USER.toString());
+        SystemUser systemUser = GsonHolder.getInstance().fromJson(systemUserElement.getText(),
                 SystemUser.class);
         return systemUser;
     }

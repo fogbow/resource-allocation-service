@@ -6,6 +6,7 @@ import cloud.fogbow.ras.api.http.response.CloudList;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import io.swagger.annotations.Api;
@@ -23,8 +24,8 @@ import java.util.List;
 @RequestMapping(value = Cloud.CLOUD_ENDPOINT)
 @Api(description = ApiDocumentation.Cloud.API)
 public class Cloud {
-
-    public static final String CLOUD_ENDPOINT = "clouds";
+    public static final String CLOUD_SUFFIX_ENDPOINT = "clouds";
+    public static final String CLOUD_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + CLOUD_SUFFIX_ENDPOINT;
 
     private final Logger LOGGER = Logger.getLogger(Cloud.class);
 
@@ -32,14 +33,14 @@ public class Cloud {
 
     @ApiOperation(value = ApiDocumentation.Cloud.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<CloudList> getCloudNamesNoMemberId(
-        @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+    public ResponseEntity<CloudList> getCloudNames(
+        @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
         @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
         throws FogbowException {
         try {
-            LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_MEMBER_ID_KEY);
-            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, systemUserToken);
+            LOGGER.debug(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
+            String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(providerId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
@@ -47,20 +48,20 @@ public class Cloud {
         }
     }
 
-    @ApiOperation(value = ApiDocumentation.Cloud.GET_OPERATION_FOR_MEMBER)
-    @RequestMapping(value = "/{memberId:.+}", method = RequestMethod.GET)
+    @ApiOperation(value = ApiDocumentation.Cloud.GET_OPERATION_FOR_PROVIDER)
+    @RequestMapping(value = "/{providerId:.+}", method = RequestMethod.GET)
     public ResponseEntity<CloudList> getCloudNames(
-            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @PathVariable String memberId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.SYSTEM_USER_TOKEN)
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, systemUserToken);
+            List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(providerId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
