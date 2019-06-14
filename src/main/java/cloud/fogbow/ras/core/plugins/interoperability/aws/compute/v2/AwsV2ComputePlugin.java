@@ -78,22 +78,21 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	protected static final String PROCESSOR_REQUIREMENT = "processor";
 	protected static final String STORAGE_REQUIREMENT = "storage";
 
-	protected static final int FIRST_POSITION = 0;
 	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 	protected static final int ONE_GIGABYTE = 1024;
 
+	private String defaultGroupId;
+	private String defaultSubnetId;
+	private String flavorsFilePath;
+	private String region;
 	private TreeSet<AwsHardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
-	private String region;
-	private String subnetId;
-	private String securityGroupId;
-	private String flavorsFilePath;
 
 	public AwsV2ComputePlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.subnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
-		this.securityGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
+		this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
+		this.defaultGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
 		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 		this.flavors = new TreeSet<AwsHardwareRequirements>();
@@ -163,7 +162,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private void doTerminateInstancesRequests(TerminateInstancesRequest request, Ec2Client client)
 			throws InvalidParameterException, UnexpectedException {
-
 		try {
 			client.terminateInstances(request);
 		} catch (Exception e) {
@@ -188,7 +186,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	
 	private String doRunInstancesRequests(ComputeOrder computeOrder, RunInstancesRequest request, Ec2Client client)
 			throws UnexpectedException {
-
 		try {
 			RunInstancesResponse response = client.runInstances(request);
 			String instanceId = null;
@@ -218,8 +215,17 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected List<String> getIpAddresses(Instance instance) {
 		List<String> ipAddresses = new ArrayList<String>();
+		String privateIpAddress;
+		String publicIpAddress;
 		for (int i = 0; i < instance.networkInterfaces().size(); i++) {
-			ipAddresses.add(instance.networkInterfaces().get(i).privateIpAddress());
+			privateIpAddress = instance.networkInterfaces().get(i).privateIpAddress();
+			publicIpAddress = instance.networkInterfaces().get(i).association().publicIp();
+			if (privateIpAddress != null) {
+				ipAddresses.add(privateIpAddress);
+			}
+			if (publicIpAddress != null) {
+				ipAddresses.add(publicIpAddress);
+			}
 		}
 		return ipAddresses;
 	}
@@ -280,7 +286,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				return reservation.instances().listIterator().next();
 			}
 		}
-		throw new InstanceNotFoundException();
+		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
 	protected String defineInstanceName(String instanceName) {
@@ -293,7 +299,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
 		List<String> subnetIds = new ArrayList<String>();
-		subnetIds.add(this.subnetId);
+		subnetIds.add(this.defaultSubnetId);
 		subnetIds.addAll(computeOrder.getNetworkIds());
 		return subnetIds;
 	}
@@ -304,17 +310,17 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		String subnetId;
 		for (int i = 0; i < subnetIds.size(); i++) {
 			subnetId = subnetIds.get(i);
-			nis = buildNetworkInterface(subnetId, i);
+			nis = buildNetworkInterfaces(subnetId, i);
 			networkInterfaces.add(nis);
 		}
 		return networkInterfaces;
 	}
 
-	protected InstanceNetworkInterfaceSpecification buildNetworkInterface(String subnetId, int deviceIndex) {
+	protected InstanceNetworkInterfaceSpecification buildNetworkInterfaces(String subnetId, int deviceIndex) {
 		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
 				.subnetId(subnetId)
 				.deviceIndex(deviceIndex)
-				.groups(this.securityGroupId)
+				.groups(this.defaultGroupId)
 				.build();
 
 		return networkInterface;
