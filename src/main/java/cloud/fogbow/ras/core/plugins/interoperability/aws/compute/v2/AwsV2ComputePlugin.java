@@ -117,7 +117,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.maxCount(INSTANCES_LAUNCH_NUMBER)
 				.minCount(INSTANCES_LAUNCH_NUMBER)
 				.networkInterfaces(networkInterfaces)
-				.userData(userData)
+//				.userData(userData)
 				.keyName(KEY_NAME_LAUNCH_INSTANCE)
 				.build();
 
@@ -324,8 +324,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
 		List<String> subnetIds = new ArrayList<String>();
-		subnetIds.add(this.defaultSubnetId);
+		// Only the first network from the network's list can get a public ip for now.
 		subnetIds.addAll(computeOrder.getNetworkIds());
+		subnetIds.add(this.defaultSubnetId);
 		return subnetIds;
 	}
 
