@@ -84,7 +84,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         	case PUBLIC_IP:
         		return getFirewallRules(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()), cloudUser);
         	case NETWORK:
-        		throw new UnsupportedOperationException();
+        		return new ArrayList<>();
         	default:
 				String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
 				LOGGER.error(errorMsg);
