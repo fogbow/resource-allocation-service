@@ -53,7 +53,7 @@ public class AwsV2SecurityRuleUtils {
         return instance;
     }
 
-    public SecurityGroup getSecurityGroupById(String instanceId, Ec2Client client) throws FogbowException {
+    private SecurityGroup getSecurityGroupBySubnetId(String instanceId, Ec2Client client) throws FogbowException {
         String groupId = getGroupIdBySubnet(instanceId, client);
 
         DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder()
@@ -67,6 +67,64 @@ public class AwsV2SecurityRuleUtils {
         }
 
         return groups.get(FIRST_POSITION);
+    }
+
+    private SecurityGroup getSecurityGroupByAllocationId(String allocation, Ec2Client client) throws FogbowException {
+        Address address = getAddress(allocation, client);
+
+        SecurityGroup group = null;
+
+        String groupId = "";
+        for (Tag tag: address.tags()) {
+            if(tag.key().equals(AWS_TAG_GROUP_ID)) {
+                groupId = tag.value();
+            }
+        }
+
+        return getGroupById(groupId, client);
+    }
+
+    private SecurityGroup getGroupById(String groupId, Ec2Client client) throws FogbowException{
+        DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build();
+        SecurityGroup group = null;
+
+        try {
+            group = client.describeSecurityGroups(request).securityGroups().get(FIRST_POSITION);
+        } catch (SdkException ex) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+
+        return group;
+    }
+
+    private Address getAddress(String allocationId, Ec2Client client) throws FogbowException{
+        DescribeAddressesRequest addressesRequest = DescribeAddressesRequest.builder()
+                .allocationIds(allocationId).build();
+
+        Address address = null;
+
+        try {
+            address = client.describeAddresses(addressesRequest).addresses().get(FIRST_POSITION);
+        } catch(SdkException ex) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+
+        return address;
+    }
+
+    public SecurityGroup getSecurityGroup(String instanceId, ResourceType type, Ec2Client client) throws FogbowException{
+        SecurityGroup group = null;
+
+        switch (type) {
+            case PUBLIC_IP:
+                group = getSecurityGroupByAllocationId(instanceId, client);
+                break;
+            case NETWORK:
+                group = getSecurityGroupBySubnetId(instanceId, client);
+                break;
+        }
+
+        return group;
     }
 
     protected String getGroupIdBySubnet(String subnetId, Ec2Client client)
