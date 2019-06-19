@@ -100,9 +100,9 @@ public class AwsV2NetworkPluginTest {
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		String vpcId = FAKE_VPC_ID;
-		mockCreateSubnets(null, client);
-		mockCreateRouteTables(vpcId, client);
-		mockCreateSecurityGroups(client);
+		createMockedSubnets(null, client);
+		createMockedRouteTables(vpcId, client);
+		createMockedSecurityGroups(client);
 
 		NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -163,7 +163,7 @@ public class AwsV2NetworkPluginTest {
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		String vpcId = FAKE_VPC_ID;
-		mockCreateRouteTables(vpcId, client);
+		createMockedRouteTables(vpcId, client);
 		mockDescribeSubnets(client);
 
 		NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
@@ -253,17 +253,15 @@ public class AwsV2NetworkPluginTest {
 		Assert.assertEquals(expected, gateway);
 	}
 	
-	// test case: When calling the getGatewayFromRouteTables method, and a route
-	// list with a gateway ID equals to local, it must return a null value.
+	// test case: When calling the getGatewayFromRouteTables method with a list of
+	// routes, if the gateway ID is equal to local, it must return a null value.
 	@Test
 	public void testGetGatewayFromRouteTablesUnsuccessful() {
 		// set up
 		String gatewayId = AwsV2NetworkPlugin.LOCAL_GATEWAY_DESTINATION;
 		String expected = null;
 
-		Route route = Route.builder()
-				.gatewayId(gatewayId)
-				.build();
+		Route route = Route.builder().gatewayId(gatewayId).build();
 
 		List<Route> routes = new ArrayList<>();
 		routes.add(route);
@@ -279,9 +277,7 @@ public class AwsV2NetworkPluginTest {
 	// and client, and a key tag different of groupId, the UnexpectedException will
 	// be thrown.
 	@Test(expected = UnexpectedException.class)
-	public void testGetGroupIdBySubnetUnsuccessful()
-			throws InvalidParameterException, UnexpectedException, InstanceNotFoundException {
-
+	public void testGetGroupIdBySubnetUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -301,9 +297,7 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the getSubnetById method, with a valid client, and a
 	// subnet ID invalid, the InstanceNotFoundException will be thrown.
 	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testGetSubnetByIdUnsuccessful()
-			throws InvalidParameterException, UnexpectedException, InstanceNotFoundException {
-		
+	public void testGetSubnetByIdUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -336,13 +330,14 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the handleSecurityIssues method, without a valid
 	// security group request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testHandleSecurityIssuesUnsuccessful()
-			throws InvalidParameterException, UnexpectedException, InstanceNotFoundException {
-		
+	public void testHandleSecurityIssuesUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		Mockito.when(client.createSecurityGroup(Mockito.any(CreateSecurityGroupRequest.class)))
+				.thenThrow(SdkClientException.builder().build());
 
 		String cidr = FAKE_CIDR_ADDRESS;
 		String subnetId = FAKE_SUBNET_ID;
@@ -374,7 +369,7 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the doDeleteSecurityGroups method, and an error
 	// occurs during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDeleteSecurityGroupsUnsuccessful() throws InvalidParameterException, UnexpectedException {
+	public void testDoDeleteSecurityGroupsUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -386,15 +381,13 @@ public class AwsV2NetworkPluginTest {
 		String groupId = FAKE_GROUP_ID;
 
 		// exercise
-		this.plugin.doDeleteSecurityGroups(groupId, client);
+		this.plugin.doDeleteSecurityGroup(groupId, client);
 	}
 	
 	// test case: When calling the doDeleteSubnets method, and an error
 	// occurs during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDeleteSubnetUnsuccessful()
-			throws InvalidParameterException, UnexpectedException, InstanceNotFoundException {
-
+	public void testDoDeleteSubnetUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -406,22 +399,20 @@ public class AwsV2NetworkPluginTest {
 		String subnetId = FAKE_SUBNET_ID;
 
 		// exercise
-		this.plugin.doDeleteSubnets(subnetId, client);
+		this.plugin.doDeleteSubnet(subnetId, client);
 	}
 	
 	// test case: When calling the doAssociateRouteTables method, and an error
 	// occurs during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testdoAssociateRouteTablesUnsuccessful()
-			throws InvalidParameterException, UnexpectedException, InstanceNotFoundException {
-
+	public void testdoAssociateRouteTablesUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		String vpcId = FAKE_VPC_ID;
-		mockCreateRouteTables(vpcId, client);
+		createMockedRouteTables(vpcId, client);
 		Mockito.when(client.associateRouteTable(Mockito.any(AssociateRouteTableRequest.class)))
 				.thenThrow(SdkClientException.builder().build());
 
@@ -434,16 +425,14 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the getRouteTables method, and not find a route with
 	// VPC ID equal to the default, the UnexpectedException will be thrown.
 	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testGetRouteTablesUnsuccessful()
-			throws InvalidParameterException, UnexpectedException, InstanceNotFoundException {
-		
+	public void testGetRouteTablesUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		String vpcId = ANOTHER_VPC_ID;
-		mockCreateRouteTables(vpcId, client);
+		createMockedRouteTables(vpcId, client);
 
 		// exercise
 		this.plugin.getRouteTables(client);
@@ -452,7 +441,7 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the doDescribeRouteTables method, and an error
 	// occurs during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDescribeRouteTablesUnsuccessful() throws InvalidParameterException, UnexpectedException {
+	public void testDoDescribeRouteTablesUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -467,7 +456,7 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the doCreateSubnetResquests method, without a valid
 	// subnet request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDoCreateSubnetResquestsUnsuccessful() throws InvalidParameterException, UnexpectedException {
+	public void testDoCreateSubnetResquestsUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -486,7 +475,7 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the doCreateTagsRequests method, without a valid
 	// tag request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDoCreateTagsRequests() throws InvalidParameterException, UnexpectedException {
+	public void testDoCreateTagsRequests() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -568,7 +557,7 @@ public class AwsV2NetworkPluginTest {
 		return tag;
 	}
 
-	private void mockCreateSecurityGroups(Ec2Client client) {
+	private void createMockedSecurityGroups(Ec2Client client) {
 		String groupId = FAKE_GROUP_ID;
 		
 		CreateSecurityGroupResponse response = CreateSecurityGroupResponse.builder()
@@ -578,7 +567,7 @@ public class AwsV2NetworkPluginTest {
 		Mockito.when(client.createSecurityGroup(Mockito.any(CreateSecurityGroupRequest.class))).thenReturn(response);
 	}
 
-	private void mockCreateRouteTables(String vpcId, Ec2Client client) {
+	private void createMockedRouteTables(String vpcId, Ec2Client client) {
 		String routeTableId = FAKE_ROUTE_TABLE_ID;
 		
 		RouteTable routeTable = RouteTable.builder()
@@ -593,7 +582,7 @@ public class AwsV2NetworkPluginTest {
 		Mockito.when(client.describeRouteTables()).thenReturn(response);
 	}
 
-	private void mockCreateSubnets(Tag tag, Ec2Client client) {
+	private void createMockedSubnets(Tag tag, Ec2Client client) {
 		String subnetId = FAKE_SUBNET_ID;
 		Subnet subnet = buildSubnet(subnetId, tag);
 		
