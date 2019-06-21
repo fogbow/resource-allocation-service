@@ -19,6 +19,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Address;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressRequest;
@@ -47,13 +48,14 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2PublicIpPlugin.class);
 
-	private static final String AWS_TAG_ASSOCIATION_ID = "associationId";
-	private static final String AWS_TAG_GROUP_ID = "groupId";
 	private static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
 	private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
 	private static final String SECURITY_GROUP_RESOURCE = "Security Group";
 	private static final String TCP_PROTOCOL = "tcp";
 
+	protected static final String AWS_TAG_ASSOCIATION_ID = "associationId";
+	protected static final String AWS_TAG_GROUP_ID = "groupId";
+	
 	private String defaultGroupId;
 	private String defaultSubnetId;
 	private String defaultVpcId;
@@ -127,7 +129,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		return AwsV2StateMapper.map(ResourceType.PUBLIC_IP, instanceState).equals(InstanceState.FAILED);
 	}
 
-	private PublicIpInstance mountPublicIpInstance(Address address) {
+	protected PublicIpInstance mountPublicIpInstance(Address address) {
 		String id = address.allocationId();
 		String cloudState = setPublicIpInstanceState(address);
 		String ip = address.publicIp();
@@ -135,46 +137,46 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		return publicIpInstance;
 	}
 
-	private String setPublicIpInstanceState(Address address) {
+	protected String setPublicIpInstanceState(Address address) {
 		if (address.instanceId() != null) {
 			return AwsV2StateMapper.AVAILABLE_STATE;
 		}
 		return AwsV2StateMapper.ERROR_STATE;
 	}
 
-	private void doReleaseAddresses(String allocationId, Ec2Client client) throws UnexpectedException {
+	protected void doReleaseAddresses(String allocationId, Ec2Client client) throws FogbowException {
 		ReleaseAddressRequest request = ReleaseAddressRequest.builder()
 				.allocationId(allocationId)
 				.build();
 		try {
 			client.releaseAddress(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void doDisassociateAddresses(String associationId, Ec2Client client) throws UnexpectedException {
+	protected void doDisassociateAddresses(String associationId, Ec2Client client) throws FogbowException {
 		DisassociateAddressRequest request = DisassociateAddressRequest.builder()
 				.associationId(associationId)
 				.build();
 		try {
 			client.disassociateAddress(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private String getResourceIdByAddressTag(String key, String resourceId, Ec2Client client) throws FogbowException {
+	protected String getResourceIdByAddressTag(String key, String resourceId, Ec2Client client) throws FogbowException {
 		Address address = getAddressById(resourceId, client);
 		for (Tag tag : address.tags()) {
 			if (tag.key().equals(key)) {
 				return tag.value();
 			}
 		}
-		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+		throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
 	}
 
-	private Address getAddressById(String allocationId, Ec2Client client) throws FogbowException {
+	protected Address getAddressById(String allocationId, Ec2Client client) throws FogbowException {
 		DescribeAddressesResponse response = doDescribeAddressesRequests(allocationId, client);
 		if (response != null && !response.addresses().isEmpty()) {
 			return response.addresses().listIterator().next();
@@ -182,33 +184,33 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
-	private DescribeAddressesResponse doDescribeAddressesRequests(String allocationId, Ec2Client client)
-			throws UnexpectedException {
+	protected DescribeAddressesResponse doDescribeAddressesRequests(String allocationId, Ec2Client client)
+			throws FogbowException {
 
 		DescribeAddressesRequest request = DescribeAddressesRequest.builder()
 				.allocationIds(allocationId)
 				.build();
 		try {
 			return client.describeAddresses(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private String doAssociateAddressRequests(String allocationId, AssociateAddressRequest request, Ec2Client client)
-			throws UnexpectedException {
+	protected String doAssociateAddressRequests(String allocationId, AssociateAddressRequest request, Ec2Client client)
+			throws FogbowException {
 		try {
 			AssociateAddressResponse response = client.associateAddress(request);
 			String associationId = response.associationId();
 			doCreateTagsRequests(AWS_TAG_ASSOCIATION_ID, associationId, allocationId, client);
 			return allocationId;
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void doModifyNetworkInterfaceAttributes(String groupId, String networkInterfaceId,
-			String allocationId, Ec2Client client) throws UnexpectedException {
+	protected void doModifyNetworkInterfaceAttributes(String groupId, String networkInterfaceId,
+			String allocationId, Ec2Client client) throws FogbowException {
 
 		ModifyNetworkInterfaceAttributeRequest request = ModifyNetworkInterfaceAttributeRequest.builder()
 				.groups(groupId)
@@ -216,7 +218,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 				.build();
 		try {
 			client.modifyNetworkInterfaceAttribute(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			if (!groupId.equals(this.defaultGroupId)) {
 				doDeleteSecurityGroups(groupId, client);
 				doReleaseAddresses(allocationId, client);
@@ -225,7 +227,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		}
 	}
 
-	private String doCreateSecurityGroups(String allocationId, Ec2Client client) throws UnexpectedException {
+	protected String doCreateSecurityGroups(String allocationId, Ec2Client client) throws FogbowException {
 		String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
 		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
 				.description(SECURITY_GROUP_DESCRIPTION)
@@ -238,19 +240,16 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 			CreateSecurityGroupResponse response = client.createSecurityGroup(request);
 			groupId = response.groupId();
 			doCreateTagsRequests(AWS_TAG_GROUP_ID, groupId, allocationId, client);
-			doAuthorizeSecurityGroupIngressRequests(allocationId, groupId, client);
-		} catch (Exception e) {
-			if (groupId != null) {
-				doDeleteSecurityGroups(groupId, client);
-			}
+			doAuthorizeSecurityGroupIngress(allocationId, groupId, client);
+		} catch (SdkException e) {
 			doReleaseAddresses(allocationId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 		return groupId;
 	}
 
-	private void doAuthorizeSecurityGroupIngressRequests(String allocationId, String groupId, Ec2Client client)
-			throws UnexpectedException {
+	protected void doAuthorizeSecurityGroupIngress(String allocationId, String groupId, Ec2Client client)
+			throws FogbowException {
 
 		AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
 				.cidrIp(DEFAULT_DESTINATION_CIDR)
@@ -261,28 +260,27 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 				.build();
 		try {
 			client.authorizeSecurityGroupIngress(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			doDeleteSecurityGroups(groupId, client);
 			doReleaseAddresses(allocationId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	protected void doDeleteSecurityGroups(String groupId, Ec2Client client) throws UnexpectedException {
+	protected void doDeleteSecurityGroups(String groupId, Ec2Client client) throws FogbowException {
 		DeleteSecurityGroupRequest request = DeleteSecurityGroupRequest.builder()
 				.groupId(groupId)
 				.build();
 		try {
 			client.deleteSecurityGroup(request);
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SECURITY_GROUP_RESOURCE, groupId),
-					e);
+		} catch (SdkException e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SECURITY_GROUP_RESOURCE, groupId), e);
 			throw new UnexpectedException();
 		}
 	}
 
-	private void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
-			throws UnexpectedException {
+	protected void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
+			throws FogbowException {
 
 		Tag tag = Tag.builder()
 				.key(key)
@@ -295,31 +293,33 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 				.build();
 		try {
 			client.createTags(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private InstanceNetworkInterface loadInstanceNetworkInterfaces(String instanceId, Ec2Client client)
+	protected InstanceNetworkInterface loadInstanceNetworkInterfaces(String instanceId, Ec2Client client)
 			throws FogbowException {
 
-		DescribeInstancesResponse response = doDescribeInstancesRequests(instanceId, client);
+		DescribeInstancesResponse response = doDescribeInstance(instanceId, client);
 		Instance instance = getInstanceReservation(response);
 		return selectNetworkInterfaceFrom(instance);
 	}
 
-	private InstanceNetworkInterface selectNetworkInterfaceFrom(Instance instance) throws InstanceNotFoundException {
+	protected InstanceNetworkInterface selectNetworkInterfaceFrom(Instance instance) throws FogbowException {
 		if (instance != null && !instance.networkInterfaces().isEmpty()) {
+			// Select the first network interface different from the default.
 			for (InstanceNetworkInterface networkInterface : instance.networkInterfaces()) {
 				if (!networkInterface.subnetId().equals(this.defaultSubnetId)) {
 					return networkInterface;
 				}
 			}
 		}
+		// Returns the default network in the absence of others.
 		return instance.networkInterfaces().listIterator().next();
 	}
 
-	private Instance getInstanceReservation(DescribeInstancesResponse response) throws InstanceNotFoundException {
+	protected Instance getInstanceReservation(DescribeInstancesResponse response) throws FogbowException {
 		if (response != null && !response.reservations().isEmpty()) {
 			Reservation reservation = response.reservations().listIterator().next();
 			if (reservation != null && !reservation.instances().isEmpty()) {
@@ -329,27 +329,27 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
-	private DescribeInstancesResponse doDescribeInstancesRequests(String instanceId, Ec2Client client)
-			throws UnexpectedException {
+	protected DescribeInstancesResponse doDescribeInstance(String instanceId, Ec2Client client)
+			throws FogbowException {
 
 		DescribeInstancesRequest describeInstancesRequest = DescribeInstancesRequest.builder()
 				.instanceIds(instanceId)
 				.build();
 		try {
 			return client.describeInstances(describeInstancesRequest);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private String doAllocateAddresses(Ec2Client client) throws UnexpectedException {
+	protected String doAllocateAddresses(Ec2Client client) throws FogbowException {
 		AllocateAddressRequest allocateAddressRequest = AllocateAddressRequest.builder()
 				.domain(DomainType.VPC)
 				.build();
 		try {
 			AllocateAddressResponse response = client.allocateAddress(allocateAddressRequest);
 			return response.allocationId();
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
