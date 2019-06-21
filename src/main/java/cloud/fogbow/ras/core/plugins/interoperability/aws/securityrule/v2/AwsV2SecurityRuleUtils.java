@@ -44,6 +44,8 @@ public class AwsV2SecurityRuleUtils {
     private static final int PROTOCOL_ENUM_POSITION = 1;
     private static final int RESOURCE_TYPE_ENUM_POSITION = 2;
 
+    private static final String PUBLIC_IP = "publicip";
+
     private AwsV2SecurityRuleUtils() { }
 
     public static synchronized AwsV2SecurityRuleUtils getInstance() throws FatalErrorException {
@@ -53,7 +55,7 @@ public class AwsV2SecurityRuleUtils {
         return instance;
     }
 
-    private SecurityGroup getSecurityGroupBySubnetId(String instanceId, Ec2Client client) throws FogbowException {
+    protected SecurityGroup getSecurityGroupBySubnetId(String instanceId, Ec2Client client) throws FogbowException {
         String groupId = getGroupIdBySubnet(instanceId, client);
 
         DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder()
@@ -69,7 +71,7 @@ public class AwsV2SecurityRuleUtils {
         return groups.get(FIRST_POSITION);
     }
 
-    private SecurityGroup getSecurityGroupByAllocationId(String allocation, Ec2Client client) throws FogbowException {
+    protected SecurityGroup getSecurityGroupByAllocationId(String allocation, Ec2Client client) throws FogbowException {
         Address address = getAddress(allocation, client);
 
         SecurityGroup group = null;
@@ -84,7 +86,7 @@ public class AwsV2SecurityRuleUtils {
         return getGroupById(groupId, client);
     }
 
-    private SecurityGroup getGroupById(String groupId, Ec2Client client) throws FogbowException{
+    protected SecurityGroup getGroupById(String groupId, Ec2Client client) throws FogbowException{
         DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build();
         SecurityGroup group = null;
 
@@ -323,7 +325,7 @@ public class AwsV2SecurityRuleUtils {
         return ipPermission;
     }
 
-    private boolean validateIpPermission(IpPermission ipPermission) {
+    protected boolean validateIpPermission(IpPermission ipPermission) {
         return ipPermission.fromPort() != null && ipPermission.toPort() != null && ipPermission.ipRanges() != null && ipPermission.ipProtocol() != null;
     }
 
@@ -337,6 +339,11 @@ public class AwsV2SecurityRuleUtils {
         }
 
         requiredEnums[PROTOCOL_ENUM_POSITION] = protocol.toUpperCase();
+
+        if(type.toLowerCase().equals(PUBLIC_IP)) {
+            type = "public_ip";
+        }
+
         requiredEnums[RESOURCE_TYPE_ENUM_POSITION] = type.toUpperCase();
 
         return requiredEnums;
