@@ -86,6 +86,7 @@ public class OpenProcessor implements Runnable {
                     OrderStateTransitioner.transition(order, OrderState.PENDING);
                 }
             } catch (Exception e) {
+                order.setInstanceId(null);
                 OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
                 throw e;
             }

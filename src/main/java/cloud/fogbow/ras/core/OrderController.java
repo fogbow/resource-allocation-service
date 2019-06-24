@@ -114,15 +114,11 @@ public class OrderController {
                 if (order.isRequesterLocal(this.localProviderId)) {
                     checkOrderDependencies(order.getId());
                 }
-                CloudConnector cloudConnector = getCloudConnector(order);
                 try {
-                    // When the order is remote, there is no local instance; also, a previous call to deleteOrder might
-                    // have failed after the instance had already been removed from the cloud. In both cases, the
-                    // instanceId will be null, and there is no need to call deleteInstance.
-                    if ((order.isProviderLocal(this.localProviderId) && order.getInstanceId() != null) ||
-                            order.isProviderRemote(this.localProviderId)) {
-                        cloudConnector.deleteInstance(order);
-                        order.setInstanceId(null);
+                   if ((order.getInstanceId() != null) || order.isProviderRemote(this.localProviderId)) {
+                       CloudConnector cloudConnector = getCloudConnector(order);
+                       cloudConnector.deleteInstance(order);
+                       order.setInstanceId(null);
                     }
                 } catch (FogbowException e) {
                     LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
