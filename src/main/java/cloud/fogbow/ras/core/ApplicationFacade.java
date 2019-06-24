@@ -278,9 +278,28 @@ public class ApplicationFacade {
     private String activateOrder(Order order, String userToken) throws FogbowException {
         // Set order fields that have not been provided by the requester in the body of the HTTP request
         order.setRequester(this.providerId);
-        if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.providerId);
-        if (order.getCloudName() == null || order.getCloudName().isEmpty())
-            order.setCloudName(this.cloudListController.getDefaultCloudName());
+        // Set provider and cloud Ids
+        switch (order.getType()) {
+            // Attachment and PublicIp orders do not carry provider and cloud Ids; these are inferred from
+            // embedded orders.
+            case ATTACHMENT:
+                AttachmentOrder attachOrder = (AttachmentOrder) order;
+                Order o1 = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachOrder.getComputeOrderId());
+                order.setProvider(o1.getProvider());
+                order.setCloudName(o1.getCloudName());
+                break;
+            case PUBLIC_IP:
+                PublicIpOrder publicIpOrder = (PublicIpOrder) order;
+                Order o2 = SharedOrderHolders.getInstance().getActiveOrdersMap().get(publicIpOrder.getComputeOrderId());
+                order.setProvider(o2.getProvider());
+                order.setCloudName(o2.getCloudName());
+                break;
+            default:
+                if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.providerId);
+                if (order.getCloudName() == null || order.getCloudName().isEmpty())
+                    order.setCloudName(this.cloudListController.getDefaultCloudName());
+                break;
+        }
         // Check if the user is authentic
         SystemUser requester = AuthenticationUtil.authenticate(getAsPublicKey(), userToken);
         order.setSystemUser(requester);
