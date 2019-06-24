@@ -115,7 +115,11 @@ public class OrderController {
                     checkOrderDependencies(order.getId());
                 }
                 try {
-                   if ((order.getInstanceId() != null) || order.isProviderRemote(this.localProviderId)) {
+                    // A local order that doesn't have an instance associated to it, need not be deleted in the cloud.
+                    // Also, a remote order that is still open has never been sent to the remote provider, therefore,
+                    // should not have the delete request forwarded.
+                    if ((order.getInstanceId() != null) ||
+                           (order.isProviderRemote(this.localProviderId) && (order.getOrderState() != OrderState.OPEN))) {
                        CloudConnector cloudConnector = getCloudConnector(order);
                        cloudConnector.deleteInstance(order);
                        order.setInstanceId(null);
@@ -145,6 +149,10 @@ public class OrderController {
         	throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
 
         synchronized (order) {
+            if ((!this.localProviderId.equals(order.getProvider())) && order.getOrderState().equals(OrderState.OPEN)) {
+                // This is an order for a remote provider that has never been received by that provider.
+                throw new RequestStillBeingDispatchedException(String.format(cloud.fogbow.common.constants.Messages.Exception.REQUEST_S_STILL_OPEN, order.getId()));
+            }
             CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
             if (order.isProviderLocal(this.localProviderId)) {
@@ -223,27 +231,7 @@ public class OrderController {
 	}
 
     protected CloudConnector getCloudConnector(Order order) {
-        CloudConnector provider = null;
-        synchronized (order) {
-            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-
-            if (order.isProviderLocal(localProviderId)) {
-                provider = CloudConnectorFactory.getInstance().getCloudConnector(localProviderId, order.getCloudName());
-            } else {
-                if (order.getOrderState().equals(OrderState.OPEN) ||
-                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
-
-                    // This is an order for a remote provider that has never been received by that provider.
-                    // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is
-                    // only necessary to call deleteInstance in the local provider.
-                    provider = CloudConnectorFactory.getInstance().getCloudConnector(localProviderId, order.getCloudName());
-
-                } else {
-                    provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                }
-            }
-        }
-        return provider;
+        return CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
