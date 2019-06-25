@@ -86,20 +86,7 @@ public class AwsV2SecurityRuleUtils {
         return getGroupById(groupId, client);
     }
 
-    protected SecurityGroup getGroupById(String groupId, Ec2Client client) throws FogbowException{
-        DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build();
-        SecurityGroup group = null;
-
-        try {
-            group = client.describeSecurityGroups(request).securityGroups().get(FIRST_POSITION);
-        } catch (SdkException ex) {
-            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-        }
-
-        return group;
-    }
-
-    private Address getAddress(String allocationId, Ec2Client client) throws FogbowException{
+    protected Address getAddress(String allocationId, Ec2Client client) throws FogbowException{
         DescribeAddressesRequest addressesRequest = DescribeAddressesRequest.builder()
                 .allocationIds(allocationId).build();
 
@@ -112,6 +99,19 @@ public class AwsV2SecurityRuleUtils {
         }
 
         return address;
+    }
+
+    protected SecurityGroup getGroupById(String groupId, Ec2Client client) throws FogbowException{
+        DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder().groupIds(groupId).build();
+        SecurityGroup group = null;
+
+        try {
+            group = client.describeSecurityGroups(request).securityGroups().get(FIRST_POSITION);
+        } catch (SdkException ex) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+
+        return group;
     }
 
     public SecurityGroup getSecurityGroup(String instanceId, ResourceType type, Ec2Client client) throws FogbowException{
@@ -141,7 +141,7 @@ public class AwsV2SecurityRuleUtils {
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    private Subnet getSubnetById(String subnetId, Ec2Client client)
+    protected Subnet getSubnetById(String subnetId, Ec2Client client)
             throws UnexpectedException, InstanceNotFoundException {
 
         DescribeSubnetsResponse response = doDescribeSubnetsRequests(subnetId, client);
@@ -151,7 +151,7 @@ public class AwsV2SecurityRuleUtils {
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    private DescribeSubnetsResponse doDescribeSubnetsRequests(String subnetId, Ec2Client client)
+    protected DescribeSubnetsResponse doDescribeSubnetsRequests(String subnetId, Ec2Client client)
             throws UnexpectedException {
 
         DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
