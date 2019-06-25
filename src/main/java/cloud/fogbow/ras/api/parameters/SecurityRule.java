@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.api.parameters;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.ras.constants.Messages;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -134,6 +137,12 @@ public class SecurityRule {
         @Override
         public String toString() {
             return this.protocol;
+        }
+    }
+
+    public void checkConsistency() throws FogbowException {
+        if (this.portFrom > this.portTo || this.portFrom < 0) {
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PORT_RANGE_S_S, this.portFrom, this.portTo));
         }
     }
 }

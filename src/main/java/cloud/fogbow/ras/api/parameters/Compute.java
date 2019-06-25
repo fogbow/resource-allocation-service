@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.api.parameters;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @ApiModel
-public class Compute implements OrderApiParameter {
+public class Compute extends OrderApiParameter<ComputeOrder> {
     @ApiModelProperty(position = 0, example = ApiDocumentation.Model.PROVIDER, notes = ApiDocumentation.Model.PROVIDER_NOTE)
     private String provider;
     @ApiModelProperty(position = 1, example = ApiDocumentation.Model.CLOUD_NAME, notes = ApiDocumentation.Model.CLOUD_NAME_NOTE)
@@ -84,10 +85,15 @@ public class Compute implements OrderApiParameter {
     }
 
     @Override
-    public ComputeOrder getOrder() {
+    public ComputeOrder createOrder() throws FogbowException {
         ComputeOrder order = new ComputeOrder(provider, cloudName, name, vCPU, memory, disk, imageId, userData,
                 publicKey, networkIds);
         order.setRequirements(requirements);
         return order;
+    }
+
+    @Override
+    public void checkConsistency() throws FogbowException {
+
     }
 }

@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.constants;
 
-import java.util.Locale;
-
 public class Messages {
 
     public static class Exception {
@@ -23,6 +21,7 @@ public class Messages {
         public static final String INVALID_ONE_METHOD_S = "Invalid oneMethod: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PARAMETER_S = "Invalid parameter: %s.";
+        public static final String INVALID_PORT_RANGE_S_S = "Invalid port range [%s-%s] for security rule";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
