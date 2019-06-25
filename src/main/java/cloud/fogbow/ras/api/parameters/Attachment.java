@@ -1,12 +1,13 @@
 package cloud.fogbow.ras.api.parameters;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
-public class Attachment implements OrderApiParameter {
+public class Attachment extends OrderApiParameter<AttachmentOrder> {
     @ApiModelProperty(position = 0, required = true, example = ApiDocumentation.Model.VOLUME_ID)
     private String volumeId;
     @ApiModelProperty(position = 1, required = true, example = ApiDocumentation.Model.COMPUTE_ID)
@@ -27,8 +28,14 @@ public class Attachment implements OrderApiParameter {
     }
 
     @Override
-    public AttachmentOrder getOrder() {
+    public AttachmentOrder createOrder() throws FogbowException {
         AttachmentOrder order = new AttachmentOrder(computeId, volumeId, device);
         return order;
+
+    }
+
+    @Override
+    public void checkConsistency() throws FogbowException {
+
     }
 }

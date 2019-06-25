@@ -6,14 +6,19 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
-public class PublicIp implements OrderApiParameter{
+public class PublicIp extends OrderApiParameter<PublicIpOrder> {
     @ApiModelProperty(required = true, example = ApiDocumentation.Model.COMPUTE_ID)
     private String computeId;
 
     @Override
-    public PublicIpOrder getOrder() {
+    public PublicIpOrder createOrder() {
         PublicIpOrder order = new PublicIpOrder(computeId);
         return order;
+    }
+
+    @Override
+    public void checkConsistency() {
+
     }
 
     public String getComputeId() {

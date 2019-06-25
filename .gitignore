@@ -31,7 +31,7 @@
 src/main/resources/private/
 
 ### LOGS ###
-*.log
+*.log*
 
 ### Visual Studio Code ###
 .vscode

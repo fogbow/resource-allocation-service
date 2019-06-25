@@ -231,6 +231,7 @@ public class ApplicationFacade {
     public String createSecurityRule(String orderId, SecurityRule securityRule,
                                      String userToken, ResourceType resourceTypeFromEndpoint)
                                      throws FogbowException {
+        securityRule.checkConsistency();
         Order order = orderController.getOrder(orderId);
         if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
