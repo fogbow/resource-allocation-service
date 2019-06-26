@@ -43,7 +43,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
 
         GetAllImagesResponse response = GetAllImagesResponse.fromJson(jsonResponse);
         List<GetAllImagesResponse.Image> images = response.getImages();
-        System.out.println(images.toString());
+
         List<ImageSummary> idToImageNames = new ArrayList<>();
         for (GetAllImagesResponse.Image image : images) {
             ImageSummary imageSummary = new ImageSummary(image.getId(), image.getName());

@@ -106,7 +106,7 @@ public class AwsV2SecurityRuleUtils {
         SecurityGroup group = null;
 
         try {
-            group = client.describeSecurityGroups(request).securityGroups().get(FIRST_POSITION);
+            group = client.describeSecurityGroups(request).securityGroups().iterator().next();
         } catch (SdkException ex) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }

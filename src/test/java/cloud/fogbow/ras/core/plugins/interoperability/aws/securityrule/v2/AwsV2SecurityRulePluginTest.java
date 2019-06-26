@@ -114,7 +114,36 @@ public class AwsV2SecurityRulePluginTest {
 
         //verify
         Assert.assertEquals(String.format(DEFAULT_RULE_ID, "TCP", "IN", "NETWORK"), id);
+        Mockito.verify(utils, Mockito.times(1)).getSecurityGroup(Mockito.anyString(), Mockito.any(ResourceType.class), Mockito.any(Ec2Client.class));
+        Mockito.verify(utils, Mockito.times(1)).getId(Mockito.any(SecurityRule.class), Mockito.any(Order.class));
+    }
 
+    // test case: Test if the request method return the expected rule id
+    // and call the expected methods
+    @Test
+    public void testRequestEgressSecurityRule() throws FogbowException {
+        // setup
+        mockUtils();
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+        SecurityRule rule = createRule(SecurityRule.Direction.OUT, 0, 22, SecurityRule.Protocol.TCP);
+        Order order = createOrder(ResourceType.NETWORK);
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        BDDMockito.given(utils.getSecurityGroup(
+                order.getInstanceId(), order.getType(), client)).willReturn(createGroup(FAKE_GROUP_ID, null));
+        BDDMockito.given(utils.getId(
+                rule, order)).willReturn(String.format(DEFAULT_RULE_ID, "TCP", "OUT", "NETWORK"));
+
+        //exercise
+        String id = this.plugin.requestSecurityRule(rule, order, cloudUser);
+
+        //verify
+        Assert.assertEquals(String.format(DEFAULT_RULE_ID, "TCP", "OUT", "NETWORK"), id);
+        Mockito.verify(utils, Mockito.times(1)).getSecurityGroup(Mockito.anyString(), Mockito.any(ResourceType.class), Mockito.any(Ec2Client.class));
+        Mockito.verify(utils, Mockito.times(1)).getId(Mockito.any(SecurityRule.class), Mockito.any(Order.class));
     }
 
     // test case: test if the get method returns a list with the expected size
