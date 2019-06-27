@@ -40,8 +40,6 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
             case OUT:
                 awsV2SecurityRuleUtils.addEgressRule(group, securityRule, client);
                 break;
-            default:
-                throw new FogbowException();
         }
 
         return awsV2SecurityRuleUtils.getId(securityRule, majorOrder);
