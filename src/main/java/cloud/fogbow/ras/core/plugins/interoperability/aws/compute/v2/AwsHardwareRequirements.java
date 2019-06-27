@@ -8,7 +8,10 @@ import cloud.fogbow.ras.core.models.HardwareRequirements;
 
 public class AwsHardwareRequirements extends HardwareRequirements {
 
-	private static final String[] COST_LEVEL = {"t1", "a1", "t3", "t3a", "t2", "m5", "m5d", "m5a", "m5ad", "m4"};
+	private static final String[] COST_LEVEL = { "a1", "t2", "t1", "t3", "t3a", "m1", "m3", "m4", "m5", "m5d", "m5a",
+			"m5ad", "c1", "c3", "c4", "c5", "c5d", "c5n", "i3", "i3en", "d2", "h1", "r4", "r5", "r5d", "r5a", "r5ad",
+			"r3", "m2", "x1e", "x1", "u-6tb1", "u-9tb1", "u-12tb1", "z1d", "p3", "p3dn", "p2", "g3s", "g3", "f1" };
+	
 	private static final String TOKEN_SEPARATOR = "[.]";
 	private static final int ZERO_VALUE = 0;
 
