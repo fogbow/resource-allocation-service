@@ -34,11 +34,11 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputeQuotaPlugin.class);
-	
+
 	private static final String DEFAULT_INSTANCE_TYPE = "t1.micro";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
-	
+
 	private static final int INSTANCE_TYPE_COLUMN = 0;
 	private static final int LIMITS_COLUMN = 11;
 	private static final int MAXIMUM_STORAGE_VALUE = 300;
@@ -46,25 +46,24 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 	private static final int ONE_GIGABYTE = 1024;
 	private static final int ONE_TERABYTE = 1000;
 	private static final int VCPU_COLUMN = 1;
-	
-	private String flavorsFilePath;
+
 	private Map<String, ComputeAllocation> allocationsMap;
-	private Properties properties;
-    private String region;
+	private String flavorsFilePath;
+	private String region;
 
-    public AwsV2ComputeQuotaPlugin(String confFilePath) {
-        this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-        this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
-    }
+	public AwsV2ComputeQuotaPlugin(String confFilePath) {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
+		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
+	}
 
-    @Override
-    public ComputeQuota getUserQuota(AwsV2User cloudUser) throws FogbowException {
-    	updateAllocationsMap();
-    	Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        List<ComputeQuota> quotas = loadQuotasByInstances(client);
-    	return calculateQuotas(quotas);
-    }
+	@Override
+	public ComputeQuota getUserQuota(AwsV2User cloudUser) throws FogbowException {
+		updateAllocationsMap();
+		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+		List<ComputeQuota> quotas = loadQuotasByInstances(client);
+		return calculateQuotas(quotas);
+	}
 
 	private ComputeQuota calculateQuotas(List<ComputeQuota> quotas) {
 		ComputeQuota result = null;
@@ -85,13 +84,13 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 			totalRam += quota.getTotalQuota().getRam();
 			totalDisk += quota.getTotalQuota().getDisk();
 			totalQuota = new ComputeAllocation(totalVCPU, totalRam, totalInstances, totalDisk);
-			
+
 			usedInstances = quota.getUsedQuota().getInstances();
 			usedVCPU += quota.getUsedQuota().getvCPU();
 			usedRam += quota.getUsedQuota().getRam();
 			usedDisk += quota.getUsedQuota().getDisk();
 			usedQuota = new ComputeAllocation(usedVCPU, usedRam, usedInstances, usedDisk);
-			
+
 			result = new ComputeQuota(totalQuota, usedQuota);
 		}
 		return result;
@@ -102,7 +101,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		ComputeAllocation totalAllocation;
 		ComputeAllocation usedAllocation;
 		ComputeQuota quota;
-		
+
 		List<Instance> instanceList = getInstanceReservation(client);
 		if (!instanceList.isEmpty()) {
 			for (Instance instance : instanceList) {
@@ -120,16 +119,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		}
 		return instanceQuotas;
 	}
-
-	private ComputeAllocation calculateTotalAllocation(String instanceType) {
-		ComputeAllocation allocation = this.allocationsMap.get(instanceType);
-		int instances = allocation.getInstances();
-		int vCPU = allocation.getvCPU() * instances;
-        int ram = allocation.getRam() * instances;
-        int disk = MAXIMUM_STORAGE_VALUE * ONE_TERABYTE;
-		return new ComputeAllocation(vCPU, ram, instances, disk);
-	}
-
+	
 	private ComputeAllocation calculateUsedAllocation(Instance instance, Ec2Client client) throws FogbowException {
 		String instanceType = instance.instanceTypeAsString();
 		ComputeAllocation allocation = this.allocationsMap.get(instanceType);
@@ -140,7 +130,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		int disk = getAllDisksSize(volumes);
 		return new ComputeAllocation(vCPU, ram, instances, disk);
 	}
-	
+
 	private int getAllDisksSize(List<Volume> volumes) {
 		int size = 0;
 		for (Volume volume : volumes) {
@@ -162,7 +152,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 
 	private DescribeVolumesResponse doDescribeVolumesRequests(String volumeId, Ec2Client client)
 			throws UnexpectedException {
-		
+
 		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
 				.volumeIds(volumeId)
 				.build();
@@ -179,6 +169,29 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 			volumeIds.add(instance.blockDeviceMappings().get(i).ebs().volumeId());
 		}
 		return volumeIds;
+	}
+
+	private ComputeAllocation calculateTotalAllocation(String instanceType) {
+		ComputeAllocation allocation = this.allocationsMap.get(instanceType);
+		int instances = allocation.getInstances();
+		int vCPU = allocation.getvCPU() * instances;
+		int ram = allocation.getRam() * instances;
+		int disk = MAXIMUM_STORAGE_VALUE * ONE_TERABYTE;
+		return new ComputeAllocation(vCPU, ram, instances, disk);
+	}
+	
+	private List<Instance> getInstanceReservation(Ec2Client client) throws FogbowException {
+		DescribeInstancesResponse response = doDescribeInstances(client);
+		Reservation reservation = response.reservations().listIterator().next();
+		return reservation.instances();
+	}
+
+	private DescribeInstancesResponse doDescribeInstances(Ec2Client client) throws FogbowException {
+		try {
+			return client.describeInstances();
+		} catch (Exception e) {
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
 	}
 
 	private void updateAllocationsMap() throws ConfigurationErrorException {
@@ -200,10 +213,10 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		int instances = Integer.parseInt(requirements[LIMITS_COLUMN]);
 		int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
-        int ram = memory.intValue();
+		int ram = memory.intValue();
 		return new ComputeAllocation(vCPU, ram, instances);
 	}
-	
+
 	private List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
 		String file = getFlavorsFilePath();
 		Path path = Paths.get(file);
@@ -215,22 +228,8 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		}
 	}
 
-    private String getFlavorsFilePath() {
-        return flavorsFilePath;
-    }
-
-	private List<Instance> getInstanceReservation(Ec2Client client) throws FogbowException {
-		DescribeInstancesResponse response = doDescribeInstances(client);
-		Reservation reservation = response.reservations().listIterator().next();
-		return reservation.instances();
+	private String getFlavorsFilePath() {
+		return flavorsFilePath;
 	}
 
-	private DescribeInstancesResponse doDescribeInstances(Ec2Client client) throws FogbowException {
-		try {
-			return client.describeInstances();
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
-    
 }
