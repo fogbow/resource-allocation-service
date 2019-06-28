@@ -22,6 +22,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
@@ -45,13 +46,14 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	private static final Logger LOGGER = Logger.getLogger(AwsV2NetworkPlugin.class);
 
 	private static final String ALL_PROTOCOLS = "-1";
-	private static final String AWS_TAG_GROUP_ID = "groupId";
-	private static final String AWS_TAG_NAME = "Name";
-	private static final String LOCAL_GATEWAY_DESTINATION = "local";
 	private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
 	private static final Object SECURITY_GROUP_RESOURCE = "Security Groups";
 	private static final String SUBNET_RESOURCE = "Subnet";
 
+	protected static final String AWS_TAG_GROUP_ID = "groupId";
+	protected static final String AWS_TAG_NAME = "Name";
+	protected static final String LOCAL_GATEWAY_DESTINATION = "local";
+	
 	private String defaultVpcId;
 	private String region;
 	private String zone;
@@ -100,7 +102,9 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String subnetId = networkOrder.getInstanceId();
-		doDeleteSubnets(subnetId, client);
+		String groupId = getGroupIdBySubnet(subnetId, client);
+		doDeleteSubnet(subnetId, client);
+		doDeleteSecurityGroup(groupId, client);
 	}
 
 	@Override
@@ -113,19 +117,17 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return false;
 	}
 	
-	private String getGroupIdBySubnet(String subnetId, Ec2Client client)
-			throws UnexpectedException, InstanceNotFoundException {
-		
+	protected String getGroupIdBySubnet(String subnetId, Ec2Client client) throws FogbowException {
 		Subnet subnet = getSubnetById(subnetId, client);
 		for (Tag tag : subnet.tags()) {
 			if (tag.key().equals(AWS_TAG_GROUP_ID)) {
 				return tag.value();
 			}
 		}
-		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+		throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
 	}
 
-	private NetworkInstance mountNetworkInstance(Subnet subnet, RouteTable routeTable) throws UnexpectedException {
+	protected NetworkInstance mountNetworkInstance(Subnet subnet, RouteTable routeTable) throws FogbowException {
 		String id = subnet.subnetId();
 		String cloudState = subnet.stateAsString();
 		String name = subnet.tags().listIterator().next().value();
@@ -140,7 +142,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 				macInterface, interfaceState);
 	}
 
-	private String getGatewayFromRouteTables(List<Route> routes) {
+	protected String getGatewayFromRouteTables(List<Route> routes) {
 		for (Route route : routes) {
 			if (!route.gatewayId().equals(LOCAL_GATEWAY_DESTINATION)) {
 				return route.destinationCidrBlock();
@@ -149,9 +151,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return null;
 	}
 
-	private Subnet getSubnetById(String subnetId, Ec2Client client)
-			throws UnexpectedException, InstanceNotFoundException {
-
+	protected Subnet getSubnetById(String subnetId, Ec2Client client) throws FogbowException {
 		DescribeSubnetsResponse response = doDescribeSubnets(subnetId, client);
 		if (response != null && !response.subnets().isEmpty()) {
 			return response.subnets().listIterator().next();
@@ -159,7 +159,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
-	private DescribeSubnetsResponse doDescribeSubnets(String subnetId, Ec2Client client)
+	protected DescribeSubnetsResponse doDescribeSubnets(String subnetId, Ec2Client client)
 			throws UnexpectedException {
 
 		DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
@@ -167,49 +167,41 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 				.build();
 		try {
 			return client.describeSubnets(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void handleSecurityIssues(String cidr, String subnetId, Ec2Client client)
-			throws UnexpectedException {
-
+	protected void handleSecurityIssues(String cidr, String subnetId, Ec2Client client) throws FogbowException {
 		String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
 		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-				.description(SECURITY_GROUP_DESCRIPTION)
-				.groupName(groupName)
-				.vpcId(this.defaultVpcId)
-				.build();
+				.description(SECURITY_GROUP_DESCRIPTION).groupName(groupName).vpcId(this.defaultVpcId).build();
 
 		String groupId = null;
 		try {
 			CreateSecurityGroupResponse response = client.createSecurityGroup(request);
 			groupId = response.groupId();
 			doCreateTagsRequests(AWS_TAG_GROUP_ID, groupId, subnetId, client);
-			doAuthorizeSecurityGroupIngressRequests(cidr, subnetId, groupId, client);
-		} catch (Exception e) {
-			if (groupId != null) {
-				doDeleteSecurityGroupRequests(groupId, client);
-			}
-			doDescribeSubnets(subnetId, client);
+			doAuthorizeSecurityGroupIngress(cidr, subnetId, groupId, client);
+		} catch (SdkException e) {
+			doDeleteSubnet(subnetId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void doDeleteSecurityGroupRequests(String groupId, Ec2Client client) throws UnexpectedException {
+	protected void doDeleteSecurityGroup(String groupId, Ec2Client client) throws FogbowException {
 		DeleteSecurityGroupRequest request = DeleteSecurityGroupRequest.builder()
 				.groupId(groupId)
 				.build();
 		try {
 			client.deleteSecurityGroup(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SECURITY_GROUP_RESOURCE, groupId), e);
 			throw new UnexpectedException();
 		}
 	}
 
-	private void doAuthorizeSecurityGroupIngressRequests(String cidr, String subnetId, String groupId, Ec2Client client)
+	protected void doAuthorizeSecurityGroupIngress(String cidr, String subnetId, String groupId, Ec2Client client)
 			throws FogbowException {
 
 		AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
@@ -219,32 +211,26 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 				.build();
 		try {
 			client.authorizeSecurityGroupIngress(request);
-		} catch (Exception e) {
-			doDeleteSubnets(subnetId, client);
+		} catch (SdkException e) {
+			doDeleteSecurityGroup(groupId, client);
+			doDeleteSubnet(subnetId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void doDeleteSubnets(String subnetId, Ec2Client client)
-			throws UnexpectedException, InstanceNotFoundException {
-
-		String groupId = getGroupIdBySubnet(subnetId, client);
-		doDeleteSecurityGroupRequests(groupId, client);
-		
+	protected void doDeleteSubnet(String subnetId, Ec2Client client) throws FogbowException {
 		DeleteSubnetRequest request = DeleteSubnetRequest.builder()
 				.subnetId(subnetId)
 				.build();
 		try {
 			client.deleteSubnet(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SUBNET_RESOURCE, subnetId), e);
 			throw new UnexpectedException();
 		}
 	}
 	
-	private void doAssociateRouteTables(String subnetId, Ec2Client client)
-			throws UnexpectedException, InstanceNotFoundException {
-
+	protected void doAssociateRouteTables(String subnetId, Ec2Client client) throws FogbowException {
 		RouteTable routeTable = getRouteTables(client);
 		String routeTableId = routeTable.routeTableId();
 		AssociateRouteTableRequest request = AssociateRouteTableRequest.builder()
@@ -253,13 +239,13 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 				.build();
 		try {
 			client.associateRouteTable(request);
-		} catch (Exception e) {
-			doDeleteSubnets(subnetId, client);
+		} catch (SdkException e) {
+			doDeleteSubnet(subnetId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 	
-	private RouteTable getRouteTables(Ec2Client client) throws UnexpectedException, InstanceNotFoundException {
+	protected RouteTable getRouteTables(Ec2Client client) throws FogbowException {
 		DescribeRouteTablesResponse response = doDescribeRouteTables(client);
 		List<RouteTable> routeTables = response.routeTables();
 		for (RouteTable routeTable : routeTables) {
@@ -270,16 +256,16 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 
-	private DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws UnexpectedException {
+	protected DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws FogbowException {
 		try {
 			return client.describeRouteTables();
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private String doCreateSubnetResquests(String name, CreateSubnetRequest request, Ec2Client client)
-			throws UnexpectedException {
+	protected String doCreateSubnetResquests(String name, CreateSubnetRequest request, Ec2Client client)
+			throws FogbowException {
 
 		String subnetId = null;
 		try {
@@ -287,13 +273,13 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 			subnetId = response.subnet().subnetId();
 			doCreateTagsRequests(AWS_TAG_NAME, name, subnetId, client);
 			return subnetId;
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
-			throws UnexpectedException {
+	protected void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
+			throws FogbowException {
 		
 		Tag tag = Tag.builder()
 				.key(key)
@@ -306,16 +292,16 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 				.build();
 		try {
 			client.createTags(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 
-	private String defineInstanceName(String instanceName) {
+	protected String defineInstanceName(String instanceName) {
 		return instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
 	}
 
-	private String getRandomUUID() {
+	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
 	}
 
