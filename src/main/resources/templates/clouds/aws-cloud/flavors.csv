@@ -4,7 +4,7 @@ a1.large,2,4,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,N
 a1.xlarge,4,8,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
 a1.2xlarge,8,16,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
 a1.4xlarge,16,32,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
-t1.micro,1,613,EBS-Only,Intel_Xeon,VeryLow,not-defined,No Support,No Support,No Support,No Support,20
+t1.micro,1,0.613,EBS-Only,Intel_Xeon,VeryLow,not-defined,No Support,No Support,No Support,No Support,20
 t2.nano,1,0.5,EBS-Only,Intel_Xeon_3.3GHz,Low,not-defined,No Support,No Support,No Support,No Support,20
 t2.micro,1,1,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined,No Support,No Support,No Support,No Support,5
 t2.small,1,2,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined,No Support,No Support,No Support,No Support,20
