@@ -18,7 +18,7 @@ import java.util.*;
 public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
     private String region;
-    private AwsV2SecurityRuleUtils awsV2SecurityRuleUtils;
+    protected AwsV2SecurityRuleUtils awsV2SecurityRuleUtils;
 
     public AwsV2SecurityRulePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
@@ -40,8 +40,6 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
             case OUT:
                 awsV2SecurityRuleUtils.addEgressRule(group, securityRule, client);
                 break;
-            default:
-                throw new FogbowException();
         }
 
         return awsV2SecurityRuleUtils.getId(securityRule, majorOrder);
@@ -71,10 +69,6 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         String instanceId = (String) ruleRepresentation.get("instanceId");
 
         String strType = (String) ruleRepresentation.get("type");
-        if(strType.equals("PUBLICIP")) {
-            strType = "PUBLIC_IP";
-        }
-
         ResourceType type = ResourceType.valueOf(strType);
         SecurityGroup group = awsV2SecurityRuleUtils.getSecurityGroup(instanceId, type, client);
 
