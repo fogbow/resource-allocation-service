@@ -186,7 +186,6 @@ public class AwsV2ComputeQuotaPluginTest {
 	// during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testDoDescribeInstancesUnsuccessful() throws FogbowException {
-
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -202,7 +201,6 @@ public class AwsV2ComputeQuotaPluginTest {
 	// during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testDoDescribeVolumesUnsuccessful() throws FogbowException {
-
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
