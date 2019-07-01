@@ -418,10 +418,10 @@ public class AwsV2ComputePluginTest {
 		this.plugin.updateHardwareRequirements(cloudUser);
 
 		Map<String, String> requirements = new HashMap<String, String>();
-		requirements.put(AwsV2ComputePlugin.STORAGE_REQUIREMENT, "1x75-SSD");
+		requirements.put(AwsV2ComputePlugin.STORAGE_REQUIREMENT, "1x75-SSD-NVMe");
 		requirements.put(AwsV2ComputePlugin.BANDWIDTH_REQUIREMENT, "<3500");
 		requirements.put(AwsV2ComputePlugin.PERFORMANCE_REQUIREMENT, "<10");
-		requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, "Intel_Xeon_Platinum_3.1GHz");
+		requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, "Intel_Xeon_Platinum_8175_3.1GHz");
 
 		ComputeOrder computeOrder = createComputeOrder(requirements);
 		int expected = AMOUNT_SSD_STORAGE;
@@ -433,8 +433,77 @@ public class AwsV2ComputePluginTest {
 		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(4)).filterFlavors(Mockito.any());
+		Mockito.verify(this.plugin, Mockito.times(4)).filterFlavors(Mockito.any(), Mockito.any());
 		Assert.assertEquals(expected, flavors.size());
+	}
+	
+	// test case: When calling the getFlavorsByRequirements method with a
+	// requirements map containing high-level graphical attributes, it must filter
+	// the possibilities according to that map and return a set with a
+	// higher-performing instance type.
+	@Test
+	public void testGetFlavorsByRequirementsWithHighPerformanceGraphic() throws FogbowException {
+
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+		mockDescribeImagesResponse(client);
+
+		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+		this.plugin.updateHardwareRequirements(cloudUser);
+
+		Map<String, String> requirements = new HashMap<String, String>();
+		requirements.put(AwsV2ComputePlugin.GRAPHIC_SHARING_REQUIREMENT, "NVLink");
+		requirements.put(AwsV2ComputePlugin.GRAPHIC_PROCESSOR_REQUIREMENT, "8");
+		requirements.put(AwsV2ComputePlugin.GRAPHIC_MEMORY_REQUIREMENT, "256");
+
+		ComputeOrder computeOrder = createComputeOrder(requirements);
+		String expected = InstanceType.P3_DN_24_XLARGE.toString();
+
+		// exercise
+		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
+
+		// verify
+		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
+		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(this.plugin, Mockito.times(3)).filterFlavors(Mockito.any(), Mockito.any());
+		Assert.assertEquals(expected, flavors.first().getName());
+	}
+	
+	// test case: When calling the getFlavorsByRequirements method with a
+	// requirements map containing the most demanding graphics emulation attributes,
+	// it must filter the possibilities according to that map and return a set with
+	// an instance type with the highest performance of this level.
+	@Test
+	public void testGetFlavorsByRequirementsWithGraphicEmulationAtribute() throws FogbowException {
+
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+		mockDescribeImagesResponse(client);
+
+		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+		this.plugin.updateHardwareRequirements(cloudUser);
+
+		Map<String, String> requirements = new HashMap<String, String>();
+		requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, "Intel_Xeon_E5-2686_v4_2.3GHz");
+		requirements.put(AwsV2ComputePlugin.GRAPHIC_EMULATION_REQUIREMENT, "8");
+
+		ComputeOrder computeOrder = createComputeOrder(requirements);
+		String expected = InstanceType.F1_16_XLARGE.toString();
+
+		// exercise
+		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
+
+		// verify
+		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
+		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+		Mockito.verify(this.plugin, Mockito.times(2)).filterFlavors(Mockito.any(), Mockito.any());
+		Assert.assertEquals(expected, flavors.first().getName());
 	}
 	
 	// test case: When calling the getFlavorsByRequirements method, with a null map,

@@ -74,11 +74,19 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private static final int PROCESSOR_COLUMN = 4;
 	private static final int NETWORK_PERFORMANCE_COLUMN = 5;
 	private static final int DEDICATED_EBS_BANDWIDTH_COLUMN = 6;
+	private static final int GRAPHIC_PROCESSOR_COLUMN = 7;
+	private static final int GRAPHIC_MEMORY_COLUMN = 8;
+	private static final int GRAPHIC_SHARING_COLUMN = 9;
+	private static final int GRAPHIC_EMULATION_COLUMN = 10;
 
 	protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
 	protected static final String PERFORMANCE_REQUIREMENT = "performance";
 	protected static final String PROCESSOR_REQUIREMENT = "processor";
 	protected static final String STORAGE_REQUIREMENT = "storage";
+	protected static final String GRAPHIC_PROCESSOR_REQUIREMENT = "GPUs";
+	protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
+	protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
+	protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
 
 	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 	protected static final int ONE_GIGABYTE = 1024;
@@ -410,7 +418,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		List<AwsHardwareRequirements> resultList = null;
 		if (orderRequirements != null && !orderRequirements.isEmpty()) {
 			for (Entry<String, String> requirements : orderRequirements.entrySet()) {
-				resultList = filterFlavors(requirements);
+				resultList = filterFlavors(resultSet, requirements);
 				if (resultList.size() < resultSet.size()) {
 					resultSet = parseToTreeSet(resultList);
 				}
@@ -425,10 +433,12 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return resultSet;
 	}
 
-	protected List<AwsHardwareRequirements> filterFlavors(Entry<String, String> requirements) {
+	protected List<AwsHardwareRequirements> filterFlavors(TreeSet<AwsHardwareRequirements> flavors,
+			Entry<String, String> requirements) {
+		
 		String key = requirements.getKey().trim();
 		String value = requirements.getValue().trim();
-		return getFlavors().stream().filter(flavor -> flavor.getRequirements().get(key).equalsIgnoreCase(value))
+		return flavors.stream().filter(flavor -> flavor.getRequirements().get(key).equalsIgnoreCase(value))
 				.collect(Collectors.toList());
 	}
 
@@ -480,10 +490,18 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		String performance = requirements[NETWORK_PERFORMANCE_COLUMN];
 		String storage = requirements[STORAGE_COLUMN];
 		String bandwidth = requirements[DEDICATED_EBS_BANDWIDTH_COLUMN];
+		String graphicsProcessor = requirements[GRAPHIC_PROCESSOR_COLUMN];
+		String graphicsMemory = requirements[GRAPHIC_MEMORY_COLUMN];
+		String graphicSharing = requirements[GRAPHIC_SHARING_COLUMN];
+		String graphicEmulation = requirements[GRAPHIC_EMULATION_COLUMN];
 		requirementsMap.put(PROCESSOR_REQUIREMENT, processor);
 		requirementsMap.put(PERFORMANCE_REQUIREMENT, performance);
 		requirementsMap.put(STORAGE_REQUIREMENT, storage);
 		requirementsMap.put(BANDWIDTH_REQUIREMENT, bandwidth);
+		requirementsMap.put(GRAPHIC_PROCESSOR_REQUIREMENT, graphicsProcessor);
+		requirementsMap.put(GRAPHIC_MEMORY_REQUIREMENT, graphicsMemory);
+		requirementsMap.put(GRAPHIC_SHARING_REQUIREMENT, graphicSharing);
+		requirementsMap.put(GRAPHIC_EMULATION_REQUIREMENT, graphicEmulation);
 		return requirementsMap;
 	}
 
