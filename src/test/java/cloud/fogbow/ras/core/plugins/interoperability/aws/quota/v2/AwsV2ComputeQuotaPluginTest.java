@@ -43,10 +43,6 @@ public class AwsV2ComputeQuotaPluginTest {
 	private static final String CLOUD_NAME = "amazon";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
-	private static final int DISK_DEFAULT_QUOTA_VALUE = 300000;
-	private static final int INSTANCES_DEFAULT_QUOTA_VALUE = 20;
-	private static final int MEMORY_DEFAULT_QUOTA_VALUE = 627;
-	private static final int MEMORY_TX_NANO_QUOTA_VALUE = 512;
 	private static final int ONE_VALUE = 1;
 	private static final int VOLUME_SIZE_USED_VALUE = 4;
 
@@ -63,9 +59,9 @@ public class AwsV2ComputeQuotaPluginTest {
 
 		this.plugin = Mockito.spy(new AwsV2ComputeQuotaPlugin(awsConfFilePath));
 	}
-
-	// test case: When calling the getUserQuota method with no running instance, it
-	// must return the default instance type values ​​in the available quotas.
+	
+	// test case: When calling the getUserQuota method with no instance running, it
+	// must return the total value of the available quotas.
 	@Test
 	public void testGetUserQuotaWithoutRunningInstances() throws FogbowException {
 		// set up
@@ -78,10 +74,10 @@ public class AwsV2ComputeQuotaPluginTest {
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		int instancesQuota = INSTANCES_DEFAULT_QUOTA_VALUE;
-		int vcpuQuota = ONE_VALUE * instancesQuota;
-		int ramQuota = MEMORY_DEFAULT_QUOTA_VALUE * instancesQuota;
-		int diskQuota = DISK_DEFAULT_QUOTA_VALUE;
+		int totalInstances = calculateTotalQuotaByRequirement(AwsV2ComputeQuotaPlugin.LIMITS_COLUMN);
+		int totalVcpu = calculateTotalQuotaByRequirement(AwsV2ComputeQuotaPlugin.VCPU_COLUMN);
+		int totalMemory = calculateTotalQuotaByRequirement(AwsV2ComputeQuotaPlugin.MEMORY_COLUMN);
+		int totalDisk = AwsV2ComputeQuotaPlugin.MAXIMUM_STORAGE_VALUE * AwsV2ComputeQuotaPlugin.ONE_TERABYTE;
 
 		// exercise
 		ComputeQuota quota = this.plugin.getUserQuota(cloudUser);
@@ -92,16 +88,16 @@ public class AwsV2ComputeQuotaPluginTest {
 
 		Mockito.verify(client, Mockito.times(1)).describeInstances();
 
-		Assert.assertEquals(instancesQuota, quota.getAvailableQuota().getInstances());
-		Assert.assertEquals(vcpuQuota, quota.getAvailableQuota().getvCPU());
-		Assert.assertEquals(ramQuota, quota.getAvailableQuota().getRam());
-		Assert.assertEquals(diskQuota, quota.getAvailableQuota().getDisk());
+		Assert.assertEquals(totalInstances, quota.getAvailableQuota().getInstances());
+		Assert.assertEquals(totalVcpu, quota.getAvailableQuota().getvCPU());
+		Assert.assertEquals(totalMemory, quota.getAvailableQuota().getRam());
+		Assert.assertEquals(totalDisk, quota.getAvailableQuota().getDisk());
 	}
 
 	// test case: When calling the getUserQuota method containing a list of
 	// instances with two instances of the same type running, it must return the
-	// limit of this type of instance minus the two instances in use and calculate
-	// other quota availability values based on that balance.
+	// total limit of available instances, minus the two instances in use, and
+	// calculate the quota availability values ​​based on that balance.
 	@Test
 	public void testGetUserQuotaWithSameInstancesTypeRunning() throws FogbowException {
 		// set up
@@ -111,18 +107,32 @@ public class AwsV2ComputeQuotaPluginTest {
 
 		describeVolumeMocked(client);
 
+		InstanceType instanceType = InstanceType.T2_NANO;
 		List<Instance> instances = new ArrayList<>();
-		instances.add(buildInstance(InstanceType.T2_NANO));
-		instances.add(buildInstance(InstanceType.T2_NANO));
+		instances.add(buildInstance(instanceType));
+		instances.add(buildInstance(instanceType));
 
 		describeInstanceMocked(instances, client);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		int instancesQuota = INSTANCES_DEFAULT_QUOTA_VALUE - ONE_VALUE * 2;
-		int vcpuQuota = ONE_VALUE * instancesQuota;
-		int memoryQuota = MEMORY_TX_NANO_QUOTA_VALUE * instancesQuota;
-		int diskQuota = DISK_DEFAULT_QUOTA_VALUE - VOLUME_SIZE_USED_VALUE * 2;
+		int limitIndex = AwsV2ComputeQuotaPlugin.LIMITS_COLUMN;
+		int vCpuIndex = AwsV2ComputeQuotaPlugin.VCPU_COLUMN;
+		int memoryIndex = AwsV2ComputeQuotaPlugin.MEMORY_COLUMN;
+
+		int totalInstances = calculateTotalQuotaByRequirement(limitIndex);
+		int totalVcpu = calculateTotalQuotaByRequirement(vCpuIndex);
+		int totalMemory = calculateTotalQuotaByRequirement(memoryIndex);
+		int totalDisk = AwsV2ComputeQuotaPlugin.MAXIMUM_STORAGE_VALUE * AwsV2ComputeQuotaPlugin.ONE_TERABYTE;
+
+		int vCPU = getValueByInstanceType(vCpuIndex, instanceType);
+		int memory = getValueByInstanceType(memoryIndex, instanceType);
+		int disk = VOLUME_SIZE_USED_VALUE;
+
+		int availableInstances = totalInstances - (ONE_VALUE * 2);
+		int availableVcpu = totalVcpu - (vCPU * 2);
+		int availableMemory = totalMemory - (memory * 2);
+		int availableDisk = totalDisk - (disk * 2);
 
 		// exercise
 		ComputeQuota quota = this.plugin.getUserQuota(cloudUser);
@@ -134,16 +144,16 @@ public class AwsV2ComputeQuotaPluginTest {
 		Mockito.verify(client, Mockito.times(1)).describeInstances();
 		Mockito.verify(client, Mockito.times(2)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
 
-		Assert.assertEquals(instancesQuota, quota.getAvailableQuota().getInstances());
-		Assert.assertEquals(vcpuQuota, quota.getAvailableQuota().getvCPU());
-		Assert.assertEquals(memoryQuota, quota.getAvailableQuota().getRam());
-		Assert.assertEquals(diskQuota, quota.getAvailableQuota().getDisk());
+		Assert.assertEquals(availableInstances, quota.getAvailableQuota().getInstances());
+		Assert.assertEquals(availableVcpu, quota.getAvailableQuota().getvCPU());
+		Assert.assertEquals(availableMemory, quota.getAvailableQuota().getRam());
+		Assert.assertEquals(availableDisk, quota.getAvailableQuota().getDisk());
 	}
 
 	// test case: When calling the getUserQuota method containing a list of
-	// instances with two instances of different types running, it must return the
-	// limit of each instance type minus the instances in use and calculate the
-	// other quota availability values based on that balance.
+	// instances with two instances of different types running, it should return the
+	// total limit of available instances, minus the quota values ​​of the instances
+	// in use, calculating the quota availability value based on that balance.
 	@Test
 	public void testGetUserQuotaWithDifferentInstanceTypesRunning() throws FogbowException {
 		// set up
@@ -161,10 +171,25 @@ public class AwsV2ComputeQuotaPluginTest {
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		int instancesQuota = INSTANCES_DEFAULT_QUOTA_VALUE - ONE_VALUE;
-		int vcpuQuota = ONE_VALUE * instancesQuota;
-		int memoryQuota = MEMORY_TX_NANO_QUOTA_VALUE * instancesQuota;
-		int diskQuota = DISK_DEFAULT_QUOTA_VALUE - VOLUME_SIZE_USED_VALUE * 2;
+		int limitIndex = AwsV2ComputeQuotaPlugin.LIMITS_COLUMN;
+		int vCpuIndex = AwsV2ComputeQuotaPlugin.VCPU_COLUMN;
+		int memoryIndex = AwsV2ComputeQuotaPlugin.MEMORY_COLUMN;
+
+		int totalInstances = calculateTotalQuotaByRequirement(limitIndex);
+		int totalVcpu = calculateTotalQuotaByRequirement(vCpuIndex);
+		int totalMemory = calculateTotalQuotaByRequirement(memoryIndex);
+		int totalDisk = AwsV2ComputeQuotaPlugin.MAXIMUM_STORAGE_VALUE * AwsV2ComputeQuotaPlugin.ONE_TERABYTE;
+
+		int vCpuT2 = getValueByInstanceType(vCpuIndex, InstanceType.T2_NANO);
+		int memoryT2 = getValueByInstanceType(memoryIndex, InstanceType.T2_NANO);
+		int vCPUT3 = getValueByInstanceType(vCpuIndex, InstanceType.T3_NANO);
+		int memoryT3 = getValueByInstanceType(memoryIndex, InstanceType.T3_NANO);
+		int disk = VOLUME_SIZE_USED_VALUE;
+
+		int availableInstances = totalInstances - (ONE_VALUE * 2);
+		int availableVcpu = totalVcpu - vCpuT2 - vCPUT3;
+		int availableMemory = totalMemory - memoryT2 - memoryT3;
+		int availableDisk = totalDisk - (disk * 2);
 
 		// exercise
 		ComputeQuota quota = this.plugin.getUserQuota(cloudUser);
@@ -176,10 +201,10 @@ public class AwsV2ComputeQuotaPluginTest {
 		Mockito.verify(client, Mockito.times(1)).describeInstances();
 		Mockito.verify(client, Mockito.times(2)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
 
-		Assert.assertEquals(instancesQuota, quota.getAvailableQuota().getInstances());
-		Assert.assertEquals(vcpuQuota, quota.getAvailableQuota().getvCPU());
-		Assert.assertEquals(memoryQuota, quota.getAvailableQuota().getRam());
-		Assert.assertEquals(diskQuota, quota.getAvailableQuota().getDisk());
+		Assert.assertEquals(availableInstances, quota.getAvailableQuota().getInstances());
+		Assert.assertEquals(availableVcpu, quota.getAvailableQuota().getvCPU());
+		Assert.assertEquals(availableMemory, quota.getAvailableQuota().getRam());
+		Assert.assertEquals(availableDisk, quota.getAvailableQuota().getDisk());
 	}
 
 	// case test: When calling the doDescribeInstances method, and an error occurs
@@ -252,6 +277,49 @@ public class AwsV2ComputeQuotaPluginTest {
 				.build();
 		
 		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(response);
+	}
+	
+	private int getValueByInstanceType(int index, InstanceType type) throws FogbowException {
+		List<String> lines = this.plugin.loadLinesFromFlavorFile();
+		String[] requirements;
+		String instanceType;
+		int value = 0;
+		for (String line : lines) {
+			if (!line.startsWith(AwsV2ComputeQuotaPlugin.COMMENTED_LINE_PREFIX)) {
+				requirements = line.split(AwsV2ComputeQuotaPlugin.CSV_COLUMN_SEPARATOR);
+				instanceType = requirements[AwsV2ComputeQuotaPlugin.INSTANCE_TYPE_COLUMN];
+				if (instanceType.equals(type.toString())) {
+					if (index == AwsV2ComputeQuotaPlugin.MEMORY_COLUMN) {
+						value += calculateMemoryValue(index, requirements);
+					} else {
+						value = Integer.parseInt(requirements[index]);
+					}
+				}
+			}
+		}
+		return value;
+	}
+	
+	private int calculateTotalQuotaByRequirement(int index) throws FogbowException {
+		List<String> lines = this.plugin.loadLinesFromFlavorFile();
+		String[] requirements;
+		int value = 0;
+		for (String line : lines) {
+			if (!line.startsWith(AwsV2ComputeQuotaPlugin.COMMENTED_LINE_PREFIX)) {
+				requirements = line.split(AwsV2ComputeQuotaPlugin.CSV_COLUMN_SEPARATOR);
+				if (index == AwsV2ComputeQuotaPlugin.MEMORY_COLUMN) {
+					value += calculateMemoryValue(index, requirements);
+				} else {
+					value += Integer.parseInt(requirements[index]);
+				}
+			}
+		}
+		return value;
+	}
+
+	private int calculateMemoryValue(int index, String[] requirements) {
+		Double memory = Double.parseDouble(requirements[index]) * AwsV2ComputeQuotaPlugin.ONE_GIGABYTE;
+		return memory.intValue();
 	}
 
 	private void describeInstanceMocked(List<Instance> instances, Ec2Client client) {
