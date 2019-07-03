@@ -26,6 +26,7 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -130,7 +131,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		return doRunInstancesRequests(computeOrder, request, client);
+		return doRunInstancesRequests(computeOrder, flavor, request, client);
 	}
 
 	@Override
@@ -194,19 +195,36 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 	}
 	
-	private String doRunInstancesRequests(ComputeOrder computeOrder, RunInstancesRequest request, Ec2Client client)
-			throws UnexpectedException {
+	private String doRunInstancesRequests(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
+			RunInstancesRequest request, Ec2Client client) throws UnexpectedException {
 		try {
 			RunInstancesResponse response = client.runInstances(request);
 			String instanceId = null;
+			Instance instance;
 			if (response != null && !response.instances().isEmpty()) {
-				instanceId = response.instances().listIterator().next().instanceId();
+				instance = response.instances().listIterator().next();
+				instanceId = instance.instanceId();
 				String name = defineInstanceName(computeOrder.getName());
 				doCreateTagsRequests(AWS_TAG_NAME, name, instanceId, client);
+				updateInstanceAllocation(computeOrder, flavor, instance, client);
 			}
 			return instanceId;
 		} catch (Exception e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+		}
+	}
+
+	private void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
+			Ec2Client client) throws FogbowException {
+		
+		synchronized (computeOrder) {
+			int vCPU = instance.cpuOptions().coreCount();
+			int memory = flavor.getMemory();
+			List<Volume> volumes = getInstanceVolumes(instance, client);
+			int disk = getAllDisksSize(volumes);
+			int instances = INSTANCES_LAUNCH_NUMBER;
+			ComputeAllocation actualAllocation = new ComputeAllocation(vCPU, memory, instances, disk);
+			computeOrder.setActualAllocation(actualAllocation);
 		}
 	}
 
