@@ -127,16 +127,7 @@ public class AwsV2ComputePluginTest {
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 		mockDescribeImagesResponse(client);
-
-		Instance instance = Instance.builder()
-				.instanceId(FAKE_INSTANCE_ID)
-				.build();
-
-		RunInstancesResponse response = RunInstancesResponse.builder()
-				.instances(instance)
-				.build();
-
-		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(response);
+		mockRunningInstance(client);
 
 		ComputeOrder computeOrder = createComputeOrder(null);
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -155,7 +146,7 @@ public class AwsV2ComputePluginTest {
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.eq(computeOrder),
 				Mockito.any(AwsV2User.class));
 	}
-    
+
 	// test case: When calling the requestInstance method with a valid compute order
 	// and an error occurs when the client attempts to execute instances, an
 	// UnexpectedException will be thrown.
@@ -691,6 +682,40 @@ public class AwsV2ComputePluginTest {
 		return response;
 	}
 
+	private void mockRunningInstance(Ec2Client client) {
+		String volumeId = FAKE_VOLUME_ID;
+		describeVolumeMocked(volumeId, client);
+		
+		EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
+				.volumeId(volumeId)
+				.build();
+		
+		InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
+				.ebs(ebs)
+				.build();
+
+		CpuOptions cpuOptions = CpuOptions.builder()
+				.coreCount(1)
+				.build();
+		
+		Instance instance = Instance.builder()
+				.blockDeviceMappings(blockDeviceMapping)
+				.cpuOptions(cpuOptions)
+				.instanceId(FAKE_INSTANCE_ID)
+				.build();
+
+		RunInstancesResponse response = RunInstancesResponse.builder()
+				.instances(instance)
+				.build();
+
+		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(response);
+	}
+	
+	private void describeVolumeMocked(String volumeId, Ec2Client client) {
+		DescribeVolumesResponse response = createVolumeResponse();
+		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(response);
+	}
+	
 	private DescribeVolumesResponse createVolumeResponse() {
 		Volume volume = Volume.builder()
 				.volumeId(FAKE_VOLUME_ID)
