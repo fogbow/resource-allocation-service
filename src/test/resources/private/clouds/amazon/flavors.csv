@@ -1,60 +1,195 @@
-#Instance Type,vCPU,Memory(GB),Storage,Processor,Network Performance(Gbps),Dedicated EBS Bandwidth(Mbps) 
-t1.micro,1,0.613,EBS-Only,AWS_Graviton_64bit,VeryLow,not-defined
-a1.medium,1,2,EBS-Only,AWS_Graviton_64bit,<10,not-defined
-a1.large,2,4,EBS-Only,AWS_Graviton_64bit,<10,not-defined
-a1.xlarge,4,8,EBS-Only,AWS_Graviton_64bit,<10,not-defined
-a1.2xlarge,8,16,EBS-Only,AWS_Graviton_64bit,<10,not-defined
-a1.4xlarge,16,32,EBS-Only,AWS_Graviton_64bit,<10,not-defined
-t3.nano,2,0.5,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3.micro,2,1,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3.small,2,2,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3.medium,2,4,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3.large,2,8,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3.xlarge,4,16,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3.2xlarge,8,32,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined
-t3a.nano,2,0.5,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t3a.micro,2,1,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t3a.small,2,2,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t3a.medium,2,4,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t3a.large,2,8,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t3a.xlarge,4,16,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t3a.2xlarge,8,32,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined
-t2.nano,1,0.5,EBS-Only,Intel_Xeon_3.3GHz,Low,not-defined
-t2.micro,1,1,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined
-t2.small,1,2,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined
-t2.medium,2,4,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined
-t2.large,2,8,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined
-t2.xlarge,4,16,EBS-Only,Intel_Xeon_3.3GHz,Moderate,not-defined
-t2.2xlarge,8,32,EBS-Only,Intel_Xeon_3.3GHz,Moderate,not-defined
-m5.large,2,8,EBS-Only,Intel_Xeon_Platinum_3.1GHz,<10,<3500
-m5.xlarge,4,16,EBS-Only,Intel_Xeon_Platinum_3.1GHz,<10,<3500
-m5.2xlarge,8,32,EBS-Only,Intel_Xeon_Platinum_3.1GHz,<10,<3500
-m5.4xlarge,16,64,EBS-Only,Intel_Xeon_Platinum_3.1GHz,<10,3500
-m5.12xlarge,48,192,EBS-Only,Intel_Xeon_Platinum_3.1GHz,10,7000
-m5.24xlarge,96,384,EBS-Only,Intel_Xeon_Platinum_3.1GHz,25,14000
-m5.metal,96,384,EBS-Only,Intel_Xeon_Platinum_3.1GHz,25,14000
-m5d.large,2,8,1x75-SSD,Intel_Xeon_Platinum_3.1GHz,<10,<3500
-m5d.xlarge,4,16,1x150-SSD,Intel_Xeon_Platinum_3.1GHz,<10,<3500
-m5d.2xlarge,8,32,1x300-SSD,Intel_Xeon_Platinum_3.1GHz,<10,<3500
-m5d.4xlarge,16,64,2x300-SSD,Intel_Xeon_Platinum_3.1GHz,<10,3500
-m5d.12xlarge,48,192,2x900-SSD,Intel_Xeon_Platinum_3.1GHz,10,7000
-m5d.24xlarge,96,384,4x900-SSD,Intel_Xeon_Platinum_3.1GHz,25,14000
-m5d.metal,96,384,4x900-SSD,Intel_Xeon_Platinum_3.1GHz,25,14000
-m5a.large,2,8,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120
-m5a.xlarge,4,16,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120
-m5a.2xlarge,8,32,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120
-m5a.4xlarge,16,64,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,2120
-m5a.12xlarge,48,192,EBS-Only,AMD_EPYC_7000_2.5GHz,10,5000
-m5a.24xlarge,96,384,EBS-Only,AMD_EPYC_7000_2.5GHz,20,10000
-m5ad.large,2,8,1x75-SSD,AMD_EPYC_7000_2.5GHz,<10,<2120
-m5ad.xlarge,4,16,1x150-SSD,AMD_EPYC_7000_2.5GHz,<10,<2120
-m5ad.2xlarge,8,32,1x300-SSD,AMD_EPYC_7000_2.5GHz,<10,<2120
-m5ad.4xlarge,16,64,2x300-SSD,AMD_EPYC_7000_2.5GHz,<10,2120
-m5ad.12xlarge,48,192,2x900-SSD,AMD_EPYC_7000_2.5GHz,10,5000
-m5ad.24xlarge,96,384,4x900-SSD,AMD_EPYC_7000_2.5GHz,20,10000
-m4.large,2,8,EBS-Only,Intel_Xeon_v3_2.4GHz,Moderate,450
-m4.xlarge,4,16,EBS-Only,Intel_Xeon_v3_2.4GHz,High,750
-m4.2xlarge,8,32,EBS-Only,Intel_Xeon_v3_2.4GHz,High,1000
-m4.4xlarge,16,64,EBS-Only,Intel_Xeon_v3_2.4GHz,High,2000
-m4.10xlarge,40,160,EBS-Only,Intel_Xeon_v3_2.4GHz,10,4000
-m4.16xlarge,64,256,EBS-Only,Intel_Xeon_v3_2.4GHz,25,10000
+#Instance Type,vCPU,Memory (GB),Storage,Processor,Network Performance (Gbps),Dedicated EBS Bandwidth (Mbps) ,GPUs (GB),Memory GPU (GB),P2P Between GPUs,FPGAs,Limits (Region: South America – São Paulo)
+a1.medium,1,2,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
+a1.large,2,4,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
+a1.xlarge,4,8,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
+a1.2xlarge,8,16,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
+a1.4xlarge,16,32,EBS-Only,AWS_Graviton_64bit,<10,not-defined,No Support,No Support,No Support,No Support,0
+t1.micro,1,0.613,EBS-Only,Intel_Xeon,VeryLow,not-defined,No Support,No Support,No Support,No Support,20
+t2.nano,1,0.5,EBS-Only,Intel_Xeon_3.3GHz,Low,not-defined,No Support,No Support,No Support,No Support,20
+t2.micro,1,1,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined,No Support,No Support,No Support,No Support,5
+t2.small,1,2,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined,No Support,No Support,No Support,No Support,20
+t2.medium,2,4,EBS-Only,Intel_Xeon_3.3GHz,LowToModerate,not-defined,No Support,No Support,No Support,No Support,20
+t2.large,2,8,EBS-Only,Intel_Xeon_3.0GHz,LowToModerate,not-defined,No Support,No Support,No Support,No Support,20
+t2.xlarge,4,16,EBS-Only,Intel_Xeon_3.0GHz,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+t2.2xlarge,8,32,EBS-Only,Intel_Xeon_3.0GHz,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+t3.nano,2,0.5,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,1
+t3.micro,2,1,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,1
+t3.small,2,2,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3.medium,2,4,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3.large,2,8,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3.xlarge,4,16,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3.2xlarge,8,32,EBS-Only,Intel_Xeon_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.nano,2,0.5,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.micro,2,1,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.small,2,2,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.medium,2,4,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.large,2,8,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.xlarge,4,16,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+t3a.2xlarge,8,32,EBS-Only,AMD_EPYC_7000_2.5GHz,<5,not-defined,No Support,No Support,No Support,No Support,0
+m1.small,1,1.7,1x160-HDD,Intel_Xeon,Low,not-defined,No Support,No Support,No Support,No Support,5
+m1.medium,1,3.75,1x410-HDD,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+m1.large,2,7.5,2x420-HDD,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+m1.xlarge,4,15,4x420-HDD,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,5
+m3.medium,1,3.75,1x4-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+m3.large,2,7.5,1x32-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+m3.xlarge,4,15,2x40-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,3
+m3.2xlarge,8,30,2x80-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,1
+m4.large,2,8,EBS-Only,Intel_Xeon_E5-2676_v3_Haswell_2.4GHz,Moderate,450,No Support,No Support,No Support,No Support,20
+m4.xlarge,4,16,EBS-Only,Intel_Xeon_E5-2676_v3_Haswell_2.4GHz,High,750,No Support,No Support,No Support,No Support,10
+m4.2xlarge,8,32,EBS-Only,Intel_Xeon_E5-2676_v3_Haswell_2.4GHz,High,1000,No Support,No Support,No Support,No Support,3
+m4.4xlarge,16,64,EBS-Only,Intel_Xeon_E5-2676_v3_Haswell_2.4GHz,High,2000,No Support,No Support,No Support,No Support,0
+m4.10xlarge,40,160,EBS-Only,Intel_Xeon_E5-2676_v3_Haswell_2.4GHz,10,4000,No Support,No Support,No Support,No Support,0
+m4.16xlarge,64,256,EBS-Only,Intel_Xeon_E5-2676_v3_Haswell_2.4GHz,25,10000,No Support,No Support,No Support,No Support,0
+m5.large,2,8,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,1
+m5.xlarge,4,16,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,1
+m5.2xlarge,8,32,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,1
+m5.4xlarge,16,64,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,3500,No Support,No Support,No Support,No Support,0
+m5.12xlarge,48,192,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,10,7000,No Support,No Support,No Support,No Support,0
+m5.24xlarge,96,384,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+m5.metal,96,384,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+m5d.large,2,8,1x75-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+m5d.xlarge,4,16,1x150-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+m5d.2xlarge,8,32,1x300-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+m5d.4xlarge,16,64,2x300-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,3500,No Support,No Support,No Support,No Support,0
+m5d.12xlarge,48,192,2x900-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,10,7000,No Support,No Support,No Support,No Support,0
+m5d.24xlarge,96,384,4x900-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+m5d.metal,96,384,4x900-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+m5a.large,2,8,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+m5a.xlarge,4,16,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+m5a.2xlarge,8,32,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+m5a.4xlarge,16,64,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,2120,No Support,No Support,No Support,No Support,0
+m5a.12xlarge,48,192,EBS-Only,AMD_EPYC_7000_2.5GHz,10,5000,No Support,No Support,No Support,No Support,0
+m5a.24xlarge,96,384,EBS-Only,AMD_EPYC_7000_2.5GHz,20,10000,No Support,No Support,No Support,No Support,0
+m5ad.large,2,8,1x75-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+m5ad.xlarge,4,16,1x150-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+m5ad.2xlarge,8,32,1x300-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+m5ad.4xlarge,16,64,2x300-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,2120,No Support,No Support,No Support,No Support,0
+m5ad.12xlarge,48,192,2x900-SSD-NVMe,AMD_EPYC_7000_2.5GHz,10,5000,No Support,No Support,No Support,No Support,0
+m5ad.24xlarge,96,384,4x900-SSD-NVMe,AMD_EPYC_7000_2.5GHz,20,10000,No Support,No Support,No Support,No Support,0
+c1.medium,2,1.7,1x350-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+c1.xlarge,8,7,4x420-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,5
+c3.large,2,3.75,2x16-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+c3.xlarge,4,7.5,2x40-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+c3.2xlarge,8,15,2x80-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,5
+c3.4xlarge,16,30,2x160-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,1
+c3.8xlarge,32,60,2x320-SSD-NVMe,Intel_Xeon,10,not-defined,No Support,No Support,No Support,No Support,1
+c4.large,2,3.75,EBS-Only,Intel_Xeon_E5-2666_v3_Haswell_2.9GHz,Moderate,500,No Support,No Support,No Support,No Support,5
+c4.xlarge,4,7.5,EBS-Only,Intel_Xeon_E5-2666_v3_Haswell_2.9GHz,High,750,No Support,No Support,No Support,No Support,5
+c4.2xlarge,8,15,EBS-Only,Intel_Xeon_E5-2666_v3_Haswell_2.9GHz,High,1000,No Support,No Support,No Support,No Support,5
+c4.4xlarge,16,30,EBS-Only,Intel_Xeon_E5-2666_v3_Haswell_2.9GHz,High,2000,No Support,No Support,No Support,No Support,1
+c4.8xlarge,36,60,EBS-Only,Intel_Xeon_E5-2666_v3_Haswell_2.9GHz,10,4000,No Support,No Support,No Support,No Support,1
+c5.large,2,4,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,<10,<3500,No Support,No Support,No Support,No Support,1
+c5.xlarge,4,8,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,<10,<3500,No Support,No Support,No Support,No Support,1
+c5.2xlarge,8,16,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+c5.4xlarge,16,32,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,<10,3500,No Support,No Support,No Support,No Support,0
+c5.9xlarge,36,72,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,10,7000,No Support,No Support,No Support,No Support,0
+c5.12xlarge,48,96,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,12,7000,No Support,No Support,No Support,No Support,0
+c5.18xlarge,72,144,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,25,14000,No Support,No Support,No Support,No Support,0
+c5.24xlarge,96,192,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,25,14000,No Support,No Support,No Support,No Support,0
+c5.metal,96,192,EBS-Only,Intel_Xeon_Platinum_8000_3.4GHz,25,14000,No Support,No Support,No Support,No Support,0
+c5d.large,2,4,1x50-SSD-NVMe,Intel_Xeon_Platinum_8000_3.4GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+c5d.xlarge,4,8,1x100-SSD-NVMe,Intel_Xeon_Platinum_8000_3.4GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+c5d.2xlarge,8,16,1x200-SSD-NVMe,Intel_Xeon_Platinum_8000_3.4GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+c5d.4xlarge,16,32,1x400-SSD-NVMe,Intel_Xeon_Platinum_8000_3.4GHz,<10,3500,No Support,No Support,No Support,No Support,0
+c5d.9xlarge,36,72,1x900-SSD-NVMe,Intel_Xeon_Platinum_8000_3.4GHz,10,7000,No Support,No Support,No Support,No Support,0
+c5d.18xlarge,72,144,2x900-SSD-NVMe,Intel_Xeon_Platinum_8000_3.4GHz,25,14000,No Support,No Support,No Support,No Support,0
+c5n.large,2,5.25,EBS-Only,Intel_Xeon_Platinum_3.0GHz,<25,<3500,No Support,No Support,No Support,No Support,0
+c5n.xlarge,4,10.5,EBS-Only,Intel_Xeon_Platinum_3.0GHz,<25,<3500,No Support,No Support,No Support,No Support,0
+c5n.2xlarge,8,21,EBS-Only,Intel_Xeon_Platinum_3.0GHz,<25,<3500,No Support,No Support,No Support,No Support,0
+c5n.4xlarge,16,42,EBS-Only,Intel_Xeon_Platinum_3.0GHz,<25,3500,No Support,No Support,No Support,No Support,0
+c5n.9xlarge,36,96,EBS-Only,Intel_Xeon_Platinum_3.0GHz,50,7000,No Support,No Support,No Support,No Support,0
+c5n.18xlarge,72,192,EBS-Only,Intel_Xeon_Platinum_3.0GHz,100,14000,No Support,No Support,No Support,No Support,0
+i3.large,2,15.25,1x475-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+i3.xlarge,4,30.5,1x950-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+i3.2xlarge,8,61,1x1900-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+i3.4xlarge,16,122,2x1900-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+i3.8xlarge,32,244,4x1900-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,10,not-defined,No Support,No Support,No Support,No Support,0
+i3.16xlarge,64,488,8x1900-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+i3.metal,72,512,8x1900-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+i3en.large,2,16,1x1250-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,<25,not-defined,No Support,No Support,No Support,No Support,0
+i3en.xlarge,4,32,1x2500-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,<25,not-defined,No Support,No Support,No Support,No Support,0
+i3en.2xlarge,8,64,2x2500-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,<25,not-defined,No Support,No Support,No Support,No Support,0
+i3en.3xlarge,12,96,1x7500-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,<25,not-defined,No Support,No Support,No Support,No Support,0
+i3en.6xlarge,24,192,2x7500-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+i3en.12xlarge,48,384,4x7500-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,50,not-defined,No Support,No Support,No Support,No Support,0
+i3en.24xlarge,96,768,8x7500-SSD-NVMe,Intel_Xeon_Scalable_Skylake_3.1GHz,100,not-defined,No Support,No Support,No Support,No Support,0
+d2.xlarge,4,30.5,3x2000-HDD,Intel_Xeon_E5-2676_v3_2.4 GHz,Moderate,not-defined,No Support,No Support,No Support,No Support,0
+d2.2xlarge,8,61,6x2000-HDD,Intel_Xeon_E5-2676_v3_2.4 GHz,High,not-defined,No Support,No Support,No Support,No Support,0
+d2.4xlarge,16,122,12x2000-HDD,Intel_Xeon_E5-2676_v3_2.4 GHz,High,not-defined,No Support,No Support,No Support,No Support,0
+d2.8xlarge,36,244,24x2000-HDD,Intel_Xeon_E5-2676_v3_2.4 GHz,10,not-defined,No Support,No Support,No Support,No Support,0
+h1.2xlarge,8,32,1x2000-HDD,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+h1.4xlarge,16,64,2x2000-HDD,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+h1.8xlarge,32,128,4x2000-HDD,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+h1.16xlarge,64,256,8x2000-HDD,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+r4.large,2,15.25,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+r4.xlarge,4,30.5,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+r4.2xlarge,8,61,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+r4.4xlarge,16,122,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,<10,not-defined,No Support,No Support,No Support,No Support,1
+r4.8xlarge,32,244,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,10,not-defined,No Support,No Support,No Support,No Support,1
+r4.16xlarge,64,488,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+r5.large,2,16,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+r5.xlarge,4,32,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+r5.2xlarge,8,64,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+r5.4xlarge,16,128,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,<10,3500,No Support,No Support,No Support,No Support,0
+r5.12xlarge,48,384,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,10,7000,No Support,No Support,No Support,No Support,0
+r5.24xlarge,96,768,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+r5.metal,96,768,EBS-Only,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+r5d.large,2,16,1x75-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+r5d.xlarge,4,32,1x150-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+r5d.2xlarge,8,64,1x300-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,<3500,No Support,No Support,No Support,No Support,0
+r5d.4xlarge,16,128,2x300-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,<10,3500,No Support,No Support,No Support,No Support,0
+r5d.12xlarge,48,384,2x900-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,10,7000,No Support,No Support,No Support,No Support,0
+r5d.24xlarge,96,768,4x900-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+r5d.metal,96,768,4x900-SSD-NVMe,Intel_Xeon_Platinum_8175_3.1GHz,25,14000,No Support,No Support,No Support,No Support,0
+r5a.large,2,16,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+r5a.xlarge,4,32,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+r5a.2xlarge,8,64,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+r5a.4xlarge,16,128,EBS-Only,AMD_EPYC_7000_2.5GHz,<10,2120,No Support,No Support,No Support,No Support,0
+r5a.12xlarge,48,384,EBS-Only,AMD_EPYC_7000_2.5GHz,10,5000,No Support,No Support,No Support,No Support,0
+r5a.24xlarge,96,768,EBS-Only,AMD_EPYC_7000_2.5GHz,20,10000,No Support,No Support,No Support,No Support,0
+r5ad.large,2,16,1x75-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+r5ad.xlarge,4,32,1x150-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+r5ad.2xlarge,8,64,1x300-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,<2120,No Support,No Support,No Support,No Support,0
+r5ad.4xlarge,16,128,2x300-SSD-NVMe,AMD_EPYC_7000_2.5GHz,<10,2120,No Support,No Support,No Support,No Support,0
+r5ad.12xlarge,48,384,2x900-SSD-NVMe,AMD_EPYC_7000_2.5GHz,10,5000,No Support,No Support,No Support,No Support,0
+r5ad.24xlarge,96,768,4x900-SSD-NVMe,AMD_EPYC_7000_2.5GHz,20,10000,No Support,No Support,No Support,No Support,0
+r3.large,2,15.25,1x32-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+r3.xlarge,4,30.5,1x80-SSD-NVMe,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+r3.2xlarge,8,61,2x160-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,5
+r3.4xlarge,16,122,1x320-SSD-NVMe,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,1
+r3.8xlarge,32,244,2x320-SSD-NVMe,Intel_Xeon,10,not-defined,No Support,No Support,No Support,No Support,1
+m2.xlarge,2,17.1,1x420-HDD,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+m2.2xlarge,4,34.2,1x850-HDD,Intel_Xeon,Moderate,not-defined,No Support,No Support,No Support,No Support,5
+m2.4xlarge,8,68.4,2x840-HDD,Intel_Xeon,High,not-defined,No Support,No Support,No Support,No Support,5
+x1e.xlarge,4,122,1x120-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,<10,500,No Support,No Support,No Support,No Support,0
+x1e.2xlarge,8,244,1x240-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,<10,1000,No Support,No Support,No Support,No Support,0
+x1e.4xlarge,16,488,1x480-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,<10,1750,No Support,No Support,No Support,No Support,0
+x1e.8xlarge,32,976,1x960-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,<10,3500,No Support,No Support,No Support,No Support,0
+x1e.16xlarge,64,1952,1x1920-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,10,7000,No Support,No Support,No Support,No Support,0
+x1e.32xlarge,128,3904,2x1920-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,25,14000,No Support,No Support,No Support,No Support,0
+x1.16xlarge,64,976,1x1920-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,10,7000,No Support,No Support,No Support,No Support,0
+x1.32xlarge,128,1952,2x1920-SSD-NVMe,Intel_Xeon_E7-8880_v3_2.3GHz,25,14000,No Support,No Support,No Support,No Support,0
+u-6tb1.metal,448,6,EBS-Optimized,Intel_Xeon_Platinum 8176M_Skylake,25,14000,No Support,No Support,No Support,No Support,0
+u-9tb1.metal,448,9,EBS-Optimized,Intel_Xeon_Platinum 8176M_Skylake,25,14000,No Support,No Support,No Support,No Support,0
+u-12tb1.metal,448,12,EBS-Optimized,Intel_Xeon_Platinum 8176M_Skylake,25,14000,No Support,No Support,No Support,No Support,0
+z1d.large,2,16,1x75-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+z1d.xlarge,4,32,1x150-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+z1d.2xlarge,8,64,1x300-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+z1d.3xlarge,12,96,1x450-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,<10,not-defined,No Support,No Support,No Support,No Support,0
+z1d.6xlarge,24,192,1x900-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,10,not-defined,No Support,No Support,No Support,No Support,0
+z1d.12xlarge,48,384,2x900-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+z1d.metal,48,384,2x900-SSD-NVMe,Intel_Xeon_Scalable_4.0GHz,25,not-defined,No Support,No Support,No Support,No Support,0
+p3.2xlarge,8,61,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,<10,1500,1,16,No Support,No Support,0
+p3.8xlarge,32,244,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,10,7000,4,64,NVLink,No Support,0
+p3.16xlarge,64,488,EBS-Only,Intel_Xeon_E5-2686_v4_2.3GHz,25,14000,8,128,NVLink,No Support,0
+p3dn.24xlarge,96,768,2x900-SSD-NVMe,Intel_Xeon_P8175M_2.5GHz,100,14000,8,256,NVLink,No Support,0
+p2.xlarge,4,61,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,High,not-defined,1,12,No Support,No Support,0
+p2.8xlarge,32,488,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,10,not-defined,8,96,No Support,No Support,0
+p2.16xlarge,64,732,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,16,192,No Support,No Support,0
+g3s.xlarge,4,30.5,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,<10 ,not-defined,1,8,No Support,No Support,0
+g3.4xlarge,16,122,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,<10 ,not-defined,1,8,No Support,No Support,0
+g3.8xlarge,32,244,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,10,not-defined,2,16,No Support,No Support,0
+g3.16xlarge,64,488,EBS-Optimized,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,4,32,No Support,No Support,0
+f1.2xlarge,8,122,1x470-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,<10 ,not-defined,No Support,No Support,No Support,1,0
+f1.4xlarge,16,244,1x940-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,<10 ,not-defined,No Support,No Support,No Support,2,0
+f1.16xlarge,64,976,4x940-SSD-NVMe,Intel_Xeon_E5-2686_v4_2.3GHz,25,not-defined,No Support,No Support,No Support,8,0
