@@ -126,7 +126,10 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
+
 		mockRunningInstance(client);
 
 		ComputeOrder computeOrder = createComputeOrder(null);
@@ -156,10 +159,13 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
 
-		RunInstancesResponse response = RunInstancesResponse.builder().build();
-		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(response);
+		DescribeImagesResponse imageResponse = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class)))
+				.thenReturn(imageResponse);
+
+		RunInstancesResponse instanceResponse = RunInstancesResponse.builder().build();
+		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(instanceResponse);
 
 		Mockito.doThrow(AwsServiceException.class).when(client).runInstances(Mockito.any(RunInstancesRequest.class));
 
@@ -179,7 +185,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse imageResponse = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(imageResponse);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 		this.plugin.updateHardwareRequirements(cloudUser);
@@ -217,7 +225,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		ComputeOrder computeOrder = createComputeOrder(null);
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -403,7 +413,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 		this.plugin.updateHardwareRequirements(cloudUser);
@@ -439,7 +451,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 		this.plugin.updateHardwareRequirements(cloudUser);
@@ -474,7 +488,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 		this.plugin.updateHardwareRequirements(cloudUser);
@@ -506,7 +522,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 		this.plugin.updateHardwareRequirements(cloudUser);
@@ -534,7 +552,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 		this.plugin.updateHardwareRequirements(cloudUser);
@@ -572,7 +592,9 @@ public class AwsV2ComputePluginTest {
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-		mockDescribeImagesResponse(client);
+		
+		DescribeImagesResponse response = createDescribeImage();
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -585,7 +607,8 @@ public class AwsV2ComputePluginTest {
 		Assert.assertEquals(expected, this.plugin.getFlavors().size());
 	}
 	
-	// case test: ...
+	// case test: When calling the doDescribeVolumesRequests method, and an error occurs
+	// during the request, an UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testDoDescribeVolumesRequestsThrowUnexpectedException()
 			throws UnexpectedException, InvalidParameterException {
@@ -604,7 +627,8 @@ public class AwsV2ComputePluginTest {
 		this.plugin.doDescribeVolumesRequests(volumeId, client);
 	}
 	
-	// test case: ...
+	// test case: When calling the doCreateTagsRequests method, and an error occurs
+	// during the request, an UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
 	public void testDoCreateTagsRequestsThrowUnexpectedException()
 			throws UnexpectedException, InvalidParameterException {
@@ -623,6 +647,40 @@ public class AwsV2ComputePluginTest {
 
 		// exercise
 		this.plugin.doCreateTagsRequests(key, value, instanceId, client);
+	}
+	
+	// test case: When calling the doDescribeImagesRequests method, and an error occurs
+	// during the request, an UnexpectedException will be thrown.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testDoDescribeImagesRequestsUnsuccessful() throws FogbowException {
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		DescribeImagesRequest request = DescribeImagesRequest.builder().build();
+		Mockito.when(client.describeImages(Mockito.eq(request))).thenThrow(SdkClientException.builder().build());
+
+		// exercise
+		this.plugin.doDescribeImagesRequests(request, client);
+	}
+    
+	// test case: When calling the getImageById method, and no image is returned ,
+	// an InstanceNotFoundException will be thrown.
+	@Test(expected = InstanceNotFoundException.class) // verify
+	public void testGetImageByIdUnsuccessful() throws FogbowException {
+		// set up
+		Ec2Client client = Mockito.mock(Ec2Client.class);
+		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+
+		DescribeImagesResponse response = null;
+		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
+
+		String imageId = FAKE_IMAGE_ID;
+
+		// exercise
+		this.plugin.getImageById(imageId, client);
 	}
 	
 	private DescribeInstancesResponse createInstanceResponse() {
@@ -683,23 +741,11 @@ public class AwsV2ComputePluginTest {
 	}
 
 	private void mockRunningInstance(Ec2Client client) {
-		String volumeId = FAKE_VOLUME_ID;
-		describeVolumeMocked(volumeId, client);
-		
-		EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
-				.volumeId(volumeId)
-				.build();
-		
-		InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
-				.ebs(ebs)
-				.build();
-
 		CpuOptions cpuOptions = CpuOptions.builder()
 				.coreCount(1)
 				.build();
 		
 		Instance instance = Instance.builder()
-				.blockDeviceMappings(blockDeviceMapping)
 				.cpuOptions(cpuOptions)
 				.instanceId(FAKE_INSTANCE_ID)
 				.build();
@@ -709,11 +755,6 @@ public class AwsV2ComputePluginTest {
 				.build();
 
 		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(response);
-	}
-	
-	private void describeVolumeMocked(String volumeId, Ec2Client client) {
-		DescribeVolumesResponse response = createVolumeResponse();
-		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(response);
 	}
 	
 	private DescribeVolumesResponse createVolumeResponse() {
@@ -729,7 +770,7 @@ public class AwsV2ComputePluginTest {
 		return response;
 	}
 	
-	private void mockDescribeImagesResponse(Ec2Client client) {
+	private DescribeImagesResponse createDescribeImage() {
 		EbsBlockDevice ebsBlockDevice = EbsBlockDevice.builder()
 				.volumeSize(AwsV2ComputePlugin.ONE_GIGABYTE)
 				.build();
@@ -743,11 +784,9 @@ public class AwsV2ComputePluginTest {
         		.blockDeviceMappings(blockDeviceMapping)
         		.build();
         
-		DescribeImagesResponse response = DescribeImagesResponse.builder()
+		return DescribeImagesResponse.builder()
 				.images(image)
 				.build();
-
-		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 	}
 	
 	private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
