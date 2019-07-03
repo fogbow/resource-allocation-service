@@ -289,7 +289,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
 			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
 				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
-				return ipAddresses;
 			}
 		}
 		return ipAddresses;

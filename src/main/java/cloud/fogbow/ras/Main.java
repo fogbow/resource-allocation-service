@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
@@ -77,17 +78,21 @@ public class Main implements ApplicationRunner {
             // Starting threads
             processorsThreadController.startRasThreads();
 
-            // Starting PacketSender
-            while (true) {
-                try {
-                    PacketSenderHolder.init();
-                    break;
-                } catch (IllegalStateException e1) {
-                    LOGGER.error(Messages.Error.NO_PACKET_SENDER, e1);
+            String xmpp_enabled = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_ENABLED_KEY,
+                    ConfigurationPropertyDefaults.XMPP_ENABLED);
+            if (xmpp_enabled.equals(ConfigurationPropertyDefaults.XMPP_ENABLED)) {
+                // Starting PacketSender
+                while (true) {
                     try {
-                        TimeUnit.SECONDS.sleep(10);
-                    } catch (InterruptedException e2) {
-                        e2.printStackTrace();
+                        PacketSenderHolder.init();
+                        break;
+                    } catch (IllegalStateException e1) {
+                        LOGGER.error(Messages.Error.NO_PACKET_SENDER, e1);
+                        try {
+                            TimeUnit.SECONDS.sleep(10);
+                        } catch (InterruptedException e2) {
+                            e2.printStackTrace();
+                        }
                     }
                 }
             }
