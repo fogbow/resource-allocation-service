@@ -285,10 +285,12 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private List<String> addPrivateIpAddresses(Instance instance, int index) {
 		List<String> ipAddresses = new ArrayList<String>();
 		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
-		instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
-		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
-			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
-				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
+		if (!instance.networkInterfaces().isEmpty()) {
+			instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
+			if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
+				for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
+					ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
+				}
 			}
 		}
 		return ipAddresses;
