@@ -64,7 +64,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
 	private static final String AWS_TAG_NAME = "Name";
-	private static final String KEY_NAME_LAUNCH_INSTANCE = "key-pair-launch-instance";
 	private static final String RESOURCE_NAME = "Compute";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
@@ -127,8 +126,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.maxCount(INSTANCES_LAUNCH_NUMBER)
 				.minCount(INSTANCES_LAUNCH_NUMBER)
 				.networkInterfaces(networkInterfaces)
-//				.userData(userData)
-				.keyName(KEY_NAME_LAUNCH_INSTANCE)
+				.userData(userData)
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
@@ -285,10 +283,12 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private List<String> addPrivateIpAddresses(Instance instance, int index) {
 		List<String> ipAddresses = new ArrayList<String>();
 		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
-		instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
-		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
-			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
-				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
+		if (!instance.networkInterfaces().isEmpty()) {
+			instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
+			if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
+				for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
+					ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
+				}
 			}
 		}
 		return ipAddresses;
