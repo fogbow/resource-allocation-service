@@ -13,7 +13,7 @@ import com.google.gson.Gson;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.util.Map;
 
 public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<CloudStackUser> {
 
@@ -31,8 +31,8 @@ public class CloudStackGenericRequestPlugin implements GenericRequestPlugin<Clou
             CloudStackUrlUtil.sign(uriBuilder, cloudUser.getToken());
 
             String url = uriBuilder.toString();
-            HashMap<String, String> headers = httpRequest.getHeaders();
-            HashMap<String, String> body = httpRequest.getBody();
+            Map<String, String> headers = httpRequest.getHeaders();
+            Map<String, String> body = httpRequest.getBody();
             return client.doGenericRequest(HttpMethod.GET, url, headers, body, cloudUser);
         } catch (URISyntaxException e) {
             throw new FogbowException(String.format(Messages.Exception.MALFORMED_GENERIC_REQUEST_URL, httpRequest.getUrl()));
