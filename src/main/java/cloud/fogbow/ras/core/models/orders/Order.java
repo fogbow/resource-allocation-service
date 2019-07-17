@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.SerializedEntityHolder;
-import cloud.fogbow.common.util.SystemUserUtil;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -73,7 +73,7 @@ public abstract class Order<T extends Order> implements Serializable {
     private String identityProviderId;
 
     @Column
-    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
+    @Size(max = SystemUser.SERIALIZED_SYSTEM_USER_MAX_SIZE)
     private String serializedSystemUser;
 
     @Column

@@ -93,7 +93,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
 
     //test case: Check if requestInstance is returning the instanceId from Json response properly.
     @Test
-    public void testRequestInstance() throws FogbowException, HttpResponseException {
+    public void CloudInitUserDataBuilder() throws FogbowException, HttpResponseException {
         //set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
                 Mockito.anyString(), Mockito.anyString(), Mockito.any(OpenStackV3User.class));
