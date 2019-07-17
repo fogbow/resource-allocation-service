@@ -49,7 +49,6 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String device = attachmentOrder.getDevice();
-        String instanceId = null;
 
         String jsonRequest;
         try {

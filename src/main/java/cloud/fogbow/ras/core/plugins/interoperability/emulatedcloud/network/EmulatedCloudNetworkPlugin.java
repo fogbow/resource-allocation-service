@@ -153,7 +153,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         String newMac = "";
         Random random = new Random();
         for (int i = 0; i < 12; i++){
-            if(i > 0 && (i & 1) == 0) {
+            if (i > 0 && (i & 1) == 0) {
                 newMac += ':';
             }
 

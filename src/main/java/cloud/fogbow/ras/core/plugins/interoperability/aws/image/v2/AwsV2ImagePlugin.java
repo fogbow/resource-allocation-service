@@ -39,7 +39,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         
         List<ImageSummary> images = new ArrayList<>();
         List<software.amazon.awssdk.services.ec2.model.Image> retrievedImages = imagesResponse.images();
-        for(software.amazon.awssdk.services.ec2.model.Image image : retrievedImages) {
+        for (software.amazon.awssdk.services.ec2.model.Image image : retrievedImages) {
             images.add(new ImageSummary(image.imageId(), image.name()));
         }
         return images;

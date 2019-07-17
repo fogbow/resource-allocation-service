@@ -52,7 +52,7 @@ public class EmulatedCloudUtils {
     public static void deleteFile(String path){
         File file = new File(path);
 
-        if(file.exists()){
+        if (file.exists()){
             file.delete();
         }
     }

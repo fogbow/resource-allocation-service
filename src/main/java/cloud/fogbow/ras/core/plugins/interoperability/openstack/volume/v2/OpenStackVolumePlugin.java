@@ -66,7 +66,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
             String instanceName = order.getName();
             String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
             String volumeTypeId = null;
-            if(requirements != null && requirements.size() > 0) {
+            if (requirements != null && requirements.size() > 0) {
                 volumeTypeId = getValidVolumeTypeId(requirements, tenantId, cloudUser);
             }
             jsonRequest = generateJsonEntityToCreateInstance(size, name, volumeTypeId);
@@ -179,22 +179,22 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
         List<GetAllTypesResponse.Type> instanceFromJson = getRequirementsFromJson(responseStr);
 
-        for(GetAllTypesResponse.Type type : instanceFromJson){
+        for (GetAllTypesResponse.Type type : instanceFromJson){
 
             boolean match = true;
 
             Map<String, String> specs = type.getExtraSpecs();
 
-            for(Map.Entry<String, String> pair : requirements.entrySet()){
+            for (Map.Entry<String, String> pair : requirements.entrySet()){
                 String key = pair.getKey();
                 String value = pair.getValue();
-                if(!specs.containsKey(key) || !value.equals(specs.get(key))){
+                if (!specs.containsKey(key) || !value.equals(specs.get(key))){
                     match = false;
                     break;
                 }
             }
 
-            if(!match) continue;
+            if (!match) continue;
 
             return type.getId();
         }
