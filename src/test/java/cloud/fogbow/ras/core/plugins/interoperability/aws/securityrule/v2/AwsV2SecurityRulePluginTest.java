@@ -420,7 +420,7 @@ public class AwsV2SecurityRulePluginTest {
 
     private SecurityGroup createGroup(String groupId, List<IpPermission> ipPermissions) {
         SecurityGroup group;
-        if(ipPermissions != null) {
+        if (ipPermissions != null) {
             group = SecurityGroup.builder()
                 .ipPermissions(ipPermissions)
                 .groupId(groupId)

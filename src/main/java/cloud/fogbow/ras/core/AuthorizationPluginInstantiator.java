@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
+import cloud.fogbow.common.util.ClassFactory;
 import cloud.fogbow.ras.core.models.RasOperation;
 
 public class AuthorizationPluginInstantiator {

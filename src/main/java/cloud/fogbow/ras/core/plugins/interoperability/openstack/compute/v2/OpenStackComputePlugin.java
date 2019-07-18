@@ -308,7 +308,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             GetFlavorExtraSpecsResponse getFlavorExtraSpecsResponse = GetFlavorExtraSpecsResponse.fromJson(jsonResponse);
             Map<String, String> flavorExtraSpecs = getFlavorExtraSpecsResponse.getFlavorExtraSpecs();
 
-            for(String tag : requirements.keySet()) {
+            for (String tag : requirements.keySet()) {
                 if (!flavorExtraSpecs.containsKey(tag) || !flavorExtraSpecs.get(tag).equals(requirements.get(tag))) {
                     return false;
                 }

@@ -75,7 +75,7 @@ public class AwsV2ImagePluginTest {
         DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().owners(cloudUser.getId()).build();
 
         List<ImageSummary> expectedResult = new ArrayList<>();
-        for(Image each: imagesList) {
+        for (Image each: imagesList) {
             expectedResult.add(new ImageSummary(each.imageId(), each.name()));
         }
 
@@ -166,7 +166,7 @@ public class AwsV2ImagePluginTest {
         List<BlockDeviceMapping> blocks = new ArrayList<>();
 
         BlockDeviceMapping block;
-        for(Integer size : sizes) {
+        for (Integer size : sizes) {
             block = BlockDeviceMapping.builder().ebs(EbsBlockDevice.builder().volumeSize(size).build()).build();
             blocks.add(block);
         }

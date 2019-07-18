@@ -232,13 +232,13 @@ class ComputeTests:
     for x in range(GeneralConfigurations.max_tries + 1):
       response = CommonMethods.get_order_by_id(order_id, order_type)
       if response.status_code != GeneralConfigurations.ok_status:
-        if(x < GeneralConfigurations.max_tries):
+        if (x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
           continue
         return False
       json_response = response.json()
       if json_response[state_key] != ready_state:
-        if(x < GeneralConfigurations.max_tries):
+        if (x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
           continue
         return False

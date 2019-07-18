@@ -78,7 +78,7 @@ public class AwsV2SecurityRuleUtils {
 
         String groupId = "";
         for (Tag tag: address.tags()) {
-            if(tag.key().equals(AWS_TAG_GROUP_ID)) {
+            if (tag.key().equals(AWS_TAG_GROUP_ID)) {
                 groupId = tag.value();
             }
         }
@@ -195,12 +195,12 @@ public class AwsV2SecurityRuleUtils {
     }
 
     public void validateRule(SecurityRule rule) throws InvalidParameterException {
-        if(rule.getProtocol().equals(SecurityRule.Protocol.ANY)) {
+        if (rule.getProtocol().equals(SecurityRule.Protocol.ANY)) {
             throw new InvalidParameterException(Messages.Exception.NO_PROTOCOL_SPECIFIED);
         }
 
         Ipv4AddressValidator ipv4AddressValidator = new Ipv4AddressValidator();
-        if(!ipv4AddressValidator.validate(rule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[0])) {
+        if (!ipv4AddressValidator.validate(rule.getCidr().split(CIDR_NETWORK_BITS_SEPARATOR)[0])) {
             throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR_FORMAT, rule.getCidr()));
         }
     }
@@ -232,7 +232,7 @@ public class AwsV2SecurityRuleUtils {
 
         ipPermissions = ipPermissions.stream().filter(ipPermission -> validateIpPermission(ipPermission)).collect(Collectors.toList());
 
-        for(IpPermission ipPermission : ipPermissions) {
+        for (IpPermission ipPermission : ipPermissions) {
             int portFrom = ipPermission.fromPort();
             int portTo = ipPermission.toPort();
             String cidr = ipPermission.ipRanges().iterator().next().cidrIp();
@@ -332,7 +332,7 @@ public class AwsV2SecurityRuleUtils {
     private String[] getRequiredEnums(String direction, String protocol, String type) {
         String requiredEnums[] = new String[3];
 
-        if(direction.equals(INGRESS_DIRECTION_VALUE)) {
+        if (direction.equals(INGRESS_DIRECTION_VALUE)) {
             requiredEnums[DIRECTION_ENUM_POSITION] = INGRESS_DIRECTION;
         } else {
             requiredEnums[DIRECTION_ENUM_POSITION] = EGRESS_DIRECTION;
@@ -340,7 +340,7 @@ public class AwsV2SecurityRuleUtils {
 
         requiredEnums[PROTOCOL_ENUM_POSITION] = protocol.toUpperCase();
 
-        if(type.toLowerCase().equals(PUBLIC_IP)) {
+        if (type.toLowerCase().equals(PUBLIC_IP)) {
             type = "public_ip";
         }
 

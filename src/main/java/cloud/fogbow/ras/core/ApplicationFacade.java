@@ -86,7 +86,7 @@ public class ApplicationFacade {
     public String getPublicKey() throws UnexpectedException {
         // There is no need to authenticate the user or authorize this operation
         try {
-            return CryptoUtil.savePublicKey(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
+            return CryptoUtil.toBase64(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
         } catch (IOException | GeneralSecurityException e) {
             throw new UnexpectedException(e.getMessage(), e);
         }
