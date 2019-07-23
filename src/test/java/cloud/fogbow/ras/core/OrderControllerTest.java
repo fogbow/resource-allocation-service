@@ -359,42 +359,7 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(orderInstance, instance);
     }
-
-    // test case: Checks if given an attachment order getResourceInstance() returns its instance.
-    @Test
-    public void testGetResourceAttachmentOrder() throws FogbowException {
-        // set up
-        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(localCloudConnector);
-
-        Order order = createOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
-        order.setOrderStateInTestMode(OrderState.FULFILLED);
-
-        this.fulfilledOrdersList.addItem(order);
-        this.activeOrdersMap.put(order.getId(), order);
-
-        String instanceId = "instanceid";
-        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(instanceId);
-
-        Mockito.doReturn(orderInstance).when(localCloudConnector)
-                .getInstance(Mockito.any(Order.class));
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
-        // exercise
-        Instance instance = this.ordersController.getResourceInstance(order);
-
-        // verify
-        Assert.assertEquals(orderInstance, instance);
-    }
-
-
+    
     // test case: Requesting a null order must return a UnexpectedException.
     @Test(expected = UnexpectedException.class) // verify
     public void testGetResourceInstanceNullOrder() throws Exception {
