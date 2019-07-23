@@ -26,6 +26,11 @@ public class BaseUnitTests {
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
+    public static final String REMOTE_MEMBER_ID = "remote-member-id";
+    public static final String FAKE_IMAGE_NAME = "fake-image-name";
+    public static final String FAKE_PUBLIC_KEY= "fake-public-key";
+    public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+
     /**
      * Clears the orders from the lists on the SharedOrderHolders instance.
      */
@@ -70,7 +75,7 @@ public class BaseUnitTests {
     }
 
     protected Order createRemoteOrder(String requestingMember) {
-        String providingMember = "remote-member-id";
+        String providingMember = REMOTE_MEMBER_ID;
         return createOrder(requestingMember, providingMember);
     }
 
@@ -79,9 +84,9 @@ public class BaseUnitTests {
 
         ArrayList<UserData> userDataScripts = mockUserData();
 
-        String imageName = "fake-image-name";
-        String publicKey = "fake-public-key";
-        String instanceName = "fake-instance-name";
+        String imageName = FAKE_IMAGE_NAME;
+        String publicKey = FAKE_PUBLIC_KEY;
+        String instanceName = FAKE_INSTANCE_NAME;
 
         Order localOrder =
                 new ComputeOrder(

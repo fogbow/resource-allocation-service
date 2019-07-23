@@ -145,8 +145,9 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(Order order) throws FogbowException {
-        if (order == null)
-        	throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+        if (order == null) {
+            throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+        }
 
         synchronized (order) {
             if ((!this.localProviderId.equals(order.getProvider())) && order.getOrderState().equals(OrderState.OPEN)) {
@@ -429,7 +430,7 @@ public class OrderController {
         }
     }
 
-    private void checkOrderDependencies(String orderId) throws DependencyDetectedException {
+    protected void checkOrderDependencies(String orderId) throws DependencyDetectedException {
         Order order = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
         synchronized (order) {
             if (this.orderDependencies.containsKey(orderId) &&
