@@ -9,6 +9,7 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventReq
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
+import org.aspectj.weaver.ast.Or;
 
 public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
@@ -67,11 +68,15 @@ public class OrderStateTransitioner {
 
     private static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
         try {
-            RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, newState);
+            RemoteNotifyEventRequest remoteNotifyEventRequest = createRemoteNotifyEventRequest(order, newState);
             remoteNotifyEventRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
+    }
+
+    protected static RemoteNotifyEventRequest createRemoteNotifyEventRequest(Order order, OrderState newState) {
+        return new RemoteNotifyEventRequest(order, newState);
     }
 }

@@ -1,4 +1,4 @@
-package cloud.fogbow.ras;
+package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -7,6 +7,7 @@ import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.After;
@@ -21,7 +22,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class})
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, OrderStateTransitioner.class})
 public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
@@ -47,7 +48,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     // be changed to the Spawning state, removed from the open orders list, and added to the spawning
     // orders list.
     @Test
-    public void testTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
+    public void testTransitionToChangeOrderStateOpenToSpawningWithRemoteProvider() throws UnexpectedException {
 
         // set up
         OrderState originState = OrderState.OPEN;
@@ -61,7 +62,15 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         SynchronizedDoublyLinkedList<Order> spawningOrdersList = orderHolders.getSpawningOrdersList();
 
         Order order = createOrder(originState);
+        String remoteMember = "fake-remote-member";
+        order.setRequester(remoteMember);
         openOrdersList.addItem(order);
+
+
+        RemoteNotifyEventRequest remoteNotifyEventRequest = Mockito.mock(RemoteNotifyEventRequest.class);
+        PowerMockito.spy(OrderStateTransitioner.class);
+        BDDMockito.given(OrderStateTransitioner.createRemoteNotifyEventRequest(Mockito.any(), Mockito.any()))
+                .willReturn(remoteNotifyEventRequest);
 
         Assert.assertNull(spawningOrdersList.getNext());
 
