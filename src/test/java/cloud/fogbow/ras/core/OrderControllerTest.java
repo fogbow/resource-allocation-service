@@ -35,16 +35,6 @@ public class OrderControllerTest extends BaseUnitTests {
     //include changing the content of fulfilledOrdersList and activeOrdersMap.put
     //A simpler way of doing these tests is to spy the behaviour of the getOrder method.
 
-    private static final String FAKE_ID = "fake-id";
-    private static final String FAKE_CLOUD_NAME = "fake-cloud";
-    private static final String FAKE_DEVICE = "fake-device";
-    private static final String FAKE_IMAGE_NAME = "fake-image-name";
-    private static final String FAKE_NAME = "fake-name";
-    private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-    private static final String FAKE_USER = "fake-user";
-    private static final int FAKE_VOLUME_SIZE = 42;
-    private static final String RESOURCES_PATH_TEST = "src/test/resources/private";
-
     private OrderController ordersController;
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> openOrdersList;
@@ -224,9 +214,9 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testCreateOrderWithDependencies() throws FogbowException {
         // set up
-        ComputeOrder computeOrder = createLocalComputeOrder();
-        VolumeOrder volumeOrder1 = createLocalVolumeOrder();
-        VolumeOrder volumeOrder2 = createLocalVolumeOrder();
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        VolumeOrder volumeOrder1 = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        VolumeOrder volumeOrder2 = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
 
         this.ordersController.activateOrder(computeOrder);
         this.ordersController.activateOrder(volumeOrder1);
@@ -248,8 +238,8 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = DependencyDetectedException.class)
     public void testDeleteOrderWithoutRemovingDependenciesFirst() throws FogbowException {
         // set up
-        ComputeOrder computeOrder = createLocalComputeOrder();
-        VolumeOrder volumeOrder = createLocalVolumeOrder();
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        VolumeOrder volumeOrder = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
 
         this.ordersController.activateOrder(computeOrder);
         this.ordersController.activateOrder(volumeOrder);
@@ -266,8 +256,8 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testDeleteOrderWithDependencies() throws FogbowException {
         // set up
-        ComputeOrder computeOrder = createLocalComputeOrder();
-        VolumeOrder volumeOrder = createLocalVolumeOrder();
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        VolumeOrder volumeOrder = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
 
         this.ordersController.activateOrder(computeOrder);
         this.ordersController.activateOrder(volumeOrder);
@@ -359,7 +349,7 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(orderInstance, instance);
     }
-    
+
     // test case: Requesting a null order must return a UnexpectedException.
     @Test(expected = UnexpectedException.class) // verify
     public void testGetResourceInstanceNullOrder() throws Exception {
@@ -621,66 +611,6 @@ public class OrderControllerTest extends BaseUnitTests {
         }
 
         return orderId;
-    }
-
-    private ComputeOrder createLocalComputeOrder() {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
-        String imageName = "fake-image-name";
-        String requestingMember = "";
-        String providingMember = "";
-        String publicKey = "fake-public-key";
-        String instanceName = "fake-instance-name";
-
-        ComputeOrder localOrder =
-                new ComputeOrder(
-                        systemUser,
-                        requestingMember,
-                        providingMember,
-                        "default", instanceName,
-                        8,
-                        1024,
-                        30,
-                        imageName,
-                        null,
-                        publicKey,
-                        null);
-
-        return localOrder;
-    }
-
-    private VolumeOrder createLocalVolumeOrder() {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
-
-        VolumeOrder volumeOrder =
-                new VolumeOrder(
-                        systemUser,
-                        LOCAL_MEMBER_ID,
-                        LOCAL_MEMBER_ID,
-                        FAKE_CLOUD_NAME,
-                        FAKE_NAME,
-                        FAKE_VOLUME_SIZE);
-
-        return volumeOrder;
-    }
-
-    private AttachmentOrder createLocalAttachmentOrder(ComputeOrder computeOrder, VolumeOrder volumeOrder) {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
-        String computeId = computeOrder.getId();
-        String volumeId = volumeOrder.getId();
-
-        String device = FAKE_DEVICE;
-
-        AttachmentOrder attachmentOrder =
-                new AttachmentOrder(
-                        systemUser,
-                        LOCAL_MEMBER_ID,
-                        LOCAL_MEMBER_ID,
-                        FAKE_CLOUD_NAME,
-                        computeId,
-                        volumeId,
-                        device);
-
-        return attachmentOrder;
     }
 
     private boolean orderHasDependencies(String orderId) {

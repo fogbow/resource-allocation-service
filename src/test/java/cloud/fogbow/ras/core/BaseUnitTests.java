@@ -7,9 +7,7 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.core.models.orders.*;
 import org.junit.After;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
@@ -26,10 +24,18 @@ public class BaseUnitTests {
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
-    public static final String REMOTE_MEMBER_ID = "remote-member-id";
+    public static final String FAKE_CLOUD_NAME = "fake-cloud";
+    public static final String FAKE_DEVICE = "fake-device";
+    public static final String FAKE_ID = "fake-id";
     public static final String FAKE_IMAGE_NAME = "fake-image-name";
-    public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    public static final String FAKE_NAME = "fake-name";
+    public static final String FAKE_PUBLIC_KEY= "fake-public-key";
+    public static final String FAKE_USER = "fake-user";
+    public static final int FAKE_VOLUME_SIZE = 42;
+    public static final String REMOTE_MEMBER_ID = "remote-member-id";
+    public static final String RESOURCES_PATH_TEST = "src/test/resources/private";
+
 
     /**
      * Clears the orders from the lists on the SharedOrderHolders instance.
@@ -80,15 +86,16 @@ public class BaseUnitTests {
     }
 
     protected Order createOrder(String requestingMember, String providingMember) {
+        return createLocalComputeOrder(requestingMember, providingMember);
+    }
+
+    protected ComputeOrder createLocalComputeOrder(String requestingMember, String providingMember) {
         SystemUser systemUser = Mockito.mock(SystemUser.class);
+        String imageName = "fake-image-name";
+        String publicKey = "fake-public-key";
+        String instanceName = "fake-instance-name";
 
-        ArrayList<UserData> userDataScripts = mockUserData();
-
-        String imageName = FAKE_IMAGE_NAME;
-        String publicKey = FAKE_PUBLIC_KEY;
-        String instanceName = FAKE_INSTANCE_NAME;
-
-        Order localOrder =
+        ComputeOrder localOrder =
                 new ComputeOrder(
                         systemUser,
                         requestingMember,
@@ -98,11 +105,48 @@ public class BaseUnitTests {
                         1024,
                         30,
                         imageName,
-                        userDataScripts,
+                        null,
                         publicKey,
                         null);
+
         return localOrder;
     }
+
+    protected VolumeOrder createLocalVolumeOrder(String requestingMember, String providingMember) {
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
+
+        VolumeOrder volumeOrder =
+                new VolumeOrder(
+                        systemUser,
+                        providingMember,
+                        requestingMember,
+                        FAKE_CLOUD_NAME,
+                        FAKE_NAME,
+                        FAKE_VOLUME_SIZE);
+
+        return volumeOrder;
+    }
+
+    protected AttachmentOrder createLocalAttachmentOrder(ComputeOrder computeOrder, VolumeOrder volumeOrder) {
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
+        String computeId = computeOrder.getId();
+        String volumeId = volumeOrder.getId();
+
+        String device = FAKE_DEVICE;
+
+        AttachmentOrder attachmentOrder =
+                new AttachmentOrder(
+                        systemUser,
+                        LOCAL_MEMBER_ID,
+                        LOCAL_MEMBER_ID,
+                        FAKE_CLOUD_NAME,
+                        computeId,
+                        volumeId,
+                        device);
+
+        return attachmentOrder;
+    }
+
 
     protected ArrayList<UserData> mockUserData() {
         ArrayList<UserData> userDataScripts = new ArrayList<>();
