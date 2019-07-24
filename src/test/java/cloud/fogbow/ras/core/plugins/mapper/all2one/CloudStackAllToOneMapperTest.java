@@ -20,6 +20,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackSystemIdentityProviderPlugin.class})
@@ -30,7 +31,8 @@ public class CloudStackAllToOneMapperTest {
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
+    private static final String FAKE_CLOUDSTACK_URL = "http://localhost:8080";
+    private static final Map<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
     private String providerId;
     private CloudStackAllToOneMapper mapper;
@@ -43,7 +45,7 @@ public class CloudStackAllToOneMapperTest {
                 + "cloudstack" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
         this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-        this.cloudStackIdentityProviderPlugin = Mockito.spy(CloudStackIdentityProviderPlugin.class);
+        this.cloudStackIdentityProviderPlugin = Mockito.spy(new CloudStackIdentityProviderPlugin(FAKE_CLOUDSTACK_URL));
         this.mapper = new CloudStackAllToOneMapper(mapperConfPath);
         this.mapper.setIdentityProviderPlugin(this.cloudStackIdentityProviderPlugin);
     }
