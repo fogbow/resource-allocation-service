@@ -17,7 +17,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -29,7 +28,6 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
@@ -38,13 +36,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 public class FulfilledProcessorTest extends BaseUnitTests {
 
     private static final String DEFAULT_CLOUD_NAME = "default";
-    private static final String FAKE_IDENTITY_PROVIDER_ID = "fake-identity-provider-id";
-    private static final String FAKE_IMAGE_ID = "fake-image";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-    private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
 
     /**
@@ -106,7 +98,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws FogbowException, InterruptedException {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
@@ -132,7 +125,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws FogbowException, InterruptedException {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
 
         ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
@@ -159,11 +153,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // test case: In calling the processFulfilledOrder() method for any order other than Fulfilled,
     // you must not make state transition by keeping the order in your source list.
     @Test
-    public void testProcessComputeOrderNotFulfilled()
+    public void testProcessLocalComputeOrderNotFulfilled()
             throws FogbowException, InterruptedException {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.failedOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
@@ -184,7 +179,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws FogbowException, InterruptedException {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
@@ -209,7 +205,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     public void testRunProcessLocalComputeOrderInstanceReachable() throws Exception {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
@@ -234,7 +231,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     public void testRunProcessLocalComputeOrderInstanceNotReachable() throws Exception {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
@@ -268,7 +266,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     public void testRunProcessLocalComputeOrderInstanceFailed() throws Exception {
 
         // set up
-        Order order = this.createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
@@ -298,12 +297,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws InterruptedException, FogbowException {
 
         // set up
-        Order order = Mockito.mock(Order.class);
+        Order order = createLocalOrder(getLocalMemberId());
         OrderState state = null;
         order.setOrderStateInTestMode(state);
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(new RuntimeException()).when(this.processor).processFulfilledOrder(order);
+        Mockito.doThrow(new RuntimeException()).when(this.processor).processFulfilledOrder(Mockito.eq(order));
         
         // exercise
         this.thread = new Thread(this.processor);
@@ -311,7 +310,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(order);
+        Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(Mockito.eq(order));
     }
 
     // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
@@ -321,13 +320,13 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws InterruptedException, FogbowException {
 
         // set up
-        Order order = Mockito.mock(Order.class);
+        Order order = createLocalOrder(getLocalMemberId());
         OrderState state = null;
         order.setOrderStateInTestMode(state);
         this.fulfilledOrderList.addItem(order);
 
         Mockito.doThrow(new UnexpectedException()).when(this.processor)
-                .processFulfilledOrder(order);
+                .processFulfilledOrder(Mockito.eq(order));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -335,7 +334,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(order);
+        Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(Mockito.eq(order));
     }
     
     // test case: When invoking the processFulfilledOrder method and an error occurs
@@ -344,7 +343,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     @Test(expected = UnavailableProviderException.class) // Verify
     public void testProcessFulfilledOrderThrowsUnavailableProviderException() throws FogbowException {
         // set up
-        Order order = createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
 
@@ -361,7 +360,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessFulfilledOrderWithInstanceNotFound() throws FogbowException {
         // set up
-        Order order = createOrder();
+        Order order = createLocalOrder(getLocalMemberId());
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
 
@@ -373,15 +372,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, order.getOrderState());
-    }
-
-    private Order createOrder() {
-        SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_IDENTITY_PROVIDER_ID);
-        String requestingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
-        String providingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
-        
-        return new ComputeOrder(systemUser, requestingMember, providingMember, DEFAULT_CLOUD_NAME, 
-                FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_ID, super.mockUserData(), FAKE_PUBLIC_KEY, null);
     }
 
 }
