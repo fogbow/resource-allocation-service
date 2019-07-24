@@ -1,23 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
+import java.util.Properties;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,23 +13,39 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
 public class FulfilledProcessorTest extends BaseUnitTests {
 
-    private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    private static final String DEFAULT_CLOUD_NAME = "default";
+    private static final String FAKE_IDENTITY_PROVIDER_ID = "fake-identity-provider-id";
+    private static final String FAKE_IMAGE_ID = "fake-image";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-    private static final String FAKE_IMAGE_ID = "fake-image";
-    private static final String FAKE_IMAGE_NAME = "fake-image";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-    private static final String FAKE_SOURCE = "fake-source";
-    private static final String FAKE_TARGET = "fake-target";
-    private static final String FAKE_DEVICE = "fake-device";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
 
     /**
      * Maximum value that the thread should wait in sleep time
@@ -55,22 +55,33 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     private ChainedList<Order> failedOrderList;
     private ChainedList<Order> fulfilledOrderList;
-    private FulfilledProcessor fulfilledProcessor;
-    private LocalCloudConnector localCloudConnector;
+    private FulfilledProcessor processor;
+    private CloudConnector cloudConnector;
     private Properties properties;
     private Thread thread;
 
     @Before
     public void setUp() throws UnexpectedException {
-
         super.mockReadOrdersFromDataBase();
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-
         this.properties = propertiesHolder.getProperties();
         this.properties.put(ConfigurationPropertyKeys.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 
-        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(localCloudConnector);
+
+        this.cloudConnector = CloudConnectorFactory.getInstance()
+                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
+        
+        this.processor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+                ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
@@ -102,12 +113,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        mockCloudConnectorFactory(orderInstance);
 
         // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
@@ -129,17 +137,14 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
-        order.setInstanceId(FAKE_INSTANCE_ID);
 
-        mockCloudConnectorFactory(orderInstance);
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
 
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
         // exercise
-        spyFulfiledProcessor();
-
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
@@ -164,8 +169,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
         // exercise
-        spyFulfiledProcessor();
-        this.fulfilledProcessor.processFulfilledOrder(order);
+        this.processor.processFulfilledOrder(order);
 
         // verify
         Assert.assertEquals(order, this.failedOrderList.getNext());
@@ -185,11 +189,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.fulfilledProcessor = new FulfilledProcessor(REMOTE_MEMBER_ID,
+        this.processor = new FulfilledProcessor(REMOTE_MEMBER_ID,
                 ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
@@ -212,11 +216,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        mockCloudConnectorFactory(orderInstance);
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
@@ -239,12 +241,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
-        order.setInstanceId(FAKE_INSTANCE_ID);
 
-        mockCloudConnectorFactory(orderInstance);
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
 
         /**
@@ -274,12 +275,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
-        order.setInstanceId(FAKE_INSTANCE_ID);
 
-        mockCloudConnectorFactory(orderInstance);
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
@@ -303,18 +303,15 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         order.setOrderStateInTestMode(state);
         this.fulfilledOrderList.addItem(order);
 
-        spyFulfiledProcessor();
-
+        Mockito.doThrow(new RuntimeException()).when(this.processor).processFulfilledOrder(order);
+        
         // exercise
-        Mockito.doThrow(new RuntimeException()).when(this.fulfilledProcessor)
-                .processFulfilledOrder(order);
-
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
+        Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
     // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
@@ -329,56 +326,62 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         order.setOrderStateInTestMode(state);
         this.fulfilledOrderList.addItem(order);
 
-        spyFulfiledProcessor();
-
-        Mockito.doThrow(new UnexpectedException()).when(this.fulfilledProcessor)
+        Mockito.doThrow(new UnexpectedException()).when(this.processor)
                 .processFulfilledOrder(order);
 
         // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
+        Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(order);
+    }
+    
+    // test case: When invoking the processFulfilledOrder method and an error occurs
+    // while trying to get an instance from the cloud provider, an
+    // UnavailableProviderException will be throw.
+    @Test(expected = UnavailableProviderException.class) // Verify
+    public void testProcessFulfilledOrderThrowsUnavailableProviderException() throws FogbowException {
+        // set up
+        Order order = createOrder();
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+
+        Mockito.doThrow(new UnavailableProviderException()).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
+
+        // exercise
+        this.processor.processFulfilledOrder(order);
+    }
+    
+    // test case: When calling the processFulfilledOrder method and the
+    // order instance is not found, it must change the order state to
+    // FAILED_AFTER_SUCCESSFUL_REQUEST.
+    @Test
+    public void testProcessFulfilledOrderWithInstanceNotFound() throws FogbowException {
+        // set up
+        Order order = createOrder();
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
+
+        // exercise
+        this.processor.processFulfilledOrder(order);
+
+        // verify
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, order.getOrderState());
     }
 
     private Order createOrder() {
-        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
-        );;
-
-        UserData userData = Mockito.mock(UserData.class);
-
-        String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
-
-        String providingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
-
-        Order order = new ComputeOrder(systemUser, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
-                30, FAKE_IMAGE_ID, mockUserData(), FAKE_PUBLIC_KEY, null);
-
-        return order;
-    }
-
-    private void mockCloudConnectorFactory(ComputeInstance orderInstance)
-            throws FogbowException {
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(localCloudConnector);
-
-        Mockito.doReturn(orderInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
-        spyFulfiledProcessor();
-    }
-
-    private void spyFulfiledProcessor() {
-        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME));
+        SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, FAKE_IDENTITY_PROVIDER_ID);
+        String requestingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+        String providingMember = String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+        
+        return new ComputeOrder(systemUser, requestingMember, providingMember, DEFAULT_CLOUD_NAME, 
+                FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_ID, super.mockUserData(), FAKE_PUBLIC_KEY, null);
     }
 
 }
