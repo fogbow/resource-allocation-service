@@ -276,6 +276,37 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(volumeOrder);
     }
 
+    // test case: Deletes an order with an instance, this should call
+    // cloud connector deleteOrder
+    @Test
+    public void testDeleteOrderWithInstanceRunning() throws FogbowException {
+        Mockito.doNothing().when(this.localCloudConnector).deleteInstance(Mockito.any());
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        this.ordersController.activateOrder(computeOrder);
+        String instanceId = "instanceId";
+        computeOrder.setInstanceId(instanceId);
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+
+        // verify
+        Mockito.verify(localCloudConnector, Mockito.times(1)).deleteInstance(Mockito.any());
+    }
+
+    // test case: Deletes an order with an instance, and cloudConnector
+    // thrown an Exception
+    @Test(expected = FogbowException.class)
+    public void testDeleteOrderWithInstanceCloudConnectorFail() throws FogbowException {
+        Mockito.doThrow(FogbowException.class).when(this.localCloudConnector).deleteInstance(Mockito.any());
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        this.ordersController.activateOrder(computeOrder);
+        String instanceId = "instanceId";
+        computeOrder.setInstanceId(instanceId);
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+    }
+
     // test case: Checks if given an OPEN order getResourceInstance() throws
     // RequestStillBeingDispatchedException.
     @Test(expected = RequestStillBeingDispatchedException.class)
@@ -311,6 +342,73 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(orderInstance, instance);
+    }
+
+    // test case: Checks if given an attachment order getResourceInstance() returns its instance.
+    @Test
+    public void testGetAttachmentInstance() throws Exception {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        VolumeOrder volumeOrder = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        AttachmentOrder attachmentOrder = Mockito.spy(createLocalAttachmentOrder(computeOrder, volumeOrder));
+
+        this.ordersController.activateOrder(computeOrder);
+        this.ordersController.activateOrder(volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+
+        String instanceId = "instanceId";
+        computeOrder.setInstanceId(instanceId);
+        volumeOrder.setInstanceId(instanceId);
+
+        attachmentOrder.setInstanceId(instanceId);
+        String cloudState = "any";
+        String device = "device";
+        AttachmentInstance attachmentInstance =
+                new AttachmentInstance(
+                        instanceId,
+                        cloudState,
+                        computeOrder.getInstanceId(),
+                        volumeOrder.getInstanceId(),
+                        device);
+
+        Mockito.doReturn(attachmentInstance).when(localCloudConnector).getInstance(Mockito.eq(attachmentOrder));
+
+        // exercise
+        this.ordersController.getResourceInstance(attachmentOrder);
+
+        // verify
+        Mockito.verify(localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(attachmentOrder));
+    }
+
+    // test case: Checks if given an public ip order getResourceInstance() returns its instance.
+    @Test
+    public void testGetPublicIpInstance() throws Exception {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        PublicIpOrder publicIpOrder = createLocalPublicIpOrder(computeOrder.getId());
+
+        this.ordersController.activateOrder(computeOrder);
+        this.ordersController.activateOrder(publicIpOrder);
+
+        String instanceId = "instanceId";
+        computeOrder.setInstanceId(instanceId);
+        publicIpOrder.setInstanceId(instanceId);
+
+        String cloudState = "any";
+        String ip = "10.42.16.18";
+        PublicIpInstance publicIpInstance =
+                new PublicIpInstance(
+                        instanceId,
+                        cloudState,
+                        ip);
+
+        Mockito.doReturn(publicIpInstance).when(localCloudConnector).getInstance(Mockito.eq(publicIpOrder));
+
+        // exercise
+        this.ordersController.getResourceInstance(publicIpOrder);
+
+        // verify
+        Mockito.verify(localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(publicIpOrder));
     }
 
     // test case: Checks if given an remote order getResourceInstance() returns its instance.
@@ -592,4 +690,5 @@ public class OrderControllerTest extends BaseUnitTests {
         return ret;
     }
 }
+
 

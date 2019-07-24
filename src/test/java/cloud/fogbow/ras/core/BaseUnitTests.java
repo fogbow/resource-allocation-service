@@ -147,6 +147,19 @@ public class BaseUnitTests {
         return attachmentOrder;
     }
 
+    protected PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
+        String cloudName = "fake-cloudio";
+        PublicIpOrder publicIpOrder =
+                new PublicIpOrder(
+                        systemUser,
+                        LOCAL_MEMBER_ID,
+                        LOCAL_MEMBER_ID,
+                        cloudName,
+                        computeOrderId);
+
+        return publicIpOrder;
+    }
 
     protected ArrayList<UserData> mockUserData() {
         ArrayList<UserData> userDataScripts = new ArrayList<>();
