@@ -26,10 +26,6 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 @PrepareForTest(CloudConnectorFactory.class)
 public class ClosedProcessorTest extends BaseUnitTests {
 
-    private static final long DEFAULT_SLEEP_TIME = 500;
-    
-    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> closedOrderList;
     private ClosedProcessor processor;

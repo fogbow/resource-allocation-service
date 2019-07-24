@@ -31,11 +31,6 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 @PrepareForTest(CloudConnectorFactory.class)
 public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 
-    private static final long DEFAULT_SLEEP_TIME = 500;
-    private static final String DEFAULT_CLOUD_NAME = "default";
-    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    private static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
-
     private ChainedList<Order> unableToCheckStatus;
     private ChainedList<Order> fulfilledOrderList;
     private CloudConnector cloudConnector;
@@ -56,9 +51,9 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
                 .thenReturn(localCloudConnector);
 
         this.cloudConnector = CloudConnectorFactory.getInstance()
-                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
+                .getCloudConnector(LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
 
-        this.processor = Mockito.spy(new UnableToCheckStatusProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+        this.processor = Mockito.spy(new UnableToCheckStatusProcessor(LOCAL_MEMBER_ID,
                 ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -311,7 +306,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessUnableToCheckStatusOrderWithRemoteMember() throws FogbowException {
         // set up
-        Order order = createRemoteOrder(getLocalMemberId());
+        Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
         this.unableToCheckStatus.addItem(order);

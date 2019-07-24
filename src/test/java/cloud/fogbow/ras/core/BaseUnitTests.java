@@ -21,21 +21,25 @@ import java.util.Map;
 @PrepareForTest(DatabaseManager.class)
 public class BaseUnitTests {
 
+    public static final int CPU_VALUE = 8;
+    public static final int DISK_VALUE = 30;
+    public static final int MEMORY_VALUE = 1024;
+
+    public static final long DEFAULT_SLEEP_TIME = 500;
+    
+    public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String FAKE_DEVICE = "fake-device";
+    public static final String FAKE_IMAGE_NAME = "fake-image-name";
+    public static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    public static final String FAKE_ORDER_NAME = "fake-order-name";
+    public static final String FAKE_PUBLIC_KEY= "fake-public-key";
+    public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    public static final String FAKE_USER_ID = "fake-user-id";
+    public static final String FAKE_USER_NAME = "fake-user-name";
+    public static final String RESOURCES_PATH_TEST = "src/test/resources/private";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-
-    public static final String FAKE_CLOUD_NAME = "fake-cloud";
-    public static final String FAKE_DEVICE = "fake-device";
-    public static final String FAKE_ID = "fake-id";
-    public static final String FAKE_IMAGE_NAME = "fake-image-name";
-    public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-    public static final String FAKE_NAME = "fake-name";
-    public static final String FAKE_PUBLIC_KEY= "fake-public-key";
-    public static final String FAKE_USER = "fake-user";
-    public static final int FAKE_VOLUME_SIZE = 42;
-    public static final String REMOTE_MEMBER_ID = "remote-member-id";
-    public static final String RESOURCES_PATH_TEST = "src/test/resources/private";
-
 
     /**
      * Clears the orders from the lists on the SharedOrderHolders instance.
@@ -81,7 +85,7 @@ public class BaseUnitTests {
     }
 
     protected Order createRemoteOrder(String requestingMember) {
-        String providingMember = REMOTE_MEMBER_ID;
+        String providingMember = FAKE_REMOTE_MEMBER_ID;
         return createOrder(requestingMember, providingMember);
     }
 
@@ -91,21 +95,22 @@ public class BaseUnitTests {
 
     protected ComputeOrder createLocalComputeOrder(String requestingMember, String providingMember) {
         SystemUser systemUser = Mockito.mock(SystemUser.class);
-        String imageName = "fake-image-name";
-        String publicKey = "fake-public-key";
-        String instanceName = "fake-instance-name";
+        String imageName = FAKE_IMAGE_NAME;
+        String publicKey = FAKE_PUBLIC_KEY;
+        String instanceName = FAKE_INSTANCE_NAME;
 
         ComputeOrder localOrder =
                 new ComputeOrder(
                         systemUser,
                         requestingMember,
                         providingMember,
-                        "default", instanceName,
+                        DEFAULT_CLOUD_NAME, 
+                        instanceName,
                         8,
                         1024,
                         30,
                         imageName,
-                        null,
+                        mockUserData(),
                         publicKey,
                         null);
 
@@ -120,9 +125,9 @@ public class BaseUnitTests {
                         systemUser,
                         providingMember,
                         requestingMember,
-                        FAKE_CLOUD_NAME,
-                        FAKE_NAME,
-                        FAKE_VOLUME_SIZE);
+                        DEFAULT_CLOUD_NAME,
+                        FAKE_ORDER_NAME,
+                        DISK_VALUE);
 
         return volumeOrder;
     }
@@ -132,30 +137,27 @@ public class BaseUnitTests {
         String computeId = computeOrder.getId();
         String volumeId = volumeOrder.getId();
 
-        String device = FAKE_DEVICE;
-
         AttachmentOrder attachmentOrder =
                 new AttachmentOrder(
                         systemUser,
                         LOCAL_MEMBER_ID,
                         LOCAL_MEMBER_ID,
-                        FAKE_CLOUD_NAME,
+                        DEFAULT_CLOUD_NAME,
                         computeId,
                         volumeId,
-                        device);
+                        FAKE_DEVICE);
 
         return attachmentOrder;
     }
 
     protected PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
-        String cloudName = "fake-cloudio";
+        SystemUser systemUser = createSystemUser();
         PublicIpOrder publicIpOrder =
                 new PublicIpOrder(
                         systemUser,
                         LOCAL_MEMBER_ID,
                         LOCAL_MEMBER_ID,
-                        cloudName,
+                        DEFAULT_CLOUD_NAME,
                         computeOrderId);
 
         return publicIpOrder;
@@ -166,6 +168,11 @@ public class BaseUnitTests {
         UserData userDataScript = Mockito.mock(UserData.class);
         userDataScripts.add(userDataScript);
         return userDataScripts;
+    }
+    
+    protected SystemUser createSystemUser() {
+        SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, LOCAL_MEMBER_ID);
+        return systemUser;
     }
 
     /**

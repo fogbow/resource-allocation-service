@@ -1,22 +1,11 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.OrderController;
-import cloud.fogbow.ras.core.OrderStateTransitioner;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -24,38 +13,49 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.OrderController;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
 public class OpenProcessorTest extends BaseUnitTests {
 
-    private OpenProcessor openProcessor;
-    private Thread thread;
+    private static final int OPEN_SLEEP_TIME = 1000;
+    
     private CloudConnector cloudConnector;
     private OrderController orderController;
+    private OpenProcessor processor;
+    private Thread thread;
 
     @Before
     public void setUp() throws UnexpectedException {
-        mockReadOrdersFromDataBase();
+        super.mockReadOrdersFromDataBase();
 
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        when(cloudConnectorFactory.getCloudConnector(anyString(), anyString())).thenReturn(localCloudConnector);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
-        given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
-        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, "default");
-
-        this.thread = null;
-        this.openProcessor = Mockito.spy(new OpenProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME));
+        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
         this.orderController = new OrderController();
+
+        this.processor = Mockito.spy(new OpenProcessor(LOCAL_MEMBER_ID,
+                ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME));
+        
+        this.thread = null;
     }
 
     @After
@@ -75,27 +75,26 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        String id = "fake-id";
-        Mockito.doReturn(id)
+        Mockito.doReturn(FAKE_INSTANCE_ID)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(OPEN_SLEEP_TIME);
 
         //verify
-        assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
 
         // test if the open order list is empty and 
         // the spawningList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
-        assertTrue(this.listIsEmpty(openOrdersList));
-        assertSame(localOrder, spawningOrdersList.getNext());
+        Assert.assertTrue(this.listIsEmpty(openOrdersList));
+        Assert.assertSame(localOrder, spawningOrdersList.getNext());
     }
 
     //test case: test if the open processor is setting to failed an open order when the request instance
@@ -112,21 +111,20 @@ public class OpenProcessorTest extends BaseUnitTests {
                 .requestInstance(Mockito.any(Order.class));
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
-        assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
 
         // test if the open order list is empty and the failedList is with the
         // localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
-        assertTrue(this.listIsEmpty(openOrdersList));
-        assertEquals(localOrder, failedOrdersList.getNext());
+        Assert.assertTrue(this.listIsEmpty(openOrdersList));
+        Assert.assertEquals(localOrder, failedOrdersList.getNext());
     }
 
     //test case: test if the open processor is setting to failed an open order when the request instance
@@ -138,26 +136,26 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        Mockito.doThrow(new RuntimeException("Any Exception"))
+        Mockito.doThrow(new RuntimeException())
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
 
         //verify
-        assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
 
         // test if the open order list is empty and 
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
-        assertTrue(this.listIsEmpty(openOrdersList));
-        assertSame(localOrder, failedOrdersList.getNext());
+        Assert.assertTrue(this.listIsEmpty(openOrdersList));
+        Assert.assertSame(localOrder, failedOrdersList.getNext());
     }
 
     //test case: test if the open processor is setting to pending an open intercomponent order.
@@ -173,21 +171,20 @@ public class OpenProcessorTest extends BaseUnitTests {
                 .requestInstance(Mockito.any(Order.class));
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
-        assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
         // the pendingList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
-        assertTrue(this.listIsEmpty(openOrdersList));
-        assertSame(remoteOrder, pendingOrdersList.getNext());
+        Assert.assertTrue(this.listIsEmpty(openOrdersList));
+        Assert.assertSame(remoteOrder, pendingOrdersList.getNext());
     }
 
     //test case: test if the open processor is setting to fail an open intercomponent order when the request instance
@@ -204,21 +201,20 @@ public class OpenProcessorTest extends BaseUnitTests {
                 .requestInstance(Mockito.any(Order.class));
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
-        assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
-        assertTrue(this.listIsEmpty(openOrdersList));
-        assertEquals(remoteOrder, failedOrdersList.getNext());
+        Assert.assertTrue(this.listIsEmpty(openOrdersList));
+        Assert.assertEquals(remoteOrder, failedOrdersList.getNext());
     }
 
     //test case: test if the open processor does not process an Order that is not in the open state.
@@ -232,26 +228,24 @@ public class OpenProcessorTest extends BaseUnitTests {
         order.setOrderStateInTestMode(OrderState.PENDING);
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        assertEquals(OrderState.PENDING, order.getOrderState());
-        assertFalse(this.listIsEmpty(openOrdersList));
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
+        Assert.assertFalse(this.listIsEmpty(openOrdersList));
     }
 
     //test case: test if the open processor still running if it try to process a null order.
     @Test
     public void testRunProcessWithNullOpenOrder() throws InterruptedException {
         //verify
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
     }
 
     //test case: test if the open processor still run and do not change the order state if the method
@@ -264,21 +258,20 @@ public class OpenProcessorTest extends BaseUnitTests {
         this.orderController.activateOrder(order);
 
         Mockito.doThrow(Exception.class)
-                .when(this.openProcessor)
+                .when(this.processor)
                 .processOpenOrder(Mockito.any(Order.class));
 
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         openOrdersList.addItem(order);
-        assertEquals(OrderState.OPEN, order.getOrderState());
-        assertFalse(this.listIsEmpty(openOrdersList));
+        Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        Assert.assertFalse(this.listIsEmpty(openOrdersList));
     }
 
     //test case: this method tests a race condition when this class thread has the order operation priority.
@@ -289,25 +282,23 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        String id = "fake-id";
-        Mockito.doReturn(id)
+        Mockito.doReturn(FAKE_INSTANCE_ID)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         //exercise
         synchronized (localOrder) {
-            this.thread = new Thread(this.openProcessor);
+            this.thread = new Thread(this.processor);
             this.thread.start();
+            Thread.sleep(DEFAULT_SLEEP_TIME);
 
-            Thread.sleep(500);
-
-            assertEquals(OrderState.OPEN, localOrder.getOrderState());
+            Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
         }
 
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
-        assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
     }
 
     //test case: this method tests a race condition when this class thread has the order operation priority
@@ -322,18 +313,17 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         //exercise
         synchronized (localOrder) {
-            this.thread = new Thread(this.openProcessor);
+            this.thread = new Thread(this.processor);
             this.thread.start();
-
-            Thread.sleep(500);
+            Thread.sleep(DEFAULT_SLEEP_TIME);
 
             localOrder.setOrderStateInTestMode(OrderState.CLOSED);
         }
 
-        Thread.sleep(500);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         //verify
-        assertEquals(OrderState.CLOSED, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
     }
 
     //test case: this method tests a race condition when the attend open order thread has the order operation priority.
@@ -344,7 +334,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        String id = "fake-id";
+        String id = FAKE_INSTANCE_ID;
 
         Mockito.when(this.cloudConnector.requestInstance(Mockito.any(Order.class)))
                 .thenAnswer(
@@ -352,24 +342,23 @@ public class OpenProcessorTest extends BaseUnitTests {
                             @Override
                             public String answer(InvocationOnMock invocation)
                                     throws InterruptedException {
-                                Thread.sleep(500);
+                                Thread.sleep(DEFAULT_SLEEP_TIME);
                                 return id;
                             }
                         });
         //exercise
-        this.thread = new Thread(this.openProcessor);
+        this.thread = new Thread(this.processor);
         this.thread.start();
-
-        Thread.sleep(1000);
+        Thread.sleep(OPEN_SLEEP_TIME);
 
         synchronized (localOrder) {
-            Thread.sleep(1000);
-            assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
+            Thread.sleep(OPEN_SLEEP_TIME);
+            Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
             localOrder.setOrderStateInTestMode(OrderState.OPEN);
         }
 
         //verify
-        assertEquals(OrderState.OPEN, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
     }
 
     private boolean listIsEmpty(ChainedList<Order> list) {

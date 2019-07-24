@@ -35,15 +35,10 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 @PrepareForTest(CloudConnectorFactory.class)
 public class FulfilledProcessorTest extends BaseUnitTests {
 
-    private static final String DEFAULT_CLOUD_NAME = "default";
-    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
-
     /**
      * Maximum value that the thread should wait in sleep time
      */
     private static final int MAX_SLEEP_TIME = 10000;
-    private static final int DEFAULT_SLEEP_TIME = 500;
 
     private ChainedList<Order> failedOrderList;
     private ChainedList<Order> fulfilledOrderList;
@@ -185,7 +180,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.processor = new FulfilledProcessor(REMOTE_MEMBER_ID,
+        this.processor = new FulfilledProcessor(FAKE_REMOTE_MEMBER_ID,
                 ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
