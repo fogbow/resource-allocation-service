@@ -147,4 +147,34 @@ public class PluginInstantiatorTest {
         // verify
         Assert.assertEquals(expected_image_plugin_class_value, plugin.getClass().getName());
     }
+
+    // test case: Tests if getPublicIpPlugin() returns StubPublicIpPlugin as the plugin class name.
+    @Test
+    public void testCreatePublicIpPlugin() {
+        // set up
+        String expected_public_ip_plugin_class_value =
+                "cloud.fogbow.ras.core.stubs.StubPublicIpPlugin";
+
+        // exercise
+        String fakeCloudName = "default";
+        PublicIpPlugin plugin = this.interoperabilityPluginInstantiator.getPublicIpPlugin(fakeCloudName);
+
+        // verify
+        Assert.assertEquals(expected_public_ip_plugin_class_value, plugin.getClass().getName());
+    }
+
+    // test case: Tests if getSecurityRulePlugin() returns StubSecurityRulePlugin as the plugin class name.
+    @Test
+    public void testCreateSecurityRulePlugin() {
+        // set up
+        String expected_security_rule_plugin_class_value =
+                "cloud.fogbow.ras.core.stubs.StubSecurityRulePlugin";
+
+        // exercise
+        String fakeCloudName = "default";
+        SecurityRulePlugin plugin = this.interoperabilityPluginInstantiator.getSecurityRulePlugin(fakeCloudName);
+
+        // verify
+        Assert.assertEquals(expected_security_rule_plugin_class_value, plugin.getClass().getName());
+    }
 }
