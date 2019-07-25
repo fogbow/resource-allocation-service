@@ -4,12 +4,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -24,15 +19,12 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(CloudConnectorFactory.class)
 public class SpawningProcessorTest extends BaseUnitTests {
 
     private static final int SPAWNING_SLEEP_TIME = 2000;
@@ -48,18 +40,10 @@ public class SpawningProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() throws UnexpectedException {
         super.mockReadOrdersFromDataBase();
+        super.mockLocalCloudConnectorFromFactory();
 
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
-        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(localCloudConnector);
-
-        this.cloudConnector = CloudConnectorFactory.getInstance()
-                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
+        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID,
+                BaseUnitTests.DEFAULT_CLOUD_NAME);
 
         this.processor = Mockito.spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 ConfigurationPropertyDefaults.SPAWNING_ORDERS_SLEEP_TIME));
@@ -87,7 +71,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testProcessComputeOrderNotSpawning() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.OPEN);
         this.openOrderList.addItem(order);
 
@@ -106,12 +90,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testRunProcessWhenOrderTypeIsNetwork() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setReady();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
@@ -120,7 +104,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.fulfilledOrderList.getNext();
@@ -136,12 +120,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
     @Test
     public void testRunProcessWhenOrderTypeIsVolume() throws Exception {
         // set up
-        Order order = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        Order order = createLocalVolumeOrder();
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setReady();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
@@ -150,7 +134,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.fulfilledOrderList.getNext();
@@ -166,16 +150,14 @@ public class SpawningProcessorTest extends BaseUnitTests {
     @Test
     public void testRunProcessWhenOrderTypeIsAttachment() throws Exception {
         // set up
-        ComputeOrder computeOrder = createLocalComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
-        VolumeOrder volumeOrder = createLocalVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        VolumeOrder volumeOrder = createLocalVolumeOrder();
         AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
-        attachmentOrder.setRequester(LOCAL_MEMBER_ID);
-        attachmentOrder.setProvider(LOCAL_MEMBER_ID);
         attachmentOrder.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(attachmentOrder);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setReady();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
@@ -184,7 +166,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.fulfilledOrderList.getNext();
@@ -201,11 +183,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testRunProcessComputeOrderWhenInstanceStateIsNotReady() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.DISPATCHED);
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
@@ -227,12 +209,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testRunProcessComputeOrderInstanceReachable() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setReady();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
@@ -258,12 +240,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testRunProcessComputeOrderWhenInstanceStateIsFailed() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        OrderInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
@@ -291,7 +273,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
@@ -300,7 +282,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processSpawningOrder(order);
@@ -312,7 +294,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
@@ -321,7 +303,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processSpawningOrder(order);
@@ -334,7 +316,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testProcessSpawningOrderThrowsUnavailableProviderException() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
@@ -352,7 +334,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testProcessSpawningOrderWithInstanceNotFound() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
@@ -372,11 +354,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void testProcessSpawningOrderWithARemoteMember() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        this.processor = new SpawningProcessor(FAKE_REMOTE_MEMBER_ID,
+        this.processor = new SpawningProcessor(BaseUnitTests.FAKE_REMOTE_MEMBER_ID,
                 ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
 
         // exercise

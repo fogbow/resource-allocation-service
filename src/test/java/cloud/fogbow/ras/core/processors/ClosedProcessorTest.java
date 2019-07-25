@@ -5,10 +5,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -18,12 +15,9 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(CloudConnectorFactory.class)
 public class ClosedProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;

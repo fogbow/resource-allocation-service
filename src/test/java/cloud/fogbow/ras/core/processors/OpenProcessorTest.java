@@ -4,14 +4,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -22,12 +17,9 @@ import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(CloudConnectorFactory.class)
 public class OpenProcessorTest extends BaseUnitTests {
 
     private static final int OPEN_SLEEP_TIME = 1000;
@@ -40,21 +32,15 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() throws UnexpectedException {
         super.mockReadOrdersFromDataBase();
+        super.mockLocalCloudConnectorFromFactory();
 
-        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID,
+                BaseUnitTests.DEFAULT_CLOUD_NAME);
 
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
-        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
-        this.orderController = new OrderController();
-
-        this.processor = Mockito.spy(new OpenProcessor(LOCAL_MEMBER_ID,
+        this.processor = Mockito.spy(new OpenProcessor(BaseUnitTests.LOCAL_MEMBER_ID, 
                 ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME));
-        
+
+        this.orderController = new OrderController();
         this.thread = null;
     }
 
@@ -75,7 +61,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        Mockito.doReturn(FAKE_INSTANCE_ID)
+        Mockito.doReturn(BaseUnitTests.FAKE_INSTANCE_ID)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
@@ -113,7 +99,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
@@ -143,7 +129,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
 
         //verify
@@ -173,7 +159,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
@@ -203,7 +189,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
@@ -230,7 +216,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -245,7 +231,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //verify
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
     }
 
     //test case: test if the open processor still run and do not change the order state if the method
@@ -264,7 +250,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -282,7 +268,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        Mockito.doReturn(FAKE_INSTANCE_ID)
+        Mockito.doReturn(BaseUnitTests.FAKE_INSTANCE_ID)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
@@ -290,12 +276,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         synchronized (localOrder) {
             this.thread = new Thread(this.processor);
             this.thread.start();
-            Thread.sleep(DEFAULT_SLEEP_TIME);
+            Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
             Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
         }
 
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
@@ -315,12 +301,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         synchronized (localOrder) {
             this.thread = new Thread(this.processor);
             this.thread.start();
-            Thread.sleep(DEFAULT_SLEEP_TIME);
+            Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
             localOrder.setOrderStateInTestMode(OrderState.CLOSED);
         }
 
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
@@ -334,16 +320,14 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(localOrder);
 
-        String id = FAKE_INSTANCE_ID;
-
         Mockito.when(this.cloudConnector.requestInstance(Mockito.any(Order.class)))
                 .thenAnswer(
                         new Answer<String>() {
                             @Override
                             public String answer(InvocationOnMock invocation)
                                     throws InterruptedException {
-                                Thread.sleep(DEFAULT_SLEEP_TIME);
-                                return id;
+                                Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+                                return BaseUnitTests.FAKE_INSTANCE_ID;
                             }
                         });
         //exercise

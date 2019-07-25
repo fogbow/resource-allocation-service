@@ -6,12 +6,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -27,12 +22,9 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(CloudConnectorFactory.class)
 public class FulfilledProcessorTest extends BaseUnitTests {
 
     /**
@@ -50,22 +42,15 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() throws UnexpectedException {
         super.mockReadOrdersFromDataBase();
+        super.mockLocalCloudConnectorFromFactory();
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.put(ConfigurationPropertyKeys.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
         
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
-        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(localCloudConnector);
 
         this.cloudConnector = CloudConnectorFactory.getInstance()
-                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, DEFAULT_CLOUD_NAME);
+                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, BaseUnitTests.DEFAULT_CLOUD_NAME);
         
         this.processor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME));
@@ -94,18 +79,18 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
 
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
@@ -121,10 +106,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
 
-        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
@@ -135,7 +120,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.failedOrderList.getNext();
@@ -153,7 +138,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.failedOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
@@ -175,18 +160,18 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.processor = new FulfilledProcessor(FAKE_REMOTE_MEMBER_ID,
+        this.processor = new FulfilledProcessor(BaseUnitTests.FAKE_REMOTE_MEMBER_ID,
                 ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Assert.assertEquals(order, this.fulfilledOrderList.getNext());
@@ -201,18 +186,18 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
 
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
@@ -227,12 +212,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
@@ -262,12 +247,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        ComputeInstance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        ComputeInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         orderInstance.setHasFailed();
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
@@ -275,7 +260,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.failedOrderList.getNext();
@@ -302,7 +287,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(Mockito.eq(order));
@@ -326,7 +311,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processFulfilledOrder(Mockito.eq(order));

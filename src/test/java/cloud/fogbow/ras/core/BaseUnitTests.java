@@ -1,24 +1,35 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.orders.*;
+import java.util.ArrayList;
+import java.util.Map;
+
 import org.junit.After;
+import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.Map;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.UserData;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
-@PrepareForTest(DatabaseManager.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class BaseUnitTests {
 
     public static final int CPU_VALUE = 8;
@@ -40,6 +51,8 @@ public class BaseUnitTests {
     public static final String RESOURCES_PATH_TEST = "src/test/resources/private";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+    
+    protected LocalCloudConnector localCloudConnector;
 
     /**
      * Clears the orders from the lists on the SharedOrderHolders instance.
@@ -81,25 +94,25 @@ public class BaseUnitTests {
 
     protected Order createLocalOrder(String requestingMember) {
         String providingMember = requestingMember;
-        return createOrder(requestingMember, providingMember);
+        return createComputeOrder(requestingMember, providingMember);
     }
 
     protected Order createRemoteOrder(String requestingMember) {
         String providingMember = FAKE_REMOTE_MEMBER_ID;
-        return createOrder(requestingMember, providingMember);
+        return createComputeOrder(requestingMember, providingMember);
     }
 
-    protected Order createOrder(String requestingMember, String providingMember) {
-        return createLocalComputeOrder(requestingMember, providingMember);
+    protected ComputeOrder createLocalComputeOrder() {
+        return createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
     }
-
-    protected ComputeOrder createLocalComputeOrder(String requestingMember, String providingMember) {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
+    
+    protected ComputeOrder createComputeOrder(String requestingMember, String providingMember) {
+        SystemUser systemUser = createSystemUser();
         String imageName = FAKE_IMAGE_NAME;
         String publicKey = FAKE_PUBLIC_KEY;
         String instanceName = FAKE_INSTANCE_NAME;
 
-        ComputeOrder localOrder =
+        ComputeOrder computeOrder =
                 new ComputeOrder(
                         systemUser,
                         requestingMember,
@@ -114,11 +127,15 @@ public class BaseUnitTests {
                         publicKey,
                         null);
 
-        return localOrder;
+        return computeOrder;
+    }
+    
+    protected VolumeOrder createLocalVolumeOrder() {
+        return createVolumeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
     }
 
-    protected VolumeOrder createLocalVolumeOrder(String requestingMember, String providingMember) {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
+    protected VolumeOrder createVolumeOrder(String requestingMember, String providingMember) {
+        SystemUser systemUser = createSystemUser();
 
         VolumeOrder volumeOrder =
                 new VolumeOrder(
@@ -195,4 +212,16 @@ public class BaseUnitTests {
         PowerMockito.mockStatic(DatabaseManager.class);
         BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
     }
+    
+    public void mockLocalCloudConnectorFromFactory() {
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(this.localCloudConnector);
+    }
+    
 }
