@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
@@ -28,6 +29,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
+@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class BaseUnitTests {
