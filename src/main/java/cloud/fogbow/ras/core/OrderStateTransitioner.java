@@ -9,7 +9,6 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventReq
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
-import org.aspectj.weaver.ast.Or;
 
 public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
