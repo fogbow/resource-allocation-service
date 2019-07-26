@@ -34,24 +34,23 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class BaseUnitTests {
 
-    public static final int CPU_VALUE = 8;
-    public static final int DISK_VALUE = 30;
-    public static final int MEMORY_VALUE = 1024;
+    protected static final int CPU_VALUE = 8;
+    protected static final int DISK_VALUE = 30;
+    protected static final int MEMORY_VALUE = 1024;
 
-    public static final long DEFAULT_SLEEP_TIME = 500;
+    protected static final long DEFAULT_SLEEP_TIME = 500;
     
-    public static final String DEFAULT_CLOUD_NAME = "default";
-    public static final String FAKE_DEVICE = "fake-device";
-    public static final String FAKE_IMAGE_NAME = "fake-image-name";
-    public static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-    public static final String FAKE_ORDER_NAME = "fake-order-name";
-    public static final String FAKE_PUBLIC_KEY= "fake-public-key";
-    public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
-    public static final String FAKE_USER_ID = "fake-user-id";
-    public static final String FAKE_USER_NAME = "fake-user-name";
-    public static final String RESOURCES_PATH_TEST = "src/test/resources/private";
-    public static final String LOCAL_MEMBER_ID =
+    protected static final String DEFAULT_CLOUD_NAME = "default";
+    protected static final String FAKE_DEVICE = "fake-device";
+    protected static final String FAKE_IMAGE_NAME = "fake-image-name";
+    protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    protected static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    protected static final String FAKE_ORDER_NAME = "fake-order-name";
+    protected static final String FAKE_PUBLIC_KEY= "fake-public-key";
+    protected static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    protected static final String FAKE_USER_ID = "fake-user-id";
+    protected static final String FAKE_USER_NAME = "fake-user-name";
+    protected static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     
     protected LocalCloudConnector localCloudConnector;
@@ -121,9 +120,9 @@ public class BaseUnitTests {
                         providingMember,
                         DEFAULT_CLOUD_NAME, 
                         instanceName,
-                        8,
-                        1024,
-                        30,
+                        CPU_VALUE,
+                        MEMORY_VALUE,
+                        DISK_VALUE,
                         imageName,
                         mockUserData(),
                         publicKey,

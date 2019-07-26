@@ -35,9 +35,8 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
 public class OrderControllerTest extends BaseUnitTests {
 
-    private static final String ANY_VALUE = "anything";
+    private static final String AVAILABLE_STATE = "available";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
-    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String INVALID_ORDER_ID = "invalid-order-id";
     
     private OrderController ordersController;
@@ -345,8 +344,8 @@ public class OrderControllerTest extends BaseUnitTests {
         volumeOrder.setInstanceId(instanceId);
 
         attachmentOrder.setInstanceId(instanceId);
-        String cloudState = ANY_VALUE;
-        String device = FAKE_DEVICE;
+        String cloudState = AVAILABLE_STATE;
+        String device = BaseUnitTests.FAKE_DEVICE;
         AttachmentInstance attachmentInstance =
                 new AttachmentInstance(
                         instanceId,
@@ -378,7 +377,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setInstanceId(instanceId);
         publicIpOrder.setInstanceId(instanceId);
 
-        String cloudState = ANY_VALUE;
+        String cloudState = AVAILABLE_STATE;
         String ip = FAKE_IP_ADDRESS;
         PublicIpInstance publicIpInstance =
                 new PublicIpInstance(

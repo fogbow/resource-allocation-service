@@ -50,25 +50,27 @@ public class ClosedProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    //test case: the closed processor remove closed orders from the closed orders list
+    // test case: When running the thread in ClosedProcessor, orders will be removed
+    // from the closed list and active order map, and marked as DEACTIVATED.
     @Test
     public void testProcessClosedLocalOrder() throws Exception {
-        //set up
+        // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(FAKE_INSTANCE_ID);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
 
         this.orderController.activateOrder(order);
         OrderStateTransitioner.transition(order, OrderState.CLOSED);
-        
-        //exercise
+
+        // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
-        //verify
+        // verify
         Mockito.verify(this.orderController, Mockito.times(1)).deactivateOrder(Mockito.eq(order));
-        Assert.assertNull(activeOrdersMap.get(order.getId()));
         Assert.assertNull(closedOrderList.getNext());
+        Assert.assertNull(activeOrdersMap.get(order.getId()));
+        Assert.assertEquals(OrderState.DEACTIVATED, order.getOrderState());
     }
     
     // test case: Check the throw of UnexpectedException when running the thread in
@@ -84,7 +86,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processClosedOrder(Mockito.eq(order));
@@ -104,7 +106,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processClosedOrder(Mockito.eq(order));
