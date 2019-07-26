@@ -246,7 +246,7 @@ public class AwsV2AttachmentPluginTest {
 	// test case: When calling the mountAttachmentInstance method, with an empty
 	// attachment list, it must return an InstanceNotFoundException.
 	@Test (expected = InstanceNotFoundException.class) // verify
-	public void testMountAttachmentInstanceWithoutAttachments() throws InstanceNotFoundException {
+	public void testMountAttachmentInstanceWithoutAttachments() throws FogbowException {
 		// set up
 		Volume volume = Volume.builder()
 				.build();
@@ -262,7 +262,7 @@ public class AwsV2AttachmentPluginTest {
 	// test case: When calling the mountAttachmentInstance method, with an empty
 	// volume list, it must return an InstanceNotFoundException.
 	@Test (expected = InstanceNotFoundException.class) // verify
-	public void testMountAttachmentInstanceWithoutVolumes() throws InstanceNotFoundException {
+	public void testMountAttachmentInstanceWithoutVolumes() throws FogbowException {
 		// set up
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder().build();
 
