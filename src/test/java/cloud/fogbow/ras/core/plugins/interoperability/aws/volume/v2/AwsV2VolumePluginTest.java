@@ -44,10 +44,8 @@ public class AwsV2VolumePluginTest {
 
 	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
-	private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
 	private static final String FAKE_TAG_NAME = "fake-tag-name";
 	private static final String FAKE_VOLUME_ID = "fake-volume-id";
-	private static final String VOLUME_DELETED_STATE = "deleted";
 	private static final int ONE_GIGABYTE = 1;
 
 	private AwsV2VolumePlugin plugin;
@@ -158,7 +156,6 @@ public class AwsV2VolumePluginTest {
 				.build();
 		
 		Mockito.when(client.createVolume(Mockito.any(CreateVolumeRequest.class))).thenReturn(response);
-		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_VOLUME_ID);
 
 		VolumeOrder volumeOrder = createVolumeOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -190,7 +187,6 @@ public class AwsV2VolumePluginTest {
 
 		DescribeVolumesResponse response = createVolumeResponse();
 		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(response);
-		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_VOLUME_ID);
 
 		VolumeOrder volumeOrder = createVolumeOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -251,24 +247,10 @@ public class AwsV2VolumePluginTest {
 		this.plugin.deleteInstance(attachmentOrder, cloudUser);
 	}
 	
-	// test case: When calling the defineVolumeName method, without a null volume
-	// name, it must return the value passed by parameter.
-	@Test
-	public void testDefineVolumeNameWithoutANullValue() {
-		// set up
-		String expected = FAKE_INSTANCE_NAME;
-
-		// exercise
-		String volumeName = this.plugin.defineVolumeName(FAKE_INSTANCE_NAME);
-
-		// verify
-		Assert.assertEquals(expected, volumeName);
-	}
-	
 	// test case: When calling the mountVolumeInstance method, with an empty
 	// volume list, it must return an InstanceNotFoundException.
 	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testMountVolumeInstanceWithoutVolumes() throws InstanceNotFoundException {
+	public void testMountVolumeInstanceWithoutVolumes() throws FogbowException {
 		// set up
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder().build();
 
