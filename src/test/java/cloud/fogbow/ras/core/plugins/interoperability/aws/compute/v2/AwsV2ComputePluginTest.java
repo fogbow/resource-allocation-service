@@ -24,7 +24,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -145,7 +144,7 @@ public class AwsV2ComputePluginTest {
 
 		Mockito.verify(client, Mockito.times(1)).runInstances(Mockito.any(RunInstancesRequest.class));
 		Mockito.verify(client, Mockito.times(1)).createTags(Mockito.any(CreateTagsRequest.class));
-		Mockito.verify(this.plugin, Mockito.times(1)).loadNetworkInterfaces(Mockito.anyList());
+		Mockito.verify(this.plugin, Mockito.times(1)).loadNetworkInterfaces(Mockito.any());
 		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.eq(computeOrder),
 				Mockito.any(AwsV2User.class));
 	}
@@ -198,7 +197,6 @@ public class AwsV2ComputePluginTest {
 		DescribeInstancesResponse instanceResponse = createInstanceResponse();
 		Mockito.when(client.describeInstances(Mockito.any(DescribeInstancesRequest.class)))
 				.thenReturn(instanceResponse);
-		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_INSTANCE_ID);
 
 		ComputeOrder computeOrder = createComputeOrder(null);
 
@@ -211,9 +209,9 @@ public class AwsV2ComputePluginTest {
 
 		Mockito.verify(client, Mockito.times(1)).describeInstances(Mockito.any(DescribeInstancesRequest.class));
 		Mockito.verify(this.plugin, times(1)).getInstanceReservation(Mockito.any(DescribeInstancesResponse.class));
-		Mockito.verify(this.plugin, times(1)).getInstanceVolumes(Mockito.any(Instance.class), Mockito.eq(client));
+		Mockito.verify(this.plugin, times(1)).getInstanceVolumes(Mockito.eq(client), Mockito.any(Instance.class));
 		Mockito.verify(this.plugin, Mockito.times(1)).mountComputeInstance(Mockito.any(Instance.class),
-				Mockito.anyList());
+				Mockito.any());
 	}
 	
 	// test case: When calling the getInstance method with a valid computation order
@@ -362,20 +360,6 @@ public class AwsV2ComputePluginTest {
 
 		// exercise
 		this.plugin.findSmallestFlavor(computeOrder, cloudUser);
-	}
-    
-	// test case: When calling the defineInstanceName method passing the instance
-	// name by parameter, it must return this same name.
-	@Test
-	public void testDefineInstanceNameByParameterRequested() {
-		// set up
-		String expected = FAKE_INSTANCE_NAME;
-
-		// exercise
-		String instanceName = this.plugin.defineInstanceName(FAKE_INSTANCE_NAME);
-
-		// verify
-		Assert.assertEquals(expected, instanceName);
 	}
     
 	// test case: When calling the getInstanceReservation method, without a
@@ -605,48 +589,6 @@ public class AwsV2ComputePluginTest {
 
 		// verify
 		Assert.assertEquals(expected, this.plugin.getFlavors().size());
-	}
-	
-	// case test: When calling the doDescribeVolumesRequests method, and an error occurs
-	// during the request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDescribeVolumesRequestsThrowUnexpectedException()
-			throws UnexpectedException, InvalidParameterException {
-		
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String volumeId = FAKE_VOLUME_ID;
-
-		// exercise
-		this.plugin.doDescribeVolumesRequests(volumeId, client);
-	}
-	
-	// test case: When calling the doCreateTagsRequests method, and an error occurs
-	// during the request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoCreateTagsRequestsThrowUnexpectedException()
-			throws UnexpectedException, InvalidParameterException {
-		
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.createTags(Mockito.any(CreateTagsRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String key = AWS_TAG_NAME;
-		String value = FAKE_TAG;
-		String instanceId = FAKE_INSTANCE_ID;
-
-		// exercise
-		this.plugin.doCreateTagsRequests(key, value, instanceId, client);
 	}
 	
 	// test case: When calling the doDescribeImagesRequests method, and an error occurs

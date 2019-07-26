@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -28,19 +27,19 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
@@ -56,7 +55,6 @@ import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
@@ -187,7 +185,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		try {
 			DescribeInstancesResponse response = client.describeInstances(request);
 			Instance instance = getInstanceReservation(response);
-			List<Volume> volumes = getInstanceVolumes(instance, client);
+			List<Volume> volumes = getInstanceVolumes(client, instance);
 			return mountComputeInstance(instance, volumes);
 		} catch (Exception e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
@@ -203,8 +201,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			if (response != null && !response.instances().isEmpty()) {
 				instance = response.instances().listIterator().next();
 				instanceId = instance.instanceId();
-				String name = defineInstanceName(computeOrder.getName());
-				doCreateTagsRequests(AWS_TAG_NAME, name, instanceId, client);
+				String name = FogbowCloudUtil.defineInstanceName(computeOrder.getName());
+				AwsV2CloudUtil.doCreateTagsRequest(client, instanceId, AWS_TAG_NAME, name);
 				updateInstanceAllocation(computeOrder, flavor, instance, client);
 			}
 			return instanceId;
@@ -311,28 +309,18 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return 0;
 	}
 
-	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) throws UnexpectedException {
+	protected List<Volume> getInstanceVolumes(Ec2Client client, Instance instance) throws FogbowException {
 		List<Volume> volumes = new ArrayList<>();
+		DescribeVolumesRequest request;
 		DescribeVolumesResponse response;
+		
 		List<String> volumeIds = getVolumeIds(instance);
 		for (String volumeId : volumeIds) {
-			response = doDescribeVolumesRequests(volumeId, client);
+			request = DescribeVolumesRequest.builder().volumeIds(volumeId).build();
+		    response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
 			volumes.addAll(response.volumes());
 		}
 		return volumes;
-	}
-
-	protected DescribeVolumesResponse doDescribeVolumesRequests(String volumeId, Ec2Client client)
-			throws UnexpectedException {
-		
-		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-				.volumeIds(volumeId)
-				.build();
-		try {
-			return client.describeVolumes(request);
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
 	}
 
 	protected List<String> getVolumeIds(Instance instance) {
@@ -351,14 +339,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			}
 		}
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-	}
-
-	protected String defineInstanceName(String instanceName) {
-		return instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
-	}
-
-	protected String getRandomUUID() {
-		return UUID.randomUUID().toString();
 	}
 
 	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
@@ -389,25 +369,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		return networkInterface;
-	}
-
-	protected void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
-			throws UnexpectedException {
-
-		Tag tag = Tag.builder()
-				.key(key)
-				.value(value)
-				.build();
-
-		CreateTagsRequest request = CreateTagsRequest.builder()
-				.resources(resourceId)
-				.tags(tag)
-				.build();
-		try {
-			client.createTags(request);
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
 	}
 
 	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
@@ -506,7 +467,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected AwsHardwareRequirements mountHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
 		String name = requirements[INSTANCE_TYPE_COLUMN];
-		String flavorId = getRandomUUID();
+		String flavorId = FogbowCloudUtil.getRandomUUID();
 		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
 		int disk = image.getValue();
