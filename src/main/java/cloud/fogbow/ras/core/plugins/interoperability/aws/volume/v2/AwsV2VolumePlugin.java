@@ -63,7 +63,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 				.availabilityZone(this.zone)
 				.build();
 		
-		return doCreateVolumeRequest(client, name, request);
+		return doCreateVolumeRequest(client, request, name);
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		}
 	}
 	
-	private String doCreateVolumeRequest(Ec2Client client, String name, CreateVolumeRequest request) throws FogbowException {
+	private String doCreateVolumeRequest(Ec2Client client, CreateVolumeRequest request, String name) throws FogbowException {
         String volumeId;
         try {
             CreateVolumeResponse response = client.createVolume(request);
