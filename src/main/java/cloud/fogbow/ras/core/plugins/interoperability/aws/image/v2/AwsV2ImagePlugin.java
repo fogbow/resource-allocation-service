@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.image.v2;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -9,17 +11,19 @@ import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ec2.model.Image;
 
 public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
-	private static final Integer FIRST_POSITION = 0;
-    private static final Integer NO_VALUE_FLAG = -1;
 	private static final int ONE_THOUSAND_BYTES = 1024;
+	
+	protected static final Integer NO_VALUE_FLAG = -1;
 
     private String region;
 
@@ -30,53 +34,40 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
     @Override
     public List<ImageSummary> getAllImages(AwsV2User cloudUser) throws FogbowException {
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        
         DescribeImagesRequest request = DescribeImagesRequest.builder()
         		.owners(cloudUser.getId())
         		.build();
         
-        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        DescribeImagesResponse imagesResponse = client.describeImages(request);
-        
-        List<ImageSummary> images = new ArrayList<>();
-        List<software.amazon.awssdk.services.ec2.model.Image> retrievedImages = imagesResponse.images();
-        for (software.amazon.awssdk.services.ec2.model.Image image : retrievedImages) {
-            images.add(new ImageSummary(image.imageId(), image.name()));
-        }
-        return images;
+        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(client, request);
+        return mountImagesSummary(response);
     }
 
     @Override
     public ImageInstance getImage(String imageId, AwsV2User cloudUser) throws FogbowException {
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        
         DescribeImagesRequest request = DescribeImagesRequest.builder()
         		.imageIds(imageId)
         		.build();
 
-        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        DescribeImagesResponse response = client.describeImages(request);
-
-        ImageInstance image = null;
-        if (!response.images().isEmpty()) {
-        	software.amazon.awssdk.services.ec2.model.Image retrievedImage = getFirstImage(response);
-        	image = mountImage(retrievedImage);
-        }
-        return image;
+        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(client, request);
+        Image retrievedImage = AwsV2CloudUtil.getImagesFrom(response);
+        return mountImageInstance(retrievedImage);
     }
-
-	protected software.amazon.awssdk.services.ec2.model.Image getFirstImage(DescribeImagesResponse response) {
-			return response.images().get(FIRST_POSITION);
-	}
-
-	protected ImageInstance mountImage(software.amazon.awssdk.services.ec2.model.Image awsImage) {
-        String id = awsImage.imageId();
-        String name = awsImage.name();
-		String status = awsImage.stateAsString();
-		long size = getSize(awsImage.blockDeviceMappings());
+    
+	protected ImageInstance mountImageInstance(Image image) {
+        String id = image.imageId();
+        String name = image.name();
+		String status = image.stateAsString();
+		long size = getImageSize(image.blockDeviceMappings());
 		long minDisk = NO_VALUE_FLAG;
 		long minRam = NO_VALUE_FLAG;
         return new ImageInstance(id, name, size, minDisk, minRam, status);
     }
 
-    protected long getSize(List<BlockDeviceMapping> blockDeviceMappings) {
+    protected long getImageSize(List<BlockDeviceMapping> blockDeviceMappings) {
     	long kilobyte = ONE_THOUSAND_BYTES;
     	long megabyte = kilobyte * ONE_THOUSAND_BYTES;
     	long gigabyte = megabyte * ONE_THOUSAND_BYTES;
@@ -85,6 +76,18 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
             size += blockDeviceMapping.ebs().volumeSize();
         }
         return size * gigabyte;
+    }
+    
+    private List<ImageSummary> mountImagesSummary(DescribeImagesResponse response) {
+        List<ImageSummary> images = new ArrayList<>();
+        ImageSummary imageSummary;
+        
+        List<Image> retrievedImages = response.images();
+        for (Image image : retrievedImages) {
+            imageSummary = new ImageSummary(image.imageId(), image.name());
+            images.add(imageSummary);
+        }
+        return images;
     }
 
 }
