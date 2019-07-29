@@ -68,7 +68,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 				.volumeId(volumeId)
 				.build();
 
-		return doAttachVolumeRequest(attachmentOrder, client, request);
+		return doAttachVolumeRequest(client, request);
 	}
 
     @Override
@@ -124,13 +124,13 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 	
-	private String doAttachVolumeRequest(AttachmentOrder attachmentOrder, Ec2Client client, AttachVolumeRequest request)
+	private String doAttachVolumeRequest(Ec2Client client, AttachVolumeRequest request)
             throws FogbowException {
 
         String attachmentId;
         try {
             client.attachVolume(request);
-            attachmentId = attachmentOrder.getVolumeId();
+            attachmentId = request.volumeId();
         } catch (Exception e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
