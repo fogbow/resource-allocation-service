@@ -80,9 +80,9 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When calling the processFulfilledOrder method for any requesting
-    // state other than failed after a successful request, it must not transition
-    // states by keeping the request in its source list.
+    // test case: When calling the processUnableToCheckStatusOrder method for any
+    // requesting state other than failed after a successful request, it must not
+    // transition states by keeping the request in its source list.
     @Test
     public void testRunProcessLocalOrderNotFailed() throws FogbowException, InterruptedException {
         // set up
@@ -142,10 +142,10 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         this.unableToCheckStatus.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
-        orderInstance.setReady();
+        ComputeInstance computeInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
+        computeInstance.setReady();
 
-        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
+        Mockito.doReturn(computeInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -265,7 +265,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     }
 
     // test case: When calling the processUnableToCheckStatusOrder method and the
-    // order instance is not found, it must change the order state to
+    // InstanceNotFoundException has been thrown, it must change the order state to
     // FAILED_AFTER_SUCCESSFUL_REQUEST.
     @Test
     public void testProcessUnableToCheckStatusOrderWithInstanceNotFound() throws FogbowException {
