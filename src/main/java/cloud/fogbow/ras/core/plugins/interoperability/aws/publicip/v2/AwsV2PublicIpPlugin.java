@@ -71,7 +71,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String allocationId = doAllocateAddresses(client);
@@ -92,8 +92,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 	@Override
 	public void deleteInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpOrder.getInstanceId(), 
-				cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String allocationId = publicIpOrder.getInstanceId();
@@ -111,7 +110,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 	@Override
 	public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, publicIpOrder.getInstanceId(), cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, publicIpOrder.getInstanceId()));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String allocationId = publicIpOrder.getInstanceId();

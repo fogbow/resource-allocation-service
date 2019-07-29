@@ -109,7 +109,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
 		String imageId = flavor.getImageId();
@@ -133,7 +133,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
 
 		DescribeInstancesRequest request = DescribeInstancesRequest.builder()
 				.instanceIds(computeOrder.getInstanceId())
@@ -147,7 +147,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
 
 		String instanceId = computeOrder.getInstanceId();
 		TerminateInstancesRequest request = TerminateInstancesRequest.builder()

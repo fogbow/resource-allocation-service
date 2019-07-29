@@ -55,7 +55,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken())); // FIXME this message
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String device = defineDeviceNameAttached(attachmentOrder.getDevice());
@@ -73,7 +73,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, attachmentOrder.getInstanceId(), cloudUser.getToken())); // FIXME this message
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String volumeId = attachmentOrder.getVolumeId();
@@ -92,7 +92,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentOrder.getInstanceId(), cloudUser.getToken())); // FIXME this message
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String attachmentId = attachmentOrder.getInstanceId();

@@ -67,7 +67,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		String cidr = networkOrder.getCidr();
 		String name = defineInstanceName(networkOrder.getName());
@@ -87,7 +87,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 	@Override
 	public NetworkInstance getInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, networkOrder.getInstanceId(), cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String subnetId = networkOrder.getInstanceId();
@@ -98,7 +98,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 	@Override
 	public void deleteInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, networkOrder.getInstanceId(), cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String subnetId = networkOrder.getInstanceId();

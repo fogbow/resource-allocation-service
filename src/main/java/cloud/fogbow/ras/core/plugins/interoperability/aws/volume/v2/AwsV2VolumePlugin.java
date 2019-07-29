@@ -53,7 +53,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken())); // FIXME this message
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String name = FogbowCloudUtil.defineInstanceName(volumeOrder.getName());
@@ -68,7 +68,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken())); // FIXME this message
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		
@@ -82,7 +82,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 	
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken())); // FIXME this message
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
 		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String volumeId = volumeOrder.getInstanceId();
