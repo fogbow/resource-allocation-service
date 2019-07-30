@@ -29,6 +29,11 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
+/*
+ * This class is intended to reuse code components to assist other unit test classes 
+ * but does not contemplate performing any tests. The @Ignore annotation is being used 
+ * in this context to prevent it from being initialized as a test class.
+ */
 @Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
@@ -42,7 +47,7 @@ public class BaseUnitTests {
     
     protected static final String DEFAULT_CLOUD_NAME = "default";
     protected static final String FAKE_DEVICE = "fake-device";
-    protected static final String FAKE_IMAGE_NAME = "fake-image-name";
+    protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
     protected static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     protected static final String FAKE_ORDER_NAME = "fake-order-name";
@@ -84,11 +89,6 @@ public class BaseUnitTests {
         list.resetPointer();
     }
 
-    protected boolean isEmpty(ChainedList<Order> list) {
-        list.resetPointer();
-        return list.getNext() == null;
-    }
-
     protected String getLocalMemberId() {
         return LOCAL_MEMBER_ID;
     }
@@ -108,24 +108,19 @@ public class BaseUnitTests {
     }
     
     protected ComputeOrder createComputeOrder(String requestingMember, String providingMember) {
-        SystemUser systemUser = createSystemUser();
-        String imageName = FAKE_IMAGE_NAME;
-        String publicKey = FAKE_PUBLIC_KEY;
-        String instanceName = FAKE_INSTANCE_NAME;
-
         ComputeOrder computeOrder =
                 new ComputeOrder(
-                        systemUser,
+                        createSystemUser(),
                         requestingMember,
                         providingMember,
                         DEFAULT_CLOUD_NAME, 
-                        instanceName,
+                        FAKE_INSTANCE_NAME,
                         CPU_VALUE,
                         MEMORY_VALUE,
                         DISK_VALUE,
-                        imageName,
+                        FAKE_IMAGE_ID,
                         mockUserData(),
-                        publicKey,
+                        FAKE_PUBLIC_KEY,
                         null);
 
         return computeOrder;

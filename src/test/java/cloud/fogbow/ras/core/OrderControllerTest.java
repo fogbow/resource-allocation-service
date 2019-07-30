@@ -24,6 +24,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -73,7 +74,7 @@ public class OrderControllerTest extends BaseUnitTests {
             throws Exception {
 
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.CLOSED);
+        String orderId = setupOrder(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // exercise
@@ -81,8 +82,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: Checks if the getInstancesStatusmethod returns exactly the same
-    // list of instances that
-    // were added on the lists.
+    // list of instances that were added on the lists.
     @Test
     public void testGetAllInstancesStatus() throws InstanceNotFoundException {
         // set up
@@ -117,15 +117,15 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if the getOrder method returns exactly the same order that
     // were added on the list.
     @Test
-    public void testGetOrder() throws UnexpectedException, FogbowException {
+    public void testGetOrder() throws InstanceNotFoundException {
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.OPEN);
+        String orderId = setupOrder(OrderState.OPEN);
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
 
         // verify
-        Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
+        Assert.assertSame(computeOrder, this.openOrdersList.getNext());
     }
 
     // test case: Get a not active Order, must throw InstanceNotFoundException.
@@ -159,29 +159,43 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.activateOrder(order);
     }
 
-    // test case: Attempt to activate the same order more than
-    // once must throw UnexpectedException
-    @Test(expected = UnexpectedException.class)
+    // test case: Attempt to activate the same order more than once must throw
+    // UnexpectedException and only one order will be placed in the active order map.
+    @Test
     public void testActivateOrderTwice() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
+        String expected = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, order.getId());
 
         // exercise
         this.ordersController.activateOrder(order);
-        this.ordersController.activateOrder(order);
+        try {
+            this.ordersController.activateOrder(order);
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+            Assert.assertEquals(1, this.activeOrdersMap.size());
+        }
     }
 
     // test case: Attempt to deactivate the same order more than
     // once must throw UnexpectedException
-    @Test(expected = UnexpectedException.class)
+    @Test
     public void testDeactivateOrderTwice() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
+        String expected = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
 
-        // exercise
         this.ordersController.activateOrder(order);
+        
+        // exercise
         this.ordersController.deactivateOrder(order);
-        this.ordersController.deactivateOrder(order);
+        try {
+            this.ordersController.deactivateOrder(order);
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
 
     // test case: Checks if deactivateOrder changes it's state to DEACTIVATED
@@ -190,12 +204,14 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
 
-        // exercise
         this.ordersController.activateOrder(order);
+        Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        
+        // exercise
         this.ordersController.deactivateOrder(order);
 
         // verify
-        Assert.assertEquals(order.getOrderState(), OrderState.DEACTIVATED);
+        Assert.assertEquals(OrderState.DEACTIVATED, order.getOrderState());
     }
 
     // test case: Creates an order with dependencies and check if the order id
@@ -204,27 +220,23 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testCreateOrderWithDependencies() throws FogbowException {
         // set up
         ComputeOrder computeOrder = createLocalComputeOrder();
-        VolumeOrder volumeOrder1 = createLocalVolumeOrder();
-        VolumeOrder volumeOrder2 = createLocalVolumeOrder();
+        VolumeOrder volumeOrder = createLocalVolumeOrder();
 
         this.ordersController.activateOrder(computeOrder);
-        this.ordersController.activateOrder(volumeOrder1);
-        this.ordersController.activateOrder(volumeOrder2);
+        this.ordersController.activateOrder(volumeOrder);
 
-        AttachmentOrder attachmentOrder1 = createLocalAttachmentOrder(computeOrder, volumeOrder1);
-        AttachmentOrder attachmentOrder2 = createLocalAttachmentOrder(computeOrder, volumeOrder2);
+        AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
 
         // exercise
-        this.ordersController.activateOrder(attachmentOrder1);
-        this.ordersController.activateOrder(attachmentOrder2);
+        this.ordersController.activateOrder(attachmentOrder);
 
         // verify
-        Assert.assertTrue(this.orderHasDependencies(computeOrder.getId()));
+        Assert.assertTrue(this.ordersController.hasOrderDependencies(computeOrder.getId()));
     }
 
     // test case: Creates an order with dependencies and attempt to delete
     // it must throw an DependencyDetectedException.
-    @Test(expected = DependencyDetectedException.class)
+    @Test(expected = DependencyDetectedException.class) // verify
     public void testDeleteOrderWithoutRemovingDependenciesFirst() throws FogbowException {
         // set up
         ComputeOrder computeOrder = createLocalComputeOrder();
@@ -236,7 +248,7 @@ public class OrderControllerTest extends BaseUnitTests {
         AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
         this.ordersController.activateOrder(attachmentOrder);
 
-        // exercise / verify
+        // exercise
         this.ordersController.deleteOrder(volumeOrder);
     }
 
@@ -253,28 +265,40 @@ public class OrderControllerTest extends BaseUnitTests {
 
         AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
         this.ordersController.activateOrder(attachmentOrder);
+        
+        Assert.assertNull(this.closedOrdersList.getNext());
 
-        // exercise / verify
+        // exercise
         this.ordersController.deleteOrder(attachmentOrder);
-        this.ordersController.deleteOrder(computeOrder);
         this.ordersController.deleteOrder(volumeOrder);
+        this.ordersController.deleteOrder(computeOrder);
+        
+        // verify
+        AttachmentOrder testAttachmentOrder = (AttachmentOrder) this.closedOrdersList.getNext();
+        Assert.assertEquals(OrderState.CLOSED, testAttachmentOrder.getOrderState());
+        
+        VolumeOrder testVolumeOrder = (VolumeOrder) this.closedOrdersList.getNext();
+        Assert.assertEquals(OrderState.CLOSED, testVolumeOrder.getOrderState());
+        
+        ComputeOrder testComputeOrder = (ComputeOrder) this.closedOrdersList.getNext();
+        Assert.assertEquals(OrderState.CLOSED, testComputeOrder.getOrderState());
     }
 
-    // test case: Deletes an order with an instance, this should call
-    // cloud connector deleteOrder
+    // test case: When invoking the deleteOrder method, it must call the
+    // deleteInstance method on the Local Cloud Connector to remove the 
+    // order instance and change its order state to CLOSED.
     @Test
     public void testDeleteOrderWithInstanceRunning() throws FogbowException {
         ComputeOrder computeOrder = createLocalComputeOrder();
         computeOrder.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
         this.ordersController.activateOrder(computeOrder);
 
-        Mockito.doNothing().when(this.localCloudConnector).deleteInstance(Mockito.any());
-        
         // exercise
         this.ordersController.deleteOrder(computeOrder);
 
         // verify
         Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteInstance(Mockito.any());
+        Assert.assertEquals(OrderState.CLOSED, computeOrder.getOrderState());
     }
 
     // test case: Checks if given an OPEN order getResourceInstance() throws
@@ -460,7 +484,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateFailed()
             throws Exception {
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        String orderId = setupOrder(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -486,7 +510,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateFulfilled()
             throws Exception {
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.FULFILLED);
+        String orderId = setupOrder(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -511,7 +535,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateSpawning()
             throws Exception {
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.SPAWNING);
+        String orderId = setupOrder(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -536,7 +560,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStatePending()
             throws Exception {
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.PENDING);
+        String orderId = setupOrder(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -560,7 +584,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateOpen()
             throws Exception {
         // set up
-        String orderId = createComputeOrderIdBy(OrderState.OPEN);
+        String orderId = setupOrder(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -618,8 +642,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState()));
     }
 
-    private String createComputeOrderIdBy(OrderState orderState)
-            throws InvalidParameterException, UnexpectedException {
+    private String setupOrder(OrderState orderState) {
         
         ComputeOrder computeOrder = createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
         computeOrder.setOrderStateInTestMode(orderState);
@@ -656,17 +679,6 @@ public class OrderControllerTest extends BaseUnitTests {
         return orderId;
     }
 
-    private boolean orderHasDependencies(String orderId) {
-        boolean ret = false;
-
-        try {
-            this.ordersController.checkOrderDependencies(orderId);
-        } catch (DependencyDetectedException e) {
-            ret = true;
-        }
-
-        return ret;
-    }
 }
 
 
