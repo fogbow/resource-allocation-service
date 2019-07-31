@@ -450,22 +450,30 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetUserAllocation() throws UnexpectedException {
         // set up
         SystemUser systemUser = createSystemUser();
-        ComputeOrder computeOrder = createFulfilledComputeOrder(systemUser);
-        computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3, 4));
+        
+        ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
+        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 3, 4));
+        
+        ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
+        computeOrder2.setActualAllocation(new ComputeAllocation(4, 3, 2, 1));
 
-        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-        this.fulfilledOrdersList.addItem(computeOrder);
+        this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
+        this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
+        
+        this.fulfilledOrdersList.addItem(computeOrder1);
+        this.fulfilledOrdersList.addItem(computeOrder2);
+        
+        int expectedValue = 5;
 
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
                 BaseUnitTests.LOCAL_MEMBER_ID, systemUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertEquals(computeOrder.getActualAllocation().getInstances(),
-                allocation.getInstances());
-        Assert.assertEquals(computeOrder.getActualAllocation().getRam(), allocation.getRam());
-        Assert.assertEquals(computeOrder.getActualAllocation().getvCPU(), allocation.getvCPU());
-        Assert.assertEquals(computeOrder.getActualAllocation().getDisk(), allocation.getDisk());
+        Assert.assertEquals(expectedValue, allocation.getInstances());
+        Assert.assertEquals(expectedValue, allocation.getRam());
+        Assert.assertEquals(expectedValue, allocation.getvCPU());
+        Assert.assertEquals(expectedValue, allocation.getDisk());
     }
 
     // test case: Tests if the getUserAllocation method throws UnexpectedException when there is no order
