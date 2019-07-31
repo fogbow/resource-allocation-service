@@ -11,14 +11,12 @@ import org.mockito.Mockito;
 import cloud.fogbow.common.exceptions.DependencyDetectedException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.RequestStillBeingDispatchedException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
@@ -425,7 +423,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 .getInstance(Mockito.any(Order.class));
 
         // exercise
-        Instance instance = this.ordersController.getResourceInstance(order);
+        this.ordersController.getResourceInstance(order);
 
         // verify
         Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
@@ -441,7 +439,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Tests if the getUserAllocation method returns the ComputeAllocation properly.
     @Test
-    public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
+    public void testGetUserAllocation() throws UnexpectedException {
         // set up
         SystemUser systemUser = createSystemUser();
         ComputeOrder computeOrder = createFulfilledComputeOrder(systemUser);
@@ -465,8 +463,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Tests if the getUserAllocation method throws UnexpectedException when there is no order
     // with the ResourceType specified.
     @Test(expected = UnexpectedException.class)
-    public void testGetUserAllocationWithInvalidInstanceType()
-            throws UnexpectedException, InvalidParameterException {
+    public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException {
         // set up
         SystemUser systemUser = createSystemUser();
         NetworkOrder networkOrder = createFulfilledNetworkOrder(systemUser);

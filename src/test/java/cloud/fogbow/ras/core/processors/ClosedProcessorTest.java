@@ -76,7 +76,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     // test case: Check the throw of UnexpectedException when running the thread in
     // the closed processor, while running a local order.
     @Test
-    public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, FogbowException {
+    public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         this.closedOrderList.addItem(order);
@@ -95,7 +95,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     // test case: During a thread running in closed processor, if any
     // errors occur, the processClosedOrder method will catch an exception.
     @Test
-    public void testRunProcessLocalOrderToCatchException() throws InterruptedException, FogbowException {
+    public void testRunProcessLocalOrderToCatchException() throws InterruptedException, UnexpectedException {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());

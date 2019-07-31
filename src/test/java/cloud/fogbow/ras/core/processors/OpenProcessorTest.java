@@ -110,7 +110,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         Assert.assertTrue(this.listIsEmpty(openOrdersList));
-        Assert.assertEquals(localOrder, failedOrdersList.getNext());
+        Assert.assertSame(localOrder, failedOrdersList.getNext());
     }
 
     //test case: test if the open processor is setting to failed an open order when the request instance
@@ -200,7 +200,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         Assert.assertTrue(this.listIsEmpty(openOrdersList));
-        Assert.assertEquals(remoteOrder, failedOrdersList.getNext());
+        Assert.assertSame(remoteOrder, failedOrdersList.getNext());
     }
 
     //test case: test if the open processor does not process an Order that is not in the open state.

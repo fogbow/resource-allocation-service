@@ -74,8 +74,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // the method processFulfilledOrder() must not change OrderState to Failed and the order
     // must remain in the Fulfilled list.
     @Test
-    public void testRunProcessLocalComputeOrderWithInstanceReady()
-            throws FogbowException, InterruptedException {
+    public void testRunProcessLocalComputeOrderWithInstanceReady() throws InterruptedException {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
@@ -133,8 +132,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // test case: In calling the processFulfilledOrder() method for any order other than Fulfilled,
     // you must not make state transition by keeping the order in your source list.
     @Test
-    public void testProcessLocalComputeOrderNotFulfilled()
-            throws FogbowException, InterruptedException {
+    public void testProcessLocalComputeOrderNotFulfilled() throws FogbowException {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
@@ -155,8 +153,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // processFulfilledOrder() must not change OrderState to Failed and must remain in Fulfilled
     // list.
     @Test
-    public void testRunProcessLocalComputeOrderWithoutLocalMember()
-            throws FogbowException, InterruptedException {
+    public void testRunProcessLocalComputeOrderWithoutLocalMember() throws InterruptedException {
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());

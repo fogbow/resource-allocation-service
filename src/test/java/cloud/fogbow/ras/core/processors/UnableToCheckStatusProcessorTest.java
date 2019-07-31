@@ -59,7 +59,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // remote member ID, the processUnableToCheckStatusOrder method must not change
     // its state, remaining in the failed list.
     @Test
-    public void testRunProcessLocalOrderWithRemoteMember() throws FogbowException, InterruptedException {
+    public void testRunProcessLocalOrderWithRemoteMember() throws InterruptedException {
         // set up
         Order order = createRemoteOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
@@ -84,7 +84,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // requesting state other than failed after a successful request, it must not
     // transition states by keeping the request in its source list.
     @Test
-    public void testRunProcessLocalOrderNotFailed() throws FogbowException, InterruptedException {
+    public void testRunProcessLocalOrderNotFailed() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
