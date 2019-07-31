@@ -307,7 +307,7 @@ public class OrderController {
         }
     }
 
-    private Instance updateInstanceUsingOrderData(Instance instance, Order order) throws FogbowException {
+    private Instance updateInstanceUsingOrderData(Instance instance, Order order) {
         switch (order.getType()) {
             case COMPUTE:
                 updateComputeInstanceUsingOrderData(((ComputeInstance) instance), ((ComputeOrder) order));
@@ -332,7 +332,7 @@ public class OrderController {
         return instance;
     }
 
-    private void updateComputeInstanceUsingOrderData(ComputeInstance instance, ComputeOrder order) throws FogbowException {
+    private void updateComputeInstanceUsingOrderData(ComputeInstance instance, ComputeOrder order) {
         String publicKey = order.getPublicKey();
         instance.setImageId(order.getImageId());
         List<UserData> userData = order.getUserData();
@@ -431,7 +431,7 @@ public class OrderController {
         }
     }
 
-    protected boolean hasOrderDependencies(String orderId) throws DependencyDetectedException {
+    protected boolean hasOrderDependencies(String orderId) {
         Order order = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
         synchronized (order) {
             if (this.orderDependencies.containsKey(orderId) && !this.orderDependencies.get(orderId).isEmpty()) {
