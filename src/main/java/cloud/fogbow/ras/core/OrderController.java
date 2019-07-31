@@ -111,8 +111,9 @@ public class OrderController {
                 // We need to verify whether another order depends on this order, and if this is the case, throw a
                 // DependencyDetectedException. Only the provider that is receiving the delete request through its
                 // REST API needs to check order dependencies.
-                if (order.isRequesterLocal(this.localProviderId)) {
-                    checkOrderDependencies(order.getId());
+                if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
+                    throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED, order.getId(),
+                            this.orderDependencies.get(order.getId())));
                 }
                 try {
                     // A local order that doesn't have an instance associated to it, need not be deleted in the cloud.
@@ -145,8 +146,9 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(Order order) throws FogbowException {
-        if (order == null)
-        	throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+        if (order == null) {
+            throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+        }
 
         synchronized (order) {
             if ((!this.localProviderId.equals(order.getProvider())) && order.getOrderState().equals(OrderState.OPEN)) {
@@ -305,7 +307,7 @@ public class OrderController {
         }
     }
 
-    private Instance updateInstanceUsingOrderData(Instance instance, Order order) throws FogbowException {
+    private Instance updateInstanceUsingOrderData(Instance instance, Order order) {
         switch (order.getType()) {
             case COMPUTE:
                 updateComputeInstanceUsingOrderData(((ComputeInstance) instance), ((ComputeOrder) order));
@@ -330,7 +332,7 @@ public class OrderController {
         return instance;
     }
 
-    private void updateComputeInstanceUsingOrderData(ComputeInstance instance, ComputeOrder order) throws FogbowException {
+    private void updateComputeInstanceUsingOrderData(ComputeInstance instance, ComputeOrder order) {
         String publicKey = order.getPublicKey();
         instance.setImageId(order.getImageId());
         List<UserData> userData = order.getUserData();
@@ -429,15 +431,14 @@ public class OrderController {
         }
     }
 
-    private void checkOrderDependencies(String orderId) throws DependencyDetectedException {
+    protected boolean hasOrderDependencies(String orderId) {
         Order order = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
         synchronized (order) {
-            if (this.orderDependencies.containsKey(orderId) &&
-            !this.orderDependencies.get(orderId).isEmpty()) {
-                throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED, orderId,
-                        this.orderDependencies.get(orderId)));
+            if (this.orderDependencies.containsKey(orderId) && !this.orderDependencies.get(orderId).isEmpty()) {
+                return true;
             }
         }
+        return false;
     }
 }
 
