@@ -211,7 +211,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(order);
 
-        order.setOrderStateInTestMode(OrderState.PENDING);
+        order.setOrderState(OrderState.PENDING);
 
         //exercise
         this.thread = new Thread(this.processor);
@@ -303,7 +303,7 @@ public class OpenProcessorTest extends BaseUnitTests {
             this.thread.start();
             Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
 
-            localOrder.setOrderStateInTestMode(OrderState.CLOSED);
+            localOrder.setOrderState(OrderState.CLOSED);
         }
 
         Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
@@ -338,7 +338,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         synchronized (localOrder) {
             Thread.sleep(OPEN_SLEEP_TIME);
             Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
-            localOrder.setOrderStateInTestMode(OrderState.OPEN);
+            localOrder.setOrderState(OrderState.OPEN);
         }
 
         //verify

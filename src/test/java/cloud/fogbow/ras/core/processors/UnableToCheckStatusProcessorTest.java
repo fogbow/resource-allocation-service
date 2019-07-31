@@ -59,11 +59,11 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // remote member ID, the processUnableToCheckStatusOrder method must not change
     // its state, remaining in the failed list.
     @Test
-    public void testRunProcessLocalOrderWithRemoteMember() throws InterruptedException {
+    public void testRunProcessLocalOrderWithRemoteMember() throws Exception {
         // set up
         Order order = createRemoteOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.unableToCheckStatus.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -88,7 +88,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.FULFILLED);
+        order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.unableToCheckStatus.getNext());
 
@@ -105,11 +105,11 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // processUnableToCheckStatusOrder method should not change its state and it
     // must remain in the list of failures.
     @Test
-    public void testRunProcessLocalOrderWithInstanceFailed() throws FogbowException, InterruptedException {
+    public void testRunProcessLocalOrderWithInstanceFailed() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.unableToCheckStatus.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -134,11 +134,11 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // order must be removed from the unableToCheckStatus list and put in the
     // fulfilled list.
     @Test
-    public void testRunProcessLocalOrderWithInstanceReady() throws InterruptedException, FogbowException {
+    public void testRunProcessLocalOrderWithInstanceReady() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
+        order.setOrderState(OrderState.UNABLE_TO_CHECK_STATUS);
         this.unableToCheckStatus.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -167,7 +167,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.unableToCheckStatus.addItem(order);
 
         Mockito.doThrow(new RuntimeException()).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
@@ -184,11 +184,11 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // test case: Check the throw of UnexpectedException when running the thread in
     // the UnableToCheckStatusProcessor, while running a local order.
     @Test
-    public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, FogbowException {
+    public void testRunProcessLocalOrderThrowsUnexpectedException() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.unableToCheckStatus.addItem(order);
 
         Mockito.doThrow(new UnexpectedException()).when(this.processor).processUnableToCheckStatusOrder(order);
@@ -205,11 +205,11 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     // test case: Check the throw of RuntimeException when running the thread in
     // the UnableToCheckStatusProcessor, while running a local order.
     @Test
-    public void testRunProcessLocalOrderThrowsRuntimeException() throws InterruptedException, FogbowException {
+    public void testRunProcessLocalOrderThrowsRuntimeException() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.unableToCheckStatus.addItem(order);
 
         Mockito.doThrow(new RuntimeException()).when(this.processor).processUnableToCheckStatusOrder(order);
@@ -231,7 +231,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
+        order.setOrderState(OrderState.UNABLE_TO_CHECK_STATUS);
         this.unableToCheckStatus.addItem(order);
         
         OrderInstance orderInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
@@ -254,7 +254,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
+        order.setOrderState(OrderState.UNABLE_TO_CHECK_STATUS);
         this.unableToCheckStatus.addItem(order);
 
         Mockito.doThrow(new UnavailableProviderException()).when(this.cloudConnector)
@@ -272,7 +272,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
+        order.setOrderState(OrderState.UNABLE_TO_CHECK_STATUS);
         this.unableToCheckStatus.addItem(order);
 
         Mockito.doThrow(new InstanceNotFoundException()).when(this.cloudConnector)
@@ -292,7 +292,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
-        order.setOrderStateInTestMode(OrderState.UNABLE_TO_CHECK_STATUS);
+        order.setOrderState(OrderState.UNABLE_TO_CHECK_STATUS);
         this.unableToCheckStatus.addItem(order);
 
         this.processor = Mockito.spy(new UnableToCheckStatusProcessor(BaseUnitTests.FAKE_REMOTE_MEMBER_ID,

@@ -82,17 +82,17 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if the getInstancesStatusmethod returns exactly the same
     // list of instances that were added on the lists.
     @Test
-    public void testGetAllInstancesStatus() throws InstanceNotFoundException {
+    public void testGetAllInstancesStatus() throws Exception {
         // set up
         SystemUser systemUser = createSystemUser();
 
         ComputeOrder computeOrderFulfilled = createLocalComputeOrder();
         computeOrderFulfilled.setSystemUser(systemUser);
-        computeOrderFulfilled.setOrderStateInTestMode(OrderState.FULFILLED);
+        computeOrderFulfilled.setOrderState(OrderState.FULFILLED);
 
         ComputeOrder computeOrderFailed = createLocalComputeOrder();
         computeOrderFailed.setSystemUser(systemUser);
-        computeOrderFailed.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        computeOrderFailed.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         this.activeOrdersMap.put(computeOrderFulfilled.getId(), computeOrderFulfilled);
         this.fulfilledOrdersList.addItem(computeOrderFulfilled);
@@ -115,7 +115,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if the getOrder method returns exactly the same order that
     // were added on the list.
     @Test
-    public void testGetOrder() throws InstanceNotFoundException {
+    public void testGetOrder() throws Exception {
         // set up
         String orderId = setupOrder(OrderState.OPEN);
 
@@ -169,6 +169,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.activateOrder(order);
         try {
             this.ordersController.activateOrder(order);
+            Assert.fail();
         } catch (UnexpectedException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
@@ -190,6 +191,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deactivateOrder(order);
         try {
             this.ordersController.deactivateOrder(order);
+            Assert.fail();
         } catch (UnexpectedException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
@@ -259,10 +261,14 @@ public class OrderControllerTest extends BaseUnitTests {
         VolumeOrder volumeOrder = createLocalVolumeOrder();
 
         this.ordersController.activateOrder(computeOrder);
+        Assert.assertSame(computeOrder, this.openOrdersList.getNext());
+        
         this.ordersController.activateOrder(volumeOrder);
+        Assert.assertSame(volumeOrder, this.openOrdersList.getNext());
 
         AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
         this.ordersController.activateOrder(attachmentOrder);
+        Assert.assertSame(attachmentOrder, this.openOrdersList.getNext());
         
         Assert.assertNull(this.closedOrdersList.getNext());
 
@@ -272,6 +278,8 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(computeOrder);
         
         // verify
+        Assert.assertNull(this.openOrdersList.getNext());
+        
         AttachmentOrder testAttachmentOrder = (AttachmentOrder) this.closedOrdersList.getNext();
         Assert.assertEquals(OrderState.CLOSED, testAttachmentOrder.getOrderState());
         
@@ -305,7 +313,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetResourceInstanceOfOpenOrder() throws FogbowException {
         // set up
         Order order = createRemoteOrder(getLocalMemberId());
-        order.setOrderStateInTestMode(OrderState.OPEN);
+        order.setOrderState(OrderState.OPEN);
 
         // exercise
         this.ordersController.getResourceInstance(order);
@@ -316,7 +324,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetResourceInstance() throws Exception {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setOrderStateInTestMode(OrderState.FULFILLED);
+        order.setOrderState(OrderState.FULFILLED);
         order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
 
         this.fulfilledOrdersList.addItem(order);
@@ -409,7 +417,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test public void testRemoteGetResourceInstance() throws FogbowException {
         // set up
         Order order = createLocalOrder(getLocalMemberId());
-        order.setOrderStateInTestMode(OrderState.FULFILLED);
+        order.setOrderState(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(order);
         this.activeOrdersMap.put(order.getId(), order);
@@ -615,21 +623,21 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder(INVALID_ORDER_ID);
     }
     
-    private NetworkOrder createFulfilledNetworkOrder(SystemUser systemUser) {
+    private NetworkOrder createFulfilledNetworkOrder(SystemUser systemUser) throws UnexpectedException {
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setSystemUser(systemUser);
         networkOrder.setRequester(BaseUnitTests.LOCAL_MEMBER_ID);
         networkOrder.setProvider(BaseUnitTests.LOCAL_MEMBER_ID);
-        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        networkOrder.setOrderState(OrderState.FULFILLED);
         return networkOrder;
     }
     
-    private ComputeOrder createFulfilledComputeOrder(SystemUser systemUser) {
+    private ComputeOrder createFulfilledComputeOrder(SystemUser systemUser) throws UnexpectedException {
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setSystemUser(systemUser);
         computeOrder.setRequester(BaseUnitTests.LOCAL_MEMBER_ID);
         computeOrder.setProvider(BaseUnitTests.LOCAL_MEMBER_ID);
-        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        computeOrder.setOrderState(OrderState.FULFILLED);
         return computeOrder;
     }
     
@@ -639,10 +647,9 @@ public class OrderControllerTest extends BaseUnitTests {
                 InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState()));
     }
 
-    private String setupOrder(OrderState orderState) {
-        
+    private String setupOrder(OrderState orderState) throws UnexpectedException {
         ComputeOrder computeOrder = createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
-        computeOrder.setOrderStateInTestMode(orderState);
+        computeOrder.setOrderState(orderState);
 
         String orderId = computeOrder.getId();
 
