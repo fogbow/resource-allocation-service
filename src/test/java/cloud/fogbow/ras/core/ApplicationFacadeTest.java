@@ -144,7 +144,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.when(sakHolder.getPublicKey()).thenReturn(keyRSA);
 
 		PowerMockito.mockStatic(CryptoUtil.class);
-		PowerMockito.when(CryptoUtil.savePublicKey(keyRSA)).thenReturn(FAKE_PUBLIC_KEY);
+		PowerMockito.when(CryptoUtil.toBase64(keyRSA)).thenReturn(FAKE_PUBLIC_KEY);
 
 		// exercise
 		String publicKey = this.facade.getPublicKey();
@@ -156,7 +156,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		ServiceAsymmetricKeysHolder.getInstance();
 
 		PowerMockito.verifyStatic(CryptoUtil.class, Mockito.times(1));
-		CryptoUtil.savePublicKey(Mockito.eq(keyRSA));
+		CryptoUtil.toBase64(Mockito.eq(keyRSA));
 
 		Assert.assertNotNull(publicKey);
 	}	

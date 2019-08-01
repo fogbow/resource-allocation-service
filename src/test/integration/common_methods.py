@@ -25,12 +25,12 @@ class CommonMethods:
       response = cls.get_order_by_id(order_id, order_type)
       json_response = response.json()
       if response.status_code != GeneralConfigurations.ok_status:
-        if(x < GeneralConfigurations.max_tries):
+        if (x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
           continue
         return False
       if json_response[state_key] != ready_state:
-        if(x < GeneralConfigurations.max_tries):
+        if (x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
           continue
         return False
@@ -43,7 +43,7 @@ class CommonMethods:
       instances_available = cls.get_available_instances(member)
       if instances_available < volumeSize:
         print('  No instances available, waiting for resources')
-        if(x < GeneralConfigurations.max_tries):
+        if (x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
           continue
         print('  No instances available')

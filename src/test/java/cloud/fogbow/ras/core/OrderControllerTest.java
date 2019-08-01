@@ -1,50 +1,43 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.constants.FogbowConstants;
-import cloud.fogbow.common.exceptions.*;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import cloud.fogbow.common.exceptions.DependencyDetectedException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.RequestStillBeingDispatchedException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.api.http.response.*;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class})
 public class OrderControllerTest extends BaseUnitTests {
 
-    //FIXME: many of bellow tests, e.g testGetResourceInstance are too complicated. The problem is
-    //they are setting up the scenario for the getOrder method (which they use). This set up
-    //include changing the content of fulfilledOrdersList and activeOrdersMap.put
-    //A simpler way of doing these tests is to spy the behaviour of the getOrder method.
-
-    private static final String RESOURCES_PATH_TEST = "src/test/resources/private";
-    private static final String FAKE_NAME = "fake-name";
-    private static final String FAKE_ID = "fake-id";
-    private static final String FAKE_USER = "fake-user";
-    private static final String FAKE_IMAGE_NAME = "fake-image-name";
-    private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-
+    private static final String AVAILABLE_STATE = "available";
+    private static final String FAKE_IP_ADDRESS = "0.0.0.0";
+    private static final String INVALID_ORDER_ID = "invalid-order-id";
+    
     private OrderController ordersController;
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> openOrdersList;
@@ -54,21 +47,15 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList<Order> failedAfterSuccessfulRequestOrdersList;
     private ChainedList<Order> failedOnRequestOrdersList;
     private ChainedList<Order> closedOrdersList;
-    private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
-    private LocalCloudConnector localCloudConnector;
 
     @Before
     public void setUp() throws UnexpectedException {
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
         super.mockReadOrdersFromDataBase();
-
-        this.ordersController = new OrderController();
-
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        super.mockLocalCloudConnectorFromFactory();
 
         // setting up the attributes.
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
         this.pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
@@ -76,6 +63,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedAfterSuccessfulRequestOrdersList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
         this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
+        this.ordersController = Mockito.spy(new OrderController());
     }
 
     // test case: when try to delete an Order closed, it must raise an InstanceNotFoundException.
@@ -84,76 +72,65 @@ public class OrderControllerTest extends BaseUnitTests {
             throws Exception {
 
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.CLOSED);
+        String orderId = setupOrder(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // exercise
         this.ordersController.deleteOrder(computeOrder);
     }
 
-    // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
-    // were added on the lists.
+    // test case: Checks if the getInstancesStatusmethod returns exactly the same
+    // list of instances that were added on the lists.
     @Test
-    public void testGetAllInstancesStatus() throws InstanceNotFoundException {
+    public void testGetAllInstancesStatus() throws Exception {
         // set up
-        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
-        );
+        SystemUser systemUser = createSystemUser();
 
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setSystemUser(systemUser);
-        computeOrder.setRequester(this.localMember);
-        computeOrder.setProvider(this.localMember);
-        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        ComputeOrder computeOrderFulfilled = createLocalComputeOrder();
+        computeOrderFulfilled.setSystemUser(systemUser);
+        computeOrderFulfilled.setOrderState(OrderState.FULFILLED);
 
-        ComputeOrder computeOrder2 = new ComputeOrder();
-        computeOrder2.setSystemUser(systemUser);
-        computeOrder2.setRequester(this.localMember);
-        computeOrder2.setProvider(this.localMember);
-        computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        ComputeOrder computeOrderFailed = createLocalComputeOrder();
+        computeOrderFailed.setSystemUser(systemUser);
+        computeOrderFailed.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
-        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-        this.fulfilledOrdersList.addItem(computeOrder);
+        this.activeOrdersMap.put(computeOrderFulfilled.getId(), computeOrderFulfilled);
+        this.fulfilledOrdersList.addItem(computeOrderFulfilled);
 
-        this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
-        this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
+        this.activeOrdersMap.put(computeOrderFailed.getId(), computeOrderFailed);
+        this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrderFailed);
 
-        InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(), computeOrder.getProvider(),
-                computeOrder.getCloudName(), InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState()));
-        InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(), computeOrder2.getProvider(),
-                computeOrder.getCloudName(), InstanceStatus.mapInstanceStateFromOrderState(computeOrder2.getOrderState()));
+        InstanceStatus statusOrderFulfilled = createInstanceStatus(computeOrderFulfilled);
+        InstanceStatus statusOrderFailed = createInstanceStatus(computeOrderFailed);
 
         // exercise
-        List<InstanceStatus> instances = this.ordersController.getInstancesStatus(systemUser,
-                ResourceType.COMPUTE);
+        List<InstanceStatus> instances = this.ordersController.getInstancesStatus(systemUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertTrue(instances.contains(statusOrder));
-        Assert.assertTrue(instances.contains(statusOrder2));
+        Assert.assertTrue(instances.contains(statusOrderFulfilled));
+        Assert.assertTrue(instances.contains(statusOrderFailed));
         Assert.assertEquals(2, instances.size());
     }
 
-    // test case: Checks if getOrder() returns exactly the same order that
+    // test case: Checks if the getOrder method returns exactly the same order that
     // were added on the list.
     @Test
-    public void testGetOrder() throws UnexpectedException, FogbowException {
+    public void testGetOrder() throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
-        );
+        String orderId = setupOrder(OrderState.OPEN);
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
 
         // verify
-        Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
+        Assert.assertSame(computeOrder, this.openOrdersList.getNext());
     }
 
     // test case: Get a not active Order, must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetInactiveOrder() throws InstanceNotFoundException {
         // set up
-        Order order = createOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        Order order = createLocalOrder(getLocalMemberId());
         String orderId = order.getId();
 
         // verify
@@ -167,41 +144,298 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInvalidOrder() throws FogbowException {
         // exercise
-        this.ordersController.getOrder("invalid-order-id");
+        this.ordersController.getOrder(INVALID_ORDER_ID);
     }
 
-    // test case: Checks if given an order getResourceInstance() returns its instance.
+    //test case: Checks if attempt to activate null order throws UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testActivateNullOrder() throws FogbowException {
+        // set up
+        Order order = null;
+
+        // exercise
+        this.ordersController.activateOrder(order);
+    }
+
+    // test case: Attempt to activate the same order more than once must throw
+    // UnexpectedException and only one order will be placed in the active order map.
+    @Test
+    public void testActivateOrderTwice() throws FogbowException {
+        // set up
+        Order order = createLocalOrder(getLocalMemberId());
+        String expected = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, order.getId());
+
+        // exercise
+        this.ordersController.activateOrder(order);
+        try {
+            this.ordersController.activateOrder(order);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+            Assert.assertEquals(1, this.activeOrdersMap.size());
+        }
+    }
+
+    // test case: Attempt to deactivate the same order more than
+    // once must throw UnexpectedException
+    @Test
+    public void testDeactivateOrderTwice() throws FogbowException {
+        // set up
+        Order order = createLocalOrder(getLocalMemberId());
+        String expected = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
+
+        this.ordersController.activateOrder(order);
+        
+        // exercise
+        this.ordersController.deactivateOrder(order);
+        try {
+            this.ordersController.deactivateOrder(order);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: Checks if deactivateOrder changes it's state to DEACTIVATED
+    @Test
+    public void testDeactivateOrderSuccess() throws FogbowException {
+        // set up
+        Order order = createLocalOrder(getLocalMemberId());
+
+        this.ordersController.activateOrder(order);
+        Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        
+        // exercise
+        this.ordersController.deactivateOrder(order);
+
+        // verify
+        Assert.assertEquals(OrderState.DEACTIVATED, order.getOrderState());
+    }
+
+    // test case: Creates an order with dependencies and check if the order id
+    // will be inserted into dependencies.
+    @Test
+    public void testCreateOrderWithDependencies() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        VolumeOrder volumeOrder = createLocalVolumeOrder();
+
+        this.ordersController.activateOrder(computeOrder);
+        this.ordersController.activateOrder(volumeOrder);
+
+        AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
+
+        // exercise
+        this.ordersController.activateOrder(attachmentOrder);
+
+        // verify
+        Assert.assertTrue(this.ordersController.hasOrderDependencies(computeOrder.getId()));
+    }
+
+    // test case: Creates an order with dependencies and attempt to delete
+    // it must throw an DependencyDetectedException.
+    @Test(expected = DependencyDetectedException.class) // verify
+    public void testDeleteOrderWithoutRemovingDependenciesFirst() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        VolumeOrder volumeOrder = createLocalVolumeOrder();
+
+        this.ordersController.activateOrder(computeOrder);
+        this.ordersController.activateOrder(volumeOrder);
+
+        AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+
+        // exercise
+        this.ordersController.deleteOrder(volumeOrder);
+    }
+
+    // test case: Creates an order with dependencies and attempt to delete
+    // them in correct order must not throw any exceptions.
+    @Test
+    public void testDeleteOrderWithDependencies() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        VolumeOrder volumeOrder = createLocalVolumeOrder();
+
+        this.ordersController.activateOrder(computeOrder);
+        Assert.assertSame(computeOrder, this.openOrdersList.getNext());
+        
+        this.ordersController.activateOrder(volumeOrder);
+        Assert.assertSame(volumeOrder, this.openOrdersList.getNext());
+
+        AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+        Assert.assertSame(attachmentOrder, this.openOrdersList.getNext());
+        
+        Assert.assertNull(this.closedOrdersList.getNext());
+
+        // exercise
+        this.ordersController.deleteOrder(attachmentOrder);
+        this.ordersController.deleteOrder(volumeOrder);
+        this.ordersController.deleteOrder(computeOrder);
+        
+        // verify
+        Assert.assertNull(this.openOrdersList.getNext());
+        
+        AttachmentOrder testAttachmentOrder = (AttachmentOrder) this.closedOrdersList.getNext();
+        Assert.assertEquals(OrderState.CLOSED, testAttachmentOrder.getOrderState());
+        
+        VolumeOrder testVolumeOrder = (VolumeOrder) this.closedOrdersList.getNext();
+        Assert.assertEquals(OrderState.CLOSED, testVolumeOrder.getOrderState());
+        
+        ComputeOrder testComputeOrder = (ComputeOrder) this.closedOrdersList.getNext();
+        Assert.assertEquals(OrderState.CLOSED, testComputeOrder.getOrderState());
+    }
+
+    // test case: When invoking the deleteOrder method, it must call the
+    // deleteInstance method on the Local Cloud Connector to remove the 
+    // order instance and change its order state to CLOSED.
+    @Test
+    public void testDeleteOrderWithInstanceRunning() throws FogbowException {
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        computeOrder.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
+        this.ordersController.activateOrder(computeOrder);
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+
+        // verify
+        Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteInstance(Mockito.any());
+        Assert.assertEquals(OrderState.CLOSED, computeOrder.getOrderState());
+    }
+
+    // test case: Checks if given an OPEN order getResourceInstance() throws
+    // RequestStillBeingDispatchedException.
+    @Test(expected = RequestStillBeingDispatchedException.class)
+    public void testGetResourceInstanceOfOpenOrder() throws FogbowException {
+        // set up
+        Order order = createRemoteOrder(getLocalMemberId());
+        order.setOrderState(OrderState.OPEN);
+
+        // exercise
+        this.ordersController.getResourceInstance(order);
+    }
+
+    // test case: Checks if given an order in the getResourceInstance method returns its instance.
     @Test
     public void testGetResourceInstance() throws Exception {
         // set up
-        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(localCloudConnector);
-
-        Order order = createOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
-        order.setOrderStateInTestMode(OrderState.FULFILLED);
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setOrderState(OrderState.FULFILLED);
+        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
 
         this.fulfilledOrdersList.addItem(order);
         this.activeOrdersMap.put(order.getId(), order);
 
-        String instanceId = "instanceid";
-        OrderInstance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
+        ComputeInstance computeInstance = new ComputeInstance(BaseUnitTests.FAKE_INSTANCE_ID);
+        computeInstance.setState(InstanceState.READY);
+
+        Mockito.doReturn(computeInstance).when(this.localCloudConnector)
+                .getInstance(Mockito.any(Order.class));
+
+        // exercise
+        this.ordersController.getResourceInstance(order);
+
+        // verify
+        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
+        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(order));
+    }
+
+    // test case: Checks if given an attachment order in the getResourceInstance method returns its instance.
+    @Test
+    public void testGetAttachmentInstance() throws Exception {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        VolumeOrder volumeOrder = createLocalVolumeOrder();
+        AttachmentOrder attachmentOrder = createLocalAttachmentOrder(computeOrder, volumeOrder);
+
+        this.ordersController.activateOrder(computeOrder);
+        this.ordersController.activateOrder(volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+
+        String instanceId = BaseUnitTests.FAKE_INSTANCE_ID;
+        computeOrder.setInstanceId(instanceId);
+        volumeOrder.setInstanceId(instanceId);
+
+        attachmentOrder.setInstanceId(instanceId);
+        String cloudState = AVAILABLE_STATE;
+        String device = BaseUnitTests.FAKE_DEVICE;
+        AttachmentInstance attachmentInstance =
+                new AttachmentInstance(
+                        instanceId,
+                        cloudState,
+                        computeOrder.getInstanceId(),
+                        volumeOrder.getInstanceId(),
+                        device);
+
+        Mockito.doReturn(attachmentInstance).when(this.localCloudConnector).getInstance(Mockito.eq(attachmentOrder));
+
+        // exercise
+        this.ordersController.getResourceInstance(attachmentOrder);
+
+        // verify
+        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(attachmentOrder));
+        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(attachmentOrder));
+    }
+
+    // test case: Checks if given an public ip order in the getResourceInstance method returns its instance.
+    @Test
+    public void testGetPublicIpInstance() throws Exception {
+        // set up
+        ComputeOrder computeOrder = createLocalComputeOrder();
+        PublicIpOrder publicIpOrder = createLocalPublicIpOrder(computeOrder.getId());
+
+        this.ordersController.activateOrder(computeOrder);
+        this.ordersController.activateOrder(publicIpOrder);
+
+        String instanceId = BaseUnitTests.FAKE_INSTANCE_ID;
+        computeOrder.setInstanceId(instanceId);
+        publicIpOrder.setInstanceId(instanceId);
+
+        String cloudState = AVAILABLE_STATE;
+        String ip = FAKE_IP_ADDRESS;
+        PublicIpInstance publicIpInstance =
+                new PublicIpInstance(
+                        instanceId,
+                        cloudState,
+                        ip);
+
+        Mockito.doReturn(publicIpInstance).when(this.localCloudConnector).getInstance(Mockito.eq(publicIpOrder));
+
+        // exercise
+        this.ordersController.getResourceInstance(publicIpOrder);
+
+        // verify
+        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(publicIpOrder));
+        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(publicIpOrder));
+    }
+
+    // test case: Checks if given an remote order in the getResourceInstance method returns its instance.
+    @Test public void testRemoteGetResourceInstance() throws FogbowException {
+        // set up
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setOrderState(OrderState.FULFILLED);
+
+        this.fulfilledOrdersList.addItem(order);
+        this.activeOrdersMap.put(order.getId(), order);
+
+        String instanceId = BaseUnitTests.FAKE_INSTANCE_ID;
+        OrderInstance orderInstance = new ComputeInstance(instanceId);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(instanceId);
 
-        Mockito.doReturn(orderInstance).when(localCloudConnector)
+        Mockito.doReturn(orderInstance).when(this.localCloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
         // exercise
-        Instance instance = this.ordersController.getResourceInstance(order);
+        this.ordersController.getResourceInstance(order);
 
         // verify
-        Assert.assertEquals(orderInstance, instance);
+        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
+        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(order));
     }
 
     // test case: Requesting a null order must return a UnexpectedException.
@@ -211,60 +445,50 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getResourceInstance(null);
     }
 
-    // test case: Tests if getUserAllocation() returns the ComputeAllocation properly.
+    // test case: Tests if the getUserAllocation method returns the ComputeAllocation properly.
     @Test
-    public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
+    public void testGetUserAllocation() throws UnexpectedException {
         // set up
-        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
-        );;
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setSystemUser(systemUser);
-        computeOrder.setRequester(this.localMember);
-        computeOrder.setProvider(this.localMember);
-        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        SystemUser systemUser = createSystemUser();
+        
+        ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
+        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 3, 4));
+        
+        ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
+        computeOrder2.setActualAllocation(new ComputeAllocation(4, 3, 2, 1));
 
-        computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3, 4));
-
-        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-        this.fulfilledOrdersList.addItem(computeOrder);
+        this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
+        this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
+        
+        this.fulfilledOrdersList.addItem(computeOrder1);
+        this.fulfilledOrdersList.addItem(computeOrder2);
+        
+        int expectedValue = 5;
 
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
-                this.localMember, systemUser, ResourceType.COMPUTE);
+                BaseUnitTests.LOCAL_MEMBER_ID, systemUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertEquals(computeOrder.getActualAllocation().getInstances(),
-                allocation.getInstances());
-        Assert.assertEquals(computeOrder.getActualAllocation().getRam(), allocation.getRam());
-        Assert.assertEquals(computeOrder.getActualAllocation().getvCPU(), allocation.getvCPU());
-        Assert.assertEquals(computeOrder.getActualAllocation().getDisk(), allocation.getDisk());
+        Assert.assertEquals(expectedValue, allocation.getInstances());
+        Assert.assertEquals(expectedValue, allocation.getRam());
+        Assert.assertEquals(expectedValue, allocation.getvCPU());
+        Assert.assertEquals(expectedValue, allocation.getDisk());
     }
 
-
-    // test case: Tests if getUserAllocation() throws UnexpectedException when there is no order
+    // test case: Tests if the getUserAllocation method throws UnexpectedException when there is no order
     // with the ResourceType specified.
     @Test(expected = UnexpectedException.class)
-    public void testGetUserAllocationWithInvalidInstanceType()
-            throws UnexpectedException, InvalidParameterException {
+    public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FogbowConstants.PROVIDER_ID_KEY, "fake-token-provider");
-        attributes.put(FogbowConstants.USER_ID_KEY, "fake-id");
-        attributes.put(FogbowConstants.USER_NAME_KEY, "fake-user");
-        attributes.put(FogbowConstants.TOKEN_VALUE_KEY, "token-value");
-        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider"
-        );;
-        NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setSystemUser(systemUser);
-        networkOrder.setRequester(this.localMember);
-        networkOrder.setProvider(this.localMember);
-        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        SystemUser systemUser = createSystemUser();
+        NetworkOrder networkOrder = createFulfilledNetworkOrder(systemUser);
 
         this.fulfilledOrdersList.addItem(networkOrder);
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(this.localMember, systemUser, ResourceType.NETWORK);
+        this.ordersController.getUserAllocation(BaseUnitTests.LOCAL_MEMBER_ID, systemUser, ResourceType.NETWORK);
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders
@@ -273,12 +497,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateFailed()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+        String orderId = setupOrder(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.failedAfterSuccessfulRequestOrdersList.getNext());
@@ -303,12 +523,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateFulfilled()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
+        String orderId = setupOrder(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.fulfilledOrdersList.getNext());
@@ -332,12 +548,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateSpawning()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
+        String orderId = setupOrder(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.spawningOrdersList.getNext());
@@ -361,12 +573,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStatePending()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.PENDING);
+        String orderId = setupOrder(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.pendingOrdersList.getNext());
@@ -389,12 +597,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateOpen()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+        String orderId = setupOrder(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.openOrdersList.getNext());
@@ -420,75 +624,73 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(null);
     }
 
-    // test case: Getting an order with an unexisting id must throw an InstanceNotFoundException
-    @Test(expected = InstanceNotFoundException.class)
+    // test case: Getting an order with a nonexistent id must throw an InstanceNotFoundException
+    @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetOrderWithInvalidId() throws InstanceNotFoundException {
-        this.ordersController.getOrder("invalid-order-id");
+        // exercise
+        this.ordersController.getOrder(INVALID_ORDER_ID);
+    }
+    
+    private NetworkOrder createFulfilledNetworkOrder(SystemUser systemUser) throws UnexpectedException {
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setSystemUser(systemUser);
+        networkOrder.setRequester(BaseUnitTests.LOCAL_MEMBER_ID);
+        networkOrder.setProvider(BaseUnitTests.LOCAL_MEMBER_ID);
+        networkOrder.setOrderState(OrderState.FULFILLED);
+        return networkOrder;
+    }
+    
+    private ComputeOrder createFulfilledComputeOrder(SystemUser systemUser) throws UnexpectedException {
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setSystemUser(systemUser);
+        computeOrder.setRequester(BaseUnitTests.LOCAL_MEMBER_ID);
+        computeOrder.setProvider(BaseUnitTests.LOCAL_MEMBER_ID);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+        return computeOrder;
+    }
+    
+    private InstanceStatus createInstanceStatus(ComputeOrder computeOrder) throws InstanceNotFoundException {
+        return new InstanceStatus(computeOrder.getId(),
+                computeOrder.getProvider(), computeOrder.getCloudName(),
+                InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState()));
     }
 
-    private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException, UnexpectedException {
-        SystemUser systemUser = new SystemUser("fake-id", "fake-user", "fake-token-provider");
-
-        ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
-        computeOrder.setSystemUser(systemUser);
-        computeOrder.setRequester(this.localMember);
-        computeOrder.setProvider(this.localMember);
-        computeOrder.setOrderStateInTestMode(orderState);
+    private String setupOrder(OrderState orderState) throws UnexpectedException {
+        ComputeOrder computeOrder = createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+        computeOrder.setOrderState(orderState);
 
         String orderId = computeOrder.getId();
 
         this.activeOrdersMap.put(orderId, computeOrder);
 
         switch (orderState) {
-            case OPEN:
-                this.openOrdersList.addItem(computeOrder);
-                break;
-            case PENDING:
-                this.pendingOrdersList.addItem(computeOrder);
-                break;
-            case SPAWNING:
-                this.spawningOrdersList.addItem(computeOrder);
-                break;
-            case FULFILLED:
-                this.fulfilledOrdersList.addItem(computeOrder);
-                break;
-            case FAILED_AFTER_SUCCESSFUL_REQUEST:
-                this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder);
-                break;
-            case FAILED_ON_REQUEST:
-                this.failedOnRequestOrdersList.addItem(computeOrder);
-                break;
-            case CLOSED:
-                this.closedOrdersList.addItem(computeOrder);
-            default:
-                break;
+        case OPEN:
+            this.openOrdersList.addItem(computeOrder);
+            break;
+        case PENDING:
+            this.pendingOrdersList.addItem(computeOrder);
+            break;
+        case SPAWNING:
+            this.spawningOrdersList.addItem(computeOrder);
+            break;
+        case FULFILLED:
+            this.fulfilledOrdersList.addItem(computeOrder);
+            break;
+        case FAILED_AFTER_SUCCESSFUL_REQUEST:
+            this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder);
+            break;
+        case FAILED_ON_REQUEST:
+            this.failedOnRequestOrdersList.addItem(computeOrder);
+            break;
+        case CLOSED:
+            this.closedOrdersList.addItem(computeOrder);
+        default:
+            break;
         }
 
         return orderId;
     }
 
-    private Order createLocalOrder() {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
-        String imageName = "fake-image-name";
-        String requestingMember = "";
-        String providingMember = "";
-        String publicKey = "fake-public-key";
-        String instanceName = "fake-instance-name";
-
-        Order localOrder =
-                new ComputeOrder(
-                        systemUser,
-                        requestingMember,
-                        providingMember,
-                        "default", instanceName,
-                        8,
-                        1024,
-                        30,
-                        imageName,
-                        null,
-                        publicKey,
-                        null);
-
-        return localOrder;
-    }
 }
+
+

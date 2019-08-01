@@ -10,12 +10,12 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
+import cloud.fogbow.common.constants.OpenNebulaConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaTagNameConstants;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -93,7 +93,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeOrder.getInstanceId()));
 
-		int imageSize = Integer.parseInt(image.xpath(OpenNebulaTagNameConstants.SIZE));
+		int imageSize = Integer.parseInt(image.xpath(OpenNebulaConstants.SIZE));
 		String imageName = image.getName();
 		String imageState = image.stateString();
 		return new VolumeInstance(volumeOrder.getInstanceId(), imageState, imageName, imageSize);

@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.api.http.response.quotas.allocation;
 
-import cloud.fogbow.ras.constants.ApiDocumentation;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
