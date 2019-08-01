@@ -13,10 +13,18 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
@@ -28,6 +36,16 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 
 /*
  * This class is intended to reuse code components to assist other unit test classes 
@@ -46,6 +64,7 @@ public class BaseUnitTests {
     protected static final long DEFAULT_SLEEP_TIME = 500;
     
     protected static final String DEFAULT_CLOUD_NAME = "default";
+    protected static final String FAKE_COMPUTE_ID = "fake-compute-id";
     protected static final String FAKE_DEVICE = "fake-device";
     protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
@@ -53,12 +72,32 @@ public class BaseUnitTests {
     protected static final String FAKE_ORDER_NAME = "fake-order-name";
     protected static final String FAKE_PUBLIC_KEY= "fake-public-key";
     protected static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    protected static final String FAKE_SECURITY_RULE_ID = "fake-security-rule-id";
     protected static final String FAKE_USER_ID = "fake-user-id";
     protected static final String FAKE_USER_NAME = "fake-user-name";
+    protected static final String FAKE_VOLUME_ID = "fake-volume-id";
     protected static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     
     protected LocalCloudConnector localCloudConnector;
+    
+    protected AttachmentPlugin<CloudUser> attachmentPlugin;
+    protected ComputePlugin<CloudUser> computePlugin;
+    protected ComputeQuotaPlugin<CloudUser> computeQuotaPlugin;
+    protected GenericRequestPlugin<CloudUser> genericRequestPlugin;
+    protected ImagePlugin<CloudUser> imagePlugin;
+    protected SystemToCloudMapperPlugin<CloudUser, SystemUser> mapperPlugin;
+    protected NetworkPlugin<CloudUser> networkPlugin;
+    protected PublicIpPlugin<CloudUser> publicIpPlugin;
+    protected SecurityRulePlugin<CloudUser> securityRulePlugin;
+    protected VolumePlugin<CloudUser> volumePlugin;
+
+    protected AttachmentInstance attachmentInstance;
+    protected ComputeInstance computeInstance;
+    protected ImageInstance imageInstance;
+    protected NetworkInstance networkInstance;
+    protected SecurityRuleInstance securityRuleInstance;
+    protected VolumeInstance volumeInstance;
 
     /**
      * Clears the orders from the lists on the SharedOrderHolders instance.
@@ -79,7 +118,7 @@ public class BaseUnitTests {
 
     protected void cleanList(ChainedList<Order> list) {
         list.resetPointer();
-        Order order = null;
+        Order<?> order = null;
         do {
             order = list.getNext();
             if (order != null) {
@@ -93,12 +132,12 @@ public class BaseUnitTests {
         return LOCAL_MEMBER_ID;
     }
 
-    protected Order createLocalOrder(String requestingMember) {
+    protected Order<?> createLocalOrder(String requestingMember) {
         String providingMember = requestingMember;
         return createComputeOrder(requestingMember, providingMember);
     }
 
-    protected Order createRemoteOrder(String requestingMember) {
+    protected Order<?> createRemoteOrder(String requestingMember) {
         String providingMember = FAKE_REMOTE_MEMBER_ID;
         return createComputeOrder(requestingMember, providingMember);
     }
@@ -218,6 +257,56 @@ public class BaseUnitTests {
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(this.localCloudConnector);
+    }
+    
+    public void mockResourcePlugins() {
+        this.computePlugin = Mockito.mock(ComputePlugin.class);
+        this.attachmentPlugin = Mockito.mock(AttachmentPlugin.class);
+        this.networkPlugin = Mockito.mock(NetworkPlugin.class);
+        this.volumePlugin = Mockito.mock(VolumePlugin.class);
+        this.imagePlugin = Mockito.mock(ImagePlugin.class);
+        this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
+        this.publicIpPlugin = Mockito.mock(PublicIpPlugin.class);
+        this.genericRequestPlugin = Mockito.mock(GenericRequestPlugin.class);
+        this.mapperPlugin = Mockito.mock(SystemToCloudMapperPlugin.class);
+        this.securityRulePlugin = Mockito.mock(SecurityRulePlugin.class);
+    }
+    
+    public void mockAttachmentInstance() {
+        this.attachmentInstance = Mockito.mock(AttachmentInstance.class);
+        Mockito.when(this.attachmentInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(this.attachmentInstance.getComputeId()).thenReturn(FAKE_COMPUTE_ID);
+        Mockito.when(this.attachmentInstance.getVolumeId()).thenReturn(FAKE_VOLUME_ID);
+    }
+    
+    public void mockComputeInstance() {
+        this.computeInstance = Mockito.mock(ComputeInstance.class);
+        Mockito.when(this.computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+    }
+    
+    public void mockImageInstance() {
+        this.imageInstance = Mockito.mock(ImageInstance.class);
+        Mockito.when(this.imageInstance.getId()).thenReturn(FAKE_IMAGE_ID);
+    }
+    
+    public void mockNetworkInstance() {
+        this.networkInstance = Mockito.mock(NetworkInstance.class);
+        Mockito.when(this.networkInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+    }
+    
+    public void mockSecurityRuleInstance() {
+        this.securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+        Mockito.when(this.securityRuleInstance.getId()).thenReturn(FAKE_SECURITY_RULE_ID);
+    }
+    
+    public void mockVolumeInstance() {
+        this.volumeInstance = Mockito.mock(VolumeInstance.class);
+        Mockito.when(this.volumeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+    }
+    
+    public void systemToCloudMapperPluginMocked() throws FogbowException {
+        CloudUser cloudUser = Mockito.mock(CloudUser.class);
+        Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
     }
     
 }
