@@ -22,6 +22,7 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -41,13 +42,11 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2AttachmentPluginTest {
+public class AwsV2AttachmentPluginTest extends BaseUnitTests {
 
 	private static final String ANY_VALUE = "anything";
 	private static final String CLOUD_NAME = "amazon";
 	private static final String EMPTY_STRING = "";
-	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
 	private AwsV2AttachmentPlugin plugin;
 	private SharedOrderHolders sharedOrderHolders;
@@ -271,10 +270,10 @@ public class AwsV2AttachmentPluginTest {
 	}
 	
 	private AttachmentInstance createAttachmentInstance() {
-        String id = FAKE_VOLUME_ID;
+        String id = BaseUnitTests.FAKE_VOLUME_ID;
         String cloudState = AwsV2StateMapper.ATTACHED_STATE;
-        String computeId = FAKE_INSTANCE_ID;
-        String volumeId = FAKE_VOLUME_ID;
+        String computeId = BaseUnitTests.FAKE_INSTANCE_ID;
+        String volumeId = BaseUnitTests.FAKE_VOLUME_ID;
         String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
         return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
     }
@@ -292,8 +291,8 @@ public class AwsV2AttachmentPluginTest {
 	private VolumeAttachment createVolumeAttachment() {
 		VolumeAttachment attachment = VolumeAttachment.builder()
 				.state(VolumeAttachmentState.ATTACHED)
-				.instanceId(FAKE_INSTANCE_ID)
-				.volumeId(FAKE_VOLUME_ID)
+				.instanceId(BaseUnitTests.FAKE_INSTANCE_ID)
+				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
 				.device(AwsV2AttachmentPlugin.XVDH_DEVICE_NAME)
 				.build();
 		
@@ -301,22 +300,20 @@ public class AwsV2AttachmentPluginTest {
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
-		ComputeOrder computeOrder = new ComputeOrder();
+		ComputeOrder computeOrder = createLocalComputeOrder();
 		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(FAKE_INSTANCE_ID);
-		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		computeOrder.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 
-		VolumeOrder volumeOrder = new VolumeOrder();
+		VolumeOrder volumeOrder = createLocalVolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(FAKE_VOLUME_ID);
-		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		volumeOrder.setInstanceId(BaseUnitTests.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
 		String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
 		AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(),
 				volumeOrder.getId(), device);
-		attachmentOrder.setInstanceId(FAKE_VOLUME_ID);
+		attachmentOrder.setInstanceId(BaseUnitTests.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
 		return attachmentOrder;
 	}

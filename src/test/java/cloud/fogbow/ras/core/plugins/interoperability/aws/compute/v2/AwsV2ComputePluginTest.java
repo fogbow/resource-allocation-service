@@ -4,7 +4,6 @@ import static org.mockito.Mockito.times;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +28,9 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -70,29 +69,18 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2ComputePluginTest {
+public class AwsV2ComputePluginTest extends BaseUnitTests {
 
 	private static final String ANY_VALUE = "anything";
 	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
-	private static final String FAKE_IMAGE_ID = "fake-image-id";
-	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
 	private static final String FAKE_IP_ADDRESS = "0.0.0.0";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-	private static final String FAKE_TAG = "fake-tag";
-	private static final String FAKE_USER_DATA = "fake-user-data";
-	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
 	private static final int AMOUNT_SSD_STORAGE = 2;
 	private static final int ONE_GIGABYTE = 1024;
 	private static final int ZERO_VALUE = 0;
 	
-	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
-			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
-
-	private static final ArrayList<UserData> FAKE_LIST_USER_DATA = new ArrayList<>(Arrays.asList(FAKE_USER_DATA_ARRAY));
-
 	private AwsV2ComputePlugin plugin;
 	private SharedOrderHolders sharedOrderHolders;
 
@@ -619,7 +607,7 @@ public class AwsV2ComputePluginTest {
 		DescribeImagesResponse response = null;
 		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
-		String imageId = FAKE_IMAGE_ID;
+		String imageId = BaseUnitTests.FAKE_IMAGE_ID;
 
 		// exercise
 		this.plugin.getImageById(imageId, client);
@@ -627,7 +615,7 @@ public class AwsV2ComputePluginTest {
 	
 	private DescribeInstancesResponse createInstanceResponse() {
 		EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
-				.volumeId(FAKE_VOLUME_ID)
+				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
 				.build();
 		
 		InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
@@ -657,14 +645,14 @@ public class AwsV2ComputePluginTest {
 		
 		Tag tag = Tag.builder()
 				.key(AWS_TAG_NAME)
-				.value(FAKE_INSTANCE_NAME)
+				.value(BaseUnitTests.FAKE_INSTANCE_NAME)
 				.build();
 		
 		Instance instance = Instance.builder()
 				.blockDeviceMappings(blockDeviceMapping)
 				.cpuOptions(cpuOptions)
-				.imageId(FAKE_INSTANCE_ID)
-				.instanceId(FAKE_INSTANCE_ID)
+				.imageId(BaseUnitTests.FAKE_INSTANCE_ID)
+				.instanceId(BaseUnitTests.FAKE_INSTANCE_ID)
 				.instanceType(InstanceType.T1_MICRO)
 				.networkInterfaces(instanceNetworkInterface)
 				.state(instanceState)
@@ -689,7 +677,7 @@ public class AwsV2ComputePluginTest {
 		
 		Instance instance = Instance.builder()
 				.cpuOptions(cpuOptions)
-				.instanceId(FAKE_INSTANCE_ID)
+				.instanceId(BaseUnitTests.FAKE_INSTANCE_ID)
 				.build();
 
 		RunInstancesResponse response = RunInstancesResponse.builder()
@@ -701,7 +689,7 @@ public class AwsV2ComputePluginTest {
 	
 	private DescribeVolumesResponse createVolumeResponse() {
 		Volume volume = Volume.builder()
-				.volumeId(FAKE_VOLUME_ID)
+				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
 				.size(ONE_GIGABYTE)
 				.build();
 		
@@ -722,7 +710,7 @@ public class AwsV2ComputePluginTest {
 				.build();
 		
         Image image = Image.builder()
-        		.imageId(FAKE_IMAGE_ID)
+        		.imageId(BaseUnitTests.FAKE_IMAGE_ID)
         		.blockDeviceMappings(blockDeviceMapping)
         		.build();
         
@@ -732,12 +720,12 @@ public class AwsV2ComputePluginTest {
 	}
 	
 	private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
-		String name = FAKE_INSTANCE_NAME;
-		String flavorId = FAKE_INSTANCE_ID;
+		String name = BaseUnitTests.FAKE_INSTANCE_NAME;
+		String flavorId = BaseUnitTests.FAKE_INSTANCE_ID;
 		int cpu = 1;
 		int memory = 1;
 		int disk = 4;
-		String imageId = FAKE_IMAGE_ID;
+		String imageId = BaseUnitTests.FAKE_IMAGE_ID;
 		return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
 	}
 	
@@ -746,13 +734,13 @@ public class AwsV2ComputePluginTest {
 		int memory = 627;
 		int disk = 8;
 		
-		String imageId = FAKE_IMAGE_ID;
+		String imageId = BaseUnitTests.FAKE_IMAGE_ID;
 		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
 		SystemUser systemUser = null;
 		List<String> networksId = null;
-		ArrayList<UserData> userData = FAKE_LIST_USER_DATA;
+		ArrayList<UserData> userData = createUserDateList();
 		
 		ComputeOrder computeOrder = new ComputeOrder(
 				systemUser,
@@ -769,8 +757,7 @@ public class AwsV2ComputePluginTest {
 				networksId);
 		
 		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(FAKE_INSTANCE_ID);
-		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		computeOrder.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
 		computeOrder.setRequirements(requirements);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 		

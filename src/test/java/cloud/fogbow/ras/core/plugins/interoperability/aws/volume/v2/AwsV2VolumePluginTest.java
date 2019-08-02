@@ -22,6 +22,7 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -40,12 +41,11 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2VolumePluginTest {
+public class AwsV2VolumePluginTest extends BaseUnitTests {
 
 	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
 	private static final String FAKE_TAG_NAME = "fake-tag-name";
-	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 	private static final int ONE_GIGABYTE = 1;
 
 	private AwsV2VolumePlugin plugin;
@@ -152,7 +152,7 @@ public class AwsV2VolumePluginTest {
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		CreateVolumeResponse response = CreateVolumeResponse.builder()
-				.volumeId(FAKE_VOLUME_ID)
+				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
 				.build();
 		
 		Mockito.when(client.createVolume(Mockito.any(CreateVolumeRequest.class))).thenReturn(response);
@@ -160,7 +160,7 @@ public class AwsV2VolumePluginTest {
 		VolumeOrder volumeOrder = createVolumeOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		String expected = FAKE_VOLUME_ID;
+		String expected = BaseUnitTests.FAKE_VOLUME_ID;
 
 		// exercise
 		String volumeId = this.plugin.requestInstance(volumeOrder, cloudUser);
@@ -259,7 +259,7 @@ public class AwsV2VolumePluginTest {
 	}
 	
 	private VolumeInstance createVolumeInstance() {
-		String id = FAKE_VOLUME_ID;
+		String id = BaseUnitTests.FAKE_VOLUME_ID;
 		String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
 		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_VOLUME_ID;
 		int volumeSize = ONE_GIGABYTE;
@@ -274,7 +274,7 @@ public class AwsV2VolumePluginTest {
 		
 		Volume volume = Volume.builder()
 				.tags(tag)
-				.volumeId(FAKE_VOLUME_ID)
+				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
 				.size(ONE_GIGABYTE)
 				.build();
 		
@@ -286,10 +286,9 @@ public class AwsV2VolumePluginTest {
 	}
 
 	private VolumeOrder createVolumeOrder() {
-		VolumeOrder volumeOrder = new VolumeOrder();
+		VolumeOrder volumeOrder = createLocalVolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(FAKE_VOLUME_ID);
-		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		volumeOrder.setInstanceId(BaseUnitTests.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 		return volumeOrder;
 	}
