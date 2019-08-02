@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.After;
@@ -17,6 +18,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
@@ -53,8 +55,11 @@ public class BaseUnitTests {
     protected static final String FAKE_ORDER_NAME = "fake-order-name";
     protected static final String FAKE_PUBLIC_KEY= "fake-public-key";
     protected static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    protected static final String FAKE_USER_DATA = "fake-user-data";
     protected static final String FAKE_USER_ID = "fake-user-id";
+    protected static final String FAKE_TAG = "fake-tag";
     protected static final String FAKE_USER_NAME = "fake-user-name";
+    protected static final String FAKE_VOLUME_ID = "fake-volume-id";
     protected static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     
@@ -186,6 +191,16 @@ public class BaseUnitTests {
     protected SystemUser createSystemUser() {
         SystemUser systemUser = new SystemUser(FAKE_USER_ID, FAKE_USER_NAME, LOCAL_MEMBER_ID);
         return systemUser;
+    }
+    
+    /*
+     * Create fake user data for testing.
+     */
+    protected ArrayList<UserData> createUserDateList() {
+        UserData[] userDataArray = new UserData[] {
+                new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
+
+        return new ArrayList<>(Arrays.asList(userDataArray));
     }
 
     /**
