@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.util.ClassFactory;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
