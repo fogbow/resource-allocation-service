@@ -13,9 +13,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -36,16 +34,6 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 
 /*
  * This class is intended to reuse code components to assist other unit test classes 
@@ -81,17 +69,6 @@ public class BaseUnitTests {
     
     protected LocalCloudConnector localCloudConnector;
     
-    protected AttachmentPlugin<CloudUser> attachmentPlugin;
-    protected ComputePlugin<CloudUser> computePlugin;
-    protected ComputeQuotaPlugin<CloudUser> computeQuotaPlugin;
-    protected GenericRequestPlugin<CloudUser> genericRequestPlugin;
-    protected ImagePlugin<CloudUser> imagePlugin;
-    protected SystemToCloudMapperPlugin<CloudUser, SystemUser> mapperPlugin;
-    protected NetworkPlugin<CloudUser> networkPlugin;
-    protected PublicIpPlugin<CloudUser> publicIpPlugin;
-    protected SecurityRulePlugin<CloudUser> securityRulePlugin;
-    protected VolumePlugin<CloudUser> volumePlugin;
-
     protected AttachmentInstance attachmentInstance;
     protected ComputeInstance computeInstance;
     protected ImageInstance imageInstance;
@@ -99,7 +76,7 @@ public class BaseUnitTests {
     protected SecurityRuleInstance securityRuleInstance;
     protected VolumeInstance volumeInstance;
 
-    /**
+    /*
      * Clears the orders from the lists on the SharedOrderHolders instance.
      */
     @After
@@ -227,7 +204,7 @@ public class BaseUnitTests {
         return systemUser;
     }
 
-    /**
+    /*
      * Mocks the behavior of the database as if there was no order in any state.
      */
     public void mockReadOrdersFromDataBase() throws UnexpectedException {
@@ -248,6 +225,9 @@ public class BaseUnitTests {
         BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
     }
     
+    /*
+     * Simulates instance of a LocalCloudConnector since its creation via CloudConnectorFactory.
+     */
     public void mockLocalCloudConnectorFromFactory() {
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 
@@ -259,19 +239,10 @@ public class BaseUnitTests {
                 .thenReturn(this.localCloudConnector);
     }
     
-    public void mockResourcePlugins() {
-        this.computePlugin = Mockito.mock(ComputePlugin.class);
-        this.attachmentPlugin = Mockito.mock(AttachmentPlugin.class);
-        this.networkPlugin = Mockito.mock(NetworkPlugin.class);
-        this.volumePlugin = Mockito.mock(VolumePlugin.class);
-        this.imagePlugin = Mockito.mock(ImagePlugin.class);
-        this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
-        this.publicIpPlugin = Mockito.mock(PublicIpPlugin.class);
-        this.genericRequestPlugin = Mockito.mock(GenericRequestPlugin.class);
-        this.mapperPlugin = Mockito.mock(SystemToCloudMapperPlugin.class);
-        this.securityRulePlugin = Mockito.mock(SecurityRulePlugin.class);
-    }
-    
+    /*
+     * Simulates the instance of an attachment by setting the instance ID return of
+     * the resources involved.
+     */
     public void mockAttachmentInstance() {
         this.attachmentInstance = Mockito.mock(AttachmentInstance.class);
         Mockito.when(this.attachmentInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
@@ -279,34 +250,48 @@ public class BaseUnitTests {
         Mockito.when(this.attachmentInstance.getVolumeId()).thenReturn(FAKE_VOLUME_ID);
     }
     
+    /*
+     * Simulates the instance of a compute by setting the instance ID return of this
+     * resource.
+     */
     public void mockComputeInstance() {
         this.computeInstance = Mockito.mock(ComputeInstance.class);
         Mockito.when(this.computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
     }
     
+    /*
+     * Simulates the instance of an image by setting the instance ID return of this
+     * resource.
+     */
     public void mockImageInstance() {
         this.imageInstance = Mockito.mock(ImageInstance.class);
         Mockito.when(this.imageInstance.getId()).thenReturn(FAKE_IMAGE_ID);
     }
     
+    /*
+     * Simulates the instance of a network by setting the instance ID return of this resource.
+     */
     public void mockNetworkInstance() {
         this.networkInstance = Mockito.mock(NetworkInstance.class);
         Mockito.when(this.networkInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
     }
     
+    /*
+     * Simulates the instance of a security rule by setting the instance ID return
+     * of this resource.
+     */
     public void mockSecurityRuleInstance() {
         this.securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
         Mockito.when(this.securityRuleInstance.getId()).thenReturn(FAKE_SECURITY_RULE_ID);
     }
     
+    /*
+     * Simulates the instance of a volume by setting the instance ID return of this
+     * resource.
+     */
     public void mockVolumeInstance() {
         this.volumeInstance = Mockito.mock(VolumeInstance.class);
         Mockito.when(this.volumeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
-    }
-    
-    public void systemToCloudMapperPluginMocked() throws FogbowException {
-        CloudUser cloudUser = Mockito.mock(CloudUser.class);
-        Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
     }
     
 }
