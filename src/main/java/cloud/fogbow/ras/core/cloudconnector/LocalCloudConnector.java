@@ -1,15 +1,28 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
+import java.sql.Timestamp;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
-import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.api.http.response.OrderInstance;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
@@ -17,18 +30,38 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.core.plugins.interoperability.*;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.OrderPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
-import org.apache.log4j.Logger;
-
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
 
 public class LocalCloudConnector implements CloudConnector {
+    
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
+
+    private static final String DELETE_INSTANCE_OPERATION = "deleteInstance";
+    private static final String DELETE_SECURITY_RULE_OPERATION = "deleteSecurityRule";
+    private static final String GENERIC_REQUEST_OPERATION = "genericRequest";
+    private static final String GET_ALL_IMAGES_OPERATION = "getAllImages";
+    private static final String GET_ALL_SECURITY_RULES_OPERATION = "getAllSecurityRules";
+    private static final String GET_IMAGE_OPERATION = "getImage";
+    private static final String GET_INSTANCE_OPERATION = "getInstance";
+    private static final String GET_QUOTA_OPERATION = "getQuota";
+    private static final String REQUEST_INSTANCE_OPERATION = "requestInstance";
+    private static final String REQUEST_SECURITY_RULES_OPERATION = "requestSecurityRules";
 
     private SystemToCloudMapperPlugin mapperPlugin;
     private PublicIpPlugin publicIpPlugin;
@@ -59,7 +92,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "requestInstance", order));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, REQUEST_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -80,7 +113,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "deleteInstance", order));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, DELETE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -99,7 +132,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public OrderInstance getInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getInstance", order));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -125,7 +158,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getQuota", systemUser));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_QUOTA_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -150,7 +183,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getAllImages", systemUser));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_ALL_IMAGES_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -175,7 +208,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getImage", systemUser));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_IMAGE_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -200,7 +233,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "genericRequest", genericRequest));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GENERIC_REQUEST_OPERATION, genericRequest));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -225,7 +258,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "getAllSecurityRules", order));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_ALL_SECURITY_RULES_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -250,7 +283,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "requestSecurityRules", order));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, REQUEST_SECURITY_RULES_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
@@ -271,7 +304,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, "deleteSecurityRule", securityRuleId));
+        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, DELETE_SECURITY_RULE_OPERATION, securityRuleId));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
 
