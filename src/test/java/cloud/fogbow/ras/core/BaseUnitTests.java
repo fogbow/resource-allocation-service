@@ -17,12 +17,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
-import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
@@ -48,6 +42,8 @@ public class BaseUnitTests {
     protected static final int CPU_VALUE = 8;
     protected static final int DISK_VALUE = 30;
     protected static final int MEMORY_VALUE = 1024;
+    protected static final int NO_RUN = 0;
+    protected static final int RUN_ONCE = 1;
 
     protected static final long DEFAULT_SLEEP_TIME = 500;
     
@@ -67,15 +63,6 @@ public class BaseUnitTests {
     protected static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     
-    protected LocalCloudConnector localCloudConnector;
-    
-    protected AttachmentInstance attachmentInstance;
-    protected ComputeInstance computeInstance;
-    protected ImageInstance imageInstance;
-    protected NetworkInstance networkInstance;
-    protected SecurityRuleInstance securityRuleInstance;
-    protected VolumeInstance volumeInstance;
-
     /*
      * Clears the orders from the lists on the SharedOrderHolders instance.
      */
@@ -95,7 +82,7 @@ public class BaseUnitTests {
 
     protected void cleanList(ChainedList<Order> list) {
         list.resetPointer();
-        Order<?> order = null;
+        Order order = null;
         do {
             order = list.getNext();
             if (order != null) {
@@ -109,12 +96,12 @@ public class BaseUnitTests {
         return LOCAL_MEMBER_ID;
     }
 
-    protected Order<?> createLocalOrder(String requestingMember) {
+    protected Order createLocalOrder(String requestingMember) {
         String providingMember = requestingMember;
         return createComputeOrder(requestingMember, providingMember);
     }
 
-    protected Order<?> createRemoteOrder(String requestingMember) {
+    protected Order createRemoteOrder(String requestingMember) {
         String providingMember = FAKE_REMOTE_MEMBER_ID;
         return createComputeOrder(requestingMember, providingMember);
     }
@@ -228,70 +215,17 @@ public class BaseUnitTests {
     /*
      * Simulates instance of a LocalCloudConnector since its creation via CloudConnectorFactory.
      */
-    public void mockLocalCloudConnectorFromFactory() {
+    public LocalCloudConnector mockLocalCloudConnectorFromFactory() {
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
-        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(this.localCloudConnector);
-    }
-    
-    /*
-     * Simulates the instance of an attachment by setting the instance ID return of
-     * the resources involved.
-     */
-    public void mockAttachmentInstance() {
-        this.attachmentInstance = Mockito.mock(AttachmentInstance.class);
-        Mockito.when(this.attachmentInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
-        Mockito.when(this.attachmentInstance.getComputeId()).thenReturn(FAKE_COMPUTE_ID);
-        Mockito.when(this.attachmentInstance.getVolumeId()).thenReturn(FAKE_VOLUME_ID);
-    }
-    
-    /*
-     * Simulates the instance of a compute by setting the instance ID return of this
-     * resource.
-     */
-    public void mockComputeInstance() {
-        this.computeInstance = Mockito.mock(ComputeInstance.class);
-        Mockito.when(this.computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
-    }
-    
-    /*
-     * Simulates the instance of an image by setting the instance ID return of this
-     * resource.
-     */
-    public void mockImageInstance() {
-        this.imageInstance = Mockito.mock(ImageInstance.class);
-        Mockito.when(this.imageInstance.getId()).thenReturn(FAKE_IMAGE_ID);
-    }
-    
-    /*
-     * Simulates the instance of a network by setting the instance ID return of this resource.
-     */
-    public void mockNetworkInstance() {
-        this.networkInstance = Mockito.mock(NetworkInstance.class);
-        Mockito.when(this.networkInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
-    }
-    
-    /*
-     * Simulates the instance of a security rule by setting the instance ID return
-     * of this resource.
-     */
-    public void mockSecurityRuleInstance() {
-        this.securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
-        Mockito.when(this.securityRuleInstance.getId()).thenReturn(FAKE_SECURITY_RULE_ID);
-    }
-    
-    /*
-     * Simulates the instance of a volume by setting the instance ID return of this
-     * resource.
-     */
-    public void mockVolumeInstance() {
-        this.volumeInstance = Mockito.mock(VolumeInstance.class);
-        Mockito.when(this.volumeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+                .thenReturn(localCloudConnector);
+        
+        return localCloudConnector;
     }
     
 }

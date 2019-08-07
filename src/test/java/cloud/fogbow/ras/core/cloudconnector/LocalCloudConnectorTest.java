@@ -14,14 +14,19 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -56,29 +61,22 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private static final int VCPU_TOTAL = 8;
     private static final int VCPU_USED = 4;
 
-    private AttachmentPlugin<CloudUser> attachmentPlugin;
-    private ComputePlugin<CloudUser> computePlugin;
-    private ComputeQuotaPlugin<CloudUser> computeQuotaPlugin;
-    private GenericRequestPlugin<CloudUser> genericRequestPlugin;
-    private ImagePlugin<CloudUser> imagePlugin;
-    private SystemToCloudMapperPlugin<CloudUser, SystemUser> mapperPlugin;
-    private NetworkPlugin<CloudUser> networkPlugin;
-    private PublicIpPlugin<CloudUser> publicIpPlugin;
-    private SecurityRulePlugin<CloudUser> securityRulePlugin;
-    private VolumePlugin<CloudUser> volumePlugin;
+    private LocalCloudConnector localCloudConnector;
+    private AttachmentPlugin attachmentPlugin;
+    private ComputePlugin computePlugin;
+    private ComputeQuotaPlugin computeQuotaPlugin;
+    private GenericRequestPlugin genericRequestPlugin;
+    private ImagePlugin imagePlugin;
+    private SystemToCloudMapperPlugin mapperPlugin;
+    private NetworkPlugin networkPlugin;
+    private PublicIpPlugin publicIpPlugin;
+    private SecurityRulePlugin securityRulePlugin;
+    private VolumePlugin volumePlugin;
 
     @Before
     public void setUp() throws FogbowException {
         // mocking databaseManager
         super.mockReadOrdersFromDataBase();
-
-        // mocking instances and the return of getID method
-        super.mockAttachmentInstance();
-        super.mockComputeInstance();
-        super.mockImageInstance();
-        super.mockNetworkInstance();
-        super.mockSecurityRuleInstance();
-        super.mockVolumeInstance();
 
         // mocking resource plugins
         this.mockResourcePlugins();
@@ -94,24 +92,24 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testRequestComputeInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(this.computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class)))
                 .thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.requestInstance(order);
+        String returnedInstanceId = this.localCloudConnector.requestInstance(order);
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.computePlugin, Mockito.times(1)).requestInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).requestInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).requestInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).requestInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Request an attachment instance Mockito.when the plugin returns a
@@ -125,7 +123,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(BaseUnitTests.FAKE_VOLUME_ID, target);
         
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class),
                 Mockito.any(CloudUser.class))).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
@@ -134,18 +132,18 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(((AttachmentOrder) order).getVolumeOrderId()).thenReturn(BaseUnitTests.FAKE_VOLUME_ID);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.requestInstance(order);
+        String returnedInstanceId = this.localCloudConnector.requestInstance(order);
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.attachmentPlugin, Mockito.times(1)).requestInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.computePlugin, Mockito.times(0)).requestInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).requestInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).requestInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Request a volume instance Mockito.when the plugin returns a
@@ -153,24 +151,24 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testRequestVolumeInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(this.volumePlugin.requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class)))
                 .thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.requestInstance(order);
+        String returnedInstanceId = this.localCloudConnector.requestInstance(order);
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.volumePlugin, Mockito.times(1)).requestInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.computePlugin, Mockito.times(0)).requestInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).requestInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).requestInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Request a network instance Mockito.when the plugin returns a
@@ -178,24 +176,24 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testRequestNetworkInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(this.networkPlugin.requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class)))
                 .thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.requestInstance(order);
+        String returnedInstanceId = this.localCloudConnector.requestInstance(order);
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.networkPlugin, Mockito.times(1)).requestInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.computePlugin, Mockito.times(0)).requestInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).requestInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).requestInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: If plugin returns a null instance id, the requestInstance method
@@ -203,13 +201,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullComputeInstanceId() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(this.computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class)))
                 .thenReturn(null);
 
         // exercise
-        super.localCloudConnector.requestInstance(order);
+        this.localCloudConnector.requestInstance(order);
     }
 
     // test case: If plugin returns a null instance id, the requestInstance method
@@ -217,13 +215,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullNetworkInstanceId() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(this.networkPlugin.requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class)))
                 .thenReturn(null);
 
         // exercise
-        super.localCloudConnector.requestInstance(order);
+        this.localCloudConnector.requestInstance(order);
     }
 
     // test case: If plugin returns a null instance id, the requestInstance method
@@ -237,7 +235,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(BaseUnitTests.FAKE_VOLUME_ID, target);
 
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class),
                 Mockito.any(CloudUser.class))).thenReturn(null);
@@ -246,7 +244,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(((AttachmentOrder) order).getVolumeOrderId()).thenReturn(BaseUnitTests.FAKE_VOLUME_ID);
 
         // exercise
-        super.localCloudConnector.requestInstance(order);
+        this.localCloudConnector.requestInstance(order);
     }
 
     // test case: If plugin returns a null instance id, the requestInstance method
@@ -254,13 +252,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullVolumeInstanceId() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(this.volumePlugin.requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class)))
                 .thenReturn(null);
 
         // exercise
-        super.localCloudConnector.requestInstance(order);
+        this.localCloudConnector.requestInstance(order);
     }
 
     // test case: The order has an InstanceID, so the getResourceInstance method is
@@ -268,26 +266,28 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetNetworkInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FULFILLED);
+        
+        NetworkInstance networkInstance = new NetworkInstance(BaseUnitTests.FAKE_INSTANCE_ID);
         Mockito.when(this.networkPlugin.getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class)))
-                .thenReturn(super.networkInstance);
+                .thenReturn(networkInstance);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.getInstance(order).getId();
+        String returnedInstanceId = this.localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.networkPlugin, Mockito.times(1)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order has an InstanceID, so the method getResourceInstance
@@ -295,26 +295,28 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetVolumeInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FULFILLED);
+        
+        VolumeInstance volumeInstance = new VolumeInstance(FAKE_INSTANCE_ID);
         Mockito.when(this.volumePlugin.getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class)))
-                .thenReturn(super.volumeInstance);
+                .thenReturn(volumeInstance);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.getInstance(order).getId();
+        String returnedInstanceId = this.localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.volumePlugin, Mockito.times(1)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order has an InstanceID, so the getResourceInstance method is called.
@@ -327,30 +329,31 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         VolumeOrder volume = Mockito.mock(VolumeOrder.class);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(BaseUnitTests.FAKE_VOLUME_ID, volume);
 
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FULFILLED);
-        Mockito.when(
-                this.attachmentPlugin.getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class)))
-                .thenReturn(super.attachmentInstance);
+        
+        AttachmentInstance attachmentInstance = new AttachmentInstance(FAKE_INSTANCE_ID);
+        Mockito.when(this.attachmentPlugin.getInstance(Mockito.any(AttachmentOrder.class), 
+                Mockito.any(CloudUser.class))).thenReturn(attachmentInstance);
 
         Mockito.when(((AttachmentOrder) order).getVolumeId()).thenReturn(BaseUnitTests.FAKE_VOLUME_ID);
         Mockito.when(((AttachmentOrder) order).getComputeId()).thenReturn(BaseUnitTests.FAKE_COMPUTE_ID);
 
         // exercise
-        String returnedInstanceId = super.localCloudConnector.getInstance(order).getId();
+        String returnedInstanceId = this.localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.attachmentPlugin, Mockito.times(1)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order has an InstanceID, so the getResourceInstance method is
@@ -358,38 +361,40 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetComputeInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FULFILLED);
+        
+        ComputeInstance computeInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         Mockito.when(this.computePlugin.getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class)))
-                .thenReturn(this.computeInstance);
+                .thenReturn(computeInstance);
 
         // exercise
         String returnedInstanceId = localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(BaseUnitTests.FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(this.computePlugin, Mockito.times(1)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: If order instance is CLOSED, an exception must be throw.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInstanceWithClosedOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.CLOSED);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
 
         //exercise
-        super.localCloudConnector.getInstance(order);
+        this.localCloudConnector.getInstance(order);
     }
 
     // test case: The order doesn't have an InstanceID, so an empty NetworkInstance
@@ -398,26 +403,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyNetworkInstanceWithOpenOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty NetworkInstance
@@ -426,26 +431,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyNetworkInstanceWithPendingOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty NetworkInstance
@@ -455,26 +460,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyNetworkInstanceWithFailedOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.FAILED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty VolumeInstance
@@ -483,26 +488,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyVolumeInstanceWithOpenOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty VolumeInstance
@@ -511,26 +516,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyVolumeInstanceWithPendingOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty VolumeInstance
@@ -540,26 +545,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyVolumeInstanceWithFailedOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.FAILED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty
@@ -568,26 +573,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyAttachmentInstanceWithOpenOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty
@@ -596,26 +601,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyAttachmentInstanceWithPendingOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty
@@ -625,26 +630,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyAttachmentInstanceWithFailedOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.FAILED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty ComputeInstance
@@ -653,26 +658,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyComputeInstanceWithOpenOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty ComputeInstance
@@ -681,26 +686,26 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyComputeInstanceWithPendingOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: The order doesn't have an InstanceID, so an empty ComputeInstance
@@ -710,47 +715,47 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyComputeInstanceWithFailedOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.FAILED, instance.getState());
-        Mockito.verify(this.computePlugin, Mockito.times(0)).getInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).getInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).getInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).getInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .getInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Try to delete an instance without instance id. Nothing happens
     @Test
     public void testDeleteInstanceWithoutInstanceID() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.computePlugin, Mockito.times(0)).deleteInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).deleteInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).deleteInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).deleteInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Deleting a compute instance with ID. Compute plugin must be
@@ -758,44 +763,44 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testDeleteComputeInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(ComputeOrder.class);
+        Order order = Mockito.mock(ComputeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.computePlugin, Mockito.times(1)).deleteInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).deleteInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).deleteInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).deleteInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .deleteInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Deleting a volume instance with ID. Volume plugin must be called.
     @Test
     public void testDeleteVolumeInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(VolumeOrder.class);
+        Order order = Mockito.mock(VolumeOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.computePlugin, Mockito.times(0)).deleteInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(1)).deleteInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).deleteInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).deleteInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .deleteInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Deleting a network instance with ID. Network plugin must be
@@ -803,22 +808,22 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testDeleteNetworkInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(NetworkOrder.class);
+        Order order = Mockito.mock(NetworkOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.computePlugin, Mockito.times(0)).deleteInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).deleteInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(0)).deleteInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(1)).deleteInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Deleting a attachment instance with ID. Attachment plugin must be
@@ -826,39 +831,41 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testDeleteAttachmentInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(AttachmentOrder.class);
+        Order order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.computePlugin, Mockito.times(0)).deleteInstance(Mockito.any(ComputeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.volumePlugin, Mockito.times(0)).deleteInstance(Mockito.any(VolumeOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.attachmentPlugin, Mockito.times(1)).deleteInstance(Mockito.any(AttachmentOrder.class),
-                Mockito.any(CloudUser.class));
-        Mockito.verify(this.networkPlugin, Mockito.times(0)).deleteInstance(Mockito.any(NetworkOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.attachmentPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .deleteInstance(Mockito.any(AttachmentOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.computePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.volumePlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(VolumeOrder.class), Mockito.any(CloudUser.class));
+        Mockito.verify(this.networkPlugin, Mockito.times(BaseUnitTests.NO_RUN))
+                .deleteInstance(Mockito.any(NetworkOrder.class), Mockito.any(CloudUser.class));
     }
 
     // test case: Getting an imageInstance. Image plugin must be called.
     @Test
     public void testGetImage() throws FogbowException {
         // set up
+        ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
+        Mockito.when(imageInstance.getId()).thenReturn(FAKE_IMAGE_ID);
         Mockito.when(this.imagePlugin.getImage(Mockito.any(String.class), Mockito.any(CloudUser.class)))
-                .thenReturn(super.imageInstance);
+                .thenReturn(imageInstance);
 
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        String returnedImageId = super.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser).getId();
+        String returnedImageId = this.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser).getId();
 
         // verify
         Assert.assertEquals(FAKE_IMAGE_ID, returnedImageId);
-        Mockito.verify(this.imagePlugin, Mockito.times(1)).getImage(Mockito.any(String.class),
+        Mockito.verify(this.imagePlugin, Mockito.times(BaseUnitTests.RUN_ONCE)).getImage(Mockito.any(String.class),
                 Mockito.any(CloudUser.class));
     }
 
@@ -872,11 +879,11 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        ImageInstance imageInstance = super.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser);
+        ImageInstance imageInstance = this.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser);
 
         // verify
         Assert.assertNull(imageInstance);
-        Mockito.verify(this.imagePlugin, Mockito.times(1)).getImage(Mockito.any(String.class),
+        Mockito.verify(this.imagePlugin, Mockito.times(BaseUnitTests.RUN_ONCE)).getImage(Mockito.any(String.class),
                 Mockito.any(CloudUser.class));
     }
 
@@ -893,7 +900,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        ComputeQuota quota = (ComputeQuota) super.localCloudConnector.getUserQuota(systemUser, ResourceType.COMPUTE);
+        ComputeQuota quota = (ComputeQuota) this.localCloudConnector.getUserQuota(systemUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertEquals(VCPU_TOTAL, quota.getTotalQuota().getvCPU());
@@ -902,7 +909,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Assert.assertEquals(VCPU_USED, quota.getUsedQuota().getvCPU());
         Assert.assertEquals(RAM_USED, quota.getUsedQuota().getRam());
         Assert.assertEquals(INSTANCES_USED, quota.getUsedQuota().getInstances());
-        Mockito.verify(this.computeQuotaPlugin, Mockito.times(1)).getUserQuota(Mockito.any(CloudUser.class));
+        Mockito.verify(this.computeQuotaPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getUserQuota(Mockito.any(CloudUser.class));
     }
 
     // test case: If the instance type isn't of Compute type, an exception must be
@@ -913,7 +921,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getUserQuota(systemUser, ResourceType.VOLUME);
+        this.localCloudConnector.getUserQuota(systemUser, ResourceType.VOLUME);
     }
 
     // test case: If the instance type isn't of Compute type, an exception must be
@@ -924,7 +932,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getUserQuota(systemUser, ResourceType.ATTACHMENT);
+        this.localCloudConnector.getUserQuota(systemUser, ResourceType.ATTACHMENT);
     }
 
     // test case: If the instance type isn't of Compute type, an exception must be
@@ -935,7 +943,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getUserQuota(systemUser, ResourceType.NETWORK);
+        this.localCloudConnector.getUserQuota(systemUser, ResourceType.NETWORK);
     }
 
     // test case: Getting all images. Image plugin must be called.
@@ -949,12 +957,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        List<ImageSummary> returnedImages = super.localCloudConnector.getAllImages(systemUser);
+        List<ImageSummary> returnedImages = this.localCloudConnector.getAllImages(systemUser);
 
         // verify
         Assert.assertEquals(FAKE_IMAGE_NAME, returnedImages.get(0).getName());
         Assert.assertEquals(1, returnedImages.size());
-        Mockito.verify(this.imagePlugin, Mockito.times(1)).getAllImages(Mockito.any(CloudUser.class));
+        Mockito.verify(this.imagePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getAllImages(Mockito.any(CloudUser.class));
     }
 
     // test case: The return of getAllImages must be null. Image plugin must be
@@ -967,11 +976,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        List<ImageSummary> returnedImages = super.localCloudConnector.getAllImages(systemUser);
+        List<ImageSummary> returnedImages = this.localCloudConnector.getAllImages(systemUser);
 
         // verify
         Assert.assertNull(returnedImages);
-        Mockito.verify(this.imagePlugin, Mockito.times(1)).getAllImages(Mockito.any(CloudUser.class));
+        Mockito.verify(this.imagePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getAllImages(Mockito.any(CloudUser.class));
     }
 
     // test case: Generic requests should map the systemUser to a cloudUser and
@@ -986,12 +996,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
                 .redirectGenericRequest(Mockito.any(String.class), Mockito.eq(tokenMock));
 
         // exercise
-        super.localCloudConnector.genericRequest(Mockito.anyString(), systemUser);
+        this.localCloudConnector.genericRequest(Mockito.anyString(), systemUser);
 
         // verify
-        Mockito.verify(this.mapperPlugin, Mockito.times(1)).map(Mockito.any(SystemUser.class));
-        Mockito.verify(this.genericRequestPlugin, Mockito.times(1)).redirectGenericRequest(Mockito.any(String.class),
-                Mockito.eq(tokenMock));
+        Mockito.verify(this.mapperPlugin, Mockito.times(BaseUnitTests.RUN_ONCE)).map(Mockito.any(SystemUser.class));
+        Mockito.verify(this.genericRequestPlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .redirectGenericRequest(Mockito.any(String.class), Mockito.eq(tokenMock));
     }
     
     // test case: The order doesn't have an InstanceID, so an empty PublicIpInstance
@@ -1000,19 +1010,20 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyPublicIpInstanceWithOpenOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.OPEN);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.publicIpPlugin, Mockito.times(0)).getInstance(Mockito.any(), Mockito.any(CloudUser.class));
+        Mockito.verify(this.publicIpPlugin, Mockito.times(BaseUnitTests.NO_RUN)).getInstance(Mockito.any(),
+                Mockito.any(CloudUser.class));
     }
     
     // test case: The order doesn't have an InstanceID, so an empty PublicIpInstance
@@ -1021,19 +1032,20 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyPublicIpInstanceWithPendingOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.PENDING);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.DISPATCHED, instance.getState());
-        Mockito.verify(this.publicIpPlugin, Mockito.times(0)).getInstance(Mockito.any(), Mockito.any(CloudUser.class));
+        Mockito.verify(this.publicIpPlugin, Mockito.times(BaseUnitTests.NO_RUN)).getInstance(Mockito.any(),
+                Mockito.any(CloudUser.class));
     }
     
     // test case: The order doesn't have an InstanceID, so an empty PublicIpInstance
@@ -1043,19 +1055,20 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetEmptyPublicIpInstanceWithFailedOrder() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
         Mockito.when(order.getInstanceId()).thenReturn(null);
         Mockito.when(order.getId()).thenReturn(FAKE_ORDER_ID);
         Mockito.when(order.getOrderState()).thenReturn(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
 
         // exercise
-        OrderInstance instance = super.localCloudConnector.getInstance(order);
+        OrderInstance instance = this.localCloudConnector.getInstance(order);
 
         // verify
         Assert.assertEquals(FAKE_ORDER_ID, instance.getId());
         Assert.assertEquals(InstanceState.FAILED, instance.getState());
-        Mockito.verify(this.publicIpPlugin, Mockito.times(0)).getInstance(Mockito.any(), Mockito.any(CloudUser.class));
+        Mockito.verify(this.publicIpPlugin, Mockito.times(BaseUnitTests.NO_RUN)).getInstance(Mockito.any(),
+                Mockito.any(CloudUser.class));
     }
     
     // test case: When invoking the getInstance method of an order with a different
@@ -1064,11 +1077,11 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class) // verify
     public void testGetInstanceForAnUnsupportedResourceType() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.GENERIC_RESOURCE);
 
         // exercise
-        super.localCloudConnector.getInstance(order);
+        this.localCloudConnector.getInstance(order);
     }
     
     // test case: When calling the deleteInstance method, the public IP plug-in must
@@ -1077,15 +1090,15 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testDeletePublicIpInstance() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.publicIpPlugin, Mockito.times(1)).deleteInstance(Mockito.any(),
+        Mockito.verify(this.publicIpPlugin, Mockito.times(BaseUnitTests.RUN_ONCE)).deleteInstance(Mockito.any(),
                 Mockito.any(CloudUser.class));
     }
     
@@ -1094,7 +1107,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testDeleteInstanceThrowsInstanceNotFoundException() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
         Mockito.when(order.getInstanceId()).thenReturn(BaseUnitTests.FAKE_INSTANCE_ID);
 
@@ -1102,29 +1115,37 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
                 Mockito.any(CloudUser.class));
 
         // exercise
-        super.localCloudConnector.deleteInstance(order);
+        this.localCloudConnector.deleteInstance(order);
 
         // verify
-        Mockito.verify(this.publicIpPlugin, Mockito.times(1)).deleteInstance(Mockito.any(),
+        Mockito.verify(this.publicIpPlugin, Mockito.times(BaseUnitTests.RUN_ONCE)).deleteInstance(Mockito.any(),
                 Mockito.any(CloudUser.class));
     }
     
     // test case: When invoking the deleteInstance method of an order with a
     // different resource type than the COMPUTE, NETWORK, VOLUME, ATTACHMENT,
     // and PUBLIC_IP, an UnexpectedException will be thrown.
-    @Test(expected = UnexpectedException.class) // verify
+    @Test
     public void testDeleteInstanceForAnUnsupportedResourceType() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.GENERIC_RESOURCE);
+        
+        String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, ResourceType.GENERIC_RESOURCE);
 
-        // exercise
-        super.localCloudConnector.deleteInstance(order);
+        try {
+            // exercise
+            this.localCloudConnector.deleteInstance(order);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
     // test case: When invoking the getAllImages method and the plugin throwing an
     // UnexpectedException, it must pass this exception.
-    @Test(expected = FogbowException.class) // verify
+    @Test(expected = UnexpectedException.class) // verify
     public void testGetAllImagesPassingAnExceptionThrown() throws FogbowException {
         // set up
         Mockito.when(this.imagePlugin.getAllImages(Mockito.any(CloudUser.class))).thenThrow(new UnexpectedException());
@@ -1132,7 +1153,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getAllImages(systemUser);
+        this.localCloudConnector.getAllImages(systemUser);
     }
     
     // test case: When invoking the getImage method and the plug-in throwing an
@@ -1146,7 +1167,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser);
+        this.localCloudConnector.getImage(FAKE_IMAGE_ID, systemUser);
     }
     
     // test case: When invoking the genericRequest method and the plug-in throwing
@@ -1160,7 +1181,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.genericRequest(ANY_VALUE, systemUser);
+        this.localCloudConnector.genericRequest(ANY_VALUE, systemUser);
     }
     
     // test case: When invoking the getAllSecurityRules method and the plug-in
@@ -1171,11 +1192,11 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(this.securityRulePlugin.getSecurityRules(Mockito.any(PublicIpOrder.class),
                 Mockito.any(CloudUser.class))).thenThrow(new UnexpectedException());
 
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getAllSecurityRules(order, systemUser);
+        this.localCloudConnector.getAllSecurityRules(order, systemUser);
     }
     
     // test case: When calling the getAllSecurityRules method, the Security Rule
@@ -1183,28 +1204,32 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testGetAllSecurityRules() throws FogbowException {
         // set up
+        SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
+        securityRuleInstance.setId(FAKE_SECURITY_RULE_ID);
+        
         List<SecurityRuleInstance> securityRulesList = new ArrayList<>();
-        securityRulesList.add(this.securityRuleInstance);
+        securityRulesList.add(securityRuleInstance);
+        
         Mockito.when(this.securityRulePlugin.getSecurityRules(Mockito.any(PublicIpOrder.class),
                 Mockito.any(CloudUser.class))).thenReturn(securityRulesList);
         
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.getAllSecurityRules(order, systemUser);
+        this.localCloudConnector.getAllSecurityRules(order, systemUser);
 
         // verify
-        Mockito.verify(this.securityRulePlugin, Mockito.times(1)).getSecurityRules(Mockito.any(PublicIpOrder.class),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.securityRulePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .getSecurityRules(Mockito.any(PublicIpOrder.class), Mockito.any(CloudUser.class));
     }
     
     // test case: When invoking the requestSecurityRule method and the plug-in
     // throwing an UnexpectedException, it must pass this exception.
-    @Test(expected = FogbowException.class) // verify
+    @Test(expected = UnexpectedException.class) // verify
     public void testRequestSecurityRulePassingAnExceptionThrown() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
         Mockito.when(this.securityRulePlugin.requestSecurityRule(Mockito.eq(securityRule), Mockito.eq(order),
@@ -1213,7 +1238,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.requestSecurityRule(order, securityRule, systemUser);
+        this.localCloudConnector.requestSecurityRule(order, securityRule, systemUser);
     }
     
     // test case: When calling the requestSecurityRule method, the Security Rule
@@ -1221,7 +1246,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     @Test
     public void testRequestSecurityRule() throws FogbowException {
         // set up
-        Order<?> order = Mockito.mock(PublicIpOrder.class);
+        Order order = Mockito.mock(PublicIpOrder.class);
         SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
         Mockito.when(this.securityRulePlugin.requestSecurityRule(Mockito.eq(securityRule), Mockito.eq(order),
@@ -1230,11 +1255,11 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.requestSecurityRule(order, securityRule, systemUser);
+        this.localCloudConnector.requestSecurityRule(order, securityRule, systemUser);
 
         // verify
-        Mockito.verify(this.securityRulePlugin, Mockito.times(1)).requestSecurityRule(Mockito.eq(securityRule),
-                Mockito.eq(order), Mockito.any(CloudUser.class));
+        Mockito.verify(this.securityRulePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .requestSecurityRule(Mockito.eq(securityRule), Mockito.eq(order), Mockito.any(CloudUser.class));
     }
     
     // test case: When invoking the deleteSecurityRule method and the plug-in
@@ -1248,7 +1273,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.deleteSecurityRule(BaseUnitTests.FAKE_SECURITY_RULE_ID, systemUser);
+        this.localCloudConnector.deleteSecurityRule(BaseUnitTests.FAKE_SECURITY_RULE_ID, systemUser);
     }
     
     // test case: When calling the deleteSecurityRule method, the Security Rule
@@ -1259,11 +1284,11 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SystemUser systemUser = createSystemUser();
 
         // exercise
-        super.localCloudConnector.deleteSecurityRule(BaseUnitTests.FAKE_SECURITY_RULE_ID, systemUser);
+        this.localCloudConnector.deleteSecurityRule(BaseUnitTests.FAKE_SECURITY_RULE_ID, systemUser);
 
         // verify
-        Mockito.verify(this.securityRulePlugin, Mockito.times(1)).deleteSecurityRule(Mockito.anyString(),
-                Mockito.any(CloudUser.class));
+        Mockito.verify(this.securityRulePlugin, Mockito.times(BaseUnitTests.RUN_ONCE))
+                .deleteSecurityRule(Mockito.anyString(), Mockito.any(CloudUser.class));
     }
     
     private void setupLocalCloudConnector() {
@@ -1278,7 +1303,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         localCloudConnector.setVolumePlugin(this.volumePlugin);
         localCloudConnector.setGenericRequestPlugin(this.genericRequestPlugin);
         localCloudConnector.setSecurityRulePlugin(this.securityRulePlugin);
-        super.localCloudConnector = localCloudConnector;
+        this.localCloudConnector = localCloudConnector;
     }
     
     private void systemToCloudMapperPluginMocked() throws FogbowException {
