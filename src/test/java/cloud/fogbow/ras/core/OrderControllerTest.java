@@ -23,6 +23,7 @@ import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -39,6 +40,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private static final String INVALID_ORDER_ID = "invalid-order-id";
     
     private OrderController ordersController;
+    private LocalCloudConnector localCloudConnector;
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> openOrdersList;
     private ChainedList<Order> pendingOrdersList;
@@ -52,7 +54,6 @@ public class OrderControllerTest extends BaseUnitTests {
     public void setUp() throws UnexpectedException {
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
         super.mockReadOrdersFromDataBase();
-        super.mockLocalCloudConnectorFromFactory();
 
         // setting up the attributes.
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -64,6 +65,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.failedAfterSuccessfulRequestOrdersList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
         this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
         this.ordersController = Mockito.spy(new OrderController());
+        this.localCloudConnector = super.mockLocalCloudConnectorFromFactory();
     }
 
     // test case: when try to delete an Order closed, it must raise an InstanceNotFoundException.
