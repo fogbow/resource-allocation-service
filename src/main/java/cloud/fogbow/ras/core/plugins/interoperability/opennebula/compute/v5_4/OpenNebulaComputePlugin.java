@@ -1,12 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -87,10 +81,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, ""));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-		String publicKey = computeOrder.getPublicKey();
+		String name = computeOrder.getName() == null ?
+				SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString() : computeOrder.getName();
 		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
-						ConfigurationPropertyDefaults.SSH_COMMON_USER);
+				ConfigurationPropertyDefaults.SSH_COMMON_USER);
+		String publicKey = computeOrder.getPublicKey();
+		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
 		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
@@ -111,7 +107,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String disk = String.valueOf(foundFlavor.getDisk());
 
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
-                .name(computeOrder.getName())
+                .name(name)
 				.contextNetwork(hasNetwork)
                 .publicKey(publicKey)
 				.userName(userName)
