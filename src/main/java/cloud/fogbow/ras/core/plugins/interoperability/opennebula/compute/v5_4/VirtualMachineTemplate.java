@@ -13,12 +13,22 @@ import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
 public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 
 	private VirtualMachineTemplate.Context context;
+	private String name;
 	private String cpu;
 	private VirtualMachineTemplate.Graphics graphics;
 	private VirtualMachineTemplate.Disk disk;
 	private String memory;
 	private List<VirtualMachineTemplate.Nic> nic;
 	private VirtualMachineTemplate.OperationalSystem os;
+
+	@XmlElement(name = NAME)
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	@XmlElement(name = CONTEXT)
 	public VirtualMachineTemplate.Context getContext() {
@@ -85,29 +95,43 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 
 	@XmlRootElement(name = CONTEXT)
 	public static class Context {
-
-		private String encoding;
-		private String userdata;
 		private String network;
-		
-		@XmlElement(name = USERDATA_ENCODING)
-		public String getEncoding() {
-			return encoding;
+		private String publicKey;
+		private String userName;
+		private String startScriptBase64;
+
+		// TODO(pauloewerton): move constants below to common
+		private static final String SSH_PUBLIC_KEY = "SSH_PUBLIC_KEY";
+		private static final String USERNAME = "USERNAME";
+		private static final String START_SCRIPT_BASE64 = "START_SCRIPT_BASE64";
+
+		@XmlElement(name = SSH_PUBLIC_KEY)
+		public String getPublicKey() {
+			return publicKey;
 		}
-		
-		public void setEncoding(String encoding) {
-			this.encoding = encoding;
+
+		public void setPublicKey(String publicKey) {
+			this.publicKey = publicKey;
 		}
-		
-		@XmlElement(name = USERDATA)
-		public String getUserdata() {
-			return userdata;
+
+		@XmlElement(name = USERNAME)
+		public String getUserName() {
+			return userName;
 		}
-		
-		public void setUserdata(String userdata) {
-			this.userdata = userdata;
+
+		public void setUserName(String userName) {
+			this.userName = userName;
 		}
-		
+
+		@XmlElement(name = START_SCRIPT_BASE64)
+		public String getStartScriptBase64() {
+			return startScriptBase64;
+		}
+
+		public void setStartScriptBase64(String startScriptBase64) {
+			this.startScriptBase64 = startScriptBase64;
+		}
+
 		@XmlElement(name = NETWORK)
 		public String getNetwork() {
 			return network;
@@ -142,14 +166,11 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 			this.type = type;
 		}
 	}
-	
+
 	@XmlRootElement(name = DISK)
 	public static class Disk {
-
 		private String imageId;
-		private String type;
 		private String size;
-		private String format;
 
 		@XmlElement(name = IMAGE_ID)
 		public String getImageId() {
@@ -159,15 +180,6 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 		public void setImageId(String imageId) {
 			this.imageId = imageId;
 		}
-		
-		@XmlElement(name = TYPE)
-		public String getType() {
-			return type;
-		}
-
-		public void setType(String type) {
-			this.type = type;
-		}
 
 		@XmlElement(name = SIZE)
 		public String getSize() {
@@ -177,42 +189,8 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 		public void setSize(String size) {
 			this.size = size;
 		}
-
-		@XmlElement(name = FORMAT)
-		public String getFormat() {
-			return format;
-		}
-
-		public void setFormat(String format) {
-			this.format = format;
-		}
 	}
-	
-	@XmlRootElement(name = DISK)
-	public static class VolumeDisk {
 
-		private String size;
-		private String type;
-		
-		@XmlElement(name = SIZE)
-		public String getSize() {
-			return size;
-		}
-		
-		public void setSize(String size) {
-			this.size = size;
-		}
-		
-		@XmlElement(name = TYPE)
-		public String getType() {
-			return type;
-		}
-		
-		public void setType(String type) {
-			this.type = type;
-		}
-	}
-	
 	@XmlRootElement(name = NETWORK_INTERFACE_CONNECTED)
 	public static class Nic {
 

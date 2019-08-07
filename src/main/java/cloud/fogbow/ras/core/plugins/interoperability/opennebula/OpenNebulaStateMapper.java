@@ -12,8 +12,11 @@ public class OpenNebulaStateMapper {
     public static final String ATTACHMENT_USED_STATE = "used";
     public static final String ATTACHMENT_USED_PERSISTENT_STATE = "used_pers";
     public static final String COMPUTE_FAILURE_STATE = "failure";
+    public static final String COMPUTE_INIT_STATE = "lcm_init";
+    public static final String COMPUTE_BOOT_STATE = "boot";
     public static final String COMPUTE_PENDING_STATE = "pending";
     public static final String COMPUTE_RUNNING_STATE = "running";
+    public static final String COMPUTE_SPAWNING_STATE = "prolog";
     public static final String COMPUTE_SUSPENDED_STATE = "suspended";
     public static final String DEFAULT_ERROR_STATE = "error";
     public static final String DEFAULT_READY_STATE = "ready";
@@ -35,7 +38,10 @@ public class OpenNebulaStateMapper {
             case COMPUTE:
                 switch (state) {
                 	case COMPUTE_PENDING_STATE:
-                		return InstanceState.CREATING;
+                    case COMPUTE_SPAWNING_STATE:
+                    case COMPUTE_INIT_STATE:
+                    case COMPUTE_BOOT_STATE:
+                        return InstanceState.CREATING;
                 	case COMPUTE_RUNNING_STATE:
                         return InstanceState.READY;
                     case COMPUTE_SUSPENDED_STATE:
