@@ -6,6 +6,7 @@ import org.opennebula.client.ClientConfigurationException;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.Pool;
 import org.opennebula.client.PoolElement;
+import org.opennebula.client.datastore.DatastorePool;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
@@ -24,6 +25,8 @@ import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
+
+import javax.xml.crypto.Data;
 
 public class OpenNebulaClientUtil {
 
@@ -90,7 +93,21 @@ public class OpenNebulaClientUtil {
 		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, imagePool.getLength()));
 		return imagePool;
 	}
-	
+
+	public static DatastorePool getDatastorePool(Client client) throws UnexpectedException {
+		DatastorePool datastorePool = (DatastorePool) generateOnePool(client, DatastorePool.class);
+		OneResponse response = datastorePool.info();
+
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+		}
+
+		LOGGER.info(String.format(Messages.Info.DATASTORE_POOL_LENGTH, datastorePool.getLength()));
+
+		return datastorePool;
+	}
+
 	public static VirtualMachine getVirtualMachine(Client client, String virtualMachineId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -307,7 +324,9 @@ public class OpenNebulaClientUtil {
             return new ImagePool(client);
         } else if (classType.isAssignableFrom(UserPool.class)) {
 		    return new UserPool(client);
-        }
+        } else if (classType.isAssignableFrom(DatastorePool.class)) {
+            return new DatastorePool(client);
+		}
 		return null;
 	}
 	

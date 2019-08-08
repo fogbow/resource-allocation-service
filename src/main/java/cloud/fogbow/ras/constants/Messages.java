@@ -115,6 +115,7 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
+        public static final String DATASTORE_POOL_LENGTH = "Datastore pool length: %s.";
         public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }
 
