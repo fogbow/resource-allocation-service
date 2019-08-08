@@ -42,7 +42,6 @@ public class BaseUnitTests {
     protected static final int CPU_VALUE = 8;
     protected static final int DISK_VALUE = 30;
     protected static final int MEMORY_VALUE = 1024;
-    protected static final int NO_RUN = 0;
     protected static final int RUN_ONCE = 1;
 
     protected static final long DEFAULT_SLEEP_TIME = 500;
