@@ -76,8 +76,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     private boolean auditRequestsOn = true;
 
-    public LocalCloudConnector(String cloudName) {
-        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator();
+    public LocalCloudConnector(InteroperabilityPluginInstantiator instantiator, String cloudName) {
         this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
         this.computePlugin = instantiator.getComputePlugin(cloudName);
         this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin(cloudName);
@@ -142,9 +141,7 @@ public class LocalCloudConnector implements CloudConnector {
             instance = doGetInstance(order, cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, instance));
             instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
-            if (instance != null) {
-                auditableResponse = instance.toString();
-            }
+            auditableResponse = instance.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
@@ -320,7 +317,7 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private String doRequestInstance(Order order, CloudUser cloudUser) throws FogbowException {
+    protected String doRequestInstance(Order order, CloudUser cloudUser) throws FogbowException {
         String instanceId;
         OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
         instanceId = plugin.requestInstance(order, cloudUser);
@@ -330,7 +327,7 @@ public class LocalCloudConnector implements CloudConnector {
         return instanceId;
     }
 
-    private void doDeleteInstance(Order order, CloudUser cloudUser) throws FogbowException {
+    protected void doDeleteInstance(Order order, CloudUser cloudUser) throws FogbowException {
         OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
         try {
             if (order.getInstanceId() != null) {
@@ -344,7 +341,7 @@ public class LocalCloudConnector implements CloudConnector {
             // is updated in stable storage, or if the instance has been deleted directly in the cloud
             // without the intervention of the RAS.
             LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
-            return;
+            throw e;
         }
     }
 
@@ -360,7 +357,7 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
-    private OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
+    protected OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
         OrderInstance instance = null;
         switch (order.getType()) {
             case COMPUTE:
@@ -384,17 +381,21 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
-    private OrderInstance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {
+    protected OrderInstance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {
         OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, resourceType);
         OrderInstance instance = plugin.getInstance(order, cloudUser);
-        boolean instanceHasFailed = plugin.hasFailed(instance.getCloudState());
-        boolean instanceIsReady = plugin.isReady(instance.getCloudState());
-        if (instanceHasFailed) instance.setHasFailed();
-        if (instanceIsReady) instance.setReady();
-        return instance;
+        if (instance != null) {
+            boolean instanceHasFailed = plugin.hasFailed(instance.getCloudState());
+            boolean instanceIsReady = plugin.isReady(instance.getCloudState());
+            if (instanceHasFailed) instance.setHasFailed();
+            if (instanceIsReady) instance.setReady();
+            return instance;
+        } else {
+            throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
+        }
     }
 
-    private Quota doGetUserQuota(CloudUser token, ResourceType resourceType) throws FogbowException {
+    protected Quota doGetUserQuota(CloudUser token, ResourceType resourceType) throws FogbowException {
         switch (resourceType) {
             case COMPUTE:
                 ComputeQuota userQuota = this.computeQuotaPlugin.getUserQuota(token);
@@ -404,7 +405,7 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private List<ImageSummary> doGetAllImages(CloudUser token) throws FogbowException {
+    protected List<ImageSummary> doGetAllImages(CloudUser token) throws FogbowException {
         return this.imagePlugin.getAllImages(token);
     }
 
@@ -431,7 +432,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }
 
-    private OrderPlugin checkOrderCastingAndSetPlugin(Order order, ResourceType resourceType)
+    protected OrderPlugin checkOrderCastingAndSetPlugin(Order order, ResourceType resourceType)
             throws UnexpectedException {
         OrderPlugin plugin;
         boolean orderTypeMatch = false;
@@ -472,49 +473,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.auditRequestsOn = false;
     }
 
-    // Used only in tests
-
-    protected void setMapperPlugin(SystemToCloudMapperPlugin mapperPlugin) {
-        this.mapperPlugin = mapperPlugin;
-    }
-
-    protected void setPublicIpPlugin(PublicIpPlugin publicIpPlugin) {
-        this.publicIpPlugin = publicIpPlugin;
-    }
-
-    protected void setAttachmentPlugin(AttachmentPlugin attachmentPlugin) {
-        this.attachmentPlugin = attachmentPlugin;
-    }
-
-    protected void setComputePlugin(ComputePlugin computePlugin) {
-        this.computePlugin = computePlugin;
-    }
-
-    protected void setComputeQuotaPlugin(ComputeQuotaPlugin computeQuotaPlugin) {
-        this.computeQuotaPlugin = computeQuotaPlugin;
-    }
-
-    protected void setNetworkPlugin(NetworkPlugin networkPlugin) {
-        this.networkPlugin = networkPlugin;
-    }
-
-    protected void setVolumePlugin(VolumePlugin volumePlugin) {
-        this.volumePlugin = volumePlugin;
-    }
-
-    protected void setImagePlugin(ImagePlugin imagePlugin) {
-        this.imagePlugin = imagePlugin;
-    }
-    
-    protected void setSecurityRulePlugin(SecurityRulePlugin securityRulePlugin) {
-        this.securityRulePlugin = securityRulePlugin;
-    }
-
-    protected void setGenericRequestPlugin(GenericRequestPlugin genericRequestPlugin) {
-        this.genericRequestPlugin = genericRequestPlugin;
-    }
-
-    private void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,
+    protected void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,
                               String response) throws UnexpectedException {
         if (this.auditRequestsOn) {
             String userId = null, identityProviderId = null;
@@ -528,4 +487,5 @@ public class LocalCloudConnector implements CloudConnector {
             DatabaseManager.getInstance().auditRequest(auditableRequest);
         }
     }
+    
 }
