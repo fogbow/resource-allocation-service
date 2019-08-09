@@ -267,7 +267,7 @@ public class LocalCloudConnector implements CloudConnector {
             if (securityRuleInstances != null) {
                 auditableResponse = securityRuleInstances.toString();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
@@ -288,7 +288,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             response = doRequestSecurityRule(order, securityRule, cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, response));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
@@ -309,7 +309,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             doDeleteSecurityRule(securityRuleId, cloudUser);
             LOGGER.debug(Messages.Info.SUCCESS);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -409,26 +409,26 @@ public class LocalCloudConnector implements CloudConnector {
         return this.imagePlugin.getAllImages(token);
     }
 
-    private ImageInstance doGetImage(String imageId, CloudUser token) throws FogbowException {
+    protected ImageInstance doGetImage(String imageId, CloudUser token) throws FogbowException {
         return this.imagePlugin.getImage(imageId, token);
     }
 
-    private FogbowGenericResponse doGenericRequest(String genericRequest, CloudUser token)
+    protected FogbowGenericResponse doGenericRequest(String genericRequest, CloudUser token)
             throws FogbowException {
         return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }
 
-    private List<SecurityRuleInstance> doGetAllSecurityRules(Order order, CloudUser token)
+    protected List<SecurityRuleInstance> doGetAllSecurityRules(Order order, CloudUser token)
             throws FogbowException {
         return this.securityRulePlugin.getSecurityRules(order, token);
     }
 
-    private String doRequestSecurityRule(Order order, SecurityRule securityRule, CloudUser token)
+    protected String doRequestSecurityRule(Order order, SecurityRule securityRule, CloudUser token)
             throws FogbowException {
         return this.securityRulePlugin.requestSecurityRule(securityRule, order, token);
     }
 
-    private void doDeleteSecurityRule(String securityRuleId, CloudUser token) throws FogbowException {
+    protected void doDeleteSecurityRule(String securityRuleId, CloudUser token) throws FogbowException {
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }
 
