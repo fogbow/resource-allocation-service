@@ -21,9 +21,11 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -47,8 +49,10 @@ public class BaseUnitTests {
     protected static final long DEFAULT_SLEEP_TIME = 500;
     
     protected static final String DEFAULT_CLOUD_NAME = "default";
+    protected static final String FAKE_ADDRESS = "fake-address";
     protected static final String FAKE_COMPUTE_ID = "fake-compute-id";
     protected static final String FAKE_DEVICE = "fake-device";
+    protected static final String FAKE_GATEWAY = "fake-gateway";
     protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
     protected static final String FAKE_INSTANCE_NAME = "fake-instance-name";
@@ -126,6 +130,25 @@ public class BaseUnitTests {
                         null);
 
         return computeOrder;
+    }
+    
+    protected NetworkOrder createLocalNetworkOrder() {
+        return createNetworkOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
+    }
+
+    protected NetworkOrder createNetworkOrder(String requestingMember, String providingMember) {
+        NetworkOrder networkOrder = 
+                new NetworkOrder(
+                        createSystemUser(), 
+                        requestingMember, 
+                        requestingMember,
+                        DEFAULT_CLOUD_NAME, 
+                        FAKE_INSTANCE_NAME, 
+                        FAKE_GATEWAY, 
+                        FAKE_ADDRESS, 
+                        NetworkAllocationMode.STATIC);
+
+        return networkOrder;
     }
     
     protected VolumeOrder createLocalVolumeOrder() {
