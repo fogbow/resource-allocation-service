@@ -78,7 +78,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, ""));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String name = computeOrder.getName() == null ?
@@ -135,7 +134,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		return getComputeInstance(virtualMachine);
@@ -143,7 +141,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);

@@ -14,9 +14,10 @@ public class AttachmentDisk extends OpenNebulaMarshaller {
 
 	public AttachmentDisk() {}
 
-	public AttachmentDisk(String imageId) {
+	public AttachmentDisk(String imageId, String target) {
 		this.disk = new Disk();
 		this.disk.imageId = imageId;
+		this.disk.target = target;
 	}
 
 	@XmlElement(name = DISK)
@@ -26,12 +27,20 @@ public class AttachmentDisk extends OpenNebulaMarshaller {
 	
 	@XmlRootElement(name = DISK)
 	public static class Disk {
+		// TODO(pauloewerton): move to common
+		private static final String TARGET = "TARGET";
 		
 		private String imageId;
+		private String target;
 
 		@XmlElement(name = IMAGE_ID)
 		public String getImageId() {
 			return imageId;
+		}
+
+		@XmlElement(name = TARGET)
+		public String getTarget() {
+			return target;
 		}
 	}
 }

@@ -63,7 +63,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
@@ -92,7 +91,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
@@ -106,7 +104,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);

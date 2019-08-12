@@ -26,8 +26,6 @@ import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 
-import javax.xml.crypto.Data;
-
 public class OpenNebulaClientUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaClientUtil.class);
@@ -38,12 +36,19 @@ public class OpenNebulaClientUtil {
 	protected static final String RESPONSE_DONE = "DONE";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 	protected static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
+
+	public static Client instance;
 	
 	private static final int CHMOD_PERMISSION_744 = 744;
 	
 	public static Client createClient(String endpoint, String tokenValue) throws UnexpectedException {
 		try {
-			return new Client(tokenValue, endpoint);
+			synchronized (Client.class) {
+				if (instance == null) {
+					instance = new Client(tokenValue, endpoint);
+				}
+				return instance;
+			}
 		} catch (ClientConfigurationException e) {
 			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
 			throw new UnexpectedException();
@@ -90,7 +95,6 @@ public class OpenNebulaClientUtil {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
 			throw new UnexpectedException(response.getErrorMessage());
 		}
-		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, imagePool.getLength()));
 		return imagePool;
 	}
 
@@ -154,7 +158,6 @@ public class OpenNebulaClientUtil {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
 			throw new UnexpectedException(response.getErrorMessage());
 		}
-		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, templatePool.getLength()));
 		return templatePool;
 	}
 
@@ -165,7 +168,6 @@ public class OpenNebulaClientUtil {
  			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USERS, response.getErrorMessage()));
 			throw new UnexpectedException(response.getErrorMessage());
  		}
- 		LOGGER.info(String.format(Messages.Info.USER_POOL_LENGTH, userpool.getLength()));
 		return userpool;
 	}
 

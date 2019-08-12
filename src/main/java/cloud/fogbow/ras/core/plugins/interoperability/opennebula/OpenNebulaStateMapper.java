@@ -9,7 +9,7 @@ public class OpenNebulaStateMapper {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaStateMapper.class);
 
-    public static final String ATTACHMENT_USED_STATE = "used";
+    public static final String USED_STATE = "used";
     public static final String ATTACHMENT_USED_PERSISTENT_STATE = "used_pers";
     public static final String COMPUTE_FAILURE_STATE = "failure";
     public static final String COMPUTE_INIT_STATE = "lcm_init";
@@ -58,13 +58,15 @@ public class OpenNebulaStateMapper {
                         return InstanceState.READY;
                     case DEFAULT_ERROR_STATE:
                         return InstanceState.FAILED;
+                    case USED_STATE:
+                        return InstanceState.BUSY;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
                         return InstanceState.BUSY;
                 }
             case ATTACHMENT:
                 switch (state) {
-                	case ATTACHMENT_USED_STATE:
+                	case USED_STATE:
                 		return InstanceState.READY;
                     case ATTACHMENT_USED_PERSISTENT_STATE:
                         return InstanceState.READY;
