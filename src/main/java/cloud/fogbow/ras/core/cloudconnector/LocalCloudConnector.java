@@ -164,9 +164,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             quota = doGetUserQuota(cloudUser, resourceType);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, quota));
-            if (quota != null) {
-                auditableResponse = quota.toString();
-            }
+            auditableResponse = quota.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
@@ -189,9 +187,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             images = doGetAllImages(cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, images));
-            if (images != null) {
-                auditableResponse = images.toString();
-            }
+            auditableResponse = images.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
@@ -214,9 +210,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             imageInstance = doGetImage(imageId, cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, imageInstance));
-            if (imageInstance != null) {
-                auditableResponse = imageInstance.toString();
-            }
+            auditableResponse = imageInstance.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
@@ -239,9 +233,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             fogbowGenericResponse = doGenericRequest(genericRequest, cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, fogbowGenericResponse));
-            if (fogbowGenericResponse != null) {
-                auditableResponse = fogbowGenericResponse.toString();
-            }
+            auditableResponse = fogbowGenericResponse.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
@@ -264,9 +256,7 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             securityRuleInstances = doGetAllSecurityRules(order, cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, securityRuleInstances));
-            if (securityRuleInstances != null) {
-                auditableResponse = securityRuleInstances.toString();
-            }
+            auditableResponse = securityRuleInstances.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
@@ -345,16 +335,13 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private OrderInstance doGetInstance(Order order, CloudUser cloudUser) throws FogbowException {
-        OrderInstance instance;
+    protected OrderInstance doGetInstance(Order order, CloudUser cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
         if (instanceId != null) {
-            instance = getResourceInstance(order, order.getType(), cloudUser);
-        } else {
-            // When there is no instance, an empty one is created with the appropriate state
-            instance = createEmptyInstance(order);
-        }
-        return instance;
+            return getResourceInstance(order, order.getType(), cloudUser);
+        } 
+        // When there is no instance, an empty one is created with the appropriate state
+        return createEmptyInstance(order);
     }
 
     protected OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
@@ -381,7 +368,7 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
-    protected OrderInstance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {
+    private OrderInstance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {
         OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, resourceType);
         OrderInstance instance = plugin.getInstance(order, cloudUser);
         if (instance != null) {
