@@ -10,6 +10,7 @@ import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
+import org.aspectj.weaver.ast.Or;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 @PowerMockIgnore({"javax.management.*"})
@@ -64,10 +66,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
     public static final List<String> FAKE_NETWORK_IDS = new ArrayList<>(Arrays.asList(
             new String[] { (FAKE_NETWORK_ID) }));
 
-    @Autowired
+    @Resource
     private RecoveryService recoveryService;
 
-    @Autowired
+    @Resource
     private OrderRepository orderRepository;
 
     private Order computeOrder;
@@ -264,5 +266,48 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // exercise
         recoveryService.update(computeOrder);
+    }
+
+    //test case: test if the save operation works as expected by saving some objects an comparing the list returned by db.
+    @Test
+    public void testSaveOperation() throws UnexpectedException{
+        // setup
+        List<Order> expectedOrders = new ArrayList<>();
+
+        for(int i = 0; i < 3; i++) {
+            Order order = createComputeOrder(FAKE_REMOTE_MEMBER_ID, FAKE_REMOTE_MEMBER_ID);
+            order.setOrderState(OrderState.FULFILLED);
+            expectedOrders.add(order);
+            //exercise
+            recoveryService.save(order);
+        }
+
+        //verify
+        Assert.assertEquals(expectedOrders, recoveryService.readActiveOrders(OrderState.FULFILLED));
+    }
+
+    //test case: test if the restore operation works as expected by checking if the list returned by the db contains the objects
+    // that were supposed to be there.
+    @Test
+    public void testRestoreOperation() throws UnexpectedException{
+        //setup
+        OrderState currentTestSate = OrderState.OPEN;
+        Order orderOne = createComputeOrder(FAKE_REMOTE_MEMBER_ID, FAKE_REMOTE_MEMBER_ID);
+        orderOne.setOrderState(currentTestSate);
+        Order orderTwo = createComputeOrder("reqMember", "provMember");
+        orderTwo.setOrderState(currentTestSate);
+        Order orderThree = createComputeOrder("reqMember", "provMember");
+        orderThree.setOrderState(currentTestSate);
+
+        recoveryService.save(orderOne);
+        recoveryService.save(orderTwo);
+        recoveryService.save(orderThree);
+
+        //exercise
+        List<Order> recoveredOrders = recoveryService.readActiveOrders(currentTestSate);
+        //verify
+        Assert.assertTrue(recoveredOrders.contains(orderOne));
+        Assert.assertTrue(recoveredOrders.contains(orderTwo));
+        Assert.assertTrue(recoveredOrders.contains(orderThree));
     }
 }
