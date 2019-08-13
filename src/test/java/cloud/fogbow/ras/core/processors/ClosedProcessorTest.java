@@ -6,8 +6,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -15,9 +15,12 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
+@PrepareForTest({ DatabaseManager.class })
 public class ClosedProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
@@ -28,7 +31,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
-        super.mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());
         this.processor = Mockito.spy(new ClosedProcessor(this.orderController,
@@ -55,8 +58,8 @@ public class ClosedProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessClosedLocalOrder() throws Exception {
         // set up
-        Order order = createLocalOrder(getLocalMemberId());
-        order.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
         this.orderController.activateOrder(order);
         OrderStateTransitioner.transition(order, OrderState.CLOSED);
@@ -64,7 +67,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.orderController, Mockito.times(1)).deactivateOrder(Mockito.eq(order));
@@ -78,7 +81,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     @Test
     public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
         // set up
-        Order order = createLocalOrder(getLocalMemberId());
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.closedOrderList.addItem(order);
 
         Mockito.doThrow(new UnexpectedException()).when(this.processor).processClosedOrder(Mockito.eq(order));
@@ -86,7 +89,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processClosedOrder(Mockito.eq(order));
@@ -98,7 +101,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     public void testRunProcessLocalOrderToCatchException() throws InterruptedException, UnexpectedException {
 
         // set up
-        Order order = createLocalOrder(getLocalMemberId());
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.closedOrderList.addItem(order);
 
         Mockito.doThrow(new RuntimeException()).when(this.processor).processClosedOrder(Mockito.eq(order));
@@ -106,7 +109,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.processor, Mockito.times(1)).processClosedOrder(Mockito.eq(order));

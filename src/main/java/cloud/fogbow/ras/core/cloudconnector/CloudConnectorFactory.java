@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 
 public class CloudConnectorFactory {
@@ -21,7 +22,7 @@ public class CloudConnectorFactory {
     public CloudConnector getCloudConnector(String providerId, String cloudName) {
         CloudConnector cloudConnector;
         if (providerId.equals(this.localProviderId)) {
-            cloudConnector = new LocalCloudConnector(cloudName);
+            cloudConnector = new LocalCloudConnector(new InteroperabilityPluginInstantiator(), cloudName);
         } else {
             cloudConnector = new RemoteCloudConnector(providerId, cloudName);
         }
