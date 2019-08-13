@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -10,15 +9,15 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class, OrderStateTransitioner.class})
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class})
 public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
@@ -34,7 +33,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     private Order createOrder(OrderState orderState) {
-        Order order = createLocalOrder(getLocalMemberId());
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setOrderStateInTestMode(orderState);
         return order;
     }
@@ -50,7 +49,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        this.mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
 
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
 
@@ -81,7 +80,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        super.mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
 
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
 

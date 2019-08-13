@@ -111,6 +111,7 @@ public abstract class Order<T extends Order> implements Serializable {
         return this.orderState;
     }
 
+    // TODO remove this method when it's no longer used
     public void setOrderStateInTestMode(OrderState state) {
         this.orderState = state;
     }
