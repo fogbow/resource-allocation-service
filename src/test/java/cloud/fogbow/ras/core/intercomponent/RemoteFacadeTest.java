@@ -1,16 +1,48 @@
 package cloud.fogbow.ras.core.intercomponent;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.jamppa.component.PacketSender;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.xmpp.packet.IQ;
+
 import cloud.fogbow.common.constants.HttpMethod;
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
 import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
-import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.common.util.connectivity.HttpRequest;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.Quota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.*;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.CloudListController;
+import cloud.fogbow.ras.core.OrderController;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.SecurityRuleController;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -20,30 +52,10 @@ import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
-import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
-import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
-import org.jamppa.component.PacketSender;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.xmpp.packet.IQ;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudConnectorFactory.class, DatabaseManager.class, PacketSenderHolder.class})
+@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, PacketSenderHolder.class })
 public class RemoteFacadeTest extends BaseUnitTests {
 
 	private static final String DEFAULT_CLOUD_NAME = "default";
@@ -62,7 +74,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
-        super.mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
         this.orderController = new OrderController();
         this.facade = Mockito.spy(RemoteFacade.getInstance());
         this.facade.setOrderController(this.orderController);
@@ -577,7 +589,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		OrderState orderState = OrderState.FULFILLED;
 
-		String signallingMember = LOCAL_MEMBER_ID;
+		String signallingMember = TestUtils.LOCAL_MEMBER_ID;
 		String requester = FAKE_REQUESTER_ID;
 		String provider = signallingMember;
 
@@ -614,7 +626,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		// set up
 		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 
-		String signallingMember = LOCAL_MEMBER_ID;
+		String signallingMember = TestUtils.LOCAL_MEMBER_ID;
 		String requester = FAKE_REQUESTER_ID;
 		String provider = signallingMember;
 
@@ -652,7 +664,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		String signallingMember = FAKE_REQUESTER_ID;
 		String requester = signallingMember;
-		String provider = LOCAL_MEMBER_ID;
+		String provider = TestUtils.LOCAL_MEMBER_ID;
 
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
