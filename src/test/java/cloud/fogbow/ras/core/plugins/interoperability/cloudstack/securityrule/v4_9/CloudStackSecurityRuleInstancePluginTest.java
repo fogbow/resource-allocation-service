@@ -67,7 +67,7 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
-        mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(CloudStackHttpClient.class);
         PowerMockito.mockStatic(CloudStackQueryJobResult.class);

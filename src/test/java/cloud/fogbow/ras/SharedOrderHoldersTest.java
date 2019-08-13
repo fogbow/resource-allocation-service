@@ -1,19 +1,17 @@
 package cloud.fogbow.ras;
 
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest(DatabaseManager.class)
 public class SharedOrderHoldersTest extends BaseUnitTests {
 
@@ -22,7 +20,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
 
     @Before
     public void initialize() throws UnexpectedException {
-        mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
 
         this.instanceOne = SharedOrderHolders.getInstance();
         this.instanceTwo = SharedOrderHolders.getInstance();
@@ -41,7 +39,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         Assert.assertSame(listFromInstanceOne, listFromInstanceTwo);
 
         // exercise
-        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderOne = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         listFromInstanceOne.addItem(orderOne);
 
         // verify
@@ -50,7 +48,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         Assert.assertSame(orderOne, listFromInstanceTwo.getCurrent().getValue());
 
         // exercise
-        Order orderTwo = createLocalOrder(getLocalMemberId());
+        Order orderTwo = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         listFromInstanceTwo.addItem(orderTwo);
 
         // verify
