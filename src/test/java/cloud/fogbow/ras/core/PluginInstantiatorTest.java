@@ -4,13 +4,11 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -20,13 +18,18 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class PluginInstantiatorTest {
 
     private InteroperabilityPluginInstantiator interoperabilityPluginInstantiator;
+    private static final String fakeCloudName = "default";
 
     private static final String TEST_CONF_PATH = "src/test/resources/private/";
 
+    // Note: The tests in this class assume that the used cloud is configured at
+    // src/test/resources/private/default so, if you intend to change something
+    // something in it's files, it should be match in here. For example, if you
+    // change volume_plugin_class key at src/test/resources/private/default/plugins.conf ,
+    // It will be necessary set the value of expected_volume_plugin_class_value accordingly.
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(HomeDir.class);
-        CloseableHttpClient client = Mockito.mock(CloseableHttpClient.class);
         BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
         this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator();
     }
@@ -46,12 +49,12 @@ public class PluginInstantiatorTest {
     // as the plugin class name.
     @Test
     public void testCreateLocalUserCredentialsMapperPluginInstance() {
+
         // set up
         String expected_local_user_credentials_mapper_class_value =
                 "cloud.fogbow.ras.core.stubs.StubSystemToCloudMapperPlugin";
 
         // exercise
-        String fakeCloudName = "default";
         SystemToCloudMapperPlugin plugin = this.interoperabilityPluginInstantiator.getSystemToCloudMapperPlugin(fakeCloudName);
 
         // verify
@@ -66,7 +69,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubAttachmentPlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         AttachmentPlugin plugin = this.interoperabilityPluginInstantiator.getAttachmentPlugin(fakeCloudName);
 
         // verify
@@ -81,7 +84,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubComputePlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         ComputePlugin plugin = this.interoperabilityPluginInstantiator.getComputePlugin(fakeCloudName);
 
         // verify
@@ -96,7 +99,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubComputeQuotaPlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         ComputeQuotaPlugin plugin = this.interoperabilityPluginInstantiator.getComputeQuotaPlugin(fakeCloudName);
 
         // verify
@@ -111,7 +114,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubNetworkPlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         NetworkPlugin plugin = this.interoperabilityPluginInstantiator.getNetworkPlugin(fakeCloudName);
 
         // verify
@@ -126,7 +129,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubVolumePlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         VolumePlugin plugin = this.interoperabilityPluginInstantiator.getVolumePlugin(fakeCloudName);
 
         // verify
@@ -141,7 +144,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubImagePlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         ImagePlugin plugin = this.interoperabilityPluginInstantiator.getImagePlugin(fakeCloudName);
 
         // verify
@@ -156,7 +159,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubPublicIpPlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         PublicIpPlugin plugin = this.interoperabilityPluginInstantiator.getPublicIpPlugin(fakeCloudName);
 
         // verify
@@ -171,7 +174,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubSecurityRulePlugin";
 
         // exercise
-        String fakeCloudName = "default";
+
         SecurityRulePlugin plugin = this.interoperabilityPluginInstantiator.getSecurityRulePlugin(fakeCloudName);
 
         // verify
