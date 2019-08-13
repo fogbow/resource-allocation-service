@@ -36,7 +36,7 @@ public class OrderStateTransitioner {
         }
     }
 
-    private static void doTransition(Order order, OrderState newState) throws UnexpectedException {
+    protected static void doTransition(Order order, OrderState newState) throws UnexpectedException {
         OrderState currentState = order.getOrderState();
 
         if (currentState == newState) {
@@ -65,17 +65,13 @@ public class OrderStateTransitioner {
         }
     }
 
-    private static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
+    protected static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
         try {
-            RemoteNotifyEventRequest remoteNotifyEventRequest = createRemoteNotifyEventRequest(order, newState);
+            RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, newState);
             remoteNotifyEventRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
-    }
-
-    protected static RemoteNotifyEventRequest createRemoteNotifyEventRequest(Order order, OrderState newState) {
-        return new RemoteNotifyEventRequest(order, newState);
     }
 }

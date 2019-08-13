@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core;
 
+import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.After;
@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.powermock.api.mockito.PowerMockito;
@@ -43,7 +44,38 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     // be changed to the Spawning state, removed from the open orders list, and added to the spawning
     // orders list.
     @Test
-    public void testTransitionToChangeOrderStateOpenToSpawningWithRemoteProvider() throws UnexpectedException {
+    public void testTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
+
+        // set up
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        this.mockReadOrdersFromDataBase();
+
+        SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
+
+        SynchronizedDoublyLinkedList<Order> openOrdersList = orderHolders.getOpenOrdersList();
+        SynchronizedDoublyLinkedList<Order> spawningOrdersList = orderHolders.getSpawningOrdersList();
+
+        Order order = createOrder(originState);
+        openOrdersList.addItem(order);
+
+        Assert.assertNull(spawningOrdersList.getNext());
+
+        // exercise
+        OrderStateTransitioner.transition(order, destinationState);
+
+        // verify
+        Assert.assertEquals(order, spawningOrdersList.getNext());
+        Assert.assertNull(openOrdersList.getNext());
+    }
+
+    // test case: When calling the transition() method, it must change the state of Order
+    // from the remote order passed as parameter to a specific OrderState. This Order
+    // defined originally with Open, will be changed to the Spawning state, removed
+    // from the open orders list, and added to the spawning orders list.
+    @Test
+    public void testTransitionToChangeOrderStateOpenToSpawningWithRemoteProvider() throws Exception {
 
         // set up
         OrderState originState = OrderState.OPEN;
@@ -61,18 +93,22 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         order.setRequester(remoteMember);
         openOrdersList.addItem(order);
 
-
-        RemoteNotifyEventRequest remoteNotifyEventRequest = Mockito.mock(RemoteNotifyEventRequest.class);
-        PowerMockito.spy(OrderStateTransitioner.class);
-        BDDMockito.given(OrderStateTransitioner.createRemoteNotifyEventRequest(Mockito.any(), Mockito.any()))
-                .willReturn(remoteNotifyEventRequest);
-
         Assert.assertNull(spawningOrdersList.getNext());
+
+        PowerMockito.spy(OrderStateTransitioner.class);
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "notifyRequester", Mockito.any(), Mockito.any());
 
         // exercise
         OrderStateTransitioner.transition(order, destinationState);
 
         // verify
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.transition(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+
         Assert.assertEquals(order, spawningOrdersList.getNext());
         Assert.assertNull(openOrdersList.getNext());
     }

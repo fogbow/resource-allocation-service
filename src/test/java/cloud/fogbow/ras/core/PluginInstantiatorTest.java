@@ -4,13 +4,11 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.*;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -22,11 +20,12 @@ public class PluginInstantiatorTest {
     private InteroperabilityPluginInstantiator interoperabilityPluginInstantiator;
 
     private static final String TEST_CONF_PATH = "src/test/resources/private/";
+    public static final String fakeCloudName = "default";
+
 
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(HomeDir.class);
-        CloseableHttpClient client = Mockito.mock(CloseableHttpClient.class);
         BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
         this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator();
     }
@@ -51,7 +50,6 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubSystemToCloudMapperPlugin";
 
         // exercise
-        String fakeCloudName = "default";
         SystemToCloudMapperPlugin plugin = this.interoperabilityPluginInstantiator.getSystemToCloudMapperPlugin(fakeCloudName);
 
         // verify
