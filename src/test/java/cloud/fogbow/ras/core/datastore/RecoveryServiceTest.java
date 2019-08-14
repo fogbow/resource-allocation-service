@@ -273,13 +273,13 @@ public class RecoveryServiceTest extends BaseUnitTests {
     @Test
     public void testSaveOperation() throws UnexpectedException{
         // setup //exercise
-        List<Order> expectedFulfilledOrders = populateFedNetDbWithState(OrderState.FULFILLED, ORDERS_AMOUNT, recoveryService);
-        List<Order> expectedOpenedOrders = populateFedNetDbWithState(OrderState.OPEN, ORDERS_AMOUNT, recoveryService);
-        List<Order> expectedClosedOrders = populateFedNetDbWithState(OrderState.CLOSED, ORDERS_AMOUNT, recoveryService);
-        List<Order> expectedDeactivatedOrders = populateFedNetDbWithState(OrderState.DEACTIVATED, ORDERS_AMOUNT, recoveryService);
-        List<Order> expectedFailedAfterSuccessfulRequestOrders = populateFedNetDbWithState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, ORDERS_AMOUNT, recoveryService);
-        List<Order> expectedFailedOrders = populateFedNetDbWithState(OrderState.FAILED_ON_REQUEST, ORDERS_AMOUNT, recoveryService);
-        List<Order> expectedSpawningOrders = populateFedNetDbWithState(OrderState.SPAWNING, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFulfilledOrders = testUtils.populateFedNetDbWithState(OrderState.FULFILLED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedOpenedOrders = testUtils.populateFedNetDbWithState(OrderState.OPEN, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedClosedOrders = testUtils.populateFedNetDbWithState(OrderState.CLOSED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedDeactivatedOrders = testUtils.populateFedNetDbWithState(OrderState.DEACTIVATED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFailedAfterSuccessfulRequestOrders = testUtils.populateFedNetDbWithState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFailedOrders = testUtils.populateFedNetDbWithState(OrderState.FAILED_ON_REQUEST, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedSpawningOrders = testUtils.populateFedNetDbWithState(OrderState.SPAWNING, ORDERS_AMOUNT, recoveryService);
 
         //verify
         Assert.assertEquals(expectedFulfilledOrders, recoveryService.readActiveOrders(OrderState.FULFILLED));

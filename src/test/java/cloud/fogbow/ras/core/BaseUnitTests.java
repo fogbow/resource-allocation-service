@@ -53,16 +53,4 @@ public class BaseUnitTests {
         Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
         activeOrderMap.clear();
     }
-    
-    }
-
-    public List<Order> populateFedNetDbWithState(OrderState state, int size, RecoveryService service) throws UnexpectedException {
-        List<Order> orders = new ArrayList<>();
-        for(int i = 0; i < size; i++) {
-            Order order = createComputeOrder(FAKE_REMOTE_MEMBER_ID, FAKE_REMOTE_MEMBER_ID);
-            order.setOrderState(state);
-            orders.add(order);
-            service.save(order);
-        }
-        return orders;
 }
