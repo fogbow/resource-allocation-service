@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -218,6 +220,17 @@ public class BaseUnitTests {
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(this.localCloudConnector);
+    }
+
+    public List<Order> populateFedNetDbWithState(OrderState state, int size, RecoveryService service) throws UnexpectedException {
+        List<Order> orders = new ArrayList<>();
+        for(int i = 0; i < size; i++) {
+            Order order = createComputeOrder(FAKE_REMOTE_MEMBER_ID, FAKE_REMOTE_MEMBER_ID);
+            order.setOrderState(state);
+            orders.add(order);
+            service.save(order);
+        }
+        return orders;
     }
     
 }
