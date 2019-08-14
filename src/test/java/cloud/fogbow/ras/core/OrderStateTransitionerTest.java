@@ -88,8 +88,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         SynchronizedDoublyLinkedList<Order> spawningOrdersList = orderHolders.getSpawningOrdersList();
 
         Order order = createOrder(originState);
-        String remoteMember = "fake-remote-member";
-        order.setRequester(remoteMember);
+        order.setRequester(TestUtils.FAKE_REMOTE_MEMBER_ID);
         openOrdersList.addItem(order);
 
         Assert.assertNull(spawningOrdersList.getNext());
