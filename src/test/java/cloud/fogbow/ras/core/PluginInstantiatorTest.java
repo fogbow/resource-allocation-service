@@ -18,7 +18,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class PluginInstantiatorTest {
 
     private InteroperabilityPluginInstantiator interoperabilityPluginInstantiator;
-    private static final String fakeCloudName = "default";
 
     private static final String TEST_CONF_PATH = "src/test/resources/private/";
 
@@ -55,7 +54,7 @@ public class PluginInstantiatorTest {
                 "cloud.fogbow.ras.core.stubs.StubSystemToCloudMapperPlugin";
 
         // exercise
-        SystemToCloudMapperPlugin plugin = this.interoperabilityPluginInstantiator.getSystemToCloudMapperPlugin(fakeCloudName);
+        SystemToCloudMapperPlugin plugin = this.interoperabilityPluginInstantiator.getSystemToCloudMapperPlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_local_user_credentials_mapper_class_value, plugin.getClass().getName());
@@ -70,7 +69,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        AttachmentPlugin plugin = this.interoperabilityPluginInstantiator.getAttachmentPlugin(fakeCloudName);
+        AttachmentPlugin plugin = this.interoperabilityPluginInstantiator.getAttachmentPlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_attachment_plugin_class_value, plugin.getClass().getName());
@@ -85,7 +84,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        ComputePlugin plugin = this.interoperabilityPluginInstantiator.getComputePlugin(fakeCloudName);
+        ComputePlugin plugin = this.interoperabilityPluginInstantiator.getComputePlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_compute_plugin_class_value, plugin.getClass().getName());
@@ -100,7 +99,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        ComputeQuotaPlugin plugin = this.interoperabilityPluginInstantiator.getComputeQuotaPlugin(fakeCloudName);
+        ComputeQuotaPlugin plugin = this.interoperabilityPluginInstantiator.getComputeQuotaPlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_compute_quota_plugin_class_value, plugin.getClass().getName());
@@ -115,7 +114,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        NetworkPlugin plugin = this.interoperabilityPluginInstantiator.getNetworkPlugin(fakeCloudName);
+        NetworkPlugin plugin = this.interoperabilityPluginInstantiator.getNetworkPlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_network_plugin_class_value, plugin.getClass().getName());
@@ -130,7 +129,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        VolumePlugin plugin = this.interoperabilityPluginInstantiator.getVolumePlugin(fakeCloudName);
+        VolumePlugin plugin = this.interoperabilityPluginInstantiator.getVolumePlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_volume_plugin_class_value, plugin.getClass().getName());
@@ -145,7 +144,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        ImagePlugin plugin = this.interoperabilityPluginInstantiator.getImagePlugin(fakeCloudName);
+        ImagePlugin plugin = this.interoperabilityPluginInstantiator.getImagePlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_image_plugin_class_value, plugin.getClass().getName());
@@ -160,7 +159,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        PublicIpPlugin plugin = this.interoperabilityPluginInstantiator.getPublicIpPlugin(fakeCloudName);
+        PublicIpPlugin plugin = this.interoperabilityPluginInstantiator.getPublicIpPlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_public_ip_plugin_class_value, plugin.getClass().getName());
@@ -175,7 +174,7 @@ public class PluginInstantiatorTest {
 
         // exercise
 
-        SecurityRulePlugin plugin = this.interoperabilityPluginInstantiator.getSecurityRulePlugin(fakeCloudName);
+        SecurityRulePlugin plugin = this.interoperabilityPluginInstantiator.getSecurityRulePlugin(TestUtils.DEFAULT_CLOUD_NAME);
 
         // verify
         Assert.assertEquals(expected_security_rule_plugin_class_value, plugin.getClass().getName());
