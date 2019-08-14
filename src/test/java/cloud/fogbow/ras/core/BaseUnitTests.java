@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core;
 
+import java.util.List;
 import java.util.Map;
 
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
@@ -51,5 +53,4 @@ public class BaseUnitTests {
         Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
         activeOrderMap.clear();
     }
-    
 }
