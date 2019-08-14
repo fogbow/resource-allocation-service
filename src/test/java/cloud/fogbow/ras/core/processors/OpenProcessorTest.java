@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -15,11 +16,14 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
+@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class OpenProcessorTest extends BaseUnitTests {
 
     private static final int OPEN_SLEEP_TIME = 1000;
@@ -31,13 +35,13 @@ public class OpenProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
-        super.mockReadOrdersFromDataBase();
-        super.mockLocalCloudConnectorFromFactory();
+        this.testUtils.mockReadOrdersFromDataBase();
+        this.testUtils.mockLocalCloudConnectorFromFactory();
 
-        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID,
-                BaseUnitTests.DEFAULT_CLOUD_NAME);
+        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(TestUtils.LOCAL_MEMBER_ID,
+                TestUtils.DEFAULT_CLOUD_NAME);
 
-        this.processor = Mockito.spy(new OpenProcessor(BaseUnitTests.LOCAL_MEMBER_ID, 
+        this.processor = Mockito.spy(new OpenProcessor(TestUtils.LOCAL_MEMBER_ID, 
                 ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME));
 
         this.orderController = new OrderController();
@@ -57,11 +61,11 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessOpenLocalOrder() throws Exception {
         //set up
-        Order localOrder = this.createLocalOrder(getLocalMemberId());
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(localOrder);
 
-        Mockito.doReturn(BaseUnitTests.FAKE_INSTANCE_ID)
+        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
@@ -88,7 +92,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
         //set up
-        Order localOrder = this.createLocalOrder(getLocalMemberId());
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(localOrder);
 
@@ -99,7 +103,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
@@ -118,7 +122,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessLocalOpenOrderRequestingException() throws Exception {
         //set up
-        Order localOrder = this.createLocalOrder(getLocalMemberId());
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(localOrder);
 
@@ -129,7 +133,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
 
         //verify
@@ -148,7 +152,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessOpenRemoteOrder() throws Exception {
         //set up
-        Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
+        Order remoteOrder = this.testUtils.createRemoteOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(remoteOrder);
 
@@ -159,7 +163,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
@@ -178,7 +182,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
         //set up
-        Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
+        Order remoteOrder = this.testUtils.createRemoteOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(remoteOrder);
 
@@ -189,7 +193,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
@@ -207,7 +211,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessNotOpenOrder() throws InterruptedException, FogbowException {
         //set up
-        Order order = this.createLocalOrder(getLocalMemberId());
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(order);
 
@@ -216,7 +220,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -231,7 +235,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //verify
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
     }
 
     //test case: test if the open processor still run and do not change the order state if the method
@@ -239,7 +243,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessOpenOrderThrowingAnException() throws Exception {
         //set up
-        Order order = this.createLocalOrder(getLocalMemberId());
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(order);
 
@@ -250,7 +254,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.processor);
         this.thread.start();
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -264,11 +268,11 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testRaceConditionWithThisThreadPriority() throws Exception {
         //set up
-        Order localOrder = this.createLocalOrder(getLocalMemberId());
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(localOrder);
 
-        Mockito.doReturn(BaseUnitTests.FAKE_INSTANCE_ID)
+        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
@@ -276,12 +280,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         synchronized (localOrder) {
             this.thread = new Thread(this.processor);
             this.thread.start();
-            Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+            Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
             Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
         }
 
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
@@ -293,7 +297,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder()
             throws Exception {
         //set up
-        Order localOrder = this.createLocalOrder(getLocalMemberId());
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(localOrder);
 
@@ -301,12 +305,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         synchronized (localOrder) {
             this.thread = new Thread(this.processor);
             this.thread.start();
-            Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+            Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
             localOrder.setOrderState(OrderState.CLOSED);
         }
 
-        Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
         Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
@@ -316,7 +320,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
         //set up
-        Order localOrder = this.createLocalOrder(getLocalMemberId());
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.orderController.activateOrder(localOrder);
 
@@ -326,8 +330,8 @@ public class OpenProcessorTest extends BaseUnitTests {
                             @Override
                             public String answer(InvocationOnMock invocation)
                                     throws InterruptedException {
-                                Thread.sleep(BaseUnitTests.DEFAULT_SLEEP_TIME);
-                                return BaseUnitTests.FAKE_INSTANCE_ID;
+                                Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
+                                return TestUtils.FAKE_INSTANCE_ID;
                             }
                         });
         //exercise
