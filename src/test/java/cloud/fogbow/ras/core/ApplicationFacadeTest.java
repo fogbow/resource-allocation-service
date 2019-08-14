@@ -90,28 +90,34 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private ApplicationFacade facade;
 	private OrderController orderController;
 	private LocalCloudConnector localCloudConnector;
+	private AuthorizationPlugin authorizationPlugin;
+	private CloudListController cloudListController;
 
 	@Before
-	public void setUp() throws UnexpectedException {
+	public void setUp() throws FogbowException {
 		this.testUtils.mockReadOrdersFromDataBase();
-		this.orderController = Mockito.spy(new OrderController());
 		this.localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
+		this.orderController = Mockito.spy(new OrderController());
+		this.authorizationPlugin = mockAuthorizationPlugin();
+		this.cloudListController = mockCloudListController();
 		this.facade = Mockito.spy(ApplicationFacade.getInstance());
 		this.facade.setOrderController(this.orderController);
+		this.facade.setAuthorizationPlugin(this.authorizationPlugin);
+		this.facade.setCloudListController(this.cloudListController);
 	}
 
-	// test case: When calling the setBuildNumber method, it must generate correct
+    // test case: When calling the setBuildNumber method, it must generate correct
 	// build number version.
 	@Test
 	public void testVersion() throws Exception {
 		// set up
 		this.facade.setBuildNumber(HomeDir.getPath() + VALID_PATH_CONF);
+		String expected = String.format(BUILD_NUMBER_FORMAT, SystemConstants.API_VERSION_NUMBER);
 
 		// exercise
 		String build = this.facade.getVersionNumber();
 
 		// verify
-		String expected = String.format(BUILD_NUMBER_FORMAT, SystemConstants.API_VERSION_NUMBER);
 		Assert.assertEquals(expected, build);
 	}
 
@@ -122,12 +128,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	public void testVersionWithoutBuildProperty() throws Exception {
 		// set up
 		this.facade.setBuildNumber(HomeDir.getPath() + VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY);
+		String expected = String.format(BUILD_NUMBER_FORMAT_FOR_TESTING, SystemConstants.API_VERSION_NUMBER);
 
 		// exercise
 		String build = this.facade.getVersionNumber();
 
 		// verify
-		String expected = String.format(BUILD_NUMBER_FORMAT_FOR_TESTING, SystemConstants.API_VERSION_NUMBER);
 		Assert.assertEquals(expected, build);
 	}
 	
@@ -136,44 +142,35 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	@Test(expected = UnexpectedException.class) // verify
 	public void testGetPublicKeyThrowsUnexpectedException() throws Exception {
 		// set up
-		PowerMockito.mockStatic(ServiceAsymmetricKeysHolder.class);
-		ServiceAsymmetricKeysHolder sakHolder = Mockito.mock(ServiceAsymmetricKeysHolder.class);
-		PowerMockito.when(ServiceAsymmetricKeysHolder.getInstance()).thenReturn(sakHolder);
+		ServiceAsymmetricKeysHolder sakHolder = mockServiceAsymmetricKeysHolder();
 		sakHolder.setPublicKeyFilePath(null);
 
 		// exercise
 		this.facade.getPublicKey();
-	}	
-	
-	// test case: When calling the getPublicKey method, verify that this call was
-	// successful.
-	@Test
-	public void testGetPublicKeySuccessfully() throws Exception {
-		// set up
-		PowerMockito.mockStatic(ServiceAsymmetricKeysHolder.class);
-		ServiceAsymmetricKeysHolder sakHolder = Mockito.mock(ServiceAsymmetricKeysHolder.class);
-		PowerMockito.when(ServiceAsymmetricKeysHolder.getInstance()).thenReturn(sakHolder);
+	}
 
-		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
-		Mockito.when(sakHolder.getPublicKey()).thenReturn(keyRSA);
+    // test case: When calling the getCloudNames method with a local member, it must
+    // verify that this call was successful.
+    @Test
+    public void testGetCloudNamesWithLocalMember() throws FogbowException {
+        // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
 
-		PowerMockito.mockStatic(CryptoUtil.class);
-		PowerMockito.when(CryptoUtil.toBase64(keyRSA)).thenReturn(TestUtils.FAKE_PUBLIC_KEY);
+        // exercise
+        this.facade.getCloudNames(localMember, userToken);
 
-		// exercise
-		String publicKey = this.facade.getPublicKey();
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getPublicKey();
-
-		PowerMockito.verifyStatic(ServiceAsymmetricKeysHolder.class, Mockito.times(1));
-		ServiceAsymmetricKeysHolder.getInstance();
-
-		PowerMockito.verifyStatic(CryptoUtil.class, Mockito.times(1));
-		CryptoUtil.toBase64(Mockito.eq(keyRSA));
-
-		Assert.assertNotNull(publicKey);
-	}	
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.any(RasOperation.class));
+        Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getCloudNames();
+    }
+    
+    // TODO continue verification from here...
 	
 	// test case: When calling the getAsPublicKey method, verify that this call was
 	// successful.
@@ -1635,39 +1632,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedResponse, fogbowGenericResponse);
 	}
 
-	// test case: When calling the getCloudNames method with a local provider ID, it
-	// must verify that this call was successful.
-	@Test
-	public void testGetCloudNamesWithLocalMemberId() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		RasOperation operation = new RasOperation(
-				Operation.GET,
-				ResourceType.CLOUD_NAMES
-		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		List<String> cloudNames = new ArrayList<>();
-
-		CloudListController cloudListController = Mockito.mock(CloudListController.class);
-		Mockito.doReturn(cloudNames).when(cloudListController).getCloudNames();
-		this.facade.setCloudListController(cloudListController);
-
-		// exercise
-		this.facade.getCloudNames(FAKE_LOCAL_IDENTITY_PROVIDER, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(cloudListController, Mockito.times(1)).getCloudNames();
-	}
-
 	// test case: When calling the getCloudNames method with a remote provider ID, it
 	// must verify that this call was successful.
 	@Test
@@ -1895,7 +1859,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
         return keyRSA;
     }
-
+    
 	private AuthorizationPlugin<RasOperation> mockAuthorizationPlugin(SystemUser systemUser, RasOperation rasOperation)
 			throws UnexpectedException, UnauthorizedRequestException {
 
@@ -1918,5 +1882,28 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		return userDataScripts;
 	}
+	
+	// TODO the methods below are up to date...
+	
+	private CloudListController mockCloudListController() {
+	    List<String> cloudNames = new ArrayList<>();
+	    CloudListController controller = Mockito.mock(CloudListController.class);
+        Mockito.doReturn(cloudNames).when(controller).getCloudNames();
+        return controller;
+    }
 
+    private AuthorizationPlugin mockAuthorizationPlugin() throws FogbowException {
+        AuthorizationPlugin plugin = Mockito.mock(DefaultAuthorizationPlugin.class);
+        Mockito.when(plugin.isAuthorized(Mockito.any(SystemUser.class), Mockito.any(RasOperation.class)))
+                .thenReturn(true);
+        return plugin;
+    }
+
+    private ServiceAsymmetricKeysHolder mockServiceAsymmetricKeysHolder() {
+        ServiceAsymmetricKeysHolder sakHolder = Mockito.mock(ServiceAsymmetricKeysHolder.class);
+        PowerMockito.mockStatic(ServiceAsymmetricKeysHolder.class);
+        PowerMockito.when(ServiceAsymmetricKeysHolder.getInstance()).thenReturn(sakHolder);
+        return sakHolder;
+    }
+    
 }
