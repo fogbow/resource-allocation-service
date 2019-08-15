@@ -42,6 +42,7 @@ public class TestUtils {
     public static final String FAKE_IMAGE_ID = "fake-image-id";
     public static final String FAKE_INSTANCE_ID = "fake-instance-id";
     public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    public static final String FAKE_ORDER_ID = "fake-order-id";
     public static final String FAKE_ORDER_NAME = "fake-order-name";
     public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
