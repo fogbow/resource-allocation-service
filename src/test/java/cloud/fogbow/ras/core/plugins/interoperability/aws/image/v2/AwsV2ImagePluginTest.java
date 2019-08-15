@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +34,7 @@ import software.amazon.awssdk.services.ec2.model.EbsBlockDevice;
 import software.amazon.awssdk.services.ec2.model.Image;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AwsV2ClientUtil.class})
+@PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class})
 public class AwsV2ImagePluginTest {
 
     private static final String ANY_VALUE = "anything";
@@ -61,7 +63,7 @@ public class AwsV2ImagePluginTest {
     }
 
     // test case: check if getAllImages returns all images expected in the expected
-    // format.
+    // format and if the right calls are made.
     @Test
     public void testGetAllImages() throws FogbowException {
         // setup
@@ -69,27 +71,34 @@ public class AwsV2ImagePluginTest {
         PowerMockito.mockStatic(AwsV2ClientUtil.class);
         BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
+        DescribeImagesResponse response = DescribeImagesResponse.builder().images(getMockedImages()).build();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).willReturn(response);
+
         List<Image> imagesList = getMockedImages();
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-        DescribeImagesRequest request = DescribeImagesRequest.builder().owners(cloudUser.getId()).build();
 
         List<ImageSummary> expectedResult = new ArrayList<>();
         for (Image each : imagesList) {
             expectedResult.add(new ImageSummary(each.imageId(), each.name()));
         }
 
-        Mockito.when(client.describeImages(request))
-                .thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
-
         // exercise
         List<ImageSummary> result = this.plugin.getAllImages(cloudUser);
 
         // verify
         Assert.assertEquals(expectedResult, result);
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
+        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
+
+        Mockito.verify(plugin, Mockito.times(1)).mountImagesSummary(Mockito.any());
     }
 
-    // test case: check if the getImage returns the correct image when there are some.
+    // test case: check if the getImage returns the correct image when there are some and if the right calls are made.
     @Test
     public void testGetImageWithResult() throws FogbowException {
         //setup
@@ -100,10 +109,11 @@ public class AwsV2ImagePluginTest {
         List<Image> imagesList = getMockedImages();
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-        DescribeImagesRequest request = DescribeImagesRequest.builder().imageIds(FIRST_IMAGE_ID).build();
-
-        Mockito.when(client.describeImages(request)).thenReturn(DescribeImagesResponse.builder().images(imagesList).build());
-
+        DescribeImagesResponse response = DescribeImagesResponse.builder()
+            .images(getMockedImages().stream().filter(each -> each.imageId().equalsIgnoreCase(FIRST_IMAGE_ID)).collect(Collectors.toList())).build();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).willReturn(response);
+        BDDMockito.given(AwsV2CloudUtil.getImagesFrom(Mockito.any())).willCallRealMethod();
         ImageInstance expected = createImageInstance();
         
         // exercise
@@ -111,9 +121,19 @@ public class AwsV2ImagePluginTest {
 
         // verify
         Assert.assertEquals(expected, image);
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
+        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+        AwsV2CloudUtil.getImagesFrom(Mockito.any());
+
+        Mockito.verify(plugin, Mockito.times(1)).mountImageInstance(Mockito.any());
     }
 
-    // test case : check getImage behavior when there is no image to be returned.
+    // test case : check getImage behavior when there is no image to be returned and if the right calls are made.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetImageWithoutResult() throws FogbowException {
         // setup
@@ -122,12 +142,25 @@ public class AwsV2ImagePluginTest {
         BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-        DescribeImagesRequest imagesRequest = DescribeImagesRequest.builder().imageIds(ANY_VALUE).build();
-
-        Mockito.when(client.describeImages(imagesRequest)).thenReturn(DescribeImagesResponse.builder().images(new ArrayList<>()).build());
+        DescribeImagesResponse response = DescribeImagesResponse.builder()
+            .images(new ArrayList<>()).build();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).willReturn(response);
+        BDDMockito.given(AwsV2CloudUtil.getImagesFrom(Mockito.any())).willCallRealMethod();
 
         // exercise
         this.plugin.getImage(ANY_VALUE, cloudUser);
+
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
+        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+        AwsV2CloudUtil.getImagesFrom(Mockito.any());
+
+        Mockito.verify(plugin, Mockito.times(0)).mountImageInstance(Mockito.any());
     }
 
     // test case: check if testSize works properly with some specific args.

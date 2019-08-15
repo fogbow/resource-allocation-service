@@ -78,7 +78,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         return size * gigabyte;
     }
     
-    private List<ImageSummary> mountImagesSummary(DescribeImagesResponse response) {
+    protected List<ImageSummary> mountImagesSummary(DescribeImagesResponse response) {
         List<ImageSummary> images = new ArrayList<>();
         ImageSummary imageSummary;
         
