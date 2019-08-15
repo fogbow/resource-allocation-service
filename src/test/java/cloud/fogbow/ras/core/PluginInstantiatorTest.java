@@ -20,8 +20,6 @@ public class PluginInstantiatorTest {
     private InteroperabilityPluginInstantiator interoperabilityPluginInstantiator;
 
     private static final String TEST_CONF_PATH = "src/test/resources/private/";
-    public static final String fakeCloudName = "default";
-
 
     // Note: The tests in this class assume that the used cloud is configured at
     // src/test/resources/private/default so, if you intend to change something
