@@ -10,6 +10,7 @@ import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
+import org.aspectj.weaver.ast.Or;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 @PowerMockIgnore({"javax.management.*"})
@@ -57,6 +59,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     private static final String ID_KEY = "id";
     private static final String NAME_KEY = "name";
     private static final String TOKEN_KEY = "token";
+    private static final Integer ORDERS_AMOUNT = 3;
 
     public static final ArrayList<UserData> FAKE_USER_DATA = new ArrayList<UserData>(Arrays.asList(
             new UserData[] { new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")}));
@@ -64,10 +67,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
     public static final List<String> FAKE_NETWORK_IDS = new ArrayList<>(Arrays.asList(
             new String[] { (FAKE_NETWORK_ID) }));
 
-    @Autowired
+    @Resource
     private RecoveryService recoveryService;
 
-    @Autowired
+    @Resource
     private OrderRepository orderRepository;
 
     private Order computeOrder;
@@ -264,5 +267,27 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // exercise
         recoveryService.update(computeOrder);
+    }
+
+    //test case: test if the save operation works as expected by saving some objects and comparing the list returned by db.
+    @Test
+    public void testSaveOperation() throws UnexpectedException{
+        // setup //exercise
+        List<Order> expectedFulfilledOrders = testUtils.populateFedNetDbWithState(OrderState.FULFILLED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedOpenedOrders = testUtils.populateFedNetDbWithState(OrderState.OPEN, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedClosedOrders = testUtils.populateFedNetDbWithState(OrderState.CLOSED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedDeactivatedOrders = testUtils.populateFedNetDbWithState(OrderState.DEACTIVATED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFailedAfterSuccessfulRequestOrders = testUtils.populateFedNetDbWithState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFailedOrders = testUtils.populateFedNetDbWithState(OrderState.FAILED_ON_REQUEST, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedSpawningOrders = testUtils.populateFedNetDbWithState(OrderState.SPAWNING, ORDERS_AMOUNT, recoveryService);
+
+        //verify
+        Assert.assertEquals(expectedFulfilledOrders, recoveryService.readActiveOrders(OrderState.FULFILLED));
+        Assert.assertEquals(expectedOpenedOrders, recoveryService.readActiveOrders(OrderState.OPEN));
+        Assert.assertEquals(expectedClosedOrders, recoveryService.readActiveOrders(OrderState.CLOSED));
+        Assert.assertEquals(expectedDeactivatedOrders, recoveryService.readActiveOrders(OrderState.DEACTIVATED));
+        Assert.assertEquals(expectedFailedAfterSuccessfulRequestOrders, recoveryService.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST));
+        Assert.assertEquals(expectedFailedOrders, recoveryService.readActiveOrders(OrderState.FAILED_ON_REQUEST));
+        Assert.assertEquals(expectedSpawningOrders, recoveryService.readActiveOrders(OrderState.SPAWNING));
     }
 }

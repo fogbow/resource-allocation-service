@@ -80,7 +80,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	@Before
 	public void setUp() throws UnexpectedException {
-		super.mockReadOrdersFromDataBase();
+		this.testUtils.mockReadOrdersFromDataBase();
 		this.orderController = new OrderController();
 		this.facade = Mockito.spy(ApplicationFacade.getInstance());
 		this.facade.setOrderController(this.orderController);
@@ -251,7 +251,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
-		ArrayList<UserData> userData = super.mockUserData();
+		ArrayList<UserData> userData = this.testUtils.mockUserData();
 		List<String> networkOrderIds = new ArrayList<>();
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkOrderIds);
@@ -302,7 +302,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 				FAKE_PROVIDER_ID, FAKE_REQUESTER_USER_ID_VALUE, FAKE_NAME_VALUE, SYSTEM_USER_TOKEN_VALUE, new HashMap<>());
 
 		String publicKey = FAKE_PUBLIC_KEY;
-		ArrayList<UserData> userData = super.mockUserData();
+		ArrayList<UserData> userData = this.testUtils.mockUserData();
 		List<String> networkOrderIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkOrderIds);
@@ -351,7 +351,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
-		ArrayList<UserData> userData = super.mockUserData();
+		ArrayList<UserData> userData = this.testUtils.mockUserData();
 		List<String> networkIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
@@ -410,7 +410,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		String cloudName = DEFAULT_CLOUD_NAME;
 		String publicKey = FAKE_PUBLIC_KEY;
-		ArrayList<UserData> userData = super.mockUserData();
+		ArrayList<UserData> userData = this.testUtils.mockUserData();
 		List<String> networkIds = null;
 
 		ComputeOrder order = spyComputeOrder(systemUser, cloudName, publicKey, userData, networkIds);
