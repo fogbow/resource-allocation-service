@@ -152,7 +152,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		CreateVolumeResponse response = CreateVolumeResponse.builder()
-				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.build();
 		
 		Mockito.when(client.createVolume(Mockito.any(CreateVolumeRequest.class))).thenReturn(response);
@@ -160,7 +160,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 		VolumeOrder volumeOrder = createVolumeOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		String expected = BaseUnitTests.FAKE_VOLUME_ID;
+		String expected = testUtils.FAKE_VOLUME_ID;
 
 		// exercise
 		String volumeId = this.plugin.requestInstance(volumeOrder, cloudUser);
@@ -259,9 +259,9 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 	}
 	
 	private VolumeInstance createVolumeInstance() {
-		String id = BaseUnitTests.FAKE_VOLUME_ID;
+		String id = testUtils.FAKE_VOLUME_ID;
 		String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
-		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_VOLUME_ID;
+		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + testUtils.FAKE_VOLUME_ID;
 		int volumeSize = ONE_GIGABYTE;
 		return new VolumeInstance(id, cloudState, name, volumeSize);
 	}
@@ -274,7 +274,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 		
 		Volume volume = Volume.builder()
 				.tags(tag)
-				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.size(ONE_GIGABYTE)
 				.build();
 		
@@ -286,9 +286,9 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 	}
 
 	private VolumeOrder createVolumeOrder() {
-		VolumeOrder volumeOrder = createLocalVolumeOrder();
+		VolumeOrder volumeOrder = testUtils.createLocalVolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(BaseUnitTests.FAKE_VOLUME_ID);
+		volumeOrder.setInstanceId(testUtils.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 		return volumeOrder;
 	}

@@ -270,10 +270,10 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
 	}
 	
 	private AttachmentInstance createAttachmentInstance() {
-        String id = BaseUnitTests.FAKE_VOLUME_ID;
+        String id = testUtils.FAKE_VOLUME_ID;
         String cloudState = AwsV2StateMapper.ATTACHED_STATE;
-        String computeId = BaseUnitTests.FAKE_INSTANCE_ID;
-        String volumeId = BaseUnitTests.FAKE_VOLUME_ID;
+        String computeId = testUtils.FAKE_INSTANCE_ID;
+        String volumeId = testUtils.FAKE_VOLUME_ID;
         String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
         return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
     }
@@ -291,8 +291,8 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
 	private VolumeAttachment createVolumeAttachment() {
 		VolumeAttachment attachment = VolumeAttachment.builder()
 				.state(VolumeAttachmentState.ATTACHED)
-				.instanceId(BaseUnitTests.FAKE_INSTANCE_ID)
-				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
+				.instanceId(testUtils.FAKE_INSTANCE_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.device(AwsV2AttachmentPlugin.XVDH_DEVICE_NAME)
 				.build();
 		
@@ -300,20 +300,20 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
-		ComputeOrder computeOrder = createLocalComputeOrder();
+		ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
+		computeOrder.setInstanceId(testUtils.FAKE_INSTANCE_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 
-		VolumeOrder volumeOrder = createLocalVolumeOrder();
+		VolumeOrder volumeOrder = testUtils.createLocalVolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(BaseUnitTests.FAKE_VOLUME_ID);
+		volumeOrder.setInstanceId(testUtils.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
 		String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
 		AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(),
 				volumeOrder.getId(), device);
-		attachmentOrder.setInstanceId(BaseUnitTests.FAKE_VOLUME_ID);
+		attachmentOrder.setInstanceId(testUtils.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
 		return attachmentOrder;
 	}

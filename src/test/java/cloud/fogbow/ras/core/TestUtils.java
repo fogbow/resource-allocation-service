@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
@@ -53,6 +55,8 @@ public class TestUtils {
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+    protected static final String FAKE_USER_DATA = "fake-user-data";
+    protected static final String FAKE_TAG = "fake-tag";
     
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
@@ -230,5 +234,15 @@ public class TestUtils {
             service.save(order);
         }
         return orders;
+    }
+
+    /*
+     * Create fake user data for testing.
+     */
+    public ArrayList<UserData> createUserDataList() {
+        UserData[] userDataArray = new UserData[]{
+                new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG)};
+
+        return new ArrayList<>(Arrays.asList(userDataArray));
     }
 }

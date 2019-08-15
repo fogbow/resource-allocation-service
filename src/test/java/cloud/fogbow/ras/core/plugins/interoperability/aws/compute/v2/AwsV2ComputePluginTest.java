@@ -607,7 +607,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		DescribeImagesResponse response = null;
 		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
-		String imageId = BaseUnitTests.FAKE_IMAGE_ID;
+		String imageId = testUtils.FAKE_IMAGE_ID;
 
 		// exercise
 		this.plugin.getImageById(imageId, client);
@@ -615,7 +615,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	
 	private DescribeInstancesResponse createInstanceResponse() {
 		EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
-				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.build();
 		
 		InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
@@ -645,14 +645,14 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		
 		Tag tag = Tag.builder()
 				.key(AWS_TAG_NAME)
-				.value(BaseUnitTests.FAKE_INSTANCE_NAME)
+				.value(testUtils.FAKE_INSTANCE_NAME)
 				.build();
 		
 		Instance instance = Instance.builder()
 				.blockDeviceMappings(blockDeviceMapping)
 				.cpuOptions(cpuOptions)
-				.imageId(BaseUnitTests.FAKE_INSTANCE_ID)
-				.instanceId(BaseUnitTests.FAKE_INSTANCE_ID)
+				.imageId(testUtils.FAKE_INSTANCE_ID)
+				.instanceId(testUtils.FAKE_INSTANCE_ID)
 				.instanceType(InstanceType.T1_MICRO)
 				.networkInterfaces(instanceNetworkInterface)
 				.state(instanceState)
@@ -677,7 +677,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		
 		Instance instance = Instance.builder()
 				.cpuOptions(cpuOptions)
-				.instanceId(BaseUnitTests.FAKE_INSTANCE_ID)
+				.instanceId(testUtils.FAKE_INSTANCE_ID)
 				.build();
 
 		RunInstancesResponse response = RunInstancesResponse.builder()
@@ -689,7 +689,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	
 	private DescribeVolumesResponse createVolumeResponse() {
 		Volume volume = Volume.builder()
-				.volumeId(BaseUnitTests.FAKE_VOLUME_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.size(ONE_GIGABYTE)
 				.build();
 		
@@ -710,7 +710,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 				.build();
 		
         Image image = Image.builder()
-        		.imageId(BaseUnitTests.FAKE_IMAGE_ID)
+        		.imageId(testUtils.FAKE_IMAGE_ID)
         		.blockDeviceMappings(blockDeviceMapping)
         		.build();
         
@@ -720,12 +720,12 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	}
 	
 	private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
-		String name = BaseUnitTests.FAKE_INSTANCE_NAME;
-		String flavorId = BaseUnitTests.FAKE_INSTANCE_ID;
+		String name = testUtils.FAKE_INSTANCE_NAME;
+		String flavorId = testUtils.FAKE_INSTANCE_ID;
 		int cpu = 1;
 		int memory = 1;
 		int disk = 4;
-		String imageId = BaseUnitTests.FAKE_IMAGE_ID;
+		String imageId = testUtils.FAKE_IMAGE_ID;
 		return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
 	}
 	
@@ -734,13 +734,13 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		int memory = 627;
 		int disk = 8;
 		
-		String imageId = BaseUnitTests.FAKE_IMAGE_ID;
+		String imageId = testUtils.FAKE_IMAGE_ID;
 		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
 		SystemUser systemUser = null;
 		List<String> networksId = null;
-		ArrayList<UserData> userData = createUserDateList();
+		ArrayList<UserData> userData = testUtils.createUserDataList();
 		
 		ComputeOrder computeOrder = new ComputeOrder(
 				systemUser,
@@ -757,7 +757,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 				networksId);
 		
 		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(BaseUnitTests.FAKE_INSTANCE_ID);
+		computeOrder.setInstanceId(testUtils.FAKE_INSTANCE_ID);
 		computeOrder.setRequirements(requirements);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 		

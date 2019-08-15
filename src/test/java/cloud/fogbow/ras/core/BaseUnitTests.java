@@ -33,9 +33,6 @@ public class BaseUnitTests {
     protected static final Logger LOGGER = Logger.getLogger(BaseUnitTests.class);
     
     protected TestUtils testUtils;
-    protected static final String FAKE_USER_DATA = "fake-user-data";
-    protected static final String FAKE_TAG = "fake-tag";
-    protected static final String FAKE_VOLUME_ID = "fake-volume-id";
 
     @Before
     public void setup() {
@@ -58,14 +55,4 @@ public class BaseUnitTests {
         Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
         activeOrderMap.clear();
     }
-    }
-    
-    /*
-     * Create fake user data for testing.
-     */
-    protected ArrayList<UserData> createUserDateList() {
-        UserData[] userDataArray = new UserData[] {
-                new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
-
-        return new ArrayList<>(Arrays.asList(userDataArray));
 }
