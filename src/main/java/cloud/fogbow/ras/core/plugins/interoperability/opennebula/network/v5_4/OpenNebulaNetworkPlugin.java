@@ -132,10 +132,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkOrder.getInstanceId());
 
-		String[] securityGroups = this.getSecurityGroups(virtualNetwork);
-
-		for (String securityGroupId : securityGroups) {
-			SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
+		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, networkOrder.getId());
+		if (securityGroup != null) {
 			deleteSecurityGroup(securityGroup);
 		}
 
@@ -156,14 +154,23 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	protected String[] getSecurityGroups(VirtualNetwork virtualNetwork) {
+	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, String orderId)
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		String securityGroupIdsStr = virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH);
 		if (securityGroupIdsStr == null || securityGroupIdsStr.isEmpty()) {
 			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
 			return null;
 		}
 
-		return securityGroupIdsStr.split(SECURITY_GROUPS_SEPARATOR);
+		String[] securityGroupIds =  securityGroupIdsStr.split(SECURITY_GROUPS_SEPARATOR);
+		String securityGroupName = this.generateSecurityGroupName(orderId);
+		SecurityGroup securityGroup = null;
+		for (String securityGroupId : securityGroupIds) {
+			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
+			if (securityGroup.getName().equals(securityGroupName)) break;
+		}
+
+		return securityGroup;
 	}
 
 	protected String createSecurityGroup(Client client, String virtualNetworkId, NetworkOrder networkOrder)
@@ -172,7 +179,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 		String ip = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
 		String size = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
-		String name = generateSecurityGroupName(networkOrder);
+		String name = generateSecurityGroupName(networkOrder.getId());
 		
 		// "ALL" setting applies to all protocols if a port range is not defined
 		String protocol = ALL_PROTOCOLS;
@@ -204,8 +211,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 	
-	protected String generateSecurityGroupName(NetworkOrder networkOrder) {
-		return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkOrder.getId();
+	protected String generateSecurityGroupName(String instanceId) {
+		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
 	}
 	
 	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) throws InvalidParameterException {
