@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
@@ -103,7 +104,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 	}
 
 	private void loadInstancesAllocated(Ec2Client client) throws FogbowException {
-		List<Instance> instances = getInstanceReservation(client);
+		List<Instance> instances = getInstanceReservations(client);
 		ComputeAllocation allocation;
 		if (!instances.isEmpty()) {
 			for (Instance instance : instances) {
@@ -122,7 +123,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		int vCPU = allocationAvailable.getvCPU() * instances;
 		int ram = allocationAvailable.getRam() * instances;
 		int disk = allocatedInstance != null ? allocatedInstance.getDisk() : 0;
-		List<Volume> volumes = getInstanceVolumes(instance, client);
+		List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
 		disk += getAllDisksSize(volumes);
 		return new ComputeAllocation(vCPU, ram, instances, disk);
 	}
@@ -133,17 +134,6 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 			size += volume.size();
 		}
 		return size;
-	}
-
-	private List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) throws FogbowException {
-		List<Volume> volumes = new ArrayList<>();
-		DescribeVolumesResponse response;
-		List<String> volumeIds = getVolumeIds(instance);
-		for (String volumeId : volumeIds) {
-			response = doDescribeVolumes(volumeId, client);
-			volumes.addAll(response.volumes());
-		}
-		return volumes;
 	}
 
 	protected DescribeVolumesResponse doDescribeVolumes(String volumeId, Ec2Client client) throws FogbowException {
@@ -157,31 +147,13 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		}
 	}
 
-	private List<String> getVolumeIds(Instance instance) {
-		List<String> volumeIds = new ArrayList<String>();
-		String volumeId;
-		for (int i = 0; i < instance.blockDeviceMappings().size(); i++) {
-			volumeId = instance.blockDeviceMappings().get(i).ebs().volumeId();
-			volumeIds.add(volumeId);
-		}
-		return volumeIds;
-	}
-
-	private List<Instance> getInstanceReservation(Ec2Client client) throws FogbowException {
-		DescribeInstancesResponse response = doDescribeInstances(client);
+	private List<Instance> getInstanceReservations(Ec2Client client) throws FogbowException {
+		DescribeInstancesResponse response = AwsV2CloudUtil.describeInstances(client);
 		List<Instance> instances = new ArrayList<>();
 		for (Reservation reservation : response.reservations()) {
 			instances.addAll(reservation.instances());
 		}
 		return instances;
-	}
-
-	protected DescribeInstancesResponse doDescribeInstances(Ec2Client client) throws FogbowException {
-		try {
-			return client.describeInstances();
-		} catch (SdkException e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
 	}
 
 	private void loadAvailableAllocations() throws FogbowException {

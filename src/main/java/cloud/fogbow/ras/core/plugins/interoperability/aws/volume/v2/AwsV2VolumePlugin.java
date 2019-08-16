@@ -59,10 +59,10 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		String name = FogbowCloudUtil.defineInstanceName(volumeOrder.getName());
 		
 		CreateVolumeRequest request = CreateVolumeRequest.builder()
-				.size(volumeOrder.getVolumeSize())
-				.availabilityZone(this.zone)
-				.build();
-		
+			.size(volumeOrder.getVolumeSize())
+			.availabilityZone(this.zone)
+			.build();
+
 		return doCreateVolumeRequest(client, request, name);
 	}
 
@@ -73,8 +73,8 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		
 		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-				.volumeIds(volumeOrder.getInstanceId())
-				.build();
+			.volumeIds(volumeOrder.getInstanceId())
+			.build();
 
 		DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
 		return mountVolumeInstance(response);
@@ -88,8 +88,8 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		String volumeId = volumeOrder.getInstanceId();
 		
 		DeleteVolumeRequest request = DeleteVolumeRequest.builder()
-				.volumeId(volumeOrder.getInstanceId())
-				.build();
+			.volumeId(volumeOrder.getInstanceId())
+			.build();
 		
 		try {
 		    client.deleteVolume(request);
@@ -104,7 +104,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
         try {
             CreateVolumeResponse response = client.createVolume(request);
             volumeId = response.volumeId();
-            AwsV2CloudUtil.doCreateTagsRequest(client, volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name);
+            AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
         } catch (Exception e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }

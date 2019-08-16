@@ -40,7 +40,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         		.owners(cloudUser.getId())
         		.build();
         
-        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(client, request);
+        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
         return mountImagesSummary(response);
     }
 
@@ -52,7 +52,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         		.imageIds(imageId)
         		.build();
 
-        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(client, request);
+        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
         Image retrievedImage = AwsV2CloudUtil.getImagesFrom(response);
         return mountImageInstance(retrievedImage);
     }
