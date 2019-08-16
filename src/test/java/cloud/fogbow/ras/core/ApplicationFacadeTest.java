@@ -77,8 +77,10 @@ import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
+    private static final String ANY_VALUE = "anything";
 	private static final String BUILD_NUMBER_FORMAT = "%s-abcd";
 	private static final String BUILD_NUMBER_FORMAT_FOR_TESTING = "%s-[testing mode]";
+	private static final String EMPTY_STRING = "";
 	private static final String FAKE_CLOUD_NAME = "fake-cloud-name";
 	private static final String FAKE_CONTENT = "fooBar";
 	private static final String FAKE_PROVIDER_ID = "fake-provider-id";
@@ -94,6 +96,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private LocalCloudConnector localCloudConnector;
 	private AuthorizationPlugin authorizationPlugin;
 	private CloudListController cloudListController;
+    private SecurityRuleController securityRuleController;
 
 	@Before
 	public void setUp() throws FogbowException {
@@ -102,54 +105,56 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.orderController = Mockito.spy(new OrderController());
 		this.authorizationPlugin = mockAuthorizationPlugin();
 		this.cloudListController = mockCloudListController();
+		this.securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade = Mockito.spy(ApplicationFacade.getInstance());
 		this.facade.setOrderController(this.orderController);
 		this.facade.setAuthorizationPlugin(this.authorizationPlugin);
 		this.facade.setCloudListController(this.cloudListController);
+		this.facade.setSecurityRuleController(this.securityRuleController);
 	}
 
     // test case: When calling the setBuildNumber method, it must generate correct
-	// build number version.
-	@Test
-	public void testVersion() throws Exception {
-		// set up
-		this.facade.setBuildNumber(HomeDir.getPath() + VALID_PATH_CONF);
-		String expected = String.format(BUILD_NUMBER_FORMAT, SystemConstants.API_VERSION_NUMBER);
+    // build number version.
+    @Test
+    public void testVersion() throws Exception {
+        // set up
+        this.facade.setBuildNumber(HomeDir.getPath() + VALID_PATH_CONF);
+        String expected = String.format(BUILD_NUMBER_FORMAT, SystemConstants.API_VERSION_NUMBER);
 
-		// exercise
-		String build = this.facade.getVersionNumber();
+        // exercise
+        String build = this.facade.getVersionNumber();
 
-		// verify
-		Assert.assertEquals(expected, build);
-	}
+        // verify
+        Assert.assertEquals(expected, build);
+    }
 
-	// test case: When calling the setBuildNumber method without a build property
-	// valid in the configuration file, it must generate a testing mode build number
-	// version.
-	@Test
-	public void testVersionWithoutBuildProperty() throws Exception {
-		// set up
-		this.facade.setBuildNumber(HomeDir.getPath() + VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY);
-		String expected = String.format(BUILD_NUMBER_FORMAT_FOR_TESTING, SystemConstants.API_VERSION_NUMBER);
+    // test case: When calling the setBuildNumber method without a build property
+    // valid in the configuration file, it must generate a testing mode build number
+    // version.
+    @Test
+    public void testVersionWithoutBuildProperty() throws Exception {
+        // set up
+        this.facade.setBuildNumber(HomeDir.getPath() + VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY);
+        String expected = String.format(BUILD_NUMBER_FORMAT_FOR_TESTING, SystemConstants.API_VERSION_NUMBER);
 
-		// exercise
-		String build = this.facade.getVersionNumber();
+        // exercise
+        String build = this.facade.getVersionNumber();
 
-		// verify
-		Assert.assertEquals(expected, build);
-	}
+        // verify
+        Assert.assertEquals(expected, build);
+    }
 	
-	// test case: When calling the getPublicKey method with a null Public Key File
-	// Path, it must throw an UnauthorizedRequestException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testGetPublicKeyThrowsUnexpectedException() throws Exception {
-		// set up
-		ServiceAsymmetricKeysHolder sakHolder = mockServiceAsymmetricKeysHolder();
-		sakHolder.setPublicKeyFilePath(null);
+    // test case: When calling the getPublicKey method with a null Public Key File
+    // Path, it must throw an UnauthorizedRequestException.
+    @Test(expected = UnexpectedException.class) // verify
+    public void testGetPublicKeyThrowsUnexpectedException() throws Exception {
+        // set up
+        ServiceAsymmetricKeysHolder sakHolder = mockServiceAsymmetricKeysHolder();
+        sakHolder.setPublicKeyFilePath(null);
 
-		// exercise
-		this.facade.getPublicKey();
-	}
+        // exercise
+        this.facade.getPublicKey();
+    }
 
     // test case: When calling the getCloudNames method with a local member, it must
     // verify that this call was successful.
@@ -160,6 +165,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
 
         // exercise
         this.facade.getCloudNames(localMember, userToken);
@@ -168,7 +175,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .getAuthenticationFromRequester(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
-                Mockito.any(RasOperation.class));
+                Mockito.eq(expectedOperation));
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getCloudNames();
     }
     
@@ -185,6 +192,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         RemoteGetCloudNamesRequest cloudNamesRequest = Mockito.mock(RemoteGetCloudNamesRequest.class);
         Mockito.doReturn(cloudNamesRequest).when(this.facade).getCloudNamesFromRemoteRequest(Mockito.eq(remoteMember),
                 Mockito.eq(systemUser));
+        
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
 
         // exercise
         this.facade.getCloudNames(remoteMember, userToken);
@@ -193,7 +202,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .getAuthenticationFromRequester(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
-                Mockito.any(RasOperation.class));
+                Mockito.eq(expectedOperation));
         Mockito.verify(cloudNamesRequest, Mockito.times(TestUtils.RUN_ONCE)).send();
     }
     
@@ -571,8 +580,454 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 Mockito.eq(ResourceType.PUBLIC_IP));
     }
     
-    // TODO continue verification from here...
-	
+    // test case: When calling the getAllInstancesStatus method from a COMPUTE
+    // resource type, it must check that this call was successful for this resource
+    // type.
+    @Test
+    public void testGetAllInstancesStatusForComputeResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ResourceType resourceType = ResourceType.COMPUTE;
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+
+        // exercise
+        this.facade.getAllInstancesStatus(userToken, resourceType);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
+                .getInstancesStatus(Mockito.eq(systemUser), Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the getAllInstancesStatus method from a Volume
+    // resource type, it must check that this call was successful for this resource
+    // type.
+    @Test
+    public void testGetAllInstancesStatusForVolumeResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ResourceType resourceType = ResourceType.VOLUME;
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+
+        // exercise
+        this.facade.getAllInstancesStatus(userToken, resourceType);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
+                .getInstancesStatus(Mockito.eq(systemUser), Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the getAllInstancesStatus method from a ATTACHMENT
+    // resource type, it must check that this call was successful for this resource
+    // type.
+    @Test
+    public void testGetAllInstancesStatusForAttachmentResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ResourceType resourceType = ResourceType.ATTACHMENT;
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+
+        // exercise
+        this.facade.getAllInstancesStatus(userToken, resourceType);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
+                .getInstancesStatus(Mockito.eq(systemUser), Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the getAllInstancesStatus method from a NETWORK
+    // resource type, it must check that this call was successful for this resource
+    // type.
+    @Test
+    public void testGetAllInstancesStatusForNetworkResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ResourceType resourceType = ResourceType.NETWORK;
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+
+        // exercise
+        this.facade.getAllInstancesStatus(userToken, resourceType);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
+                .getInstancesStatus(Mockito.eq(systemUser), Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the getAllInstancesStatus method from a PUBLIC_IP
+    // resource type, it must check that this call was successful for this resource
+    // type.
+    @Test
+    public void testGetAllInstancesStatusForPublicIpResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+
+        // exercise
+        this.facade.getAllInstancesStatus(userToken, resourceType);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
+                .getInstancesStatus(Mockito.eq(systemUser), Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the getAllImages method even with a null provider ID
+    // and an empty cloud name, it must verify that this call was successful.
+    @Test
+    public void testGetAllImagesWithNullProviderIdAndEmptyCloudName() throws FogbowException {
+        // set up
+        String providerId = null;
+        String cloudName = EMPTY_STRING;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.IMAGE,
+                TestUtils.DEFAULT_CLOUD_NAME);
+
+        // exercise
+        this.facade.getAllImages(providerId, cloudName, userToken);
+
+        // verify
+        Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
+                .getAllImages(Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the getImage method even with a null provider ID
+    // and an empty cloud name, it must verify that this call was successful.
+    @Test
+    public void testGetImageWithNullProviderIdAndEmptyCloudName() throws FogbowException {
+        // set up
+        String providerId = null;
+        String cloudName = EMPTY_STRING;
+        String imageId = TestUtils.FAKE_IMAGE_ID;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.IMAGE,
+                TestUtils.DEFAULT_CLOUD_NAME);
+
+        // exercise
+        this.facade.getImage(providerId, cloudName, imageId, userToken);
+
+        // verify
+        Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).getImage(Mockito.eq(imageId),
+                Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the createSecurityRule method with resource type
+    // different from order, it must throws an InstanceNotFoundException;
+    @Test
+    public void testCreateSecurityRuleWithResourceTypeDifferentFromOrder() throws FogbowException {
+        // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
+
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        String expected = String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceType);
+
+        try {
+            // exercise
+            this.facade.createSecurityRule(order.getId(), securityRule, userToken, resourceType);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the createSecurityRule method with the same resource
+    // type form a network order, it must verify that this call was successful.
+    @Test
+    public void testCreateSecurityRuleWithSameResourceTypeFromNetworkOrder() throws FogbowException {
+        // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
+        
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+
+        RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE,
+                TestUtils.DEFAULT_CLOUD_NAME, order);
+
+        // exercise
+        this.facade.createSecurityRule(order.getId(), securityRule, userToken, ResourceType.NETWORK);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
+                .createSecurityRule(Mockito.eq(order), Mockito.eq(securityRule), Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the createSecurityRule method with the same resource
+    // type form a public IP order, it must verify that this call was successful.
+    @Test
+    public void testCreateSecurityRuleWithSameResourceTypeFromPublicIpOrder() throws FogbowException {
+        // set up
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(order);
+
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+
+        RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE,
+                TestUtils.DEFAULT_CLOUD_NAME, order);
+
+        // exercise
+        this.facade.createSecurityRule(order.getId(), securityRule, userToken, ResourceType.PUBLIC_IP);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
+                .createSecurityRule(Mockito.eq(order), Mockito.eq(securityRule), Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the getAllSecurityRules method with resource type
+    // different from order, it must throws an InstanceNotFoundException;
+    @Test
+    public void testGetAllSecurityRulesWithResourceTypeDifferentFromOrder() throws FogbowException {
+     // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
+
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        String expected = String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceType);
+
+        try {
+            // exercise
+            this.facade.getAllSecurityRules(order.getId(), userToken, resourceType);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getAllSecurityRules method with the same resource
+    // type form a network order, it must verify that this call was successful.
+    @Test
+    public void testGetAllSecurityRulesWithSameResourceTypeFromNetworkOrder() throws FogbowException {
+        // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
+
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE,
+                TestUtils.DEFAULT_CLOUD_NAME, order);
+
+        // exercise
+        this.facade.getAllSecurityRules(order.getId(), userToken, ResourceType.NETWORK);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
+                .getAllSecurityRules(Mockito.eq(order), Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the getAllSecurityRules method with the same resource
+    // type form a public IP order, it must verify that this call was successful.
+    @Test
+    public void testGetAllSecurityRulesWithSameResourceTypeFromPublicIpOrder() throws FogbowException {
+        // set up
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(order);
+
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE,
+                TestUtils.DEFAULT_CLOUD_NAME, order);
+
+        // exercise
+        this.facade.getAllSecurityRules(order.getId(), userToken, ResourceType.PUBLIC_IP);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
+                .getAllSecurityRules(Mockito.eq(order), Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the deleteSecurityRule method with resource type
+    // different from order, it must throws an InstanceNotFoundException;
+    @Test
+    public void testDeleteSecurityRuleWithResourceTypeDifferentFromOrder() throws FogbowException {
+        // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
+
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        String expected = String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceType);
+
+        try {
+            // exercise
+            this.facade.deleteSecurityRule(order.getId(), securityRuleId, userToken, resourceType);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the deleteSecurityRule method with the same resource
+    // type form a network order, it must verify that this call was successful.
+    @Test
+    public void testDeleteSecurityRuleWithSameResourceTypeFromNetworkOrder() throws FogbowException {
+        // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
+
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        RasOperation expectedOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName,
+                order);
+
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
+
+        // exercise
+        this.facade.deleteSecurityRule(order.getId(), securityRuleId, userToken, ResourceType.NETWORK);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityRule(
+                Mockito.eq(order.getProvider()), Mockito.eq(cloudName), Mockito.eq(securityRuleId),
+                Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the deleteSecurityRule method with the same resource
+    // type form a public IP order, it must verify that this call was successful.
+    @Test
+    public void testDeleteSecurityRuleWithSameResourceTypeFromPublicIpOrder() throws FogbowException {
+        // set up
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(order);
+
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        RasOperation expectedOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName,
+                order);
+
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
+
+        // exercise
+        this.facade.deleteSecurityRule(order.getId(), securityRuleId, userToken, ResourceType.PUBLIC_IP);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityRule(
+                Mockito.eq(order.getProvider()), Mockito.eq(cloudName), Mockito.eq(securityRuleId),
+                Mockito.eq(systemUser));
+    }
+    
+    // test case: When calling the genericRequest method, it must verify that this
+    // call was successful.
+    @Test
+    public void testGenericRequest() throws FogbowException {
+        // set up
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        String genericRequest = ANY_VALUE;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        RasOperation expectedOperation = new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE,
+                cloudName, genericRequest);
+
+        // exercise
+        this.facade.genericRequest(cloudName, providerId, genericRequest, userToken);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
+                .genericRequest(Mockito.eq(genericRequest), Mockito.eq(systemUser));
+    }
+    
 	// test case: When calling the getAsPublicKey method, verify that this call was
 	// successful.
 	@Ignore // FIXME
@@ -627,70 +1082,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// exercise
 		this.facade.authorizeOrder(owner, cloudName, operation, resourceType, order);
-	}
-
-	// test case: When calling the getAllInstancesStatus method, it must return a
-	// list of the instances status of the computeOrders.
-	@Ignore // FIXME
-	@Test
-	public void testGetAllComputeOrdersInstancesStatus() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		
-		ComputeOrder order = this.testUtils.createLocalComputeOrder();
-		order.setSystemUser(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(Operation.GET_ALL, ResourceType.COMPUTE);
-		
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
-
-		// exercise
-		List<InstanceStatus> instancesStatus = this.facade.getAllInstancesStatus(SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.COMPUTE);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
-	}
-
-	// test case: When calling the getAllInstancesStatus method, it must return a
-	// list of the instances status of the volumeOrders.
-	@Ignore // FIXME
-	@Test
-	public void testGetAllVolumeOrdersInstancesStatus() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		
-		VolumeOrder order = this.testUtils.createLocalVolumeOrder();
-		order.setSystemUser(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(Operation.GET_ALL, ResourceType.VOLUME);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
-
-		// exercise
-		List<InstanceStatus> instancesStatus = this.facade.getAllInstancesStatus(SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.VOLUME);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
 
 	// test case: When calling the deleteNetwork method passing a network order with a compute dependency,
@@ -759,38 +1150,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		// exercise
 		this.facade.deleteNetwork(networkOrder2.getId(), SYSTEM_USER_TOKEN_VALUE);
-	}
-
-	// test case: When calling the getAllInstancesStatus method, it must return a
-	// list of the instances status of the networkOrders.
-	@Ignore // FIXME
-	@Test
-	public void testGetAllNetworkOrdersInstancesStatus() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(Operation.GET_ALL, ResourceType.NETWORK);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
-
-		// exercise
-		List<InstanceStatus> instancesStatus = this.facade.getAllInstancesStatus(SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.NETWORK);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
 	}
 
 	// test case: When calling the deleteCompute method passing a compute order with an attachment dependency,
@@ -891,45 +1250,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.facade.deleteVolume(attachmentOrder.getVolumeOrderId(), SYSTEM_USER_TOKEN_VALUE);
 	}
 
-	// test case: When calling the getAllInstancesStatus method, it must return a
-	// list of the instances status of the attachmentOrders.
-	@Ignore // FIXME
-	@Test
-	public void testGetAllAttachmentOrdersInstancesStatus() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
-        computeOrder.setInstanceId(computeOrder.getId());
-        this.orderController.activateOrder(computeOrder);
-        
-        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
-        volumeOrder.setInstanceId(volumeOrder.getId());
-        this.orderController.activateOrder(volumeOrder);
-
-        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
-		this.orderController.activateOrder(attachmentOrder);
-		
-		RasOperation operation = new RasOperation(Operation.GET_ALL, ResourceType.ATTACHMENT);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(attachmentOrder);
-
-		// exercise
-		List<InstanceStatus> instancesStatus = this.facade.getAllInstancesStatus(SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.ATTACHMENT);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
-	}
-	
 	// test case: When calling the deleteCompute method with a PublicIp associated with the compute that is to be
 	// deleted, a DependencyDetectedException should be thrown
 	@Ignore // FIXME
@@ -976,534 +1296,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.verify(this.orderController, Mockito.times(1)).deleteOrder(null);
 	}
 
-	// test case: When calling the getAllInstancesStatus method, it must return a
-	// list of the instances status of the publiIpOrders.
-	@Ignore // FIXME
-	@Test
-	public void testGetAllPublicIpOrdersInstancesStatus() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.PUBLIC_IP
-		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		List<InstanceStatus> expectedInstancesStatus = generateInstancesStatus(order);
-
-		// exercise
-		List<InstanceStatus> instancesStatus = this.facade.getAllInstancesStatus(SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.PUBLIC_IP);
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedInstancesStatus, instancesStatus);
-	}
-
-	// test case: Creating a security rule for a network via a public IP's
-	// endpoint, it must raise an InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testCreateSecurityRuleForNetworkViaPublicIp() throws Exception {
-		// set up
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(null);
-		this.orderController.activateOrder(order);
-
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-
-		// exercise
-		this.facade.createSecurityRule(TestUtils.FAKE_INSTANCE_ID, securityRule, SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.PUBLIC_IP);
-	}
-
-	// test case: Creating a security rule for a public IP via a network's
-	// endpoint, it must raise an InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testCreateSecurityRuleForPublicIpViaNetwork() throws Exception {
-		// set up
-		SystemUser systemUser = null;
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-
-		// exercise
-		this.facade.createSecurityRule(TestUtils.FAKE_INSTANCE_ID, securityRule, SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.NETWORK);
-	}
-
-	// test case: Get all security rules from a network via a public IP's endpoint,
-	// it must raise an InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testGetSecurityRulesForNetworkViaPublicIp() throws Exception {
-		// set up
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(null);
-		this.orderController.activateOrder(order);
-
-		// exercise
-		this.facade.getAllSecurityRules(TestUtils.FAKE_INSTANCE_ID, SYSTEM_USER_TOKEN_VALUE, ResourceType.PUBLIC_IP);
-	}
-
-	// test case: Get all security rules from a public IP via a network's endpoint,
-	// it must raise an InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testGetSecurityRuleForPublicIpViaNetwork() throws Exception {
-		// set up
-		SystemUser systemUser = null;
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		// exercise
-		this.facade.getAllSecurityRules(TestUtils.FAKE_INSTANCE_ID, SYSTEM_USER_TOKEN_VALUE, ResourceType.NETWORK);
-	}
-	
-	// test case: Delete a security rule from a network via public IP's endpoint, it
-	// must raise an InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testDeleteSecurityRulesForNetworkViaPublicIp() throws Exception {
-		// set up
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(null);
-		this.orderController.activateOrder(order);
-
-		// exercise
-		this.facade.deleteSecurityRule(TestUtils.FAKE_INSTANCE_ID, FAKE_RULE_ID, SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.PUBLIC_IP);
-	}
-
-	// test case: Delete a security rule from a public IP via a network's endpoint,
-	// it must raise an InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testDeleteSecurityRuleForPublicIpViaNetwork() throws Exception {
-		// set up
-		SystemUser systemUser = null;
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		// exercise
-		this.facade.deleteSecurityRule(TestUtils.FAKE_INSTANCE_ID, FAKE_RULE_ID, SYSTEM_USER_TOKEN_VALUE,
-				ResourceType.NETWORK);
-	}
-	
-	// test case: Creating a security rule for a public IP via its endpoint, it must
-	// return the rule id, if the createSecurityRule method does not throw an
-	// exception.
-	@Ignore // FIXME
-	@Test
-	public void testCreateSecurityRuleForPublicIp() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.SECURITY_RULE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(securityRuleController);
-
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-
-		// exercise
-		try {
-			this.facade.createSecurityRule(order.getId(), securityRule, SYSTEM_USER_TOKEN_VALUE,
-					ResourceType.PUBLIC_IP);
-		} catch (InstanceNotFoundException e) {
-			// verify
-			Assert.fail();
-		}
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).requestSecurityRule(Mockito.any(), Mockito.eq(securityRule),
-				Mockito.eq(systemUser));
-	}
-
-	// test case: Creating a security rule for a network via its endpoint, it must
-	// return the rule id, if the createSecurityRule method does not throw an
-	// exception.
-	@Ignore // FIXME
-	@Test
-	public void testCreateSecurityRuleForNetwork() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.SECURITY_RULE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(securityRuleController);
-
-		SecurityRule securityRule = Mockito.mock(SecurityRule.class);
-
-		// exercise
-		try {
-			this.facade.createSecurityRule(order.getId(), securityRule, SYSTEM_USER_TOKEN_VALUE,
-					ResourceType.NETWORK);
-		} catch (InstanceNotFoundException e) {
-			// verify
-			Assert.fail();
-		}
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).requestSecurityRule(Mockito.any(), Mockito.eq(securityRule),
-				Mockito.eq(systemUser));
-	}
-
-	// test case: Get all security rules for a public IP via its endpoint, it must
-	// return a list of rules if the getAllSecurityRules method does not throw an
-	// exception.
-	@Ignore // FIXME
-	@Test
-	public void testGetSecurityRuleForPublicIp() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.SECURITY_RULE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(securityRuleController);
-
-		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
-		securityRuleInstance.setId(TestUtils.FAKE_INSTANCE_ID);
-
-		List<SecurityRuleInstance> expectedSecurityRuleInstances = new ArrayList<>();
-		expectedSecurityRuleInstances.add(securityRuleInstance);
-		
-		Mockito.doReturn(expectedSecurityRuleInstances).when(this.localCloudConnector).getAllSecurityRules(order, systemUser);
-
-		// exercise
-		List<SecurityRuleInstance> securityRuleInstances = null;
-		try {
-			securityRuleInstances = this.facade.getAllSecurityRules(order.getId(), SYSTEM_USER_TOKEN_VALUE,
-					ResourceType.PUBLIC_IP);
-		} catch (InstanceNotFoundException e) {
-			Assert.fail();
-		}
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).getAllSecurityRules(Mockito.any(), Mockito.eq(systemUser));
-
-		Assert.assertEquals(expectedSecurityRuleInstances, securityRuleInstances);
-	}
-
-	// test case: Get all security rules for a network via its endpoint, it must
-	// return a list of rules if the getAllSecurityRules method does not throw an
-	// exception.
-	@Ignore // FIXME
-	@Test
-	public void testGetSecurityRuleForNetwork() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.SECURITY_RULE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(securityRuleController);
-
-		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
-		securityRuleInstance.setId(TestUtils.FAKE_INSTANCE_ID);
-
-		List<SecurityRuleInstance> expectedSecurityRuleInstances = new ArrayList<>();
-		expectedSecurityRuleInstances.add(securityRuleInstance);
-		
-		Mockito.doReturn(expectedSecurityRuleInstances).when(this.localCloudConnector).getAllSecurityRules(order, systemUser);
-
-		// exercise
-		List<SecurityRuleInstance> securityRuleInstances = null;
-		try {
-			securityRuleInstances = this.facade.getAllSecurityRules(order.getId(), SYSTEM_USER_TOKEN_VALUE,
-					ResourceType.NETWORK);
-		} catch (InstanceNotFoundException e) {
-			Assert.fail();
-		}
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).getAllSecurityRules(Mockito.any(), Mockito.eq(systemUser));
-
-		Assert.assertEquals(expectedSecurityRuleInstances, securityRuleInstances);
-	}
-	
-	// test case: Delete a security rule for a public IP through its endpoint, if the 
-	// deleteSecurityRule method does not throw an exception it is because the
-	// removal succeeded.
-	@Ignore // FIXME
-	@Test
-	public void testDeleteSecurityRuleForPublicIp() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.SECURITY_RULE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(securityRuleController);
-
-		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
-		securityRuleInstance.setId(TestUtils.FAKE_INSTANCE_ID);
-
-		// exercise
-		try {
-			this.facade.deleteSecurityRule(order.getId(), securityRuleInstance.getId(), SYSTEM_USER_TOKEN_VALUE,
-					ResourceType.PUBLIC_IP);
-		} catch (InstanceNotFoundException e) {
-			Assert.fail();
-		}
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteSecurityRule(Mockito.anyString(),
-				Mockito.eq(systemUser));
-	}
-	
-	// test case: Delete a security rule for a network through its endpoint, if the
-	// deleteSecurityRule method does not throw an exception it is because the
-	// removal succeeded.
-	@Ignore // FIXME
-	@Test
-	public void testDeleteSecurityRuleForNetwork() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-		order.setSystemUser(systemUser);
-		this.orderController.activateOrder(order);
-
-		RasOperation operation = new RasOperation(
-				Operation.DELETE,
-				ResourceType.SECURITY_RULE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		SecurityRuleController securityRuleController = Mockito.spy(new SecurityRuleController());
-		this.facade.setSecurityRuleController(securityRuleController);
-
-		SecurityRuleInstance securityRuleInstance = Mockito.mock(SecurityRuleInstance.class);
-		securityRuleInstance.setId(TestUtils.FAKE_INSTANCE_ID);
-
-		// exercise
-		try {
-			this.facade.deleteSecurityRule(order.getId(), securityRuleInstance.getId(), SYSTEM_USER_TOKEN_VALUE,
-					ResourceType.NETWORK);
-		} catch (InstanceNotFoundException e) {
-			Assert.fail();
-		}
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteSecurityRule(Mockito.anyString(),
-				Mockito.eq(systemUser));
-	}
-	
-	// test case: When calling the genericRequest method, it must return a generic
-	// request response.
-	@Ignore // FIXME
-	@Test
-	public void testGenericRequestSuccessfully() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		String url = FAKE_URL;
-		HashMap<String, String> headers = new HashMap<>();
-		HashMap<String, String> body = new HashMap<>();
-		FogbowGenericRequest httpGenericRequest = new HttpRequest(HttpMethod.GET, url, body, headers);
-		String serializedGenericRequest = GsonHolder.getInstance().toJson(httpGenericRequest);
-
-		String responseContent = FAKE_CONTENT;
-		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
-
-		RasOperation operation = new RasOperation(
-				Operation.GENERIC_REQUEST,
-				ResourceType.GENERIC_RESOURCE,
-				FAKE_CLOUD_NAME,
-				serializedGenericRequest
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		Mockito.when(this.localCloudConnector.genericRequest(Mockito.eq(serializedGenericRequest), Mockito.eq(systemUser)))
-				.thenReturn(expectedResponse);
-
-		String cloudName = FAKE_CLOUD_NAME;
-		
-		// exercise
-		FogbowGenericResponse fogbowGenericResponse = this.facade.genericRequest(cloudName,
-				FAKE_PROVIDER_ID, serializedGenericRequest, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(serializedGenericRequest),
-				Mockito.eq(systemUser));
-
-		Assert.assertEquals(expectedResponse, fogbowGenericResponse);
-	}
-
-	// test case: When calling the getAllImages method, verify that this call was
-	// successful.
-	@Ignore // FIXME
-	@Test
-	public void testGetAllImagesSuccessfully() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		RasOperation operation = new RasOperation(
-				Operation.GET_ALL,
-				ResourceType.IMAGE,
-				TestUtils.DEFAULT_CLOUD_NAME
-		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		String providerId = null;
-		String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
-		
-		// exercise
-		this.facade.getAllImages(providerId, cloudName, SYSTEM_USER_TOKEN_VALUE);
-		
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).getAllImages(Mockito.eq(systemUser));
-	}
-	
-	// test case: When calling the getImage method, verify that this call was
-	// successful.
-	@Ignore // FIXME
-	@Test
-	public void testGetImageSuccessfully() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		RasOperation operation = new RasOperation(
-				Operation.GET,
-				ResourceType.IMAGE,
-				TestUtils.DEFAULT_CLOUD_NAME
-		);
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		String providerId = FAKE_PROVIDER_ID;
-		String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
-		String imageId = TestUtils.FAKE_IMAGE_ID;
-
-		// exercise
-		this.facade.getImage(providerId, cloudName, imageId, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		Mockito.verify(this.localCloudConnector, Mockito.times(1)).getImage(Mockito.anyString(), Mockito.eq(systemUser));
-	}
-	
 	private PublicIpOrder spyPublicIpOrder(SystemUser systemUser) {
 		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
 
@@ -1533,19 +1325,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		return order;
 	}
 
-	private List<InstanceStatus> generateInstancesStatus(Order order) throws InstanceNotFoundException {
-		List<InstanceStatus> instancesExpected = new ArrayList<>();
-		InstanceStatus instanceStatus = new InstanceStatus(
-				order.getId(), 
-				null, 
-				order.getProvider(),
-				order.getCloudName(), 
-				InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
-
-		instancesExpected.add(instanceStatus);
-		return instancesExpected;
-	}
-
 	private SystemUser createFederationUserAuthenticate(RSAPublicKey keyRSA) throws FogbowException {
 		SystemUser systemUser = this.testUtils.createSystemUser();
 		PowerMockito.mockStatic(AuthenticationUtil.class);
@@ -1572,23 +1351,23 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 	// TODO the methods below are up to date...
 
-	private ArrayList<UserData> generateVeryLongUserDataFileContent() {
-	    char[] value = new char[UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT + 1];
-		String extraUserDataFileContent = new String(value);
+    private ArrayList<UserData> generateVeryLongUserDataFileContent() {
+        char[] value = new char[UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT + 1];
+        String extraUserDataFileContent = new String(value);
 
-		UserData userData = new UserData();
-		userData.setExtraUserDataFileContent(extraUserDataFileContent);
+        UserData userData = new UserData();
+        userData.setExtraUserDataFileContent(extraUserDataFileContent);
 
-		ArrayList<UserData> userDataScripts = new ArrayList<>();
-		userDataScripts.add(userData);
-
-		return userDataScripts;
-	}
+        ArrayList<UserData> userDataScripts = new ArrayList<>();
+        userDataScripts.add(userData);
+        return userDataScripts;
+    }
 	
-	private CloudListController mockCloudListController() {
-	    List<String> cloudNames = new ArrayList<>();
-	    CloudListController controller = Mockito.mock(CloudListController.class);
+    private CloudListController mockCloudListController() {
+        CloudListController controller = Mockito.mock(CloudListController.class);
+        List<String> cloudNames = new ArrayList<>();
         Mockito.doReturn(cloudNames).when(controller).getCloudNames();
+        Mockito.doReturn(TestUtils.DEFAULT_CLOUD_NAME).when(controller).getDefaultCloudName();
         return controller;
     }
 
