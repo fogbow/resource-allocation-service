@@ -130,7 +130,7 @@ public class OpenNebulaNetworkPluginTest {
 		String expected = ID_VALUE_ONE;
 
 		// exercise
-		String securityGroupId = this.plugin.getSecurityGroupBy(virtualNetwork);
+		String securityGroupId = this.plugin.getSecurityGroups(virtualNetwork)[0];
 
 		// verify
 		Mockito.verify(virtualNetwork, Mockito.times(1))
@@ -156,7 +156,7 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.xpath(Mockito.anyString())).thenReturn(securityGroups);
 
 		// exercise
-		String securityGroupId = this.plugin.getSecurityGroupBy(virtualNetwork);
+		String securityGroupId = this.plugin.getSecurityGroups(virtualNetwork)[0];
 
 		// verify
 		Mockito.verify(virtualNetwork, Mockito.times(1))
@@ -182,7 +182,7 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.xpath(Mockito.anyString())).thenReturn(securityGroups);
 
 		// exercise
-		String securityGroupId = this.plugin.getSecurityGroupBy(virtualNetwork);
+		String securityGroupId = this.plugin.getSecurityGroups(virtualNetwork)[0];
 
 		// verify
 		Mockito.verify(virtualNetwork, Mockito.times(1))
@@ -208,7 +208,7 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.when(virtualNetwork.xpath(Mockito.anyString())).thenReturn(securityGroups);
 
 		// exercise
-		String securityGroupId = this.plugin.getSecurityGroupBy(virtualNetwork);
+		String securityGroupId = this.plugin.getSecurityGroups(virtualNetwork)[0];
 
 		// verify
 		Mockito.verify(virtualNetwork, Mockito.times(1))
