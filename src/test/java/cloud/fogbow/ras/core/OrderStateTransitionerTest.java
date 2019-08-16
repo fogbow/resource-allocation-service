@@ -1,24 +1,25 @@
-package cloud.fogbow.ras;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
-import org.mockito.internal.util.MockUtil;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.OrderStateTransitioner;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
+import org.mockito.internal.util.MockUtil;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.mockito.verification.VerificationMode;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class})
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, OrderStateTransitioner.class})
 public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
@@ -39,13 +40,69 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         return order;
     }
 
-    // test case: When calling the transition() method, it must change the state of Order
+    // test case: When calling the transition() method, it must invoke
+    // doTransition() to change order's state.
+    @Test
+    public void testTransitionToChangeOrderStateOpenToSpawning() throws Exception {
+
+        // set up
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        this.testUtils.mockReadOrdersFromDataBase();
+
+        Order order = createOrder(originState);
+
+        PowerMockito.spy(OrderStateTransitioner.class);
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "doTransition", Mockito.any(), Mockito.any());
+
+        // exercise
+        OrderStateTransitioner.transition(order, destinationState);
+
+        // verify
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+    }
+
+    // test case: When calling the transition() method, it must notify it's remote requester
+    // and invoke doTransition() to change order's state.
+    @Test
+    public void testTransitionToChangeOrderStateOpenToSpawningWithRemoteProvider() throws Exception {
+
+        // set up
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        this.testUtils.mockReadOrdersFromDataBase();
+
+        Order order = createOrder(originState);
+        order.setRequester(TestUtils.FAKE_REMOTE_MEMBER_ID);
+
+        PowerMockito.spy(OrderStateTransitioner.class);
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "notifyRequester", Mockito.any(Order.class), Mockito.any(OrderState.class));
+
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "doTransition", Mockito.any(), Mockito.any());
+
+        // exercise
+        OrderStateTransitioner.transition(order, destinationState);
+
+        // verify
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(VerificationModeFactory.times(1));
+        OrderStateTransitioner.notifyRequester(Mockito.any(), Mockito.any());
+    }
+
+    // test case: When calling the Transition() method, it must change the state of Order
     // passed as parameter to a specific OrderState. This Order defined originally with Open, will
     // be changed to the Spawning state, removed from the open orders list, and added to the spawning
     // orders list.
     @Test
-    public void testTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
-
+    public void testDoTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
         // set up
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
@@ -63,7 +120,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Assert.assertNull(spawningOrdersList.getNext());
 
         // exercise
-        OrderStateTransitioner.transition(order, destinationState);
+        OrderStateTransitioner.doTransition(order, destinationState);
 
         // verify
         Assert.assertEquals(order, spawningOrdersList.getNext());
@@ -90,7 +147,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createOrder(originState);
 
         // exercise
-        OrderStateTransitioner.transition(order, destinationState);
+        OrderStateTransitioner.doTransition(order, destinationState);
     }
 
     // test case: When calling the transition() method and the destination list of the 'Order' is
@@ -116,7 +173,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createOrder(originState);
 
         // exercise
-        OrderStateTransitioner.transition(order, destinationState);
+        OrderStateTransitioner.doTransition(order, destinationState);
     }
 
 }
