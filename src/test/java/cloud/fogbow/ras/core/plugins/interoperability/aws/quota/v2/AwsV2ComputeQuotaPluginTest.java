@@ -209,18 +209,18 @@ public class AwsV2ComputeQuotaPluginTest {
 
 	// case test: When calling the doDescribeInstances method, and an error occurs
 	// during the request, the UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDescribeInstancesUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.describeInstances()).thenThrow(SdkClientException.builder().build());
-
-		// exercise
-		this.plugin.doDescribeInstances(client);
-	}
+//	@Test(expected = UnexpectedException.class) // verify
+//	public void testDoDescribeInstancesUnsuccessful() throws FogbowException {
+//		// set up
+//		Ec2Client client = Mockito.mock(Ec2Client.class);
+//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
+//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+//
+//		Mockito.when(client.describeInstances()).thenThrow(SdkClientException.builder().build());
+//
+//		// exercise
+//		this.plugin.doDescribeInstances(client);
+//	}
 
 	// case test: When calling the doDescribeVolumes method, and an error occurs
 	// during the request, the UnexpectedException will be thrown.
