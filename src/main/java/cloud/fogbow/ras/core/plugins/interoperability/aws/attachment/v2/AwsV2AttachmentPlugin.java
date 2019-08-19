@@ -101,7 +101,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
                 .volumeIds(attachmentId)
                 .build();
         
-        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
+        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
         return mountAttachmentInstance(response);
     }
 

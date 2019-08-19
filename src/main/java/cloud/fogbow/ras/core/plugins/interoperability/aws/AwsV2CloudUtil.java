@@ -21,7 +21,7 @@ public class AwsV2CloudUtil {
     public static final String AWS_TAG_NAME = "Name";
     public static final Integer SSH_DEFAULT_PORT = 22;
     
-    public static Image getImagesFrom(DescribeImagesResponse response) throws FogbowException {
+    public static Image getImagesFrom(DescribeImagesResponse response) throws InstanceNotFoundException {
         if (response != null && !response.images().isEmpty()) {
             return response.images().listIterator().next();
         }
@@ -29,7 +29,7 @@ public class AwsV2CloudUtil {
     }
     
     public static DescribeImagesResponse doDescribeImagesRequest(DescribeImagesRequest request, Ec2Client client)
-            throws FogbowException {
+            throws UnexpectedException {
         try {
             return client.describeImages(request);
         } catch (Exception e) {
@@ -37,14 +37,14 @@ public class AwsV2CloudUtil {
         }
     }
     
-    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws FogbowException {
+    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws InstanceNotFoundException {
         if (response != null && !response.volumes().isEmpty()) {
             return response.volumes().listIterator().next();
         }
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
     
-    public static DescribeVolumesResponse doDescribeVolumesRequest(Ec2Client client, DescribeVolumesRequest request)
+    public static DescribeVolumesResponse doDescribeVolumesRequest(DescribeVolumesRequest request, Ec2Client client)
             throws FogbowException {
         try {
             return client.describeVolumes(request);
@@ -84,7 +84,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static String createSecurityGroup(String name, Ec2Client client, String cidr, String resourceId, String vpcId, String description) throws FogbowException{
+    public static String createSecurityGroup(String name, String cidr, String resourceId, String vpcId, String description, Ec2Client client) throws FogbowException{
         CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
             .description(description)
             .groupName(name)
@@ -95,14 +95,14 @@ public class AwsV2CloudUtil {
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
             groupId = response.groupId();
             AwsV2CloudUtil.createTagsRequest(resourceId, AWS_TAG_GROUP_ID, groupId, client);
-            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(groupId, client, cidr);
+            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(groupId, cidr, client);
         } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
         return groupId;
     }
 
-    public static void doAuthorizeSecurityGroupIngress(String groupId, Ec2Client client, String cidr)
+    public static void doAuthorizeSecurityGroupIngress(String groupId, String cidr, Ec2Client client)
             throws FogbowException {
 
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
@@ -159,7 +159,7 @@ public class AwsV2CloudUtil {
         List<String> volumeIds = AwsV2CloudUtil.getVolumeIds(instance);
         for (String volumeId : volumeIds) {
             request = DescribeVolumesRequest.builder().volumeIds(volumeId).build();
-            response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
+            response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
             volumes.addAll(response.volumes());
         }
         return volumes;

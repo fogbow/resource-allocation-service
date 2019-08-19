@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import org.h2.security.Fog;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -28,6 +31,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 public class TestUtils {
     
@@ -244,5 +248,12 @@ public class TestUtils {
                 new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG)};
 
         return new ArrayList<>(Arrays.asList(userDataArray));
+    }
+
+    public Ec2Client getAwsMockedClient() throws FogbowException {
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+        return client;
     }
 }

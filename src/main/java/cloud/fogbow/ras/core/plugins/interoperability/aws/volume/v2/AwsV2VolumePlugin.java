@@ -76,7 +76,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 			.volumeIds(volumeOrder.getInstanceId())
 			.build();
 
-		DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
+		DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
 		return mountVolumeInstance(response);
 	}
 	

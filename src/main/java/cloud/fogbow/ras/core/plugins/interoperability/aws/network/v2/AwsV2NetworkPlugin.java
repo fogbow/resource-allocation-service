@@ -147,7 +147,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	protected void handleSecurityIssues(Ec2Client client, String cidr, String subnetId) throws FogbowException {
 		String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
 		try {
-			AwsV2CloudUtil.createSecurityGroup(groupName, client, cidr, subnetId, this.defaultVpcId, SECURITY_GROUP_DESCRIPTION);
+			AwsV2CloudUtil.createSecurityGroup(groupName, cidr, subnetId, this.defaultVpcId, SECURITY_GROUP_DESCRIPTION, client);
 		} catch (UnexpectedException e) {
 			doDeleteSubnet(client, subnetId);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);

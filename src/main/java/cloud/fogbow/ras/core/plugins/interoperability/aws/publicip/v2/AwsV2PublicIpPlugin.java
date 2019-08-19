@@ -139,8 +139,8 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 	protected String handleSecurityIssues(String allocationId, Ec2Client client) throws FogbowException {
 		String groupId = "";
 		try {
-			groupId = AwsV2CloudUtil.createSecurityGroup(SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId, client, DEFAULT_DESTINATION_CIDR,
-					allocationId, this.defaultVpcId, SECURITY_GROUP_DESCRIPTION);
+			groupId = AwsV2CloudUtil.createSecurityGroup(SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId, DEFAULT_DESTINATION_CIDR,
+					allocationId, this.defaultVpcId, SECURITY_GROUP_DESCRIPTION, client);
 		} catch(UnexpectedException e) {
 			doReleaseAddresses(allocationId, client);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
