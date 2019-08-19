@@ -325,6 +325,7 @@ public class ApplicationFacade {
     }
     
     protected String activateOrder(Order order, String userToken) throws FogbowException {
+        Order embeddedOrder = null;
         // Set order fields that have not been provided by the requester in the body of the HTTP request
         order.setRequester(this.providerId);
         // Set provider and cloud Ids
@@ -333,15 +334,15 @@ public class ApplicationFacade {
             // embedded orders.
             case ATTACHMENT:
                 AttachmentOrder attachOrder = (AttachmentOrder) order;
-                Order o1 = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachOrder.getComputeOrderId());
-                order.setProvider(o1.getProvider());
-                order.setCloudName(o1.getCloudName());
+                embeddedOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachOrder.getComputeOrderId());
+                order.setProvider(embeddedOrder.getProvider());
+                order.setCloudName(embeddedOrder.getCloudName());
                 break;
             case PUBLIC_IP:
                 PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-                Order o2 = SharedOrderHolders.getInstance().getActiveOrdersMap().get(publicIpOrder.getComputeOrderId());
-                order.setProvider(o2.getProvider());
-                order.setCloudName(o2.getCloudName());
+                embeddedOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(publicIpOrder.getComputeOrderId());
+                order.setProvider(embeddedOrder.getProvider());
+                order.setCloudName(embeddedOrder.getCloudName());
                 break;
             default:
                 if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.providerId);
@@ -419,7 +420,7 @@ public class ApplicationFacade {
         return this.asPublicKey;
     }
 
-    private void checkEmbeddedOrdersConsistency(Order order) throws InvalidParameterException, UnexpectedException {
+    protected void checkEmbeddedOrdersConsistency(Order order) throws InvalidParameterException, UnexpectedException {
         // Orders that embed other orders (compute, attachment and publicip) need to check the consistency
         // of these orders when the order is being dispatched by the LocalCloudConnector.
         switch (order.getType()) {

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
@@ -84,6 +85,12 @@ public class TestUtils {
     }
     
     public ComputeOrder createComputeOrder(String requestingMember, String providingMember) {
+        return createComputeOrder(requestingMember, providingMember, null);
+    }
+    
+    public ComputeOrder createComputeOrder(String requestingMember, String providingMember, 
+            List<String> networkOrderIds) {
+        
         ComputeOrder computeOrder =
                 new ComputeOrder(
                         createSystemUser(),
@@ -97,7 +104,7 @@ public class TestUtils {
                         FAKE_IMAGE_ID,
                         mockUserData(),
                         FAKE_PUBLIC_KEY,
-                        null);
+                        networkOrderIds);
 
         return computeOrder;
     }
