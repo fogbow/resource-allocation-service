@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.SystemConstants;
+import org.apache.commons.net.util.SubnetUtils;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
+import org.opennebula.client.secgroup.SecurityGroupPool;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -29,13 +29,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 	
-	private static final String CIDR_SLICE = "[/]";
 	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
 	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
 	private static final String RANGE_PORT_SEPARATOR = ":";
 
-	private static final int BASE_VALUE = 2;
-	private static final int IPV4_AMOUNT_BITS = 32;
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
 
 	protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
@@ -51,15 +48,16 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudUser cloudUser)
             throws FogbowException {
-
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
+		// NOTE(pauloewerton): in ONe, the secgroup is always associated to a VNET.
     	String virtualNetworkId = majorOrder.getInstanceId();
     	VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 
-		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
-		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId); 
+		String securityGroupId = null;
+		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, majorOrder);
+		if (securityGroup != null) securityGroupId = securityGroup.getId();
+		else throw new UnexpectedException();
 		
 		String xml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
@@ -73,28 +71,24 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template));
 			throw new InvalidParameterException();
 		}
+
 		String instanceId = rule.serialize();
 		return instanceId;
     }
 
 	@Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
-    	LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, majorOrder.getInstanceId(), cloudUser.getToken()));
     	Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-
-		// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids
-		// in the opennebula context
 		String virtualNetworkId = majorOrder.getInstanceId();
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 		
-		String securityGroupId = getSecurityGroupBy(virtualNetwork);
-		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
-		return getSecurityRules(securityGroup);
+		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, majorOrder);
+		if (securityGroup != null) return this.getSecurityRules(securityGroup);
+		else throw new UnexpectedException();
 	}
 
     @Override
     public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudUser.getToken()));
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		Rule ruleToRemove = createRule(securityRuleId);
@@ -117,12 +111,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 	}
 
 	protected Rule createRuleBy(SecurityRule securityRule) {
+		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(securityRule.getCidr()).getInfo();
+		String ip = subnetInfo.getLowAddress();
+		String size = String.valueOf(subnetInfo.getAddressCount());
+		int portFrom = securityRule.getPortFrom();
+		String range = portFrom == securityRule.getPortTo() ? String.valueOf(portFrom) :
+				securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
 		String protocol = securityRule.getProtocol().toString().toUpperCase();
-		String slice[] = securityRule.getCidr().split(CIDR_SLICE);
-		String ip = slice[0];
-		int value = Integer.parseInt(slice[1]);
-		String size = String.valueOf((int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - value));
-		String range = securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
 		String type = mapRuleType(securityRule.getDirection());
 
 		Rule rule = new Rule();
@@ -131,6 +126,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 		rule.setSize(size);
 		rule.setRange(range);
 		rule.setType(type);
+
 		return rule;
 	}
 
@@ -219,7 +215,41 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     	}
     	return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
     }
-    
+
+	private String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
+		String securityGroupName;
+		switch (majorOrder.getType()) {
+			case NETWORK:
+				securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+				break;
+			case PUBLIC_IP:
+				securityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+				break;
+			default:
+				throw new InvalidParameterException();
+		}
+		return securityGroupName;
+	}
+
+	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, Order order)
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+		String securityGroupIdsStr = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
+		if (securityGroupIdsStr == null || securityGroupIdsStr.isEmpty()) {
+			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
+			return null;
+		}
+
+		String[] securityGroupIds =  securityGroupIdsStr.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
+		String securityGroupName = this.retrieveSecurityGroupName(order);
+		SecurityGroup securityGroup = null;
+		for (String securityGroupId : securityGroupIds) {
+			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
+			if (securityGroup.getName().equals(securityGroupName)) break;
+		}
+
+		return securityGroup;
+	}
+
 	protected Rule createRule(String securityRuleId) throws FogbowException {
 		try {
 			return Rule.deserialize(securityRuleId);
@@ -264,5 +294,4 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 			}
 		}
 	}
-
 }

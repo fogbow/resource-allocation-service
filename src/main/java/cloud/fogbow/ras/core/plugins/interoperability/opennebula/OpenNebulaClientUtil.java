@@ -12,6 +12,7 @@ import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.secgroup.SecurityGroup;
+import org.opennebula.client.secgroup.SecurityGroupPool;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
@@ -107,9 +108,19 @@ public class OpenNebulaClientUtil {
 			throw new UnexpectedException(response.getErrorMessage());
 		}
 
-		LOGGER.info(String.format(Messages.Info.DATASTORE_POOL_LENGTH, datastorePool.getLength()));
-
 		return datastorePool;
+	}
+
+	public static SecurityGroupPool getSecurityGroupPool(Client client) throws UnexpectedException {
+		SecurityGroupPool securityGroupPool = (SecurityGroupPool) generateOnePool(client, DatastorePool.class);
+		OneResponse response = securityGroupPool.info();
+
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+		}
+
+		return securityGroupPool;
 	}
 
 	public static VirtualMachine getVirtualMachine(Client client, String virtualMachineId)
@@ -328,8 +339,10 @@ public class OpenNebulaClientUtil {
 		    return new UserPool(client);
         } else if (classType.isAssignableFrom(DatastorePool.class)) {
             return new DatastorePool(client);
-		}
+		} else if (classType.isAssignableFrom(SecurityGroupPool.class)) {
+            return new SecurityGroupPool(client);
+        }
+
 		return null;
 	}
-	
 }
