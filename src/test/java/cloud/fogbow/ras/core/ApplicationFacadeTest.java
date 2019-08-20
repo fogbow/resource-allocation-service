@@ -1,21 +1,15 @@
 package cloud.fogbow.ras.core;
 
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.as.core.util.AuthenticationUtil;
-import cloud.fogbow.common.exceptions.DependencyDetectedException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -34,7 +28,6 @@ import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -49,7 +42,6 @@ import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
@@ -61,8 +53,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private static final String BUILD_NUMBER_FORMAT = "%s-abcd";
 	private static final String BUILD_NUMBER_FORMAT_FOR_TESTING = "%s-[testing mode]";
 	private static final String EMPTY_STRING = "";
-
-	private static final String FAKE_OWNER_USER_ID_VALUE = "fake-owner-user-id";
 	private static final String SYSTEM_USER_TOKEN_VALUE = "system-user-token-value";
 	private static final String VALID_PATH_CONF = "ras.conf";
 	private static final String VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY = "ras-without-build-number.conf";
@@ -80,7 +70,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
 		this.orderController = Mockito.spy(new OrderController());
 		this.authorizationPlugin = mockAuthorizationPlugin();
-		this.cloudListController = mockCloudListController();
+		this.cloudListController = Mockito.spy(new CloudListController());
 		this.securityRuleController = Mockito.spy(new SecurityRuleController());
 		this.facade = Mockito.spy(ApplicationFacade.getInstance());
 		this.facade.setOrderController(this.orderController);
@@ -667,6 +657,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.PUBLIC_IP;
+        
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
 
         // exercise
@@ -686,11 +677,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllImagesWithNullProviderIdAndEmptyCloudName() throws FogbowException {
         // set up
-        String providerId = null;
-        String cloudName = EMPTY_STRING;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        String providerId = null;
+        String cloudName = EMPTY_STRING;
 
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.IMAGE,
                 TestUtils.DEFAULT_CLOUD_NAME);
@@ -711,12 +703,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetImageWithNullProviderIdAndEmptyCloudName() throws FogbowException {
         // set up
-        String providerId = null;
-        String cloudName = EMPTY_STRING;
-        String imageId = TestUtils.FAKE_IMAGE_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        String providerId = null;
+        String cloudName = EMPTY_STRING;
+        String imageId = TestUtils.FAKE_IMAGE_ID;
         
         RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.IMAGE,
                 TestUtils.DEFAULT_CLOUD_NAME);
@@ -761,12 +754,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testCreateSecurityRuleWithSameResourceTypeFromNetworkOrder() throws FogbowException {
         // set up
-        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-        this.orderController.activateOrder(order);
-        
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
 
         SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
@@ -790,12 +783,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testCreateSecurityRuleWithSameResourceTypeFromPublicIpOrder() throws FogbowException {
         // set up
-        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
-        this.orderController.activateOrder(order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(order);
 
         SecurityRule securityRule = Mockito.mock(SecurityRule.class);
 
@@ -842,12 +835,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllSecurityRulesWithSameResourceTypeFromNetworkOrder() throws FogbowException {
         // set up
-        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-        this.orderController.activateOrder(order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
 
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -869,12 +862,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllSecurityRulesWithSameResourceTypeFromPublicIpOrder() throws FogbowException {
         // set up
-        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
-        this.orderController.activateOrder(order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(order);
 
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -920,12 +913,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testDeleteSecurityRuleWithSameResourceTypeFromNetworkOrder() throws FogbowException {
         // set up
-        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-        this.orderController.activateOrder(order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        this.orderController.activateOrder(order);
 
         String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
         RasOperation expectedOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName,
@@ -951,12 +944,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testDeleteSecurityRuleWithSameResourceTypeFromPublicIpOrder() throws FogbowException {
         // set up
-        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
-        this.orderController.activateOrder(order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(order);
 
         String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
         RasOperation expectedOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName,
@@ -982,12 +975,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGenericRequest() throws FogbowException {
         // set up
-        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
-        String providerId = TestUtils.LOCAL_MEMBER_ID;
-        String genericRequest = ANY_VALUE;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        String genericRequest = ANY_VALUE;
 
         RasOperation expectedOperation = new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE,
                 cloudName, genericRequest);
@@ -1009,6 +1003,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testActivateAttachmentOrder() throws FogbowException {
         // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
         computeOrder.setInstanceId(TestUtils.FAKE_COMPUTE_ID);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
@@ -1018,10 +1016,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
         AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
-
-        String userToken = SYSTEM_USER_TOKEN_VALUE;
-        SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        Mockito.doNothing().when(this.facade).checkEmbeddedOrdersConsistency(Mockito.eq(order));
 
         RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -1044,15 +1040,17 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testActivatePublicIpOrder() throws FogbowException {
         // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
         computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(computeOrder.getId());
-
-        String userToken = SYSTEM_USER_TOKEN_VALUE;
-        SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        Mockito.doNothing().when(this.facade).checkEmbeddedOrdersConsistency(Mockito.eq(order));
 
         RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.PUBLIC_IP,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -1076,12 +1074,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testActivateComputeOrderWithNullProvider() throws FogbowException {
         // set up
-        ComputeOrder order = this.testUtils.createLocalComputeOrder();
-        order.setProvider(null);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        order.setProvider(null);
+        
+        Mockito.doNothing().when(this.facade).checkEmbeddedOrdersConsistency(Mockito.eq(order));
 
         RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.COMPUTE,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -1106,12 +1106,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testActivateComputeOrderWithEmptyProvider() throws FogbowException {
         // set up
-        ComputeOrder order = this.testUtils.createLocalComputeOrder();
-        order.setProvider(EMPTY_STRING);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        order.setProvider(EMPTY_STRING);
+        
+        Mockito.doNothing().when(this.facade).checkEmbeddedOrdersConsistency(Mockito.eq(order));
 
         RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.COMPUTE,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -1136,12 +1138,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testActivateNetworkOrderWithNullCloudName() throws FogbowException {
         // set up
-        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-        order.setCloudName(null);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        order.setCloudName(null);
+        
+        Mockito.doNothing().when(this.facade).checkEmbeddedOrdersConsistency(Mockito.eq(order));
 
         RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.NETWORK,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -1166,12 +1170,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testActivateVolumeOrderWithNullCloudName() throws FogbowException {
         // set up
-        VolumeOrder order = this.testUtils.createLocalVolumeOrder();
-        order.setCloudName(EMPTY_STRING);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        VolumeOrder order = this.testUtils.createLocalVolumeOrder();
+        order.setCloudName(EMPTY_STRING);
+        
+        Mockito.doNothing().when(this.facade).checkEmbeddedOrdersConsistency(Mockito.eq(order));
 
         RasOperation expectedOperation = new RasOperation(Operation.CREATE, ResourceType.VOLUME,
                 TestUtils.DEFAULT_CLOUD_NAME, order);
@@ -1195,15 +1201,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetResourceInstanceForComputeOrder() throws FogbowException {
         // set up
-        Order order = testUtils.createLocalComputeOrder();
-        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(order.getId(), order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
-
-        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.eq(order.getId()));
+        
+        Order order = testUtils.createLocalComputeOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
 
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -1226,15 +1230,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetResourceInstanceForVolumeOrder() throws FogbowException {
         // set up
-        Order order = testUtils.createLocalVolumeOrder();
-        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(order.getId(), order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
-
-        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.eq(order.getId()));
+        
+        Order order = testUtils.createLocalVolumeOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
 
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -1257,19 +1259,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetResourceInstanceForAttachmentOrder() throws FogbowException {
         // set up
-        AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
-                this.testUtils.createLocalVolumeOrder());
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(order.getId(), order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
-
-        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.eq(order.getId()));
-
-        Mockito.doNothing().when(this.facade).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET),
-                Mockito.eq(ResourceType.ATTACHMENT), Mockito.eq(order)); // TODO check this mock...
+        
+        AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
+                this.testUtils.createLocalVolumeOrder());
+        order.setProvider(TestUtils.LOCAL_MEMBER_ID);
+        this.orderController.activateOrder(order);
 
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -1291,15 +1288,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetResourceInstanceForNetworkOrder() throws FogbowException {
         // set up
-        Order order = testUtils.createLocalNetworkOrder();
-        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(order.getId(), order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
-
-        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.eq(order.getId()));
+        
+        Order order = testUtils.createLocalNetworkOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
 
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -1322,15 +1317,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetResourceInstanceForPublicIpOrder() throws FogbowException {
         // set up
-        Order order = testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
-        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(order.getId(), order);
-
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
-
-        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.eq(order.getId()));
+        
+        Order order = testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
 
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -1347,331 +1340,511 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 Mockito.eq(order));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getResourceInstance(Mockito.eq(order));
     }
-
-	// test case: When calling the getAsPublicKey method, verify that this call was
-	// successful.
-	@Ignore // FIXME
+    
+    // test case: When calling the deleteOrder method with a valid compute
+    // order, it must verify that this call was successful.
     @Test
-	public void testGetAuthenticationServicePublicKeySuccessfully() throws Exception {
-		// set up
-		PowerMockito.mockStatic(RasPublicKeysHolder.class);
-		RasPublicKeysHolder pkHolder = Mockito.mock(RasPublicKeysHolder.class);
-		PowerMockito.when(RasPublicKeysHolder.getInstance()).thenReturn(pkHolder);
-
-		RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
-		Mockito.when(pkHolder.getAsPublicKey()).thenReturn(keyRSA);
-
-		// exercise
-		this.facade.getAsPublicKey();
-
-		// verify
-		PowerMockito.verifyStatic(RasPublicKeysHolder.class, Mockito.times(1));
-		RasPublicKeysHolder.getInstance();
-
-		Mockito.verify(pkHolder, Mockito.times(1)).getAsPublicKey();
-	}	
-	
-	// test case: When calling the authorizeOrder method with a different resource
-	// type of the order, it must throw a InstanceNotFoundException.
-	@Ignore // FIXME
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testAuthorizeOrderThrowsInstanceNotFoundException() throws Exception {
-		// set up
-		SystemUser systemUser = null;
-		String cloudName = null;
-		Operation operation = null;
-		ResourceType resourceType = ResourceType.VOLUME;
-		ComputeOrder order = new ComputeOrder();
-		
-		// exercise
-		this.facade.authorizeOrder(systemUser, cloudName, operation, resourceType, order);
-	}
-	
-	// test case: When calling the authorizeOrder method with a system user
-	// different from the order requester, it must throw an
-	// UnauthorizedRequestException.
-	@Ignore // FIXME
-	@Test(expected = UnauthorizedRequestException.class) // verify
-	public void testAuthorizeOrderThrowsUnauthorizedRequestException() throws Exception {
-		// set up
-		SystemUser owner = new SystemUser(FAKE_OWNER_USER_ID_VALUE, null, null);
-		String cloudName = null;
-		Operation operation = null;
-		ResourceType resourceType = ResourceType.COMPUTE;
-		ComputeOrder order = this.testUtils.createLocalComputeOrder();
-
-		// exercise
-		this.facade.authorizeOrder(owner, cloudName, operation, resourceType, order);
-	}
-
-	// test case: When calling the deleteNetwork method passing a network order with a compute dependency,
-	// a DependencyDetectedException should be thrown
-	@Ignore // FIXME
-	@Test(expected = DependencyDetectedException.class) // verify
-	public void testDeleteNetworkOrderWithComputeDependency() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		NetworkOrder networkOrder1 = this.testUtils.createLocalNetworkOrder();
-		networkOrder1.setSystemUser(systemUser);
-		networkOrder1.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-		
-		NetworkOrder networkOrder2 = this.testUtils.createLocalNetworkOrder();
-		networkOrder2.setSystemUser(systemUser);
-		networkOrder2.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-
-		this.orderController.activateOrder(networkOrder1);
-		this.orderController.activateOrder(networkOrder2);
-
-		List<String> networkIds = new LinkedList<>();
-		networkIds.add(networkOrder1.getId());
-		networkIds.add(networkOrder2.getId());
-
-		ComputeOrder computeOrder = new ComputeOrder(
-		        this.testUtils.createSystemUser(),
-                        TestUtils.LOCAL_MEMBER_ID,
-                        TestUtils.LOCAL_MEMBER_ID,
-                        TestUtils.DEFAULT_CLOUD_NAME, 
-                        TestUtils.FAKE_INSTANCE_NAME,
-                        TestUtils.CPU_VALUE,
-                        TestUtils.MEMORY_VALUE,
-                        TestUtils.DISK_VALUE,
-                        TestUtils.FAKE_IMAGE_ID,
-                        this.testUtils.mockUserData(),
-                        TestUtils.FAKE_PUBLIC_KEY,
-                        networkIds);
-
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.COMPUTE,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				computeOrder);
-		
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		ComputeInstance computeInstance = new ComputeInstance(computeOrder.getId());
-		computeOrder.setInstanceId(computeInstance.getId());
-
-		// checking if the order has no state and is null
-		Assert.assertNull(computeOrder.getOrderState());
-		OrderState expectedOrderState = OrderState.OPEN;
-
-		// exercise
-		this.facade.createCompute(computeOrder, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-		
-		Assert.assertEquals(expectedOrderState, computeOrder.getOrderState());
-
-		// exercise
-		this.facade.deleteNetwork(networkOrder2.getId(), SYSTEM_USER_TOKEN_VALUE);
-	}
-
-	// test case: When calling the deleteCompute method passing a compute order with an attachment dependency,
-	// a DependencyDetectedException should be thrown
-	@Ignore // FIXME
-	@Test(expected = DependencyDetectedException.class) // verify
-	public void testDeleteComputeOrderWithAttachmentDependency() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
-        computeOrder.setInstanceId(computeOrder.getId());
-        this.orderController.activateOrder(computeOrder);
+    public void testDeleteOrderForComputeResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
         
-        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
-        volumeOrder.setInstanceId(volumeOrder.getId());
-        this.orderController.activateOrder(volumeOrder);
+        Order order = testUtils.createLocalComputeOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
 
-        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.ATTACHMENT,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				attachmentOrder);
-		
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
+        // exercise
+        this.facade.deleteOrder(order.getId(), userToken, ResourceType.COMPUTE);
 
-		AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentOrder.getId());
-		attachmentOrder.setInstanceId(attachmentInstance.getId());
-
-		// checking if the order has no state and is null
-		Assert.assertNull(attachmentOrder.getOrderState());
-		OrderState expectedOrderState = OrderState.OPEN;
-
-		// exercise
-		this.facade.createAttachment(attachmentOrder, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedOrderState, attachmentOrder.getOrderState());
-
-		// exercise
-		this.facade.deleteCompute(attachmentOrder.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
-	}
-
-	// test case: When calling the deleteVolume method passing a volume order with an attachment dependency,
-	// a DependencyDetectedException should be thrown
-	@Ignore // FIXME
-	@Test(expected = DependencyDetectedException.class) // verify
-	public void testDeleteVolumeOrderWithAttachmentDependency() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
-        computeOrder.setInstanceId(computeOrder.getId());
-		this.orderController.activateOrder(computeOrder);
-        
-        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
-        volumeOrder.setInstanceId(volumeOrder.getId());
-        this.orderController.activateOrder(volumeOrder);
-
-        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
-
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.ATTACHMENT,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				attachmentOrder);
-		
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentOrder.getId());
-		attachmentOrder.setInstanceId(attachmentInstance.getId());
-
-		// checking if the order has no state and is null
-		Assert.assertNull(attachmentOrder.getOrderState());
-		OrderState expectedOrderState = OrderState.OPEN;
-
-		// exercise
-		this.facade.createAttachment(attachmentOrder, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedOrderState, attachmentOrder.getOrderState());
-
-		// exercise
-		this.facade.deleteVolume(attachmentOrder.getVolumeOrderId(), SYSTEM_USER_TOKEN_VALUE);
-	}
-
-	// test case: When calling the deleteCompute method with a PublicIp associated with the compute that is to be
-	// deleted, a DependencyDetectedException should be thrown
-	@Ignore // FIXME
-	@Test(expected = DependencyDetectedException.class) // verify
-	public void testDeleteComputeOrderWithPublicIpDependency() throws Exception {
-		RSAPublicKey keyRSA = mockRSAPublicKey();
-
-		SystemUser systemUser = createFederationUserAuthenticate(keyRSA);
-
-		PublicIpOrder order = spyPublicIpOrder(systemUser);
-
-		RasOperation operation = new RasOperation(
-				Operation.CREATE,
-				ResourceType.PUBLIC_IP,
-				TestUtils.DEFAULT_CLOUD_NAME,
-				order
-		);
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		PublicIpInstance publicIpInstance = new PublicIpInstance(order.getId());
-		order.setInstanceId(publicIpInstance.getId());
-
-		// checking if the order has no state and is null
-		Assert.assertNull(order.getOrderState());
-		OrderState expectedOrderState = OrderState.OPEN;
-
-		// exercise
-		this.facade.createPublicIp(order, SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		Mockito.verify(this.facade, Mockito.times(1)).getAsPublicKey();
-
-		PowerMockito.verifyStatic(AuthenticationUtil.class, Mockito.times(1));
-		AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString());
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Assert.assertEquals(expectedOrderState, order.getOrderState());
-
-		// exercise
-		this.facade.deleteCompute(order.getComputeOrderId(), SYSTEM_USER_TOKEN_VALUE);
-
-		// verify
-		Mockito.verify(this.orderController, Mockito.times(1)).deleteOrder(null);
-	}
-
-	private PublicIpOrder spyPublicIpOrder(SystemUser systemUser) {
-		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-
-		ComputeOrder computeOrder = new ComputeOrder();
-		computeOrder.setSystemUser(systemUser);
-		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-		computeOrder.setRequester(localMemberId);
-		computeOrder.setProvider(localMemberId);
-		computeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
-		computeOrder.setName(TestUtils.FAKE_ORDER_NAME);
-		computeOrder.setId(TestUtils.FAKE_COMPUTE_ID);
-		ComputeInstance computeInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
-		computeOrder.setInstanceId(computeInstance.getId());
-		
-		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-		Map<String, Order> activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
-		activeOrdersMap.put(computeOrder.getId(), computeOrder);
-		
-		String computeOrderId = computeOrder.getId();
-		PublicIpOrder order = Mockito.spy(
-				new PublicIpOrder(systemUser,
-						localMemberId,
-						localMemberId,
-						TestUtils.DEFAULT_CLOUD_NAME, 
-						computeOrderId));
-
-		return order;
-	}
-
-	private SystemUser createFederationUserAuthenticate(RSAPublicKey keyRSA) throws FogbowException {
-		SystemUser systemUser = this.testUtils.createSystemUser();
-		PowerMockito.mockStatic(AuthenticationUtil.class);
-		PowerMockito.when(AuthenticationUtil.authenticate(Mockito.eq(keyRSA), Mockito.anyString()))
-				.thenReturn(systemUser);
-		
-		return systemUser;
-	}
-
-    private RSAPublicKey mockRSAPublicKey() throws FogbowException {
-        RSAPublicKey keyRSA = Mockito.mock(RSAPublicKey.class);
-        Mockito.doReturn(keyRSA).when(this.facade).getAsPublicKey();
-        return keyRSA;
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
+                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE),
+                Mockito.eq(ResourceType.COMPUTE), Mockito.eq(order));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
     }
     
-	private AuthorizationPlugin<RasOperation> mockAuthorizationPlugin(SystemUser systemUser, RasOperation rasOperation)
-			throws UnexpectedException, UnauthorizedRequestException {
+    // test case: When calling the deleteOrder method with a valid volume
+    // order, it must verify that this call was successful.
+    @Test
+    public void testDeleteOrderForVolumeResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        Order order = testUtils.createLocalVolumeOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
 
-		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
-		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(rasOperation))).thenReturn(true);
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
-		this.facade.setAuthorizationPlugin(authorization);
-		return authorization;
-	}
-	// TODO the methods below are up to date...
+        // exercise
+        this.facade.deleteOrder(order.getId(), userToken, ResourceType.VOLUME);
 
-	private ArrayList<UserData> generateVeryLongUserDataFileContent() {
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
+                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.VOLUME),
+                Mockito.eq(order));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
+    }
+    
+    // test case: When calling the deleteOrder method with a valid attachment
+    // order, it must verify that this call was successful.
+    @Test
+    public void testDeleteOrderForAttachmentResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+        
+        Order order = testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
+                this.testUtils.createLocalVolumeOrder());
+        order.setProvider(TestUtils.LOCAL_MEMBER_ID);
+        this.orderController.activateOrder(order);
+
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
+
+        // exercise
+        this.facade.deleteOrder(order.getId(), userToken, ResourceType.ATTACHMENT);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
+                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE),
+                Mockito.eq(ResourceType.ATTACHMENT), Mockito.eq(order));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
+    }
+    
+    // test case: When calling the deleteOrder method with a valid network
+    // order, it must verify that this call was successful.
+    @Test
+    public void testDeleteOrderForNetworkResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        Order order = testUtils.createLocalNetworkOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
+
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
+
+        // exercise
+        this.facade.deleteOrder(order.getId(), userToken, ResourceType.NETWORK);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
+                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.NETWORK),
+                Mockito.eq(order));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
+    }
+    
+    // test case: When calling the deleteOrder method with a valid public IP
+    // order, it must verify that this call was successful.
+    @Test
+    public void testDeleteOrderForPublicIpResourceType() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        Order order = testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(order);
+
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
+
+        // exercise
+        this.facade.deleteOrder(order.getId(), userToken, ResourceType.PUBLIC_IP);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
+                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.PUBLIC_IP),
+                Mockito.eq(order));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
+    }
+    
+    // test case: When calling the getUserAllocation method with null or empty cloud
+    // name, it must set as default cloud name and verify that this call was
+    // successful.
+    @Test
+    public void testGetUserAllocationWithNullCloudName() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        String cloudName = null;
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        ResourceType resourceType = ResourceType.COMPUTE;
+
+        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, TestUtils.DEFAULT_CLOUD_NAME);
+
+        // exercise
+        this.facade.getUserAllocation(providerId, cloudName, userToken, ResourceType.COMPUTE);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
+                .getUserAllocation(Mockito.eq(providerId), Mockito.eq(systemUser), Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the getUserQuota method with null or empty cloud
+    // name, it must set as default cloud name and verify that this call was
+    // successful.
+    @Test
+    public void testGetUserQuotaWithEmptyCloudName() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).getAuthenticationFromRequester(Mockito.eq(userToken));
+
+        String cloudName = EMPTY_STRING;
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        ResourceType resourceType = ResourceType.COMPUTE;
+
+        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_QUOTA, resourceType,
+                TestUtils.DEFAULT_CLOUD_NAME);
+
+        // exercise
+        this.facade.getUserQuota(providerId, cloudName, userToken, resourceType);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .getAuthenticationFromRequester(Mockito.eq(userToken));
+        Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).getUserQuota(Mockito.eq(systemUser),
+                Mockito.eq(resourceType));
+    }
+    
+    // test case: When calling the authorizeOrder method with resource type
+    // different from order, it must throws an InstanceNotFoundException;
+    @Test
+    public void testAuthorizeOrderWithDifferentResourceType() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalComputeOrder();
+        
+        String expected = Messages.Exception.MISMATCHING_RESOURCE_TYPE;
+
+        try {
+            // exercise
+            this.facade.authorizeOrder(null, null, null, ResourceType.GENERIC_RESOURCE, order);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the authorizeOrder method with requester
+    // different from order owner, it must throws an InstanceNotFoundException;
+    @Test
+    public void testAuthorizeOrderWithDifferentRequester() throws FogbowException {
+        // set up
+        SystemUser requester = Mockito.mock(SystemUser.class);
+        Order order = this.testUtils.createLocalComputeOrder();
+        
+        String expected = Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST;
+
+        try {
+            // exercise
+            this.facade.authorizeOrder(requester, null, null, ResourceType.COMPUTE, order);
+            Assert.fail();
+        } catch (UnauthorizedRequestException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkEmbeddedOrdersConsistency method with a
+    // COMPUTE resource type, it must verify that checkComputeOrderConsistency
+    // method was called.
+    @Test
+    public void testCheckEmbeddedOrdersConsistencyWithComputeResourceType() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        Mockito.doNothing().when(this.facade).checkComputeOrderConsistency(Mockito.eq(order));
+
+        // exercise
+        this.facade.checkEmbeddedOrdersConsistency(order);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).checkComputeOrderConsistency(Mockito.eq(order));
+    }
+    
+    // test case: When calling the checkEmbeddedOrdersConsistency method with a
+    // ATTACHMENT resource type, it must verify that checkAttachmentOrderConsistency
+    // method was called.
+    @Test
+    public void testCheckEmbeddedOrdersConsistencyWithAttachmentResourceType() throws FogbowException {
+        // set up
+        AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
+                this.testUtils.createLocalVolumeOrder());
+        Mockito.doNothing().when(this.facade).checkAttachmentOrderConsistency(Mockito.eq(order));
+
+        // exercise
+        this.facade.checkEmbeddedOrdersConsistency(order);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .checkAttachmentOrderConsistency(Mockito.eq(order));
+    }
+    
+    // test case: When calling the checkEmbeddedOrdersConsistency method with a
+    // PUBLIC_IP resource type, it must verify that checkPublicIpOrderConsistency
+    // method was called.
+    @Test
+    public void testCheckEmbeddedOrdersConsistencyWithPublicIpResourceType() throws FogbowException {
+        // set up
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        Mockito.doNothing().when(this.facade).checkPublicIpOrderConsistency(Mockito.eq(order));
+
+        // exercise
+        this.facade.checkEmbeddedOrdersConsistency(order);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).checkPublicIpOrderConsistency(Mockito.eq(order));
+    }
+    
+    // test case: When calling the checkEmbeddedOrdersConsistency method with a
+    // resource type not supported, it must throws an UnexpectedException.
+    @Test
+    public void testCheckEmbeddedOrdersConsistencyWithUnsupportedResourceType() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.GENERIC_RESOURCE);
+
+        String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType());
+
+        try {
+            // exercise
+            this.facade.checkEmbeddedOrdersConsistency(order);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkComputeOrderConsistency method with a
+    // valid list of network order IDs, it must verify that this call was
+    // successful.
+    @Test
+    public void testCheckComputeOrderConsistencyWithValidNetworkIDsList() throws FogbowException {
+        // set up
+        NetworkOrder networkOrder = this.testUtils.createLocalNetworkOrder();
+        networkOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        this.orderController.activateOrder(networkOrder);
+
+        List<String> networkOrderIds = new ArrayList<>();
+        networkOrderIds.add(networkOrder.getId());
+
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder(networkOrderIds);
+
+        // exercise
+        this.facade.checkComputeOrderConsistency(computeOrder);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkOrders(Mockito.eq(computeOrder.getNetworkOrderIds()));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .checkConsistencyOfEmbeddedOrder(Mockito.eq(computeOrder), Mockito.eq(networkOrder));
+    }
+    
+    // test case: When calling the checkAttachmentOrderConsistency method with a
+    // valid attachment order, it must verify that this call was successful.
+    @Test
+    public void testCheckAttachmentOrderConsistency() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        computeOrder.setInstanceId(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(computeOrder);
+
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        volumeOrder.setInstanceId(TestUtils.FAKE_VOLUME_ID);
+        this.orderController.activateOrder(volumeOrder);
+
+        AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+
+        // exercise
+        this.facade.checkAttachmentOrderConsistency(order);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .checkConsistencyOfEmbeddedOrder(Mockito.eq(order), Mockito.eq(computeOrder));
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .checkConsistencyOfEmbeddedOrder(Mockito.eq(order), Mockito.eq(volumeOrder));
+    }
+    
+    // test case: When calling the checkPublicIpOrderConsistency method with a
+    // valid attachment order, it must verify that this call was successful.
+    @Test
+    public void testcheckPublicIpOrderConsistency() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        computeOrder.setInstanceId(TestUtils.FAKE_COMPUTE_ID);
+        this.orderController.activateOrder(computeOrder);
+
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(computeOrder.getId());
+
+        // exercise
+        this.facade.checkPublicIpOrderConsistency(order);
+
+        // verify
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .checkConsistencyOfEmbeddedOrder(Mockito.eq(order), Mockito.eq(computeOrder));
+    }
+    
+    // test case: When calling the checkConsistencyOfEmbeddedOrder method with
+    // null orders, it must throws an InvalidParameterException.
+    @Test
+    public void testCheckConsistencyOfEmbeddedOrderWithNullValues() {
+        // set up
+        String expected = Messages.Exception.INVALID_RESOURCE;
+
+        try {
+            // exercise
+            this.facade.checkConsistencyOfEmbeddedOrder(null, null);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkConsistencyOfEmbeddedOrder method with a
+    // system user different of main order , it must throws an
+    // InvalidParameterException.
+    @Test
+    public void testCheckConsistencyOfEmbeddedOrderWithSystemUserDifferentOfMainOrder() {
+        // set up
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
+        ComputeOrder embeddedOrder = this.testUtils.createLocalComputeOrder();
+        PublicIpOrder mainOrder = this.testUtils.createLocalPublicIpOrder(embeddedOrder.getId());
+        mainOrder.setSystemUser(systemUser);
+
+        String expected = Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER;
+
+        try {
+            // exercise
+            this.facade.checkConsistencyOfEmbeddedOrder(mainOrder, embeddedOrder);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkConsistencyOfEmbeddedOrder method with a
+    // provider different of main order , it must throws an
+    // InvalidParameterException.
+    @Test
+    public void testCheckConsistencyOfEmbeddedOrderWithProviderDifferentOfMainOrder() {
+        // set up
+        ComputeOrder embeddedOrder = this.testUtils.createLocalComputeOrder();
+        PublicIpOrder mainOrder = this.testUtils.createLocalPublicIpOrder(embeddedOrder.getId());
+        mainOrder.setProvider(TestUtils.FAKE_REMOTE_MEMBER_ID);
+
+        String expected = Messages.Exception.PROVIDERS_DONT_MATCH;
+
+        try {
+            // exercise
+            this.facade.checkConsistencyOfEmbeddedOrder(mainOrder, embeddedOrder);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkConsistencyOfEmbeddedOrder method with a
+    // cloud name different of main order , it must throws an
+    // InvalidParameterException.
+    @Test
+    public void testCheckConsistencyOfEmbeddedOrderWithCloudNameDifferentOfMainOrder() {
+        // set up
+        ComputeOrder embeddedOrder = this.testUtils.createLocalComputeOrder();
+        PublicIpOrder mainOrder = this.testUtils.createLocalPublicIpOrder(embeddedOrder.getId());
+        mainOrder.setCloudName(ANY_VALUE);
+
+        String expected = Messages.Exception.CLOUD_NAMES_DONT_MATCH;
+
+        try {
+            // exercise
+            this.facade.checkConsistencyOfEmbeddedOrder(mainOrder, embeddedOrder);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkConsistencyOfEmbeddedOrder method with a
+    // null instance ID, it must throws an InvalidParameterException.
+    @Test
+    public void testCheckConsistencyOfEmbeddedOrderWithNullInstance() {
+        // set up
+        ComputeOrder embeddedOrder = this.testUtils.createLocalComputeOrder();
+        PublicIpOrder mainOrder = this.testUtils.createLocalPublicIpOrder(embeddedOrder.getId());
+        Assert.assertNull(embeddedOrder.getInstanceId());
+
+        String expected = String.format(Messages.Exception.INSTANCE_NULL_S, embeddedOrder.getId());
+
+        try {
+            // exercise
+            this.facade.checkConsistencyOfEmbeddedOrder(mainOrder, embeddedOrder);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the checkEmbeddedOrdersConsistency method with an
+    // invalid list of network order IDs, it must must throws an
+    // InvalidParameterException.
+    @Test
+    public void testGetNetworkOrdersFail() {
+        // set up
+        List<String> networkOrderIds = new ArrayList<>();
+        networkOrderIds.add(TestUtils.FAKE_ORDER_ID);
+
+        String expected = Messages.Exception.INVALID_PARAMETER;
+
+        try {
+            // exercise
+            this.facade.getNetworkOrders(networkOrderIds);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    private ArrayList<UserData> generateVeryLongUserDataFileContent() {
         char[] value = new char[UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT + 1];
         String extraUserDataFileContent = new String(value);
 
@@ -1683,14 +1856,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         return userDataScripts;
     }
 	
-    private CloudListController mockCloudListController() {
-        CloudListController controller = Mockito.mock(CloudListController.class);
-        List<String> cloudNames = new ArrayList<>();
-        Mockito.doReturn(cloudNames).when(controller).getCloudNames();
-        Mockito.doReturn(TestUtils.DEFAULT_CLOUD_NAME).when(controller).getDefaultCloudName();
-        return controller;
-    }
-
     private AuthorizationPlugin mockAuthorizationPlugin() throws FogbowException {
         AuthorizationPlugin plugin = Mockito.mock(DefaultAuthorizationPlugin.class);
         Mockito.when(plugin.isAuthorized(Mockito.any(SystemUser.class), Mockito.any(RasOperation.class)))
