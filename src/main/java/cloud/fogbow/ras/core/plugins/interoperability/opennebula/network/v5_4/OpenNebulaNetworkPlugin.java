@@ -36,7 +36,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 	private static final String ALL_PROTOCOLS = "ALL";
 	private static final String CIDR_FORMAT = "%s/%s";
-	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String SECURITY_GROUP_RESOURCE = "SecurityGroup";
@@ -63,7 +62,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	public OpenNebulaNetworkPlugin(String confFilePath) throws FatalErrorException {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		this.defaultNetwork = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		this.defaultNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 	}
 
 	@Override

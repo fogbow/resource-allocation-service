@@ -42,7 +42,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final String DEFAULT_ARCHITECTURE = "x86_64";
 	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
-	protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
 
@@ -92,7 +91,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String architecture = DEFAULT_ARCHITECTURE;
 
 		List<String> networks = new ArrayList<>();
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 		networks.add(defaultNetworkId);
 		List<String> userDefinedNetworks = computeOrder.getNetworkIds();
 		if (!userDefinedNetworks.isEmpty()) {
@@ -266,7 +265,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		// The default network is always included in the order by the OpenNebula plugin, thus it should be added
 		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
 		// are appended by the LocalCloudConnector.
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 		List<NetworkSummary> computeNetworks = new ArrayList<>();
 		computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
 		computeInstance.setNetworks(computeNetworks);

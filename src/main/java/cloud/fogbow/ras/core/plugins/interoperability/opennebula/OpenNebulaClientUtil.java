@@ -111,18 +111,6 @@ public class OpenNebulaClientUtil {
 		return datastorePool;
 	}
 
-	public static SecurityGroupPool getSecurityGroupPool(Client client) throws UnexpectedException {
-		SecurityGroupPool securityGroupPool = (SecurityGroupPool) generateOnePool(client, DatastorePool.class);
-		OneResponse response = securityGroupPool.info();
-
-		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
-			throw new UnexpectedException(response.getErrorMessage());
-		}
-
-		return securityGroupPool;
-	}
-
 	public static VirtualMachine getVirtualMachine(Client client, String virtualMachineId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -338,10 +326,8 @@ public class OpenNebulaClientUtil {
         } else if (classType.isAssignableFrom(UserPool.class)) {
 		    return new UserPool(client);
         } else if (classType.isAssignableFrom(DatastorePool.class)) {
-            return new DatastorePool(client);
-		} else if (classType.isAssignableFrom(SecurityGroupPool.class)) {
-            return new SecurityGroupPool(client);
-        }
+			return new DatastorePool(client);
+		}
 
 		return null;
 	}

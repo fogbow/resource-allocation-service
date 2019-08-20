@@ -42,9 +42,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final String ALL_PROTOCOLS = "ALL";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
-	private static final String PUBLIC_IP_RESOURCE = "Public IP";
 	private static final String SECURITY_GROUP_SEPARATOR = ",";
-	private static final String SECURITY_GROUPS_FORMAT = "%s,%s";
+	private static final String PUBLIC_IP_RESOURCE = "Public IP";
 
 	private static final int SIZE_ADDRESS_PUBLIC_IP = 1;
 	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
@@ -52,6 +51,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	protected static final String EXPRESSION_IP_FROM_NETWORK = "//NIC[NETWORK_ID = %s]/IP/text()";
 	protected static final String EXPRESSION_NIC_ID_FROM_NETWORK = "//NIC[NETWORK_ID = %s]/NIC_ID/text()";
 	protected static final String EXPRESSION_SECURITY_GROUPS_FROM_NIC_ID = "//NIC[NIC_ID = %s]/SECURITY_GROUPS/text()";
+	protected static final String VNET_TEMPLATE_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 	protected static final String POWEROFF_STATE = "POWEROFF";
 	
 	protected static final long ONE_POINT_TWO_SECONDS = 1200;
@@ -59,13 +59,11 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 	private String endpoint;
 	private String defaultPublicNetwork;
-	private String defaultSecurityGroup;
-	
+
 	public OpenNebulaPuplicIpPlugin(String confFilePath) throws FatalErrorException {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
 		this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
-		this.defaultSecurityGroup = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_SECURITY_GROUP_ID_KEY);
 	}
 
 	@Override
@@ -96,14 +94,12 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 				publicNetworkReserveTemplate);
 
 		String securityGroupInstanceId = createSecurityGroup(client, publicIpOrder);
-		String securityGroups = String.format(SECURITY_GROUPS_FORMAT, this.defaultSecurityGroup, securityGroupInstanceId);
-
-		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
-				.securityGroups(securityGroups)
+		CreateNetworkUpdateRequest updateSecurityGroupsRequest = new CreateNetworkUpdateRequest.Builder()
+				.securityGroups(securityGroupInstanceId)
 				.build();
 
 		int virtualNetworkId = convertToInteger(publicIpInstanceId);
-		String publicNetworkUpdateTemplate = updateRequest.getVirtualNetworkUpdate().marshalTemplate();
+		String publicNetworkUpdateTemplate = updateSecurityGroupsRequest.getVirtualNetworkUpdate().marshalTemplate();
 		OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkId, publicNetworkUpdateTemplate);
 		String computeInstanceId = publicIpOrder.getComputeId();
 
@@ -120,14 +116,17 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeInstanceId);
 		String nicId = virtualMachine.xpath(String.format(EXPRESSION_NIC_ID_FROM_NETWORK, publicIpInstanceId));
-		String securityGroups = virtualMachine.xpath(String.format(EXPRESSION_SECURITY_GROUPS_FROM_NIC_ID, nicId));
-		String[] securityGroupIds = securityGroups.split(SECURITY_GROUP_SEPARATOR);
-		String securityGroupId = securityGroupIds[1];
-		
-		// A Network Interface Connected (NIC) can only be detached if a virtual machine
-		// is power-off.
+
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, publicIpInstanceId);
+		String securityGroupId = null;
+		SecurityGroup securityGroup = this.getSecurityGroupForPublicIpNetwork(client, virtualNetwork, publicIpInstanceId);
+		if (securityGroup != null) securityGroupId = securityGroup.getId();
+		else throw new UnexpectedException();
+
+		// NOTE(pauloewerton): ONe does not allow deleting a resource associated to a VM, so we're using a workaround
+		// by shutting down the VM, releasing network and secgroup resources, and then resuming it afterwards.
 		virtualMachine.poweroff(true);
-		if (isPowerOff(virtualMachine)) {
+		if (this.isPowerOff(virtualMachine)) {
 			detachNetworkInterfaceConnected(virtualMachine, nicId);
 			deleteSecurityGroup(client, securityGroupId);
 			deletePublicNetwork(client, publicIpInstanceId);
@@ -151,7 +150,26 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		PublicIpInstance publicIpInstance = new PublicIpInstance(publicIpInstanceId, OpenNebulaStateMapper.DEFAULT_READY_STATE, publicIp);
 		return publicIpInstance;
 	}
-	
+
+	protected SecurityGroup getSecurityGroupForPublicIpNetwork(Client client, VirtualNetwork virtualNetwork, String orderId)
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+		String securityGroupIdsStr = virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH);
+		if (securityGroupIdsStr == null || securityGroupIdsStr.isEmpty()) {
+			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
+			return null;
+		}
+
+		String[] securityGroupIds =  securityGroupIdsStr.split(SECURITY_GROUP_SEPARATOR);
+		String securityGroupName = this.generateSecurityGroupName(orderId);
+		SecurityGroup securityGroup = null;
+		for (String securityGroupId : securityGroupIds) {
+			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
+			if (securityGroup.getName().equals(securityGroupName)) break;
+		}
+
+		return securityGroup;
+	}
+
 	protected void deletePublicNetwork(Client client, String virtualNetworkId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -232,7 +250,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 	
 	protected String createSecurityGroup(Client client, PublicIpOrder publicIpOrder) throws InvalidParameterException {
-		String name = SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpOrder.getId();
+		String name = generateSecurityGroupName(publicIpOrder.getId());
 
 		// "ALL" setting applies to all protocols if a port range is not defined
 		String protocol = ALL_PROTOCOLS;
@@ -265,6 +283,10 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 		String template = request.getSecurityGroup().marshalTemplate();
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
+	}
+
+	private static String generateSecurityGroupName(String orderId) {
+		return SystemConstants.PIP_SECURITY_GROUP_PREFIX + orderId;
 	}
 
 	protected String getRandomUUID() {
