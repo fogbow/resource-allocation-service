@@ -116,8 +116,8 @@ public class ApplicationFacade {
 
     public List<String> getCloudNames(String providerId, String userToken) throws FogbowException {
         SystemUser requester = getAuthenticationFromRequester(userToken);
-        RasOperation serviceOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
-        this.authorizationPlugin.isAuthorized(requester, serviceOperation);
+        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         if (providerId.equals(this.providerId)) {
             return this.cloudListController.getCloudNames();
         } else {
@@ -441,14 +441,14 @@ public class ApplicationFacade {
         }
     }
 
-    private void checkComputeOrderConsistency(ComputeOrder computeOrder) throws InvalidParameterException {
+    protected void checkComputeOrderConsistency(ComputeOrder computeOrder) throws InvalidParameterException {
         List<NetworkOrder> networkOrders = getNetworkOrders(computeOrder.getNetworkOrderIds());
         for (NetworkOrder networkOrder : networkOrders) {
             checkConsistencyOfEmbeddedOrder(computeOrder, networkOrder);
         }
     }
 
-    private void checkAttachmentOrderConsistency(AttachmentOrder attachmentOrder) throws InvalidParameterException {
+    protected void checkAttachmentOrderConsistency(AttachmentOrder attachmentOrder) throws InvalidParameterException {
         String attachComputeOrderId = attachmentOrder.getComputeOrderId();
         String attachVolumeOrderId = attachmentOrder.getVolumeOrderId();
         Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachComputeOrderId);
@@ -457,13 +457,13 @@ public class ApplicationFacade {
         checkConsistencyOfEmbeddedOrder(attachmentOrder, volumeOrder);
     }
 
-    private void checkPublicIpOrderConsistency(PublicIpOrder publicIpOrder) throws InvalidParameterException {
+    protected void checkPublicIpOrderConsistency(PublicIpOrder publicIpOrder) throws InvalidParameterException {
         String computeOrderId = publicIpOrder.getComputeOrderId();
         Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(computeOrderId);
         checkConsistencyOfEmbeddedOrder(publicIpOrder, computeOrder);
     }
 
-    private void checkConsistencyOfEmbeddedOrder(Order mainOrder, Order embeddedOrder) throws InvalidParameterException {
+    protected void checkConsistencyOfEmbeddedOrder(Order mainOrder, Order embeddedOrder) throws InvalidParameterException {
         if (embeddedOrder == null) {
             throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }
@@ -481,7 +481,7 @@ public class ApplicationFacade {
         }
     }
 
-    private List<NetworkOrder> getNetworkOrders(List<String> networkOrderIds) throws InvalidParameterException {
+    protected List<NetworkOrder> getNetworkOrders(List<String> networkOrderIds) throws InvalidParameterException {
         List<NetworkOrder> networkOrders = new LinkedList<>();
 
         for (String orderId : networkOrderIds) {
