@@ -1,13 +1,9 @@
 package cloud.fogbow.ras.core;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.Arrays;
 import java.util.Map;
 
-import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.apache.log4j.Logger;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -18,10 +14,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.common.util.CloudInitUserDataBuilder;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
@@ -58,7 +50,6 @@ public class BaseUnitTests {
     /*
      * Clears the orders from the lists on the SharedOrderHolders instance.
      */
-    @After
     public void tearDown() {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {

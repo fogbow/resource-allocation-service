@@ -4,11 +4,10 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.BaseUnitTests;
-import org.h2.security.Fog;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.BDDMockito;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -18,8 +17,6 @@ import software.amazon.awssdk.services.ec2.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 @PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class})
 public class AwsV2CloudUtilTest extends BaseUnitTests {
@@ -35,20 +32,29 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     private String FAKE_VPC_ID = "fake-vpc-id";
     private String FAKE_GROUP_DESCRIPTION = "fake-description";
 
+    @Before
+    public void setup() {
+        super.setup();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+    }
+
     @Test(expected = cloud.fogbow.common.exceptions.InstanceNotFoundException.class)
     public void testGetImagesFromWithNullResponse() throws cloud.fogbow.common.exceptions.InstanceNotFoundException {
+        Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         DescribeImagesResponse response = null;
         AwsV2CloudUtil.getImagesFrom(response);
     }
 
     @Test(expected = InstanceNotFoundException.class)
     public void testGetImagesFromWithEmptyResponse() throws InstanceNotFoundException {
+        Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         DescribeImagesResponse response = DescribeImagesResponse.builder().images(new ArrayList<>()).build();
         AwsV2CloudUtil.getImagesFrom(response);
     }
 
     @Test
     public void testGetImagesFromWithValidResponse() throws InstanceNotFoundException{
+        Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         Image image = Image.builder().imageId(FAKE_IMAGE_ID).build();
         DescribeImagesResponse response = DescribeImagesResponse.builder().images(image).build();
         Assert.assertEquals(image, AwsV2CloudUtil.getImagesFrom(response));
@@ -56,27 +62,31 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test
     public void testDoDescribeImagesRequest() throws FogbowException {
+        Mockito.when(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).thenCallRealMethod();
         Ec2Client client = testUtils.getAwsMockedClient();
         Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class)))
             .thenReturn(DescribeImagesResponse.builder().build());
-        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(DescribeImagesRequest.class), client);
+        AwsV2CloudUtil.doDescribeImagesRequest(DescribeImagesRequest.builder().build(), client);
         Mockito.verify(client, Mockito.times(1)).describeImages(Mockito.any(DescribeImagesRequest.class));
     }
 
     @Test(expected = cloud.fogbow.common.exceptions.InstanceNotFoundException.class)
     public void testGetVolumeFromWithNullResponse() throws cloud.fogbow.common.exceptions.InstanceNotFoundException {
+        Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         DescribeVolumesResponse response = null;
         AwsV2CloudUtil.getVolumeFrom(response);
     }
 
     @Test(expected = InstanceNotFoundException.class)
     public void testGetVolumeFromWithEmptyResponse() throws InstanceNotFoundException {
+        Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         DescribeVolumesResponse response = DescribeVolumesResponse.builder().volumes(new ArrayList<>()).build();
         AwsV2CloudUtil.getVolumeFrom(response);
     }
 
     @Test
     public void testGetVolumeFromWithValidResponse() throws InstanceNotFoundException{
+        Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         Volume volume = Volume.builder().volumeId(FAKE_VOLUME_ID).build();
         DescribeVolumesResponse response = DescribeVolumesResponse.builder().volumes(volume).build();
         Assert.assertEquals(volume, AwsV2CloudUtil.getVolumeFrom(response));
@@ -84,15 +94,18 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test
     public void testDoDescribeVolumesRequest() throws FogbowException {
+        Mockito.when(AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.any(), Mockito.any())).thenCallRealMethod();
         Ec2Client client = testUtils.getAwsMockedClient();
         Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class)))
                 .thenReturn(DescribeVolumesResponse.builder().build());
-        AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.any(DescribeVolumesRequest.class), client);
+        AwsV2CloudUtil.doDescribeVolumesRequest(DescribeVolumesRequest.builder().build(), client);
         Mockito.verify(client, Mockito.times(1)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
     }
 
     @Test
-    public void testCreateTagsRequest() throws FogbowException{
+    public void testCreateTagsRequest() throws Exception{
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "createTagsRequest", Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+
         Tag tag = Tag.builder()
             .key(FAKE_TAG_KEY)
             .value(FAKE_TAG_VALUE)
@@ -103,8 +116,10 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
             .tags(tag)
             .build();
 
+        CreateTagsResponse response = CreateTagsResponse.builder().build();
+
         Ec2Client client = testUtils.getAwsMockedClient();
-        Mockito.when(client.createTags(Mockito.eq(request))).thenReturn(Mockito.any(CreateTagsResponse.class));
+        Mockito.when(client.createTags(Mockito.eq(request))).thenReturn(response);
 
         AwsV2CloudUtil.createTagsRequest(FAKE_RESOURCE_ID, FAKE_TAG_KEY, FAKE_TAG_VALUE, client);
 
@@ -112,14 +127,18 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDoDeleteSecurityGroup() throws FogbowException{
+    public void testDoDeleteSecurityGroup() throws Exception{
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doDeleteSecurityGroup", Mockito.any(), Mockito.any());
+
         DeleteSecurityGroupRequest request = DeleteSecurityGroupRequest.builder()
             .groupId(FAKE_GROUP_ID)
             .build();
 
+        DeleteSecurityGroupResponse response = DeleteSecurityGroupResponse.builder().build();
+
         Ec2Client client = testUtils.getAwsMockedClient();
 
-        Mockito.when(client.deleteSecurityGroup(Mockito.eq(request))).thenReturn(Mockito.any(DeleteSecurityGroupResponse.class));
+        Mockito.when(client.deleteSecurityGroup(Mockito.eq(request))).thenReturn(response);
 
         AwsV2CloudUtil.doDeleteSecurityGroup(FAKE_GROUP_ID, client);
 
@@ -138,20 +157,46 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
         Ec2Client client = testUtils.getAwsMockedClient();
 
-        Mockito.when(client.createSecurityGroup(Mockito.eq(request))).thenReturn(Mockito.eq(response));
+        Mockito.when(client.createSecurityGroup(Mockito.eq(request))).thenReturn(response);
+        Mockito.when(AwsV2CloudUtil.createSecurityGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenCallRealMethod();
         AwsV2CloudUtil.createSecurityGroup(FAKE_GROUP_NAME, FAKE_CIDR, FAKE_RESOURCE_ID, FAKE_VPC_ID, FAKE_GROUP_DESCRIPTION, client);
 
         Mockito.verify(client, Mockito.times(1)).createSecurityGroup(Mockito.eq(request));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.createTagsRequest(Mockito.eq(FAKE_RESOURCE_ID), Mockito.eq(FAKE_TAG_KEY), Mockito.eq(FAKE_TAG_VALUE), Mockito.eq(client));
+        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(Mockito.any(), Mockito.any(), Mockito.any());
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(Mockito.eq(FAKE_GROUP_ID), Mockito.eq(FAKE_CIDR), Mockito.eq(client));
+        AwsV2CloudUtil.createTagsRequest(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
-    public void testDoAuthorizeSecurityGroupIngressInSuccessCase() throws FogbowException{
+    public void testDoAuthorizeSecurityGroupIngressInSuccessCase() throws Exception{
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doAuthorizeSecurityGroupIngress", Mockito.any(), Mockito.any(), Mockito.any());
+
+        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+            .cidrIp(FAKE_CIDR)
+            .fromPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
+            .toPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
+            .groupId(FAKE_GROUP_ID)
+            .ipProtocol(AwsV2CloudUtil.TCP_PROTOCOL)
+            .build();
+
+        AuthorizeSecurityGroupIngressResponse response = AuthorizeSecurityGroupIngressResponse.builder().build();
+
+        Ec2Client client = testUtils.getAwsMockedClient();
+
+        Mockito.when(client.authorizeSecurityGroupIngress(Mockito.eq(request))).thenReturn(response);
+
+        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(FAKE_GROUP_ID, FAKE_CIDR, client);
+
+        Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.eq(request));
+    }
+
+    @Test
+    public void testDoAuthorizeSecurityGroupIngressInFailureCase() throws Exception{
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doAuthorizeSecurityGroupIngress", Mockito.any(), Mockito.any(), Mockito.any());
+
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
             .cidrIp(FAKE_CIDR)
             .fromPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
@@ -162,28 +207,12 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
         Ec2Client client = testUtils.getAwsMockedClient();
 
-        Mockito.when(client.authorizeSecurityGroupIngress(Mockito.eq(request))).thenReturn(Mockito.any(AuthorizeSecurityGroupIngressResponse.class));
-
-        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(FAKE_GROUP_ID, FAKE_CIDR, client);
-
-        Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.eq(request));
-    }
-
-    @Test(expected = UnexpectedException.class)
-    public void testDoAuthorizeSecurityGroupIngressInFailureCase() throws FogbowException{
-        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
-                .cidrIp(FAKE_CIDR)
-                .fromPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
-                .toPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
-                .groupId(FAKE_GROUP_ID)
-                .ipProtocol(AwsV2CloudUtil.TCP_PROTOCOL)
-                .build();
-
-        Ec2Client client = testUtils.getAwsMockedClient();
-
         Mockito.when(client.authorizeSecurityGroupIngress(Mockito.eq(request))).thenThrow(SdkException.class);
 
-        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(FAKE_GROUP_ID, FAKE_CIDR, client);
+        try {
+            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(FAKE_GROUP_ID, FAKE_CIDR, client);
+        } catch (UnexpectedException ex) { }
+
 
         Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.eq(request));
 
@@ -193,13 +222,17 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test
     public void testDescribeInstance() throws FogbowException{
+        Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.any(), Mockito.any())).thenCallRealMethod();
+
         DescribeInstancesRequest describeInstancesRequest = DescribeInstancesRequest.builder()
             .instanceIds(FAKE_RESOURCE_ID)
             .build();
 
+        DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
+
         Ec2Client client = testUtils.getAwsMockedClient();
 
-        Mockito.when(client.describeInstances(Mockito.eq(describeInstancesRequest))).thenReturn(Mockito.any(DescribeInstancesResponse.class));
+        Mockito.when(client.describeInstances(Mockito.eq(describeInstancesRequest))).thenReturn(response);
 
         AwsV2CloudUtil.describeInstance(FAKE_RESOURCE_ID, client);
 
@@ -208,9 +241,12 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test
     public void testDescribeInstances() throws FogbowException{
-        Ec2Client client = testUtils.getAwsMockedClient();
+        Mockito.when(AwsV2CloudUtil.describeInstances(Mockito.any())).thenCallRealMethod();
 
-        Mockito.when(client.describeInstances()).thenReturn(Mockito.any(DescribeInstancesResponse.class));
+        Ec2Client client = testUtils.getAwsMockedClient();
+        DescribeInstancesResponse describeInstancesResponse = DescribeInstancesResponse.builder().build();
+
+        Mockito.when(client.describeInstances()).thenReturn(describeInstancesResponse);
 
         AwsV2CloudUtil.describeInstances(client);
 
@@ -219,12 +255,14 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInstanceReservationWithNoReservation() throws InstanceNotFoundException{
+        Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.any())).thenCallRealMethod();
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().reservations(new ArrayList<>()).build();
         AwsV2CloudUtil.getInstanceReservation(response);
     }
 
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInstanceReservationWithNoInstance() throws InstanceNotFoundException{
+        Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.any())).thenCallRealMethod();
         Reservation reservation = Reservation.builder().instances(new ArrayList<>()).build();
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().reservations(reservation).build();
         AwsV2CloudUtil.getInstanceReservation(response);
@@ -232,6 +270,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test
     public void testGetInstanceReservationWithAValidResponse() throws InstanceNotFoundException{
+        Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.any())).thenCallRealMethod();
         Instance instance = Instance.builder().instanceId(FAKE_RESOURCE_ID).build();
         Reservation reservation = Reservation.builder().instances(instance).build();
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().reservations(reservation).build();
@@ -240,6 +279,8 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     @Test
     public void testGetInstanceVolumes() throws FogbowException {
+        Mockito.when(AwsV2CloudUtil.getInstanceVolumes(Mockito.any(), Mockito.any())).thenCallRealMethod();
+
         List<Volume> volumes = new ArrayList<>();
         volumes.add(Volume.builder().volumeId("volume1").build());
         volumes.add(Volume.builder().volumeId("volume2").build());
@@ -264,11 +305,6 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(volumeIds.size()));
         AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.any(DescribeVolumesRequest.class), Mockito.eq(client));
-    }
-
-    @Test
-    public void testGetVolumeIds() {
-
     }
 
 }
