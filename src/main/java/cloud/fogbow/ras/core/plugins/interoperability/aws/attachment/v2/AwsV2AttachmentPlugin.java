@@ -102,10 +102,10 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
                 .build();
         
         DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
-        return mountAttachmentInstance(response);
+        return buildAttachmentInstance(response);
     }
 
-	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response)
+	protected AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
 			throws FogbowException {
 
 	    Volume volume = AwsV2CloudUtil.getVolumeFrom(response);

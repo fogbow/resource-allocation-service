@@ -86,7 +86,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		String subnetId = networkOrder.getInstanceId();
 		Subnet subnet = getSubnetById(client, subnetId);
 		RouteTable routeTable = getRouteTables(client);
-		return mountNetworkInstance(subnet, routeTable);
+		return buildNetworkInstance(subnet, routeTable);
 	}
 
 	@Override
@@ -120,7 +120,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
 	}
 
-    protected NetworkInstance mountNetworkInstance(Subnet subnet, RouteTable routeTable) {
+    protected NetworkInstance buildNetworkInstance(Subnet subnet, RouteTable routeTable) {
 		String id = subnet.subnetId();
 		String cloudState = subnet.stateAsString();
 		String name = subnet.tags().listIterator().next().value();

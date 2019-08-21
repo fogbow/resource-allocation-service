@@ -165,13 +165,13 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 			if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 				requirements = line.split(CSV_COLUMN_SEPARATOR);
 				instanceType = requirements[INSTANCE_TYPE_COLUMN];
-				allocation = mountAvailableInstance(requirements);
+				allocation = buildAvailableInstance(requirements);
 				this.availableAllocationsMap.put(instanceType, allocation);
 			}
 		}
 	}
 
-	private ComputeAllocation mountAvailableInstance(String[] requirements) {
+	private ComputeAllocation buildAvailableInstance(String[] requirements) {
 		int instances = Integer.parseInt(requirements[LIMITS_COLUMN]);
 		int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;

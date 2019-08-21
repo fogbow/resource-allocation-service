@@ -77,7 +77,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 			.build();
 
 		DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
-		return mountVolumeInstance(response);
+		return buildVolumeInstance(response);
 	}
 	
 	@Override
@@ -111,7 +111,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
         return volumeId;
     }
 
-    protected VolumeInstance mountVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
+    protected VolumeInstance buildVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
         Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
         String id = volume.volumeId();
         String cloudState = volume.stateAsString();

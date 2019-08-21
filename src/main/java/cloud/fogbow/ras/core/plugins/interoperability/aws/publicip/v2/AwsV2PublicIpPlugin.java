@@ -108,7 +108,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String allocationId = publicIpOrder.getInstanceId();
 		Address address = getAddressById(allocationId, client);
-		return mountPublicIpInstance(address);
+		return buildPublicIpInstance(address);
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		return AwsV2StateMapper.map(ResourceType.PUBLIC_IP, instanceState).equals(InstanceState.FAILED);
 	}
 
-	protected PublicIpInstance mountPublicIpInstance(Address address) {
+	protected PublicIpInstance buildPublicIpInstance(Address address) {
 		String id = address.allocationId();
 		String cloudState = setPublicIpInstanceState(address);
 		String ip = address.publicIp();

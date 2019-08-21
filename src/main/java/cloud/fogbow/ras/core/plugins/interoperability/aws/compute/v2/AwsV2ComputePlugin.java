@@ -133,7 +133,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		DescribeInstancesResponse instancesResponse = AwsV2CloudUtil.describeInstance(computeOrder.getInstanceId(), client);
 		Instance instance = AwsV2CloudUtil.getInstanceReservation(instancesResponse);
 		List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
-		return mountComputeInstance(instance, volumes);
+		return buildComputeInstance(instance, volumes);
 	}
 
 	@Override
@@ -216,7 +216,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
 	}
 
-	protected ComputeInstance mountComputeInstance(Instance instance, List<Volume> volumes) {
+	protected ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
 		String id = instance.instanceId();
 		String cloudState = instance.state().nameAsString();
 		String name = instance.tags().listIterator().next().value();
@@ -232,11 +232,11 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		List<String> privateIpaddresses;
 		String publicIpAddress;
 		for (int i = 0; i < instance.networkInterfaces().size(); i++) {
-			privateIpaddresses = retrievePrivateIpAddresses(instance, i);
+			privateIpaddresses = getPrivateIpAddresses(instance, i);
 			if (!privateIpaddresses.isEmpty()) {
 				ipAddresses.addAll(privateIpaddresses);
 			}
-			publicIpAddress = retrievePublicIpAddresses(instance, i);
+			publicIpAddress = getPublicIpAddresses(instance, i);
 			if (publicIpAddress != null) {
 				ipAddresses.add(publicIpAddress);
 			}
@@ -244,25 +244,23 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return ipAddresses;
 	}
 
-	private String retrievePublicIpAddresses(Instance instance, int index) {
+	private String getPublicIpAddresses(Instance awsInstance, int index) {
 		String ipAddress = null;
 		InstanceNetworkInterfaceAssociation association;
-		association = instance.networkInterfaces().get(index).association();
+		association = awsInstance.networkInterfaces().get(index).association();
 		if (association != null) {
 			ipAddress = association.publicIp();
 		}
 		return ipAddress;
 	}
 
-	private List<String> retrievePrivateIpAddresses(Instance instance, int index) {
+	private List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
 		List<String> ipAddresses = new ArrayList<String>();
 		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
-		if (!instance.networkInterfaces().isEmpty()) {
-			instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
-			if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
-				for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
-					ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
-				}
+		instancePrivateIpAddresses = awsInstance.networkInterfaces().get(index).privateIpAddresses();
+		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
+			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
+				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
 			}
 		}
 		return ipAddresses;
