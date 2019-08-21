@@ -84,38 +84,27 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static String createSecurityGroup(String name, Ec2Client client, String cidr, String resourceId, String vpcId, String description) throws FogbowException{
-        CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-            .description(description)
-            .groupName(name)
-            .vpcId(vpcId)
-            .build();
-        String groupId = null;
+    public static String createSecurityGroup(Ec2Client client, String vpcId, String groupName, String description) throws FogbowException {
         try {
+            CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
+                    .description(description)
+                    .groupName(groupName)
+                    .vpcId(vpcId)
+                    .build();
+            
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
-            groupId = response.groupId();
-            AwsV2CloudUtil.createTagsRequest(resourceId, AWS_TAG_GROUP_ID, groupId, client);
-            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(groupId, client, cidr);
+            return response.groupId();
         } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
-        return groupId;
     }
 
-    public static void doAuthorizeSecurityGroupIngress(String groupId, Ec2Client client, String cidr)
+    public static void doAuthorizeSecurityGroupIngress(Ec2Client client, AuthorizeSecurityGroupIngressRequest request)
             throws FogbowException {
-
-        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
-            .cidrIp(cidr)
-            .fromPort(SSH_DEFAULT_PORT)
-            .toPort(SSH_DEFAULT_PORT)
-            .groupId(groupId)
-            .ipProtocol(TCP_PROTOCOL)
-            .build();
         try {
             client.authorizeSecurityGroupIngress(request);
         } catch (SdkException e) {
-            AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
+            AwsV2CloudUtil.doDeleteSecurityGroup(request.groupId(), client);
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }

@@ -26,6 +26,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
@@ -41,6 +42,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2NetworkPlugin.class);
 
+	private static final String ALL_PROTOCOLS = "-1";
 	private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
 	private static final String SUBNET_RESOURCE = "Subnet";
 
@@ -144,15 +146,25 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return null;
 	}
 
-	protected void handleSecurityIssues(Ec2Client client, String cidr, String subnetId) throws FogbowException {
-		String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
-		try {
-			AwsV2CloudUtil.createSecurityGroup(groupName, client, cidr, subnetId, this.defaultVpcId, SECURITY_GROUP_DESCRIPTION);
-		} catch (UnexpectedException e) {
-			doDeleteSubnet(client, subnetId);
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
+    protected void handleSecurityIssues(Ec2Client client, String subnetId, String cidr) throws FogbowException {
+        String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
+        try {
+            String groupId = AwsV2CloudUtil.createSecurityGroup(client, this.defaultVpcId, groupName,
+                    SECURITY_GROUP_DESCRIPTION);
+            
+            AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()   
+                    .cidrIp(cidr)   
+                    .groupId(groupId)   
+                    .ipProtocol(ALL_PROTOCOLS)  
+                    .build();
+
+            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(client, request);
+            AwsV2CloudUtil.createTagsRequest(subnetId, AWS_TAG_GROUP_ID, groupId, client);
+        } catch (UnexpectedException e) {
+            doDeleteSubnet(client, subnetId);
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
 
 	protected void doDeleteSubnet(Ec2Client client, String subnetId) throws FogbowException {
 		DeleteSubnetRequest request = DeleteSubnetRequest.builder()

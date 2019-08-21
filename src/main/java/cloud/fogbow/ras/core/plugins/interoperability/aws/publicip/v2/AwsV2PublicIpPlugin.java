@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 
 import java.util.Properties;
 
-import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -18,6 +17,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -27,6 +27,7 @@ import software.amazon.awssdk.services.ec2.model.AllocateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
@@ -48,6 +49,9 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 	protected static final String AWS_TAG_ASSOCIATION_ID = "associationId";
 	protected static final String AWS_TAG_GROUP_ID = "groupId";
+	protected static final String TCP_PROTOCOL = "tcp";
+	
+	protected static final int SSH_DEFAULT_PORT = 22;
 	
 	private String defaultGroupId;
 	private String defaultSubnetId;
@@ -136,17 +140,28 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		return AwsV2StateMapper.ERROR_STATE;
 	}
 
-	protected String handleSecurityIssues(String allocationId, Ec2Client client) throws FogbowException {
-		String groupId = "";
-		try {
-			groupId = AwsV2CloudUtil.createSecurityGroup(SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId, client, DEFAULT_DESTINATION_CIDR,
-					allocationId, this.defaultVpcId, SECURITY_GROUP_DESCRIPTION);
-		} catch(UnexpectedException e) {
-			doReleaseAddresses(allocationId, client);
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-		return groupId;
-	}
+    protected String handleSecurityIssues(String allocationId, Ec2Client client) throws FogbowException {
+        String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
+        try {
+            String groupId = AwsV2CloudUtil.createSecurityGroup(client, this.defaultVpcId, groupName,
+                    SECURITY_GROUP_DESCRIPTION);
+
+            AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                    .cidrIp(DEFAULT_DESTINATION_CIDR)
+                    .fromPort(SSH_DEFAULT_PORT)
+                    .toPort(SSH_DEFAULT_PORT)
+                    .groupId(groupId)
+                    .ipProtocol(TCP_PROTOCOL)
+                    .build();
+            
+            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(client, request);
+            AwsV2CloudUtil.createTagsRequest(allocationId, AWS_TAG_GROUP_ID, groupId, client);
+            return groupId;
+        } catch (UnexpectedException e) {
+            doReleaseAddresses(allocationId, client);
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
 
 	protected void doReleaseAddresses(String allocationId, Ec2Client client) throws FogbowException {
 		ReleaseAddressRequest request = ReleaseAddressRequest.builder()
