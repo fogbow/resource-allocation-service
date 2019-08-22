@@ -73,18 +73,11 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String allocationId = doAllocateAddresses(client);
 		String instanceId = publicIpOrder.getComputeId();
-		InstanceNetworkInterface networkInterface = loadInstanceNetworkInterfaces(instanceId, client);
-		String networkInterfaceId = networkInterface.networkInterfaceId();
-
+		String networkInterfaceId = getInstanceNetworkInterfaceId(instanceId, client);
 		String groupId = handleSecurityIssues(allocationId, client);
 		doModifyNetworkInterfaceAttributes(groupId, networkInterfaceId, allocationId, client);
-
-		AssociateAddressRequest request = AssociateAddressRequest.builder()
-				.allocationId(allocationId)
-				.networkInterfaceId(networkInterfaceId)
-				.build();
-
-		return doAssociateAddressRequests(allocationId, request, client);
+		doAssociateAddress(allocationId, networkInterfaceId, client);
+		return allocationId;
 	}
 
 	@Override
@@ -216,13 +209,17 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		}
 	}
 
-	protected String doAssociateAddressRequests(String allocationId, AssociateAddressRequest request, Ec2Client client)
+	protected void doAssociateAddress(String allocationId, String networkInterfaceId, Ec2Client client)
 			throws FogbowException {
-		try {
+	    
+	    AssociateAddressRequest request = AssociateAddressRequest.builder()
+                .allocationId(allocationId)
+                .networkInterfaceId(networkInterfaceId)
+                .build();
+	    try {
 			AssociateAddressResponse response = client.associateAddress(request);
 			String associationId = response.associationId();
-			AwsV2CloudUtil.createTagsRequest(AWS_TAG_ASSOCIATION_ID, associationId, allocationId, client);
-			return allocationId;
+			AwsV2CloudUtil.createTagsRequest(allocationId, AWS_TAG_ASSOCIATION_ID, associationId, client);
 		} catch (SdkException e) {
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
@@ -246,12 +243,13 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		}
 	}
 
-	protected InstanceNetworkInterface loadInstanceNetworkInterfaces(String instanceId, Ec2Client client)
+	protected String getInstanceNetworkInterfaceId(String instanceId, Ec2Client client)
 			throws FogbowException {
 
 		DescribeInstancesResponse response = AwsV2CloudUtil.describeInstance(instanceId, client);
 		Instance instance = getInstanceReservation(response);
-		return selectNetworkInterfaceFrom(instance);
+		InstanceNetworkInterface networkInterface = selectNetworkInterfaceFrom(instance);
+		return networkInterface.networkInterfaceId();
 	}
 
 	protected InstanceNetworkInterface selectNetworkInterfaceFrom(Instance instance) {
