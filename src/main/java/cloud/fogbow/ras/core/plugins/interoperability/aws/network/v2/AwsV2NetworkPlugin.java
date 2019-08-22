@@ -76,7 +76,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 		String subnetId = doCreateSubnetResquest(client, request, name);
 		doAssociateRouteTables(client, subnetId);
-		handleSecurityIssues(client, cidr, subnetId);
+		handleSecurityIssues(client, subnetId, cidr);
 		return subnetId;
 	}
 

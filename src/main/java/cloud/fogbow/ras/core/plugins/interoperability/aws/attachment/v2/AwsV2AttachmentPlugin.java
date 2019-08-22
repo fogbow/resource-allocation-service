@@ -33,7 +33,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
 	private static final String RESOURCE_NAME = "Attachment";
 	
-	protected static final String DEFAULT_DEVICE_NAME = "/dev/sda";
+	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
 
 	private String region;
 
@@ -144,7 +144,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
      */
     protected String getAttachedDeviceName(String deviceName) {
         /*
-         * By default, "/dev/sd[a-z]" is provided as an example for Debian-based linux
+         * By default, "/dev/sd[a-z]" is provided as an example for Debian based linux
          * distributions, and "/dev/xvd[a-z]" for Red Hat based distributions and their
          * variants as CentOS.
          */

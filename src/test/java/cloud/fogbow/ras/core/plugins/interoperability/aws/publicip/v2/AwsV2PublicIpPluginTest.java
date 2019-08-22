@@ -34,10 +34,8 @@ import software.amazon.awssdk.services.ec2.model.AllocateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
-import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
@@ -369,11 +367,8 @@ public class AwsV2PublicIpPluginTest {
 		Mockito.when(client.associateAddress(Mockito.any(AssociateAddressRequest.class)))
 				.thenThrow(SdkClientException.builder().build());
 
-		AssociateAddressRequest request = AssociateAddressRequest.builder().build();
-		String allocationId = FAKE_ALLOCATION_ID;
-
 		// exercise
-		this.plugin.doAssociateAddressRequests(allocationId, request, client);
+		this.plugin.doAssociateAddress(FAKE_ALLOCATION_ID, FAKE_ASSOCIATION_ID, client);
 	}
 	
 	// test case: When calling the doModifyNetworkInterfaceAttributes method, with a
@@ -423,7 +418,7 @@ public class AwsV2PublicIpPluginTest {
 	// sub-net ID different from the default sub-net, it must return the network
 	// interface of default sub-net.
 	@Test
-	public void testSelectNetworkInterfaceUnsuccessful() throws FogbowException {
+	public void testSelectNetworkInterfaceUnsuccessful() {
 		// set up
 		String defaultSubnetId = FAKE_SUBNET_ID;
 		Instance instance = buildInstance(defaultSubnetId);
