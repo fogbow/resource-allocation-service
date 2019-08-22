@@ -33,8 +33,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
 	private static final String RESOURCE_NAME = "Attachment";
 	
-	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdh";
-	protected static final String XVDH_DEVICE_NAME = "xvdh";
+	protected static final String DEFAULT_DEVICE_NAME = "/dev/sda";
 
 	private String region;
 
@@ -58,7 +57,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String device = defineDeviceNameAttached(attachmentOrder.getDevice());
+		String device = getAttachedDeviceName(attachmentOrder.getDevice());
 		String instanceId = attachmentOrder.getComputeId();
 		String volumeId = attachmentOrder.getVolumeId();
 		
@@ -137,9 +136,19 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         return attachmentId;
     }
 
-	protected String defineDeviceNameAttached(String deviceName) {
-		// Device name example: ["/dev/sdh", "xvdh"]
-		return (deviceName != null && deviceName.equals(XVDH_DEVICE_NAME)) ? deviceName : DEFAULT_DEVICE_NAME;
-	}
+    /*
+     * The device name defines the volume mount point. Amazon EC2 requires a device
+     * name to be provided and creates a symbolic link to that name, although it may
+     * change it depending on circumstances, as with other operating systems that
+     * behave differently.
+     */
+    protected String getAttachedDeviceName(String deviceName) {
+        /*
+         * By default, "/dev/sd[a-z]" is provided as an example for Debian-based linux
+         * distributions, and "/dev/xvd[a-z]" for Red Hat based distributions and their
+         * variants as CentOS.
+         */
+        return (deviceName != null && !deviceName.isEmpty()) ? deviceName : DEFAULT_DEVICE_NAME;
+    }
 
 }
