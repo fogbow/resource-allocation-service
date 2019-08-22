@@ -201,7 +201,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
 		Mockito.verify(client, Mockito.times(1)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
-		Mockito.verify(this.plugin, Mockito.times(1)).mountVolumeInstance(Mockito.any(DescribeVolumesResponse.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).buildVolumeInstance(Mockito.any(DescribeVolumesResponse.class));
 
 		Assert.assertEquals(expected, volumeInstance);
 	}
@@ -255,7 +255,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder().build();
 
 		// exercise
-		this.plugin.mountVolumeInstance(response);
+		this.plugin.buildVolumeInstance(response);
 	}
 	
 	private VolumeInstance createVolumeInstance() {

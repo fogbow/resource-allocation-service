@@ -95,7 +95,7 @@ public class AwsV2ImagePluginTest {
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
 
-        Mockito.verify(plugin, Mockito.times(1)).mountImagesSummary(Mockito.any());
+        Mockito.verify(plugin, Mockito.times(1)).buildImagesSummary(Mockito.any());
     }
 
     // test case: check if the getImage returns the correct image when there are some and if the right calls are made.
@@ -130,7 +130,7 @@ public class AwsV2ImagePluginTest {
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.getImagesFrom(Mockito.any());
 
-        Mockito.verify(plugin, Mockito.times(1)).mountImageInstance(Mockito.any());
+        Mockito.verify(plugin, Mockito.times(1)).buildImageInstance(Mockito.any());
     }
 
     // test case : check getImage behavior when there is no image to be returned and if the right calls are made.
@@ -160,7 +160,7 @@ public class AwsV2ImagePluginTest {
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.getImagesFrom(Mockito.any());
 
-        Mockito.verify(plugin, Mockito.times(0)).mountImageInstance(Mockito.any());
+        Mockito.verify(plugin, Mockito.times(0)).buildImageInstance(Mockito.any());
     }
 
     // test case: check if testSize works properly with some specific args.
