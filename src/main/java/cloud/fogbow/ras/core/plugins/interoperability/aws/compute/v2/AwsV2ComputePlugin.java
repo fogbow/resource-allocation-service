@@ -400,14 +400,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			for (String line : lines) {
 				if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 					requirements = line.split(CSV_COLUMN_SEPARATOR);
-					flavor = mountHardwareRequirements(images, requirements);
+					flavor = buildHardwareRequirements(images, requirements);
 					this.flavors.add(flavor);
 				}
 			}
 		}
 	}
 
-	protected AwsHardwareRequirements mountHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
+	protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
 		String name = requirements[INSTANCE_TYPE_COLUMN];
 		String flavorId = FogbowCloudUtil.getRandomUUID();
 		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);

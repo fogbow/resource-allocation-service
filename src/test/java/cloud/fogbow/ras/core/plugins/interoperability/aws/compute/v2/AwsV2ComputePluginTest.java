@@ -166,14 +166,13 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		this.plugin.requestInstance(computeOrder, cloudUser);
 	}
 	
-	// test case: When calling the getInstance method, with a valid compute order
-	// and cloud user, a client is called to request an instance in the cloud and
-	// mount this instance.
+	// test case: check if the calls are made as expected
+	//when getInstance is invoked properly
 	@Test
 	public void testGetInstance() throws FogbowException {
 		// set up
 		PowerMockito.mockStatic(AwsV2CloudUtil.class);
-		
+
 		Mockito.when(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).thenCallRealMethod();
 		Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.any(), Mockito.any())).thenCallRealMethod();
 		Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.any())).thenCallRealMethod();
@@ -203,13 +202,18 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		// verify
 		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(3));
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+
 		Mockito.verify(client, Mockito.times(1)).describeInstances(Mockito.any(DescribeInstancesRequest.class));
+
 		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
 		AwsV2CloudUtil.describeInstance(Mockito.any(), Mockito.any());
+
 		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
 		AwsV2CloudUtil.getInstanceReservation(Mockito.any(DescribeInstancesResponse.class));
+
 		PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
 		AwsV2CloudUtil.getInstanceVolumes(Mockito.any(Instance.class), Mockito.eq(client));
+		
 		Mockito.verify(this.plugin, Mockito.times(1)).buildComputeInstance(Mockito.any(Instance.class),
 				Mockito.any());
 	}
