@@ -345,44 +345,6 @@ public class AwsV2NetworkPluginTest {
 		this.plugin.handleSecurityIssues(client, cidr, subnetId);
 	}
 	
-	// test case: When calling the doAuthorizeSecurityGroupIngress method, and an
-	// error occurs during the request, the UnexpectedException will be thrown.
-//	@Test(expected = UnexpectedException.class) // verify
-//	public void testDoAuthorizeSecurityGroupIngressUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		Mockito.when(client.authorizeSecurityGroupIngress(Mockito.any(AuthorizeSecurityGroupIngressRequest.class)))
-//				.thenThrow(SdkClientException.builder().build());
-//
-//		String cidr = FAKE_CIDR_ADDRESS;
-//		String subnetId = FAKE_SUBNET_ID;
-//		String groupId = FAKE_GROUP_ID;
-//
-//		// exercise
-//		this.plugin.doAuthorizeSecurityGroupIngress(client, cidr, subnetId, groupId);
-//	}
-//
-	// test case: When calling the doDeleteSecurityGroups method, and an error
-	// occurs during the request, the UnexpectedException will be thrown.
-//	@Test(expected = UnexpectedException.class) // verify
-//	public void testDoDeleteSecurityGroupsUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		Mockito.when(client.deleteSecurityGroup(Mockito.any(DeleteSecurityGroupRequest.class)))
-//				.thenThrow(SdkClientException.builder().build());
-//
-//		String groupId = FAKE_GROUP_ID;
-//
-//		// exercise
-//		this.plugin.doDeleteSecurityGroup(client, groupId);
-//	}
-	
 	// test case: When calling the doDeleteSubnets method, and an error
 	// occurs during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
