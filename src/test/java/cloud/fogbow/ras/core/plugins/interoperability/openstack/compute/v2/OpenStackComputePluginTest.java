@@ -645,6 +645,11 @@ public class OpenStackComputePluginTest {
         this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
     }
 
+    @Test
+    public void testGetBestFlavor() {
+        
+    }
+
     /*
      * This method mocks the behavior of a http flavor request by mocking GET"/flavors" and GET"/flavors/id" and adds
      * bestFlavorId as a flavor from this response in addition to other flavors. Besides that, bestFlavorId will be

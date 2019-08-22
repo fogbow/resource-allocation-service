@@ -58,7 +58,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return null;
     }
 
-    private GetImageResponse getImageResponse(String imageId, OpenStackV3User cloudUser) throws FogbowException {
+    protected GetImageResponse getImageResponse(String imageId, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
@@ -71,7 +71,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return GetImageResponse.fromJson(jsonResponse);
     }
 
-    private List<GetImageResponse> getImagesResponse(OpenStackV3User cloudUser) throws FogbowException {
+    protected List<GetImageResponse> getImagesResponse(OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
@@ -88,7 +88,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return getImageResponses;
     }
 
-    private void getNextImageListResponseByPagination(OpenStackV3User cloudUser, GetAllImagesResponse getAllImagesResponse,
+    protected void getNextImageListResponseByPagination(OpenStackV3User cloudUser, GetAllImagesResponse getAllImagesResponse,
                                                       List<GetImageResponse> imagesJson) throws FogbowException {
 
         String next = getAllImagesResponse.getNext();
@@ -107,7 +107,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         }
     }
 
-    private List<GetImageResponse> getPublicImagesResponse(List<GetImageResponse> imagesResponse) {
+    protected List<GetImageResponse> getPublicImagesResponse(List<GetImageResponse> imagesResponse) {
         List<GetImageResponse> publicImagesResponse = new ArrayList<GetImageResponse>();
         for (GetImageResponse getImageResponse : imagesResponse) {
             if (getImageResponse.getVisibility().equals(PUBLIC_VISIBILITY)) {
@@ -152,7 +152,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         this.client = client;
     }
 
-    private GetAllImagesResponse getAllImagesResponse(String json) {
+    protected GetAllImagesResponse getAllImagesResponse(String json) {
         return GetAllImagesResponse.fromJson(json);
     }
 
