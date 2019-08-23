@@ -117,7 +117,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return publicImagesResponse;
     }
 
-    private List<GetImageResponse> getPrivateImagesResponse(List<GetImageResponse> imagesResponse, String tenantId) {
+    protected List<GetImageResponse> getPrivateImagesResponse(List<GetImageResponse> imagesResponse, String tenantId) {
         List<GetImageResponse> privateImagesResponse = new ArrayList<GetImageResponse>();
         for (GetImageResponse getImageResponse : imagesResponse) {
             if (getImageResponse.getOwner().equals(tenantId)
@@ -128,7 +128,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return privateImagesResponse;
     }
 
-    private List<ImageSummary> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
+    protected List<ImageSummary> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
         List<ImageSummary> availableImages = new ArrayList<>();
 
         List<GetImageResponse> allImagesResponse = getImagesResponse(cloudUser);
