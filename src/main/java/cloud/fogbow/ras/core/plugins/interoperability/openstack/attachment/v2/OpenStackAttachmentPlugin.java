@@ -1,30 +1,38 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
-import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.models.OpenStackV3User;
-import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
+import java.util.Properties;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
-import java.util.Properties;
+import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 
 public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3User> {
-    private final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
+    
+    private static final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
 
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
-    private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-    private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    private static final String SERVERS = "/servers/";
+    protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    protected static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
+    protected static final String SERVERS = "/servers/";
+    
     private Properties properties;
     private OpenStackHttpClient client;
 
@@ -47,27 +55,14 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = cloudUser.getProjectId();
         String serverId = attachmentOrder.getComputeId();
+        String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
+
         String volumeId = attachmentOrder.getVolumeId();
         String device = attachmentOrder.getDevice();
+        String jsonRequest = generateJsonRequestToAttach(volumeId, device);
 
-        String jsonRequest;
-        try {
-            jsonRequest = generateJsonToAttach(volumeId, device);
-        } catch (JSONException e) {
-            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
-            LOGGER.error(message, e);
-            throw new InvalidParameterException(message, e);
-        }
-
-        String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
-        CreateAttachmentResponse createAttachmentResponse = CreateAttachmentResponse.fromJson(jsonResponse);
-        return createAttachmentResponse.getVolumeId();
+        CreateAttachmentResponse response = doCreateAttachmentResponse(endpoint, jsonRequest, cloudUser);
+        return response.getVolumeId();
     }
 
     @Override
@@ -99,7 +94,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String projectId = cloudUser.getProjectId();
-        String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
+        String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/"
+                + volumeId;
         String jsonResponse = null;
         try {
             jsonResponse = this.client.doGetRequest(requestEndpoint, cloudUser);
@@ -117,10 +113,12 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
             String computeId = getAttachmentResponse.getServerId();
             String volumeId = getAttachmentResponse.getVolumeId();
             String device = getAttachmentResponse.getDevice();
-            // There is no OpenStackState for attachments; we set it to empty string to allow its mapping
+            // There is no OpenStackState for attachments; we set it to empty string to
+            // allow its mapping
             // by the OpenStackStateMapper.map() function.
             String openStackState = "";
-            AttachmentInstance attachmentInstance = new AttachmentInstance(id, openStackState, computeId, volumeId, device);
+            AttachmentInstance attachmentInstance = new AttachmentInstance(id, openStackState, computeId, volumeId,
+                    device);
             return attachmentInstance;
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GET_ATTACHMENT_INSTANCE;
@@ -129,16 +127,34 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         }
     }
 
-    private String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId;
+    protected CreateAttachmentResponse doCreateAttachmentResponse(String endpoint, String jsonRequest,
+            OpenStackV3User cloudUser) throws FogbowException {
+        
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+        return CreateAttachmentResponse.fromJson(jsonResponse);
     }
 
-    protected String generateJsonToAttach(String volumeId, String device) throws JSONException {
+    protected String generateJsonRequestToAttach(String volumeId, String device) throws FogbowException {
         CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
                 .volumeId(volumeId)
                 .device(device)
                 .build();
-        return createAttachmentRequest.toJson();
+        try {
+            return createAttachmentRequest.toJson();
+        } catch (JSONException e) {
+            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
+            LOGGER.error(message, e);
+            throw new InvalidParameterException(message, e);
+        }
+    }
+    
+    private String getPrefixEndpoint(String projectId) {
+        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId;
     }
 
     private void initClient() {
