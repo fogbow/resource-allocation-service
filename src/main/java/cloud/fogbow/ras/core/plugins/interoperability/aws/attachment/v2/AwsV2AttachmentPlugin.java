@@ -67,7 +67,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 				.volumeId(volumeId)
 				.build();
 
-		return doAttachVolumeRequest(client, request);
+		return doRequestInstance(request, client);
 	}
 
     @Override
@@ -81,15 +81,10 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
                 .volumeId(volumeId)
                 .build();
 
-        try {
-            client.detachVolume(request);
-        } catch (Exception e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
-            throw new UnexpectedException();
-        }
-    }
+		doDeleteInstance(volumeId, request, client);
+	}
 
-    @Override
+	@Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
@@ -100,9 +95,18 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
                 .volumeIds(attachmentId)
                 .build();
         
-        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
+        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
         return buildAttachmentInstance(response);
     }
+
+	protected void doDeleteInstance(String volumeId, DetachVolumeRequest request, Ec2Client client) throws UnexpectedException {
+		try {
+			client.detachVolume(request);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
+			throw new UnexpectedException();
+		}
+	}
 
 	protected AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
 			throws FogbowException {
@@ -123,7 +127,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 	
-	private String doAttachVolumeRequest(Ec2Client client, AttachVolumeRequest request)
+	private String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
             throws FogbowException {
 
         String attachmentId;

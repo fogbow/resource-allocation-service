@@ -102,6 +102,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
+		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
 		String imageId = flavor.getImageId();
 		InstanceType instanceType = InstanceType.fromValue(flavor.getName());
@@ -110,15 +111,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
 		RunInstancesRequest request = RunInstancesRequest.builder()
-				.imageId(imageId)
-				.instanceType(instanceType)
-				.maxCount(INSTANCES_LAUNCH_NUMBER)
-				.minCount(INSTANCES_LAUNCH_NUMBER)
-				.networkInterfaces(networkInterfaces)
-				.userData(userData)
-				.build();
+			.imageId(imageId)
+			.instanceType(instanceType)
+			.maxCount(INSTANCES_LAUNCH_NUMBER)
+			.minCount(INSTANCES_LAUNCH_NUMBER)
+			.networkInterfaces(networkInterfaces)
+			.userData(userData)
+			.build();
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		return doRunInstancesRequests(computeOrder, flavor, request, client);
 	}
 
@@ -143,7 +143,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		doTerminateInstancesRequests(request, client);
+		doDeleteInstance(request, client);
 	}
 
 	@Override
@@ -156,7 +156,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return false;
 	}
 
-	private void doTerminateInstancesRequests(TerminateInstancesRequest request, Ec2Client client)
+	private void doDeleteInstance(TerminateInstancesRequest request, Ec2Client client)
 			throws UnexpectedException {
 		try {
 			client.terminateInstances(request);
