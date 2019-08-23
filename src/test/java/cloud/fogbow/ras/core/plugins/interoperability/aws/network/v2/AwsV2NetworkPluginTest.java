@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import cloud.fogbow.ras.core.BaseUnitTests;
+import org.hibernate.sql.Delete;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -33,26 +36,11 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
-import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
-import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
-import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
-import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
-import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
-import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest;
-import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
-import software.amazon.awssdk.services.ec2.model.Route;
-import software.amazon.awssdk.services.ec2.model.RouteTable;
-import software.amazon.awssdk.services.ec2.model.Subnet;
-import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2NetworkPluginTest {
+@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class, AwsV2CloudUtil.class})
+public class AwsV2NetworkPluginTest extends BaseUnitTests {
 
 	private static final String ANOTHER_VPC_ID = "another-vpc-id";
 	private static final String ANY_VALUE = "anything";
@@ -287,7 +275,7 @@ public class AwsV2NetworkPluginTest {
         String value = ANY_VALUE;
         Tag tag = buildTags(key, value);
         Subnet subnet = buildSubnet(subnetId, tag);
-        Mockito.doReturn(subnet).when(this.plugin).getSubnetById(client, subnetId);
+        Mockito.doReturn(subnet).when(this.plugin).getSubnetById(subnetId, client);
 
         // exercise
         this.plugin.getGroupIdFrom(subnet);
@@ -305,7 +293,7 @@ public class AwsV2NetworkPluginTest {
 		String subnetId = FAKE_SUBNET_ID;
 
 		// exercise
-		this.plugin.getSubnetById(client, subnetId);
+		this.plugin.getSubnetById(subnetId, client);
 	}
 	
 	// test case: When calling the doDescribeSubnets method, and an error occurs
@@ -324,7 +312,7 @@ public class AwsV2NetworkPluginTest {
 		DescribeSubnetsRequest request = DescribeSubnetsRequest.builder().subnetIds(subnetId).build();
 
 		// exercise
-		this.plugin.doDescribeSubnetsRequest(client, request);
+		this.plugin.doDescribeSubnetsRequest(request, client);
 	}
 	
 	// test case: When calling the handleSecurityIssues method, without a valid
@@ -361,7 +349,7 @@ public class AwsV2NetworkPluginTest {
 		String subnetId = FAKE_SUBNET_ID;
 
 		// exercise
-		this.plugin.doDeleteSubnet(client, subnetId);
+		this.plugin.doDeleteSubnet(subnetId, client);
 	}
 	
 	// test case: When calling the doAssociateRouteTables method, and an error
@@ -381,7 +369,7 @@ public class AwsV2NetworkPluginTest {
 		String subnetId = FAKE_SUBNET_ID;
 
 		// exercise
-		this.plugin.doAssociateRouteTables(client, subnetId);
+		this.plugin.doAssociateRouteTables(subnetId, client);
 	}
 	
 	// test case: When calling the getRouteTables method, and not find a route with
@@ -431,7 +419,41 @@ public class AwsV2NetworkPluginTest {
 		CreateSubnetRequest request = null;
 
 		// exercise
-		this.plugin.doCreateSubnetResquest(client, request, name);
+		this.plugin.doCreateSubnetResquest(request, name, client);
+	}
+
+	//test case: check if the tested method do the expected calls
+	@Test
+	public void testDoRequestInstance() throws FogbowException{
+		//setup
+		Mockito.doReturn(FAKE_SUBNET_ID).when(plugin).doCreateSubnetResquest(Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doAssociateRouteTables(Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).handleSecurityIssues(Mockito.any(), Mockito.any(), Mockito.any());
+		Ec2Client client = testUtils.getAwsMockedClient();
+		CreateSubnetRequest request = CreateSubnetRequest.builder().build();
+
+		//exercise
+		plugin.doRequestInstance(FAKE_CIDR_ADDRESS, FAKE_INSTANCE_NAME, request, client);
+
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doCreateSubnetResquest(Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doAssociateRouteTables(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).handleSecurityIssues(Mockito.any(), Mockito.any(), Mockito.any());
+	}
+
+	//test case: check if the tested method do the expected calls
+	@Test
+	public void testDoDeleteInstance() throws FogbowException{
+		//setup
+		PowerMockito.mockStatic(AwsV2CloudUtil.class);
+		Ec2Client client = testUtils.getAwsMockedClient();
+		Mockito.doNothing().when(plugin).doDeleteSubnet(Mockito.any(), Mockito.any());
+		//exercise
+		plugin.doDeleteInstance(FAKE_SUBNET_ID, FAKE_GROUP_ID, client);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doDeleteSubnet(Mockito.any(), Mockito.any());
+		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+		AwsV2CloudUtil.doDeleteSecurityGroup(FAKE_GROUP_ID, client);
 	}
 
 	private NetworkInstance createNetworkInstances() {

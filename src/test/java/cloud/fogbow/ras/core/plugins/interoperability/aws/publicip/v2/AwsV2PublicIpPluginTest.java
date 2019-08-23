@@ -3,11 +3,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 import java.io.File;
 import java.util.HashMap;
 
+import cloud.fogbow.ras.core.BaseUnitTests;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -53,8 +55,8 @@ import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2PublicIpPluginTest {
+@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class , AwsV2CloudUtil.class})
+public class AwsV2PublicIpPluginTest extends BaseUnitTests {
 
 	private static final String ANOTHER_SECURITY_GROUP_ID = "another-security-group-id";
 	private static final String ANOTHER_SUBNET_ID = "another-subnet-id";
@@ -444,24 +446,7 @@ public class AwsV2PublicIpPluginTest {
 		// exercise
 		this.plugin.getInstanceReservation(response);
 	}
-	
-	// test case: When calling the doDescribeInstance method, and an error occurs
-	// during the request, an UnexpectedException will be thrown.
-//	@Test(expected = UnexpectedException.class) // verify
-//	public void testDoDescribeInstanceUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		Mockito.when(client.describeInstances(Mockito.any(DescribeInstancesRequest.class)))
-//				.thenThrow(SdkClientException.builder().build());
-//
-//		String instanceId = FAKE_INSTANCE_ID;
-//
-//		// exercise
-//		this.plugin.doDescribeInstance(instanceId, client);
-//	}
+
 	
 	// test case: When calling the doAllocateAddresses method, and an error occurs
 	// during the request, an UnexpectedException will be thrown.
@@ -477,6 +462,49 @@ public class AwsV2PublicIpPluginTest {
 
 		// exercise
 		this.plugin.doAllocateAddresses(client);
+	}
+
+	//Test case: check if the testes method make the expected calls
+	@Test
+	public void testDoRequestInstance() throws FogbowException{
+		//setup
+		Ec2Client client = testUtils.getAwsMockedClient();
+		Mockito.doReturn(FAKE_ALLOCATION_ID).when(plugin).doAllocateAddresses(Mockito.any());
+		Mockito.doReturn(FAKE_NETWORK_INTERFACE_ID).when(plugin).getInstanceNetworkInterfaceId(Mockito.any(), Mockito.any());
+		Mockito.doReturn(FAKE_DEFAULT_SECURITY_GROUP_ID).when(plugin).handleSecurityIssues(Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doAssociateAddress(Mockito.any(), Mockito.any(), Mockito.any());
+		PublicIpOrder publicIpOrder = Mockito.spy(new PublicIpOrder());
+		Mockito.doReturn(FAKE_INSTANCE_ID).when(publicIpOrder).getComputeId();
+		//exercise
+		plugin.doRequestInstance(publicIpOrder, client);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doAllocateAddresses(Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).getInstanceNetworkInterfaceId(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).handleSecurityIssues(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doAssociateAddress(Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(publicIpOrder, Mockito.times(1)).getComputeId();
+	}
+
+	//Test case: check if the testes method make the expected calls
+	@Test
+	public void testDoDeleteInstance() throws FogbowException {
+		//setup
+		PowerMockito.mockStatic(AwsV2CloudUtil.class);
+		Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doReleaseAddresses(Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doDisassociateAddresses(Mockito.any(), Mockito.any());
+		Ec2Client client = testUtils.getAwsMockedClient();
+		//exercise
+		plugin.doDeleteInstance(FAKE_ALLOCATION_ID, FAKE_ASSOCIATION_ID, FAKE_DEFAULT_SECURITY_GROUP_ID, FAKE_NETWORK_INTERFACE_ID, client);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doReleaseAddresses(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doDisassociateAddresses(Mockito.any(), Mockito.any());
+		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+		AwsV2CloudUtil.doDeleteSecurityGroup(FAKE_DEFAULT_SECURITY_GROUP_ID, client);
+
 	}
 	
 	private PublicIpInstance createPublicIpInstance() {
