@@ -111,7 +111,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 	
     // test case: When calling the getPublicKey method with a null Public Key File
-    // Path, it must throw an UnauthorizedRequestException.
+    // Path, it must throw an UnexpectedException.
     @Test(expected = UnexpectedException.class) // verify
     public void testGetPublicKeyThrowsUnexpectedException() throws Exception {
         // set up
@@ -1703,7 +1703,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     // test case: When calling the checkPublicIpOrderConsistency method with a
     // valid attachment order, it must verify that this call was successful.
     @Test
-    public void testcheckPublicIpOrderConsistency() throws FogbowException {
+    public void testCheckPublicIpOrderConsistency() throws FogbowException {
         // set up
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
         computeOrder.setInstanceId(TestUtils.FAKE_COMPUTE_ID);
