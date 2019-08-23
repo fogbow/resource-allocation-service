@@ -41,12 +41,10 @@ import software.amazon.awssdk.services.ec2.model.Tag;
 public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2NetworkPlugin.class);
-
 	private static final String ALL_PROTOCOLS = "-1";
 	private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
 	private static final String SUBNET_RESOURCE = "Subnet";
 
-	protected static final String AWS_TAG_GROUP_ID = "groupId";
 	protected static final String LOCAL_GATEWAY_DESTINATION = "local";
 	
 	private String defaultVpcId;
@@ -91,17 +89,23 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 		return buildNetworkInstance(subnet, routeTable);
 	}
 
-	@Override
-	public void deleteInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
+    @Override
+    public void deleteInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String subnetId = networkOrder.getInstanceId();
-		Subnet subnet = getSubnetById(client, subnetId); 
-		String groupId = getGroupIdFrom(subnet);
-		doDeleteSubnet(client, subnetId);
-		AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
-	}
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String subnetId = networkOrder.getInstanceId();
+        Subnet subnet = getSubnetById(client, subnetId);
+        String groupId = getGroupIdFrom(subnet);
+        doDeleteSubnet(client, subnetId);
+        try {
+            AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
+        } catch (Exception e) {
+            String resource = AwsV2CloudUtil.SECURITY_GROUP_RESOURCE;
+            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, resource, groupId), e);
+            throw e;
+        }
+    }
 
 	@Override
 	public boolean isReady(String instanceState) {
@@ -115,7 +119,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 	
 	protected String getGroupIdFrom(Subnet subnet) throws FogbowException {
 		for (Tag tag : subnet.tags()) {
-			if (tag.key().equals(AWS_TAG_GROUP_ID)) {
+			if (tag.key().equals(AwsV2CloudUtil.AWS_TAG_GROUP_ID)) {
 				return tag.value();
 			}
 		}
@@ -159,7 +163,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
                     .build();
 
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(client, request);
-            AwsV2CloudUtil.createTagsRequest(subnetId, AWS_TAG_GROUP_ID, groupId, client);
+            AwsV2CloudUtil.createTagsRequest(subnetId, AwsV2CloudUtil.AWS_TAG_GROUP_ID, groupId, client);
         } catch (UnexpectedException e) {
             doDeleteSubnet(client, subnetId);
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);

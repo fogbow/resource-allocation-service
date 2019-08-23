@@ -29,6 +29,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -450,7 +451,7 @@ public class AwsV2NetworkPluginTest {
 	}
 	
 	private void mockDescribeSubnets(Ec2Client client) {
-		String key = AwsV2NetworkPlugin.AWS_TAG_GROUP_ID;
+		String key = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
 		String value = FAKE_GROUP_ID;
 		Tag tag = buildTags(key, value);
 		

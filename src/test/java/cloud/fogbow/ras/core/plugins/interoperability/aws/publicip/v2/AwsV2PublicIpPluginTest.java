@@ -26,6 +26,7 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -528,7 +529,7 @@ public class AwsV2PublicIpPluginTest {
 	private Address buildAddress(String instanceId) {
 		String allocationId = FAKE_ALLOCATION_ID;
 		Tag tagAssociationId = buildTag(AwsV2PublicIpPlugin.AWS_TAG_ASSOCIATION_ID);
-		Tag tagGroupId = buildTag(AwsV2PublicIpPlugin.AWS_TAG_GROUP_ID);
+		Tag tagGroupId = buildTag(AwsV2CloudUtil.AWS_TAG_GROUP_ID);
 		return Address.builder()
 				.allocationId(allocationId)
 				.instanceId(instanceId)

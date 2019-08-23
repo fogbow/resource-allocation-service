@@ -1,25 +1,36 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
-import org.apache.log4j.Logger;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
+import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
+import software.amazon.awssdk.services.ec2.model.Image;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.Volume;
 
 public class AwsV2CloudUtil {
 
-    public static final Logger LOGGER = Logger.getLogger(AwsV2CloudUtil.class);
-    public static final Object SECURITY_GROUP_RESOURCE = "Security Groups";
+    public static final String SECURITY_GROUP_RESOURCE = "Security Groups";
     public static final String AWS_TAG_GROUP_ID = "groupId";
-    public static final String TCP_PROTOCOL = "tcp";
     public static final String AWS_TAG_NAME = "Name";
-    public static final Integer SSH_DEFAULT_PORT = 22;
     
     public static Image getImagesFrom(DescribeImagesResponse response) throws FogbowException {
         if (response != null && !response.images().isEmpty()) {
@@ -67,7 +78,7 @@ public class AwsV2CloudUtil {
                 .build();
         try {
             client.createTags(request);
-        } catch (Exception e) {
+        } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
@@ -79,8 +90,7 @@ public class AwsV2CloudUtil {
         try {
             client.deleteSecurityGroup(request);
         } catch (SdkException e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SECURITY_GROUP_RESOURCE, groupId), e);
-            throw new UnexpectedException();
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
 

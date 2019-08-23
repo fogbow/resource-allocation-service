@@ -55,11 +55,9 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
-	private static final String AWS_TAG_NAME = "Name";
 	private static final String RESOURCE_NAME = "Compute";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
-
 	private static final int INSTANCE_TYPE_COLUMN = 0;
 	private static final int VCPU_COLUMN = 1;
 	private static final int MEMORY_COLUMN = 2;
@@ -80,7 +78,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
 	protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
 	protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
-
 	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 	protected static final int ONE_GIGABYTE = 1024;
 
@@ -180,7 +177,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				instance = response.instances().listIterator().next();
 				instanceId = instance.instanceId();
 				String name = FogbowCloudUtil.defineInstanceName(computeOrder.getName());
-				AwsV2CloudUtil.createTagsRequest(instanceId, AWS_TAG_NAME, name, client);
+				AwsV2CloudUtil.createTagsRequest(instanceId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
 				updateInstanceAllocation(computeOrder, flavor, instance, client);
 			}
 			return instanceId;

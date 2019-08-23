@@ -50,13 +50,13 @@ public class TestUtils {
     public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
     public static final String FAKE_SECURITY_RULE_ID = "fake-security-rule-id";
+    public static final String FAKE_TAG = "fake-tag";
+    public static final String FAKE_USER_DATA = "fake-user-data";
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-    protected static final String FAKE_USER_DATA = "fake-user-data";
-    protected static final String FAKE_TAG = "fake-tag";
     
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();

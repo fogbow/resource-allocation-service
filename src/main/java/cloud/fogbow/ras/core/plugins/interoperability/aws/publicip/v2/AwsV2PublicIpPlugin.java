@@ -43,14 +43,11 @@ import software.amazon.awssdk.services.ec2.model.Tag;
 public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2PublicIpPlugin.class);
-
 	private static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
 	private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
 
 	protected static final String AWS_TAG_ASSOCIATION_ID = "associationId";
-	protected static final String AWS_TAG_GROUP_ID = "groupId";
 	protected static final String TCP_PROTOCOL = "tcp";
-	
 	protected static final int SSH_DEFAULT_PORT = 22;
 	
 	private String defaultGroupId;
@@ -80,23 +77,29 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		return allocationId;
 	}
 
-	@Override
-	public void deleteInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
+    @Override
+    public void deleteInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String allocationId = publicIpOrder.getInstanceId();
-		String associationId = getResourceIdByAddressTag(AWS_TAG_ASSOCIATION_ID, allocationId, client);
-		String groupId = getResourceIdByAddressTag(AWS_TAG_GROUP_ID, allocationId, client);
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String allocationId = publicIpOrder.getInstanceId();
+        String associationId = getResourceIdByAddressTag(AWS_TAG_ASSOCIATION_ID, allocationId, client);
+        String groupId = getResourceIdByAddressTag(AwsV2CloudUtil.AWS_TAG_GROUP_ID, allocationId, client);
 
-		Address address = getAddressById(allocationId, client);
-		String networkInterfaceId = address.networkInterfaceId();
+        Address address = getAddressById(allocationId, client);
+        String networkInterfaceId = address.networkInterfaceId();
 
-		doModifyNetworkInterfaceAttributes(this.defaultGroupId, networkInterfaceId, allocationId, client);
-		AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
-		doDisassociateAddresses(associationId, client);
-		doReleaseAddresses(allocationId, client);
-	}
+        doModifyNetworkInterfaceAttributes(this.defaultGroupId, networkInterfaceId, allocationId, client);
+        try {
+            AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
+        } catch (Exception e) {
+            String resource = AwsV2CloudUtil.SECURITY_GROUP_RESOURCE;
+            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, resource, groupId), e);
+            throw e;
+        }
+        doDisassociateAddresses(associationId, client);
+        doReleaseAddresses(allocationId, client);
+    }
 
 	@Override
 	public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
@@ -148,7 +151,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
                     .build();
             
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(client, request);
-            AwsV2CloudUtil.createTagsRequest(allocationId, AWS_TAG_GROUP_ID, groupId, client);
+            AwsV2CloudUtil.createTagsRequest(allocationId, AwsV2CloudUtil.AWS_TAG_GROUP_ID, groupId, client);
             return groupId;
         } catch (UnexpectedException e) {
             doReleaseAddresses(allocationId, client);
