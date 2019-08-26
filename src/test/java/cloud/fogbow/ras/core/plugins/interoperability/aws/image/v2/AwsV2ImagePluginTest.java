@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,7 +37,7 @@ import software.amazon.awssdk.services.ec2.model.Image;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class})
-public class AwsV2ImagePluginTest {
+public class AwsV2ImagePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
     private static final String CLOUD_NAME = "amazon";
@@ -59,6 +61,7 @@ public class AwsV2ImagePluginTest {
                 + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
+        mockSharedOrdersHolder();
         this.plugin = Mockito.spy(new AwsV2ImagePlugin(awsConfFilePath));
     }
 
@@ -67,9 +70,7 @@ public class AwsV2ImagePluginTest {
     @Test
     public void testGetAllImages() throws FogbowException {
         // setup
-        Ec2Client client = Mockito.mock(Ec2Client.class);
-        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+        Ec2Client client = testUtils.getAwsMockedClient();
 
         DescribeImagesResponse response = DescribeImagesResponse.builder().images(getMockedImages()).build();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
@@ -89,8 +90,6 @@ public class AwsV2ImagePluginTest {
 
         // verify
         Assert.assertEquals(expectedResult, result);
-        PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
-        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
@@ -102,9 +101,7 @@ public class AwsV2ImagePluginTest {
     @Test
     public void testGetImageWithResult() throws FogbowException {
         //setup
-        Ec2Client client = Mockito.mock(Ec2Client.class);
-        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+        Ec2Client client = testUtils.getAwsMockedClient();
 
         List<Image> imagesList = getMockedImages();
 
@@ -121,8 +118,6 @@ public class AwsV2ImagePluginTest {
 
         // verify
         Assert.assertEquals(expected, image);
-        PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
-        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
@@ -137,9 +132,7 @@ public class AwsV2ImagePluginTest {
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetImageWithoutResult() throws FogbowException {
         // setup
-        Ec2Client client = Mockito.mock(Ec2Client.class);
-        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+        Ec2Client client = testUtils.getAwsMockedClient();
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
         DescribeImagesResponse response = DescribeImagesResponse.builder()
@@ -150,9 +143,6 @@ public class AwsV2ImagePluginTest {
 
         // exercise
         this.plugin.getImage(ANY_VALUE, cloudUser);
-
-        PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
-        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());

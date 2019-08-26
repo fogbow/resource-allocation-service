@@ -166,6 +166,7 @@ public class TestUtils {
         return attachmentOrder;
     }
 
+
     public PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
         SystemUser systemUser = createSystemUser();
         PublicIpOrder publicIpOrder =
