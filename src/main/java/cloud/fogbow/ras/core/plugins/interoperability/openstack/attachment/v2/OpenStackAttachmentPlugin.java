@@ -101,7 +101,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         return attachmentInstance;
     }
 
-    private AttachmentInstance buildAttachmentInstanceFrom(GetAttachmentResponse response) {
+    protected AttachmentInstance buildAttachmentInstanceFrom(GetAttachmentResponse response) {
         String id = response.getId();
         String computeId = response.getServerId();
         String volumeId = response.getVolumeId();
@@ -190,7 +190,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         }
     }
     
-    private String getPrefixEndpoint(String projectId) {
+    protected String getPrefixEndpoint(String projectId) {
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId;
     }
 
