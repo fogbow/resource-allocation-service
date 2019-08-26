@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -12,12 +12,15 @@ import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -31,10 +34,6 @@ import java.util.*;
 public class OpenStackImagePluginTest extends BaseUnitTests{
 
     private static final String FAKE_IMAGE_ID = "fake-image-id";
-    private static final String FAKE_IMAGE_NAME = "fake-image-name";
-    private static final long FAKE_SIZE = 10l;
-    private static final long FAKE_MIN_DISK = 1l;
-    private static final long FAKE_MIN_RAM = 2l;
 
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -56,37 +55,28 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         this.localUserAttributes = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
         this.plugin.setProperties(this.properties);
         this.plugin.setClient(this.client);
+        
+        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+
+        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+                .thenReturn(new SynchronizedDoublyLinkedList<>());
+
+        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
     }
 
-    //test case: Check if getAllImages is returning all expected images from Json response properly.
     @Test
-    public void testGetAllImages() throws FogbowException, HttpResponseException {
-        //set up
-        String imageGlancev2UrlKey = "image-url-key";
-        String endpoint =
-                imageGlancev2UrlKey
-                        + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
-                        + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
-                        + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
-        List<Map<String, String>> generatedImages = generateImages(0, 100);
-
-        String jsonResponse = getImagesJson(generatedImages);
-
-        Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-        Mockito.when(this.client.doGetRequest(endpoint, localUserAttributes)).thenReturn(jsonResponse);
-
-        List<ImageSummary> expectedOutput = generateJustPublicAndPrivateImagesFromProject(0, 100);
-        expectedOutput.sort(Comparator.comparing(ImageSummary::getId));
-
-        //exercise
-        List<ImageSummary> imagePluginOutput = this.plugin.getAllImages(localUserAttributes);
-        imagePluginOutput.sort(Comparator.comparing(ImageSummary::getId));
-
-        //verify
-        Assert.assertEquals(expectedOutput, imagePluginOutput);
+    public void testGetAllImages() throws FogbowException{
+        Mockito.doReturn(new ArrayList<>()).when(plugin).getAvailableImages(Mockito.any());
+        OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
+        plugin.getAvailableImages(cloudUser);
+        Mockito.verify(plugin, Mockito.times(1)).getAvailableImages(Mockito.any());
     }
 
     //test case: Check if getAllImages is returning all expected images from Json response when the request uses pagination.
+    // this test is out of our pattern but it is very important to test the pagination through getAllImages.
     @Test
     public void testGetAllImagesWithPagination() throws FogbowException, HttpResponseException {
         //set up
@@ -137,74 +127,50 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(endpoint3, localUserAttributes);
     }
 
-    //test case: Check if getImageId is returning all expected images from Json response properly.
     @Test
-    public void testGetImage() throws FogbowException, HttpResponseException {
-        //set up
-        String imageId = "image-id";
-        String imageGlancev2UrlKey = "image-url-key";
-        String endpoint =
-                imageGlancev2UrlKey
-                        + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
-                        + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
-                        + "/"
-                        + imageId;
-        ImageInstance expectedImageInstance = new ImageInstance(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, OpenStackImagePlugin.ACTIVE_STATE);
+    public void testGetUnavailableImage() throws FogbowException{
+        GetImageResponse getImageResponse = Mockito.mock(GetImageResponse.class);
+        Mockito.when(getImageResponse.getId()).thenReturn(FAKE_IMAGE_ID);
+        Mockito.when(getImageResponse.getStatus()).thenReturn("unavailable");
+        Mockito.doReturn(getImageResponse).when(plugin).getImageResponse(Mockito.any(), Mockito.any());
+        OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
 
-        String jsonResponse = getImageJsonFromImage(expectedImageInstance);
+        ImageInstance imageInstance = plugin.getImage(FAKE_IMAGE_ID, cloudUser);
 
-        Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-        Mockito.when(this.client.doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.localUserAttributes))).thenReturn(jsonResponse);
-
-        //exercise
-        ImageInstance imagePluginOutput = this.plugin.getImage(imageId, this.localUserAttributes);
-
-        //verify
-        Assert.assertEquals(expectedImageInstance, imagePluginOutput);
+        Mockito.verify(plugin, Mockito.times(1)).getImageResponse(Mockito.any(), Mockito.any());
+        Assert.assertEquals(null, imageInstance);
     }
 
-    //test case: Check if getImageId returns null when the state is not ACTIVE_STATE.
     @Test
-    public void testGetImageWhenImageStateIsNotActivated() throws FogbowException, HttpResponseException {
-        //set up
-        String imageId = "imageInstance-id";
-        String imageGlancev2UrlKey = "imageInstance-url-key";
-        String endpoint =
-                imageGlancev2UrlKey
-                        + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
-                        + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
-                        + "/"
-                        + imageId;
-        ImageInstance imageInstance = new ImageInstance(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, "it_is_not_activated");
-        String jsonResponse = getImageJsonFromImage(imageInstance);
+    public void testGetImage() throws FogbowException{
+        GetImageResponse getImageResponse = Mockito.mock(GetImageResponse.class);
+        Mockito.when(getImageResponse.getId()).thenReturn(FAKE_IMAGE_ID);
+        Mockito.when(getImageResponse.getStatus()).thenReturn("active");
+        Mockito.doReturn(getImageResponse).when(plugin).getImageResponse(Mockito.any(), Mockito.any());
+        OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
 
-        Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-        Mockito.when(this.client.doGetRequest(endpoint, this.localUserAttributes)).thenReturn(jsonResponse);
-        ImageInstance expectedPluginOutput = null;
+        ImageInstance imageInstance = plugin.getImage(FAKE_IMAGE_ID, cloudUser);
 
-        //exercise
-        ImageInstance imagePluginOutput = this.plugin.getImage(imageId, this.localUserAttributes);
-
-        //verify
-        Assert.assertEquals(expectedPluginOutput, imagePluginOutput);
+        Mockito.verify(plugin, Mockito.times(1)).getImageResponse(Mockito.any(), Mockito.any());
+        Assert.assertFalse(imageInstance == null);
     }
 
     //test case: Test if getImageId throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetImageWhenForbidden() throws FogbowException, HttpResponseException {
+    @Test(expected = UnauthorizedRequestException.class)//verify
+    public void testGetImageResponseWhenForbidden() throws FogbowException, HttpResponseException {
         //set up
         String imageId = "image-id";
         Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
         HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
 
-        //exercise/verify
-        this.plugin.getImage(imageId, this.localUserAttributes);
+        //exercise
+        this.plugin.getImageResponse(imageId, this.localUserAttributes);
     }
 
     //test case: Test if testGet throws UnexpectedException when the http requisition status is unknown.
-    @Test(expected = UnexpectedException.class)
-    public void testGetImageWhenUnexpectedException() throws FogbowException, HttpResponseException {
+    @Test(expected = UnexpectedException.class)//verify
+    public void testGetImageResponseWhenUnexpectedException() throws FogbowException, HttpResponseException {
         //set up
         String imageId = "image-id";
         int unexpectedHttpStatus = -1;
@@ -212,8 +178,8 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
 
-        //exercise/verify
-        this.plugin.getImage(imageId, this.localUserAttributes);
+        //exercise
+        this.plugin.getImageResponse(imageId, this.localUserAttributes);
     }
 
     //test case: Test if getAllImages throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
@@ -269,7 +235,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     }
 
     //test case: Test if getAllImages throws UnexpectedException when the http requisition status is unknown during pagination.
-    @Test(expected = UnexpectedException.class)
+    @Test(expected = UnexpectedException.class)//verify
     public void testGetAllImagesWithPaginationWhenUnexpectedException() throws FogbowException, HttpResponseException {
         //set up
         String imageGlancev2UrlKey = "image-url-key";
@@ -295,7 +261,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
         Mockito.when(this.client.doGetRequest(endpoint2, localUserAttributes)).thenThrow(httpResponseException);
 
-        //exercise/verify
+        //exercise
         this.plugin.getAllImages(localUserAttributes);
     }
 
@@ -318,7 +284,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     }
 
     @Test(expected = UnexpectedException.class)
-    public void testGetImageResponseUnsuccesful() throws Exception{
+    public void testGetImageResponseUnsuccessfully() throws Exception{
         Mockito.when(client.doGetRequest(Mockito.any(), Mockito.any())).thenThrow(new HttpResponseException(500, ""));
 
         OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
