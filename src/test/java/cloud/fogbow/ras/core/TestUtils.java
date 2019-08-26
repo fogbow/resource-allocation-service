@@ -49,6 +49,7 @@ public class TestUtils {
     public static final String FAKE_IMAGE_ID = "fake-image-id";
     public static final String FAKE_INSTANCE_ID = "fake-instance-id";
     public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    public static final String FAKE_ORDER_ID = "fake-order-id";
     public static final String FAKE_ORDER_NAME = "fake-order-name";
     public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
@@ -91,21 +92,29 @@ public class TestUtils {
         return createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
     }
     
+    public ComputeOrder createLocalComputeOrder(List<String> networkOrderIds) {
+        return createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID, networkOrderIds);
+    }
+    
     public ComputeOrder createComputeOrder(String requestingMember, String providingMember) {
-        ComputeOrder computeOrder =
-                new ComputeOrder(
-                        createSystemUser(),
-                        requestingMember,
-                        providingMember,
-                        DEFAULT_CLOUD_NAME, 
-                        FAKE_INSTANCE_NAME,
-                        CPU_VALUE,
-                        MEMORY_VALUE,
-                        DISK_VALUE,
-                        FAKE_IMAGE_ID,
-                        mockUserData(),
-                        FAKE_PUBLIC_KEY,
-                        null);
+        return createComputeOrder(requestingMember, providingMember, null);
+    }
+    
+    public ComputeOrder createComputeOrder(String requestingMember, String providingMember,
+            List<String> networkOrderIds) {
+
+        ComputeOrder computeOrder = new ComputeOrder(createSystemUser(), 
+                requestingMember, 
+                providingMember,
+                DEFAULT_CLOUD_NAME, 
+                FAKE_INSTANCE_NAME, 
+                CPU_VALUE, 
+                MEMORY_VALUE, 
+                DISK_VALUE, 
+                FAKE_IMAGE_ID,
+                mockUserData(), 
+                FAKE_PUBLIC_KEY, 
+                networkOrderIds);
 
         return computeOrder;
     }
@@ -115,16 +124,14 @@ public class TestUtils {
     }
 
     public NetworkOrder createNetworkOrder(String requestingMember, String providingMember) {
-        NetworkOrder networkOrder = 
-                new NetworkOrder(
-                        createSystemUser(), 
-                        requestingMember, 
-                        requestingMember,
-                        DEFAULT_CLOUD_NAME, 
-                        FAKE_INSTANCE_NAME, 
-                        FAKE_GATEWAY, 
-                        FAKE_ADDRESS, 
-                        NetworkAllocationMode.STATIC);
+        NetworkOrder networkOrder = new NetworkOrder(createSystemUser(), 
+                requestingMember, 
+                requestingMember,
+                DEFAULT_CLOUD_NAME, 
+                FAKE_INSTANCE_NAME, 
+                FAKE_GATEWAY, 
+                FAKE_ADDRESS, 
+                NetworkAllocationMode.STATIC);
 
         return networkOrder;
     }
@@ -134,48 +141,38 @@ public class TestUtils {
     }
 
     public VolumeOrder createVolumeOrder(String requestingMember, String providingMember) {
-        SystemUser systemUser = createSystemUser();
-
-        VolumeOrder volumeOrder =
-                new VolumeOrder(
-                        systemUser,
-                        providingMember,
-                        requestingMember,
-                        DEFAULT_CLOUD_NAME,
-                        FAKE_ORDER_NAME,
-                        DISK_VALUE);
+        VolumeOrder volumeOrder = new VolumeOrder(createSystemUser(), 
+                providingMember, 
+                requestingMember,
+                DEFAULT_CLOUD_NAME, 
+                FAKE_ORDER_NAME, 
+                DISK_VALUE);
 
         return volumeOrder;
     }
 
     public AttachmentOrder createLocalAttachmentOrder(ComputeOrder computeOrder, VolumeOrder volumeOrder) {
-        SystemUser systemUser = Mockito.mock(SystemUser.class);
-        String computeId = computeOrder.getId();
-        String volumeId = volumeOrder.getId();
+        String computeOrderId = computeOrder.getId();
+        String volumeOrderId = volumeOrder.getId();
 
-        AttachmentOrder attachmentOrder =
-                new AttachmentOrder(
-                        systemUser,
-                        LOCAL_MEMBER_ID,
-                        LOCAL_MEMBER_ID,
-                        DEFAULT_CLOUD_NAME,
-                        computeId,
-                        volumeId,
-                        FAKE_DEVICE);
+        AttachmentOrder attachmentOrder = new AttachmentOrder(createSystemUser(), 
+                LOCAL_MEMBER_ID, 
+                LOCAL_MEMBER_ID,
+                DEFAULT_CLOUD_NAME, 
+                computeOrderId, 
+                volumeOrderId, 
+                FAKE_DEVICE);
 
         return attachmentOrder;
     }
 
 
     public PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
-        SystemUser systemUser = createSystemUser();
-        PublicIpOrder publicIpOrder =
-                new PublicIpOrder(
-                        systemUser,
-                        LOCAL_MEMBER_ID,
-                        LOCAL_MEMBER_ID,
-                        DEFAULT_CLOUD_NAME,
-                        computeOrderId);
+        PublicIpOrder publicIpOrder = new PublicIpOrder(createSystemUser(), 
+                LOCAL_MEMBER_ID, 
+                LOCAL_MEMBER_ID,
+                DEFAULT_CLOUD_NAME, 
+                computeOrderId);
 
         return publicIpOrder;
     }
