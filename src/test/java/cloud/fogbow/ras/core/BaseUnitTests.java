@@ -1,18 +1,14 @@
 package cloud.fogbow.ras.core;
 
-import java.util.HashMap;
-import java.util.List;
+
 import java.util.Map;
 
-import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
