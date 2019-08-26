@@ -41,6 +41,11 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String UNAVAILABLE_STATE = "unavailable";
     private static final String ACTIVE_STATE = "active";
+    private static final String PRIVATE_VISIBILITY = "private";
+    private static final String PUBLIC_VISIBILITY = "public";
+    private static final String FOGBOW_OWNER = "fogbow";
+    private static final String UNDEFINED_OWNER = "undefined";
+
 
     private OpenStackImagePlugin plugin;
     private OpenStackHttpClient client;
@@ -318,57 +323,56 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         GetImageResponse secondPublicImageResponse = Mockito.mock(GetImageResponse.class);
         GetImageResponse firstPrivateImageResponse = Mockito.mock(GetImageResponse.class);
         GetImageResponse secondPrivateImageResponse = Mockito.mock(GetImageResponse.class);
-        Mockito.when(firstPublicImageResponse.getVisibility()).thenReturn("public");
-        Mockito.when(secondPublicImageResponse.getVisibility()).thenReturn("public");
-        Mockito.when(firstPrivateImageResponse.getVisibility()).thenReturn("private");
-        Mockito.when(secondPrivateImageResponse.getVisibility()).thenReturn("private");
-        Mockito.when(firstPrivateImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(secondPrivateImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(firstPublicImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(secondPublicImageResponse.getOwner()).thenReturn("fogbow");
+        Mockito.when(firstPublicImageResponse.getVisibility()).thenReturn(PUBLIC_VISIBILITY);
+        Mockito.when(secondPublicImageResponse.getVisibility()).thenReturn(PUBLIC_VISIBILITY);
+        Mockito.when(firstPrivateImageResponse.getVisibility()).thenReturn(PRIVATE_VISIBILITY);
+        Mockito.when(secondPrivateImageResponse.getVisibility()).thenReturn(PRIVATE_VISIBILITY);
+        Mockito.when(firstPrivateImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(secondPrivateImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(firstPublicImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(secondPublicImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
         List<GetImageResponse> images = new ArrayList<>();
         images.add(firstPublicImageResponse);
         images.add(secondPublicImageResponse);
         images.add(firstPrivateImageResponse);
         images.add(secondPrivateImageResponse);
         //exercise
-        List<GetImageResponse> filteredImages = plugin.getPrivateImagesResponse(images, "fogbow");
+        List<GetImageResponse> filteredImages = plugin.getPrivateImagesResponse(images, FOGBOW_OWNER);
         //verify
-        Assert.assertTrue(filteredImages.stream().allMatch(each -> each.getVisibility().equalsIgnoreCase("private")));
+        Assert.assertTrue(filteredImages.stream().allMatch(each -> each.getVisibility().equalsIgnoreCase(PRIVATE_VISIBILITY)));
     }
 
-    //test case: test if 
+    //test case: test if only available images are returned from the method.
     @Test
     public void testGetAvailableImages() throws FogbowException{
+        //setup
         GetImageResponse firstPublicImageResponse = Mockito.mock(GetImageResponse.class);
         GetImageResponse secondPublicImageResponse = Mockito.mock(GetImageResponse.class);
         GetImageResponse firstPrivateImageResponse = Mockito.mock(GetImageResponse.class);
         GetImageResponse secondPrivateImageResponse = Mockito.mock(GetImageResponse.class);
         GetImageResponse anyImageResponse = Mockito.mock(GetImageResponse.class);
-        Mockito.when(firstPublicImageResponse.getVisibility()).thenReturn("public");
-        Mockito.when(secondPublicImageResponse.getVisibility()).thenReturn("public");
-        Mockito.when(firstPrivateImageResponse.getVisibility()).thenReturn("private");
-        Mockito.when(secondPrivateImageResponse.getVisibility()).thenReturn("private");
-        Mockito.when(anyImageResponse.getVisibility()).thenReturn("any");
-        Mockito.when(firstPrivateImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(secondPrivateImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(firstPublicImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(secondPublicImageResponse.getOwner()).thenReturn("fogbow");
-        Mockito.when(anyImageResponse.getOwner()).thenReturn("fogbow");
-
+        Mockito.when(firstPublicImageResponse.getVisibility()).thenReturn(PUBLIC_VISIBILITY);
+        Mockito.when(secondPublicImageResponse.getVisibility()).thenReturn(PUBLIC_VISIBILITY);
+        Mockito.when(firstPrivateImageResponse.getVisibility()).thenReturn(PRIVATE_VISIBILITY);
+        Mockito.when(secondPrivateImageResponse.getVisibility()).thenReturn(PRIVATE_VISIBILITY);
+        Mockito.when(anyImageResponse.getVisibility()).thenReturn(UNDEFINED_OWNER);
+        Mockito.when(firstPrivateImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(secondPrivateImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(firstPublicImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(secondPublicImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
+        Mockito.when(anyImageResponse.getOwner()).thenReturn(FOGBOW_OWNER);
         List<GetImageResponse> images = new ArrayList<>();
         images.add(firstPublicImageResponse);
         images.add(secondPublicImageResponse);
         images.add(firstPrivateImageResponse);
         images.add(secondPrivateImageResponse);
         images.add(anyImageResponse);
-
         OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
-        Mockito.when(cloudUser.getProjectId()).thenReturn("fogbow");
+        Mockito.when(cloudUser.getProjectId()).thenReturn(FOGBOW_OWNER);
         Mockito.doReturn(images).when(plugin).getImagesResponse(Mockito.any());
-
+        //exercise
         List<ImageSummary> availableImages = plugin.getAvailableImages(cloudUser);
-
+        //verify
         Assert.assertFalse(availableImages.contains(anyImageResponse));
         Assert.assertTrue(availableImages.size() == 4);
     }
