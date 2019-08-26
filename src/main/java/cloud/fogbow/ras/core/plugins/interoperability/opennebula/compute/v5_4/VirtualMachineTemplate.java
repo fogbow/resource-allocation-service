@@ -100,7 +100,7 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 		private String userName;
 		private String startScriptBase64;
 
-		// TODO(pauloewerton): move constants below to common
+		// TODO(pauloewerton): move constants below to common?
 		private static final String SSH_PUBLIC_KEY = "SSH_PUBLIC_KEY";
 		private static final String USERNAME = "USERNAME";
 		private static final String START_SCRIPT_BASE64 = "START_SCRIPT_BASE64";

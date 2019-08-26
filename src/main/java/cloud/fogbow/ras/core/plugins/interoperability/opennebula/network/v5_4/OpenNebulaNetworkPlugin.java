@@ -62,7 +62,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	public OpenNebulaNetworkPlugin(String confFilePath) throws FatalErrorException {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		this.defaultNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
+		this.defaultNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_RESERVATIONS_NETWORK_ID_KEY);
 	}
 
 	@Override
@@ -312,7 +312,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 			return subnetInfo.getAllAddresses()[usedLeases];
 		}
 
-		return null;
+		return addressRangeFirstIp;
 	}
 
 	protected String getRandomUUID() {

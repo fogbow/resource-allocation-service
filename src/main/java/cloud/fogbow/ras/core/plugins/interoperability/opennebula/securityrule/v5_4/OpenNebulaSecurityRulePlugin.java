@@ -31,6 +31,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 	
 	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
 	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
+	private static final String ALL_ADDRESSES_REMOTE_PREFIX = "0.0.0.0/0";
 	private static final String RANGE_PORT_SEPARATOR = ":";
 
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
@@ -112,8 +113,14 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
 	protected Rule createRuleBy(SecurityRule securityRule) {
 		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(securityRule.getCidr()).getInfo();
-		String ip = subnetInfo.getLowAddress();
-		String size = String.valueOf(subnetInfo.getAddressCount());
+		String ip = null;
+		String size = null;
+
+		if (!subnetInfo.getCidrSignature().equals(ALL_ADDRESSES_REMOTE_PREFIX)) {
+			ip = subnetInfo.getLowAddress();
+			size = String.valueOf(subnetInfo.getAddressCountLong());
+		}
+
 		int portFrom = securityRule.getPortFrom();
 		String range = portFrom == securityRule.getPortTo() ? String.valueOf(portFrom) :
 				securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
