@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,7 @@ import software.amazon.awssdk.services.ec2.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class})
+@PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class})
 public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     private String FAKE_IMAGE_ID = "fake-img-id";
@@ -31,10 +32,13 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     private String FAKE_CIDR = "0.0.0.0/0";
     private String FAKE_VPC_ID = "fake-vpc-id";
     private String FAKE_GROUP_DESCRIPTION = "fake-description";
+    private int SSH_DEFAULT_PORT = 22;
+    private String TCP_PROTOCOL = "tcp";
 
     @Before
-    public void setup() {
+    public void setup() throws FogbowException{
         super.setup();
+        testUtils.mockReadOrdersFromDataBase();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
     }
 
@@ -158,28 +162,22 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         Ec2Client client = testUtils.getAwsMockedClient();
 
         Mockito.when(client.createSecurityGroup(Mockito.eq(request))).thenReturn(response);
-        Mockito.when(AwsV2CloudUtil.createSecurityGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenCallRealMethod();
-        AwsV2CloudUtil.createSecurityGroup(FAKE_GROUP_NAME, FAKE_CIDR, FAKE_RESOURCE_ID, FAKE_VPC_ID, FAKE_GROUP_DESCRIPTION, client);
+        Mockito.when(AwsV2CloudUtil.createSecurityGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenCallRealMethod();
+        AwsV2CloudUtil.createSecurityGroup(FAKE_VPC_ID, FAKE_GROUP_NAME, FAKE_GROUP_DESCRIPTION, client);
 
         Mockito.verify(client, Mockito.times(1)).createSecurityGroup(Mockito.eq(request));
-
-        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(Mockito.any(), Mockito.any(), Mockito.any());
-
-        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.createTagsRequest(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
     public void testDoAuthorizeSecurityGroupIngressInSuccessCase() throws Exception{
-        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doAuthorizeSecurityGroupIngress", Mockito.any(), Mockito.any(), Mockito.any());
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doAuthorizeSecurityGroupIngress", Mockito.any(), Mockito.any());
 
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
             .cidrIp(FAKE_CIDR)
-            .fromPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
-            .toPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
+            .fromPort(SSH_DEFAULT_PORT)
+            .toPort(SSH_DEFAULT_PORT)
             .groupId(FAKE_GROUP_ID)
-            .ipProtocol(AwsV2CloudUtil.TCP_PROTOCOL)
+            .ipProtocol(TCP_PROTOCOL)
             .build();
 
         AuthorizeSecurityGroupIngressResponse response = AuthorizeSecurityGroupIngressResponse.builder().build();
@@ -188,21 +186,21 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
         Mockito.when(client.authorizeSecurityGroupIngress(Mockito.eq(request))).thenReturn(response);
 
-        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(FAKE_GROUP_ID, FAKE_CIDR, client);
+        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
 
         Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.eq(request));
     }
 
     @Test
     public void testDoAuthorizeSecurityGroupIngressInFailureCase() throws Exception{
-        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doAuthorizeSecurityGroupIngress", Mockito.any(), Mockito.any(), Mockito.any());
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "doAuthorizeSecurityGroupIngress", Mockito.any(), Mockito.any());
 
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
             .cidrIp(FAKE_CIDR)
-            .fromPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
-            .toPort(AwsV2CloudUtil.SSH_DEFAULT_PORT)
+            .fromPort(SSH_DEFAULT_PORT)
+            .toPort(SSH_DEFAULT_PORT)
             .groupId(FAKE_GROUP_ID)
-            .ipProtocol(AwsV2CloudUtil.TCP_PROTOCOL)
+            .ipProtocol(TCP_PROTOCOL)
             .build();
 
         Ec2Client client = testUtils.getAwsMockedClient();
@@ -210,7 +208,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         Mockito.when(client.authorizeSecurityGroupIngress(Mockito.eq(request))).thenThrow(SdkException.class);
 
         try {
-            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(FAKE_GROUP_ID, FAKE_CIDR, client);
+            AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
         } catch (UnexpectedException ex) { }
 
 

@@ -3,7 +3,9 @@ package cloud.fogbow.ras.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import org.apache.log4j.Logger;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -33,23 +35,14 @@ public class BaseUnitTests {
     protected SharedOrderHolders sharedOrderHolders;
 
     @Before
-    public void setup() {
+    public void setup() throws FogbowException {
         this.testUtils = new TestUtils();
-
-        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-
-        PowerMockito.mockStatic(SharedOrderHolders.class);
-        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-
-        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-                .thenReturn(new SynchronizedDoublyLinkedList<>());
-
-        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
     }
     
     /*
      * Clears the orders from the lists on the SharedOrderHolders instance.
      */
+    @After
     public void tearDown() {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {
