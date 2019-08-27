@@ -16,7 +16,6 @@ import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
@@ -25,11 +24,8 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Volume;
@@ -136,17 +132,6 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		return size;
 	}
 
-	protected DescribeVolumesResponse doDescribeVolumes(String volumeId, Ec2Client client) throws FogbowException {
-		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-				.volumeIds(volumeId)
-				.build();
-		try {
-			return client.describeVolumes(request);
-		} catch (SdkException e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
-
 	private List<Instance> getInstanceReservations(Ec2Client client) throws FogbowException {
 		DescribeInstancesResponse response = AwsV2CloudUtil.describeInstances(client);
 		List<Instance> instances = new ArrayList<>();
@@ -165,13 +150,13 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 			if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 				requirements = line.split(CSV_COLUMN_SEPARATOR);
 				instanceType = requirements[INSTANCE_TYPE_COLUMN];
-				allocation = mountAvailableInstance(requirements);
+				allocation = buildAvailableInstance(requirements);
 				this.availableAllocationsMap.put(instanceType, allocation);
 			}
 		}
 	}
 
-	private ComputeAllocation mountAvailableInstance(String[] requirements) {
+	private ComputeAllocation buildAvailableInstance(String[] requirements) {
 		int instances = Integer.parseInt(requirements[LIMITS_COLUMN]);
 		int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;

@@ -62,4 +62,13 @@ public class BaseUnitTests {
         Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
         activeOrderMap.clear();
     }
+
+    protected void mockSharedOrdersHolder() {
+        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
+                .thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
+    }
 }

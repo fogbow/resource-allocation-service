@@ -33,8 +33,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
 	private static final String RESOURCE_NAME = "Attachment";
 	
-	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdh";
-	protected static final String XVDH_DEVICE_NAME = "xvdh";
+	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
 
 	private String region;
 
@@ -58,7 +57,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String device = defineDeviceNameAttached(attachmentOrder.getDevice());
+		String device = getAttachedDeviceName(attachmentOrder.getDevice());
 		String instanceId = attachmentOrder.getComputeId();
 		String volumeId = attachmentOrder.getVolumeId();
 		
@@ -68,7 +67,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 				.volumeId(volumeId)
 				.build();
 
-		return doAttachVolumeRequest(client, request);
+		return doRequestInstance(request, client);
 	}
 
     @Override
@@ -82,15 +81,10 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
                 .volumeId(volumeId)
                 .build();
 
-        try {
-            client.detachVolume(request);
-        } catch (Exception e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
-            throw new UnexpectedException();
-        }
-    }
+		doDeleteInstance(volumeId, request, client);
+	}
 
-    @Override
+	@Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
@@ -102,10 +96,19 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
                 .build();
         
         DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
-        return mountAttachmentInstance(response);
+        return buildAttachmentInstance(response);
     }
 
-	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response)
+	protected void doDeleteInstance(String volumeId, DetachVolumeRequest request, Ec2Client client) throws UnexpectedException {
+		try {
+			client.detachVolume(request);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
+			throw new UnexpectedException();
+		}
+	}
+
+	protected AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
 			throws FogbowException {
 
 	    Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
@@ -124,7 +127,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 	
-	private String doAttachVolumeRequest(Ec2Client client, AttachVolumeRequest request)
+	private String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
             throws FogbowException {
 
         String attachmentId;
@@ -137,9 +140,19 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         return attachmentId;
     }
 
-	protected String defineDeviceNameAttached(String deviceName) {
-		// Device name example: ["/dev/sdh", "xvdh"]
-		return (deviceName != null && deviceName.equals(XVDH_DEVICE_NAME)) ? deviceName : DEFAULT_DEVICE_NAME;
-	}
+    /*
+     * The device name defines the volume mount point. Amazon EC2 requires a device
+     * name to be provided and creates a symbolic link to that name, although it may
+     * change it depending on circumstances, as with other operating systems that
+     * behave differently.
+     */
+    protected String getAttachedDeviceName(String deviceName) {
+        /*
+         * By default, "/dev/sd[a-z]" is provided as an example for Debian based linux
+         * distributions, and "/dev/xvd[a-z]" for Red Hat based distributions and their
+         * variants as CentOS.
+         */
+        return (deviceName != null && !deviceName.isEmpty()) ? deviceName : DEFAULT_DEVICE_NAME;
+    }
 
 }

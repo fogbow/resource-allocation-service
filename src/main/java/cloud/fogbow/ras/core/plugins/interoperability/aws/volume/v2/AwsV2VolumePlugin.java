@@ -63,7 +63,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 			.availabilityZone(this.zone)
 			.build();
 
-		return doCreateVolumeRequest(client, request, name);
+		return doRequestInstance(request, name, client);
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 			.build();
 
 		DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
-		return mountVolumeInstance(response);
+		return buildVolumeInstance(response);
 	}
 	
 	@Override
@@ -90,16 +90,11 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		DeleteVolumeRequest request = DeleteVolumeRequest.builder()
 			.volumeId(volumeOrder.getInstanceId())
 			.build();
-		
-		try {
-		    client.deleteVolume(request);
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
-			throw new UnexpectedException();
-		}
+
+		doDeleteInstance(volumeId, request, client);
 	}
-	
-	private String doCreateVolumeRequest(Ec2Client client, CreateVolumeRequest request, String name) throws FogbowException {
+
+	private String doRequestInstance(CreateVolumeRequest request, String name, Ec2Client client) throws FogbowException {
         String volumeId;
         try {
             CreateVolumeResponse response = client.createVolume(request);
@@ -111,7 +106,16 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
         return volumeId;
     }
 
-    protected VolumeInstance mountVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
+	protected void doDeleteInstance(String volumeId, DeleteVolumeRequest request, Ec2Client client) throws UnexpectedException {
+		try {
+			client.deleteVolume(request);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
+			throw new UnexpectedException();
+		}
+	}
+
+    protected VolumeInstance buildVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
         Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
         String id = volume.volumeId();
         String cloudState = volume.stateAsString();

@@ -41,7 +41,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         		.build();
         
         DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
-        return mountImagesSummary(response);
+        return buildImagesSummary(response);
     }
 
     @Override
@@ -54,10 +54,10 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
         DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
         Image retrievedImage = AwsV2CloudUtil.getImagesFrom(response);
-        return mountImageInstance(retrievedImage);
+        return buildImageInstance(retrievedImage);
     }
     
-	protected ImageInstance mountImageInstance(Image image) {
+	protected ImageInstance buildImageInstance(Image image) {
         String id = image.imageId();
         String name = image.name();
 		String status = image.stateAsString();
@@ -78,13 +78,12 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
         return size * gigabyte;
     }
     
-    protected List<ImageSummary> mountImagesSummary(DescribeImagesResponse response) {
+    protected List<ImageSummary> buildImagesSummary(DescribeImagesResponse response) {
         List<ImageSummary> images = new ArrayList<>();
-        ImageSummary imageSummary;
         
         List<Image> retrievedImages = response.images();
         for (Image image : retrievedImages) {
-            imageSummary = new ImageSummary(image.imageId(), image.name());
+            ImageSummary imageSummary = new ImageSummary(image.imageId(), image.name());
             images.add(imageSummary);
         }
         return images;
