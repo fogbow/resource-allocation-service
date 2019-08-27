@@ -322,7 +322,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     protected TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackV3User cloudUser,
                                                         List<String> flavorsIds)
-            throws FogbowException, UnexpectedException {
+            throws FogbowException {
         TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
         TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
 
