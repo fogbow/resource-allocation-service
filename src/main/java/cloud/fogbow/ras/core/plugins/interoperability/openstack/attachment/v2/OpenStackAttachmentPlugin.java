@@ -4,11 +4,11 @@ import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.json.JSONException;
+
+import com.google.gson.JsonSyntaxException;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -28,7 +28,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     private static final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
 
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
-    protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    protected static final String V2_API_ENDPOINT = "/v2/";
     protected static final String EMPTY_STRING = "";
     protected static final String ENDPOINT_SEPARATOR = "/";
     protected static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
@@ -129,7 +129,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     protected GetAttachmentResponse doGetAttachmentResponseFrom(String json) throws UnexpectedException {
         try {
             return GetAttachmentResponse.fromJson(json);
-        } catch (JSONException e) {
+        } catch (JsonSyntaxException e) {
             String message = Messages.Error.UNABLE_TO_GET_ATTACHMENT_INSTANCE;
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
@@ -169,29 +169,24 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     protected CreateAttachmentResponse doCreateAttachmentResponseFrom(String json) throws UnexpectedException {
         try {
             return CreateAttachmentResponse.fromJson(json);
-        } catch (JSONException e) {
-            String message = Messages.Error.UNABLE_TO_GENERATE_JSON; // FIXME add new message constant...
+        } catch (JsonSyntaxException e) {
+            String message = Messages.Error.UNABLE_TO_CREATE_ATTACHMENT;
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
     }
 
-    protected String generateJsonRequest(String volumeId, String device) throws FogbowException {
-        CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
+    protected String generateJsonRequest(String volumeId, String device) {
+        CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
                 .volumeId(volumeId)
                 .device(device)
                 .build();
-        try {
-            return createAttachmentRequest.toJson();
-        } catch (JSONException e) {
-            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
-            LOGGER.error(message, e);
-            throw new InvalidParameterException(message, e);
-        }
+        
+        return request.toJson();
     }
     
     protected String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId;
+        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + V2_API_ENDPOINT + projectId;
     }
 
     private void initClient() {
@@ -201,8 +196,5 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
-
-    protected void setProperties(Properties properties) {
-        this.properties = properties;
-    }
+    
 }
