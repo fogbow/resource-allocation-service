@@ -90,8 +90,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String keyName = getKeyName(projectId, cloudUser, computeOrder.getPublicKey());
         String endpoint = getComputeEndpoint(projectId, SERVERS);
-        String instanceId = null;
         String instanceName = computeOrder.getName();
+        String instanceId = null;
 
         try {
             instanceId = doRequestInstance(cloudUser, flavorId, networkIds, imageId, instanceName, userData,
@@ -172,7 +172,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         this.client = new OpenStackHttpClient();
     }
 
-    private String getProjectId(OpenStackV3User cloudUser) throws InvalidParameterException {
+    protected String getProjectId(OpenStackV3User cloudUser) throws InvalidParameterException {
         String projectId = cloudUser.getProjectId();
         if (projectId == null) {
             throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
@@ -180,7 +180,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return projectId;
     }
 
-    private String getKeyName(String projectId, OpenStackV3User cloudUser, String publicKey) throws FogbowException {
+    protected String getKeyName(String projectId, OpenStackV3User cloudUser, String publicKey) throws FogbowException {
         String keyName = null;
 
         if (publicKey != null && !publicKey.isEmpty()) {
@@ -203,11 +203,11 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return keyName;
     }
 
-    private String getComputeEndpoint(String projectId, String suffix) {
+    protected String getComputeEndpoint(String projectId, String suffix) {
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId + suffix;
     }
 
-    private void deleteKeyName(String projectId, OpenStackV3User cloudUser, String keyName) throws FogbowException {
+    protected void deleteKeyName(String projectId, OpenStackV3User cloudUser, String keyName) throws FogbowException {
         String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keyNameEndpoint = getComputeEndpoint(projectId, suffixEndpoint);
 
@@ -218,8 +218,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         }
     }
 
-    private CreateComputeRequest getRequestBody(String instanceName, String imageRef, String flavorRef, String userdata,
-                                                String keyName, List<String> networksIds) {
+    protected CreateComputeRequest getRequestBody(String instanceName, String imageRef, String flavorRef, String userdata,
+                                                  String keyName, List<String> networksIds) {
         List<CreateComputeRequest.Network> networks = new ArrayList<>();
         List<CreateComputeRequest.SecurityGroup> securityGroups = new ArrayList<>();
         for (String networkId : networksIds) {
@@ -249,7 +249,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return createComputeRequest;
     }
 
-    private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
+    protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
             throws FogbowException {
         HardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
         if (bestFlavor == null) {
@@ -258,7 +258,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return bestFlavor;
     }
 
-    private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
+    protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
             throws FogbowException {
         updateFlavors(cloudUser, computeOrder);
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
@@ -272,7 +272,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return null;
     }
 
-    private void updateFlavors(OpenStackV3User cloudUser, ComputeOrder computeOrder) throws FogbowException {
+    protected void updateFlavors(OpenStackV3User cloudUser, ComputeOrder computeOrder) throws FogbowException {
         String projectId = getProjectId(cloudUser);
         String flavorsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS);
 
@@ -298,7 +298,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         }
     }
 
-    private boolean flavorHasRequirements(OpenStackV3User cloudUser, Map<String, String> requirements,
+    protected boolean flavorHasRequirements(OpenStackV3User cloudUser, Map<String, String> requirements,
                                           String flavorId) throws FogbowException {
         String projectId = getProjectId(cloudUser);
         String specsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS)  + "/" + flavorId + SUFFIX_FLAVOR_EXTRA_SPECS;
@@ -320,7 +320,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return true;
     }
 
-    private TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackV3User cloudUser,
+    protected TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackV3User cloudUser,
                                                         List<String> flavorsIds)
             throws FogbowException, UnexpectedException {
         TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
@@ -362,7 +362,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return newHardwareRequirements;
     }
 
-    private ComputeInstance getInstanceFromJson(String getRawResponse) {
+    protected ComputeInstance getInstanceFromJson(String getRawResponse) {
         GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
 
         String openStackState = getComputeResponse.getStatus();
@@ -389,13 +389,13 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return UUID.randomUUID().toString();
     }
 
-    private TreeSet<HardwareRequirements> getHardwareRequirementsList() {
+    protected TreeSet<HardwareRequirements> getHardwareRequirementsList() {
         synchronized (this.hardwareRequirementsList) {
             return new TreeSet<HardwareRequirements>(this.hardwareRequirementsList);
         }
     }
 
-    private void setHardwareRequirementsList(TreeSet<HardwareRequirements> hardwareRequirementsList) {
+    protected void setHardwareRequirementsList(TreeSet<HardwareRequirements> hardwareRequirementsList) {
         synchronized (this.hardwareRequirementsList) {
             this.hardwareRequirementsList = hardwareRequirementsList;
         }
