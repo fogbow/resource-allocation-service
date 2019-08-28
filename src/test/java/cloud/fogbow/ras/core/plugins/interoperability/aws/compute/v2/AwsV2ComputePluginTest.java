@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2;
 
-import static org.mockito.Mockito.times;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,13 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -34,13 +30,14 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.CpuOptions;
@@ -562,7 +559,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		DescribeImagesResponse response = null;
 		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
 
-		String imageId = testUtils.FAKE_IMAGE_ID;
+		String imageId = TestUtils.FAKE_IMAGE_ID;
 
 		// exercise
 		this.plugin.getImageById(imageId, client);
@@ -570,7 +567,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	
 	private DescribeInstancesResponse createInstanceResponse() {
 		EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
-				.volumeId(testUtils.FAKE_VOLUME_ID)
+				.volumeId(TestUtils.FAKE_VOLUME_ID)
 				.build();
 		
 		InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
@@ -600,14 +597,14 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		
 		Tag tag = Tag.builder()
 				.key(AWS_TAG_NAME)
-				.value(testUtils.FAKE_INSTANCE_NAME)
+				.value(TestUtils.FAKE_INSTANCE_NAME)
 				.build();
 		
 		Instance instance = Instance.builder()
 				.blockDeviceMappings(blockDeviceMapping)
 				.cpuOptions(cpuOptions)
-				.imageId(testUtils.FAKE_INSTANCE_ID)
-				.instanceId(testUtils.FAKE_INSTANCE_ID)
+				.imageId(TestUtils.FAKE_INSTANCE_ID)
+				.instanceId(TestUtils.FAKE_INSTANCE_ID)
 				.instanceType(InstanceType.T1_MICRO)
 				.networkInterfaces(instanceNetworkInterface)
 				.state(instanceState)
@@ -632,7 +629,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		
 		Instance instance = Instance.builder()
 				.cpuOptions(cpuOptions)
-				.instanceId(testUtils.FAKE_INSTANCE_ID)
+				.instanceId(TestUtils.FAKE_INSTANCE_ID)
 				.build();
 
 		RunInstancesResponse response = RunInstancesResponse.builder()
@@ -644,7 +641,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	
 	private DescribeVolumesResponse createVolumeResponse() {
 		Volume volume = Volume.builder()
-				.volumeId(testUtils.FAKE_VOLUME_ID)
+				.volumeId(TestUtils.FAKE_VOLUME_ID)
 				.size(ONE_GIGABYTE)
 				.build();
 		
@@ -665,7 +662,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 				.build();
 		
         Image image = Image.builder()
-        		.imageId(testUtils.FAKE_IMAGE_ID)
+        		.imageId(TestUtils.FAKE_IMAGE_ID)
         		.blockDeviceMappings(blockDeviceMapping)
         		.build();
         
@@ -675,12 +672,12 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	}
 	
 	private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
-		String name = testUtils.FAKE_INSTANCE_NAME;
-		String flavorId = testUtils.FAKE_INSTANCE_ID;
+		String name = TestUtils.FAKE_INSTANCE_NAME;
+		String flavorId = TestUtils.FAKE_INSTANCE_ID;
 		int cpu = 1;
 		int memory = 1;
 		int disk = 4;
-		String imageId = testUtils.FAKE_IMAGE_ID;
+		String imageId = TestUtils.FAKE_IMAGE_ID;
 		return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
 	}
 	
@@ -689,7 +686,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		int memory = 627;
 		int disk = 8;
 		
-		String imageId = testUtils.FAKE_IMAGE_ID;
+		String imageId = TestUtils.FAKE_IMAGE_ID;
 		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
@@ -712,7 +709,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 				networksId);
 		
 		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(testUtils.FAKE_INSTANCE_ID);
+		computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 		computeOrder.setRequirements(requirements);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 		

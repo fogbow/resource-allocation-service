@@ -6,9 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,11 +23,12 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.EbsBlockDevice;
 import software.amazon.awssdk.services.ec2.model.Image;
@@ -74,7 +72,8 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
 
         DescribeImagesResponse response = DescribeImagesResponse.builder().images(getMockedImages()).build();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).willReturn(response);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.eq(client)))
+                .willReturn(response);
 
         List<Image> imagesList = getMockedImages();
 
@@ -92,27 +91,32 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
         Assert.assertEquals(expectedResult, result);
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.eq(client));
 
         Mockito.verify(plugin, Mockito.times(1)).buildImagesSummary(Mockito.any());
     }
 
-    // test case: check if the getImage returns the correct image when there are some and if the right calls are made.
+    // test case: check if the getImage returns the correct image when there are
+    // some and if the right calls are made.
     @Test
     public void testGetImageWithResult() throws FogbowException {
-        //setup
+        // setup
         Ec2Client client = testUtils.getAwsMockedClient();
-
-        List<Image> imagesList = getMockedImages();
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
         DescribeImagesResponse response = DescribeImagesResponse.builder()
-            .images(getMockedImages().stream().filter(each -> each.imageId().equalsIgnoreCase(FIRST_IMAGE_ID)).collect(Collectors.toList())).build();
+                .images(getMockedImages()
+                        .stream()
+                        .filter(each -> each.imageId().equalsIgnoreCase(FIRST_IMAGE_ID))
+                        .collect(Collectors.toList()))
+                .build();
+
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).willReturn(response);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.eq(client)))
+                .willReturn(response);
         BDDMockito.given(AwsV2CloudUtil.getImagesFrom(Mockito.any())).willCallRealMethod();
         ImageInstance expected = createImageInstance();
-        
+
         // exercise
         ImageInstance image = this.plugin.getImage(FIRST_IMAGE_ID, cloudUser);
 
@@ -120,7 +124,7 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
         Assert.assertEquals(expected, image);
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.eq(client));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.getImagesFrom(Mockito.any());
@@ -128,24 +132,25 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
         Mockito.verify(plugin, Mockito.times(1)).buildImageInstance(Mockito.any());
     }
 
-    // test case : check getImage behavior when there is no image to be returned and if the right calls are made.
+    // test case : check getImage behavior when there is no image to be returned and
+    // if the right calls are made.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetImageWithoutResult() throws FogbowException {
         // setup
         Ec2Client client = testUtils.getAwsMockedClient();
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-        DescribeImagesResponse response = DescribeImagesResponse.builder()
-            .images(new ArrayList<>()).build();
+        DescribeImagesResponse response = DescribeImagesResponse.builder().images(new ArrayList<>()).build();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).willReturn(response);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.eq(client)))
+                .willReturn(response);
         BDDMockito.given(AwsV2CloudUtil.getImagesFrom(Mockito.any())).willCallRealMethod();
 
         // exercise
         this.plugin.getImage(ANY_VALUE, cloudUser);
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any());
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.eq(client));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
         AwsV2CloudUtil.getImagesFrom(Mockito.any());
@@ -185,13 +190,11 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
 
     private List<BlockDeviceMapping> getMockedBlocks(List<Integer> sizes) {
         List<BlockDeviceMapping> blocks = new ArrayList<>();
-
         BlockDeviceMapping block;
         for (Integer size : sizes) {
             block = BlockDeviceMapping.builder().ebs(EbsBlockDevice.builder().volumeSize(size).build()).build();
             blocks.add(block);
         }
-
         return blocks;
     }
 
@@ -205,29 +208,31 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
                 AwsV2StateMapper.AVAILABLE_STATE);
 	}
     
-    private List<software.amazon.awssdk.services.ec2.model.Image> getMockedImages() {
-        BlockDeviceMapping block = BlockDeviceMapping.builder()
-                .ebs(EbsBlockDevice.builder()
-                        .volumeSize(8)
-                        .build())
+    private List<Image> getMockedImages() {
+        EbsBlockDevice ebs = EbsBlockDevice.builder()
+                .volumeSize(8)
                 .build();
-        
+
+        BlockDeviceMapping block = BlockDeviceMapping.builder()
+                .ebs(ebs)
+                .build();
+
         Image imageOne = Image.builder()
-            .imageId(FIRST_IMAGE_ID)
-            .name(FIRST_IMAGE_NAME)
-            .blockDeviceMappings(block)
-            .state(AwsV2StateMapper.AVAILABLE_STATE)
-            .build();
-        
-        Image imageTwo = software.amazon.awssdk.services.ec2.model.Image.builder()
-            .imageId(SECOND_IMAGE_ID)
-            .name(SECOND_IMAGE_NAME)
-            .build();
-        
-        Image imageThree = software.amazon.awssdk.services.ec2.model.Image.builder()
-            .imageId(THIRD_IMAGE_ID)
-            .name(THIRD_IMAGE_NAME)
-            .build();
+                .imageId(FIRST_IMAGE_ID)
+                .name(FIRST_IMAGE_NAME)
+                .blockDeviceMappings(block)
+                .state(AwsV2StateMapper.AVAILABLE_STATE)
+                .build();
+
+        Image imageTwo = Image.builder()
+                .imageId(SECOND_IMAGE_ID)
+                .name(SECOND_IMAGE_NAME)
+                .build();
+
+        Image imageThree = Image.builder()
+                .imageId(THIRD_IMAGE_ID)
+                .name(THIRD_IMAGE_NAME)
+                .build();
 
         List<Image> imagesList = new ArrayList<>();
         imagesList.add(imageOne);
