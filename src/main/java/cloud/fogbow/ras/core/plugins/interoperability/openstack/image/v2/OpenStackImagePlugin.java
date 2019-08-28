@@ -88,8 +88,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     }
 
     protected void getNextImageListResponseByPagination(OpenStackV3User cloudUser, GetAllImagesResponse getAllImagesResponse,
-                                                      List<GetImageResponse> imagesJson) throws FogbowException {
-
+        List<GetImageResponse> imagesJson) throws FogbowException {
         String next = getAllImagesResponse.getNext();
         if (next != null && !next.isEmpty()) {
             String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) + next;

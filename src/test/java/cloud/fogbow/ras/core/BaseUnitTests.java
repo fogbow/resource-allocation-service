@@ -28,7 +28,6 @@ public class BaseUnitTests {
     protected static final Logger LOGGER = Logger.getLogger(BaseUnitTests.class);
     
     protected TestUtils testUtils;
-    protected SharedOrderHolders sharedOrderHolders;
 
     @Before
     public void setup() {
