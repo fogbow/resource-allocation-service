@@ -8,7 +8,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
-import org.h2.security.Fog;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
