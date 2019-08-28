@@ -21,6 +21,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 
 public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3User> {
@@ -54,7 +55,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = getProjectIdFrom(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String endpoint = getPrefixEndpoint(projectId) 
                 + SERVERS 
@@ -71,7 +72,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = getProjectIdFrom(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId) 
@@ -86,7 +87,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = getProjectIdFrom(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId) 

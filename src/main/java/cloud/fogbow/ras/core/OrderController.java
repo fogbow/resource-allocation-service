@@ -36,7 +36,7 @@ public class OrderController {
     public Order getOrder(String orderId) throws InstanceNotFoundException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
         if (requestedOrder == null) {
-            throw new InstanceNotFoundException();
+            throw new InstanceNotFoundException(String.format(Messages.Exception.NOT_FOUND_ORDER_ID_S, orderId));
         }
         return requestedOrder;
     }
