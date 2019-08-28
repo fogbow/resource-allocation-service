@@ -19,6 +19,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.CreateVolumeResponse;
@@ -100,7 +101,7 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
             CreateVolumeResponse response = client.createVolume(request);
             volumeId = response.volumeId();
             AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
-        } catch (Exception e) {
+        } catch (FogbowException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
         return volumeId;
@@ -109,9 +110,9 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 	protected void doDeleteInstance(String volumeId, DeleteVolumeRequest request, Ec2Client client) throws UnexpectedException {
 		try {
 			client.deleteVolume(request);
-		} catch (Exception e) {
+		} catch (SdkException e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
-			throw new UnexpectedException();
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 

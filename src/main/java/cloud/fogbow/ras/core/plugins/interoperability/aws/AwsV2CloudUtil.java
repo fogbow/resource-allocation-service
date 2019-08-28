@@ -95,13 +95,12 @@ public class AwsV2CloudUtil {
     }
 
     public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client) throws FogbowException {
+        CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
+            .description(description)
+            .groupName(groupName)
+            .vpcId(vpcId)
+            .build();
         try {
-            CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-                    .description(description)
-                    .groupName(groupName)
-                    .vpcId(vpcId)
-                    .build();
-            
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
             return response.groupId();
         } catch (SdkException e) {
