@@ -9,6 +9,7 @@ import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -16,8 +17,6 @@ import java.io.File;
 import java.util.*;
 
 public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
-    private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
-
     public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
     public static final String ACTIVE_STATE = "active";
     public static final String PUBLIC_VISIBILITY = "public";
@@ -132,7 +131,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         List<ImageSummary> availableImages = new ArrayList<>();
 
         List<GetImageResponse> allImagesResponse = getImagesResponse(cloudUser);
-        List<GetImageResponse> filteredImagesResponse = filterImagesResponse(cloudUser.getProjectId(), allImagesResponse);
+        List<GetImageResponse> filteredImagesResponse = filterImagesResponse(OpenStackCloudUtils.getProjectIdFrom(cloudUser), allImagesResponse);
 
         for (GetImageResponse getImageResponse : filteredImagesResponse) {
             ImageSummary imageSummary = new ImageSummary(getImageResponse.getId(), getImageResponse.getName());
