@@ -9,7 +9,6 @@ import com.google.gson.JsonSyntaxException;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -143,16 +142,6 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-    }
-
-    protected String getProjectIdFrom(OpenStackV3User cloudUser) throws UnauthenticatedUserException {
-        String projectId = cloudUser.getProjectId();
-        if (projectId == null) {
-            String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
-            LOGGER.error(message);
-            throw new UnauthenticatedUserException(message);
-        }
-        return projectId;
     }
 
     protected CreateAttachmentResponse doRequestInstance(String endpoint, String jsonRequest,
