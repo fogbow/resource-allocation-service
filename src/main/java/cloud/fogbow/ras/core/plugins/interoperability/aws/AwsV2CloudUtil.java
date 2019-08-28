@@ -55,11 +55,11 @@ public class AwsV2CloudUtil {
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
     
-    public static DescribeVolumesResponse doDescribeVolumesRequest(Ec2Client client, DescribeVolumesRequest request)
+    public static DescribeVolumesResponse doDescribeVolumesRequest(DescribeVolumesRequest request, Ec2Client client)
             throws FogbowException {
         try {
             return client.describeVolumes(request);
-        } catch (Exception e) {
+        } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
@@ -94,7 +94,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static String createSecurityGroup(Ec2Client client, String vpcId, String groupName, String description) throws FogbowException {
+    public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client) throws FogbowException {
         try {
             CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
                     .description(description)
@@ -109,7 +109,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static void doAuthorizeSecurityGroupIngress(Ec2Client client, AuthorizeSecurityGroupIngressRequest request)
+    public static void doAuthorizeSecurityGroupIngress(AuthorizeSecurityGroupIngressRequest request, Ec2Client client)
             throws FogbowException {
         try {
             client.authorizeSecurityGroupIngress(request);
@@ -158,7 +158,7 @@ public class AwsV2CloudUtil {
         List<String> volumeIds = AwsV2CloudUtil.getVolumeIds(instance);
         for (String volumeId : volumeIds) {
             request = DescribeVolumesRequest.builder().volumeIds(volumeId).build();
-            response = AwsV2CloudUtil.doDescribeVolumesRequest(client, request);
+            response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
             volumes.addAll(response.volumes());
         }
         return volumes;
