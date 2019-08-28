@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,8 +44,8 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     }
 
     //test case: check if the method throws an InstanceNotFoundException when the response is null
-    @Test(expected = cloud.fogbow.common.exceptions.InstanceNotFoundException.class)//verify
-    public void testGetImagesFromWithNullResponse() throws cloud.fogbow.common.exceptions.InstanceNotFoundException {
+    @Test(expected = InstanceNotFoundException.class)//verify
+    public void testGetImagesFromWithNullResponse() throws InstanceNotFoundException {
         //setup
         Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         DescribeImagesResponse response = null;
@@ -84,12 +85,12 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.doDescribeImagesRequest(DescribeImagesRequest.builder().build(), client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).describeImages(Mockito.any(DescribeImagesRequest.class));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).describeImages(Mockito.any(DescribeImagesRequest.class));
     }
 
     //test case: check if the method throws an InstanceNotFoundException when the response is null
-    @Test(expected = cloud.fogbow.common.exceptions.InstanceNotFoundException.class)//verify
-    public void testGetVolumeFromWithNullResponse() throws cloud.fogbow.common.exceptions.InstanceNotFoundException {
+    @Test(expected = InstanceNotFoundException.class)//verify
+    public void testGetVolumeFromWithNullResponse() throws InstanceNotFoundException {
         //setup
         Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         DescribeVolumesResponse response = null;
@@ -129,7 +130,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.doDescribeVolumesRequest(DescribeVolumesRequest.builder().build(), client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
     }
 
     //test case: check if the method makes the expected call.
@@ -151,7 +152,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.createTagsRequest(FAKE_RESOURCE_ID, FAKE_TAG_KEY, FAKE_TAG_VALUE, client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).createTags(Mockito.eq(request));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).createTags(Mockito.eq(request));
     }
 
     //test case: check if the method makes the expected call.
@@ -168,7 +169,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.doDeleteSecurityGroup(FAKE_GROUP_ID, client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).deleteSecurityGroup(Mockito.eq(request));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityGroup(Mockito.eq(request));
     }
 
     //test case: test if the method makes the expected call
@@ -187,7 +188,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.createSecurityGroup(FAKE_VPC_ID, FAKE_GROUP_NAME, FAKE_GROUP_DESCRIPTION, client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).createSecurityGroup(Mockito.eq(request));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(Mockito.eq(request));
     }
 
     //test case: check if the method makes the expected call
@@ -208,7 +209,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.eq(request));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).authorizeSecurityGroupIngress(Mockito.eq(request));
     }
 
     //test case: check if the method makes the right calls in failure case
@@ -230,8 +231,8 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
         } catch (UnexpectedException ex) { }
         //verify
-        Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.eq(request));
-        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).authorizeSecurityGroupIngress(Mockito.eq(request));
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.doDeleteSecurityGroup(Mockito.eq(FAKE_GROUP_ID), Mockito.eq(client));
     }
 
@@ -249,7 +250,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.describeInstance(FAKE_RESOURCE_ID, client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).describeInstances(Mockito.eq(describeInstancesRequest));
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).describeInstances(Mockito.eq(describeInstancesRequest));
     }
 
     //test case: check if the method makes the expected call
@@ -263,7 +264,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         //exercise
         AwsV2CloudUtil.describeInstances(client);
         //verify
-        Mockito.verify(client, Mockito.times(1)).describeInstances();
+        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).describeInstances();
     }
 
     //test case: check if the method throws InstanceNotFoundException when there is no reservation
