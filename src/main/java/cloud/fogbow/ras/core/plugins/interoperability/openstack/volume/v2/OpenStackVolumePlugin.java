@@ -12,6 +12,7 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -50,12 +51,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String tenantId = cloudUser.getProjectId();
-        if (tenantId == null) {
-            String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
-            LOGGER.error(message);
-            throw new UnauthenticatedUserException(message);
-        }
+        String tenantId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
 
         Map<String, String> requirements = order.getRequirements();
 
@@ -91,12 +87,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public VolumeInstance getInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String tenantId = cloudUser.getProjectId();
-        if (tenantId == null) {
-            String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
-            LOGGER.error(message);
-            throw new UnauthenticatedUserException(message);
-        }
+        String tenantId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES + "/" + order.getInstanceId();
         String responseStr = null;
@@ -110,12 +101,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String tenantId = cloudUser.getProjectId();
-        if (tenantId == null) {
-            String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
-            LOGGER.error(message);
-            throw new UnauthenticatedUserException(message);
-        }
+        String tenantId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES + "/" + order.getInstanceId();
         try {

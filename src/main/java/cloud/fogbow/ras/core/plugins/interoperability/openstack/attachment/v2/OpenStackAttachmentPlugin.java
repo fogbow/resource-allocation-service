@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogb
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -45,7 +46,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = cloudUser.getProjectId();
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String device = attachmentOrder.getDevice();
@@ -77,12 +78,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         }
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
-        String projectId = cloudUser.getProjectId();
-        if (projectId == null) {
-            String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
-            LOGGER.error(message);
-            throw new UnauthenticatedUserException(message);
-        }
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
