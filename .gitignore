@@ -39,3 +39,5 @@ src/main/resources/private/
 ### DB files ###
 *.db
 
+### Merge files ###
+*.orig
