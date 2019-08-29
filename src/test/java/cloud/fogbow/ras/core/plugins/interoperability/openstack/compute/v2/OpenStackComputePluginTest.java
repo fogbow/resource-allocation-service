@@ -43,6 +43,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
     private static final String ANY_URL = "http://localhost:8008";
     private static final String ANY_STRING = "any-string";
+    private static final String FAKE_KEY_NAME = "fake-key-name";
     private static final String FAKE_INSTANCE_ID = "493315b3-dd01-4b38-974f-289570f8e7ee";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
@@ -249,8 +250,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         List<String> networksIds = getMockedNetworkIds();
 
         //exercise
-        this.computePlugin.getRequestBody(FAKE_INSTANCE_NAME, imageId, flavorId, userData,
-                ANY_STRING, networksIds);
+        CreateComputeRequest createComputeRequest = this.computePlugin.getRequestBody(
+                FAKE_INSTANCE_NAME, imageId, flavorId, userData, ANY_STRING, networksIds);
     }
 
     // test case: When given a list of Flavor, check if it does have them cached, else
@@ -497,6 +498,75 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.fail();
     }
 
+    // test case: Test if the networkdIds contain the defaultNetworkId
+    @Test
+    public void testGetNetworkIds() {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+
+        // exercise
+        List<String> networkIds = this.computePlugin.getNetworkIds(computeOrder);
+
+        // verify
+        Assert.assertEquals(defaultNetworkId, networkIds.get(0));
+    }
+
+    @Test
+    public void testDoRequestInstanceSuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(createCreateComputeResponseJson());
+
+        List<String> networkIds = getMockedNetworkIds();
+
+         HardwareRequirements fakeRequirements = getHardwareRequirementsList().first();
+        // exercise
+        String instanceId = this.computePlugin.doRequestInstance(computeOrder, cloudUser,
+                FAKE_PROJECT_ID, flavorId, FAKE_KEY_NAME, networkIds, fakeRequirements);
+
+        // verify
+        Assert.assertEquals(this.instanceId, instanceId);
+    }
+
+    @Test(expected = UnexpectedException.class)
+    public void testDoRequestInstanceUnsuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Mockito.doThrow(HttpResponseException.class)
+                .when(this.clientMock).doPostRequest(Mockito.any(), Mockito.any(), Mockito.any());
+
+        List<String> networkIds = getMockedNetworkIds();
+
+        HardwareRequirements fakeRequirements = getHardwareRequirementsList().first();
+
+        // exercise
+        this.computePlugin.doRequestInstance(computeOrder, cloudUser,
+                FAKE_PROJECT_ID, flavorId, FAKE_KEY_NAME, networkIds, fakeRequirements);
+
+        Assert.fail();
+    }
+
+    @Test
+    public void testRequestInstance() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+
+        HardwareRequirements mockRequirements = Mockito.mock(HardwareRequirements.class);
+        Mockito.doReturn(mockRequirements).when(this.computePlugin).findSmallestFlavor(computeOrder, cloudUser);
+        Mockito.doReturn(new ArrayList<String>()).when(this.computePlugin).getNetworkIds(Mockito.any());
+        Mockito.doReturn(ANY_STRING).when(this.computePlugin).getKeyName(Mockito.any(), Mockito.any(), Mockito.any());
+
+        Mockito.doReturn(ANY_STRING).when(this.computePlugin).doRequestInstance(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+
+        // exercise
+        String instanceId = this.computePlugin.requestInstance(computeOrder, cloudUser);
+
+        // verify
+        Assert.assertEquals(ANY_STRING, instanceId);
+    }
+
     private Map<String, String> createFakeExtraSpecs() {
         Map<String, String> extraSpecs = new HashMap();
 
@@ -568,6 +638,14 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 " \"id\":\"4\"\n" +
                 "                    }\n" +
                 " ]\n" +
+                " }";
+    }
+
+    private String createCreateComputeResponseJson () {
+        return "{\n" +
+                " \"server\":{\n" +
+                " \"id\":\""+this.instanceId+"\"\n" +
+                "                    }\n" +
                 " }";
     }
 

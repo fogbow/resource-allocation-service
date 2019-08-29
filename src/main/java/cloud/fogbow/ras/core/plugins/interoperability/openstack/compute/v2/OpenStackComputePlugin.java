@@ -85,7 +85,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return doRequestInstance(computeOrder, cloudUser, projectId, flavorId, keyName, networkIds, hardwareRequirements);
     }
 
-    private List<String> getNetworkIds(ComputeOrder computeOrder) {
+    protected List<String> getNetworkIds(ComputeOrder computeOrder) {
         List<String> networkIds = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         networkIds.add(defaultNetworkId);
@@ -96,7 +96,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return networkIds;
     }
 
-    private String doRequestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser,
+    protected String doRequestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser,
                                      String projectId, String flavorId, String keyName,
                                      List<String> networkIds, HardwareRequirements hardwareRequirements)
             throws FogbowException {
@@ -110,6 +110,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
         String body = createBody.toJson();
         String response = null;
+        String instanceId = null;
 
         try {
             response = this.client.doPostRequest(endpoint, body, cloudUser);
@@ -123,6 +124,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
                 // that is updated when the requestingProvider receives the reply from the providingProvider
                 // (see RemoteFacade.java)
                 computeOrder.setActualAllocation(actualAllocation);
+
+                CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
+
+                instanceId = createComputeResponse.getId();
             }
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
@@ -131,9 +136,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
                 deleteKeyName(projectId, cloudUser, keyName);
             }
         }
-        CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
 
-        return createComputeResponse.getId();
+        return instanceId;
     }
 
     @Override
