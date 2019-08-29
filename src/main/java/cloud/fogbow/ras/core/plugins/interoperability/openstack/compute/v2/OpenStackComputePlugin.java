@@ -79,24 +79,40 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         // We add the default network before any other network, because the order is very important to Openstack
         // request. Openstack will configure the routes to the external network using the first network found on
         // the request body.
-        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        List<String> networkIds = getNetworkIds(computeOrder);
+        String keyName = getKeyName(projectId, cloudUser, computeOrder.getPublicKey());
+
+        return doRequestInstance(computeOrder, cloudUser, projectId, flavorId, keyName, networkIds, hardwareRequirements);
+    }
+
+    private List<String> getNetworkIds(ComputeOrder computeOrder) {
         List<String> networkIds = new ArrayList<>();
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         networkIds.add(defaultNetworkId);
         List<String> userDefinedNetworks = computeOrder.getNetworkIds();
         if (!userDefinedNetworks.isEmpty()) {
             networkIds.addAll(userDefinedNetworks);
         }
+        return networkIds;
+    }
+
+    private String doRequestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser,
+                                     String projectId, String flavorId, String keyName,
+                                     List<String> networkIds, HardwareRequirements hardwareRequirements)
+            throws FogbowException {
+
         String imageId = computeOrder.getImageId();
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-        String keyName = getKeyName(projectId, cloudUser, computeOrder.getPublicKey());
         String endpoint = getComputeEndpoint(projectId, SERVERS);
         String instanceName = computeOrder.getName();
-        String instanceId = null;
+
+        CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networkIds);
+
+        String body = createBody.toJson();
+        String response = null;
 
         try {
-            instanceId = doRequestInstance(cloudUser, flavorId, networkIds, imageId, instanceName, userData,
-                    keyName, endpoint);
-
+            response = this.client.doPostRequest(endpoint, body, cloudUser);
             synchronized (computeOrder) {
                 ComputeAllocation actualAllocation = new ComputeAllocation(
                         hardwareRequirements.getCpu(),
@@ -115,16 +131,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
                 deleteKeyName(projectId, cloudUser, keyName);
             }
         }
-        return instanceId;
-    }
-
-    private String doRequestInstance(OpenStackV3User cloudUser, String flavorId, List<String> networkIds,
-                                     String imageId, String instanceName, String userData, String keyName, String endpoint)
-            throws FogbowException, HttpResponseException {
-        CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networkIds);
-
-        String body = createBody.toJson();
-        String response = this.client.doPostRequest(endpoint, body, cloudUser);
         CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
 
         return createComputeResponse.getId();

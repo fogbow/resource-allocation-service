@@ -3,12 +3,12 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
-import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -37,18 +37,21 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     private final String defaultNetworkId = "fake-default-network-id";
     private final String imageId = "image-id";
     private final String publicKey = "public-key";
-    private final String idKeyName = "493315b3-dd01-4b38-974f-289570f8e7ee";
     private final String bestFlavorId = "best-flavor";
     private final int bestVcpu = 8;
     private final int bestMemory = 1024;
 
-    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
-    private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String ANY_URL = "http://localhost:8008";
-    private static final String ANY_STRING = "any-strinf";
+    private static final String ANY_STRING = "any-string";
+    private static final String FAKE_INSTANCE_ID = "493315b3-dd01-4b38-974f-289570f8e7ee";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-    private static final String FAKE_REQUESTER = "fake-requester";
+    private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_PROVIDER = "fake-provider";
+    private static final String FAKE_REQUESTER = "fake-requester";
+    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+
+    private static final String FAKE_REQUIREMENT = "fake-key-1";
+    private static final String FAKE_UNMET_REQUIREMENT = "this-requiremnt-isnot-going-to-be-fullfiled";
 
     private final int bestDisk = 40;
     private final String privateNetworkId = "fake-private-network-id";
@@ -301,17 +304,208 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.fail();
     }
 
+    @Test
+    public void getInstanceFromJson() {
+        // set up
+        String getRawResponse = createGetComputeResponseJson(FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
+
+        // exercise
+        ComputeInstance computeInstance = this.computePlugin.getInstanceFromJson(getRawResponse);
+
+        // verify
+        Assert.assertEquals(FAKE_INSTANCE_ID, computeInstance.getId());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, computeInstance.getName());
+    }
+
     // test case: checks if a given flavor has a requirement
     @Test
-    public void testFlavorHasRequirements() {
+    public void testFlavorHasRequirements() throws FogbowException, HttpResponseException {
         // set up
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
 
+        String getFlavorsResponseJson = createExtraSpecsResponseJson(createFakeExtraSpecs());
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenReturn(getFlavorsResponseJson);
 
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_REQUIREMENT, ANY_STRING);
+
+        // exercise
+        boolean hasRequirement = this.computePlugin.flavorHasRequirements(cloudUser, fakeRequirement, flavorId);
+
+        // verify
+        Assert.assertTrue(hasRequirement);
+        Mockito.verify(clientMock, Mockito.times(1))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
     }
 
-    private String createExtraSpecsResponseJson(HashMap<String, String> extraSpecs) {
+    // test case: when a flavor does not have a requirement, it should return false
+    @Test
+    public void testFlavorHasNotRequirements() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        String getFlavorsResponseJson = createExtraSpecsResponseJson(createFakeExtraSpecs());
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenReturn(getFlavorsResponseJson);
+
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_UNMET_REQUIREMENT, FAKE_UNMET_REQUIREMENT);
+
+        // exercise
+        boolean hasRequirement = this.computePlugin.flavorHasRequirements(cloudUser, fakeRequirement, flavorId);
+
+        // verify
+        Assert.assertTrue(!hasRequirement);
+        Mockito.verify(clientMock, Mockito.times(1))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+    }
+
+    // test case: when a request is unsuccessful, it should thrown UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testFlavorHasRequirementsUnexpectedFail() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        String getFlavorsResponseJson = createExtraSpecsResponseJson(createFakeExtraSpecs());
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
+
+        Map<String, String> fakeRequirement = new HashMap<>();
+
+        // exercise
+        this.computePlugin.flavorHasRequirements(cloudUser, fakeRequirement, flavorId);
+
+        Assert.fail();
+    }
+
+    // test case: the updateFlavors() should perform a HTTP request for the flavors and
+    // update the current data the plugin holds
+    @Test
+    public void testUpdateFlavorsSuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_REQUIREMENT, ANY_STRING);
+        computeOrder.setRequirements(fakeRequirement);
+
+        String getAllFlavorsResponseJson = createGetAllFlavorsResponseJson();
+
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenReturn(getAllFlavorsResponseJson);
+
+        Mockito.doNothing().when(this.computePlugin).setHardwareRequirementsList(Mockito.any());
+        Mockito.doReturn(false).doReturn(true).when(this.computePlugin)
+                .flavorHasRequirements(Mockito.eq(cloudUser), Mockito.any(), Mockito.any());
+
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .detailFlavors(Mockito.any(), Mockito.any(), Mockito.any());
+        // exercise
+        this.computePlugin.updateFlavors(cloudUser, computeOrder);
+
+        // verify
+        Mockito.verify(clientMock, Mockito.atLeast(1)).doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+        Mockito.verify(this.computePlugin, Mockito.atLeast(1))
+                .flavorHasRequirements(Mockito.eq(cloudUser), Mockito.any(), Mockito.any());
+
+        Mockito.verify(this.computePlugin, Mockito.atLeast(1))
+                .detailFlavors(Mockito.any(), Mockito.any(), Mockito.any());
+
+        Mockito.verify(this.computePlugin, Mockito.atLeast(1)).setHardwareRequirementsList(Mockito.any());
+    }
+
+    // test case: when a request is unsuccessful, it should thrown UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testUpdateFlavorsUnsuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_REQUIREMENT, ANY_STRING);
+        computeOrder.setRequirements(fakeRequirement);
+
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
+
+        // exercise
+        this.computePlugin.updateFlavors(cloudUser, computeOrder);
+
+        Assert.fail();
+    }
+
+    // test case: given and order, it should perform a DELETE request to the cloud
+    @Test
+    public void testDeleteInstanceSuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+
+        // exercise
+        this.computePlugin.deleteInstance(computeOrder, cloudUser);
+
+        // verify
+        Mockito.verify(this.clientMock, Mockito.times(1))
+                .doDeleteRequest(Mockito.any(), Mockito.eq(cloudUser));
+    }
+
+    // test case: when a request is unsuccessful, it should thrown UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testDeleteInstanceUnsuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Mockito.doThrow(HttpResponseException.class)
+                .when(this.clientMock).doDeleteRequest(Mockito.any(), Mockito.any());
+
+        // exercise
+        this.computePlugin.deleteInstance(computeOrder, cloudUser);
+
+        Assert.fail();
+    }
+
+    // test case: Test if after a successful request, it can return the
+    // appropriate computeInstance
+    @Test
+    public void testGetInstanceSuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+
+        String rawInstanceResponse = createGetComputeResponseJson(FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
+        Mockito.when(this.clientMock.doGetRequest(Mockito.any(), Mockito.any()))
+                .thenReturn(rawInstanceResponse);
+
+        // exercise
+        ComputeInstance computeInstance = this.computePlugin.getInstance(computeOrder, cloudUser);
+
+        // verify
+        Assert.assertEquals(FAKE_INSTANCE_NAME, computeInstance.getName());
+        Assert.assertEquals(FAKE_INSTANCE_ID, computeInstance.getId());
+    }
+
+    // test case: when a request is unsuccessful, it should thrown UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testGetInstanceUnsuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
+
+        // exercise
+        this.computePlugin.getInstance(computeOrder, cloudUser);
+
+        Assert.fail();
+    }
+
+    private Map<String, String> createFakeExtraSpecs() {
+        Map<String, String> extraSpecs = new HashMap();
+
+        extraSpecs.put(FAKE_REQUIREMENT, ANY_STRING);
+
+        return extraSpecs;
+    }
+
+    private String createExtraSpecsResponseJson(Map<String, String> extraSpecs) {
         List<String> specs = new ArrayList();
 
         for (Map.Entry entry : extraSpecs.entrySet()) {
@@ -355,6 +549,25 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 "                        },\n" +
                 " \"status\":\"ACTIVE\"\n" +
                 "                    }\n" +
+                " }";
+    }
+
+    private String createGetAllFlavorsResponseJson() {
+        return "{\n" +
+                " \"flavors\":[\n" +
+                " {\n" +
+                " \"id\":\"1\"\n" +
+                "                    },\n" +
+                " {\n" +
+                " \"id\":\"2\"\n" +
+                "                    },\n" +
+                " {\n" +
+                " \"id\":\"3\"\n" +
+                "                    },\n" +
+                " {\n" +
+                " \"id\":\"4\"\n" +
+                "                    }\n" +
+                " ]\n" +
                 " }";
     }
 
