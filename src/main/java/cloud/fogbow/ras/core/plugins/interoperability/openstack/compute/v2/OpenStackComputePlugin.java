@@ -6,7 +6,6 @@ import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -15,6 +14,7 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
@@ -72,7 +72,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, cloudUser);
         String flavorId = hardwareRequirements.getFlavorId();
-        String projectId = getProjectId(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         // Even if one or more private networks are informed in networkIds, we still need to include the default
         // network, since this is the only network that has external set to true, and a floating IP can only
         // be attached to such type of network.
@@ -132,7 +132,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = getProjectId(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
 
         String jsonResponse = null;
@@ -155,7 +155,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String endpoint = getComputeEndpoint(getProjectId(cloudUser), SERVERS + "/" + computeOrder.getInstanceId());
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -170,14 +171,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     private void initClient() {
         this.client = new OpenStackHttpClient();
-    }
-
-    private String getProjectId(OpenStackV3User cloudUser) throws InvalidParameterException {
-        String projectId = cloudUser.getProjectId();
-        if (projectId == null) {
-            throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
-        }
-        return projectId;
     }
 
     private String getKeyName(String projectId, OpenStackV3User cloudUser, String publicKey) throws FogbowException {
@@ -273,7 +266,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     private void updateFlavors(OpenStackV3User cloudUser, ComputeOrder computeOrder) throws FogbowException {
-        String projectId = getProjectId(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String flavorsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS);
 
         try {
@@ -300,7 +293,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     private boolean flavorHasRequirements(OpenStackV3User cloudUser, Map<String, String> requirements,
                                           String flavorId) throws FogbowException {
-        String projectId = getProjectId(cloudUser);
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String specsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS)  + "/" + flavorId + SUFFIX_FLAVOR_EXTRA_SPECS;
 
         try {
