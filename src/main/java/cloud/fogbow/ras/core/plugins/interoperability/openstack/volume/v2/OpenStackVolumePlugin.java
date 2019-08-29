@@ -12,7 +12,6 @@ import com.google.gson.JsonSyntaxException;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -67,8 +66,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         String jsonRequest = generateJsonRequest(size, name, volumeTypeId);
         String endpoint = getPrefixEndpoint(projectId) + VOLUMES;
         
-        GetVolumeResponse response = doRequestInstance(endpoint, jsonRequest, cloudUser); // FIXME CreateVolumeResponse...
-        return response.getId();
+        GetVolumeResponse volumeResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
+        return volumeResponse.getId();
     }
 
     @Override
@@ -103,14 +102,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     
     protected VolumeInstance doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String json = doGetResponseFromCloud(endpoint, cloudUser);
-        GetVolumeResponse response = null;
-        try {
-            response = GetVolumeResponse.fromJson(json);
-        } catch (JsonSyntaxException e) {
-            String message = Messages.Error.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
-        }
+        GetVolumeResponse response = doGetVolumeResponseFrom(json);
         return buildVolumeInstanceFrom(response);
     }
     
@@ -131,16 +123,16 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        return doCreateAttachmentResponseFrom(jsonResponse);
+        return doGetVolumeResponseFrom(jsonResponse);
     }
 
-    protected GetVolumeResponse doCreateAttachmentResponseFrom(String jsonResponse) throws InvalidParameterException {
+    protected GetVolumeResponse doGetVolumeResponseFrom(String jsonResponse) throws UnexpectedException {
         try {
-            return GetVolumeResponse.fromJson(jsonResponse); // FIXME create a new class to reflect this response...
+            return GetVolumeResponse.fromJson(jsonResponse);
         } catch (JsonSyntaxException e) {
-            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
+            String message = Messages.Error.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
             LOGGER.error(message, e);
-            throw new InvalidParameterException(message, e);
+            throw new UnexpectedException(message, e);
         }
     }
     
@@ -167,8 +159,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         
         String endpoint = getPrefixEndpoint(projectId) + TYPES;
         String json = doGetResponseFromCloud(endpoint, cloudUser);
-        GetAllTypesResponse response = GetAllTypesResponse.fromJson(json);
-        List<Type> types = doGetRequirementsFrom(response);
+        GetAllTypesResponse response = doGetAllTypesResponseFrom(json);
+        List<Type> types = response.getTypes();
         
         for (Type type : types){
             boolean match = true;
@@ -189,16 +181,16 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         throw new NoAvailableResourcesException(message);
     }
     
-    protected List<Type> doGetRequirementsFrom(GetAllTypesResponse response) throws UnexpectedException {
+    protected GetAllTypesResponse doGetAllTypesResponseFrom(String json) throws UnexpectedException {
         try {
-            return response.getTypes();
+            return GetAllTypesResponse.fromJson(json);
         } catch (Exception e) {
             String message = Messages.Error.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
     }
-    
+
     protected String doGetResponseFromCloud(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
