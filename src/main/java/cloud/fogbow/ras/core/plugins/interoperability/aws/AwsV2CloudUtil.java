@@ -32,7 +32,7 @@ public class AwsV2CloudUtil {
     public static final String AWS_TAG_GROUP_ID = "groupId";
     public static final String AWS_TAG_NAME = "Name";
     
-    public static Image getImagesFrom(DescribeImagesResponse response) throws FogbowException {
+    public static Image getImagesFrom(DescribeImagesResponse response) throws InstanceNotFoundException {
         if (response != null && !response.images().isEmpty()) {
             return response.images().listIterator().next();
         }
@@ -40,7 +40,7 @@ public class AwsV2CloudUtil {
     }
     
     public static DescribeImagesResponse doDescribeImagesRequest(DescribeImagesRequest request, Ec2Client client)
-            throws FogbowException {
+            throws UnexpectedException {
         try {
             return client.describeImages(request);
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class AwsV2CloudUtil {
         }
     }
     
-    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws FogbowException {
+    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws InstanceNotFoundException {
         if (response != null && !response.volumes().isEmpty()) {
             return response.volumes().listIterator().next();
         }
@@ -95,13 +95,12 @@ public class AwsV2CloudUtil {
     }
 
     public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client) throws FogbowException {
+        CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
+            .description(description)
+            .groupName(groupName)
+            .vpcId(vpcId)
+            .build();
         try {
-            CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-                    .description(description)
-                    .groupName(groupName)
-                    .vpcId(vpcId)
-                    .build();
-            
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
             return response.groupId();
         } catch (SdkException e) {

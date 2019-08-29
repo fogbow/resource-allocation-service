@@ -104,14 +104,14 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
 		try {
 			AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
-		} catch (Exception e) {
+		} catch (FogbowException e) {
 			String resource = AwsV2CloudUtil.SECURITY_GROUP_RESOURCE;
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, resource, groupId), e);
 			throw e;
+		} finally {
+			doDisassociateAddresses(associationId, client);
+			doReleaseAddresses(allocationId, client);
 		}
-
-		doDisassociateAddresses(associationId, client);
-		doReleaseAddresses(allocationId, client);
 	}
 
 	protected PublicIpInstance buildPublicIpInstance(Address address) {
@@ -146,7 +146,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
             AwsV2CloudUtil.createTagsRequest(allocationId, AwsV2CloudUtil.AWS_TAG_GROUP_ID, groupId, client);
             return groupId;
-        } catch (UnexpectedException e) {
+        } catch (FogbowException e) {
             doReleaseAddresses(allocationId, client);
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
@@ -231,6 +231,8 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 		try {
 			client.modifyNetworkInterfaceAttribute(request);
 		} catch (SdkException e) {
+			// if the group associated to the instance is the default group, it shouldn't be removed in a failure case
+			// otherwise it should because it'd be useless in other context.
 			if (!groupId.equals(this.defaultGroupId)) {
 				AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
 				doReleaseAddresses(allocationId, client);
@@ -249,12 +251,10 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 	}
 
 	protected InstanceNetworkInterface selectNetworkInterfaceFrom(Instance instance) {
-		if (instance != null && !instance.networkInterfaces().isEmpty()) {
-			// Select the first network interface different from the default.
-			for (InstanceNetworkInterface networkInterface : instance.networkInterfaces()) {
-				if (!networkInterface.subnetId().equals(this.defaultSubnetId)) {
-					return networkInterface;
-				}
+		// Select the first network interface different from the default.
+		for (InstanceNetworkInterface networkInterface : instance.networkInterfaces()) {
+			if (!networkInterface.subnetId().equals(this.defaultSubnetId)) {
+				return networkInterface;
 			}
 		}
 		// Returns the default network in the absence of others.

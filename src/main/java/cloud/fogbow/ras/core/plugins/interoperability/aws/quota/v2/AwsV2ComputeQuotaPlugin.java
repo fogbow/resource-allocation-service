@@ -111,13 +111,13 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		if (!instances.isEmpty()) {
 			for (Instance instance : instances) {
 				String instanceType = instance.instanceTypeAsString();
-				allocation = mountAllocatedInstance(instance, client);
+				allocation = buildAllocatedInstance(instance, client);
 				this.instancesAllocatedMap.put(instanceType, allocation);
 			}
 		}
 	}
 
-	private ComputeAllocation mountAllocatedInstance(Instance instance, Ec2Client client) throws FogbowException {
+	private ComputeAllocation buildAllocatedInstance(Instance instance, Ec2Client client) throws FogbowException {
 		String instanceType = instance.instanceTypeAsString();
 		ComputeAllocation totalAllocation = this.totalAllocationsMap.get(instanceType);
 		ComputeAllocation allocatedInstance = this.instancesAllocatedMap.get(instanceType);

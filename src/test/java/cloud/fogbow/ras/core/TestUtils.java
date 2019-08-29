@@ -126,7 +126,7 @@ public class TestUtils {
     public NetworkOrder createNetworkOrder(String requestingMember, String providingMember) {
         NetworkOrder networkOrder = new NetworkOrder(createSystemUser(), 
                 requestingMember, 
-                requestingMember,
+                providingMember,
                 DEFAULT_CLOUD_NAME, 
                 FAKE_INSTANCE_NAME, 
                 FAKE_GATEWAY, 
