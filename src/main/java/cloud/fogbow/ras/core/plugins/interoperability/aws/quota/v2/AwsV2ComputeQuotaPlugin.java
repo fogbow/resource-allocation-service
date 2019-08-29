@@ -30,6 +30,12 @@ import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
+/**
+ * This class calculates the quota of available instances according to the
+ * disparity between the amount of resource for each instance type listed in the
+ * flavors.csv file, and the amount of resource for each instance used by the
+ * user.
+ */
 public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputeQuotaPlugin.class);
@@ -45,7 +51,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 	protected static final int ONE_TERABYTE = 1000;
 	protected static final int VCPU_COLUMN = 1;
 
-	private Map<String, ComputeAllocation> availableAllocationsMap;
+	private Map<String, ComputeAllocation> totalAllocationsMap;
 	private Map<String, ComputeAllocation> instancesAllocatedMap;
 	private String flavorsFilePath;
 	private String region;
@@ -54,7 +60,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
-		this.availableAllocationsMap = new HashMap<String, ComputeAllocation>();
+		this.totalAllocationsMap = new HashMap<String, ComputeAllocation>();
 		this.instancesAllocatedMap = new HashMap<String, ComputeAllocation>();
 	}
 
@@ -91,7 +97,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 		int totalRam = 0;
 		int totalVCPU = 0;
 
-		for (Entry<String, ComputeAllocation> availableAllocation : this.availableAllocationsMap.entrySet()) {
+		for (Entry<String, ComputeAllocation> availableAllocation : this.totalAllocationsMap.entrySet()) {
 			totalInstances += availableAllocation.getValue().getInstances();
 			totalVCPU += availableAllocation.getValue().getvCPU();
 			totalRam += availableAllocation.getValue().getRam();
@@ -113,11 +119,11 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 
 	private ComputeAllocation mountAllocatedInstance(Instance instance, Ec2Client client) throws FogbowException {
 		String instanceType = instance.instanceTypeAsString();
-		ComputeAllocation allocationAvailable = this.availableAllocationsMap.get(instanceType);
+		ComputeAllocation totalAllocation = this.totalAllocationsMap.get(instanceType);
 		ComputeAllocation allocatedInstance = this.instancesAllocatedMap.get(instanceType);
 		int instances = allocatedInstance != null ? allocatedInstance.getInstances() + 1 : 1;
-		int vCPU = allocationAvailable.getvCPU() * instances;
-		int ram = allocationAvailable.getRam() * instances;
+		int vCPU = totalAllocation.getvCPU() * instances;
+		int ram = totalAllocation.getRam() * instances;
 		int disk = allocatedInstance != null ? allocatedInstance.getDisk() : 0;
 		List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
 		disk += getAllDisksSize(volumes);
@@ -151,7 +157,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 				requirements = line.split(CSV_COLUMN_SEPARATOR);
 				instanceType = requirements[INSTANCE_TYPE_COLUMN];
 				allocation = buildAvailableInstance(requirements);
-				this.availableAllocationsMap.put(instanceType, allocation);
+				this.totalAllocationsMap.put(instanceType, allocation);
 			}
 		}
 	}
