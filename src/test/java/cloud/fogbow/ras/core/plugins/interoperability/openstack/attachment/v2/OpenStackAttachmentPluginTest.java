@@ -6,11 +6,9 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -29,7 +27,6 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({ DatabaseManager.class, GetAttachmentResponse.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
 public class OpenStackAttachmentPluginTest extends BaseUnitTests {
 
