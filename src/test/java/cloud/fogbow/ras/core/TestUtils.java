@@ -54,6 +54,7 @@ public class TestUtils {
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+    public static final String EMPTY_STRING = "";
     
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
