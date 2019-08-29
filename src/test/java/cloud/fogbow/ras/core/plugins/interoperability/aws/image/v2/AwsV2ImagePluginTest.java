@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.services.ec2.model.EbsBlockDevice;
 import software.amazon.awssdk.services.ec2.model.Image;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class})
+@PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class})
 public class AwsV2ImagePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
@@ -51,7 +52,7 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
     private AwsV2ImagePlugin plugin;
 
     @Before
-    public void setUp() {
+    public void setUp() throws FogbowException{
         String awsConfFilePath = HomeDir.getPath()
                 + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
                 + File.separator
@@ -59,7 +60,7 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
                 + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        mockSharedOrdersHolder();
+        testUtils.mockReadOrdersFromDataBase();
         this.plugin = Mockito.spy(new AwsV2ImagePlugin(awsConfFilePath));
     }
 
