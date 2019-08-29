@@ -1,14 +1,14 @@
 package cloud.fogbow.ras.core;
 
-import java.util.List;
+
 import java.util.Map;
 
-import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -22,6 +22,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
  */
 @Ignore
 @RunWith(PowerMockRunner.class)
+@PrepareForTest({SharedOrderHolders.class})
 public class BaseUnitTests {
     
     protected static final Logger LOGGER = Logger.getLogger(BaseUnitTests.class);
