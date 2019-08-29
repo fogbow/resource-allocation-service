@@ -40,6 +40,7 @@ public class Messages {
         public static final String NO_PROTOCOL_SPECIFIED = "The protocol must be specified";
         public static final String NO_SECURITY_GROUP_FOUND = "There is no security group with the id %s";
         public static final String NON_EXISTENT_REQUEST = "Request does not exist.";
+        public static final String NOT_FOUND_ORDER_ID_S = "Order ID %s not found.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String PORT_NOT_FOUND = "No port found connecting virtual machine %s to default network %s.";
         public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
@@ -48,6 +49,7 @@ public class Messages {
         public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
+        public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER = "Signalling provider %s is not the provider %s.";
         public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";

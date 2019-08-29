@@ -8,6 +8,7 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
+import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -46,6 +47,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     private static final String ANY_URL = "http://localhost:8008";
     private static final String ANY_STRING = "any-strinf";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    private static final String FAKE_REQUESTER = "fake-requester";
+    private static final String FAKE_PROVIDER = "fake-provider";
 
     private final int bestDisk = 40;
     private final String privateNetworkId = "fake-private-network-id";
@@ -87,19 +90,6 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 this.FAKE_TOKEN_VALUE, this.FAKE_PROJECT_ID);
     }
 
-    // test case: given a cloudUser without projectId field, should throw
-    // an InvalidParameterException
-    @Test(expected = InvalidParameterException.class)
-    public void testGetProjectIdOfUnscopedToken() throws InvalidParameterException {
-        // setup
-        OpenStackV3User unscopedFakeUser = new OpenStackV3User(TestUtils.FAKE_USER_ID, TestUtils.FAKE_USER_NAME,
-                this.FAKE_TOKEN_VALUE, null);
-        // exercise
-        this.computePlugin.getProjectId(unscopedFakeUser);
-
-        Assert.fail();
-    }
-
     // test case: when given and order, it should return a flavor with it's resources
     // greater than or equal the requested
     @Test
@@ -123,6 +113,31 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.assertTrue(bestDisk <= requirements.getDisk());
         Assert.assertTrue(bestVcpu <= requirements.getCpu());
         Assert.assertTrue(bestMemory <= requirements.getMemory());
+    }
+
+    // test case: when given and order with huge resources it should not be capable
+    // of allocating any flavor
+    @Test
+    public void testGetBestFlavorMismatch() throws FogbowException {
+        // setup
+        int bigVcpu = 9999;
+        int bigMemory = 99999999;
+        int bigDisk = 99999999;
+        ComputeOrder computeOrder = new ComputeOrder(testUtils.FAKE_USER_ID, testUtils.createSystemUser(), FAKE_REQUESTER, FAKE_PROVIDER,
+                testUtils.DEFAULT_CLOUD_NAME, testUtils.FAKE_INSTANCE_NAME, bigVcpu, bigMemory, bigDisk, imageId,
+                testUtils.mockUserData(), publicKey, null);
+
+        Mockito.doNothing().when(this.computePlugin)
+                .updateFlavors(Mockito.eq(this.cloudUser), Mockito.eq(computeOrder));
+
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .getHardwareRequirementsList();
+
+        // exercise
+        HardwareRequirements requirements = this.computePlugin.getBestFlavor(computeOrder, cloudUser);
+
+        // verify
+        Assert.assertNull(requirements);
     }
 
     // test case: when a order is given, return any hardwareRequirements
@@ -173,12 +188,47 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.assertTrue(keyName instanceof String);
     }
 
+    // test case: when getKeyName() request fails, it must throw an UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testGetKeyNameUnsuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(HttpResponseException.class);
+
+        // exercise
+        this.computePlugin.getKeyName(this.FAKE_PROJECT_ID, cloudUser, publicKey);
+
+        Assert.fail();
+    }
+
     // test case: test if deleteKeyName() will call doDeleteRequest passing the keyName
     @Test
     public void testDeleteKeyName() throws FogbowException, HttpResponseException {
         // set up
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        // exercise
+        this.computePlugin.deleteKeyName(FAKE_PROJECT_ID, cloudUser, ANY_STRING);
+
+        // verify
+        Mockito.verify(this.clientMock, Mockito.times(testUtils.RUN_ONCE))
+                .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+    }
+
+    // test case: test if deleteKeyName() will call doDeleteRequest is not successful an
+    // UnexpectedException must be thrown.
+    @Test(expected = UnexpectedException.class)
+    public void testDeleteKeyNameFailure() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        Mockito.doThrow(HttpResponseException.class)
+                .when(this.clientMock).doDeleteRequest(Mockito.eq(ANY_URL), Mockito.eq(cloudUser));
 
         // exercise
         this.computePlugin.deleteKeyName(FAKE_PROJECT_ID, cloudUser, ANY_STRING);
@@ -231,6 +281,50 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         GetFlavorResponse.fromJson(Mockito.anyString());
     }
 
+    // test case: When performing an unsuccessful request, it must re-wrap the
+    // HttpResponseException into an UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testDetailFlavorsUnsuccessful() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .getHardwareRequirementsList();
+        List<String> flavorIds = getFlavorIdsFromHardwareRequirementsList();
+        String unCachedFlavorId = "uncached-flavor-id";
+        flavorIds.add(unCachedFlavorId);
+
+        Mockito.when(this.clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
+
+        // exercise
+        this.computePlugin.detailFlavors(ANY_URL, cloudUser, flavorIds);
+
+        Assert.fail();
+    }
+
+    // test case: checks if a given flavor has a requirement
+    @Test
+    public void testFlavorHasRequirements() {
+        // set up
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+
+    }
+
+    private String createExtraSpecsResponseJson(HashMap<String, String> extraSpecs) {
+        List<String> specs = new ArrayList();
+
+        for (Map.Entry entry : extraSpecs.entrySet()) {
+            specs.add(entry.getKey() + ":\"" + entry.getValue()+"\"");
+        }
+
+        return "{"+
+            " \"extra_specs\": {" +
+            " "+String.join(",", specs)+"" +
+            "}" +
+            "}";
+    }
+
     private String createGetFlavorResponseJson(String unCachedFlavorId) {
 
         return "{" +
@@ -242,7 +336,27 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 "\"vcpus\":1" +
                 "}" +
                 "}";
-}
+    }
+
+    private String createGetComputeResponseJson(String id, String name) {
+        return "{\n" +
+                " \"server\":{\n" +
+                " \"id\":\""+id+"\",\n" +
+                " \"name\":\""+name+"\",\n" +
+                " \"addresses\":{\n" +
+                " \"provider\":[\n" +
+                " {\n" +
+                " \"addr\":\"192.168.0.3\"\n" +
+                "                            }\n" +
+                " ]\n" +
+                " },\n" +
+                " \"flavor\":{\n" +
+                " \"id\":1\n" +
+                "                        },\n" +
+                " \"status\":\"ACTIVE\"\n" +
+                "                    }\n" +
+                " }";
+    }
 
     private List<String> getFlavorIdsFromHardwareRequirementsList() {
         List<String> flavorIds = new ArrayList();
