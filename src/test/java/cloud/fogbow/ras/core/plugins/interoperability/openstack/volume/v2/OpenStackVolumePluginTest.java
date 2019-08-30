@@ -122,7 +122,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     // than any error, this means that the state of the volume is not FAILED and it
     // must return false.
     @Test
-    public void testhasFailedUnsuccessful() {
+    public void testHasFailedUnsuccessful() {
         // set up
         String[] cloudStates = { OpenStackStateMapper.CREATING_STATUS, OpenStackStateMapper.AVAILABLE_STATUS,
                 OpenStackStateMapper.IN_USE_STATUS };
@@ -146,7 +146,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
-                .thenReturn(cloudUser.getProjectId());
+                .thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackVolumePlugin.VOLUMES, null);
         GetVolumeResponse response = GetVolumeResponse.fromJson(FAKE_VOLUME_JSON_RESPONSE);
@@ -179,7 +179,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = createOpenStackUser();
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
-                .thenReturn(cloudUser.getProjectId());
+                .thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackVolumePlugin.VOLUMES,
                 order.getInstanceId());
@@ -211,7 +211,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = createOpenStackUser();
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
-                .thenReturn(cloudUser.getProjectId());
+                .thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackVolumePlugin.VOLUMES,
                 order.getInstanceId());
