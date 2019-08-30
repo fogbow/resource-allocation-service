@@ -28,8 +28,9 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 
-@PrepareForTest({ DatabaseManager.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
+@PrepareForTest({ DatabaseManager.class, FogbowCloudUtil.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
 public class OpenStackVolumePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
@@ -40,9 +41,10 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     private static final String FAKE_JSON_REQUEST = "{\"volume\":{\"name\":\"fake-order-name\",\"size\":\"30\"}}";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
-    private static final String FAKE_TYPES_JSON_RESPONSE = "{\"volume_types\":[{\"extra_specs\":{\"fake-capabilities\":\"fake-value\" },\"id\":\"fake-id\",\"name\":\"SSD\"}]}";
+    private static final String FAKE_TYPES_JSON_RESPONSE = "{\"volume_types\":[{\"extra_specs\":{\"fake-capabilities\":\"fake-value\" },\"id\":\"fake-volume-type-id\",\"name\":\"fake-volume-type-name\"}]}";
     private static final String FAKE_VALUE = "fake-value";
     private static final String FAKE_VOLUME_JSON_RESPONSE = "{\"volume\":{\"id\":\"fake-instance-id\",\"name\":\"fake-order-name\",\"size\":\"30\",\"status\":\"available\"}}";
+    private static final String FAKE_VOLUME_TYPE_ID = "fake-volume-type-id";
     private static final String JSON_MALFORMED = "{anything:}";
     private static final String MAP_METHOD = "map";
     private static final String MESSAGE_STATUS_CODE = "Internal server error.";
@@ -71,7 +73,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     // test case: When calling the isReady method with the cloud states available,
     // this means that the state of volume is READY and it must return true.
     @Test
-    public void testIsReadySuccessful() {
+    public void testIsReady() {
         // set up
         String cloudState = OpenStackStateMapper.AVAILABLE_STATUS;
 
@@ -86,7 +88,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     // than available, this means that the state of volume is not READY and it must
     // return false.
     @Test
-    public void testIsReadyUnsuccessful() {
+    public void testNotIsReady() {
         // set up
         String[] cloudStates = { OpenStackStateMapper.CREATING_STATUS, OpenStackStateMapper.ERROR_STATUS,
                 OpenStackStateMapper.IN_USE_STATUS };
@@ -103,7 +105,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     // test case: When calling the hasFailed method with any cloud states errors,
     // this means that the state of the volume is FAILED and it must return true.
     @Test
-    public void testHasFailedSuccessful() {
+    public void testHasFailed() {
         // set up
         String[] cloudStates = { OpenStackStateMapper.ERROR_BACKING_UP_STATUS,
                 OpenStackStateMapper.ERROR_DELETING_STATUS, OpenStackStateMapper.ERROR_EXTENDING_STATUS,
@@ -122,7 +124,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     // than any error, this means that the state of the volume is not FAILED and it
     // must return false.
     @Test
-    public void testHasFailedUnsuccessful() {
+    public void testNotHasFailed() {
         // set up
         String[] cloudStates = { OpenStackStateMapper.CREATING_STATUS, OpenStackStateMapper.AVAILABLE_STATUS,
                 OpenStackStateMapper.IN_USE_STATUS };
@@ -145,7 +147,10 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = createOpenStackUser();
 
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+
+        PowerMockito.mockStatic(FogbowCloudUtil.class);
+        PowerMockito.when(FogbowCloudUtil.defineInstanceName(Mockito.eq(TestUtils.FAKE_ORDER_NAME)))
                 .thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackVolumePlugin.VOLUMES, null);
@@ -160,6 +165,11 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
         OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
+        PowerMockito.verifyStatic(FogbowCloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findVolumeTypeId(
+                Mockito.eq(order.getRequirements()), Mockito.eq(cloudUser.getProjectId()), Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getPrefixEndpoint(Mockito.eq(cloudUser.getProjectId()));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateJsonRequest(
@@ -414,15 +424,19 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackVolumePlugin.TYPES, null);
         String json = FAKE_TYPES_JSON_RESPONSE;
         Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+        
+        String expected = FAKE_VOLUME_TYPE_ID;
 
         // exercise
-        this.plugin.findVolumeTypeId(requirements, projectId, cloudUser);
+        String volumeTypeId = this.plugin.findVolumeTypeId(requirements, projectId, cloudUser);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getPrefixEndpoint(Mockito.eq(projectId));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetResponseFromCloud(Mockito.eq(endpoint),
                 Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetAllTypesResponseFrom(Mockito.eq(json));
+        
+        Assert.assertEquals(expected, volumeTypeId);
     }
     
     // test case: When calling the findVolumeTypeId method with requirements that do
