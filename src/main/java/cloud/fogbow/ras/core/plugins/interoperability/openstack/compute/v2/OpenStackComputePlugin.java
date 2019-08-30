@@ -50,11 +50,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     /**
      * Constructor used for testing only
      */
-    protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
-                                     OpenStackHttpClient client) {
+    protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator) {
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
-        this.client = client;
         this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
     }
 
@@ -402,5 +400,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         synchronized (this.hardwareRequirementsList) {
             this.hardwareRequirementsList = hardwareRequirementsList;
         }
+    }
+
+    public void setClient(OpenStackHttpClient client) {
+        this.client = client;
     }
 }

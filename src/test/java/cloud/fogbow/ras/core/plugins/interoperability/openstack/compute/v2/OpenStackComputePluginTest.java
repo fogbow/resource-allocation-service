@@ -1,16 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -35,48 +35,25 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     private OpenStackHttpClient clientMock;
     private Properties propertiesMock;
     private final String defaultNetworkId = "fake-default-network-id";
-    private final String imageId = "image-id";
     private final String publicKey = "public-key";
     private final String bestFlavorId = "best-flavor";
-    private final int bestVcpu = 8;
-    private final int bestMemory = 1024;
 
     private static final String ANY_URL = "http://localhost:8008";
     private static final String ANY_STRING = "any-string";
     private static final String FAKE_KEY_NAME = "fake-key-name";
-    private static final String FAKE_INSTANCE_ID = "493315b3-dd01-4b38-974f-289570f8e7ee";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PROVIDER = "fake-provider";
-    private static final String FAKE_REQUESTER = "fake-requester";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
 
     private static final String FAKE_REQUIREMENT = "fake-key-1";
     private static final String FAKE_UNMET_REQUIREMENT = "this-requiremnt-isnot-going-to-be-fullfiled";
 
-    private final int bestDisk = 40;
     private final String privateNetworkId = "fake-private-network-id";
     private final String userData = "userDataFromLauchCommand";
     private final List<String> networksId = new ArrayList<String>();
-    private final List<String> responseNetworkIds = new ArrayList<String>(networksId);
-    private final String idInstanceName = "12345678-dd01-4b38-974f-289570f8e7ee";
-    private final String expectedInstanceId = "instance-id-00";
-    private final String localIpAddress = "localIpAddress";
     private final String instanceId = "compute-instance-id";
-    private final String requirementTag = "besttag";
-    private final String requirementValue = "bestvalue";
-    private final int vCPU = 10;
-    private final int ram = 15;
-    private final int disk = 20;
-    private String computeEndpoint;
-    private String flavorEndpoint;
-    private String flavorExtraSpecsEndpoint;
-    private String osKeyPairEndpoint;
-    private String hostName = "hostName";
     private String flavorId = "flavorId";
     private final String computeNovaV2UrlKey = "compute-nova-v2-url-key";
-    private String openStackStateActive = OpenStackStateMapper.ACTIVE_STATUS;
-    private SharedOrderHolders sharedOrderHolders;
 
     @Before
     public void setUp() throws Exception {
@@ -88,7 +65,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         this.networksId.add(privateNetworkId);
 
         this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
-                this.launchCommandGeneratorMock, this.clientMock));
+                this.launchCommandGeneratorMock));
+
+        this.computePlugin.setClient(this.clientMock);
 
         this.cloudUser = new OpenStackV3User(TestUtils.FAKE_USER_ID, TestUtils.FAKE_USER_NAME,
                 this.FAKE_TOKEN_VALUE, this.FAKE_PROJECT_ID);
@@ -114,9 +93,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 .updateFlavors(Mockito.eq(this.cloudUser), Mockito.eq(computeOrder));
         Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
                 .getHardwareRequirementsList();
-        Assert.assertTrue(bestDisk <= requirements.getDisk());
-        Assert.assertTrue(bestVcpu <= requirements.getCpu());
-        Assert.assertTrue(bestMemory <= requirements.getMemory());
+        Assert.assertTrue(testUtils.DISK_VALUE <= requirements.getDisk());
+        Assert.assertTrue(testUtils.CPU_VALUE <= requirements.getCpu());
+        Assert.assertTrue(testUtils.MEMORY_VALUE <= requirements.getMemory());
     }
 
     // test case: when given and order with huge resources it should not be capable
@@ -127,8 +106,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         int bigVcpu = 9999;
         int bigMemory = 99999999;
         int bigDisk = 99999999;
-        ComputeOrder computeOrder = new ComputeOrder(testUtils.FAKE_USER_ID, testUtils.createSystemUser(), FAKE_REQUESTER, FAKE_PROVIDER,
-                testUtils.DEFAULT_CLOUD_NAME, testUtils.FAKE_INSTANCE_NAME, bigVcpu, bigMemory, bigDisk, imageId,
+        ComputeOrder computeOrder = new ComputeOrder(testUtils.FAKE_USER_ID, testUtils.createSystemUser(), testUtils.FAKE_REMOTE_MEMBER_ID, testUtils.LOCAL_MEMBER_ID,
+                testUtils.DEFAULT_CLOUD_NAME, testUtils.FAKE_INSTANCE_NAME, bigVcpu, bigMemory, bigDisk, testUtils.FAKE_IMAGE_ID,
                 testUtils.mockUserData(), publicKey, null);
 
         Mockito.doNothing().when(this.computePlugin)
@@ -251,7 +230,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
         //exercise
         CreateComputeRequest createComputeRequest = this.computePlugin.getRequestBody(
-                FAKE_INSTANCE_NAME, imageId, flavorId, userData, ANY_STRING, networksIds);
+                FAKE_INSTANCE_NAME, testUtils.FAKE_IMAGE_ID, flavorId, userData, ANY_STRING, networksIds);
     }
 
     // test case: When given a list of Flavor, check if it does have them cached, else
@@ -308,13 +287,13 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     @Test
     public void getInstanceFromJson() {
         // set up
-        String getRawResponse = createGetComputeResponseJson(FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
+        String getRawResponse = createGetComputeResponseJson(testUtils.FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
 
         // exercise
         ComputeInstance computeInstance = this.computePlugin.getInstanceFromJson(getRawResponse);
 
         // verify
-        Assert.assertEquals(FAKE_INSTANCE_ID, computeInstance.getId());
+        Assert.assertEquals(testUtils.FAKE_INSTANCE_ID, computeInstance.getId());
         Assert.assertEquals(FAKE_INSTANCE_NAME, computeInstance.getName());
     }
 
@@ -471,7 +450,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         // set up
         ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
-        String rawInstanceResponse = createGetComputeResponseJson(FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
+        String rawInstanceResponse = createGetComputeResponseJson(testUtils.FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
         Mockito.when(this.clientMock.doGetRequest(Mockito.any(), Mockito.any()))
                 .thenReturn(rawInstanceResponse);
 
@@ -480,7 +459,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(FAKE_INSTANCE_NAME, computeInstance.getName());
-        Assert.assertEquals(FAKE_INSTANCE_ID, computeInstance.getId());
+        Assert.assertEquals(testUtils.FAKE_INSTANCE_ID, computeInstance.getId());
     }
 
     // test case: when a request is unsuccessful, it should thrown UnexpectedException
@@ -689,9 +668,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
             HardwareRequirements requirements = new HardwareRequirements(
                     "nameflavor" + Integer.toString(i),
                     Integer.toString(i),
-                    Math.max(1, bestVcpu - 1 - i),
-                    Math.max(1, bestMemory - 1 - i),
-                    Math.max(1, bestDisk - 1 - i));
+                    Math.max(1, testUtils.CPU_VALUE - 1 - i),
+                    Math.max(1, testUtils.MEMORY_VALUE - 1 - i),
+                    Math.max(1, testUtils.MEMORY_VALUE - 1 - i));
 
             hardwareRequirements.add(requirements);
         }
@@ -700,9 +679,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 new HardwareRequirements(
                         "nameflavor" + bestFlavorId,
                 bestFlavorId,
-                bestVcpu,
-                bestMemory,
-                bestDisk)
+                testUtils.CPU_VALUE,
+                testUtils.MEMORY_VALUE,
+                testUtils.DISK_VALUE)
         );
         return hardwareRequirements;
     }
