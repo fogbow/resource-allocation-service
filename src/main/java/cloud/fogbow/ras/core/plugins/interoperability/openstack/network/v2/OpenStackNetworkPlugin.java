@@ -85,6 +85,18 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @Override
     public NetworkInstance getInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String responseStr = doGetInstance(order, cloudUser);
+        return buildInstance(responseStr, cloudUser);
+    }
+
+    @Override
+    public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        String securityGroupId = retrieveSecurityGroupId(getSGNameForPrivateNetwork(instanceId), cloudUser);
+        doDeleteInstance(instanceId, securityGroupId, cloudUser);
+    }
+
+    protected String doGetInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + order.getInstanceId();
         String responseStr = null;
         try {
@@ -92,23 +104,24 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        return getInstanceFromJson(responseStr, cloudUser);
+        return responseStr;
     }
 
-    @Override
-    public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+    protected void doDeleteInstance(String instanceId, String securityGroupId, OpenStackV3User cloudUser) throws FogbowException{
         try {
-            removeNetwork(cloudUser, order.getInstanceId());
+            removeNetwork(cloudUser, instanceId);
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, order.getInstanceId()), e);
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, instanceId), e);
         } catch (FogbowException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, order.getInstanceId()), e);
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, instanceId), e);
             throw e;
         }
 
-        String securityGroupId = retrieveSecurityGroupId(getSGNameForPrivateNetwork(order.getInstanceId()), cloudUser);
+        doDeleteSecurityGroup(securityGroupId, cloudUser);
+    }
 
+    protected void doDeleteSecurityGroup(String securityGroupId, OpenStackV3User cloudUser) throws FogbowException{
         try {
             removeSecurityGroup(cloudUser, securityGroupId);
         } catch (FogbowException e) {
@@ -247,18 +260,16 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return getSecurityGroupIdFromGetResponse(responseStr);
     }
 
-    protected boolean removeSecurityGroup(OpenStackV3User cloudUser, String securityGroupId) throws FogbowException {
+    protected void removeSecurityGroup(OpenStackV3User cloudUser, String securityGroupId) throws FogbowException {
         try {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + securityGroupId;
             this.client.doDeleteRequest(endpoint, cloudUser);
-            return true;
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
-            return false;
         }
     }
 
-    protected NetworkInstance getInstanceFromJson(String json, OpenStackV3User cloudUser) throws FogbowException {
+    protected NetworkInstance buildInstance(String json, OpenStackV3User cloudUser) throws FogbowException {
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
         String networkId = getNetworkResponse.getId();
         String name = getNetworkResponse.getName();
