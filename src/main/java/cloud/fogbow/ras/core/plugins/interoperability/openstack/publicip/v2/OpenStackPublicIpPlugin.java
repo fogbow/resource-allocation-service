@@ -1,52 +1,62 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.OpenStackV3User;
-import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.*;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+// FIXME removed this imports static...
+import static cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin.ACTION;
+import static cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin.COMPUTE_NOVAV2_URL_KEY;
+import static cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT;
+import static cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin.SERVERS;
 
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Properties;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin.*;
+import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
+
+import com.google.gson.JsonSyntaxException;
+
+import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.AddSecurityGroupToServerRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.RemoveSecurityGroupFromServerRequest;
 
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class);
 
-    protected static final String NETWORK_NEUTRONV2_URL_KEY = OpenStackNetworkPlugin.NETWORK_NEUTRONV2_URL_KEY;
-    protected static final String DEFAULT_NETWORK_ID_KEY = OpenStackComputePlugin.DEFAULT_NETWORK_ID_KEY;
-    protected static final String EXTERNAL_NETWORK_ID_KEY = OpenStackNetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO;
+    protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    protected static final String EXTERNAL_NETWORK_ID_KEY = "external_gateway_info";
+    protected static final String FLOATINGIPS = "/floatingips";
+    protected static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+    protected static final String PORTS = "/ports";
+    protected static final String SECURITY_GROUP_RULES = "/security-group-rules";
+    protected static final String SECURITY_GROUPS = "/security-groups";
+    protected static final String V2_API_ENDPOINT = "/v2.0";
 
-    protected static final String SUFFIX_ENDPOINT_FLOATINGIPS = "/floatingips";
-    protected static final String NETWORK_V2_API_ENDPOINT = "/v2.0";
-    protected static final String SUFFIX_ENDPOINT_PORTS = "/ports";
-    protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
-    protected static final String SUFFIX_ENDPOINT_SECURITY_GROUPS = "/security-groups";
-
+    protected static final String IPV4_ETHER_TYPE = "IPv4";
+    protected static final String IPV6_ETHER_TYPE = "IPv6";
     protected static final String QUERY_SECURITY_GROUP_NAME = "name";
+    protected static final String SECURITY_GROUP_INGRESS_DIRECTION = "ingress";
 
     private static final int MAXIMUM_PORTS_SIZE = 1;
-    public static final String SECURITY_GROUP_DIRECTION_INGRESS = "ingress";
-
-    public static final String IPV6_ETHER_TYPE = "IPv6";
-    public static final String IPV4_ETHER_TYPE = "IPv4";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -57,8 +67,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     public OpenStackPublicIpPlugin(String confFilePath, boolean checkProperties) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        initClient();
         checkProperties(checkProperties);
+        initClient();
     }
 
     @Override
@@ -72,62 +82,93 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     @Override
-    public String requestInstance(PublicIpOrder publicIpOrder, OpenStackV3User cloudUser)
-            throws FogbowException {
-        boolean requestFailed = true;
-        String securityGroupName = null;
-        String securityGroupId = null;
-        String floatingIpId = null;
-        String computeInstanceId = null;
+    public String requestInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        // Network port id is the connection between the virtual machine and the network
+        String networkPortId = getNetworkPortIp(order, cloudUser);
+        String floatingNetworkId = getExternalNetworkId();
+        
+        String jsonRequest = doCreateFloatingIpRequestToJson(floatingNetworkId, networkPortId, projectId);
+        String endpoint = getFloatingIpEndpoint();
 
+        String jsonResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
+        CreateFloatingIpResponse floatingIpResponse = doCreateFloatingIpResponseFrom(jsonResponse);
+        String floatingIpId = floatingIpResponse.getFloatingIp().getId(); // FIXME verify this after...
+        
+        doAssociateSecurityGroup(floatingIpId, order, cloudUser);
+        
+        return floatingIpId;
+    }
+
+    private void doAssociateSecurityGroup(String floatingIpId, PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String securityGroupName = defineSecurityGroupName(floatingIpId);
+        String computeInstanceId = order.getComputeId();
+        String securityGroupId = doCreateSecurityGroup(securityGroupName, cloudUser);
+        addAllowAllRules(securityGroupId, cloudUser);
+        associateSecurityGroupToCompute(securityGroupName, computeInstanceId, cloudUser);
+    }
+
+    private String doCreateSecurityGroup(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        
+        CreateSecurityGroupRequest createSecurityGroupRequest = new CreateSecurityGroupRequest.Builder()
+                .name(securityGroupName)
+                .projectId(projectId)
+                .build();
+        
+        String jsonRequest = createSecurityGroupRequest.toJson();
+        
+        String endpoint = getSecurityGroupsApiEndpoint();
+        String jsonResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
+        
+        CreateSecurityGroupResponse securityGroupResponse = doCreateSecurityGroupResponseFrom(jsonResponse);
+        return securityGroupResponse.getId();
+    }
+
+    private CreateSecurityGroupResponse doCreateSecurityGroupResponseFrom(String json) throws UnexpectedException {
         try {
-            computeInstanceId = publicIpOrder.getComputeId();
-            // Network port id is the connection between the virtual machine and the network
-            String networkPortId = getNetworkPortIp(computeInstanceId, cloudUser);
-            String floatingNetworkId = getExternalNetworkId();
-            String projectId = cloudUser.getProjectId();
-
-            CreateFloatingIpRequest createFloatingIpRequest = new CreateFloatingIpRequest.Builder()
-                    .floatingNetworkId(floatingNetworkId)
-                    .projectId(projectId)
-                    .portId(networkPortId)
-                    .build();
-            String body = createFloatingIpRequest.toJson();
-
-            String responsePostFloatingIp = null;
-            try {
-                String floatingIpEndpoint = getFloatingIpEndpoint();
-                responsePostFloatingIp = this.client.doPostRequest(floatingIpEndpoint, body, cloudUser);
-            } catch (HttpResponseException e) {
-                OpenStackHttpToFogbowExceptionMapper.map(e);
-            }
-            CreateFloatingIpResponse createFloatingIpResponse = CreateFloatingIpResponse.fromJson(responsePostFloatingIp);
-
-            CreateFloatingIpResponse.FloatingIp floatingIp = createFloatingIpResponse.getFloatingIp();
-            floatingIpId = floatingIp.getId();
-
-            securityGroupName = getSecurityGroupName(floatingIpId);
-            securityGroupId = createAndAssociateSecurityGroup(computeInstanceId, cloudUser, securityGroupName);
-
-            // ensuring the floating ip and the security group were created properly
-            if (floatingIpId != null && securityGroupId != null) {
-                requestFailed = false;
-            }
-
-            return floatingIpId;
-        } finally {
-            if (requestFailed) {
-                if (securityGroupName != null) {
-                    disassociateSecurityGroupFromCompute(securityGroupName, computeInstanceId, cloudUser);
-                }
-                if (securityGroupId != null) {
-                    removeSecurityGroup(securityGroupId, cloudUser);
-                }
-                if (floatingIpId != null) {
-                    deleteInstance(publicIpOrder, cloudUser);
-                }
-            }
+            return CreateSecurityGroupResponse.fromJson(json);
+        } catch (Exception e) {
+            String message = Messages.Error.ERROR_WHILE_CREATING_PUBLIC_IP_INSTANCE; // FIXME this message...
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
         }
+    }
+    
+    public String defineSecurityGroupName(String publicIpId) {
+        return SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpId;
+    }
+
+    private CreateFloatingIpResponse doCreateFloatingIpResponseFrom(String json) throws UnexpectedException {
+        try {
+            return CreateFloatingIpResponse.fromJson(json);
+        } catch (JsonSyntaxException e) {
+            String message = Messages.Error.ERROR_WHILE_CREATING_PUBLIC_IP_INSTANCE;
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
+    }
+
+    private String doCreateFloatingIpRequestToJson(String floatingNetworkId, String networkPortId, String projectId) {
+        CreateFloatingIpRequest createFloatingIpRequest = new CreateFloatingIpRequest.Builder()
+                .floatingNetworkId(floatingNetworkId)
+                .portId(networkPortId)
+                .projectId(projectId)
+                .build();
+        
+        return createFloatingIpRequest.toJson();
+    }
+
+    private String doRequestInstance(String endpoint, String jsonRequest, OpenStackV3User cloudUser)
+            throws FogbowException {
+        
+        String responsePostFloatingIp = null;
+        try {
+            responsePostFloatingIp = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+        return responsePostFloatingIp;
     }
 
     @Override
@@ -163,10 +204,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
             }
             String computeInstanceId = order.getComputeId();
             String floatingIpId = order.getInstanceId();
-            String securityGroupName = getSecurityGroupName(floatingIpId);
+            String securityGroupName = defineSecurityGroupName(floatingIpId);
 
             if (computeInstanceId != null) {
-                disassociateSecurityGroupFromCompute(securityGroupName, computeInstanceId, cloudUser);
+                disassociateSecurityGroupFromCompute(securityGroupName, order, cloudUser);
             }
 
             String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
@@ -198,13 +239,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         }
     }
 
-    private String createAndAssociateSecurityGroup(String computeInstanceId, OpenStackV3User cloudUser, String securityGroupName) throws FogbowException {
-        String securityGroupId = createSecurityGroup(cloudUser, securityGroupName);
-        addAllowAllRules(securityGroupId, cloudUser);
-        associateSecurityGroupToCompute(securityGroupName, computeInstanceId, cloudUser);
-        return securityGroupId;
-    }
-
     private void associateSecurityGroupToCompute(String securityGroupName, String computeInstanceId, OpenStackV3User cloudUser) throws FogbowException {
         AddSecurityGroupToServerRequest request = new AddSecurityGroupToServerRequest.Builder()
                 .name(securityGroupName)
@@ -219,7 +253,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         }
     }
 
-    private void disassociateSecurityGroupFromCompute(String securityGroupName, String computeInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+    private void disassociateSecurityGroupFromCompute(String securityGroupName, PublicIpOrder publicIpOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String computeInstanceId = publicIpOrder.getComputeId();
         RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
                 .name(securityGroupName)
                 .build();
@@ -236,7 +271,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     private void addAllowAllRules(String securityGroupId, OpenStackV3User cloudUser) throws FogbowException {
         CreateSecurityGroupRuleRequest ipv4Request = new CreateSecurityGroupRuleRequest.Builder()
                 .securityGroupId(securityGroupId)
-                .direction(SECURITY_GROUP_DIRECTION_INGRESS)
+                .direction(SECURITY_GROUP_INGRESS_DIRECTION)
                 .etherType(IPV4_ETHER_TYPE)
                 .build();
 
@@ -248,7 +283,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
         CreateSecurityGroupRuleRequest ipv6Request = new CreateSecurityGroupRuleRequest.Builder()
                 .securityGroupId(securityGroupId)
-                .direction(SECURITY_GROUP_DIRECTION_INGRESS)
+                .direction(SECURITY_GROUP_INGRESS_DIRECTION)
                 .etherType(IPV6_ETHER_TYPE)
                 .build();
 
@@ -257,23 +292,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-    }
-
-    private String createSecurityGroup(OpenStackV3User cloudUser, String securityGroupName) throws FogbowException {
-        CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
-                .projectId(cloudUser.getProjectId())
-                .name(securityGroupName)
-                .build();
-
-        String response = null;
-        try {
-            response = this.client.doPostRequest(getSecurityGroupsApiEndpoint(), request.toJson(), cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        CreateSecurityGroupResponse securityGroupResponse = CreateSecurityGroupResponse.fromJson(response);
-        return securityGroupResponse.getId();
     }
 
     private void removeSecurityGroup(String securityGroupId, OpenStackV3User cloudUser) throws FogbowException {
@@ -285,14 +303,19 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         }
     }
 
-    protected String getNetworkPortIp(String computeInstanceId, OpenStackV3User cloudUser) throws FogbowException {
+    protected String getNetworkPortIp(PublicIpOrder publicIpOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String computeInstanceId = publicIpOrder.getComputeId();
         String defaulNetworkId = getDefaultNetworkId();
         String networkPortsEndpointBase = getNetworkPortsEndpoint();
 
         GetNetworkPortsResquest getNetworkPortsResquest = null;
         try {
             getNetworkPortsResquest = new GetNetworkPortsResquest.Builder()
-                    .url(networkPortsEndpointBase).deviceId(computeInstanceId).networkId(defaulNetworkId).build();
+                    .url(networkPortsEndpointBase)
+                    .deviceId(computeInstanceId)
+                    .networkId(defaulNetworkId)
+                    .build();
+            
         } catch (URISyntaxException e) {
             String errorMsg = String.format(Messages.Exception.WRONG_URI_SYNTAX, networkPortsEndpointBase);
             throw new FogbowException(errorMsg, e);
@@ -357,11 +380,11 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     protected String getSecurityGroupsApiEndpoint() {
-        return getNeutronApiEndpoint() + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_SECURITY_GROUPS;
+        return getNeutronApiEndpoint() + V2_API_ENDPOINT + SECURITY_GROUPS;
     }
 
     protected String getSecurityGroupRulesApiEndpoint() {
-        return getNeutronApiEndpoint() + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
+        return getNeutronApiEndpoint() + V2_API_ENDPOINT + SECURITY_GROUP_RULES;
     }
 
     protected String getNeutronApiEndpoint() {
@@ -369,11 +392,11 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     protected String getNetworkPortsEndpoint() {
-        return getNeutronApiEndpoint() + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_PORTS;
+        return getNeutronApiEndpoint() + V2_API_ENDPOINT + PORTS;
     }
 
     protected String getFloatingIpEndpoint() {
-        return getNeutronApiEndpoint() + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_FLOATINGIPS;
+        return getNeutronApiEndpoint() + V2_API_ENDPOINT + FLOATINGIPS;
     }
 
     private String getComputeEndpoint(String projectId) {
@@ -394,10 +417,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     public void setProperties(Properties properties) {
         this.properties = properties;
-    }
-
-    public static String getSecurityGroupName(String publicIpId) {
-        return SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpId;
     }
 
 }

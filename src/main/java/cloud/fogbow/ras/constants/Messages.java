@@ -134,6 +134,7 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
+        public static final String ERROR_WHILE_CREATING_PUBLIC_IP_INSTANCE = "Error while creating publi IP instance.";
         public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
