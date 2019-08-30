@@ -16,6 +16,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2.AwsV2VolumePlugin;
@@ -24,7 +25,6 @@ import software.amazon.awssdk.services.ec2.model.AttachVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.DetachVolumeRequest;
-import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Volume;
 import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 
@@ -32,13 +32,8 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
 	private static final String RESOURCE_NAME = "Attachment";
-	private static final int FIRST_POSITION = 0;
-
-	protected static final String ATTACHMENT_ID_PREFIX = "att-";
-	protected static final String ATTACHMENT_ID_TAG = "attachment-id";
-	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdh";
-	protected static final String FILTER_BY_TAG_ATTACHMENT_ID = "tag:attachment-id";
-	protected static final String XVDH_DEVICE_NAME = "xvdh";
+	
+	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
 
 	private String region;
 
@@ -59,66 +54,65 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
-		String device = defineDeviceNameAttached(attachmentOrder.getDevice());
+		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+		String device = getAttachedDeviceName(attachmentOrder.getDevice());
 		String instanceId = attachmentOrder.getComputeId();
 		String volumeId = attachmentOrder.getVolumeId();
+		
 		AttachVolumeRequest request = AttachVolumeRequest.builder()
 				.device(device)
 				.instanceId(instanceId)
 				.volumeId(volumeId)
 				.build();
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		client.attachVolume(request);
+		return doRequestInstance(request, client);
+	}
 
-		String attachmentId = attachmentOrder.getVolumeId();
-		return attachmentId;
+    @Override
+    public void deleteInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String volumeId = attachmentOrder.getVolumeId();
+
+        DetachVolumeRequest request = DetachVolumeRequest.builder()
+                .volumeId(volumeId)
+                .build();
+
+		doDeleteInstance(volumeId, request, client);
 	}
 
 	@Override
-	public void deleteInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, attachmentOrder.getInstanceId(), 
-				cloudUser.getToken()));
+    public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
-		String volumeId = attachmentOrder.getVolumeId();
-		DetachVolumeRequest request = DetachVolumeRequest.builder()
-				.volumeId(volumeId)
-				.build();
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String attachmentId = attachmentOrder.getInstanceId();
+        
+        DescribeVolumesRequest request = DescribeVolumesRequest.builder()
+                .volumeIds(attachmentId)
+                .build();
+        
+        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
+        return buildAttachmentInstance(response);
+    }
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+	protected void doDeleteInstance(String volumeId, DetachVolumeRequest request, Ec2Client client) throws UnexpectedException {
 		try {
 			client.detachVolume(request);
-		} catch (Ec2Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME,
-					attachmentOrder.getInstanceId()), e);
-
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
 			throw new UnexpectedException();
 		}
 	}
 
-	@Override
-	public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentOrder.getInstanceId(), 
-				cloudUser.getToken()));
+	protected AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
+			throws FogbowException {
 
-		String attachmentId = attachmentOrder.getInstanceId();
-		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-				.volumeIds(attachmentId)
-				.build();
-
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeVolumesResponse volumesResponse = client.describeVolumes(request);
-
-		AttachmentInstance attachmentInstance = mountAttachmentInstance(volumesResponse);
-		return attachmentInstance;
-	}
-
-	protected AttachmentInstance mountAttachmentInstance(DescribeVolumesResponse response)
-			throws InstanceNotFoundException {
-
-		VolumeAttachment attachment = getFirstAttachment(response);
+	    Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
+		VolumeAttachment attachment = getAttachmentBy(volume);
 		String cloudState = attachment.stateAsString();
 		String computeId = attachment.instanceId();
 		String volumeId = attachment.volumeId();
@@ -126,24 +120,39 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		return new AttachmentInstance(volumeId, cloudState, computeId, volumeId, device);
 	}
 
-	protected VolumeAttachment getFirstAttachment(DescribeVolumesResponse response) throws InstanceNotFoundException {
-		Volume volume = getFirstVolume(response);
+	protected VolumeAttachment getAttachmentBy(Volume volume) throws FogbowException {
 		if (!volume.attachments().isEmpty()) {
-			return volume.attachments().get(FIRST_POSITION);
+			return volume.attachments().listIterator().next();
 		}
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
+	
+	private String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
+            throws FogbowException {
 
-	protected Volume getFirstVolume(DescribeVolumesResponse response) throws InstanceNotFoundException {
-		if (!response.volumes().isEmpty()) {
-			return response.volumes().get(FIRST_POSITION);
-		}
-		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-	}
+        String attachmentId;
+        try {
+            client.attachVolume(request);
+            attachmentId = request.volumeId();
+        } catch (Exception e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+        return attachmentId;
+    }
 
-	protected String defineDeviceNameAttached(String deviceName) {
-		// Device name example: ["/dev/sdh", "xvdh"]
-		return (deviceName != null && deviceName.equals(XVDH_DEVICE_NAME)) ? deviceName : DEFAULT_DEVICE_NAME;
-	}
+    /*
+     * The device name defines the volume mount point. Amazon EC2 requires a device
+     * name to be provided and creates a symbolic link to that name, although it may
+     * change it depending on circumstances, as with other operating systems that
+     * behave differently.
+     */
+    protected String getAttachedDeviceName(String deviceName) {
+        /*
+         * By default, "/dev/sd[a-z]" is provided as an example for Debian based linux
+         * distributions, and "/dev/xvd[a-z]" for Red Hat based distributions and their
+         * variants as CentOS.
+         */
+        return (deviceName != null && !deviceName.isEmpty()) ? deviceName : DEFAULT_DEVICE_NAME;
+    }
 
 }

@@ -1,9 +1,13 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -26,6 +30,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 public class TestUtils {
     
@@ -49,6 +54,8 @@ public class TestUtils {
     public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
     public static final String FAKE_SECURITY_RULE_ID = "fake-security-rule-id";
+    public static final String FAKE_TAG = "fake-tag";
+    public static final String FAKE_USER_DATA = "fake-user-data";
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
@@ -120,7 +127,7 @@ public class TestUtils {
     public NetworkOrder createNetworkOrder(String requestingMember, String providingMember) {
         NetworkOrder networkOrder = new NetworkOrder(createSystemUser(), 
                 requestingMember, 
-                requestingMember,
+                providingMember,
                 DEFAULT_CLOUD_NAME, 
                 FAKE_INSTANCE_NAME, 
                 FAKE_GATEWAY, 
@@ -159,6 +166,7 @@ public class TestUtils {
 
         return attachmentOrder;
     }
+
 
     public PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
         PublicIpOrder publicIpOrder = new PublicIpOrder(createSystemUser(), 
@@ -228,5 +236,22 @@ public class TestUtils {
             service.save(order);
         }
         return orders;
+    }
+
+    /*
+     * Create fake user data for testing.
+     */
+    public ArrayList<UserData> createUserDataList() {
+        UserData[] userDataArray = new UserData[]{
+                new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG)};
+
+        return new ArrayList<>(Arrays.asList(userDataArray));
+    }
+
+    public Ec2Client getAwsMockedClient() throws FogbowException {
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+        return client;
     }
 }

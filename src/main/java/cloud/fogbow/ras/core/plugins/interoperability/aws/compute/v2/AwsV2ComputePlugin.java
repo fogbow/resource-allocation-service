@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -19,7 +18,6 @@ import org.apache.log4j.Logger;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -28,46 +26,38 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceAssociation;
 import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceSpecification;
 import software.amazon.awssdk.services.ec2.model.InstancePrivateIpAddress;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
-import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
-	private static final String AWS_TAG_NAME = "Name";
 	private static final String RESOURCE_NAME = "Compute";
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
-
 	private static final int INSTANCE_TYPE_COLUMN = 0;
 	private static final int VCPU_COLUMN = 1;
 	private static final int MEMORY_COLUMN = 2;
@@ -88,7 +78,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
 	protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
 	protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
-
 	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 	protected static final int ONE_GIGABYTE = 1024;
 
@@ -111,8 +100,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 
+		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
 		String imageId = flavor.getImageId();
 		InstanceType instanceType = InstanceType.fromValue(flavor.getName());
@@ -121,35 +111,31 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
 		RunInstancesRequest request = RunInstancesRequest.builder()
-				.imageId(imageId)
-				.instanceType(instanceType)
-				.maxCount(INSTANCES_LAUNCH_NUMBER)
-				.minCount(INSTANCES_LAUNCH_NUMBER)
-				.networkInterfaces(networkInterfaces)
-				.userData(userData)
-				.build();
+			.imageId(imageId)
+			.instanceType(instanceType)
+			.maxCount(INSTANCES_LAUNCH_NUMBER)
+			.minCount(INSTANCES_LAUNCH_NUMBER)
+			.networkInterfaces(networkInterfaces)
+			.userData(userData)
+			.build();
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		return doRunInstancesRequests(computeOrder, flavor, request, client);
 	}
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
-
-		DescribeInstancesRequest request = DescribeInstancesRequest.builder()
-				.instanceIds(computeOrder.getInstanceId())
-				.build();
-
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
 		updateHardwareRequirements(cloudUser);
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		ComputeInstance computeInstance = doDescribeInstancesRequests(request, client);
-		return computeInstance;
+		DescribeInstancesResponse instancesResponse = AwsV2CloudUtil.describeInstance(computeOrder.getInstanceId(), client);
+		Instance instance = AwsV2CloudUtil.getInstanceReservation(instancesResponse);
+		List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
+		return buildComputeInstance(instance, volumes);
 	}
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
 
 		String instanceId = computeOrder.getInstanceId();
 		TerminateInstancesRequest request = TerminateInstancesRequest.builder()
@@ -157,7 +143,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		doTerminateInstancesRequests(request, client);
+		doDeleteInstance(request, client);
 	}
 
 	@Override
@@ -170,27 +156,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return false;
 	}
 
-	private void doTerminateInstancesRequests(TerminateInstancesRequest request, Ec2Client client)
-			throws InvalidParameterException, UnexpectedException {
+	private void doDeleteInstance(TerminateInstancesRequest request, Ec2Client client)
+			throws UnexpectedException {
 		try {
 			client.terminateInstances(request);
 		} catch (Exception e) {
 			String instanceId = request.instanceIds().listIterator().next();
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId), e);
 			throw new UnexpectedException();
-		}
-	}
-	
-	private ComputeInstance doDescribeInstancesRequests(DescribeInstancesRequest request, Ec2Client client)
-			throws FogbowException {
-
-		try {
-			DescribeInstancesResponse response = client.describeInstances(request);
-			Instance instance = getInstanceReservation(response);
-			List<Volume> volumes = getInstanceVolumes(instance, client);
-			return mountComputeInstance(instance, volumes);
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
 	
@@ -203,8 +176,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			if (response != null && !response.instances().isEmpty()) {
 				instance = response.instances().listIterator().next();
 				instanceId = instance.instanceId();
-				String name = defineInstanceName(computeOrder.getName());
-				doCreateTagsRequests(AWS_TAG_NAME, name, instanceId, client);
+				String name = FogbowCloudUtil.defineInstanceName(computeOrder.getName());
+				AwsV2CloudUtil.createTagsRequest(instanceId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
 				updateInstanceAllocation(computeOrder, flavor, instance, client);
 			}
 			return instanceId;
@@ -233,16 +206,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.imageIds(imageId)
 				.build();
 		
-		DescribeImagesResponse response = doDescribeImagesRequests(request, client);
+		DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
 		if (response != null && !response.images().isEmpty()) {
 			return response.images().listIterator().next();
 		}
 		throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
 	}
 
-	protected ComputeInstance mountComputeInstance(Instance instance, List<Volume> volumes)
-			throws InstanceNotFoundException {
-
+	protected ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
 		String id = instance.instanceId();
 		String cloudState = instance.state().nameAsString();
 		String name = instance.tags().listIterator().next().value();
@@ -258,11 +229,11 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		List<String> privateIpaddresses;
 		String publicIpAddress;
 		for (int i = 0; i < instance.networkInterfaces().size(); i++) {
-			privateIpaddresses = addPrivateIpAddresses(instance, i);
+			privateIpaddresses = getPrivateIpAddresses(instance, i);
 			if (!privateIpaddresses.isEmpty()) {
 				ipAddresses.addAll(privateIpaddresses);
 			}
-			publicIpAddress = addPublicIpAddress(instance, i);
+			publicIpAddress = getPublicIpAddresses(instance, i);
 			if (publicIpAddress != null) {
 				ipAddresses.add(publicIpAddress);
 			}
@@ -270,25 +241,23 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return ipAddresses;
 	}
 
-	private String addPublicIpAddress(Instance instance, int index) {
+	private String getPublicIpAddresses(Instance awsInstance, int index) {
 		String ipAddress = null;
 		InstanceNetworkInterfaceAssociation association;
-		association = instance.networkInterfaces().get(index).association();
+		association = awsInstance.networkInterfaces().get(index).association();
 		if (association != null) {
 			ipAddress = association.publicIp();
 		}
 		return ipAddress;
 	}
 
-	private List<String> addPrivateIpAddresses(Instance instance, int index) {
+	private List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
 		List<String> ipAddresses = new ArrayList<String>();
 		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
-		if (!instance.networkInterfaces().isEmpty()) {
-			instancePrivateIpAddresses = instance.networkInterfaces().get(index).privateIpAddresses();
-			if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
-				for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
-					ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
-				}
+		instancePrivateIpAddresses = awsInstance.networkInterfaces().get(index).privateIpAddresses();
+		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
+			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
+				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
 			}
 		}
 		return ipAddresses;
@@ -309,56 +278,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			}
 		}
 		return 0;
-	}
-
-	protected List<Volume> getInstanceVolumes(Instance instance, Ec2Client client) throws UnexpectedException {
-		List<Volume> volumes = new ArrayList<>();
-		DescribeVolumesResponse response;
-		List<String> volumeIds = getVolumeIds(instance);
-		for (String volumeId : volumeIds) {
-			response = doDescribeVolumesRequests(volumeId, client);
-			volumes.addAll(response.volumes());
-		}
-		return volumes;
-	}
-
-	protected DescribeVolumesResponse doDescribeVolumesRequests(String volumeId, Ec2Client client)
-			throws UnexpectedException {
-		
-		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-				.volumeIds(volumeId)
-				.build();
-		try {
-			return client.describeVolumes(request);
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
-
-	protected List<String> getVolumeIds(Instance instance) {
-		List<String> volumeIds = new ArrayList<String>();
-		for (int i = 0; i < instance.blockDeviceMappings().size(); i++) {
-			volumeIds.add(instance.blockDeviceMappings().get(i).ebs().volumeId());
-		}
-		return volumeIds;
-	}
-
-	protected Instance getInstanceReservation(DescribeInstancesResponse response) throws InstanceNotFoundException {
-		if (!response.reservations().isEmpty()) {
-			Reservation reservation = response.reservations().listIterator().next();
-			if (!reservation.instances().isEmpty()) {
-				return reservation.instances().listIterator().next();
-			}
-		}
-		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-	}
-
-	protected String defineInstanceName(String instanceName) {
-		return instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
-	}
-
-	protected String getRandomUUID() {
-		return UUID.randomUUID().toString();
 	}
 
 	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
@@ -389,25 +308,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		return networkInterface;
-	}
-
-	protected void doCreateTagsRequests(String key, String value, String resourceId, Ec2Client client)
-			throws UnexpectedException {
-
-		Tag tag = Tag.builder()
-				.key(key)
-				.value(value)
-				.build();
-
-		CreateTagsRequest request = CreateTagsRequest.builder()
-				.resources(resourceId)
-				.tags(tag)
-				.build();
-		try {
-			client.createTags(request);
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
 	}
 
 	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
@@ -497,16 +397,16 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			for (String line : lines) {
 				if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 					requirements = line.split(CSV_COLUMN_SEPARATOR);
-					flavor = mountHardwareRequirements(images, requirements);
+					flavor = buildHardwareRequirements(images, requirements);
 					this.flavors.add(flavor);
 				}
 			}
 		}
 	}
 
-	protected AwsHardwareRequirements mountHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
+	protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
 		String name = requirements[INSTANCE_TYPE_COLUMN];
-		String flavorId = getRandomUUID();
+		String flavorId = FogbowCloudUtil.getRandomUUID();
 		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
 		int disk = image.getValue();
@@ -537,7 +437,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected Map<String, Integer> getImagesMap(AwsV2User cloudUser)
-			throws InvalidParameterException, UnexpectedException {
+			throws FogbowException {
 
 		Map<String, Integer> imageMap = new HashMap<String, Integer>();
 		String cloudUserId = cloudUser.getId();
@@ -546,7 +446,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 				.build();
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeImagesResponse response = doDescribeImagesRequests(request, client);
+		DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
 
 		List<Image> images = response.images();
 		for (Image image : images) {
@@ -554,15 +454,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			imageMap.put(image.imageId(), size);
 		}
 		return imageMap;
-	}
-	
-	protected DescribeImagesResponse doDescribeImagesRequests(DescribeImagesRequest request, Ec2Client client)
-			throws UnexpectedException {
-		try {
-			return client.describeImages(request);
-		} catch (SdkException e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
 	}
 
 	protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {

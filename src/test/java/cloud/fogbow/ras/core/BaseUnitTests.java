@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core;
 
 import java.util.Map;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
@@ -26,9 +27,10 @@ public class BaseUnitTests {
     protected static final Logger LOGGER = Logger.getLogger(BaseUnitTests.class);
     
     protected TestUtils testUtils;
+    protected SharedOrderHolders sharedOrderHolders;
 
     @Before
-    public void setup() {
+    public void setup() throws FogbowException {
         this.testUtils = new TestUtils();
     }
     
