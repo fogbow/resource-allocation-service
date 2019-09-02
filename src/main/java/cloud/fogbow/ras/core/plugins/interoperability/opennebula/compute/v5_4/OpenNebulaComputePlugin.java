@@ -1,16 +1,14 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -33,27 +31,20 @@ import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
-import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 
 public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
-	
+
+	private static final int MB_CONVERT = 1024;
+
 	private static final String DEFAULT_ARCHITECTURE = "x86_64";
-	private static final String DEFAULT_DISK_FORMAT = "ext3";
-	private static final String DEFAULT_DISK_TYPE = "fs";
 	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
-	protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
-	private static final String USERDATA_ENCODING_CONTEXT = "base64";
-	
+
 	protected static final boolean SHUTS_DOWN_HARD = true;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
@@ -70,8 +61,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	public OpenNebulaComputePlugin(String confFilePath) throws FatalErrorException {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		this.flavors = new TreeSet<HardwareRequirements>();
-		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
+		this.flavors = new TreeSet<>();
+		this.launchCommandGenerator = new OpenNebulaLaunchCommandGenerator();
 	}
 
 	@Override
@@ -86,18 +77,21 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-		String encoding = USERDATA_ENCODING_CONTEXT;
+		String name = computeOrder.getName() == null ?
+				SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString() : computeOrder.getName();
+		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
+				ConfigurationPropertyDefaults.SSH_COMMON_USER);
+		String publicKey = computeOrder.getPublicKey();
+		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
 		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
 		String architecture = DEFAULT_ARCHITECTURE;
 
 		List<String> networks = new ArrayList<>();
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 		networks.add(defaultNetworkId);
 		List<String> userDefinedNetworks = computeOrder.getNetworkIds();
 		if (!userDefinedNetworks.isEmpty()) {
@@ -107,44 +101,28 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
 		String cpu = String.valueOf(foundFlavor.getCpu());
 		String memory = String.valueOf(foundFlavor.getMemory());
-		
-		int disk = foundFlavor.getDisk();
-		String diskSize = null;
-		String diskType = null;
-		String diskFormat = null;
-		String diskImageId = null;
-		if (computeOrder.getDisk() > 0 && computeOrder.getDisk() < disk) {
-			diskSize = String.valueOf(computeOrder.getDisk());
-			diskType = DEFAULT_DISK_TYPE;
-			diskFormat = DEFAULT_DISK_FORMAT;
-		} else {
-			diskImageId = computeOrder.getImageId();
-		}
+		String imageId = computeOrder.getImageId();
+		String disk = String.valueOf(foundFlavor.getDisk());
 
-		// ToDo: check if there is a way to define a name for the VM
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
-				.contextEncoding(encoding)
-				.contextUserdata(userData)
+                .name(name)
 				.contextNetwork(hasNetwork)
+                .publicKey(publicKey)
+				.userName(userName)
+                .startScriptBase64(startScriptBase64)
 				.cpu(cpu)
 				.graphicsAddress(graphicsAddress)
 				.graphicsType(graphicsType)
-				.diskImageId(diskImageId)
-				.diskType(diskType)
-				.diskSize(diskSize)
-				.diskFormat(diskFormat)
+				.imageId(imageId)
+				.diskSize(disk)
 				.memory(memory)
 				.networks(networks)
 				.architecture(architecture)
 				.build();
 
-		// NOTE(pauloewerton): defaulting disk size value to the flavor size in case no size is explicitly assigned.
-		// not sure how the diskImageId replaces all of the other values though.
-		if (diskSize == null) diskSize = String.valueOf(disk);
-
 		synchronized (computeOrder) {
 			ComputeAllocation actualAllocation = new ComputeAllocation(
-					Integer.parseInt(cpu), Integer.parseInt(memory), 1, Integer.parseInt(diskSize));
+					Integer.parseInt(cpu), Integer.parseInt(memory), 1, Integer.parseInt(disk));
 			computeOrder.setActualAllocation(actualAllocation);
 		}
 		
@@ -155,7 +133,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		return getComputeInstance(virtualMachine);
@@ -163,7 +140,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
@@ -190,7 +166,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		for (HardwareRequirements hardwareRequirements : getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
-					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {
 				return hardwareRequirements;
 			}
 		}
@@ -210,8 +186,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				String name = template.getName();
 				int cpu = convertToInteger(template.xpath(TEMPLATE_CPU_PATH));
 				int memory = convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
-				String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
-				int disk = getDiskSizeFromImages(imagesSizeMap, imageId);
+
+				int disk = convertToInteger(template.xpath(TEMPLATE_DISK_SIZE_PATH));
+				// NOTE(pauloewerton): template disk size is not set, so fallback to image disk size
+				if (disk == 0) {
+					String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
+					disk = getDiskSizeFromImages(imagesSizeMap, imageId);
+				}
+
 				if (cpu != 0 && memory != 0 && disk != 0) {
 					flavor = new HardwareRequirements(name, id, cpu, memory, disk);
 					if (!containsFlavor(flavor, getFlavors())) {
@@ -272,7 +254,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String name = virtualMachine.getName();
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
 		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
-		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
+		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)) / MB_CONVERT;
 
 		String state = virtualMachine.lcmStateStr();
 		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
@@ -283,7 +265,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		// The default network is always included in the order by the OpenNebula plugin, thus it should be added
 		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
 		// are appended by the LocalCloudConnector.
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 		List<NetworkSummary> computeNetworks = new ArrayList<>();
 		computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
 		computeInstance.setNetworks(computeNetworks);
@@ -301,9 +283,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
             this.flavors = flavors;
         }
     }
+
+    private long convertDiskSizeToMb(int diskSizeInGb) {
+		return diskSizeInGb * MB_CONVERT;
+	}
 	
 	public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
 		this.launchCommandGenerator = launchCommandGenerator;
 	}
-	
 }
