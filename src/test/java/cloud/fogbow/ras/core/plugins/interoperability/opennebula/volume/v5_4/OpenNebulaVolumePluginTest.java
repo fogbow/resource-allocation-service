@@ -64,7 +64,7 @@ public class OpenNebulaVolumePluginTest {
 		this.plugin.setProperties(properties);
 
 		// exercise
-		this.plugin.getDataStoreId();
+		this.plugin.getDataStoreId(null, 0);
 	}
 	
 	// test case: When calling the requestInstance method, with a valid client and a

@@ -1,10 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -28,6 +30,7 @@ public class Rule {
 	protected static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
 	protected static final String CIRD_SEPARATOR = "/";
 	protected static final String OPENNEBULA_RANGE_SEPARATOR = ":";
+	protected static final String CIDR_FORMAT = "%s/%s";
 	protected static final int MINIMUM_RANGE_PORT_NETWORK = 1;
 	protected static final int MAXIMUM_RANGE_PORT_NETWORK = 65536;
 	
@@ -47,6 +50,7 @@ public class Rule {
 	private static final int TYPE_INDEX = 4;
 	private static final int NETWORK_ID_INDEX = 5;
 	private static final int SECURITY_GROUP_INDEX = 6;
+	private static final int BASE_VALUE = 2;
 
 	private String protocol;
 	private String ip;
@@ -152,10 +156,13 @@ public class Rule {
 				}
 			}
 			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARATOR);
-			if (rangeSplited.length != 2) {
-				throw new Exception("The range is with wrong format");
+			if (rangeSplited.length == 1) {
+			    return Integer.parseInt(this.range);
+			} else if (rangeSplited.length == 2) {
+				return Integer.parseInt(rangeSplited[portType]);
+			} else {
+				throw new Exception("The security rule range is in the wrong format, or was not created through Fogbow.");
 			}
-			return Integer.parseInt(rangeSplited[portType]);
 		} catch (Exception e) {
 			LOGGER.warn("There is a problem when it is trying to get port.", e);
 			return INT_ERROR_CODE;
@@ -215,17 +222,39 @@ public class Rule {
 	}
 	
 	public String getCIDR() {
+	    String cidr = ALL_XML_TEMPLATE_VALUE;
 		if (this.ip == null) {
-			return ALL_XML_TEMPLATE_VALUE;
+		    return cidr;
 		}
-		return this.ip + CIRD_SEPARATOR + calculateSubnetMask();
+
+		try {
+			if (CidrUtils.isIpv4(this.ip)) return this.generateAddressCidr(this.ip, this.size);
+			else return this.calculateSubnetMask();
+		} catch (NumberFormatException e) {
+			return cidr;
+		}
+	}
+
+	protected String generateAddressCidr(String address, String rangeSize) throws NumberFormatException {
+		return String.format(CIDR_FORMAT, address, this.calculateCidrIpV4(Integer.parseInt(rangeSize)));
+	}
+
+	protected int calculateCidrIpV4(int size) {
+		int exponent = 1;
+		int value = 0;
+		for (int i = 0; i < IPV4_AMOUNT_BITS; i++)
+			if (exponent >= size) {
+				value = IPV4_AMOUNT_BITS - i;
+				return value;
+			} else {
+				exponent *= BASE_VALUE;
+			}
+		return value;
 	}
 
 	protected String calculateSubnetMask() {
 		try {
-			if (CidrUtils.isIpv4(this.ip)) {
-				return getSubnetIPV4(this.size);
-			} else if (CidrUtils.isIpv6(this.ip)) {
+			if (CidrUtils.isIpv6(this.ip)) {
 				return getSubnetIPV6(this.size);
 			} else {
 				LOGGER.warn(String.format(Messages.Error.INCONSISTENT_IP_S, this.ip));
