@@ -652,10 +652,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         return order;
     }
 
-    private NetworkOrder createEmptyOrder() {
-        return new NetworkOrder(null, null, null, "default", null, null, null, null);
-    }
-
     private JSONObject generateJsonResponseForSubnet(String gatewayIp, String cidr) {
         JSONObject subnetContentJsonObject = new JSONObject();
 
@@ -678,17 +674,5 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         networkContentJsonObject.put(OpenStackConstants.Network.SUBNETS_KEY_JSON, subnetJsonArray);
 
         return networkContentJsonObject;
-    }
-
-    private JSONObject createSecurityGroupGetResponse(String id) {
-        JSONObject jsonObject = new JSONObject();
-        JSONArray securityGroups = new JSONArray();
-        JSONObject securityGroupInfo = new JSONObject();
-        securityGroupInfo.put(OpenStackConstants.Network.PROJECT_ID_KEY_JSON, "fake-project-id");
-        securityGroupInfo.put(OpenStackNetworkPlugin.QUERY_NAME, "fake-name");
-        securityGroupInfo.put(OpenStackConstants.Network.ID_KEY_JSON, id);
-        securityGroups.put(securityGroupInfo);
-        jsonObject.put(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON, securityGroups);
-        return jsonObject;
     }
 }
