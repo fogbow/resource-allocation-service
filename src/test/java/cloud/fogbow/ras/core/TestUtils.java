@@ -55,6 +55,7 @@ public class TestUtils {
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     public static final String EMPTY_STRING = "";
+    public static final String DEFAULT_CIDR = "0.0.0.0/0";
     
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();

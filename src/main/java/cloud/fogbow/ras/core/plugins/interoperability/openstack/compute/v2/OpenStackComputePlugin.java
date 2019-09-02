@@ -220,7 +220,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
             String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
             if (!networkId.equals(defaultNetworkId)) {
-                String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
+                String securityGroupName = OpenStackCloudUtils.getSGNameForPrivateNetwork(networkId);
                 securityGroups.add(new CreateComputeRequest.SecurityGroup(securityGroupName));
             }
         }

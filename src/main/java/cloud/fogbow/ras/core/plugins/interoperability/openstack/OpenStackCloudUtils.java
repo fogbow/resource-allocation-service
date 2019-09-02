@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +37,10 @@ public class OpenStackCloudUtils {
             throw new UnexpectedException(message, e);
         }
         return securityGroupId;
+    }
+
+    public static String getSGNameForPrivateNetwork(String networkId) {
+        return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkId;
     }
 
 }

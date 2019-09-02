@@ -13,6 +13,7 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -774,7 +775,7 @@ public class OpenStackComputePluginTest {
                 if (!networkId.equals(defaultNetworkId)) {
                     JSONArray securityGroups = new JSONArray();
                     JSONObject securityGroup = new JSONObject();
-                    String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
+                    String securityGroupName = OpenStackCloudUtils.getSGNameForPrivateNetwork(networkId);
                     securityGroup.put(OpenStackConstants.Compute.NAME_KEY_JSON, securityGroupName);
                     securityGroups.put(securityGroup);
                     server.put(OpenStackConstants.Compute.SECURITY_GROUPS_KEY_JSON, securityGroups);
