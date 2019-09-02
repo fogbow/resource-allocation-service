@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
 import java.io.File;
-import java.util.HashMap;
 
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,30 +26,22 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class, SharedOrderHolders.class, VirtualMachine.class})
-public class OpenNebulaAttachmentPluginTest {
+@PrepareForTest({DatabaseManager.class, OpenNebulaClientUtil.class, SharedOrderHolders.class, VirtualMachine.class})
+public class OpenNebulaAttachmentPluginTest extends BaseUnitTests {
 
 	private static final String CLOUD_NAME = "opennebula";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
 	private static final String FAKE_DEVICE = "fake-image-device";
-	private static final String FAKE_ID_PROVIDER = "fake-id-provider";
-	private static final String FAKE_INSTANCE_ID = "1";
-	private static final String FAKE_NAME = "fake-name";
-	private static final String FAKE_PROVIDER = "fake-provider";
-	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_VIRTUAL_MACHINE_ID = "1";
 	private static final String FAKE_VOLUME_ID = "1";
@@ -61,22 +55,14 @@ public class OpenNebulaAttachmentPluginTest {
 	private AttachmentOrder attachmentOrder;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws UnexpectedException {
+		this.testUtils.mockReadOrdersFromDataBase();
+
 		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
 				+ File.separator + CLOUD_NAME + File.separator
 				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
 		this.plugin = Mockito.spy(new OpenNebulaAttachmentPlugin(opennebulaConfFilePath));
-
-		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-
-		PowerMockito.mockStatic(SharedOrderHolders.class);
-		BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-
-		Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-				.thenReturn(new SynchronizedDoublyLinkedList<>());
-		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
-
 		this.attachmentOrder = createAttachmentOrder();
 	}
 	
@@ -86,7 +72,7 @@ public class OpenNebulaAttachmentPluginTest {
 	@Test
 	public void testIsReadySuccessful() {
 		// set up
-		String[] cloudStates = { OpenNebulaStateMapper.ATTACHMENT_USED_STATE,
+		String[] cloudStates = { OpenNebulaStateMapper.USED_STATE,
 				OpenNebulaStateMapper.ATTACHMENT_USED_PERSISTENT_STATE };
 
 		String cloudState;
@@ -135,7 +121,7 @@ public class OpenNebulaAttachmentPluginTest {
 	@Test
 	public void testHasFailedUnsuccessful() {
 		// set up
-		String[] cloudStates = { OpenNebulaStateMapper.ATTACHMENT_USED_STATE,
+		String[] cloudStates = { OpenNebulaStateMapper.USED_STATE,
 				OpenNebulaStateMapper.ATTACHMENT_USED_PERSISTENT_STATE };
 
 		String cloudState;
@@ -155,12 +141,12 @@ public class OpenNebulaAttachmentPluginTest {
 	// disk, returning the attached disk ID in conjunction with the other IDs of
 	// that instance.
 	@Test
-	public void testRequestInstanceSuccessful() throws FogbowException {
+	public void testRequestInstance() throws FogbowException {
 		// set up
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
-				.willReturn(virtualMachine);
+		PowerMockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(virtualMachine);
 
 		String template = generateAttachmentTemplate();
 		OneResponse response = Mockito.mock(OneResponse.class);
@@ -173,49 +159,44 @@ public class OpenNebulaAttachmentPluginTest {
 		CloudUser cloudUser = createCloudUser();
 
 		// exercise
-		this.plugin.requestInstance(attachmentOrder, cloudUser);
+		this.plugin.requestInstance(this.attachmentOrder, cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
 
-		Mockito.verify(virtualMachine, Mockito.times(1)).diskAttach(Mockito.eq(template));
-		Mockito.verify(virtualMachine, Mockito.times(1)).info();
-		Mockito.verify(response, Mockito.times(1)).getMessage();
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.eq(this.attachmentOrder.getVolumeId()), Mockito.eq(template));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getDiskIdFromContenOf(Mockito.eq(virtualMachine));
 	}
 	
 	// test case: When calling the requestInstance method, with the fake instance ID
 	// or an invalid token, an error will occur and an InvalidParameterException
 	// will be thrown.
 	@Test(expected = InvalidParameterException.class)
-	public void testRequestInstanceUnsuccessful() throws FogbowException {
+	public void testDoRequestInstanceFail() throws FogbowException {
 		// set up
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
-				.willReturn(virtualMachine);
+		PowerMockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(virtualMachine);
 
-		String template = generateAttachmentTemplate();
+		String template = this.generateAttachmentTemplate();
 		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.when(virtualMachine.diskAttach(Mockito.contains(template))).thenReturn(response);
+		Mockito.when(virtualMachine.diskAttach(Mockito.anyString())).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudUser cloudUser = createCloudUser();
-
 		// exercise
-		this.plugin.requestInstance(attachmentOrder, cloudUser);
+		this.plugin.doRequestInstance(Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString(), template);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
 
-		Mockito.verify(virtualMachine, Mockito.times(1)).diskAttach(Mockito.eq(template));
+		Mockito.verify(virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).diskAttach(template);
 	}
 
 	// test case: When calling the deleteInstance method with an AttachmentOrder
@@ -395,32 +376,23 @@ public class OpenNebulaAttachmentPluginTest {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
 				"    <DISK>\n" + 
-				"        <IMAGE_ID>1</IMAGE_ID>\n" + 
-				"    </DISK>\n" + 
+				"        <IMAGE_ID>fake-volume-id</IMAGE_ID>\n" +
+				"        <TARGET>hdb</TARGET>\n" +
+				"    </DISK>\n" +
 				"</TEMPLATE>\n";
 		return template;
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
-		String instanceId = FAKE_INSTANCE_ID;
-		SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
-		ComputeOrder computeOrder = new ComputeOrder();
-		VolumeOrder volumeOrder = new VolumeOrder();
-		computeOrder.setSystemUser(requester);
-		computeOrder.setProvider(FAKE_PROVIDER);
-		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(FAKE_VIRTUAL_MACHINE_ID);
-		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-		volumeOrder.setSystemUser(requester);
-		volumeOrder.setProvider(FAKE_PROVIDER);
-		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(FAKE_VOLUME_ID);
-		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
-		AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(), volumeOrder.getId(), FAKE_DEVICE);
-		attachmentOrder.setInstanceId(instanceId);
-		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
+		ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+		computeOrder.setInstanceId(TestUtils.FAKE_COMPUTE_ID);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+
+		VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+		volumeOrder.setInstanceId(TestUtils.FAKE_VOLUME_ID);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
+
+		AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
 		return attachmentOrder;
 	}
 
