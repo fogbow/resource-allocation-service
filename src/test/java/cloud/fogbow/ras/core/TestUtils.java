@@ -56,7 +56,10 @@ public class TestUtils {
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     public static final String EMPTY_STRING = "";
     public static final String DEFAULT_CIDR = "0.0.0.0/0";
-    
+    public static final String TCP_PROTOCOL = "tcp";
+    public static final String UDP_PROTOCOL = "udp";
+    public static final String ICMP_PROTOCOL = "icmp";
+
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
         Order order = null;

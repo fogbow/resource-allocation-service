@@ -16,6 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import com.google.gson.JsonSyntaxException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -156,7 +157,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         try {
             String response = this.client.doPostRequest(endpoint, createNetworkRequest.toJson(), cloudUser);
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
-        } catch (JSONException e) {
+        } catch (JsonSyntaxException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
@@ -344,14 +345,12 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return createSubnetRequest.toJson();
     }
 
-    protected boolean removeNetwork(OpenStackV3User cloudUser, String networkId) throws UnexpectedException, FogbowException {
+    protected void removeNetwork(OpenStackV3User cloudUser, String networkId) throws UnexpectedException, FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
-            return true;
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
-            return false;
         }
     }
 
