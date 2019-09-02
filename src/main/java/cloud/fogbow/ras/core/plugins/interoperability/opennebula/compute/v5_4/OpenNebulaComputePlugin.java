@@ -12,7 +12,6 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
-import org.opennebula.client.ClientConfigurationException;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
