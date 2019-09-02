@@ -63,6 +63,8 @@ public class Messages {
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
+        public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +
+                " This address range is likely in use.";
     }
 
     public static class Fatal {
@@ -118,6 +120,7 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
+        public static final String DATASTORE_POOL_LENGTH = "Datastore pool length: %s.";
         public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }
 

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -10,12 +11,6 @@ import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.vm.VirtualMachine;
 
 import cloud.fogbow.common.constants.OpenNebulaConstants;
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -33,12 +28,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 	
-	private static final String DEFAULT_DEVICE_PREFIX = "vd";
-
+	private static final String TARGET_PATH_FORMAT = "//TEMPLATE/DISK[%s]/TARGET";
+	private static final String IMAGE_ID_PATH_FORMAT = "//TEMPLATE/DISK[%s]/IMAGE_ID";
+	private static final String DEFAULT_TARGET = "hdb";
 	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
-
+	private static final int TARGET_INDEX = 2;
 	protected static final String POWEROFF_STATE = "POWEROFF";
-	
+
 	protected static final long ONE_POINT_TWO_SECONDS = 1200;
 
 	private String endpoint;
@@ -63,9 +59,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		String virtualMachineId = attachmentOrder.getComputeId();
 		String imageId = attachmentOrder.getVolumeId();
+		String[] targetList = attachmentOrder.getDevice().split("/");
+		// NOTE(pauloewerton): considering a default target device such as /dev/sdb
+		String target = targetList.length == 3 ? targetList[TARGET_INDEX] : DEFAULT_TARGET;
 
 		CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
 				.imageId(imageId)
+                .target(target)
 				.build();
 		
 		String template = request.getAttachDisk().marshalTemplate();
@@ -80,20 +80,14 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		if (order == null) {
 			throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 		}
+
 		String virtualMachineIdStr = order.getComputeId();
 		int diskId = Integer.parseInt(order.getInstanceId());
 
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineIdStr);
 		
-		// A volume can only be detached if a virtual machine is power-off.
-		virtualMachine.poweroff(true);
-		if (isPowerOff(virtualMachine)) {
-			detachVolume(virtualMachine, diskId);
-			virtualMachine.resume();
-		} else {
-			throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
-		}
+		detachVolume(virtualMachine, diskId);
 	}
 
 	@Override
@@ -106,15 +100,27 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(imageId));
-		String imageDevice = image.xpath(DEFAULT_DEVICE_PREFIX);
 		String imageState = image.stateString();
+		String target = null;
+
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, order.getComputeId());
+
+		for (int i = 1; i < Integer.MAX_VALUE; i++) {
+			String imgId = virtualMachine.xpath(String.format(IMAGE_ID_PATH_FORMAT, i));
+
+			if (!imgId.equalsIgnoreCase(imageId)) continue;
+			else {
+				target = virtualMachine.xpath(String.format(TARGET_PATH_FORMAT, i));
+				break;
+			}
+		}
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(
 				order.getInstanceId(),
 				imageState,
 				virtualMachineId, 
 				imageId, 
-				imageDevice);
+				target);
 		
 		return attachmentInstance;
 	}

@@ -12,6 +12,7 @@ import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.secgroup.SecurityGroup;
+import org.opennebula.client.secgroup.SecurityGroupPool;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;

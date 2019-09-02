@@ -13,8 +13,14 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarsh
 public class VirtualNetworkReserveTemplate extends OpenNebulaMarshaller {
 
 	private String name;
+	private String ip;
+	private String addressRangeId;
 	private int size;
-	
+
+	//TODO(pauloewerton): move to common
+	private static final String IP = "IP";
+	private static final String AR_ID = "AR_ID";
+
 	@XmlElement(name = NAME)
 	public String getName() {
 		return name;
@@ -28,8 +34,25 @@ public class VirtualNetworkReserveTemplate extends OpenNebulaMarshaller {
 	public int getSize() {
 		return size;
 	}
-
 	public void setSize(int size) {
 		this.size = size;
+	}
+
+	@XmlElement(name = IP)
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	@XmlElement(name = AR_ID)
+	public String getAddressRangeId() {
+		return addressRangeId;
+	}
+
+	public void setAddressRangeId(String addressRangeId) {
+		this.addressRangeId = addressRangeId;
 	}
 }

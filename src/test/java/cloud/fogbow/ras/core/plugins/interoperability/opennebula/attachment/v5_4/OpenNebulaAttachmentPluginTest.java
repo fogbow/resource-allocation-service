@@ -86,7 +86,7 @@ public class OpenNebulaAttachmentPluginTest {
 	@Test
 	public void testIsReadySuccessful() {
 		// set up
-		String[] cloudStates = { OpenNebulaStateMapper.ATTACHMENT_USED_STATE,
+		String[] cloudStates = { OpenNebulaStateMapper.USED_STATE,
 				OpenNebulaStateMapper.ATTACHMENT_USED_PERSISTENT_STATE };
 
 		String cloudState;
@@ -135,7 +135,7 @@ public class OpenNebulaAttachmentPluginTest {
 	@Test
 	public void testHasFailedUnsuccessful() {
 		// set up
-		String[] cloudStates = { OpenNebulaStateMapper.ATTACHMENT_USED_STATE,
+		String[] cloudStates = { OpenNebulaStateMapper.USED_STATE,
 				OpenNebulaStateMapper.ATTACHMENT_USED_PERSISTENT_STATE };
 
 		String cloudState;
