@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import java.util.*;
 
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -11,6 +12,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
+import org.opennebula.client.ClientConfigurationException;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
@@ -18,10 +20,6 @@ import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -77,8 +75,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-
 		String name = computeOrder.getName() == null ?
 				SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString() : computeOrder.getName();
 		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
@@ -104,12 +100,27 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String imageId = computeOrder.getImageId();
 		String disk = String.valueOf(foundFlavor.getDisk());
 
+		CreateComputeRequest request = this.createComputeRequest(name, hasNetwork, publicKey, userName, startScriptBase64,
+				cpu, graphicsAddress, graphicsType, imageId, disk, memory, networks, architecture);
+
+		synchronized (computeOrder) {
+			ComputeAllocation actualAllocation = new ComputeAllocation(
+					Integer.parseInt(cpu), Integer.parseInt(memory), 1, Integer.parseInt(disk));
+			computeOrder.setActualAllocation(actualAllocation);
+		}
+
+		return this.doRequestInstance(request, cloudUser);
+	}
+
+	private CreateComputeRequest createComputeRequest(String name, String hasNetwork, String publicKey, String userName,
+			String startScriptBase64, String cpu, String graphicsAddress, String graphicsType, String imageId, String disk,
+			String memory, List<String> networks, String architecture) {
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
-                .name(name)
+				.name(name)
 				.contextNetwork(hasNetwork)
-                .publicKey(publicKey)
+				.publicKey(publicKey)
 				.userName(userName)
-                .startScriptBase64(startScriptBase64)
+				.startScriptBase64(startScriptBase64)
 				.cpu(cpu)
 				.graphicsAddress(graphicsAddress)
 				.graphicsType(graphicsType)
@@ -120,14 +131,15 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				.architecture(architecture)
 				.build();
 
-		synchronized (computeOrder) {
-			ComputeAllocation actualAllocation = new ComputeAllocation(
-					Integer.parseInt(cpu), Integer.parseInt(memory), 1, Integer.parseInt(disk));
-			computeOrder.setActualAllocation(actualAllocation);
-		}
-		
+		return request;
+	}
+
+	private String doRequestInstance(CreateComputeRequest request, CloudUser cloudUser) throws UnexpectedException,
+			InvalidParameterException, NoAvailableResourcesException, QuotaExceededException {
+		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		String template = request.getVirtualMachine().marshalTemplate();
 		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
+
 		return instanceId;
 	}
 
