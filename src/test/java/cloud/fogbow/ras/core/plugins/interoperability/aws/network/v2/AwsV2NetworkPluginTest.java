@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import cloud.fogbow.ras.core.BaseUnitTests;
+import org.hibernate.sql.Delete;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -18,7 +21,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -30,29 +32,15 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
-import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
-import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
-import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
-import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
-import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
-import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest;
-import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
-import software.amazon.awssdk.services.ec2.model.Route;
-import software.amazon.awssdk.services.ec2.model.RouteTable;
-import software.amazon.awssdk.services.ec2.model.Subnet;
-import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2NetworkPluginTest {
+@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class, AwsV2CloudUtil.class})
+public class AwsV2NetworkPluginTest extends BaseUnitTests {
 
 	private static final String ANOTHER_VPC_ID = "another-vpc-id";
 	private static final String ANY_VALUE = "anything";
@@ -273,26 +261,25 @@ public class AwsV2NetworkPluginTest {
 		Assert.assertEquals(expected, gateway);
 	}
 	
-	// test case: When calling the getGroupIdBySubnet method, with a valid subnet ID
-	// and client, and a key tag different of groupId, the UnexpectedException will
-	// be thrown.
-	@Test(expected = UnexpectedException.class)
-	public void testGetGroupIdBySubnetUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+    // test case: When calling the getGroupIdBySubnet method, with a valid subnet,
+    // and a key tag different of groupId, the UnexpectedException will be thrown.
+    @Test(expected = UnexpectedException.class)
+    public void testGetGroupIdBySubnetUnsuccessful() throws FogbowException {
+        // set up
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
-		String subnetId = FAKE_SUBNET_ID;
-		String key = ANY_VALUE;
-		String value = ANY_VALUE;
-		Tag tag = buildTags(key, value);
-		Subnet subnet = buildSubnet(subnetId, tag);
-		Mockito.doReturn(subnet).when(this.plugin).getSubnetById(subnetId, client);
+        String subnetId = FAKE_SUBNET_ID;
+        String key = ANY_VALUE;
+        String value = ANY_VALUE;
+        Tag tag = buildTags(key, value);
+        Subnet subnet = buildSubnet(subnetId, tag);
+        Mockito.doReturn(subnet).when(this.plugin).getSubnetById(subnetId, client);
 
-		// exercise
-		this.plugin.getGroupIdBySubnet(subnetId, client);
-	}
+        // exercise
+        this.plugin.getGroupIdFrom(subnet);
+    }
 
 	// test case: When calling the getSubnetById method, with a valid client, and a
 	// subnet ID invalid, the InstanceNotFoundException will be thrown.
@@ -312,7 +299,7 @@ public class AwsV2NetworkPluginTest {
 	// test case: When calling the doDescribeSubnets method, and an error occurs
 	// during the request, the UnexpectedException will be thrown.
 	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDescribeSubnetsUnsuccessful() throws InvalidParameterException, UnexpectedException {
+	public void testDoDescribeSubnetsUnsuccessful() throws FogbowException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		PowerMockito.mockStatic(AwsV2ClientUtil.class);
@@ -322,9 +309,10 @@ public class AwsV2NetworkPluginTest {
 				.thenThrow(SdkClientException.builder().build());
 
 		String subnetId = FAKE_SUBNET_ID;
+		DescribeSubnetsRequest request = DescribeSubnetsRequest.builder().subnetIds(subnetId).build();
 
 		// exercise
-		this.plugin.doDescribeSubnets(subnetId, client);
+		this.plugin.doDescribeSubnetsRequest(request, client);
 	}
 	
 	// test case: When calling the handleSecurityIssues method, without a valid
@@ -343,45 +331,7 @@ public class AwsV2NetworkPluginTest {
 		String subnetId = FAKE_SUBNET_ID;
 
 		// exercise
-		this.plugin.handleSecurityIssues(cidr, subnetId, client);
-	}
-	
-	// test case: When calling the doAuthorizeSecurityGroupIngress method, and an
-	// error occurs during the request, the UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoAuthorizeSecurityGroupIngressUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.authorizeSecurityGroupIngress(Mockito.any(AuthorizeSecurityGroupIngressRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String cidr = FAKE_CIDR_ADDRESS;
-		String subnetId = FAKE_SUBNET_ID;
-		String groupId = FAKE_GROUP_ID;
-
-		// exercise
-		this.plugin.doAuthorizeSecurityGroupIngress(cidr, subnetId, groupId, client);
-	}
-	
-	// test case: When calling the doDeleteSecurityGroups method, and an error
-	// occurs during the request, the UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDeleteSecurityGroupsUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.deleteSecurityGroup(Mockito.any(DeleteSecurityGroupRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String groupId = FAKE_GROUP_ID;
-
-		// exercise
-		this.plugin.doDeleteSecurityGroup(groupId, client);
+		this.plugin.handleSecurityIssues(client, cidr, subnetId);
 	}
 	
 	// test case: When calling the doDeleteSubnets method, and an error
@@ -469,45 +419,44 @@ public class AwsV2NetworkPluginTest {
 		CreateSubnetRequest request = null;
 
 		// exercise
-		this.plugin.doCreateSubnetResquests(name, request, client);
+		this.plugin.doCreateSubnetResquest(request, name, client);
 	}
-	
-	// test case: When calling the doCreateTagsRequests method, without a valid
-	// tag request, the UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoCreateTagsRequests() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
-		Mockito.when(client.createTags(Mockito.any(CreateTagsRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String key = null;
-		String value = null;
-		String resourceId = null;
-
-		// exercise
-		this.plugin.doCreateTagsRequests(key, value, resourceId, client);
-	}
-	
-	// test case: When calling the defineInstanceName method passing the instance
-	// name by parameter, it must return this same name.
+	//test case: check if the tested method do the expected calls
 	@Test
-	public void testDefineInstanceNameByParameterRequested() {
-		// set up
-		String expected = FAKE_INSTANCE_NAME;
+	public void testDoRequestInstance() throws FogbowException{
+		//setup
+		Mockito.doReturn(FAKE_SUBNET_ID).when(plugin).doCreateSubnetResquest(Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doAssociateRouteTables(Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).handleSecurityIssues(Mockito.any(), Mockito.any(), Mockito.any());
+		Ec2Client client = testUtils.getAwsMockedClient();
+		CreateSubnetRequest request = CreateSubnetRequest.builder().build();
 
-		// exercise
-		String instanceName = this.plugin.defineInstanceName(FAKE_INSTANCE_NAME);
+		//exercise
+		plugin.doRequestInstance(FAKE_CIDR_ADDRESS, FAKE_INSTANCE_NAME, request, client);
 
-		// verify
-		Assert.assertEquals(expected, instanceName);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doCreateSubnetResquest(Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doAssociateRouteTables(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).handleSecurityIssues(Mockito.any(), Mockito.any(), Mockito.any());
 	}
-	
+
+	//test case: check if the tested method do the expected calls
+	@Test
+	public void testDoDeleteInstance() throws FogbowException{
+		//setup
+		PowerMockito.mockStatic(AwsV2CloudUtil.class);
+		Ec2Client client = testUtils.getAwsMockedClient();
+		Mockito.doNothing().when(plugin).doDeleteSubnet(Mockito.any(), Mockito.any());
+		//exercise
+		plugin.doDeleteInstance(FAKE_SUBNET_ID, FAKE_GROUP_ID, client);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doDeleteSubnet(Mockito.any(), Mockito.any());
+		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+		AwsV2CloudUtil.doDeleteSecurityGroup(FAKE_GROUP_ID, client);
+	}
+
 	private NetworkInstance createNetworkInstances() {
-		Mockito.doReturn(FAKE_INSTANCE_NAME).when(this.plugin).getRandomUUID();
 
 		String id = FAKE_SUBNET_ID;
 		String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
@@ -524,7 +473,7 @@ public class AwsV2NetworkPluginTest {
 	}
 	
 	private void mockDescribeSubnets(Ec2Client client) {
-		String key = AwsV2NetworkPlugin.AWS_TAG_GROUP_ID;
+		String key = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
 		String value = FAKE_GROUP_ID;
 		Tag tag = buildTags(key, value);
 		

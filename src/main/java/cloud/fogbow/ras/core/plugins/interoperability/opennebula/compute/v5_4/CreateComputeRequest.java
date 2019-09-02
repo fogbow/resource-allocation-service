@@ -5,6 +5,22 @@ import java.util.List;
 
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Disk;
 
+/**
+ * http://docs.opennebula.org/5.4/operation/references/template.html#template
+ *
+ * <TEMPLATE>
+ *   <NAME>test_vm</NAME>
+ *   <CPU>2</CPU>
+ *   <MEMORY>1024</MEMORY>
+ *   <DISK>
+ *     <IMAGE_ID>2</IMAGE_ID>
+ *   </DISK>
+ *   <DISK>
+ *     <IMAGE>Data</IMAGE>
+ *     <IMAGE_UNAME>oneadmin</IMAGE_UNAME>
+ *   </DISK>
+ * </TEMPLATE>
+ */
 public class CreateComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;

@@ -22,6 +22,7 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -40,14 +41,11 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2VolumePluginTest {
+public class AwsV2VolumePluginTest extends BaseUnitTests {
 
 	private static final String AWS_TAG_NAME = "Name";
 	private static final String CLOUD_NAME = "amazon";
-	private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
 	private static final String FAKE_TAG_NAME = "fake-tag-name";
-	private static final String FAKE_VOLUME_ID = "fake-volume-id";
-	private static final String VOLUME_DELETED_STATE = "deleted";
 	private static final int ONE_GIGABYTE = 1;
 
 	private AwsV2VolumePlugin plugin;
@@ -154,16 +152,15 @@ public class AwsV2VolumePluginTest {
 		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
 		CreateVolumeResponse response = CreateVolumeResponse.builder()
-				.volumeId(FAKE_VOLUME_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.build();
 		
 		Mockito.when(client.createVolume(Mockito.any(CreateVolumeRequest.class))).thenReturn(response);
-		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_VOLUME_ID);
 
 		VolumeOrder volumeOrder = createVolumeOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-		String expected = FAKE_VOLUME_ID;
+		String expected = testUtils.FAKE_VOLUME_ID;
 
 		// exercise
 		String volumeId = this.plugin.requestInstance(volumeOrder, cloudUser);
@@ -190,7 +187,6 @@ public class AwsV2VolumePluginTest {
 
 		DescribeVolumesResponse response = createVolumeResponse();
 		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(response);
-		Mockito.when(this.plugin.getRandomUUID()).thenReturn(FAKE_VOLUME_ID);
 
 		VolumeOrder volumeOrder = createVolumeOrder();
 		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -205,7 +201,7 @@ public class AwsV2VolumePluginTest {
 		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
 
 		Mockito.verify(client, Mockito.times(1)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
-		Mockito.verify(this.plugin, Mockito.times(1)).mountVolumeInstance(Mockito.any(DescribeVolumesResponse.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).buildVolumeInstance(Mockito.any(DescribeVolumesResponse.class));
 
 		Assert.assertEquals(expected, volumeInstance);
 	}
@@ -251,35 +247,21 @@ public class AwsV2VolumePluginTest {
 		this.plugin.deleteInstance(attachmentOrder, cloudUser);
 	}
 	
-	// test case: When calling the defineVolumeName method, without a null volume
-	// name, it must return the value passed by parameter.
-	@Test
-	public void testDefineVolumeNameWithoutANullValue() {
-		// set up
-		String expected = FAKE_INSTANCE_NAME;
-
-		// exercise
-		String volumeName = this.plugin.defineVolumeName(FAKE_INSTANCE_NAME);
-
-		// verify
-		Assert.assertEquals(expected, volumeName);
-	}
-	
 	// test case: When calling the mountVolumeInstance method, with an empty
 	// volume list, it must return an InstanceNotFoundException.
 	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testMountVolumeInstanceWithoutVolumes() throws InstanceNotFoundException {
+	public void testMountVolumeInstanceWithoutVolumes() throws FogbowException {
 		// set up
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder().build();
 
 		// exercise
-		this.plugin.mountVolumeInstance(response);
+		this.plugin.buildVolumeInstance(response);
 	}
 	
 	private VolumeInstance createVolumeInstance() {
-		String id = FAKE_VOLUME_ID;
+		String id = testUtils.FAKE_VOLUME_ID;
 		String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
-		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_VOLUME_ID;
+		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + testUtils.FAKE_VOLUME_ID;
 		int volumeSize = ONE_GIGABYTE;
 		return new VolumeInstance(id, cloudState, name, volumeSize);
 	}
@@ -292,7 +274,7 @@ public class AwsV2VolumePluginTest {
 		
 		Volume volume = Volume.builder()
 				.tags(tag)
-				.volumeId(FAKE_VOLUME_ID)
+				.volumeId(testUtils.FAKE_VOLUME_ID)
 				.size(ONE_GIGABYTE)
 				.build();
 		
@@ -304,10 +286,9 @@ public class AwsV2VolumePluginTest {
 	}
 
 	private VolumeOrder createVolumeOrder() {
-		VolumeOrder volumeOrder = new VolumeOrder();
+		VolumeOrder volumeOrder = testUtils.createLocalVolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(FAKE_VOLUME_ID);
-		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		volumeOrder.setInstanceId(testUtils.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 		return volumeOrder;
 	}

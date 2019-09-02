@@ -6,7 +6,6 @@ import cloud.fogbow.common.util.Ipv4AddressValidator;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import software.amazon.awssdk.core.exception.SdkException;

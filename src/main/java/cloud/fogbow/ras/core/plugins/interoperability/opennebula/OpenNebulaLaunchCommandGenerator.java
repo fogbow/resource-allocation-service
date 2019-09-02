@@ -19,6 +19,7 @@ public class OpenNebulaLaunchCommandGenerator implements LaunchCommandGenerator 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaLaunchCommandGenerator.class);
 
     private final String ONE_STARTUP_SCRIPT_FILE_PATH = "bin/one-startup-script.sh";
+    private final String SCRIPT_FILE_DELIMETER = "\\A";
 
     public OpenNebulaLaunchCommandGenerator() { }
 
@@ -30,7 +31,7 @@ public class OpenNebulaLaunchCommandGenerator implements LaunchCommandGenerator 
 
         try {
             scanner = new Scanner(new File(ONE_STARTUP_SCRIPT_FILE_PATH));
-            userDataBuilder.append(scanner.useDelimiter("\\A").next());
+            userDataBuilder.append(scanner.useDelimiter(SCRIPT_FILE_DELIMETER).next());
         } catch (IOException e) {
             throw new FatalErrorException(e.getMessage());
         } finally {
@@ -42,10 +43,10 @@ public class OpenNebulaLaunchCommandGenerator implements LaunchCommandGenerator 
                 if (userDataScript != null) {
                     String normalizedExtraUserData = null;
                     String extraUserDataFileContent = userDataScript.getExtraUserDataFileContent();
-                    // NOTE(pauloewerton): since only one script can be added to the request, we're appending only
-                    // the bash scripts to the default script in order to prevent errors
+                    // NOTE(pauloewerton): since ONe supports just one script for a single file type at VM creation,
+                    // we're appending only the bash scripts to the default script in order to prevent errors
                     if (extraUserDataFileContent != null &&
-                            userDataScript.getExtraUserDataFileType() == CloudInitUserDataBuilder.FileType.SHELL_SCRIPT) {
+                            userDataScript.getExtraUserDataFileType().equals(CloudInitUserDataBuilder.FileType.SHELL_SCRIPT)) {
                         normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
                         userDataBuilder.append("\n");
                         userDataBuilder.append(normalizedExtraUserData);

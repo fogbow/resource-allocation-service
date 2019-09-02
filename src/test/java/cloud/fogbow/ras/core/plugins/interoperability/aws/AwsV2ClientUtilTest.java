@@ -67,7 +67,7 @@ public class AwsV2ClientUtilTest {
 	// test case: When calling the validateRegion method with a null region name, an
 	// InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testValidateRegionWithANullRegionName() throws InvalidParameterException, UnexpectedException {
+	public void testValidateRegionWithANullRegionName() throws InvalidParameterException {
 		// set up
 		String regionName = null;
 
@@ -78,7 +78,7 @@ public class AwsV2ClientUtilTest {
 	// test case: When calling the validateRegion method with any value in region
 	// name, an InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testValidateRegionWithAInconsistentRegionName() throws InvalidParameterException, UnexpectedException {
+	public void testValidateRegionWithAInconsistentRegionName() throws InvalidParameterException {
 		// set up
 		String regionName = ANY_VALUE;
 
@@ -89,7 +89,7 @@ public class AwsV2ClientUtilTest {
 	// test case: When calling the validateRegion method with an empty string in
 	// region name, an InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testValidateRegionWithAEmptyRegionName() throws InvalidParameterException, UnexpectedException {
+	public void testValidateRegionWithAEmptyRegionName() throws InvalidParameterException {
 		// set up
 		String regionName = EMPTY_STRING;
 
