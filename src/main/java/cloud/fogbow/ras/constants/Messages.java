@@ -59,6 +59,7 @@ public class Messages {
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
+        public static final String UNABLE_TO_RETRIEVE_SECURITY_GROUP_ID = "Unable to retrieve security group id from json %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
