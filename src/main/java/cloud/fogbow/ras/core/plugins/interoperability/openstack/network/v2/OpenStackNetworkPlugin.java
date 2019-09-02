@@ -99,6 +99,11 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     protected String doGetInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + order.getInstanceId();
         String responseStr = null;
+        responseStr = doGetRequest(cloudUser, endpoint, responseStr);
+        return responseStr;
+    }
+
+    private String doGetRequest(OpenStackV3User cloudUser, String endpoint, String responseStr) throws FogbowException {
         try {
             responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -139,15 +144,16 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     private CreateNetworkResponse createNetwork(String name, OpenStackV3User cloudUser, String tenantId) throws FogbowException {
         CreateNetworkResponse createNetworkResponse = null;
+        String networkName = (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : name);
+
+        CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
+                .name(networkName)
+                .projectId(tenantId)
+                .build();
+
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
+
         try {
-            String networkName = (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : name);
-
-            CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
-                    .name(networkName)
-                    .projectId(tenantId)
-                    .build();
-
-            String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
             String response = this.client.doPostRequest(endpoint, createNetworkRequest.toJson(), cloudUser);
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
@@ -234,30 +240,11 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return UUID.randomUUID().toString();
     }
 
-    protected String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {
-        String securityGroupId = null;
-        try {
-            JSONObject response = new JSONObject(json);
-            JSONArray securityGroupJSONArray = response.getJSONArray(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON);
-            JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
-            securityGroupId = securityGroup.getString(OpenStackConstants.Network.ID_KEY_JSON);
-        } catch (JSONException e) {
-            String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
-        }
-        return securityGroupId;
-    }
-
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
         String responseStr = null;
-        try {
-            responseStr = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
-        return getSecurityGroupIdFromGetResponse(responseStr);
+        responseStr = doGetRequest(cloudUser, endpoint, responseStr);
+        return OpenStackCloudUtils.getSecurityGroupIdFromGetResponse(responseStr);
     }
 
     protected void removeSecurityGroup(OpenStackV3User cloudUser, String securityGroupId) throws FogbowException {
