@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
+import org.apache.http.client.HttpResponseException;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -54,6 +55,9 @@ public class TestUtils {
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+
+    private static final String MESSAGE_STATUS_CODE = "Internal server error.";
+    private static final int ERROR_STATUS_CODE = 500;
     
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
@@ -227,5 +231,9 @@ public class TestUtils {
             service.save(order);
         }
         return orders;
+    }
+
+    public HttpResponseException getHttpInternalServerErrorResponseException() {
+        return new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
     }
 }

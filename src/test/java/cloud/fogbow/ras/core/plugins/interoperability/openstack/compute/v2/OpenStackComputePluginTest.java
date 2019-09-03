@@ -18,16 +18,13 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.*;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseManager.class, GetFlavorResponse.class, PropertiesUtil.class})
 public class OpenStackComputePluginTest extends BaseUnitTests {
 
@@ -80,7 +77,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 this.FAKE_TOKEN_VALUE, this.FAKE_PROJECT_ID);
     }
 
-    // test case: when given and order, it should return a flavor with it's resources
+    // test case: when given an order, it should return a flavor with it's resources
     // greater than or equal the requested
     @Test
     public void testGetBestFlavor() throws FogbowException {
@@ -130,8 +127,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.assertNull(requirements);
     }
 
-    // test case: when a order is given, return any hardwareRequirements
-    // that suits the need of the order
+    // test case: when an order is given, return any hardwareRequirements
+    // that suits the order's needs
     @Test
     public void testFindSmallestFlavor() throws FogbowException {
         // setup
@@ -145,6 +142,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(bestRequirements, actualRequirements);
+        Mockito.verify(this.computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getBestFlavor(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
     }
 
     // test case: when a order is given, no flavor will match the order so a NoAvailableResourcesException
@@ -168,14 +167,13 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
 
         // exercise
-        String keyName = this.computePlugin.getKeyName(this.FAKE_PROJECT_ID, cloudUser, publicKey);
+        this.computePlugin.getKeyName(this.FAKE_PROJECT_ID, cloudUser, publicKey);
 
         // verify
         Mockito.verify(this.computePlugin, Mockito.times(testUtils.RUN_ONCE))
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
         Mockito.verify(this.clientMock, Mockito.times(testUtils.RUN_ONCE))
                 .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
-        Assert.assertTrue(keyName instanceof String);
     }
 
     // test case: when getKeyName() request fails, it must throw an UnexpectedException

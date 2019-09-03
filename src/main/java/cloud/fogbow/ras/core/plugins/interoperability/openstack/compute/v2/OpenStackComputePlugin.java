@@ -201,14 +201,18 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
                     .build();
 
             String body = request.toJson();
-            try {
-                this.client.doPostRequest(osKeypairEndpoint, body, cloudUser);
-            } catch (HttpResponseException e) {
-                OpenStackHttpToFogbowExceptionMapper.map(e);
-            }
+            doCreateKeyName(cloudUser, osKeypairEndpoint, body);
         }
 
         return keyName;
+    }
+
+    protected void doCreateKeyName(OpenStackV3User cloudUser, String osKeypairEndpoint, String body) throws FogbowException {
+        try {
+            this.client.doPostRequest(osKeypairEndpoint, body, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
     }
 
     protected String getComputeEndpoint(String projectId, String suffix) {
