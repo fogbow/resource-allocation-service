@@ -77,7 +77,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 .build();
 
         String instanceId = doRequestInstance(request, cloudUser);
-        String securityGroupId = doCreateSecurityGroup(instanceId, order, cloudUser);
+        String securityGroupId = doCreateSecurityGroup(instanceId, cloudUser);
         allowAllIngressSecurityRules(securityGroupId, cloudUser);
         associateSecurityGroup(securityGroupId, instanceId, order, cloudUser);
         return instanceId;
@@ -90,9 +90,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 + ENDPOINT_SEPARATOR
                 + instanceId;
         
-        String jsonResponse = doGetResponseFromCloud(endpoint, cloudUser);
-        GetFloatingIpResponse response = GetFloatingIpResponse.fromJson(jsonResponse);
-        return buildPublicIpInstance(response);
+        return doGetInstance(endpoint, cloudUser);
     }
     
     @Override
@@ -240,10 +238,14 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 + OpenStackCloudUtils.SECURITY_GROUP_RULES;
     }
 
-    protected String doCreateSecurityGroup(String floatingIpId, PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String securityGroupName = getSecurityGroupName(floatingIpId);
+    protected String doCreateSecurityGroup(String floatingIpId, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
-        CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder().name(securityGroupName).projectId(projectId).build();
+        String securityGroupName = getSecurityGroupName(floatingIpId);
+        
+        CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+                .name(securityGroupName)
+                .projectId(projectId)
+                .build();
         
         String jsonResponse = null;
         try {
@@ -274,8 +276,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         return response.getFloatingIp().getId();
     }
 
-    protected String getNetworkPortId(PublicIpOrder publicIpOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String computeId = publicIpOrder.getComputeId();
+    protected String getNetworkPortId(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String computeId = order.getComputeId();
         String defaulNetworkId = getDefaultNetworkId();
         String endpointBase = getNetworkPortsEndpoint();
         String endpoint = buildNetworkPortsEndpoint(computeId, defaulNetworkId, endpointBase);

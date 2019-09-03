@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import java.io.File;
 
+import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -11,31 +12,66 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.AddSecurityGroupToServerRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.RemoveSecurityGroupFromServerRequest;
 
-@PrepareForTest({ DatabaseManager.class, GetFloatingIpResponse.class, OpenStackCloudUtils.class })
+@PrepareForTest({ 
+    CreateFloatingIpResponse.class, 
+    CreateSecurityGroupResponse.class, 
+    DatabaseManager.class, 
+    GetFloatingIpResponse.class, 
+    GetNetworkPortsResponse.class, 
+    GetSecurityGroupsResponse.class, 
+    OpenStackCloudUtils.class, 
+    OpenStackHttpToFogbowExceptionMapper.class 
+})
 public class OpenStackPublicIpPluginTest extends BaseUnitTests {
 
 	private OpenStackPublicIpPlugin plugin;
 	private OpenStackHttpClient client;
 
 	private static final String ANY_VALUE = "anything";
+	private static final String EMPTY_PORTS_FROM_JSON_RESPONSE = "{\"ports\":[]}";
+	private static final String EMPTY_SECURITY_GROUP_FROM_JSON_RESPONSE = "{\"security_groups\":[]}";
+	private static final String FAKE_CREATE_FLOATING_IP_FROM_JSON_RESPONSE = "{\"floatingip\":{\"id\":\"fake-instance-id\"}}";
+	private static final String FAKE_CREATE_SECURITY_GROUP_FROM_JSON_RESPONSE = "{\"security_group\":{\"id\":\"fake-security-group-id\"}}";
+	private static final String FAKE_FLOATING_NETWORK_ID = "fake-floating-network-id";
+	private static final String FAKE_GET_PORTS_FROM_JSON_RESPONSE = "{\"ports\":[{\"id\":\"fake-network-port-id\"}]}";
+	private static final String FAKE_GET_SECURITY_GROUPS_FROM_JSON_RESPONSE = "{\"security_groups\":[{\"id\":\"fake-security-group-id\"}]}";
+	private static final String FAKE_NETWORK_ID = "fake-network-id";
 	private static final String FAKE_NETWORK_PORT_ID = "fake-network-port-id";
-    private static final String FAKE_PORT_ID_JSON_RESPONSE = "{\"ports\":[{\"id\":\"d80b1a3b-4fc1-49f3-952e-1e2ab7081d8b\"}]}";
+	private static final String FAKE_NETWORK_PORTS_SUFIX_ENDPOINT = "?device_id={fake-compute-id}&network_id={fake-network-id}";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PUBLIC_IP_JSON_RESPONSE = "{\"floatingip\":{\"floating_ip_address\":\"fake-address\",\"id\":\"fake-instance-id\",\"status\": \"ACTIVE\"}}";
+    private static final String FAKE_PUBLIC_IP_FROM_JSON_RESPONSE = "{\"floatingip\":{\"floating_ip_address\":\"fake-address\",\"id\":\"fake-instance-id\",\"status\": \"ACTIVE\"}}";
     private static final String FAKE_SECURITY_GROUP_ID = "fake-security-group-id";
+    private static final String FAKE_SECURITY_GROUP_NAME = "fogbow-sg-pip-fake-instance-id";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+    private static final String MAP_METHOD = "map";
+    private static final String MESSAGE_STATUS_CODE = "Internal server error.";
     private static final String NEUTRON_PREFIX_ENDPOINT = "https://mycloud.domain:9696";
+    private static final String COMPUTE_PREFIX_ENDPOINT = "https://mycloud.domain:8774";
+    
+    private static final int ERROR_STATUS_CODE = 500;
+    private static final int RUN_TWICE = 2;
     
 	@Before
 	public void setUp() throws Exception {
@@ -132,7 +168,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.doReturn(instanceId).when(this.plugin).doRequestInstance(Mockito.any(CreateFloatingIpRequest.class),
                 Mockito.eq(cloudUser));
         Mockito.doReturn(securityGroupId).when(this.plugin).doCreateSecurityGroup(Mockito.eq(instanceId),
-                Mockito.eq(order), Mockito.eq(cloudUser));
+                Mockito.eq(cloudUser));
         Mockito.doNothing().when(this.plugin).allowAllIngressSecurityRules(Mockito.eq(securityGroupId),
                 Mockito.eq(cloudUser));
         Mockito.doNothing().when(this.plugin).associateSecurityGroup(Mockito.eq(securityGroupId),
@@ -151,7 +187,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .doRequestInstance(Mockito.any(CreateFloatingIpRequest.class), Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateSecurityGroup(Mockito.eq(instanceId),
-                Mockito.eq(order), Mockito.eq(cloudUser));
+                Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .allowAllIngressSecurityRules(Mockito.eq(securityGroupId), Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).associateSecurityGroup(
@@ -174,25 +210,16 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
                 + instanceId;
 
-        String json = FAKE_PUBLIC_IP_JSON_RESPONSE;
-        Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.eq(endpoint), Mockito.eq(cloudUser));
-
-        GetFloatingIpResponse response = GetFloatingIpResponse.fromJson(json);
-        PowerMockito.mockStatic(GetFloatingIpResponse.class);
-        PowerMockito.when(GetFloatingIpResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+        PublicIpInstance instance = createPublicIpInstance();
+        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.anyString(), Mockito.eq(cloudUser));
 
         // exercise
         this.plugin.getInstance(order, cloudUser);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFloatingIpEndpoint();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetResponseFromCloud(Mockito.eq(endpoint),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(endpoint),
                 Mockito.eq(cloudUser));
-
-        PowerMockito.verifyStatic(GetFloatingIpResponse.class, Mockito.times(TestUtils.RUN_ONCE));
-        GetFloatingIpResponse.fromJson(Mockito.eq(json));
-
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildPublicIpInstance(Mockito.eq(response));
     }
     
     // test case: When invoking the deleteInstance method with a valid public IP
@@ -228,6 +255,740 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(instanceId),
                 Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the doDeleteInstance method, it must verify that the
+    // call was successful.
+    @Test
+    public void testDoDeleteInstance() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.FLOATINGIPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + instanceId;
+
+        Mockito.doNothing().when(this.client).doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+
+        // exercise
+        this.plugin.doDeleteInstance(instanceId, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFloatingIpEndpoint();
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doDeleteRequest(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the doDeleteInstance method and an unexpected error
+    // occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDoDeleteInstanceFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.FLOATINGIPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + instanceId;
+        
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doDeleteRequest(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.doDeleteInstance(instanceId, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the disassociateSecurityGroup method, it must verify
+    // that the call was successful.
+    @Test
+    public void testDisassociateSecurityGroup() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+
+        String endpoint = COMPUTE_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + cloudUser.getProjectId() 
+                + OpenStackCloudUtils.SERVERS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + order.getComputeId() 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + OpenStackCloudUtils.ACTION;
+
+        String name = FAKE_SECURITY_GROUP_NAME;
+        RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
+                .name(name)
+                .build();
+
+        // exercise
+        this.plugin.disassociateSecurityGroup(name, order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getComputeAssociationEndpoint(Mockito.eq(cloudUser.getProjectId()), Mockito.eq(order.getComputeId()));
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the disassociateSecurityGroup method and an
+    // unexpected error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDisassociateSecurityGroupFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+        
+        String endpoint = COMPUTE_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + cloudUser.getProjectId()
+                + OpenStackCloudUtils.SERVERS
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + order.getComputeId()
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + OpenStackCloudUtils.ACTION;
+        
+        String name = FAKE_SECURITY_GROUP_NAME;
+        RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
+                .name(name)
+                .build();
+        
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint), Mockito.eq(request.toJson()),
+                Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.disassociateSecurityGroup(name, order, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the retrieveSecurityGroupId method, it must verify
+    // that the call was successful.
+    @Test
+    public void testRetrieveSecurityGroupId() throws FogbowException {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupName = FAKE_SECURITY_GROUP_NAME;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUPS 
+                + OpenStackPublicIpPlugin.QUERY_NAME 
+                + securityGroupName;
+
+        String json = FAKE_GET_SECURITY_GROUPS_FROM_JSON_RESPONSE;
+        Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+
+        GetSecurityGroupsResponse response = GetSecurityGroupsResponse.fromJson(json);
+        PowerMockito.mockStatic(GetSecurityGroupsResponse.class);
+        PowerMockito.when(GetSecurityGroupsResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        String expected = FAKE_SECURITY_GROUP_ID;
+
+        // exercise
+        String securityGroupId = this.plugin.retrieveSecurityGroupId(securityGroupName, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupsEndpoint();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetResponseFromCloud(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetSecurityGroupsResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        GetSecurityGroupsResponse.fromJson(Mockito.eq(json));
+
+        Assert.assertEquals(expected, securityGroupId);
+    }
+    
+    // test case: When calling the retrieveSecurityGroupId method with a
+    // non-existent ID, it must return to an empty security group and throw an
+    // UnexpectedException.
+    @Test
+    public void testRetrieveSecurityGroupIdFail() throws FogbowException {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupName = FAKE_SECURITY_GROUP_NAME;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUPS 
+                + OpenStackPublicIpPlugin.QUERY_NAME 
+                + securityGroupName;
+
+        String json = EMPTY_SECURITY_GROUP_FROM_JSON_RESPONSE;
+        Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+
+        GetSecurityGroupsResponse response = GetSecurityGroupsResponse.fromJson(json);
+        PowerMockito.mockStatic(GetSecurityGroupsResponse.class);
+        PowerMockito.when(GetSecurityGroupsResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        String expected = String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND, json);
+
+        try {
+            // exercise
+            this.plugin.retrieveSecurityGroupId(securityGroupName, cloudUser);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doGetInstance method, it must verify that the
+    // call was successful.
+    @Test
+    public void testDoGetInstance() throws FogbowException {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.FLOATINGIPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + instanceId;
+
+        String json = FAKE_PUBLIC_IP_FROM_JSON_RESPONSE;
+        Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+
+        GetFloatingIpResponse response = GetFloatingIpResponse.fromJson(json);
+        PowerMockito.mockStatic(GetFloatingIpResponse.class);
+        PowerMockito.when(GetFloatingIpResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        // exercise
+        this.plugin.doGetInstance(endpoint, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetResponseFromCloud(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetFloatingIpResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        GetFloatingIpResponse.fromJson(Mockito.eq(json));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildPublicIpInstance(Mockito.eq(response));
+    }
+    
+    // test case: When calling the associateSecurityGroup method, it must verify
+    // that the call was successful.
+    @Test
+    public void testAssociateSecurityGroup() throws Exception {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+
+        OpenStackV3User cloudUser = createOpenStackUser();
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+        
+        String endpoint = COMPUTE_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + cloudUser.getProjectId() 
+                + OpenStackCloudUtils.SERVERS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + order.getComputeId() 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + OpenStackCloudUtils.ACTION;
+        
+        String name = FAKE_SECURITY_GROUP_NAME;
+        AddSecurityGroupToServerRequest request = new AddSecurityGroupToServerRequest.Builder()
+                .name(name)
+                .build();
+
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+
+        // exercise
+        this.plugin.associateSecurityGroup(securityGroupId, instanceId, order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getComputeAssociationEndpoint(Mockito.eq(cloudUser.getProjectId()), Mockito.eq(order.getComputeId()));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupName(Mockito.eq(instanceId));
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the associateSecurityGroup method and an unexpected
+    // error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class and the deleteSecurityGroup method
+    // from this class were been called.
+    @Test
+    public void testAssociateSecurityGroupFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+
+        String endpoint = COMPUTE_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + cloudUser.getProjectId() 
+                + OpenStackCloudUtils.SERVERS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + order.getComputeId() 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + OpenStackCloudUtils.ACTION;
+
+        AddSecurityGroupToServerRequest request = new AddSecurityGroupToServerRequest.Builder()
+                .name(FAKE_SECURITY_GROUP_NAME)
+                .build();
+
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+        try {
+            // exercise
+            this.plugin.associateSecurityGroup(securityGroupId, instanceId, order, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .deleteSecurityGroup(Mockito.eq(securityGroupId), Mockito.eq(cloudUser));
+
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the deleteSecurityGroup method, it must verify
+    // that the call was successful.
+    @Test
+    public void testDeleteSecurityGroup() throws FogbowException, HttpResponseException {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + securityGroupId;
+
+        Mockito.doNothing().when(this.client).doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+
+        // exercise
+        this.plugin.deleteSecurityGroup(securityGroupId, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupsEndpoint();
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doDeleteRequest(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the deleteSecurityGroup method and an
+    // unexpected error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDeleteSecurityGroupFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR 
+                + securityGroupId;
+
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doDeleteRequest(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.deleteSecurityGroup(securityGroupId, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the allowAllIngressSecurityRules method, it must verify
+    // that the doPostRequestFromCloud method was called two times.
+    @Test
+    public void testAllowAllIngressSecurityRules() throws FogbowException {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+        
+        // exercise
+        this.plugin.allowAllIngressSecurityRules(securityGroupId, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(RUN_TWICE)).doPostRequestFromCloud(Mockito.any(), Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the doPostRequestFromCloud method, it must verify
+    // that the call was successful.
+    public void testDoPostRequestFromCloud() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUP_RULES;
+
+        CreateSecurityGroupRuleRequest request = new CreateSecurityGroupRuleRequest.Builder()
+                .direction(OpenStackCloudUtils.INGRESS_DIRECTION)
+                .etherType(OpenStackPublicIpPlugin.IPV4_ETHER_TYPE)
+                .securityGroupId(securityGroupId)
+                .build();
+
+        // exercise
+        this.plugin.doPostRequestFromCloud(request, cloudUser);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the doPostRequestFromCloud method and an
+    // unexpected error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDoPostRequestFromCloudFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String securityGroupId = FAKE_SECURITY_GROUP_ID;
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUP_RULES;
+
+        CreateSecurityGroupRuleRequest request = new CreateSecurityGroupRuleRequest.Builder()
+                .direction(OpenStackCloudUtils.INGRESS_DIRECTION)
+                .etherType(OpenStackPublicIpPlugin.IPV4_ETHER_TYPE)
+                .securityGroupId(securityGroupId)
+                .build();
+        
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.doPostRequestFromCloud(request, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the doCreateSecurityGroup method, it must verify
+    // that the call was successful.
+    @Test
+    public void testDoCreateSecurityGroup() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUPS;
+
+        CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+                .name(FAKE_SECURITY_GROUP_NAME)
+                .projectId(cloudUser.getProjectId())
+                .build();
+
+        String json = FAKE_CREATE_SECURITY_GROUP_FROM_JSON_RESPONSE;
+        Mockito.when(this.client.doPostRequest(Mockito.eq(endpoint), Mockito.eq(request.toJson()), Mockito.eq(cloudUser)))
+                .thenReturn(json);
+
+        CreateSecurityGroupResponse response = CreateSecurityGroupResponse.fromJson(json);
+        PowerMockito.mockStatic(CreateSecurityGroupResponse.class);
+        PowerMockito.when(CreateSecurityGroupResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        // exercise
+        this.plugin.doCreateSecurityGroup(instanceId, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupName(Mockito.eq(instanceId));
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(CreateSecurityGroupResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        CreateSecurityGroupResponse.fromJson(Mockito.eq(json));
+    }
+    
+    // test case: When calling the doCreateSecurityGroup method and an
+    // unexpected error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDoCreateSecurityGroupFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+        order.setInstanceId(instanceId);
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackCloudUtils.SECURITY_GROUPS;
+
+        CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+                .name(FAKE_SECURITY_GROUP_NAME)
+                .projectId(cloudUser.getProjectId())
+                .build();
+
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.doCreateSecurityGroup(instanceId, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the doRequestInstance method, it must verify
+    // that the call was successful.
+    @Test
+    public void testDoRequestInstance() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+        
+        String endpoint = NEUTRON_PREFIX_ENDPOINT
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT 
+                + OpenStackPublicIpPlugin.FLOATINGIPS;
+        
+        CreateFloatingIpRequest request = new CreateFloatingIpRequest.Builder()
+                .floatingNetworkId(FAKE_FLOATING_NETWORK_ID)
+                .portId(FAKE_NETWORK_PORT_ID)
+                .projectId(FAKE_PROJECT_ID)
+                .build();
+        
+        String json = FAKE_CREATE_FLOATING_IP_FROM_JSON_RESPONSE;
+        Mockito.when(this.client.doPostRequest(Mockito.eq(endpoint), Mockito.eq(request.toJson()), Mockito.eq(cloudUser)))
+                .thenReturn(json);
+
+        CreateFloatingIpResponse response = CreateFloatingIpResponse.fromJson(json);
+        PowerMockito.mockStatic(CreateFloatingIpResponse.class);
+        PowerMockito.when(CreateFloatingIpResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        // exercise
+        this.plugin.doRequestInstance(request, cloudUser);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(CreateFloatingIpResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        CreateFloatingIpResponse.fromJson(Mockito.eq(json));
+    }
+    
+    // test case: When calling the doRequestInstance method and an
+    // unexpected error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDoRequestInstanceFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.FLOATINGIPS;
+
+        CreateFloatingIpRequest request = new CreateFloatingIpRequest.Builder()
+                .floatingNetworkId(FAKE_FLOATING_NETWORK_ID)
+                .portId(FAKE_NETWORK_PORT_ID)
+                .projectId(FAKE_PROJECT_ID)
+                .build();
+
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.doRequestInstance(request, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the getNetworkPortId method, it must verify
+    // that the call was successful.
+    @Test
+    public void testDetNetworkPortId() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        computeOrder.setInstanceId(computeId);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(computeOrder.getId());
+        OpenStackV3User cloudUser = createOpenStackUser();
+
+        String endpointBase = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.PORTS;
+
+        String defaultNetworkId = FAKE_NETWORK_ID;
+        String endpoint = endpointBase + FAKE_NETWORK_PORTS_SUFIX_ENDPOINT;
+        Mockito.doReturn(endpoint).when(this.plugin).buildNetworkPortsEndpoint(Mockito.eq(computeId),
+                Mockito.eq(defaultNetworkId), Mockito.eq(endpointBase));
+
+        String json = FAKE_GET_PORTS_FROM_JSON_RESPONSE;
+        Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        GetNetworkPortsResponse response = GetNetworkPortsResponse.fromJson(json);
+        PowerMockito.mockStatic(GetNetworkPortsResponse.class);
+        PowerMockito.when(GetNetworkPortsResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        String expected = FAKE_NETWORK_PORT_ID;
+
+        // exercise
+        String networkPortId = this.plugin.getNetworkPortId(order, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getDefaultNetworkId();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkPortsEndpoint();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkPortsEndpoint(
+                Mockito.eq(order.getComputeId()), Mockito.eq(defaultNetworkId), Mockito.eq(endpointBase));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetResponseFromCloud(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetNetworkPortsResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        GetNetworkPortsResponse.fromJson(Mockito.eq(json));
+
+        Assert.assertEquals(expected, networkPortId);
+    }
+    
+    // test case: When calling the getNetworkPortId method with a non-existent ID,
+    // it must return to an empty network ports and throw an UnexpectedException.
+    @Test
+    public void testDetNetworkPortIdFail() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        computeOrder.setInstanceId(computeId);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+
+        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(computeOrder.getId());
+        OpenStackV3User cloudUser = createOpenStackUser();
+
+        String endpointBase = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.PORTS;
+
+        String defaultNetworkId = FAKE_NETWORK_ID;
+        String endpoint = endpointBase + FAKE_NETWORK_PORTS_SUFIX_ENDPOINT;
+        Mockito.doReturn(endpoint).when(this.plugin).buildNetworkPortsEndpoint(Mockito.eq(computeId),
+                Mockito.eq(defaultNetworkId), Mockito.eq(endpointBase));
+
+        String json = EMPTY_PORTS_FROM_JSON_RESPONSE;
+        Mockito.doReturn(json).when(this.plugin).doGetResponseFromCloud(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        GetNetworkPortsResponse response = GetNetworkPortsResponse.fromJson(json);
+        PowerMockito.mockStatic(GetNetworkPortsResponse.class);
+        PowerMockito.when(GetNetworkPortsResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+
+        String expected = String.format(Messages.Exception.PORT_NOT_FOUND, computeId, defaultNetworkId);
+
+        try {
+            // exercise
+            this.plugin.getNetworkPortId(order, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: ...
+    @Test
+    public void test() {
+        // set up
+
+        // exercise
+
+        // verify
+    }
+    
+    private PublicIpInstance createPublicIpInstance() {
+        String id = TestUtils.FAKE_INSTANCE_ID;
+        String cloudState = OpenStackStateMapper.ACTIVE_STATUS;
+        String ip = TestUtils.FAKE_ADDRESS;
+        return new PublicIpInstance(id, cloudState, ip);
     }
     
     // TODO Create a OpenStackTestUtils to unify common methods made these...
