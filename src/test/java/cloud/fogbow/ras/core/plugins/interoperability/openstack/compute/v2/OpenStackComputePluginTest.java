@@ -4,8 +4,10 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -26,7 +28,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({DatabaseManager.class, GetFlavorResponse.class})
+@PrepareForTest({DatabaseManager.class, GetFlavorResponse.class, PropertiesUtil.class})
 public class OpenStackComputePluginTest extends BaseUnitTests {
 
     private OpenStackComputePlugin computePlugin;
@@ -40,6 +42,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
     private static final String ANY_URL = "http://localhost:8008";
     private static final String ANY_STRING = "any-string";
+    private static final String FAKE_CONF_FILE_PATH = "fake-conf-file-path";
     private static final String FAKE_KEY_NAME = "fake-key-name";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
@@ -64,10 +67,14 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.networksId.add(privateNetworkId);
 
-        this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
-                this.launchCommandGeneratorMock));
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        BDDMockito.given(PropertiesUtil.readProperties(Mockito.eq(FAKE_CONF_FILE_PATH)))
+                .willReturn(this.propertiesMock);
+
+        this.computePlugin = Mockito.spy(new OpenStackComputePlugin(FAKE_CONF_FILE_PATH));
 
         this.computePlugin.setClient(this.clientMock);
+        this.computePlugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
 
         this.cloudUser = new OpenStackV3User(TestUtils.FAKE_USER_ID, TestUtils.FAKE_USER_NAME,
                 this.FAKE_TOKEN_VALUE, this.FAKE_PROJECT_ID);
@@ -490,19 +497,29 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(defaultNetworkId, networkIds.get(0));
     }
 
+    // test case? test if
+    @Test
+    public void testSetAllocationToOrder() {
+        // set up
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        HardwareRequirements hardwareRequirements = Mockito.mock(HardwareRequirements.class);
+
+        // exercise
+        this.computePlugin.setAllocationToOrder(computeOrder, hardwareRequirements);
+
+        // verify
+        Mockito.verify(computeOrder, Mockito.times(testUtils.RUN_ONCE))
+                .setActualAllocation(Mockito.any(ComputeAllocation.class));
+    }
+
     @Test
     public void testDoRequestInstanceSuccessful() throws FogbowException, HttpResponseException {
         // set up
-        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
         Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(createCreateComputeResponseJson());
 
-        List<String> networkIds = getMockedNetworkIds();
-
-         HardwareRequirements fakeRequirements = getHardwareRequirementsList().first();
         // exercise
-        String instanceId = this.computePlugin.doRequestInstance(computeOrder, cloudUser,
-                FAKE_PROJECT_ID, flavorId, FAKE_KEY_NAME, networkIds, fakeRequirements);
+        String instanceId = this.computePlugin.doRequestInstance(cloudUser, FAKE_PROJECT_ID, FAKE_KEY_NAME, ANY_STRING);
 
         // verify
         Assert.assertEquals(this.instanceId, instanceId);
@@ -511,18 +528,13 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testDoRequestInstanceUnsuccessful() throws FogbowException, HttpResponseException {
         // set up
-        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
-        Mockito.doThrow(HttpResponseException.class)
-                .when(this.clientMock).doPostRequest(Mockito.any(), Mockito.any(), Mockito.any());
-
-        List<String> networkIds = getMockedNetworkIds();
-
-        HardwareRequirements fakeRequirements = getHardwareRequirementsList().first();
+        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(HttpResponseException.class);
 
         // exercise
-        this.computePlugin.doRequestInstance(computeOrder, cloudUser,
-                FAKE_PROJECT_ID, flavorId, FAKE_KEY_NAME, networkIds, fakeRequirements);
+        this.computePlugin.doRequestInstance(cloudUser, FAKE_PROJECT_ID, FAKE_KEY_NAME, ANY_STRING);
 
+        // verify
         Assert.fail();
     }
 
@@ -536,8 +548,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(new ArrayList<String>()).when(this.computePlugin).getNetworkIds(Mockito.any());
         Mockito.doReturn(ANY_STRING).when(this.computePlugin).getKeyName(Mockito.any(), Mockito.any(), Mockito.any());
 
-        Mockito.doReturn(ANY_STRING).when(this.computePlugin).doRequestInstance(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(ANY_STRING).when(this.computePlugin)
+                .doRequestInstance(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
         // exercise
         String instanceId = this.computePlugin.requestInstance(computeOrder, cloudUser);

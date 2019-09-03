@@ -47,15 +47,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         instantiateOtherAttributes();
     }
 
-    /**
-     * Constructor used for testing only
-     */
-    protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator) {
-        this.properties = properties;
-        this.launchCommandGenerator = launchCommandGenerator;
-        this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
-    }
-
     @Override
     public boolean isReady(String cloudState) {
         return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.READY);
@@ -80,7 +71,65 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         List<String> networkIds = getNetworkIds(computeOrder);
         String keyName = getKeyName(projectId, cloudUser, computeOrder.getPublicKey());
 
-        return doRequestInstance(computeOrder, cloudUser, projectId, flavorId, keyName, networkIds, hardwareRequirements);
+        String imageId = computeOrder.getImageId();
+        String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+        String instanceName = computeOrder.getName();
+
+        CreateComputeRequest request = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networkIds);
+
+        String body = request.toJson();
+
+        String instanceId = doRequestInstance(cloudUser, projectId, keyName, body);
+        setAllocationToOrder(computeOrder, hardwareRequirements);
+        return instanceId;
+    }
+    @Override
+    public ComputeInstance getInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
+
+        String jsonResponse = doGetInstance(endpoint, cloudUser);
+
+        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
+
+
+        computeInstance.setNetworks(getComputeNetworks());
+        return computeInstance;
+    }
+
+    @Override
+    public void deleteInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
+        this.doDeleteInstance(endpoint, cloudUser);
+    }
+
+    protected void doDeleteInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        try {
+            this.client.doDeleteRequest(endpoint, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+    }
+
+    protected String doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+        return jsonResponse;
+    }
+
+    protected List<NetworkSummary> getComputeNetworks() {
+        // The default network is always included in the order by the OpenStack plugin, thus it should be added
+        // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
+        // are appended by the LocalCloudConnector.
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        List<NetworkSummary> computeNetworks = new ArrayList<>();
+        computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
+        return computeNetworks;
     }
 
     protected List<String> getNetworkIds(ComputeOrder computeOrder) {
@@ -94,39 +143,16 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return networkIds;
     }
 
-    protected String doRequestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser,
-                                     String projectId, String flavorId, String keyName,
-                                     List<String> networkIds, HardwareRequirements hardwareRequirements)
+    protected String doRequestInstance(OpenStackV3User cloudUser, String projectId, String keyName, String body)
             throws FogbowException {
-
-        String imageId = computeOrder.getImageId();
-        String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String endpoint = getComputeEndpoint(projectId, SERVERS);
-        String instanceName = computeOrder.getName();
 
-        CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networkIds);
-
-        String body = createBody.toJson();
-        String response = null;
         String instanceId = null;
 
         try {
-            response = this.client.doPostRequest(endpoint, body, cloudUser);
-            synchronized (computeOrder) {
-                ComputeAllocation actualAllocation = new ComputeAllocation(
-                        hardwareRequirements.getCpu(),
-                        hardwareRequirements.getMemory(),
-                        1,
-                        hardwareRequirements.getDisk());
-                // When the ComputeOrder is remote, this field must be copied into its local counterpart
-                // that is updated when the requestingProvider receives the reply from the providingProvider
-                // (see RemoteFacade.java)
-                computeOrder.setActualAllocation(actualAllocation);
-
-                CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
-
-                instanceId = createComputeResponse.getId();
-            }
+            String response = this.client.doPostRequest(endpoint, body, cloudUser);
+            CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
+            instanceId = createComputeResponse.getId();
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         } finally {
@@ -138,39 +164,20 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return instanceId;
     }
 
-    @Override
-    public ComputeInstance getInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
-        String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(requestEndpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
-        // The default network is always included in the order by the OpenStack plugin, thus it should be added
-        // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
-        // are appended by the LocalCloudConnector.
-        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-        List<NetworkSummary> computeNetworks = new ArrayList<>();
-        computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
-        computeInstance.setNetworks(computeNetworks);
-        return computeInstance;
-    }
-
-    @Override
-    public void deleteInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
-        String endpoint = getComputeEndpoint(projectId, SERVERS + "/" + computeOrder.getInstanceId());
-        try {
-            this.client.doDeleteRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
+    protected void setAllocationToOrder(ComputeOrder computeOrder, HardwareRequirements hardwareRequirements) {
+        synchronized (computeOrder) {
+            ComputeAllocation actualAllocation = new ComputeAllocation(
+                    hardwareRequirements.getCpu(),
+                    hardwareRequirements.getMemory(),
+                    1,
+                    hardwareRequirements.getDisk());
+            // When the ComputeOrder is remote, this field must be copied into its local counterpart
+            // that is updated when the requestingProvider receives the reply from the providingProvider
+            // (see RemoteFacade.java)
+            computeOrder.setActualAllocation(actualAllocation);
         }
     }
+
 
     private void instantiateOtherAttributes() {
         this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
@@ -233,8 +240,14 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             }
         }
 
+        return getCreateComputeRequest(instanceName, imageRef, flavorRef, userdata, keyName, networks, securityGroups);
+    }
+
+    private CreateComputeRequest getCreateComputeRequest(String instanceName, String imageRef, String flavorRef,
+                                                        String userdata, String keyName, List<CreateComputeRequest.Network> networks,
+                                                        List<CreateComputeRequest.SecurityGroup> securityGroups) {
         // do not specify security groups if no additional network was given
-        securityGroups = securityGroups.size() == 0 ? null : securityGroups;
+        securityGroups = securityGroups.isEmpty() ? null : securityGroups;
 
         String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
@@ -339,28 +352,33 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             }
 
             if (!containsFlavorForCaching) {
-                String newEndpoint = endpoint + "/" + flavorId;
-
-                String getJsonResponse = null;
-
-                try {
-                    getJsonResponse = this.client.doGetRequest(newEndpoint, cloudUser);
-                } catch (HttpResponseException e) {
-                    OpenStackHttpToFogbowExceptionMapper.map(e);
-                }
-
-                GetFlavorResponse getFlavorResponse = GetFlavorResponse.fromJson(getJsonResponse);
-
-                String id = getFlavorResponse.getId();
-                String name = getFlavorResponse.getName();
-                int disk = getFlavorResponse.getDisk();
-                int memory = getFlavorResponse.getMemory();
-                int vcpusCount = getFlavorResponse.getVcpusCount();
-
-                newHardwareRequirements.add(new HardwareRequirements(name, id, vcpusCount, memory, disk));
+                HardwareRequirements requirements = fetchHardwareRequirements(endpoint, cloudUser, flavorId);
+                newHardwareRequirements.add(requirements);
             }
         }
         return newHardwareRequirements;
+    }
+
+    private HardwareRequirements fetchHardwareRequirements(String endpoint, OpenStackV3User cloudUser, String flavorId) throws FogbowException {
+        String newEndpoint = endpoint + "/" + flavorId;
+
+        String getJsonResponse = null;
+
+        try {
+            getJsonResponse = this.client.doGetRequest(newEndpoint, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+
+        GetFlavorResponse getFlavorResponse = GetFlavorResponse.fromJson(getJsonResponse);
+
+        String id = getFlavorResponse.getId();
+        String name = getFlavorResponse.getName();
+        int disk = getFlavorResponse.getDisk();
+        int memory = getFlavorResponse.getMemory();
+        int vcpusCount = getFlavorResponse.getVcpusCount();
+
+        return new HardwareRequirements(name, id, vcpusCount, memory, disk);
     }
 
     protected ComputeInstance getInstanceFromJson(String getRawResponse) {
@@ -404,5 +422,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     public void setClient(OpenStackHttpClient client) {
         this.client = client;
+    }
+
+    public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+        this.launchCommandGenerator = launchCommandGenerator;
     }
 }
