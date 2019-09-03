@@ -1,12 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -223,67 +221,33 @@ public class Rule {
 	
 	public String getCIDR() {
 	    String cidr = ALL_XML_TEMPLATE_VALUE;
-		if (this.ip == null) {
-		    return cidr;
+		if (this.ip != null) {
+			try {
+				cidr = this.generateAddressCidr(this.ip, this.size);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
 		}
-
-		try {
-			if (CidrUtils.isIpv4(this.ip)) return this.generateAddressCidr(this.ip, this.size);
-			else return this.calculateSubnetMask();
-		} catch (NumberFormatException e) {
-			return cidr;
-		}
+		return cidr;
 	}
 
 	protected String generateAddressCidr(String address, String rangeSize) throws NumberFormatException {
-		return String.format(CIDR_FORMAT, address, this.calculateCidrIpV4(Integer.parseInt(rangeSize)));
+		return String.format(CIDR_FORMAT, address, this.calculateCidr(Integer.parseInt(rangeSize), CidrUtils.isIpv4(this.ip)));
 	}
 
-	protected int calculateCidrIpV4(int size) {
+	protected int calculateCidr(int size, boolean isIpv4) {
+		int amountBits = isIpv4 ? IPV4_AMOUNT_BITS : IPV6_AMOUNT_BITS;
 		int exponent = 1;
 		int value = 0;
-		for (int i = 0; i < IPV4_AMOUNT_BITS; i++)
+		for (int i = 0; i < amountBits; i++) {
 			if (exponent >= size) {
-				value = IPV4_AMOUNT_BITS - i;
+				value = amountBits - i;
 				return value;
 			} else {
 				exponent *= BASE_VALUE;
 			}
+		}
 		return value;
-	}
-
-	protected String calculateSubnetMask() {
-		try {
-			if (CidrUtils.isIpv6(this.ip)) {
-				return getSubnetIPV6(this.size);
-			} else {
-				LOGGER.warn(String.format(Messages.Error.INCONSISTENT_IP_S, this.ip));
-				return null;
-			}
-		} catch (Exception e) {
-			LOGGER.warn(Messages.Error.UNABLE_TO_CALCULATE_SUBNET_MASK, e);
-			return String.valueOf(INT_ERROR_CODE);
-		}
-	}
-
-	protected static String getSubnetIPV4(String arg) {
-		try {
-			int size = Integer.parseInt(arg);
-			return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
-		} catch (Exception e) {
-			LOGGER.warn(String.format("The parameter is inconsistent"), e);
-			return null;
-		}		
-	}
-
-	protected static String getSubnetIPV6(String arg) {
-		try {
-			int size = Integer.parseInt(arg);
-			return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
-		} catch (Exception e) {
-			LOGGER.warn(String.format("The parameter is inconsistent"), e);
-			return null;
-		}
 	}
 	
 	public String serialize() {

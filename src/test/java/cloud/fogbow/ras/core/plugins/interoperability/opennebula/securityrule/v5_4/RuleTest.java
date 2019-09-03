@@ -6,13 +6,21 @@ import org.junit.Test;
 
 public class RuleTest {
 
+    private static final String FAKE_IPV4 = "10.10.0.0";
+    private static final String FAKE_IPV6 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    private static final String INVALID_IPV4 = "10.10";
+    private static final String UNKNOWN_RULE_TYPE = "unknown";
+    private static final String CIDR_NOTATION_FORMAT = "%s%s%s";
+    private static final String INVALID_RANGE = "20#30";
+    private static final String INCONSISTENT_PROTOCOL = "isconsistent";
+
     // test case: success case
     @Test
     public void testGetEtherType() {
         // type ipv4
         // setup
         Rule rule = new Rule();
-        rule.setIp("10.10.0.0");
+        rule.setIp(FAKE_IPV4);
         // exercise
         SecurityRule.EtherType etherType = rule.getEtherType();
         //verify
@@ -21,7 +29,7 @@ public class RuleTest {
         // type ipv6
         // setup
         Rule ruleTwo = new Rule();
-        ruleTwo.setIp("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
+        ruleTwo.setIp(FAKE_IPV6);
         // exercise
         SecurityRule.EtherType etherTypeTwo = ruleTwo.getEtherType();
         //verify
@@ -34,7 +42,7 @@ public class RuleTest {
         // type ipv4
         // setup
         Rule rule = new Rule();
-        rule.setIp("10.10");
+        rule.setIp(INVALID_IPV4);
         // exercise
         SecurityRule.EtherType etherType = rule.getEtherType();
         //verify
@@ -67,7 +75,7 @@ public class RuleTest {
     public void testGetDirectionUnknown() {
         // setup
         Rule rule = new Rule();
-        rule.setType("unknown");
+        rule.setType(UNKNOWN_RULE_TYPE);
         // exercise
         SecurityRule.Direction direction = rule.getDirection();
         // verify
@@ -82,7 +90,7 @@ public class RuleTest {
         int portToExpected = 3000;
         int portFromExpected = 22;
         String separator = Rule.OPENNEBULA_RANGE_SEPARATOR;
-        String range = String.format("%s%s%s", portFromExpected, separator, portToExpected);
+        String range = String.format(CIDR_NOTATION_FORMAT, portFromExpected, separator, portToExpected);
         rule.setRange(range);
 
         // verify
@@ -99,7 +107,7 @@ public class RuleTest {
     public void testGetPortInRangeWithInconsistentFormat() {
         // setup
         Rule rule = new Rule();
-        rule.setRange("20");
+        rule.setRange(INVALID_RANGE);
         // verify
         int portFrom = rule.getPortInRange(Rule.POSITION_PORT_FROM_IN_RANGE);
         Assert.assertEquals(Rule.INT_ERROR_CODE, portFrom);
@@ -119,27 +127,27 @@ public class RuleTest {
     @Test
     public void testGetCIDRIPV4() {
         // setup
-        String ipUnique = "10.10.0.0";
+
 
         Rule rule = new Rule();
         String size = "256";
         int subnetBySize = 24;
-        rule.setIp(ipUnique);
+        rule.setIp(FAKE_IPV4);
         rule.setSize(size);
 
         // exercise and verify
-        String cirdExpected = String.format("%s%s%s", ipUnique, Rule.CIRD_SEPARATOR, subnetBySize);
+        String cirdExpected = String.format(CIDR_NOTATION_FORMAT, FAKE_IPV4, Rule.CIRD_SEPARATOR, subnetBySize);
         Assert.assertEquals(cirdExpected, rule.getCIDR());
 
         // setup two
         Rule ruleTwo = new Rule();
         String sizeTwo = "65536";
         int subnetBySizeTwo = 16;
-        ruleTwo.setIp(ipUnique);
+        ruleTwo.setIp(FAKE_IPV4);
         ruleTwo.setSize(sizeTwo);
 
         // exercise and verify two
-        String cirdExpectedTwo = String.format("%s%s%s", ipUnique, Rule.CIRD_SEPARATOR, subnetBySizeTwo);
+        String cirdExpectedTwo = String.format(CIDR_NOTATION_FORMAT, FAKE_IPV4, Rule.CIRD_SEPARATOR, subnetBySizeTwo);
         Assert.assertEquals(cirdExpectedTwo, ruleTwo.getCIDR());
     }
 
@@ -155,27 +163,25 @@ public class RuleTest {
     @Test
     public void testGetCIDRIPV6() {
         // setup
-        String ipUnique = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
-
         Rule rule = new Rule();
         String size = "256";
         int subnetBySize = 120;
-        rule.setIp(ipUnique);
+        rule.setIp(FAKE_IPV6);
         rule.setSize(size);
 
         // exercise and verify
-        String cirdExpected = String.format("%s%s%s", ipUnique, Rule.CIRD_SEPARATOR, subnetBySize);
+        String cirdExpected = String.format(CIDR_NOTATION_FORMAT, FAKE_IPV6, Rule.CIRD_SEPARATOR, subnetBySize);
         Assert.assertEquals(cirdExpected, rule.getCIDR());
 
         // setup two
         Rule ruleTwo = new Rule();
         String sizeTwo = "268435456";
         int subnetBySizeTwo = 100;
-        ruleTwo.setIp(ipUnique);
+        ruleTwo.setIp(FAKE_IPV6);
         ruleTwo.setSize(sizeTwo);
 
         // exercise and verify two
-        String cirdExpectedTwo = String.format("%s%s%s", ipUnique, Rule.CIRD_SEPARATOR, subnetBySizeTwo);
+        String cirdExpectedTwo = String.format(CIDR_NOTATION_FORMAT, FAKE_IPV6, Rule.CIRD_SEPARATOR, subnetBySizeTwo);
         Assert.assertEquals(cirdExpectedTwo, ruleTwo.getCIDR());
     }
 
@@ -235,10 +241,9 @@ public class RuleTest {
     public void testGetSRProtocol() {
         // setup
         Rule rule = new Rule();
-        rule.setProtocol("isconsistent");
+        rule.setProtocol(INCONSISTENT_PROTOCOL);
 
         // exercise and verify
         Assert.assertNull(rule.getSRProtocol());
     }
-
 }
