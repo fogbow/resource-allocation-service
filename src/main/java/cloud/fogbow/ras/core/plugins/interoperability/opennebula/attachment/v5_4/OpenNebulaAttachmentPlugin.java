@@ -174,6 +174,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 			LOGGER.error(message);
 			throw new InvalidParameterException(message);
 		}
+
 		return virtualMachine;
 	}
 }

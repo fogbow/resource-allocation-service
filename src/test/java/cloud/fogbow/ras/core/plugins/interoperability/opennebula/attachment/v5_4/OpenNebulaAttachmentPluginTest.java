@@ -2,9 +2,11 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 
 import java.io.File;
 
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -172,14 +174,46 @@ public class OpenNebulaAttachmentPluginTest extends BaseUnitTests {
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.eq(this.attachmentOrder.getVolumeId()), Mockito.eq(template));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getDiskIdFromContenOf(Mockito.eq(virtualMachine));
 	}
-	
+
+	// test case: When calling the requestInstance method with a valid template, OpenNebulaClientUtil should retrieve
+	// the VM, call the diskAttach method and return a VirtualMachine object with the attached disk.
+	@Test
+	public void testDoRequestInstance() throws FogbowException {
+		// set up
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+		PowerMockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(virtualMachine);
+
+		String template = generateAttachmentTemplate();
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualMachine.diskAttach(Mockito.contains(template))).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+
+		Mockito.when(virtualMachine.info()).thenReturn(response);
+		Mockito.when(response.getMessage()).thenReturn(VIRTUAL_MACHINE_CONTENT);
+
+		String expectedDiskId = this.attachmentOrder.getVolumeId();
+
+		// exercise
+		this.plugin.doRequestInstance(Mockito.any(Client.class), Mockito.anyString(),
+				Mockito.anyString(), Mockito.eq(template));
+
+        // verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
+
+		Mockito.verify(virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).diskAttach(Mockito.eq(template));
+	}
+
 	// test case: When calling the requestInstance method, with the fake instance ID
 	// or an invalid token, an error will occur and an InvalidParameterException
 	// will be thrown.
-	@Test(expected = InvalidParameterException.class)
+    @Test
 	public void testDoRequestInstanceFail() throws FogbowException {
 		// set up
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		PowerMockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
 				.thenReturn(virtualMachine);
@@ -189,14 +223,16 @@ public class OpenNebulaAttachmentPluginTest extends BaseUnitTests {
 		Mockito.when(virtualMachine.diskAttach(Mockito.anyString())).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
+        String expected = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME, "", response.getMessage());
+
 		// exercise
-		this.plugin.doRequestInstance(Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString(), template);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
-
-		Mockito.verify(virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).diskAttach(template);
+		try {
+			this.plugin.doRequestInstance(Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString(), Mockito.eq(template));
+			Assert.fail();
+		} catch (InvalidParameterException e) {
+			// Verify
+			Assert.assertEquals(expected, e.getMessage());
+		}
 	}
 
 	// test case: When calling the deleteInstance method with an AttachmentOrder
