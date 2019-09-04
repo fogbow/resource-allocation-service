@@ -5,13 +5,14 @@ import java.io.File;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
@@ -52,6 +53,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
 	private static final String ANY_VALUE = "anything";
 	private static final String EMPTY_PORTS_FROM_JSON_RESPONSE = "{\"ports\":[]}";
 	private static final String EMPTY_SECURITY_GROUP_FROM_JSON_RESPONSE = "{\"security_groups\":[]}";
+	private static final String EMPTY_STRING = "";
 	private static final String FAKE_CREATE_FLOATING_IP_FROM_JSON_RESPONSE = "{\"floatingip\":{\"id\":\"fake-instance-id\"}}";
 	private static final String FAKE_CREATE_SECURITY_GROUP_FROM_JSON_RESPONSE = "{\"security_group\":{\"id\":\"fake-security-group-id\"}}";
 	private static final String FAKE_FLOATING_NETWORK_ID = "fake-floating-network-id";
@@ -59,12 +61,13 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
 	private static final String FAKE_GET_SECURITY_GROUPS_FROM_JSON_RESPONSE = "{\"security_groups\":[{\"id\":\"fake-security-group-id\"}]}";
 	private static final String FAKE_NETWORK_ID = "fake-network-id";
 	private static final String FAKE_NETWORK_PORT_ID = "fake-network-port-id";
-	private static final String FAKE_NETWORK_PORTS_SUFIX_ENDPOINT = "?device_id={fake-compute-id}&network_id={fake-network-id}";
+	private static final String FAKE_NETWORK_PORTS_SUFIX_ENDPOINT = "?device_id=fake-compute-id&network_id=fake-network-id";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_PUBLIC_IP_FROM_JSON_RESPONSE = "{\"floatingip\":{\"floating_ip_address\":\"fake-address\",\"id\":\"fake-instance-id\",\"status\": \"ACTIVE\"}}";
     private static final String FAKE_SECURITY_GROUP_ID = "fake-security-group-id";
     private static final String FAKE_SECURITY_GROUP_NAME = "fogbow-sg-pip-fake-instance-id";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+    private static final String JSON_MALFORMED = "{anything:}";
     private static final String MAP_METHOD = "map";
     private static final String MESSAGE_STATUS_CODE = "Internal server error.";
     private static final String NEUTRON_PREFIX_ENDPOINT = "https://mycloud.domain:9696";
@@ -116,22 +119,6 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertFalse(status);
-    }
-    
-    // test case: When calling the hasFailed method with the cloud states different
-    // than active, this means that the state of the public IP is FAILED and it must
-    // return true.
-    @Ignore // TODO check the functionality of this method... 
-    @Test
-    public void testHasFailed() {
-        // set up
-        String cloudState = ANY_VALUE;
-
-        // exercise
-        boolean status = this.plugin.hasFailed(cloudState);
-
-        // verify
-        Assert.assertTrue(status);
     }
     
     // test case: When calling the hasFailed method with the cloud states active,
@@ -469,6 +456,24 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
+    // test case: When calling the doGetSecurityGroupsResponseFrom method with a
+    // JSON malformed, it must verify that a UnexpectedException was throw.
+    @Test
+    public void testDoGetSecurityGroupsResponseFromJsonMalformed() throws FogbowException {
+        // set up
+        String json = JSON_MALFORMED;
+        String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                OpenStackPublicIpPlugin.SECURITY_GROUP_RESOURCE);
+        try {
+            // exercise
+            this.plugin.doGetSecurityGroupsResponseFrom(json);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
     // test case: When calling the doGetInstance method, it must verify that the
     // call was successful.
     @Test
@@ -503,6 +508,24 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         GetFloatingIpResponse.fromJson(Mockito.eq(json));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildPublicIpInstance(Mockito.eq(response));
+    }
+    
+    // test case: When calling the doGetFloatingIpResponseFrom method with a
+    // JSON malformed, it must verify that a UnexpectedException was throw.
+    @Test
+    public void testDoGetFloatingIpResponseFromJsonMalformed() throws FogbowException {
+        // set up
+        String json = JSON_MALFORMED;
+        String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                OpenStackPublicIpPlugin.PUBLIC_IP_RESOURCE);
+        try {
+            // exercise
+            this.plugin.doGetFloatingIpResponseFrom(json);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
     // test case: When calling the associateSecurityGroup method, it must verify
@@ -813,6 +836,24 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
+    // test case: When calling the doCreateSecurityGroupResponseFrom method with a
+    // JSON malformed, it must verify that a UnexpectedException was throw.
+    @Test
+    public void testDoCreateSecurityGroupResponseFromJsonMalformed() throws FogbowException {
+        // set up
+        String json = JSON_MALFORMED;
+        String expected = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
+                OpenStackPublicIpPlugin.SECURITY_GROUP_RESOURCE);
+        try {
+            // exercise
+            this.plugin.doCreateSecurityGroupResponseFrom(json);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
     // test case: When calling the doRequestInstance method, it must verify
     // that the call was successful.
     @Test
@@ -885,10 +926,28 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
+    // test case: When calling the doCreateFloatingIpResponseFrom method with a
+    // JSON malformed, it must verify that a UnexpectedException was throw.
+    @Test
+    public void testDoCreateFloatingIpResponseFromJsonMalformed() throws FogbowException {
+        // set up
+        String json = JSON_MALFORMED;
+        String expected = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
+                OpenStackPublicIpPlugin.PUBLIC_IP_RESOURCE);
+        try {
+            // exercise
+            this.plugin.doCreateFloatingIpResponseFrom(json);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
     // test case: When calling the getNetworkPortId method, it must verify
     // that the call was successful.
     @Test
-    public void testDetNetworkPortId() throws Exception {
+    public void testGetNetworkPortId() throws Exception {
         // set up
         String computeId = TestUtils.FAKE_COMPUTE_ID;
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
@@ -936,7 +995,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     // test case: When calling the getNetworkPortId method with a non-existent ID,
     // it must return to an empty network ports and throw an UnexpectedException.
     @Test
-    public void testDetNetworkPortIdFail() throws Exception {
+    public void testGetNetworkPortIdFail() throws Exception {
         // set up
         String computeId = TestUtils.FAKE_COMPUTE_ID;
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
@@ -973,15 +1032,187 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.assertEquals(expected, e.getMessage());
         }
     }
-
-    // test case: ...
+    
+    // test case: When calling the doGetNetworkPortsRersponseFrom method with a
+    // JSON malformed, it must verify that a UnexpectedException was throw.
     @Test
-    public void test() {
+    public void testDoGetNetworkPortsRersponseFromJsonMalformed() throws FogbowException {
         // set up
+        String json = JSON_MALFORMED;
+        String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                OpenStackPublicIpPlugin.NETWORK_PORTS_RESOURCE);
+        try {
+            // exercise
+            this.plugin.doGetNetworkPortsRersponseFrom(json);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doGetResponseFromCloud method, it must verify
+    // that the call was successful.
+    @Test
+    public void testDoGetResponseFromCloud() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.FLOATINGIPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + TestUtils.FAKE_INSTANCE_ID;
+
+        String json = FAKE_PUBLIC_IP_FROM_JSON_RESPONSE;
+        Mockito.doReturn(json).when(this.client).doGetRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
 
         // exercise
+        this.plugin.doGetResponseFromCloud(endpoint, cloudUser);
 
         // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doGetRequest(Mockito.eq(endpoint),
+                Mockito.eq(cloudUser));
+    }
+    
+    // test case: When calling the doGetResponseFromCloud method and an unexpected
+    // error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    @Test
+    public void testDoGetResponseFromCloudFail() throws Exception {
+        // set up
+        OpenStackV3User cloudUser = createOpenStackUser();
+
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.FLOATINGIPS 
+                + OpenStackPublicIpPlugin.ENDPOINT_SEPARATOR
+                + TestUtils.FAKE_INSTANCE_ID;
+
+        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        Mockito.doThrow(expectedException).when(this.client).doGetRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+
+        try {
+            // exercise
+            this.plugin.doGetResponseFromCloud(endpoint, cloudUser);
+            Assert.fail();
+        } catch (Exception e) {
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+        }
+    }
+    
+    // test case: When calling the buildNetworkPortsEndpoint method with consistent
+    // parameters, it must compose a valid URL.
+    @Test
+    public void testBuildNetworkPortsEndpoint() throws Exception {
+        // set up
+        String deviceId = TestUtils.FAKE_COMPUTE_ID;
+        String networkId = FAKE_NETWORK_ID;
+        String endpoint = NEUTRON_PREFIX_ENDPOINT 
+                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
+                + OpenStackPublicIpPlugin.PORTS;
+
+        String expected = endpoint + FAKE_NETWORK_PORTS_SUFIX_ENDPOINT;
+
+        // exercise
+        String url = this.plugin.buildNetworkPortsEndpoint(deviceId, networkId, endpoint);
+
+        // verify
+        Assert.assertEquals(expected, url);
+    }
+    
+    // test case: When calling the buildNetworkPortsEndpoint method with inconsistent
+    // parameters, it must throw a InvalidParameterException.
+    @Test
+    public void testBuildNetworkPortsEndpointFail() throws Exception {
+        // set up
+        String deviceId = TestUtils.FAKE_COMPUTE_ID;
+        String networkId = FAKE_NETWORK_ID;
+        String endpoint = JSON_MALFORMED;
+
+        String expected = String.format(Messages.Exception.WRONG_URI_SYNTAX, endpoint);
+
+        try {
+            // exercise
+            this.plugin.buildNetworkPortsEndpoint(deviceId, networkId, endpoint);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the checkProperties method with inconsistent default
+    // network ID from the configuration file, it must throw a FatalErrorException.
+    @Test
+    public void testCheckPropertiesWithoutDefaultNetworkId() {
+        // set up
+        String[] defaultNetworkIds = { null, EMPTY_STRING };
+        String expected = Messages.Fatal.DEFAULT_NETWORK_NOT_FOUND;
+
+        for (String defaultNetworkId : defaultNetworkIds) {
+            Mockito.doReturn(defaultNetworkId).when(this.plugin).getDefaultNetworkId();
+
+            try {
+                // exercise
+                this.plugin.checkProperties();
+                Assert.fail();
+
+            } catch (FatalErrorException e) {
+                // verify
+                Assert.assertEquals(expected, e.getMessage());
+            }
+        }
+    }
+    
+    // test case: When calling the checkProperties method with inconsistent external
+    // network ID from the configuration file, it must throw a FatalErrorException.
+    @Test
+    public void testCheckPropertiesWithoutExternalNetworkId() {
+        // set up
+        String[] defaultNetworkIds = { null, EMPTY_STRING };
+        String expected = Messages.Fatal.EXTERNAL_NETWORK_NOT_FOUND;
+
+        for (String defaultNetworkId : defaultNetworkIds) {
+            Mockito.doReturn(defaultNetworkId).when(this.plugin).getExternalNetworkId();
+
+            try {
+                // exercise
+                this.plugin.checkProperties();
+                Assert.fail();
+
+            } catch (FatalErrorException e) {
+                // verify
+                Assert.assertEquals(expected, e.getMessage());
+            }
+        }
+    }
+
+    // test case: When calling the checkProperties method with inconsistent prefix
+    // end-point from the configuration file, it must throw a FatalErrorException.
+    @Test
+    public void testCheckPropertiesWithoutgetNeutronPrefixEndpoint() {
+        // set up
+        String[] defaultNetworkIds = { null, EMPTY_STRING };
+        String expected = Messages.Fatal.NEUTRON_ENDPOINT_NOT_FOUND;
+
+        for (String defaultNetworkId : defaultNetworkIds) {
+            Mockito.doReturn(defaultNetworkId).when(this.plugin).getNeutronPrefixEndpoint();
+
+            try {
+                // exercise
+                this.plugin.checkProperties();
+                Assert.fail();
+
+            } catch (FatalErrorException e) {
+                // verify
+                Assert.assertEquals(expected, e.getMessage());
+            }
+        }
     }
     
     private PublicIpInstance createPublicIpInstance() {
@@ -991,7 +1222,6 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         return new PublicIpInstance(id, cloudState, ip);
     }
     
-    // TODO Create a OpenStackTestUtils to unify common methods made these...
     private OpenStackV3User createOpenStackUser() {
         String userId = TestUtils.FAKE_USER_ID;
         String userName = TestUtils.FAKE_USER_NAME;
