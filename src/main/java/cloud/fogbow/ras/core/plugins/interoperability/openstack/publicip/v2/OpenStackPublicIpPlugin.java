@@ -7,6 +7,8 @@ import java.util.Properties;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
+import com.google.gson.JsonSyntaxException;
+
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -35,14 +37,17 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetS
 
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> {
 
-    private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class); // FIXME this unused constant...
+    private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class);
 
     protected static final String ENDPOINT_SEPARATOR = "/";
     protected static final String FLOATINGIPS = "/floatingips";
     protected static final String IPV4_ETHER_TYPE = "IPv4";
     protected static final String IPV6_ETHER_TYPE = "IPv6";
+    protected static final String NETWORK_PORTS_RESOURCE = "Network Ports";
     protected static final String PORTS = "/ports";
+    protected static final String PUBLIC_IP_RESOURCE = "Public IP";
     protected static final String QUERY_NAME = "?name=";
+    protected static final String SECURITY_GROUP_RESOURCE = "Security Group";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -132,7 +137,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = getSecurityGroupsEndpoint() + QUERY_NAME + securityGroupName;
         String json = doGetResponseFromCloud(endpoint, cloudUser);
-        GetSecurityGroupsResponse response = GetSecurityGroupsResponse.fromJson(json);
+        GetSecurityGroupsResponse response = doGetSecurityGroupsResponseFrom(json);
         
         List<SecurityGroup> securityGroups = response.getSecurityGroups();
         if (securityGroups != null && !securityGroups.isEmpty()) {
@@ -141,10 +146,20 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
             throw new UnexpectedException(String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND, json));
         }
     }
+
+    protected GetSecurityGroupsResponse doGetSecurityGroupsResponseFrom(String json) throws FogbowException {
+        try {
+            return GetSecurityGroupsResponse.fromJson(json);
+        } catch (JsonSyntaxException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD, SECURITY_GROUP_RESOURCE);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
+    }
     
     protected PublicIpInstance doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = doGetResponseFromCloud(endpoint, cloudUser);
-        GetFloatingIpResponse response = GetFloatingIpResponse.fromJson(jsonResponse);
+        GetFloatingIpResponse response = doGetFloatingIpResponseFrom(jsonResponse);
         return buildPublicIpInstance(response);
     }
     
@@ -154,6 +169,16 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         String cloudStatus = floatingIp.getStatus();
         String ip = floatingIp.getFloatingIpAddress();
         return new PublicIpInstance(id, cloudStatus, ip);
+    }
+
+    protected GetFloatingIpResponse doGetFloatingIpResponseFrom(String json) throws FogbowException {
+        try {
+            return GetFloatingIpResponse.fromJson(json);
+        } catch (JsonSyntaxException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD, PUBLIC_IP_RESOURCE);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
     }
     
     protected String getFloatingIpEndpoint() {
@@ -253,8 +278,18 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        CreateSecurityGroupResponse securityGroupResponse = CreateSecurityGroupResponse.fromJson(jsonResponse);
+        CreateSecurityGroupResponse securityGroupResponse = doCreateSecurityGroupResponseFrom(jsonResponse);
         return securityGroupResponse.getId();
+    }
+
+    protected CreateSecurityGroupResponse doCreateSecurityGroupResponseFrom(String json) throws FogbowException {
+        try {
+            return CreateSecurityGroupResponse.fromJson(json);
+        } catch (JsonSyntaxException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S, SECURITY_GROUP_RESOURCE);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
     }
 
     protected String getSecurityGroupsEndpoint() {
@@ -272,8 +307,18 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        CreateFloatingIpResponse response = CreateFloatingIpResponse.fromJson(jsonResponse);
+        CreateFloatingIpResponse response = doCreateFloatingIpResponseFrom(jsonResponse);
         return response.getFloatingIp().getId();
+    }
+
+    protected CreateFloatingIpResponse doCreateFloatingIpResponseFrom(String json) throws FogbowException {
+        try {
+            return CreateFloatingIpResponse.fromJson(json);
+        } catch (JsonSyntaxException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S, PUBLIC_IP_RESOURCE);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
     }
 
     protected String getNetworkPortId(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
@@ -282,13 +327,23 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         String endpointBase = getNetworkPortsEndpoint();
         String endpoint = buildNetworkPortsEndpoint(computeId, defaulNetworkId, endpointBase);
         String json = doGetResponseFromCloud(endpoint, cloudUser);
-        GetNetworkPortsResponse response = GetNetworkPortsResponse.fromJson(json);
+        GetNetworkPortsResponse response = doGetNetworkPortsRersponseFrom(json);
 
         List<Port> ports = response.getPorts();
         if (ports != null && !ports.isEmpty()) {
             return ports.listIterator().next().getId();
         } else {
             throw new UnexpectedException(String.format(Messages.Exception.PORT_NOT_FOUND, computeId, defaulNetworkId));
+        }
+    }
+
+    protected GetNetworkPortsResponse doGetNetworkPortsRersponseFrom(String json) throws FogbowException {
+        try {
+            return GetNetworkPortsResponse.fromJson(json);
+        } catch (JsonSyntaxException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD, NETWORK_PORTS_RESOURCE);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
         }
     }
 
