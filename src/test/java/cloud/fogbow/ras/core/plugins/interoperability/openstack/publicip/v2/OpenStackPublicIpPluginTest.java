@@ -76,23 +76,23 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     private static final int ERROR_STATUS_CODE = 500;
     private static final int RUN_TWICE = 2;
     
-	@Before
-	public void setUp() throws Exception {
-	    this.testUtils.mockReadOrdersFromDataBase();
+    @Before
+    public void setUp() throws Exception {
+        this.testUtils.mockReadOrdersFromDataBase();
         this.client = Mockito.mock(OpenStackHttpClient.class);
-		
+
         String openstackCloudConfPath = HomeDir.getPath() 
-		        + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME 
-		        + File.separator
-				+ TestUtils.DEFAULT_CLOUD_NAME 
-		        + File.separator 
-		        + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        
-		this.plugin = Mockito.spy(new OpenStackPublicIpPlugin(openstackCloudConfPath));
+                + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+                + File.separator 
+                + TestUtils.DEFAULT_CLOUD_NAME 
+                + File.separator
+                + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+
+        this.plugin = Mockito.spy(new OpenStackPublicIpPlugin(openstackCloudConfPath));
         this.plugin.setClient(this.client);
-	}
+    }
 	
-	// test case: When calling the isReady method with the cloud states active,
+    // test case: When calling the isReady method with the cloud states active,
     // this means that the state of public IP is READY and it must return true.
     @Test
     public void testIsReady() {
