@@ -72,15 +72,15 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+		String volumeId = volumeOrder.getInstanceId();
 		
 		DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-			.volumeIds(volumeOrder.getInstanceId())
-			.build();
-
-		DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
-		return buildVolumeInstance(response);
+	            .volumeIds(volumeId)
+	            .build();
+		
+		return doGetInstance(request, client);
 	}
-	
+
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
@@ -89,32 +89,25 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 		String volumeId = volumeOrder.getInstanceId();
 		
 		DeleteVolumeRequest request = DeleteVolumeRequest.builder()
-			.volumeId(volumeOrder.getInstanceId())
+			.volumeId(volumeId)
 			.build();
 
-		doDeleteInstance(volumeId, request, client);
+		doDeleteInstance(request, client);
 	}
 
-	private String doRequestInstance(CreateVolumeRequest request, String name, Ec2Client client) throws FogbowException {
-        String volumeId;
-        try {
-            CreateVolumeResponse response = client.createVolume(request);
-            volumeId = response.volumeId();
-            AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
-        } catch (FogbowException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-        }
-        return volumeId;
-    }
-
-	protected void doDeleteInstance(String volumeId, DeleteVolumeRequest request, Ec2Client client) throws UnexpectedException {
+	protected void doDeleteInstance(DeleteVolumeRequest request, Ec2Client client) throws UnexpectedException {
 		try {
 			client.deleteVolume(request);
 		} catch (SdkException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, request.volumeId()), e);
 			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
+	
+    protected VolumeInstance doGetInstance(DescribeVolumesRequest request, Ec2Client client) throws FogbowException {
+        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
+        return buildVolumeInstance(response);
+    }
 
     protected VolumeInstance buildVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
         Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
@@ -125,4 +118,16 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
         return new VolumeInstance(id, cloudState, name, size);
     }
 	
+    protected String doRequestInstance(CreateVolumeRequest request, String name, Ec2Client client) throws FogbowException {
+        String volumeId;
+        try {
+            CreateVolumeResponse response = client.createVolume(request);
+            volumeId = response.volumeId();
+            AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
+        } catch (Exception e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+        return volumeId;
+    }
+    
 }
