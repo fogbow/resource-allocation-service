@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -25,7 +26,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.*;
 
-@PrepareForTest({DatabaseManager.class, GetFlavorResponse.class, PropertiesUtil.class})
+@PrepareForTest({DatabaseManager.class, GetFlavorResponse.class,
+        PropertiesUtil.class, OpenStackHttpToFogbowExceptionMapper.class})
 public class OpenStackComputePluginTest extends BaseUnitTests {
 
     private OpenStackComputePlugin computePlugin;
@@ -47,6 +49,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
     private static final String FAKE_REQUIREMENT = "fake-key-1";
     private static final String FAKE_UNMET_REQUIREMENT = "this-requiremnt-isnot-going-to-be-fullfiled";
+    private static final String MAP_METHOD = "map";
 
     private final String privateNetworkId = "fake-private-network-id";
     private final String userData = "userDataFromLauchCommand";
@@ -175,21 +178,38 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     }
 
     // test case: when doCreateKeyName() request fails, it must
-    // call OpenStackHttpToFogbowExceptionMapper.map(e)
-    @Test(expected = UnexpectedException.class)
-    public void testDoCreateKeyNameUnsuccessful() throws FogbowException, HttpResponseException {
-        // set up
-        PowerMockito.mockStatic();
-        Mockito.doReturn(ANY_URL).when(this.computePlugin)
-                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+    // call the clients POST method
+    @Test
+    public void testDoCreateKeyNameSuccessful() throws Exception {
+        // exercise
+        this.computePlugin.doCreateKeyName(cloudUser, ANY_URL, ANY_STRING);
 
-        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenThrow(HttpResponseException.class);
+        // verify
+        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE))
+                .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any());
+    }
+
+    @Test
+    public void testDoCreateKeyNameUnsuccessful() throws Exception {
+        // set up
+        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
+        Mockito.when(this.clientMock.doPostRequest(Mockito.anyString(),
+                Mockito.anyString(), Mockito.eq(cloudUser))).thenThrow(exception);
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         // exercise
-        this.computePlugin.getKeyName(this.FAKE_PROJECT_ID, cloudUser, publicKey);
+        try {
+            this.computePlugin.doCreateKeyName(cloudUser, ANY_URL, ANY_STRING);
+            Assert.fail();
+        } catch (FogbowException e) {
+            // verify
+            Assert.assertEquals(exception.getMessage(), e.getMessage());
 
-        Assert.fail();
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+        }
     }
 
     // test case: test if deleteKeyName() will call doDeleteRequest passing the keyName
