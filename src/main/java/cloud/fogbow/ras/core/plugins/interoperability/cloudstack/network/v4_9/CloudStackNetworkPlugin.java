@@ -17,6 +17,7 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -66,7 +67,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         }
 
         String name = networkOrder.getName();
-        if (name == null) name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString();
+        name = FogbowCloudUtil.defineInstanceName(name);
 
         String startingIp = subnetInfo.getLowAddress();
         String endingIp = subnetInfo.getHighAddress();

@@ -7,6 +7,8 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.datastore.Datastore;
+import org.opennebula.client.datastore.DatastorePool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
@@ -32,10 +34,13 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
     
     private static final String BLOCK_DISK_TYPE = "BLOCK";
     private static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
+	private static final String IMAGE_TYPE = "IMAGE";
+	private static final String DATASTORE_FREE_PATH_FORMAT = "//DATASTORE[%s]/FREE_MB";
     private static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
     private static final String FILE_SYSTEM_TYPE_RAW = "raw";
     private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
-    
+	private static final int CONVERT_DISK = 1024;
+
     protected static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
     
     private Properties properties;
@@ -58,7 +63,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
@@ -68,7 +72,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		String fileSystemType = FILE_SYSTEM_TYPE_RAW;
 		String diskType = BLOCK_DISK_TYPE;
 		String devicePrefix = DEFAULT_DATASTORE_DEVICE_PREFIX;
-		int size = volumeOrder.getVolumeSize();
+		int size = volumeOrder.getVolumeSize() * CONVERT_DISK;
 		
 		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
 				.name(name)
@@ -81,19 +85,18 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 				.build();
 
 		String template = request.getVolumeImage().marshalTemplate();
-		Integer datastoreId = getDataStoreId();
+		Integer datastoreId = getDataStoreId(client, size);
 		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);
 	}
 	
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(volumeOrder.getInstanceId()));
 
-		int imageSize = Integer.parseInt(image.xpath(OpenNebulaConstants.SIZE));
+		int imageSize = Integer.parseInt(image.xpath(OpenNebulaConstants.SIZE)) / CONVERT_DISK;
 		String imageName = image.getName();
 		String imageState = image.stateString();
 		return new VolumeInstance(volumeOrder.getInstanceId(), imageState, imageName, imageSize);
@@ -101,7 +104,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
@@ -112,14 +114,29 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		}
 	}
 
-	protected Integer getDataStoreId() throws UnexpectedException {
-		String dataStore = this.properties.getProperty(DEFAULT_DATASTORE_ID);
-		try {
-			return Integer.valueOf(dataStore);
-		} catch (NumberFormatException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e.getMessage()));
-			throw new UnexpectedException();
+	protected Integer getDataStoreId(Client client, int diskSize) throws UnexpectedException {
+		DatastorePool datastorePool = OpenNebulaClientUtil.getDatastorePool(client);
+
+		int index = 1;
+		for (Datastore datastore : datastorePool) {
+		    Integer freeDiskSize = null;
+			if (datastore.typeStr().equals(IMAGE_TYPE)) {
+				try {
+					freeDiskSize = Integer.valueOf(datastore.xpath(String.format(DATASTORE_FREE_PATH_FORMAT, index)));
+				} catch(NumberFormatException e) {
+					LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e.getMessage()));
+					throw new UnexpectedException();
+				}
+			}
+
+			if (freeDiskSize != null) {
+			    if (freeDiskSize >= diskSize) return datastore.id();
+			}
+
+			index++;
 		}
+
+		return null;
 	}
 	
 	protected String getRandomUUID() {

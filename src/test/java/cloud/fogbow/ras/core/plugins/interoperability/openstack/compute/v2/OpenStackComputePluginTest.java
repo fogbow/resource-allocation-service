@@ -159,27 +159,27 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         this.computePlugin.findSmallestFlavor(computeOrder, cloudUser);
     }
 
-    // test case: test if getKeyName() returns a String
+    // test case: test if works correctly by calling doCreateKeyName()
     @Test
     public void testGetKeyName() throws FogbowException, HttpResponseException {
         // set up
-        Mockito.doReturn(ANY_URL).when(this.computePlugin)
-                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+        Mockito.doNothing().when(this.computePlugin)
+                .doCreateKeyName(Mockito.eq(cloudUser), Mockito.anyString(), Mockito.anyString());
 
         // exercise
         this.computePlugin.getKeyName(this.FAKE_PROJECT_ID, cloudUser, publicKey);
 
         // verify
         Mockito.verify(this.computePlugin, Mockito.times(testUtils.RUN_ONCE))
-                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
-        Mockito.verify(this.clientMock, Mockito.times(testUtils.RUN_ONCE))
-                .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
+                .doCreateKeyName(Mockito.eq(cloudUser), Mockito.anyString(), Mockito.anyString());
     }
 
-    // test case: when getKeyName() request fails, it must throw an UnexpectedException
+    // test case: when doCreateKeyName() request fails, it must
+    // call OpenStackHttpToFogbowExceptionMapper.map(e)
     @Test(expected = UnexpectedException.class)
-    public void testGetKeyNameUnsuccessful() throws FogbowException, HttpResponseException {
+    public void testDoCreateKeyNameUnsuccessful() throws FogbowException, HttpResponseException {
         // set up
+        PowerMockito.mockStatic();
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
 

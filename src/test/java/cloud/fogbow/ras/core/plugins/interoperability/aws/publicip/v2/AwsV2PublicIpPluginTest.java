@@ -3,11 +3,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 import java.io.File;
 import java.util.HashMap;
 
+import cloud.fogbow.ras.core.BaseUnitTests;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -26,6 +28,7 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -34,10 +37,8 @@ import software.amazon.awssdk.services.ec2.model.AllocateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
-import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
@@ -54,8 +55,8 @@ import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2PublicIpPluginTest {
+@PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class , AwsV2CloudUtil.class})
+public class AwsV2PublicIpPluginTest extends BaseUnitTests {
 
 	private static final String ANOTHER_SECURITY_GROUP_ID = "another-security-group-id";
 	private static final String ANOTHER_SUBNET_ID = "another-subnet-id";
@@ -369,11 +370,8 @@ public class AwsV2PublicIpPluginTest {
 		Mockito.when(client.associateAddress(Mockito.any(AssociateAddressRequest.class)))
 				.thenThrow(SdkClientException.builder().build());
 
-		AssociateAddressRequest request = AssociateAddressRequest.builder().build();
-		String allocationId = FAKE_ALLOCATION_ID;
-
 		// exercise
-		this.plugin.doAssociateAddressRequests(allocationId, request, client);
+		this.plugin.doAssociateAddress(FAKE_ALLOCATION_ID, FAKE_ASSOCIATION_ID, client);
 	}
 	
 	// test case: When calling the doModifyNetworkInterfaceAttributes method, with a
@@ -419,86 +417,11 @@ public class AwsV2PublicIpPluginTest {
 		this.plugin.doModifyNetworkInterfaceAttributes(groupId, networkInterfaceId, allocationId, client);
 	}
 	
-	// test case: When calling the doCreateSecurityGroups method, and an error
-	// occurs during the request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testdoCreateSecurityGroupsUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.createSecurityGroup(Mockito.any(CreateSecurityGroupRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String allocationId = FAKE_ALLOCATION_ID;
-
-		// exercise
-		this.plugin.doCreateSecurityGroups(allocationId, client);
-	}
-	
-	// test case: When calling the doAuthorizeSecurityGroupIngress method, and an
-	// error occurs during the request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoAuthorizeSecurityGroupIngressUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.authorizeSecurityGroupIngress(Mockito.any(AuthorizeSecurityGroupIngressRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String allocationId = FAKE_ALLOCATION_ID;
-		String groupId = FAKE_DEFAULT_SECURITY_GROUP_ID;
-
-		// exercise
-		this.plugin.doAuthorizeSecurityGroupIngress(allocationId, groupId, client);
-	}
-	
-	// test case: When calling the doDeleteSecurityGroups method, and an error
-	// occurs during the request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDeleteSecurityGroupsUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.deleteSecurityGroup(Mockito.any(DeleteSecurityGroupRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String groupId = FAKE_DEFAULT_SECURITY_GROUP_ID;
-
-		// exercise
-		this.plugin.doDeleteSecurityGroups(groupId, client);
-	}
-	
-	// test case: When calling the doCreateTagsRequests method, without a valid
-	// tag request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoCreateTagsRequestsUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-
-		Mockito.when(client.createTags(Mockito.any(CreateTagsRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String key = null;
-		String value = null;
-		String resourceId = null;
-
-		// exercise
-		this.plugin.doCreateTagsRequests(key, value, resourceId, client);
-	}
-	
 	// test case: When calling the selectNetworkInterfaceFrom method, without anyone
 	// sub-net ID different from the default sub-net, it must return the network
 	// interface of default sub-net.
 	@Test
-	public void testSelectNetworkInterfaceUnsuccessful() throws FogbowException {
+	public void testSelectNetworkInterfaceUnsuccessful() {
 		// set up
 		String defaultSubnetId = FAKE_SUBNET_ID;
 		Instance instance = buildInstance(defaultSubnetId);
@@ -523,24 +446,7 @@ public class AwsV2PublicIpPluginTest {
 		// exercise
 		this.plugin.getInstanceReservation(response);
 	}
-	
-	// test case: When calling the doDescribeInstance method, and an error occurs
-	// during the request, an UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testDoDescribeInstanceUnsuccessful() throws FogbowException {
-		// set up
-		Ec2Client client = Mockito.mock(Ec2Client.class);
-		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
 
-		Mockito.when(client.describeInstances(Mockito.any(DescribeInstancesRequest.class)))
-				.thenThrow(SdkClientException.builder().build());
-
-		String instanceId = FAKE_INSTANCE_ID;
-
-		// exercise
-		this.plugin.doDescribeInstance(instanceId, client);
-	}
 	
 	// test case: When calling the doAllocateAddresses method, and an error occurs
 	// during the request, an UnexpectedException will be thrown.
@@ -556,6 +462,49 @@ public class AwsV2PublicIpPluginTest {
 
 		// exercise
 		this.plugin.doAllocateAddresses(client);
+	}
+
+	//Test case: check if the testes method make the expected calls
+	@Test
+	public void testDoRequestInstance() throws FogbowException{
+		//setup
+		Ec2Client client = testUtils.getAwsMockedClient();
+		Mockito.doReturn(FAKE_ALLOCATION_ID).when(plugin).doAllocateAddresses(Mockito.any());
+		Mockito.doReturn(FAKE_NETWORK_INTERFACE_ID).when(plugin).getInstanceNetworkInterfaceId(Mockito.any(), Mockito.any());
+		Mockito.doReturn(FAKE_DEFAULT_SECURITY_GROUP_ID).when(plugin).handleSecurityIssues(Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doAssociateAddress(Mockito.any(), Mockito.any(), Mockito.any());
+		PublicIpOrder publicIpOrder = Mockito.spy(new PublicIpOrder());
+		Mockito.doReturn(FAKE_INSTANCE_ID).when(publicIpOrder).getComputeId();
+		//exercise
+		plugin.doRequestInstance(publicIpOrder, client);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doAllocateAddresses(Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).getInstanceNetworkInterfaceId(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).handleSecurityIssues(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doAssociateAddress(Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(publicIpOrder, Mockito.times(1)).getComputeId();
+	}
+
+	//Test case: check if the testes method make the expected calls
+	@Test
+	public void testDoDeleteInstance() throws FogbowException {
+		//setup
+		PowerMockito.mockStatic(AwsV2CloudUtil.class);
+		Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doReleaseAddresses(Mockito.any(), Mockito.any());
+		Mockito.doNothing().when(plugin).doDisassociateAddresses(Mockito.any(), Mockito.any());
+		Ec2Client client = testUtils.getAwsMockedClient();
+		//exercise
+		plugin.doDeleteInstance(FAKE_ALLOCATION_ID, FAKE_ASSOCIATION_ID, FAKE_DEFAULT_SECURITY_GROUP_ID, FAKE_NETWORK_INTERFACE_ID, client);
+		//verify
+		Mockito.verify(plugin, Mockito.times(1)).doModifyNetworkInterfaceAttributes(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doReleaseAddresses(Mockito.any(), Mockito.any());
+		Mockito.verify(plugin, Mockito.times(1)).doDisassociateAddresses(Mockito.any(), Mockito.any());
+		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
+		AwsV2CloudUtil.doDeleteSecurityGroup(FAKE_DEFAULT_SECURITY_GROUP_ID, client);
+
 	}
 	
 	private PublicIpInstance createPublicIpInstance() {
@@ -608,7 +557,7 @@ public class AwsV2PublicIpPluginTest {
 	private Address buildAddress(String instanceId) {
 		String allocationId = FAKE_ALLOCATION_ID;
 		Tag tagAssociationId = buildTag(AwsV2PublicIpPlugin.AWS_TAG_ASSOCIATION_ID);
-		Tag tagGroupId = buildTag(AwsV2PublicIpPlugin.AWS_TAG_GROUP_ID);
+		Tag tagGroupId = buildTag(AwsV2CloudUtil.AWS_TAG_GROUP_ID);
 		return Address.builder()
 				.allocationId(allocationId)
 				.instanceId(instanceId)

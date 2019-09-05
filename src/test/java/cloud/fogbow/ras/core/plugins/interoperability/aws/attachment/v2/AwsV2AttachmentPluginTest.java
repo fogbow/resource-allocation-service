@@ -22,7 +22,9 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -41,13 +43,12 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AwsV2ClientUtil.class, SharedOrderHolders.class })
-public class AwsV2AttachmentPluginTest {
+public class AwsV2AttachmentPluginTest extends BaseUnitTests {
 
+    private static final String ANOTHER_DEVICE_NAME = "/dev/xvda";
 	private static final String ANY_VALUE = "anything";
 	private static final String CLOUD_NAME = "amazon";
 	private static final String EMPTY_STRING = "";
-	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_VOLUME_ID = "fake-volume-id";
 
 	private AwsV2AttachmentPlugin plugin;
 	private SharedOrderHolders sharedOrderHolders;
@@ -210,7 +211,7 @@ public class AwsV2AttachmentPluginTest {
 		Mockito.verify(client, Mockito.times(1)).describeVolumes(Mockito.any(DescribeVolumesRequest.class));
 
 		Mockito.verify(this.plugin, Mockito.times(1))
-				.mountAttachmentInstance(Mockito.any(DescribeVolumesResponse.class));
+				.buildAttachmentInstance(Mockito.any(DescribeVolumesResponse.class));
 
 		Assert.assertEquals(expected, attachmentInstance);
 	}
@@ -223,7 +224,7 @@ public class AwsV2AttachmentPluginTest {
 		String expected = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
 
 		// exercise
-		String actual = this.plugin.defineDeviceNameAttached(null);
+		String actual = this.plugin.getAttachedDeviceName(null);
 
 		// verify
 		Assert.assertEquals(expected, actual);
@@ -237,7 +238,7 @@ public class AwsV2AttachmentPluginTest {
 		String expected = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
 
 		// exercise
-		String device = this.plugin.defineDeviceNameAttached(EMPTY_STRING);
+		String device = this.plugin.getAttachedDeviceName(EMPTY_STRING);
 
 		// verify
 		Assert.assertEquals(expected, device);
@@ -246,7 +247,7 @@ public class AwsV2AttachmentPluginTest {
 	// test case: When calling the mountAttachmentInstance method, with an empty
 	// attachment list, it must return an InstanceNotFoundException.
 	@Test (expected = InstanceNotFoundException.class) // verify
-	public void testMountAttachmentInstanceWithoutAttachments() throws InstanceNotFoundException {
+	public void testMountAttachmentInstanceWithoutAttachments() throws FogbowException {
 		// set up
 		Volume volume = Volume.builder()
 				.build();
@@ -256,26 +257,26 @@ public class AwsV2AttachmentPluginTest {
 				.build();
 
 		// exercise
-		this.plugin.mountAttachmentInstance(response);
+		this.plugin.buildAttachmentInstance(response);
 	}
 	
 	// test case: When calling the mountAttachmentInstance method, with an empty
 	// volume list, it must return an InstanceNotFoundException.
 	@Test (expected = InstanceNotFoundException.class) // verify
-	public void testMountAttachmentInstanceWithoutVolumes() throws InstanceNotFoundException {
+	public void testMountAttachmentInstanceWithoutVolumes() throws FogbowException {
 		// set up
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder().build();
 
 		// exercise
-		this.plugin.mountAttachmentInstance(response);
+		this.plugin.buildAttachmentInstance(response);
 	}
 	
 	private AttachmentInstance createAttachmentInstance() {
-        String id = FAKE_VOLUME_ID;
+        String id = TestUtils.FAKE_VOLUME_ID;
         String cloudState = AwsV2StateMapper.ATTACHED_STATE;
-        String computeId = FAKE_INSTANCE_ID;
-        String volumeId = FAKE_VOLUME_ID;
-        String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
+        String computeId = TestUtils.FAKE_INSTANCE_ID;
+        String volumeId = TestUtils.FAKE_VOLUME_ID;
+        String device = ANOTHER_DEVICE_NAME;
         return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
     }
 	
@@ -292,31 +293,29 @@ public class AwsV2AttachmentPluginTest {
 	private VolumeAttachment createVolumeAttachment() {
 		VolumeAttachment attachment = VolumeAttachment.builder()
 				.state(VolumeAttachmentState.ATTACHED)
-				.instanceId(FAKE_INSTANCE_ID)
-				.volumeId(FAKE_VOLUME_ID)
-				.device(AwsV2AttachmentPlugin.XVDH_DEVICE_NAME)
+				.instanceId(TestUtils.FAKE_INSTANCE_ID)
+				.volumeId(TestUtils.FAKE_VOLUME_ID)
+				.device(ANOTHER_DEVICE_NAME)
 				.build();
 		
 		return attachment;
 	}
 
 	private AttachmentOrder createAttachmentOrder() {
-		ComputeOrder computeOrder = new ComputeOrder();
+		ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 		computeOrder.setCloudName(CLOUD_NAME);
-		computeOrder.setInstanceId(FAKE_INSTANCE_ID);
-		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
 
-		VolumeOrder volumeOrder = new VolumeOrder();
+		VolumeOrder volumeOrder = testUtils.createLocalVolumeOrder();
 		volumeOrder.setCloudName(CLOUD_NAME);
-		volumeOrder.setInstanceId(FAKE_VOLUME_ID);
-		volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		volumeOrder.setInstanceId(TestUtils.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
-		String device = AwsV2AttachmentPlugin.XVDH_DEVICE_NAME;
+		String device = ANOTHER_DEVICE_NAME;
 		AttachmentOrder attachmentOrder = new AttachmentOrder(computeOrder.getId(),
 				volumeOrder.getId(), device);
-		attachmentOrder.setInstanceId(FAKE_VOLUME_ID);
+		attachmentOrder.setInstanceId(TestUtils.FAKE_VOLUME_ID);
 		this.sharedOrderHolders.getActiveOrdersMap().put(attachmentOrder.getId(), attachmentOrder);
 		return attachmentOrder;
 	}

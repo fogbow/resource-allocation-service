@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.constants;
 
-import java.util.Locale;
-
 public class Messages {
 
     public static class Exception {
@@ -65,6 +63,8 @@ public class Messages {
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
+        public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +
+                " This address range is likely in use.";
     }
 
     public static class Fatal {
@@ -92,8 +92,10 @@ public class Messages {
     public static class Info {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
+        public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
+        public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MAPPED_USER = "User mapped to: %s.";
@@ -112,11 +114,13 @@ public class Messages {
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request: %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
+        public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String RESPONSE_RECEIVED = "Received response: %s.";
         public static final String SENDING_MSG = "Sending remote request for request: %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
+        public static final String DATASTORE_POOL_LENGTH = "Datastore pool length: %s.";
         public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }
 
@@ -161,6 +165,7 @@ public class Messages {
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_CALCULATE_SUBNET_MASK = "Unable to calculate subnet mask.";
         public static final String UNABLE_TO_COMPLETE_REQUEST = "Unable to complete request; template, zone and default network IDs are required parameters.";
+        public static final String UNABLE_TO_CREATE_ATTACHMENT = "Unable to create an attachment from json.";
         public static final String UNABLE_TO_DELETE_INSTANCE = "Unable to delete instance %s.";
         public static final String UNABLE_TO_DELETE_NETWORK = "Unable to delete network with id %s.";
         public static final String UNABLE_TO_DELETE_SECURITY_GROUP = "Unable to delete security group with id %s.";

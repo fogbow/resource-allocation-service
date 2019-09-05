@@ -1,10 +1,14 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -27,17 +31,19 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 public class TestUtils {
-    
+
     public static final int CPU_VALUE = 8;
     public static final int DISK_VALUE = 30;
+    public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
-
     public static final long DEFAULT_SLEEP_TIME = 500;
-    
+
     public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
@@ -50,15 +56,16 @@ public class TestUtils {
     public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
     public static final String FAKE_SECURITY_RULE_ID = "fake-security-rule-id";
+    public static final String FAKE_TAG = "fake-tag";
+    public static final String FAKE_USER_DATA = "fake-user-data";
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-
     private static final String MESSAGE_STATUS_CODE = "Internal server error.";
-    private static final int ERROR_STATUS_CODE = 500;
-    
+
+
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
         Order order = null;
@@ -123,7 +130,7 @@ public class TestUtils {
     public NetworkOrder createNetworkOrder(String requestingMember, String providingMember) {
         NetworkOrder networkOrder = new NetworkOrder(createSystemUser(), 
                 requestingMember, 
-                requestingMember,
+                providingMember,
                 DEFAULT_CLOUD_NAME, 
                 FAKE_INSTANCE_NAME, 
                 FAKE_GATEWAY, 
@@ -162,6 +169,7 @@ public class TestUtils {
 
         return attachmentOrder;
     }
+
 
     public PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
         PublicIpOrder publicIpOrder = new PublicIpOrder(createSystemUser(), 
@@ -235,5 +243,21 @@ public class TestUtils {
 
     public HttpResponseException getHttpInternalServerErrorResponseException() {
         return new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+    }
+    /*
+     * Create fake user data for testing.
+     */
+    public ArrayList<UserData> createUserDataList() {
+        UserData[] userDataArray = new UserData[]{
+                new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG)};
+
+        return new ArrayList<>(Arrays.asList(userDataArray));
+    }
+
+    public Ec2Client getAwsMockedClient() throws FogbowException {
+        Ec2Client client = Mockito.mock(Ec2Client.class);
+        PowerMockito.mockStatic(AwsV2ClientUtil.class);
+        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
+        return client;
     }
 }
