@@ -39,15 +39,12 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class);
 
-    protected static final String ENDPOINT_SEPARATOR = "/";
     protected static final String FLOATINGIPS = "/floatingips";
     protected static final String IPV4_ETHER_TYPE = "IPv4";
     protected static final String IPV6_ETHER_TYPE = "IPv6";
-    protected static final String NETWORK_PORTS_RESOURCE = "Network Ports";
     protected static final String PORTS = "/ports";
     protected static final String PUBLIC_IP_RESOURCE = "Public IP";
     protected static final String QUERY_NAME = "?name=";
-    protected static final String SECURITY_GROUP_RESOURCE = "Security Group";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -92,7 +89,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     public PublicIpInstance getInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
         String endpoint = getFloatingIpEndpoint() 
-                + ENDPOINT_SEPARATOR
+                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
                 + instanceId;
         
         return doGetInstance(endpoint, cloudUser);
@@ -110,7 +107,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     
     protected void doDeleteInstance(String instanceId, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = getFloatingIpEndpoint() 
-                + ENDPOINT_SEPARATOR
+                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
                 + instanceId;
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
@@ -151,7 +148,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return GetSecurityGroupsResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD, SECURITY_GROUP_RESOURCE);
+            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackCloudUtils.SECURITY_GROUP_RESOURCE);
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
@@ -215,15 +213,15 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT 
                 + projectId 
                 + OpenStackCloudUtils.SERVERS
-                + ENDPOINT_SEPARATOR
+                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
                 + computeId
-                + ENDPOINT_SEPARATOR
+                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
                 + OpenStackCloudUtils.ACTION;
     }
 
     protected void deleteSecurityGroup(String securityGroupId, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = getSecurityGroupsEndpoint() 
-                + ENDPOINT_SEPARATOR 
+                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
                 + securityGroupId;
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
@@ -286,7 +284,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return CreateSecurityGroupResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S, SECURITY_GROUP_RESOURCE);
+            String message = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
+                    OpenStackCloudUtils.SECURITY_GROUP_RESOURCE);
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
@@ -341,7 +340,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return GetNetworkPortsResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD, NETWORK_PORTS_RESOURCE);
+            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackCloudUtils.NETWORK_PORTS_RESOURCE);
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
