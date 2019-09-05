@@ -189,7 +189,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: when calling doCreateKeyName() method, it must verify that the
     // call was successful.
     @Test
-    public void testDoCreateKeyNameSuccessful() throws Exception {
+    public void testDoCreateKeyNameSuccessfully() throws Exception {
         // exercise
         this.computePlugin.doCreateKeyName(ANY_URL, ANY_STRING, cloudUser);
 
@@ -201,7 +201,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: when doCreateKeyName() request fails, it must
     // call OpenStackHttpToFogbowExceptionMapper.map(e)
     @Test
-    public void testDoCreateKeyNameUnsuccessful() throws Exception {
+    public void testDoCreateKeyNameUnsuccessfully() throws Exception {
         // set up
         HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
         Mockito.when(this.clientMock.doPostRequest(Mockito.anyString(),
@@ -241,7 +241,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: when calling doDeleteRequest() method, it must verify that the
     // call was successful.
     @Test
-    public void testDoDeleteSuccessful() throws Exception {
+    public void testDoDeleteSuccessfully() throws Exception {
         // exercise
         this.computePlugin.doDeleteRequest(ANY_URL, cloudUser);
 
@@ -253,7 +253,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: when doDeleteRequest() request fails, it must
     // call OpenStackHttpToFogbowExceptionMapper.map(e)
     @Test
-    public void testDoDeleteUnsuccessful() throws Exception {
+    public void testDoDeleteUnsuccessfully() throws Exception {
         // set up
         HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
         Mockito.doThrow(exception).when(this.clientMock)
@@ -359,7 +359,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: When performing an unsuccessful request, it must re-wrap the
     // HttpResponseException into an UnexpectedException
     @Test(expected = UnexpectedException.class)
-    public void testDetailFlavorsUnsuccessful() throws FogbowException, HttpResponseException {
+    public void testDetailFlavorsUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
         Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
                 .getHardwareRequirementsList();
@@ -474,7 +474,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: the updateFlavors() should perform a HTTP request for the flavors and
     // update the current data the plugin holds
     @Test
-    public void testUpdateFlavorsSuccessful() throws FogbowException, HttpResponseException {
+    public void testUpdateFlavorsSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
         BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
@@ -530,7 +530,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
     // test case: when a request is unsuccessful, it should thrown UnexpectedException
     @Test(expected = UnexpectedException.class)
-    public void testUpdateFlavorsUnsuccessful() throws FogbowException, HttpResponseException {
+    public void testUpdateFlavorsUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
         ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
         Map<String, String> fakeRequirement = new HashMap<>();
@@ -565,7 +565,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     // test case: Test if after a successful request, it can return the
     // appropriate computeInstance
     @Test
-    public void testGetInstanceSuccessful() throws FogbowException {
+    public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
         BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
@@ -597,7 +597,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
 
     // test case: when a request is unsuccessful, it should thrown UnexpectedException
     @Test(expected = UnexpectedException.class)
-    public void testGetInstanceUnsuccessful() throws FogbowException, HttpResponseException {
+    public void testGetInstanceUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
         ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
@@ -639,7 +639,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDoRequestInstanceSuccessful() throws FogbowException, HttpResponseException {
+    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(createCreateComputeResponseJson());
@@ -652,7 +652,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     }
 
     @Test(expected = UnexpectedException.class)
-    public void testDoRequestInstanceUnsuccessful() throws FogbowException, HttpResponseException {
+    public void testDoRequestInstanceUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
         Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenThrow(HttpResponseException.class);
