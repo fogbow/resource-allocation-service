@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
@@ -35,7 +34,6 @@ import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachme
 @PrepareForTest({DatabaseManager.class, OpenNebulaClientUtil.class, SharedOrderHolders.class, VirtualMachine.class})
 public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 
-	private static final String DEFAULT_DEVICE_PREFIX = "vd";
 	private static final String FAKE_DEVICE = "hdb";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_VIRTUAL_MACHINE_ID = "1";
@@ -294,15 +292,16 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 			Assert.fail();
 		} catch (UnexpectedException e) {
 			// verify
-			PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-			OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(computeId));
-
-			Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).diskDetach(Mockito.eq(diskId));
-			Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
-			Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
-
 			Assert.assertEquals(e.getMessage(), expectedMessage);
 		}
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(computeId));
+
+		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).diskDetach(Mockito.eq(diskId));
+		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
+		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
 	}
 
 	// test case: When calling the getInstance method, with the instance ID and a
@@ -333,6 +332,23 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 			Mockito.eq(this.attachmentOrder.getComputeId()), Mockito.eq(this.attachmentOrder.getVolumeId()));
 	}
 
+	// test case: When calling the getInstance method with a nonexistent AttachmentOrder
+	// an InstanceNotFoundException will be thrown.
+	@Test
+	public void testGetInstanceFail() throws FogbowException {
+		// set up
+		AttachmentOrder attachmentOrder = null;
+
+		// exercise
+		try {
+			this.plugin.getInstance(attachmentOrder, this.cloudUser);
+			Assert.fail();
+		} catch (InstanceNotFoundException e) {
+			// verify
+			Assert.assertEquals(e.getMessage(), Messages.Exception.INSTANCE_NOT_FOUND);
+		}
+	}
+
 	// test case: When calling the getInstance method, with the instance ID and a
 	// valid token, a set of images will be loaded and the specific instance of the
 	// image must be loaded.
@@ -354,39 +370,95 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 		Mockito.when(this.virtualMachine.xpath(targetPath)).thenReturn(FAKE_DEVICE);
 
 		// exercise
-		this.plugin.doGetInstance(this.client, this.attachmentOrder.getInstanceId(), computeId,
-				this.attachmentOrder.getVolumeId());
+		this.plugin.doGetInstance(this.client, this.attachmentOrder.getInstanceId(), computeId, volumeId);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(computeId));
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(computeId));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTargetDevice(
 				Mockito.any(Client.class), Mockito.eq(computeId), Mockito.eq(volumeId));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getState(
 				Mockito.any(Client.class), Mockito.eq(volumeId));
+		Mockito.verify(imagePool, Mockito.times(TestUtils.RUN_ONCE)).getById(Mockito.eq(diskId));
+		Mockito.verify(image, Mockito.times(TestUtils.RUN_ONCE)).stateString();
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(imagePath));
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(targetPath));
+	}
+
+	// test case: When calling the getDoInstance method with an invalid volume id then the method getState should
+    // throw an InstanceNotFoundException
+	@Test
+	public void testDoGetInstanceGetStateFail() throws FogbowException {
+		// set up
+		int diskId = 1;
+		ImagePool imagePool = Mockito.mock(ImagePool.class);
+		String volumeId = this.attachmentOrder.getVolumeId();
+
+		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
+		Mockito.when(imagePool.getById(diskId)).thenReturn(null);
+
+        try {
+			// exercise
+			this.plugin.doGetInstance(this.client, this.attachmentOrder.getInstanceId(), this.attachmentOrder.getComputeId(),
+					volumeId);
+			Assert.fail();
+		} catch (InstanceNotFoundException e) {
+            // verify
+        	Assert.assertEquals(e.getMessage(), Messages.Exception.INSTANCE_NOT_FOUND);
+		}
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getState(
+				Mockito.any(Client.class), Mockito.eq(volumeId));
 		Mockito.verify(imagePool, Mockito.times(TestUtils.RUN_ONCE)).getById(Mockito.eq(diskId));
 	}
 
-	// test case: When calling the getInstance method with a nonexistent AttachmentOrder,
-	// an InstanceNotFoundException will be thrown.
+	// test case: When calling the getDoInstance method with an invalid volume id then the method getTargetDevice should
+	// throw an InstanceNotFoundException
 	@Test
-	public void testGetInstanceFail() throws FogbowException {
+	public void testDoGetInstanceGetTargetDeviceFail() throws FogbowException {
 		// set up
-		AttachmentOrder attachmentOrder = null;
+		int diskId = 1;
+		String fakeDiskId = "2";
+		ImagePool imagePool = Mockito.mock(ImagePool.class);
+		Image image = Mockito.mock(Image.class);
+		String computeId = this.attachmentOrder.getComputeId();
+		String volumeId = this.attachmentOrder.getVolumeId();
+		String imagePath = String.format(IMAGE_ID_PATH_FORMAT, diskId);
 
-		// exercise
-		try {
-			this.plugin.getInstance(attachmentOrder, this.cloudUser);
+		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
+		Mockito.when(imagePool.getById(diskId)).thenReturn(image);
+		Mockito.when(image.stateString()).thenReturn(IMAGE_STATE_READY);
+		Mockito.when(this.virtualMachine.xpath(Mockito.anyString())).thenReturn(fakeDiskId);
+
+        try {
+			// exercise
+			this.plugin.doGetInstance(this.client, this.attachmentOrder.getInstanceId(), computeId, volumeId);
 			Assert.fail();
 		} catch (InstanceNotFoundException e) {
-		     // verify
-			Assert.assertEquals(e.getMessage(), Messages.Exception.INSTANCE_NOT_FOUND);
+			// verify
+        	Assert.assertEquals(e.getMessage(), Messages.Exception.INSTANCE_NOT_FOUND);
 		}
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.eq(computeId));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTargetDevice(
+				Mockito.any(Client.class), Mockito.eq(computeId), Mockito.eq(volumeId));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getState(
+				Mockito.any(Client.class), Mockito.eq(volumeId));
+		Mockito.verify(imagePool, Mockito.times(TestUtils.RUN_ONCE)).getById(Mockito.eq(diskId));
+		Mockito.verify(image, Mockito.times(TestUtils.RUN_ONCE)).stateString();
+		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(imagePath));
 	}
 
 	private String generateAttachmentTemplate() {

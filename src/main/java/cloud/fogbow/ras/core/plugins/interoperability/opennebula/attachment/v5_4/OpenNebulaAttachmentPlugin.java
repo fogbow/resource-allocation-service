@@ -128,8 +128,8 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
 	protected AttachmentInstance doGetInstance(Client client, String instanceId, String computeId, String volumeId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException, UnexpectedException {
-		String device = this.getTargetDevice(client, computeId, volumeId);
 		String state = this.getState(client, volumeId);
+		String device = this.getTargetDevice(client, computeId, volumeId);
 
 		AttachmentInstance attachmentInstance = new AttachmentInstance(
 				instanceId, state, computeId, volumeId, device);
@@ -146,6 +146,15 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 		return content;
 	}
 
+	protected String getState(Client client, String volumeId) throws UnexpectedException, InstanceNotFoundException {
+		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
+		Image image = imagePool.getById(Integer.parseInt(volumeId));
+
+		if (image == null) throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+
+		return image.stateString();
+	}
+
 	protected String getTargetDevice(Client client, String computeId, String volumeId) throws UnauthorizedRequestException,
 			InstanceNotFoundException, InvalidParameterException {
 		String device = null;
@@ -160,15 +169,10 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
             break;
 		}
 
+		// NOTE(pauloewerton): the disk was probably detached or the number of attached disks shall be bigger than
+		// MAX_DISK_NUMBER_SEARCH
 		if (device == null) throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 
 		return device;
-	}
-
-	protected String getState(Client client, String volumeId) throws UnexpectedException {
-		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(volumeId));
-
-		return image.stateString();
 	}
 }
