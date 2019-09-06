@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -60,7 +61,7 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right
     // quotas from the mocked response.
     @Test
-    public void testGetUserQuota() throws FogbowException, HttpResponseException {
+    public void testGetUserQuota() throws FogbowException {
         // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetQuota(Mockito.anyString(), Mockito.eq(cloudUser));
 
@@ -81,8 +82,9 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         ComputeAllocation usedQuota = new ComputeAllocation(totalCoresUsed, totalRamUsed, totalInstancesUsed);
 
         // exercise
-        ComputeAllocation retrievedTotalQuota = this.plugin.getUserQuota(this.cloudUser).getTotalQuota();
-        ComputeAllocation retrievedUsedQuota = this.plugin.getUserQuota(this.cloudUser).getUsedQuota();
+        ComputeQuota quota = this.plugin.getUserQuota(this.cloudUser);
+        ComputeAllocation retrievedTotalQuota = quota.getTotalQuota();
+        ComputeAllocation retrievedUsedQuota = quota.getUsedQuota();
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(testUtils.RUN_ONCE))
