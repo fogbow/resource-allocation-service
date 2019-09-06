@@ -327,8 +327,6 @@ public class ApplicationFacade {
         SystemUser requester = authenticate(userToken);
         // Set requester field in the order
         order.setSystemUser(requester);
-        // Set default values for order fields that have not been provided by the requester in the body of the HTTP request
-        setDefaultValuesForEmptyFields(order);
         // Check consistency of orders that have other orders embedded (eg. an AttachmentOrder embeds
         // both a ComputeOrder and a VolumeOrder).
         checkEmbeddedOrdersConsistency(order);
@@ -337,49 +335,6 @@ public class ApplicationFacade {
                 order.getType(), order.getCloudName(), order));
         // Add order to the poll of active orders and to the OPEN linked list
         return this.orderController.activateOrder(order);
-    }
-
-    private void setDefaultValuesForEmptyFields(Order order) {
-        order.setRequester(this.providerId);
-        // Set provider and cloud Ids
-        switch (order.getType()) {
-            // Attachment and PublicIp orders do not carry provider and cloud Ids; these are inferred from
-            // embedded orders.
-            case ATTACHMENT:
-                AttachmentOrder attachOrder = (AttachmentOrder) order;
-                Order attachComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachOrder.getComputeOrderId());
-                order.setProvider(attachComputeOrder.getProvider());
-                order.setCloudName(attachComputeOrder.getCloudName());
-                break;
-            case PUBLIC_IP:
-                PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-                Order pIpComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(publicIpOrder.getComputeOrderId());
-                order.setProvider(pIpComputeOrder.getProvider());
-                order.setCloudName(pIpComputeOrder.getCloudName());
-                break;
-            default:
-                if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.providerId);
-                if (order.getCloudName() == null || order.getCloudName().isEmpty())
-                    order.setCloudName(this.cloudListController.getDefaultCloudName());
-                break;
-        }
-        // Set default name
-        switch (order.getType()) {
-            case COMPUTE:
-                ComputeOrder computeOrder = (ComputeOrder) order;
-                if (computeOrder.getName() == null) computeOrder.setName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID());
-                break;
-            case VOLUME:
-                VolumeOrder volumeOrder = (VolumeOrder) order;
-                if (volumeOrder.getName() == null) volumeOrder.setName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID());
-                break;
-            case NETWORK:
-                NetworkOrder networkOrder = (NetworkOrder) order;
-                if (networkOrder.getName() == null) networkOrder.setName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID());
-                break;
-            default:
-                break;
-        }
     }
 
     protected Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
