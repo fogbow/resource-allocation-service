@@ -28,9 +28,8 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 
-@PrepareForTest({ DatabaseManager.class, FogbowCloudUtil.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
+@PrepareForTest({ DatabaseManager.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
 public class OpenStackVolumePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
@@ -149,10 +148,6 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
-        PowerMockito.mockStatic(FogbowCloudUtil.class);
-        PowerMockito.when(FogbowCloudUtil.defineInstanceName(Mockito.eq(TestUtils.FAKE_ORDER_NAME)))
-                .thenCallRealMethod();
-
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackVolumePlugin.VOLUMES, null);
         GetVolumeResponse response = GetVolumeResponse.fromJson(FAKE_VOLUME_JSON_RESPONSE);
         Mockito.doReturn(response).when(this.plugin).doRequestInstance(Mockito.eq(endpoint),
@@ -164,9 +159,6 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         // verify
         PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
         OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
-
-        PowerMockito.verifyStatic(FogbowCloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findVolumeTypeId(
                 Mockito.eq(order.getRequirements()), Mockito.eq(cloudUser.getProjectId()), Mockito.eq(cloudUser));

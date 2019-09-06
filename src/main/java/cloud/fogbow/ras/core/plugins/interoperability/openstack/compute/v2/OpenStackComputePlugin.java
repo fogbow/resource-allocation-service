@@ -228,9 +228,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         // do not specify security groups if no additional network was given
         securityGroups = securityGroups.size() == 0 ? null : securityGroups;
 
-        String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
-                .name(name)
+                .name(instanceName)
                 .imageReference(imageRef)
                 .flavorReference(flavorRef)
                 .userData(userdata)
