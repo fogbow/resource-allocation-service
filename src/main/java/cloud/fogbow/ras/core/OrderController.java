@@ -106,7 +106,7 @@ public class OrderController {
         // is providing resources to the order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-            if (!orderState.equals(OrderState.CLOSED)) {
+            if (!(orderState.equals(OrderState.CLOSED) || order.equals(OrderState.DEACTIVATED))) {
                 // Sometimes an order depends on other orders (ex. an attachment depends on a volume and a compute).
                 // We need to verify whether another order depends on this order, and if this is the case, throw a
                 // DependencyDetectedException. Only the provider that is receiving the delete request through its
