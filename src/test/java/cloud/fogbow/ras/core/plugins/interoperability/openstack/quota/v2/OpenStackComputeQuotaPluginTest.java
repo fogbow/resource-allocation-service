@@ -85,6 +85,9 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         ComputeAllocation retrievedUsedQuota = this.plugin.getUserQuota(this.cloudUser).getUsedQuota();
 
         // verify
+        Mockito.verify(this.plugin, Mockito.times(testUtils.RUN_ONCE))
+                .doGetQuota(Mockito.anyString(), Mockito.eq(cloudUser));
+
         Assert.assertEquals(totalQuota.getvCPU(), retrievedTotalQuota.getvCPU());
         Assert.assertEquals(totalQuota.getRam(), retrievedTotalQuota.getRam());
         Assert.assertEquals(totalQuota.getInstances(), retrievedTotalQuota.getInstances());
@@ -94,6 +97,8 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(usedQuota.getInstances(), retrievedUsedQuota.getInstances());
     }
 
+    // test case: When calling the doGetQuota method, it must verify
+    // that the call was successful.
     @Test
     public void testDoGetQuotaSuccessfully() throws FogbowException, HttpResponseException {
         // set up
@@ -107,6 +112,9 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(ANY_JSON, jsoResponse);
     }
 
+    // test case: When calling the doGetResponseFromCloud method and an unexpected
+    // error occurs, it must verify that the map method of the
+    // OpenStackHttpToFogbowExceptionMapper class has been called.
     @Test
     public void testDoGetQuotaUnsuccessfully() throws Exception {
         // set up
