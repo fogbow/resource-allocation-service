@@ -7,6 +7,7 @@ public class Messages {
         public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FAILED_TO_GENERATE_METHOD_S = "Failed to generate method: %s.";
+        public static final String FAILED_TO_GET_QUOTA = "Failer to get quota.";
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
@@ -94,6 +95,7 @@ public class Messages {
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
+        public static final String GETTING_QUOTA = "Getting quota.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MAPPED_USER = "User mapped to: %s.";
