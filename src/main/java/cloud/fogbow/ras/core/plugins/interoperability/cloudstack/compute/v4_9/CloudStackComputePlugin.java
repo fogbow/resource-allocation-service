@@ -4,18 +4,18 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
@@ -23,6 +23,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.Get
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -175,7 +176,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
-    private GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
+    private GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
+            ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
+
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
@@ -213,7 +216,13 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return null;
     }
 
-    private GetAllServiceOfferingsResponse getServiceOfferings(CloudStackUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    GetAllServiceOfferingsResponse getServiceOfferings(final CloudStackUser cloudUser) throws FogbowException {
+        // TODO(chico) - Implement test to this case
+        if (cloudUser == null || this.cloudStackUrl == null) {
+            throw new FogbowException();
+        }
+
         GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -224,9 +233,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetAllServiceOfferingsResponse serviceOfferingsResponse = GetAllServiceOfferingsResponse.fromJson(jsonResponse);
-
-        return serviceOfferingsResponse;
+        return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
     }
 
     private GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize, CloudStackUser cloudUser) throws FogbowException {
@@ -330,5 +337,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     protected void setLaunchCommandGenerator(LaunchCommandGenerator commandGenerator) {
         this.launchCommandGenerator = commandGenerator;
+    }
+
+    @VisibleForTesting
+    String getCloudStackUrl() {
+        return cloudStackUrl;
     }
 }

@@ -1,12 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
-
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listServiceOfferings.html
@@ -26,18 +26,28 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
  * }
  */
 public class GetAllServiceOfferingsResponse {
+
+    static final String UNEXPECTED_RESPONSE = "Unexpected AllServiceOfferingsResponse response.";
+
     @SerializedName(LIST_SERVICE_OFFERINGS_KEY_JSON)
     private ListServiceOfferingsResponse response;
 
-    public List<ServiceOffering> getServiceOfferings() {
+    public List<ServiceOffering> getServiceOfferings() throws FogbowException {
         return response.serviceOfferings;
     }
 
-    public static GetAllServiceOfferingsResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetAllServiceOfferingsResponse.class);
+    public static GetAllServiceOfferingsResponse fromJson(String json) throws FogbowException {
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                GsonHolder.getInstance().fromJson(json, GetAllServiceOfferingsResponse.class);
+
+        if (getAllServiceOfferingsResponse.response == null) {
+            throw new FogbowException(UNEXPECTED_RESPONSE);
+        }
+        return getAllServiceOfferingsResponse;
     }
 
     public class ListServiceOfferingsResponse {
+
         @SerializedName(SERVICE_OFFERING_KEY_JSON)
         private List<ServiceOffering> serviceOfferings;
 
