@@ -88,7 +88,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private TreeSet<AwsHardwareRequirements> flavors;
 	private LaunchCommandGenerator launchCommandGenerator;
 
-	public AwsV2ComputePlugin(String confFilePath) {
+    public AwsV2ComputePlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 		this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
@@ -167,7 +167,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 	}
 	
-	private String doRunInstancesRequests(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
+	protected String doRunInstancesRequests(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
 			RunInstancesRequest request, Ec2Client client) throws UnexpectedException {
 		try {
 			RunInstancesResponse response = client.runInstances(request);
@@ -475,9 +475,14 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return size;
 	}
 
-	// This method is used to aid in the tests
+	// The following methods are used to assist in testing.
+	
 	protected String getFlavorsFilePath() {
 		return flavorsFilePath;
 	}
+	
+	protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+        this.launchCommandGenerator = launchCommandGenerator;
+    }
 
 }
