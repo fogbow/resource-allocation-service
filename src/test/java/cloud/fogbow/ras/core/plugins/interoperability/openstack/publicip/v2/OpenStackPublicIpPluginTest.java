@@ -248,8 +248,6 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
                 + instanceId;
 
-        Mockito.doNothing().when(this.client).doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
-
         // exercise
         this.plugin.doDeleteInstance(instanceId, cloudUser);
 
@@ -877,9 +875,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(this.client.doPostRequest(Mockito.eq(endpoint), Mockito.eq(request.toJson()), Mockito.eq(cloudUser)))
                 .thenReturn(json);
 
-        CreateFloatingIpResponse response = CreateFloatingIpResponse.fromJson(json);
         PowerMockito.mockStatic(CreateFloatingIpResponse.class);
-        PowerMockito.when(CreateFloatingIpResponse.fromJson(Mockito.eq(json))).thenReturn(response);
+        PowerMockito.doCallRealMethod().when(CreateFloatingIpResponse.class, TestUtils.FROM_JSON_METHOD, Mockito.eq(json));
 
         // exercise
         this.plugin.doRequestInstance(request, cloudUser);
@@ -931,7 +928,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doCreateFloatingIpResponseFrom method with a
-    // JSON malformed, it must verify that a UnexpectedException was throw.
+    // JSON malformed, it must verify that a UnexpectedException was thrown.
     @Test
     public void testDoCreateFloatingIpResponseFromJsonMalformed() throws FogbowException {
         // set up
@@ -1037,17 +1034,17 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
-    // test case: When calling the doGetNetworkPortsRersponseFrom method with a
+    // test case: When calling the doGetNetworkPortsResponseFrom method with a
     // JSON malformed, it must verify that a UnexpectedException was throw.
     @Test
-    public void testDoGetNetworkPortsRersponseFromJsonMalformed() throws FogbowException {
+    public void testDoGetNetworkPortsResponseFromJsonMalformed() throws FogbowException {
         // set up
         String json = TestUtils.JSON_MALFORMED;
         String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
                 OpenStackCloudUtils.NETWORK_PORTS_RESOURCE);
         try {
             // exercise
-            this.plugin.doGetNetworkPortsRersponseFrom(json);
+            this.plugin.doGetNetworkPortsResponseFrom(json);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -1067,9 +1064,6 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 + OpenStackPublicIpPlugin.FLOATINGIPS 
                 + OpenStackCloudUtils.ENDPOINT_SEPARATOR
                 + TestUtils.FAKE_INSTANCE_ID;
-
-        String json = FAKE_PUBLIC_IP_FROM_JSON_RESPONSE;
-        Mockito.doReturn(json).when(this.client).doGetRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
 
         // exercise
         this.plugin.doGetResponseFromCloud(endpoint, cloudUser);

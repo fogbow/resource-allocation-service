@@ -326,7 +326,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         String endpointBase = getNetworkPortsEndpoint();
         String endpoint = buildNetworkPortsEndpoint(computeId, defaulNetworkId, endpointBase);
         String json = doGetResponseFromCloud(endpoint, cloudUser);
-        GetNetworkPortsResponse response = doGetNetworkPortsRersponseFrom(json);
+        GetNetworkPortsResponse response = doGetNetworkPortsResponseFrom(json);
 
         List<Port> ports = response.getPorts();
         if (ports != null && !ports.isEmpty()) {
@@ -336,7 +336,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         }
     }
 
-    protected GetNetworkPortsResponse doGetNetworkPortsRersponseFrom(String json) throws FogbowException {
+    protected GetNetworkPortsResponse doGetNetworkPortsResponseFrom(String json) throws FogbowException {
         try {
             return GetNetworkPortsResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
