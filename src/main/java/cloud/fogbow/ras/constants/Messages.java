@@ -164,7 +164,9 @@ public class Messages {
         public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_CALCULATE_SUBNET_MASK = "Unable to calculate subnet mask.";
-        public static final String UNABLE_TO_COMPLETE_REQUEST = "Unable to complete request; template, zone and default network IDs are required parameters.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request; template ID is required parameter.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK = "Service Offering no available.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK = "Disk Offering no available.";
         public static final String UNABLE_TO_CREATE_ATTACHMENT = "Unable to create an attachment from json.";
         public static final String UNABLE_TO_DELETE_INSTANCE = "Unable to delete instance %s.";
         public static final String UNABLE_TO_DELETE_NETWORK = "Unable to delete network with id %s.";

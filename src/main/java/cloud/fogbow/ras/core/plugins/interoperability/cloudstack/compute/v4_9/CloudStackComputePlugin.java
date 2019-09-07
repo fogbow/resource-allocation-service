@@ -59,6 +59,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
         this.client = new CloudStackHttpClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
+
+        checkParameters();
     }
 
     @VisibleForTesting
@@ -75,32 +77,33 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
+    public String requestInstance(ComputeOrder computeOrder, final CloudStackUser cloudUser) throws FogbowException {
         String templateId = computeOrder.getImageId();
-        if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
-            LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
-            throw new InvalidParameterException();
+        if (templateId == null) {
+            String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK;
+            LOGGER.error(errorMsg);
+            throw new InvalidParameterException(errorMsg);
         }
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+        String networksId = normalizeNetworksID(computeOrder);
 
-        List<String> networks = new ArrayList<>();
-        networks.add(this.defaultNetworkId);
-        List<String> userDefinedNetworks = computeOrder.getNetworkIds();
-        if (!userDefinedNetworks.isEmpty()) {
-            networks.addAll(userDefinedNetworks);
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering = getServiceOffering(computeOrder, cloudUser);
+        if (serviceOffering == null) {
+            String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK;
+            LOGGER.error(errorMsg);
+            throw new NoAvailableResourcesException(errorMsg);
         }
-        String networksId = StringUtils.join(networks, ",");
 
         int disk = computeOrder.getDisk();
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering = getServiceOffering(computeOrder, cloudUser);
         GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(disk, cloudUser);
-        if (serviceOffering == null || diskOffering == null) {
-            throw new NoAvailableResourcesException();
+        if (diskOffering == null) {
+            String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK;
+            LOGGER.error(errorMsg);
+            throw new NoAvailableResourcesException(errorMsg);
         }
 
-        String instanceName = computeOrder.getName();
-        if (instanceName == null) instanceName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
+        String instanceName = normalizeInstanceName(computeOrder.getName());
 
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOffering.getId())
@@ -131,7 +134,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         DeployVirtualMachineResponse response = DeployVirtualMachineResponse.fromJson(jsonResponse);
-
         return response.getId();
     }
 
@@ -178,7 +180,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
-    private GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
+    @VisibleForTesting
+    GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
             ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
 
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
@@ -237,7 +240,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
     }
 
-    private GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize, CloudStackUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize, CloudStackUser cloudUser) throws FogbowException {
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
@@ -269,6 +273,23 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+    }
+
+    @VisibleForTesting
+    String normalizeNetworksID(final ComputeOrder computeOrder) {
+        List<String> networks = new ArrayList<>();
+        networks.add(this.defaultNetworkId);
+        List<String> userDefinedNetworks = computeOrder.getNetworkIds();
+        if (!userDefinedNetworks.isEmpty()) {
+            networks.addAll(userDefinedNetworks);
+        }
+        return StringUtils.join(networks, ",");
+    }
+
+    @VisibleForTesting
+    String normalizeInstanceName(final String instanceName) {
+        return instanceName != null ? instanceName
+                : SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
     }
 
     private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackUser cloudUser) {
@@ -330,17 +351,25 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
+    private void checkParameters() {
+        if (this.zoneId == null) {
+            throw new FatalErrorException("Zone ID is required");
+        } else if (this.defaultNetworkId == null) {
+            throw new FatalErrorException("Default Network ID is required");
+        }
+    }
+
     protected String getRandomUUID() {
         return UUID.randomUUID().toString();
     }
 
-    // Methods below are used for testing only
-    protected void setClient(CloudStackHttpClient client) {
-        this.client = client;
-    }
-
     protected void setLaunchCommandGenerator(LaunchCommandGenerator commandGenerator) {
         this.launchCommandGenerator = commandGenerator;
+    }
+
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
+        this.client = client;
     }
 
     @VisibleForTesting
