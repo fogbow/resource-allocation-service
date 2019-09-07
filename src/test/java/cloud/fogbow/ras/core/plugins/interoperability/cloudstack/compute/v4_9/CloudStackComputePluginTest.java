@@ -31,7 +31,9 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
@@ -49,6 +51,8 @@ import static org.mockito.Mockito.never;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class})
 public class CloudStackComputePluginTest {
+
+    private static final String BAD_REQUEST_MSG = "BAD Request";
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_INSTANCE_NAME = "fake-name";
@@ -99,6 +103,9 @@ public class CloudStackComputePluginTest {
     private String defaultNetworkId;
     private SharedOrderHolders sharedOrderHolders;
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Before
     public void setUp() {
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
@@ -123,7 +130,7 @@ public class CloudStackComputePluginTest {
     }
 
     // Test case: Trying to get all ServiceOfferings in the Cloudstack, but it occurs an error
-    @Test(expected = FogbowException.class)
+    @Test
     public void testGetServiceOfferingsErrorInCloudstack() throws FogbowException, HttpResponseException {
         // set up
         CloudStackUser cloudStackUser = FAKE_TOKEN;
@@ -133,7 +140,31 @@ public class CloudStackComputePluginTest {
                 Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(badRequestHttpResponse);
 
-        // exercise and verify
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.getServiceOfferings(cloudStackUser);
+    }
+
+    // Test case: The cloudStackUser parameter is null and this throw a exception
+    @Test
+    public void testGetServiceOfferingsCloudStackUserNull() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = null;
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.
+                IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+
+        // exercise
         this.plugin.getServiceOfferings(cloudStackUser);
     }
 
@@ -944,7 +975,7 @@ public class CloudStackComputePluginTest {
     }
 
     private HttpResponseException createBadRequestHttpResponse() {
-        return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "BAD Request");
+        return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
     }
 
 }

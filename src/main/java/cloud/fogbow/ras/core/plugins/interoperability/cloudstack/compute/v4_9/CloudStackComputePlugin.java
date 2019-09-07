@@ -33,6 +33,8 @@ import java.util.*;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
+    protected static final String IRREGULAR_VALUE_NULL_EXCEPTION_MSG = "This value must not be null.";
+
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
@@ -59,8 +61,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
 
-    // NOTE(pauloewerton): used for testing only.
-    public CloudStackComputePlugin() {}
+    @VisibleForTesting
+    CloudStackComputePlugin() {}
 
     @Override
     public boolean isReady(String cloudState) {
@@ -218,9 +220,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     GetAllServiceOfferingsResponse getServiceOfferings(final CloudStackUser cloudUser) throws FogbowException {
-        // TODO(chico) - Implement test to this case
-        if (cloudUser == null || this.cloudStackUrl == null) {
-            throw new FogbowException();
+        if (cloudUser == null) {
+            throw new FogbowException(IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
         }
 
         GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build(this.cloudStackUrl);
