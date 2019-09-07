@@ -32,7 +32,7 @@ public class GetAllServiceOfferingsResponse {
     @SerializedName(LIST_SERVICE_OFFERINGS_KEY_JSON)
     private ListServiceOfferingsResponse response;
 
-    public List<ServiceOffering> getServiceOfferings() throws FogbowException {
+    public List<ServiceOffering> getServiceOfferings() {
         return response.serviceOfferings;
     }
 

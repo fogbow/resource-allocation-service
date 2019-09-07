@@ -23,6 +23,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -206,6 +207,89 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(cpuNumberExpected, firstServiceOffering.getCpuNumber());
         Assert.assertEquals(memoryExpected, firstServiceOffering.getMemory());
         Assert.assertEquals(tagsExpected, firstServiceOffering.getTags());
+    }
+
+    // Test case: The cloudStackUser parameter is null and this throw a exception
+    @Test
+    public void testGetDiskOfferingsParameterNull() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = null;
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+
+        // exercise
+        this.plugin.getDiskOfferings(cloudStackUser);
+    }
+
+    // Test case: Trying to get all DiskOfferings in the Cloudstack, but it occurs an error
+    @Test
+    public void testGetDiskOfferingsErrorInCloudstack() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+
+        HttpResponseException badRequestHttpResponse = createBadRequestHttpResponse();
+        Mockito.when(this.client.doGetRequest(
+                Mockito.anyString(), Mockito.any(CloudStackUser.class)))
+                .thenThrow(badRequestHttpResponse);
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.getDiskOfferings(cloudStackUser);
+    }
+
+    // Test case: Getting all DiskOfferings in the Cloudstack successfully
+    @Test
+    public void testGetDiskOfferings() throws FogbowException, IOException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+        GetAllDiskOfferingsRequest getAllDiskOfferingRequest = new GetAllDiskOfferingsRequest
+                .Builder().build(this.plugin.getCloudStackUrl());
+        String getAllDiskOfferingRequestUrl = getAllDiskOfferingRequest.getUriBuilder().toString();
+
+        String idExpected = "id";
+        int diskExpected = 3;
+        boolean customizedExpected = true;
+        String getAllDiskOfferingRequestJsonStr = getListDiskOfferrings(
+                idExpected, diskExpected, customizedExpected);
+        System.out.println(getAllDiskOfferingRequestJsonStr);
+
+        Mockito.when(this.client.doGetRequest(
+                Mockito.eq(getAllDiskOfferingRequestUrl), Mockito.eq(cloudStackUser)))
+                .thenReturn(getAllDiskOfferingRequestJsonStr);
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // exercise
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
+                this.plugin.getDiskOfferings(cloudStackUser);
+
+        // verify
+        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings =
+                getAllDiskOfferingsResponse.getDiskOfferings();
+        GetAllDiskOfferingsResponse.DiskOffering firstDiskOffering = diskOfferings.get(0);
+
+        Assert.assertNotNull(diskOfferings);
+        Assert.assertEquals(idExpected, firstDiskOffering.getId());
+        Assert.assertEquals(diskExpected, firstDiskOffering.getDiskSize());
+        Assert.assertEquals(customizedExpected, firstDiskOffering.isCustomized());
     }
 
     // Test case: when deploying virtual machine, the token should be signed and five HTTP GET requests should be made:
@@ -932,14 +1016,9 @@ public class CloudStackComputePluginTest {
         return response;
     }
 
-    private String getListDiskOfferrings(String id, int diskSize, boolean customized) {
-        String response = "{\"listdiskofferingsresponse\":{" + "\"diskoffering\":[{"
-                + "\"id\": \"%s\","
-                + "\"disksize\": %s,"
-                + "\"iscustomized\": %s"
-                + "}]}}";
-
-        return String.format(response, id, diskSize, customized);
+    private String getListDiskOfferrings(String id, int diskSize, boolean customized) throws IOException {
+        return CloudstackTestUtils.createGetAllDiskOfferingsResponseJson(
+                id, diskSize, customized, "");
     }
 
     private String getListServiceOfferrings(

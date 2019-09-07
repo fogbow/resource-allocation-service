@@ -252,7 +252,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return null;
     }
 
-    private GetAllDiskOfferingsResponse getDiskOfferings(CloudStackUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    GetAllDiskOfferingsResponse getDiskOfferings(final CloudStackUser cloudUser) throws FogbowException {
+        if (cloudUser == null) {
+            throw new FogbowException(IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+        }
+
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -263,9 +268,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetAllDiskOfferingsResponse diskOfferingsResponse = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
-
-        return diskOfferingsResponse;
+        return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
     }
 
     private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackUser cloudUser) {

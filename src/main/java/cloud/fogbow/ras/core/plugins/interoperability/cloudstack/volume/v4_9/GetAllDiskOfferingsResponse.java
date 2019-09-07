@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
@@ -25,6 +26,9 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetAllDiskOfferingsResponse {
+
+    static final String UNEXPECTED_RESPONSE = "Unexpected AllServiceOfferingsResponse response.";
+
     @SerializedName(DISK_OFFERINGS_KEY_JSON)
     private ListDiskOfferingsResponse response;
 
@@ -37,8 +41,14 @@ public class GetAllDiskOfferingsResponse {
         return this.response.diskOfferings;
     }
 
-    public static GetAllDiskOfferingsResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetAllDiskOfferingsResponse.class);
+    public static GetAllDiskOfferingsResponse fromJson(String json) throws FogbowException {
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = GsonHolder.getInstance().
+                fromJson(json, GetAllDiskOfferingsResponse.class);
+
+        if (getAllDiskOfferingsResponse.response == null) {
+            throw new FogbowException(UNEXPECTED_RESPONSE);
+        }
+        return getAllDiskOfferingsResponse;
     }
 
     public class DiskOffering {

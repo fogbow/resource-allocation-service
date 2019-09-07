@@ -1,0 +1,10 @@
+{
+  "listdiskofferingsresponse": {
+    "diskoffering": [{
+      "id": "%s",
+      "disksize": %s,
+      "iscustomized": %s,
+      "tags": "%s"
+    }]
+  }
+}

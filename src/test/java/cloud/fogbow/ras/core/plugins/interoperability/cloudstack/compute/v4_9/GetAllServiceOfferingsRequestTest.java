@@ -9,27 +9,28 @@ import org.junit.Test;
 
 public class GetAllServiceOfferingsRequestTest {
 
-    private final String CLOUDSTACK_URL_DEFAULT = "http://localhost";
-
     // test case: create GetAllServiceOfferingsRequestUrl successfully
     @Test
     public void testCreateGetAllServiceOfferingsRequestUrl() throws InvalidParameterException {
         // set up
-        URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(CLOUDSTACK_URL_DEFAULT,
+        URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
+                CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
                 GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND);
         String urlExpected = uriBuilder.toString();
 
         // exercise
-        GetAllServiceOfferingsRequest getAllServiceOfferingsRequest =
-                new GetAllServiceOfferingsRequest.Builder().build(CLOUDSTACK_URL_DEFAULT);
+        GetAllServiceOfferingsRequest getAllServiceOfferingsRequest = new GetAllServiceOfferingsRequest.
+                        Builder().build(CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT);
         String getAllServiceOfferingsRequestUrl = getAllServiceOfferingsRequest.getUriBuilder().toString();
 
         // verify
         Assert.assertEquals(urlExpected, getAllServiceOfferingsRequestUrl);
     }
 
-    // TODO(Chico) fix the Fogbow Commom code. The CloudStackRequest throws a
-    // InvalidParameterException from the package java.security instead the FogbowException
+    /**
+       TODO(Chico) fix the Fogbow Commom code. The CloudStackRequest throws a
+       InvalidParameterException from the package java.security instead the FogbowException
+     **/
     @Ignore
     // test case: trying create GetAllServiceOfferingsRequestUrl but it occur an error
     @Test(expected = InvalidParameterException.class)
