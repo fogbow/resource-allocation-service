@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -54,6 +55,14 @@ public class GetAllServiceOfferingsResponse {
     }
 
     public class ServiceOffering {
+
+        @VisibleForTesting
+        ServiceOffering(String id, int cpuNumber, int memory) {
+            this.id = id;
+            this.cpuNumber = cpuNumber;
+            this.memory = memory;
+        }
+
         @SerializedName(ID_KEY_JSON)
         private String id;
         @SerializedName(NAME_KEY_JSON)

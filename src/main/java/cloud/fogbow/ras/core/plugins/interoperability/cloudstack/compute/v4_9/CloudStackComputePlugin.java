@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
@@ -180,6 +181,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
+    @Nullable
     @VisibleForTesting
     GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
             ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
@@ -188,7 +190,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
 
-        if (serviceOfferings == null) throw new NoAvailableResourcesException();
+        if (serviceOfferings == null || serviceOfferings.isEmpty()) {
+            return null;
+        }
 
         List<GetAllServiceOfferingsResponse.ServiceOffering> toRemove = new ArrayList<>();
         if (computeOrder.getRequirements() != null && computeOrder.getRequirements().size() > 0) {

@@ -41,10 +41,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class})
@@ -291,10 +288,95 @@ public class CloudStackComputePluginTest {
     @Test
     public void testNormalizeNetworksID() {}
 
-    // TODO(chico) - finish implementation
+    // TODO(chico): check with Fogbow team the requirements. To finish the implementation
     @Ignore
+    // test case: get service offering successfuly with use requirements
     @Test
-    public void testGetServiceOffering() {}
+    public void testGetServiceOfferingWithRequirements() throws FogbowException {
+
+    }
+
+    // TODO(chico): check with Fogbow team the requirements. To finish the implementation
+    // test case: get service offering successfuly without use requirements
+    @Test
+    public void testGetServiceOfferingWithoutRequirements() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+
+        ComputeOrder computeOrder = createComputeOrder(
+                new ArrayList<UserData>(), "fake-image-id");
+
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                Mockito.mock(GetAllServiceOfferingsResponse.class);
+
+        int amoutExtraServicesOffering = 5;
+        String idServiceOfferingExpected = "idServiceOfferingExpected";
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
+                createServicesOfferingObjects(idServiceOfferingExpected, amoutExtraServicesOffering);
+        Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
+                .thenReturn(servicesOfferingExpected);
+        Mockito.doReturn(getAllServiceOfferingsResponse)
+                .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
+
+        // exercise
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(servicesOfferingExpected.get(0), serviceOffering);
+    }
+
+    // test case: get service offering and return null because there are not services offerings in the cloud
+    @Test
+    public void testGetServiceOfferingAndEmptyServicesOffering() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+
+        ComputeOrder computeOrder = createComputeOrder(
+                new ArrayList<UserData>(), "fake-image-id");
+
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                Mockito.mock(GetAllServiceOfferingsResponse.class);
+
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected = new ArrayList<>();
+        Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
+                .thenReturn(servicesOfferingExpected);
+        Mockito.doReturn(getAllServiceOfferingsResponse)
+                .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
+
+        // exercise
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
+
+        // verify
+        Assert.assertNull(serviceOffering);
+    }
+
+    // test case: get service offering and return null because services offering comes null
+    @Test
+    public void testGetServiceOfferingAndNullServicesOffering() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+
+        ComputeOrder computeOrder = createComputeOrder(
+                new ArrayList<UserData>(), "fake-image-id");
+
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                Mockito.mock(GetAllServiceOfferingsResponse.class);
+
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected = null;
+        Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
+                .thenReturn(servicesOfferingExpected);
+        Mockito.doReturn(getAllServiceOfferingsResponse)
+                .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
+
+        // exercise
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
+
+        // verify
+        Assert.assertNull(serviceOffering);
+    }
 
     // test case: instance name does not change
     @Test
@@ -800,6 +882,28 @@ public class CloudStackComputePluginTest {
         computeOrder.setInstanceId(FAKE_ID);
 //        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
         return computeOrder;
+    }
+
+    private List<GetAllServiceOfferingsResponse.ServiceOffering> createServicesOfferingObjects(
+            String idServiceOfferingToTest, int amoutExtraServicesOffering) {
+
+        if (amoutExtraServicesOffering < 0) {
+            throw new IllegalArgumentException("Value not allowed");
+        }
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering = new ArrayList<>();
+        servicesOffering.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
+                idServiceOfferingToTest, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY)));
+
+        for (int i = 0; i < amoutExtraServicesOffering; i++) {
+            String randonId = UUID.randomUUID().toString();
+            servicesOffering.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
+                    randonId, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY)));
+        }
+
+        int amoutExpected = amoutExtraServicesOffering + 1;
+        Assert.assertEquals(amoutExpected, servicesOffering.size());
+
+        return servicesOffering;
     }
 
     private HttpResponseException createBadRequestHttpResponse() {
