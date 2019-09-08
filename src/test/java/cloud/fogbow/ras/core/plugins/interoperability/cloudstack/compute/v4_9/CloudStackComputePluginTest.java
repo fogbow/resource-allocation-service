@@ -82,24 +82,17 @@ public class CloudStackComputePluginTest {
     public static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
     public static final String TYPE_KEY = "type";
     public static final String EXPUNGE_KEY = "expunge";
-    public static final String COMMAND_KEY = "command";
-    public static final String ZONE_ID_KEY = "zoneid";
-    public static final String SERVICE_OFFERING_ID_KEY = "serviceofferingid";
-    public static final String TEMPLATE_ID_KEY = "templateid";
-    public static final String DISK_OFFERING_ID_KEY = "diskofferingid";
-    public static final String NETWORK_IDS_KEY = "networkids";
-    public static final String USER_DATA_KEY = "userdata";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String CLOUD_NAME = "cloudstack";
 
-    private String fakeZoneId;
 
     private CloudStackComputePlugin plugin;
     private CloudStackHttpClient client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
+    private SharedOrderHolders sharedOrderHolders;
     private Properties properties;
     private String defaultNetworkId;
-    private SharedOrderHolders sharedOrderHolders;
+    private String fakeZoneId;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -303,10 +296,37 @@ public class CloudStackComputePluginTest {
     @Test
     public void testGetServiceOffering() {}
 
-    // TODO(chico) - finish implementation
-    @Ignore
+    // test case: instance name does not change
     @Test
-    public void testNormalizeInstanceName() {}
+    public void testNormalizeInstanceName() {
+        // set up
+        String instanceNameExpected = "instanceName";
+
+        // exercise
+        String instanceName = this.plugin.normalizeInstanceName(instanceNameExpected);
+
+        // verify
+        Assert.assertEquals(instanceNameExpected, instanceName);
+    }
+
+    // test case: generate a instance name because instaceName parameter is null
+    @Test
+    public void testNormalizeInstanceNameWhenParameterIsNull() {
+        // set up
+        final int SUFIX_GENERATED_INSTANCE_NAME_SIZE = 36;
+        String instanceNameNull = null;
+
+        // exercise
+        String instanceName = this.plugin.normalizeInstanceName(instanceNameNull);
+
+        // verify
+        String prefix = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX;
+        Assert.assertNotNull(instanceName);
+        Assert.assertTrue(instanceName.startsWith(prefix));
+
+        String sufixInstanceName = instanceName.split(prefix)[1];
+        Assert.assertEquals(SUFIX_GENERATED_INSTANCE_NAME_SIZE, sufixInstanceName.length());
+    }
 
     // Test case: request instance successfully
     @Test
