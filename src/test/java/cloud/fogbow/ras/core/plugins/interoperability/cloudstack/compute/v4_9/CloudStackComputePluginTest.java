@@ -363,10 +363,34 @@ public class CloudStackComputePluginTest {
         new CloudStackComputePlugin("");
     }
 
-    // TODO(chico) - finish implementation
-    @Ignore
+    // test case: normalizing networks id successfuly
     @Test
-    public void testNormalizeNetworksID() {}
+    public void testNormalizeNetworksID() {
+        // set up
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
+        String networksIDExpected = String.format("%s,%s", this.defaultNetworkId, FAKE_NETWORK_ID);
+
+        // exercise
+        String networksID = this.plugin.normalizeNetworksID(computeOrder);
+
+        // verify
+        Assert.assertEquals(networksIDExpected, networksID);
+    }
+
+    // test case: normalizing networks id only with default network
+    @Test
+    public void testNormalizeNetworksIDOnlyDefaultNetworkId() {
+        // set up
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getNetworkOrderIds()).thenReturn(new ArrayList<>());
+        String networksIDExpected = this.defaultNetworkId;
+
+        // exercise
+        String networksID = this.plugin.normalizeNetworksID(computeOrder);
+
+        // verify
+        Assert.assertEquals(networksIDExpected, networksID);
+    }
 
     // TODO(chico): check with Fogbow team the requirements. To finish the implementation
     @Ignore
@@ -951,14 +975,14 @@ public class CloudStackComputePluginTest {
         networkOrder.setCloudName(CLOUD_NAME);
         networkOrder.setInstanceId(FAKE_NETWORK_ID);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-//        this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
+        this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
         List<String> networkOrderIds = new ArrayList<>();
         networkOrderIds.add(networkOrder.getId());
         ComputeOrder computeOrder = new ComputeOrder(requester, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, networkOrderIds);
         computeOrder.setInstanceId(FAKE_ID);
-//        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
         return computeOrder;
     }
 
