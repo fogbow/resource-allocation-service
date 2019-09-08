@@ -34,7 +34,12 @@ import java.util.*;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    protected static final String IRREGULAR_VALUE_NULL_EXCEPTION_MSG = "This value must not be null.";
+    protected static final String CLOUDUSER_NULL_EXCEPTION_MSG =
+            String.format(Messages.Error.IRREGULAR_VALUE_NULL_EXCEPTION_MSG, "Cloud User");
+    protected static final String ZONE_ID_REQUIRED_ERROR_MESSAGE =
+            String.format(Messages.Error.CONFIGURATION_REQUIRED, "Zone ID");
+    protected static final String DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE =
+            String.format(Messages.Error.CONFIGURATION_REQUIRED, "Default Network ID");
 
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
@@ -228,7 +233,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     GetAllServiceOfferingsResponse getServiceOfferings(final CloudStackUser cloudUser) throws FogbowException {
         if (cloudUser == null) {
-            throw new FogbowException(IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
         }
 
         GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build(this.cloudStackUrl);
@@ -263,7 +268,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     GetAllDiskOfferingsResponse getDiskOfferings(final CloudStackUser cloudUser) throws FogbowException {
         if (cloudUser == null) {
-            throw new FogbowException(IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
         }
 
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
@@ -355,11 +360,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    private void checkParameters() {
-        if (this.zoneId == null) {
-            throw new FatalErrorException("Zone ID is required");
-        } else if (this.defaultNetworkId == null) {
-            throw new FatalErrorException("Default Network ID is required");
+    @VisibleForTesting
+    void checkParameters() {
+        if (this.zoneId == null || this.zoneId.isEmpty()) {
+            throw new FatalErrorException(ZONE_ID_REQUIRED_ERROR_MESSAGE);
+        } else if (this.defaultNetworkId == null || this.defaultNetworkId.isEmpty()) {
+            throw new FatalErrorException(DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE);
         }
     }
 

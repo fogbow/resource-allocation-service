@@ -1,9 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -44,7 +41,8 @@ import java.io.IOException;
 import java.util.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DefaultLaunchCommandGenerator.class})
+@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class,
+        DefaultLaunchCommandGenerator.class, PropertiesUtil.class})
 public class CloudStackComputePluginTest {
 
     private static final String BAD_REQUEST_MSG = "BAD Request";
@@ -150,7 +148,7 @@ public class CloudStackComputePluginTest {
         // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudStackComputePlugin.
-                IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+                CLOUDUSER_NULL_EXCEPTION_MSG);
 
         // exercise
         this.plugin.getServiceOfferings(cloudStackUser);
@@ -209,7 +207,7 @@ public class CloudStackComputePluginTest {
 
         // verify
         this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(CloudStackComputePlugin.IRREGULAR_VALUE_NULL_EXCEPTION_MSG);
+        this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
 
         // exercise
         this.plugin.getDiskOfferings(cloudStackUser);
@@ -278,10 +276,92 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(customizedExpected, firstDiskOffering.isCustomized());
     }
 
-    // TODO(chico) - finish implementation
-    @Ignore
+    // test case: initialization CloudstackComputePLugin with empty zoneid in the properties
     @Test
-    public void testGetCheckParameters() {}
+    public void testGetCheckParametersWithEmptyZoneId() {
+        // set up
+        Properties properties = new Properties();
+        properties.put(CloudStackComputePlugin.ZONE_ID_KEY, "");
+
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        PowerMockito.when(PropertiesUtil.readProperties("")).thenReturn(properties);
+
+        // verify
+        this.expectedException.expect(FatalErrorException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.ZONE_ID_REQUIRED_ERROR_MESSAGE);
+
+        // exercise
+        new CloudStackComputePlugin("");
+    }
+
+    // test case: initialization CloudstackComputePLugin with null zoneid in the properties
+    @Test
+    public void testGetCheckParametersWithNullZoneId() {
+        // set up
+        Properties properties = new Properties();
+
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        PowerMockito.when(PropertiesUtil.readProperties("")).thenReturn(properties);
+
+        // verify
+        this.expectedException.expect(FatalErrorException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.ZONE_ID_REQUIRED_ERROR_MESSAGE);
+
+        // exercise
+        new CloudStackComputePlugin("");
+    }
+
+    // test case: initialization CloudstackComputePLugin with null defaultnetworkid in the properties
+    @Test
+    public void testGetCheckParametersWithNullDefaultNetworkId() {
+        // set up
+        Properties properties = new Properties();
+        properties.put(CloudStackComputePlugin.ZONE_ID_KEY, "1");
+
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        PowerMockito.when(PropertiesUtil.readProperties("")).thenReturn(properties);
+
+        // verify
+        this.expectedException.expect(FatalErrorException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE);
+
+        // exercise
+        new CloudStackComputePlugin("");
+    }
+
+    // test case: initialization CloudstackComputePLugin with empty defaultnetworkid in the properties
+    @Test
+    public void testGetCheckParametersWithEmptyDefaultNetworkId() {
+        // set up
+        Properties properties = new Properties();
+        properties.put(CloudStackComputePlugin.ZONE_ID_KEY, "1");
+        properties.put(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "");
+
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        PowerMockito.when(PropertiesUtil.readProperties("")).thenReturn(properties);
+
+        // verify
+        this.expectedException.expect(FatalErrorException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE);
+
+        // exercise
+        new CloudStackComputePlugin("");
+    }
+
+    // test case: initialization CloudstackComputePLugin and checkparameters successfully
+    @Test
+    public void testGetCheckParametersSuccessfully() {
+        // set up
+        Properties properties = new Properties();
+        properties.put(CloudStackComputePlugin.ZONE_ID_KEY, "1");
+        properties.put(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "1");
+
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        PowerMockito.when(PropertiesUtil.readProperties("")).thenReturn(properties);
+
+        // exercise and verify
+        new CloudStackComputePlugin("");
+    }
 
     // TODO(chico) - finish implementation
     @Ignore
@@ -292,9 +372,7 @@ public class CloudStackComputePluginTest {
     @Ignore
     // test case: get service offering successfuly with use requirements
     @Test
-    public void testGetServiceOfferingWithRequirements() throws FogbowException {
-
-    }
+    public void testGetServiceOfferingWithRequirements() throws FogbowException { }
 
     // TODO(chico): check with Fogbow team the requirements. To finish the implementation
     // test case: get service offering successfuly without use requirements
