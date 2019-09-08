@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -79,6 +80,12 @@ public class GetVirtualMachineResponse {
     }
 
     public class Nic {
+
+        @VisibleForTesting
+        Nic (String ipAddress) {
+            this.ipAddress = ipAddress;
+        }
+
         @SerializedName(IP_ADDRESS_KEY_JSON)
         private String ipAddress;
 

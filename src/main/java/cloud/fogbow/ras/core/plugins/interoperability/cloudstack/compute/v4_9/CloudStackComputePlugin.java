@@ -144,7 +144,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
+    public ComputeInstance getInstance(ComputeOrder order, CloudStackUser cloudUser)
+            throws FogbowException {
+
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
@@ -249,6 +251,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
     }
 
+    @Nullable
     @VisibleForTesting
     GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize, CloudStackUser cloudUser) throws FogbowException {
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
@@ -301,7 +304,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 : SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
     }
 
-    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackUser cloudUser) {
+    @VisibleForTesting
+    ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackUser cloudUser) {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
@@ -334,7 +338,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return computeInstance;
     }
 
-    private int getVirtualMachineDiskSize(String virtualMachineId, CloudStackUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    int getVirtualMachineDiskSize(String virtualMachineId, CloudStackUser cloudUser) throws FogbowException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
                 .type(DEFAULT_VOLUME_TYPE)
