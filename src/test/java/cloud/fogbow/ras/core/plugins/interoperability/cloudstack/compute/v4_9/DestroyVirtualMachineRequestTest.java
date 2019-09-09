@@ -6,7 +6,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.CloudStackComputePluginTest.EXPUNGE_KEY;
+import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DestroyVirtualMachineRequest.EXPUNGE_KEY;
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest.VIRTUAL_MACHINE_ID_KEY;
 
 public class DestroyVirtualMachineRequestTest {
