@@ -48,6 +48,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     private static final int ONE_GIGABYTE = 1;
 
     private AwsV2VolumePlugin plugin;
+    private Ec2Client client;
 	
     @Before
     public void setUp() throws FogbowException {
@@ -60,6 +61,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         this.plugin = Mockito.spy(new AwsV2VolumePlugin(awsConfFilePath));
+        this.client = this.testUtils.getAwsMockedClient();
     }
 	
     // test case: When calling the isReady method with the cloud states AVAILABLE or
@@ -134,18 +136,17 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testRequestInstance() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
         VolumeOrder order = this.testUtils.createLocalVolumeOrder();
 
-        String name = TestUtils.FAKE_ORDER_NAME;
+        String instanceName = TestUtils.FAKE_ORDER_NAME;
         PowerMockito.mockStatic(FogbowCloudUtil.class);
-        BDDMockito.given(FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()))).willReturn(name);
+        BDDMockito.given(FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()))).willReturn(instanceName);
 
         CreateVolumeRequest request = CreateVolumeRequest.builder().size(order.getVolumeSize())
                 .availabilityZone(TEST_AVAILABILITY_ZONE).build();
 
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(request),
-                Mockito.eq(name), Mockito.eq(client));
+                Mockito.eq(instanceName), Mockito.eq(client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -160,7 +161,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(request),
-                Mockito.eq(name), Mockito.eq(client));
+                Mockito.eq(instanceName), Mockito.eq(this.client));
     }
 
     // test case: When calling the getInstance method, with a volume order and
@@ -169,15 +170,11 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testGetInstance() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
         VolumeOrder order = this.testUtils.createLocalVolumeOrder();
 
-        DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-                .volumeIds(order.getInstanceId())
-                .build();
-
         VolumeInstance instance = createVolumeInstance();
-        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.eq(request), Mockito.eq(client));
+        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.eq(order.getInstanceId()),
+                Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -188,8 +185,8 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(request),
-                Mockito.eq(client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(order.getInstanceId()),
+                Mockito.eq(this.client));
 
     }
 	
@@ -198,14 +195,10 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDeleteInstance() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
         VolumeOrder order = this.testUtils.createLocalVolumeOrder();
 
-        DeleteVolumeRequest request = DeleteVolumeRequest.builder()
-                .volumeId(order.getInstanceId())
-                .build();
-
-        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(request), Mockito.eq(client));
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(order.getInstanceId()),
+                Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -216,30 +209,30 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(request),
-                Mockito.eq(client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
     }
 	
     // test case: When calling the doDeleteInstance method, with a volume order and
     // cloud user valid, and an error will occur, the UnexpectedException will be
     // thrown.
     @Test
-    public void testDoDeleteInstanceFail() throws FogbowException {
+    public void testDoDeleteInstanceFail() {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
+        String volumeId = TestUtils.FAKE_INSTANCE_ID;
 
         DeleteVolumeRequest request = DeleteVolumeRequest.builder()
-                .volumeId(TestUtils.FAKE_INSTANCE_ID)
+                .volumeId(volumeId)
                 .build();
 
         SdkClientException exception = SdkClientException.builder().build();
-        Mockito.doThrow(exception).when(client).deleteVolume(Mockito.eq(request));
+        Mockito.doThrow(exception).when(this.client).deleteVolume(Mockito.eq(request));
 
         String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
 
         try {
             // exercise
-            this.plugin.doDeleteInstance(request, client);
+            this.plugin.doDeleteInstance(volumeId, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -247,24 +240,25 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         }
     }
 	
-	// test case: When calling the doDeleteInstance method, it must verify that call was successful.
+    // test case: When calling the doDeleteInstance method, it must verify that call
+    // was successful.
     @Test
     public void testDoDeleteInstance() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
-        
+        String volumeId = TestUtils.FAKE_INSTANCE_ID;
+
         DeleteVolumeRequest request = DeleteVolumeRequest.builder()
-                .volumeId(TestUtils.FAKE_INSTANCE_ID)
+                .volumeId(volumeId)
                 .build();
-        
+
         DeleteVolumeResponse response = DeleteVolumeResponse.builder().build();
-        Mockito.doReturn(response).when(client).deleteVolume(Mockito.eq(request));
+        Mockito.doReturn(response).when(this.client).deleteVolume(Mockito.eq(request));
 
         // exercise
-        this.plugin.doDeleteInstance(request, client);
-        
+        this.plugin.doDeleteInstance(volumeId, this.client);
+
         // verify
-        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).deleteVolume(Mockito.eq(request));
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).deleteVolume(Mockito.eq(request));
     }
     
     // test case: When calling the doGetInstance method, it must verify that call
@@ -272,30 +266,31 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoGetInstance() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
+        String volumeId = TestUtils.FAKE_INSTANCE_ID;
 
         DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-                .volumeIds(TestUtils.FAKE_INSTANCE_ID)
+                .volumeIds(volumeId)
                 .build();
 
         Volume volume = createVolume();
         DescribeVolumesResponse response = DescribeVolumesResponse.builder()
                 .volumes(volume)
                 .build();
-        
+
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        BDDMockito.given(AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(client))).willReturn(response);
-        
+        BDDMockito.given(AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(this.client)))
+                .willReturn(response);
+
         VolumeInstance instance = createVolumeInstance();
         Mockito.doReturn(instance).when(this.plugin).buildVolumeInstance(Mockito.eq(response));
 
         // exercise
-        this.plugin.doGetInstance(request, client);
+        this.plugin.doGetInstance(volumeId, this.client);
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(client));
-        
+        AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(this.client));
+
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVolumeInstance(response);
     }
     
@@ -330,22 +325,21 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstanceFail() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
         String name = TestUtils.FAKE_ORDER_NAME;
 
         CreateVolumeRequest request = CreateVolumeRequest.builder()
                 .size(TestUtils.DISK_VALUE)
                 .availabilityZone(TEST_AVAILABILITY_ZONE)
                 .build();
-        
+
         SdkClientException exception = SdkClientException.builder().build();
-        Mockito.when(client.createVolume(Mockito.eq(request))).thenThrow(exception);
-        
+        Mockito.when(this.client.createVolume(Mockito.eq(request))).thenThrow(exception);
+
         String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
 
         try {
             // exercise
-            this.plugin.doRequestInstance(request, name, client);
+            this.plugin.doRequestInstance(request, name, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -358,9 +352,8 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstance() throws Exception {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        String name = TestUtils.FAKE_ORDER_NAME;
+        String instanceName = TestUtils.FAKE_ORDER_NAME;
         String tagName = AwsV2CloudUtil.AWS_TAG_NAME;
 
         CreateVolumeRequest request = CreateVolumeRequest.builder()
@@ -371,22 +364,22 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         CreateVolumeResponse response = CreateVolumeResponse.builder()
                 .volumeId(TestUtils.FAKE_INSTANCE_ID)
                 .build();
-        
-        Mockito.when(client.createVolume(Mockito.eq(request))).thenReturn(response);
-        
+
+        Mockito.when(this.client.createVolume(Mockito.eq(request))).thenReturn(response);
+
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, "createTagsRequest", Mockito.eq(instanceId),
-                Mockito.eq(tagName), Mockito.eq(name), Mockito.eq(client));
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD,
+                Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(instanceName), Mockito.eq(this.client));
 
         // exercise
-        this.plugin.doRequestInstance(request, name, client);
+        this.plugin.doRequestInstance(request, instanceName, this.client);
 
         // verify
-        Mockito.verify(client, Mockito.times(TestUtils.RUN_ONCE)).createVolume(Mockito.eq(request));
-        
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createVolume(Mockito.eq(request));
+
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(name),
-                Mockito.eq(client));
+        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(instanceName),
+                Mockito.eq(this.client));
     }
 	
     private VolumeInstance createVolumeInstance() {
