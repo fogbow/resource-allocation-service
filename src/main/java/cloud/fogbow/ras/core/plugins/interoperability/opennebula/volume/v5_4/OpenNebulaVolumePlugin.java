@@ -65,8 +65,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		String volumeName = volumeOrder.getName();
-		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
+		String name = volumeOrder.getName();
 		String imagePersistent = PERSISTENT_DISK_CONFIRMATION;
 		String imageType = DATABLOCK_IMAGE_TYPE;
 		String fileSystemType = FILE_SYSTEM_TYPE_RAW;

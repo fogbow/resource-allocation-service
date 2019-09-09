@@ -124,11 +124,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         }
     }
 
-    private CreateNetworkResponse createNetwork(String name, OpenStackV3User cloudUser, String tenantId) throws FogbowException {
+    private CreateNetworkResponse createNetwork(String networkName, OpenStackV3User cloudUser, String tenantId) throws FogbowException {
         CreateNetworkResponse createNetworkResponse = null;
         try {
-            String networkName = (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : name);
-
             CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                     .name(networkName)
                     .projectId(tenantId)

@@ -25,7 +25,6 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVolumeRequest;
@@ -37,7 +36,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
-@PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class, FogbowCloudUtil.class })
+@PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsV2VolumePluginTest extends BaseUnitTests {
 
     private static final String AWS_TAG_NAME = "Name";
@@ -137,14 +136,13 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     public void testRequestInstance() throws FogbowException {
         // set up
         VolumeOrder order = this.testUtils.createLocalVolumeOrder();
+        
+        CreateVolumeRequest request = CreateVolumeRequest.builder()
+                .size(order.getVolumeSize())
+                .availabilityZone(TEST_AVAILABILITY_ZONE)
+                .build();
 
         String instanceName = TestUtils.FAKE_ORDER_NAME;
-        PowerMockito.mockStatic(FogbowCloudUtil.class);
-        BDDMockito.given(FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()))).willReturn(instanceName);
-
-        CreateVolumeRequest request = CreateVolumeRequest.builder().size(order.getVolumeSize())
-                .availabilityZone(TEST_AVAILABILITY_ZONE).build();
-
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(request),
                 Mockito.eq(instanceName), Mockito.eq(client));
 
@@ -156,9 +154,6 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         // verify
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
-
-        PowerMockito.verifyStatic(FogbowCloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        FogbowCloudUtil.defineInstanceName(Mockito.eq(order.getName()));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(request),
                 Mockito.eq(instanceName), Mockito.eq(this.client));

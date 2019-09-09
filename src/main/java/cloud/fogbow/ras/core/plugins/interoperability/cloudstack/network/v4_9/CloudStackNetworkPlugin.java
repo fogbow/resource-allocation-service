@@ -66,7 +66,6 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         }
 
         String name = networkOrder.getName();
-        if (name == null) name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString();
 
         String startingIp = subnetInfo.getLowAddress();
         String endingIp = subnetInfo.getHighAddress();

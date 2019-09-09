@@ -4,13 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -34,7 +29,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
-import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
@@ -176,7 +170,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 			if (response != null && !response.instances().isEmpty()) {
 				instance = response.instances().listIterator().next();
 				instanceId = instance.instanceId();
-				String name = FogbowCloudUtil.defineInstanceName(computeOrder.getName());
+				String name = computeOrder.getName();
 				AwsV2CloudUtil.createTagsRequest(instanceId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
 				updateInstanceAllocation(computeOrder, flavor, instance, client);
 			}
@@ -406,7 +400,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
 		String name = requirements[INSTANCE_TYPE_COLUMN];
-		String flavorId = FogbowCloudUtil.getRandomUUID();
+		String flavorId = UUID.randomUUID().toString();
 		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
 		int disk = image.getValue();
