@@ -75,10 +75,10 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String volumeId = attachmentOrder.getVolumeId();
-		doDeleteInstance(volumeId, client);
-	}
+        doDeleteInstance(volumeId, client);
+    }
 
-	@Override
+    @Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
