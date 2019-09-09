@@ -678,11 +678,107 @@ public class CloudStackComputePluginTest {
         this.plugin.requestInstance(order, FAKE_TOKEN);
     }
 
-    // TODO(chico) - Finish the implementation
-    @Ignore
-    // test case:
+    // test case: get compute instace successfully
     @Test
-    public void testGetComputeInstance() { }
+    public void testGetComputeInstance() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+
+        String idExpected = "id";
+        String nameExpected = "name";
+        int vCpuExpected = 1;
+        int memoryExpected = 2;
+        int diskExpected = 3;
+        String ipAddressExpected = "10.10.10.10";
+        String networkDefaultExpected = this.defaultNetworkId;
+        String cloudStateExpected = "state";
+        GetVirtualMachineResponse.VirtualMachine virtualMachine =
+                Mockito.mock(GetVirtualMachineResponse.VirtualMachine.class);
+        Mockito.when(virtualMachine.getId()).thenReturn(idExpected);
+        Mockito.when(virtualMachine.getName()).thenReturn(nameExpected);
+        Mockito.when(virtualMachine.getName()).thenReturn(nameExpected);
+        Mockito.when(virtualMachine.getCpuNumber()).thenReturn(vCpuExpected);
+        Mockito.when(virtualMachine.getMemory()).thenReturn(memoryExpected);
+        Mockito.when(virtualMachine.getState()).thenReturn(cloudStateExpected);
+        GetVirtualMachineResponse.Nic nic = Mockito.mock(GetVirtualMachineResponse.Nic.class);
+        Mockito.when(nic.getIpAddress()).thenReturn(ipAddressExpected);
+        GetVirtualMachineResponse.Nic[] nics = new GetVirtualMachineResponse.Nic[] {
+            nic
+        };
+        Mockito.when(virtualMachine.getNic()).thenReturn(nics);
+
+        Mockito.doReturn(diskExpected).when(this.plugin)
+                .getVirtualMachineDiskSize(Mockito.any(), Mockito.any());
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // verify
+        ComputeInstance computeInstance =
+                this.plugin.getComputeInstance(virtualMachine, cloudStackUser);
+
+        // exercise
+        Assert.assertEquals(idExpected, computeInstance.getId());
+        Assert.assertEquals(nameExpected, computeInstance.getName());
+        Assert.assertEquals(vCpuExpected, computeInstance.getvCPU());
+        Assert.assertEquals(memoryExpected, computeInstance.getMemory());
+        Assert.assertEquals(diskExpected, computeInstance.getDisk());
+        Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses().get(0));
+        Assert.assertEquals(networkDefaultExpected, computeInstance.getNetworks().get(0).getId());
+    }
+
+    // test case: getting compute instace and occur a error when is getting the disk size
+    @Test
+    public void testGetComputeInstanceErrorToGetDisk() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+
+        String idExpected = "id";
+        String nameExpected = "name";
+        int vCpuExpected = 1;
+        int memoryExpected = 2;
+        int diskExpected = CloudStackComputePlugin.UNKNOWN_DISK_VALUE;
+        String ipAddressExpected = "10.10.10.10";
+        String networkDefaultExpected = this.defaultNetworkId;
+        String cloudStateExpected = "state";
+        GetVirtualMachineResponse.VirtualMachine virtualMachine =
+                Mockito.mock(GetVirtualMachineResponse.VirtualMachine.class);
+        Mockito.when(virtualMachine.getId()).thenReturn(idExpected);
+        Mockito.when(virtualMachine.getName()).thenReturn(nameExpected);
+        Mockito.when(virtualMachine.getName()).thenReturn(nameExpected);
+        Mockito.when(virtualMachine.getCpuNumber()).thenReturn(vCpuExpected);
+        Mockito.when(virtualMachine.getMemory()).thenReturn(memoryExpected);
+        Mockito.when(virtualMachine.getState()).thenReturn(cloudStateExpected);
+        GetVirtualMachineResponse.Nic nic = Mockito.mock(GetVirtualMachineResponse.Nic.class);
+        Mockito.when(nic.getIpAddress()).thenReturn(ipAddressExpected);
+        GetVirtualMachineResponse.Nic[] nics = new GetVirtualMachineResponse.Nic[] {
+                nic
+        };
+        Mockito.when(virtualMachine.getNic()).thenReturn(nics);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .getVirtualMachineDiskSize(Mockito.any(), Mockito.any());
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // verify
+        ComputeInstance computeInstance =
+                this.plugin.getComputeInstance(virtualMachine, cloudStackUser);
+
+        // exercise
+        Assert.assertEquals(idExpected, computeInstance.getId());
+        Assert.assertEquals(nameExpected, computeInstance.getName());
+        Assert.assertEquals(vCpuExpected, computeInstance.getvCPU());
+        Assert.assertEquals(memoryExpected, computeInstance.getMemory());
+        Assert.assertEquals(diskExpected, computeInstance.getDisk());
+        Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses().get(0));
+        Assert.assertEquals(networkDefaultExpected, computeInstance.getNetworks().get(0).getId());
+    }
 
     // test case: get virtual machine disk size from cloud successfully
     @Test
