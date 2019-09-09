@@ -19,6 +19,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.HttpStatus;
@@ -37,7 +38,7 @@ import java.io.IOException;
 import java.util.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class,
+@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, GetVolumeResponse.class,
         DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class})
 public class CloudStackComputePluginTest {
 
@@ -683,11 +684,85 @@ public class CloudStackComputePluginTest {
     @Test
     public void testGetComputeInstance() { }
 
-    // TODO(chico) - Finish the implementation
-    @Ignore
-    // test case:
+    // test case: get virtual machine disk size from cloud successfully
     @Test
-    public void testGetVirtualMachineDiskSize() { }
+    public void testGetVirtualMachineDiskSize() throws FogbowException, IOException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+        String virtualMachineId = "id";
+
+        String idExpected = "";
+        String nameExpected = "name";
+        int sizeExpected = 10;
+        double sizeInBytes = CloudStackComputePlugin.GIGABYTE_IN_BYTES * sizeExpected;
+        String stateExpected = "READY";
+        String getVolumeResponse = getVolumeResponse(
+                idExpected, nameExpected, sizeInBytes, stateExpected);
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(getVolumeResponse);
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // exercise
+        int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(
+                virtualMachineId, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(sizeExpected, virtualMachineDiskSize);
+    }
+
+    // test case: getting virtual machine disk size and do not found volumes
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetVirtualMachineDiskSizeNotFoundVolumes() throws FogbowException, IOException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+        String virtualMachineId = "id";
+
+        String anyResponse = "";
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(anyResponse);
+
+        GetVolumeResponse volumeResponse = Mockito.mock(GetVolumeResponse.class);
+        Mockito.when(volumeResponse.getVolumes()).thenReturn(null);
+        PowerMockito.mockStatic(GetVolumeResponse.class);
+        PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(anyResponse)))
+                .thenReturn(volumeResponse);
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // exercise
+        this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
+    }
+
+
+    // test case: get virtual machine disks and occour an exception in the cloud
+    @Test
+    public void testGetVirtualMachineDiskSizeException() throws FogbowException, IOException {
+        // set up
+        CloudStackUser cloudStackUser = FAKE_TOKEN;
+        String virtualMachineId = "id";
+
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(FAKE_TOKEN)))
+                .thenThrow(createBadRequestHttpResponse());
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
+    }
 
     // test case: get instance successfully
     @Test
@@ -828,14 +903,8 @@ public class CloudStackComputePluginTest {
         return response;
     }
 
-    private String getVolumeResponse(String id, String name, String size, String state) {
-        String response = "{\"id\":\"%s\","
-                + "\"name\":\"%s\","
-                + "\"size\":\"%s\","
-                + "\"state\":\"%s\""
-                + "}";
-
-        return String.format(response, id, name, size, state);
+    private String getVolumeResponse(String id, String name, double size, String state) throws IOException {
+        return CloudstackTestUtils.createGetVolumesResponseJson(id, name, size, state);
     }
 
     private String getListVolumesResponse(String volume) {

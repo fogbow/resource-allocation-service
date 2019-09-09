@@ -46,6 +46,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
     public static final String FOGBOW_TAG_SEPARATOR = ":";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
 
     private String cloudStackUrl;
     private String zoneId;
@@ -356,12 +357,17 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetVolumeResponse volumeResponse = GetVolumeResponse.fromJson(jsonResponse);
         List<GetVolumeResponse.Volume> volumes = volumeResponse.getVolumes();
         if (volumes != null) {
-            long sizeInBytes = volumes.get(0).getSize();
-            int sizeInGigabytes = (int) (sizeInBytes / Math.pow(1024, 3));
-            return sizeInGigabytes;
+            GetVolumeResponse.Volume volume = volumes.get(0);
+            long sizeInBytes = volume.getSize();
+            return convertBytesToGigabyte(sizeInBytes);
         } else {
             throw new InstanceNotFoundException();
         }
+    }
+
+    @VisibleForTesting
+    int convertBytesToGigabyte(long bytes) {
+        return (int) (bytes / GIGABYTE_IN_BYTES);
     }
 
     @VisibleForTesting
