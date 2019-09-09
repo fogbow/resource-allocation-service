@@ -184,7 +184,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return ipAddresses;
 	}
 
-	private String getPublicIpAddresses(Instance awsInstance, int index) {
+	protected String getPublicIpAddresses(Instance awsInstance, int index) {
 		String ipAddress = null;
 		InstanceNetworkInterfaceAssociation association;
 		association = awsInstance.networkInterfaces().get(index).association();
@@ -194,7 +194,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return ipAddress;
 	}
 
-	private List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
+	protected List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
 		List<String> ipAddresses = new ArrayList<String>();
 		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
 		instancePrivateIpAddresses = awsInstance.networkInterfaces().get(index).privateIpAddresses();

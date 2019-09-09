@@ -338,16 +338,81 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getIpAddresses(Mockito.eq(instance));
     }
 	
-	// test case: When calling the getIpAddresses method, it must verify
+    // test case: When calling the getIpAddresses method, it must verify
     // that is call was successful.
-	@Test
-	public void testGetIpAddresses() {
-	    // set up
-	    
-	    // exercise
-	    
-	    // verify
-	}
+    @Test
+    public void testGetIpAddresses() {
+        // set up
+        Instance instance = buildInstance();
+
+        List ipAddresses = buildIpAdressesCollection();
+        Mockito.doReturn(ipAddresses).when(this.plugin).getPrivateIpAddresses(Mockito.eq(instance), Mockito.anyInt());
+        Mockito.doReturn(FAKE_IP_ADDRESS).when(this.plugin).getPublicIpAddresses(Mockito.eq(instance),
+                Mockito.anyInt());
+
+        // exercise
+        this.plugin.getIpAddresses(instance);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getPrivateIpAddresses(Mockito.eq(instance),
+                Mockito.anyInt());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getPublicIpAddresses(Mockito.eq(instance),
+                Mockito.anyInt());
+    }
+    
+    // test case: When calling the getPublicIpAddresses method, it must verify that
+    // the obtained IP address is the same as expected.
+    @Test
+    public void testGetPublicIpAddresses() {
+        // set up
+        Instance instance = buildInstance();
+        int index = ZERO_VALUE;
+
+        String expected = FAKE_IP_ADDRESS;
+
+        // exercise
+        String ipAdress = this.plugin.getPublicIpAddresses(instance, index);
+
+        // verify
+        Assert.assertSame(expected, ipAdress);
+    }
+    
+    // test case: When calling the getPrivateIpAddresses method, it must verify that
+    // the obtained IPs addresses is the equals as expected.
+    @Test
+    public void testGetPrivateIpAddresses() {
+        // set up
+        Instance instance = buildInstance();
+        int index = ZERO_VALUE;
+
+        List expected = buildIpAdressesCollection();
+
+        // exercise
+        List ipAdresses = this.plugin.getPrivateIpAddresses(instance, index);
+
+        // verify
+        Assert.assertEquals(expected, ipAdresses);
+    }
+    
+    // test case: ...
+    @Test
+    public void testGetAllDisksSize() {
+        // set up
+        
+        // exercise
+        
+        // verify
+    }
+    
+    // test case: ...
+    @Test
+    public void testGetMemoryValueFrom() {
+        // set up
+
+        // exercise
+
+        // verify
+    }
 	
 //	// test case: When calling the findSmallestFlavor method, with a compute order
 //	// and cloud user valid, and return the null result, the
