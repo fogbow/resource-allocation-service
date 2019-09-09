@@ -29,4 +29,18 @@ public class GetVolumeResponseTest {
         Assert.assertEquals(size, volume.getSize());
     }
 
+    // test case: create GetVolumeResponse from Cloudstack Json Response with empty values
+    @Test
+    public void testGetVolumeResponseFromJsonEmptyValue() throws Exception {
+        // set up
+        String getVirtualMachineResponseJson = CloudstackTestUtils.createEmptyGetVolumesResponseJson();
+
+        // execute
+        GetVolumeResponse getVolumeResponse =
+                GetVolumeResponse.fromJson(getVirtualMachineResponseJson);
+
+        // verify
+        Assert.assertTrue(getVolumeResponse.getVolumes().isEmpty());
+    }
+
 }

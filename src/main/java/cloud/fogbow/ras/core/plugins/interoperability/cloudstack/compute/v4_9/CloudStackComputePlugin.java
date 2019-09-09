@@ -40,23 +40,22 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             String.format(Messages.Error.CONFIGURATION_REQUIRED, "Zone ID");
     protected static final String DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE =
             String.format(Messages.Error.CONFIGURATION_REQUIRED, "Default Network ID");
+    private static final String DEFAULT_VOLUME_TYPE = "ROOT";
 
-    public static final String ZONE_ID_KEY = "zone_id";
-    public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
-    public static final String DEFAULT_VOLUME_TYPE = "ROOT";
-    public static final String FOGBOW_TAG_SEPARATOR = ":";
-    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    protected static final String ZONE_ID_KEY = "zone_id";
+    protected static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
+    protected static final String FOGBOW_TAG_SEPARATOR = ":";
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
     protected static final int UNKNOWN_DISK_VALUE = -1;
 
-    private String cloudStackUrl;
-    private String zoneId;
+    private LaunchCommandGenerator launchCommandGenerator;
+    private CloudStackHttpClient client;
     private String expungeOnDestroy;
     private String defaultNetworkId;
-
-    private CloudStackHttpClient client;
-    private LaunchCommandGenerator launchCommandGenerator;
     private Properties properties;
+    private String cloudStackUrl;
+    private String zoneId;
 
     public CloudStackComputePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);

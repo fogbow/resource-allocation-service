@@ -16,6 +16,7 @@ public class CloudstackTestUtils {
     private static final String LIST_VIRTUAL_MACHINE_RESPONSE = "listvirtualmachinesresponse.json";
     private static final String NIC_VIRTUAL_MACHINE_RESPONSE = "nic.json";
     private static final String LIST_VOLUMES_RESPONSE = "listvolumesresponse.json";
+    private static final String LIST_VOLUMES_EMPRY_RESPONSE = "listvolumesresponse_empty.json";
 
     private static final String CLOUDSTACK_RESOURCE_PATH = "cloud" + File.separator +
             "plugins" + File.separator + "interoperability" + File.separator +
@@ -45,6 +46,12 @@ public class CloudstackTestUtils {
         String rawJson = readFileAsString(getPathCloudstackFile() + DEPLOY_VIRTUAL_MACHINE_RESPONSE);
 
         return String.format(rawJson, id);
+    }
+
+    static String createEmptyGetVolumesResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_EMPRY_RESPONSE);
+
+        return String.format(rawJson);
     }
 
     static String createGetVolumesResponseJson(
