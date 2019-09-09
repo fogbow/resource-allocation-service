@@ -55,9 +55,10 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
-	private static final String RESOURCE_NAME = "Compute";
+	
 	private static final String COMMENTED_LINE_PREFIX = "#";
 	private static final String CSV_COLUMN_SEPARATOR = ",";
+	
 	private static final int INSTANCE_TYPE_COLUMN = 0;
 	private static final int VCPU_COLUMN = 1;
 	private static final int MEMORY_COLUMN = 2;
@@ -71,13 +72,15 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	private static final int GRAPHIC_EMULATION_COLUMN = 10;
 
 	protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
-	protected static final String PERFORMANCE_REQUIREMENT = "performance";
-	protected static final String PROCESSOR_REQUIREMENT = "processor";
-	protected static final String STORAGE_REQUIREMENT = "storage";
 	protected static final String GRAPHIC_PROCESSOR_REQUIREMENT = "GPUs";
 	protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
 	protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
 	protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
+	protected static final String PERFORMANCE_REQUIREMENT = "performance";
+	protected static final String PROCESSOR_REQUIREMENT = "processor";
+	protected static final String RESOURCE_NAME = "Compute";
+	protected static final String STORAGE_REQUIREMENT = "storage";
+	
 	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 	protected static final int ONE_GIGABYTE = 1024;
 
@@ -98,121 +101,61 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		this.flavors = new TreeSet<AwsHardwareRequirements>();
 	}
 
-	@Override
-	public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+    @Override
+    public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
+        RunInstancesRequest request = buildResquestInstance(computeOrder, flavor);
+        return doRequestInstance(computeOrder, flavor, request, client);
+    }
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
-		String imageId = flavor.getImageId();
-		InstanceType instanceType = InstanceType.fromValue(flavor.getName());
-		List<String> subnetIds = getSubnetIdsFrom(computeOrder);
-		List<InstanceNetworkInterfaceSpecification> networkInterfaces = loadNetworkInterfaces(subnetIds);
-		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+    @Override
+    public ComputeInstance getInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        updateHardwareRequirements(cloudUser);
+        return doGetInstance(computeOrder, client);
+    }
 
-		RunInstancesRequest request = RunInstancesRequest.builder()
-			.imageId(imageId)
-			.instanceType(instanceType)
-			.maxCount(INSTANCES_LAUNCH_NUMBER)
-			.minCount(INSTANCES_LAUNCH_NUMBER)
-			.networkInterfaces(networkInterfaces)
-			.userData(userData)
-			.build();
+    @Override
+    public void deleteInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String instanceId = computeOrder.getInstanceId();
+        doDeleteInstance(instanceId, client);
+    }
 
-		return doRunInstancesRequests(computeOrder, flavor, request, client);
-	}
+    @Override
+    public boolean isReady(String instanceState) {
+        return AwsV2StateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
+    }
 
-	@Override
-	public ComputeInstance getInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
-		updateHardwareRequirements(cloudUser);
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeInstancesResponse instancesResponse = AwsV2CloudUtil.describeInstance(computeOrder.getInstanceId(), client);
-		Instance instance = AwsV2CloudUtil.getInstanceReservation(instancesResponse);
-		List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
-		return buildComputeInstance(instance, volumes);
-	}
+    @Override
+    public boolean hasFailed(String instanceState) {
+        return false;
+    }
 
-	@Override
-	public void deleteInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
-
-		String instanceId = computeOrder.getInstanceId();
-		TerminateInstancesRequest request = TerminateInstancesRequest.builder()
-				.instanceIds(instanceId)
-				.build();
-
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		doDeleteInstance(request, client);
-	}
-
-	@Override
-	public boolean isReady(String instanceState) {
-		return AwsV2StateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
-	}
-
-	@Override
-	public boolean hasFailed(String instanceState) {
-		return false;
-	}
-
-	private void doDeleteInstance(TerminateInstancesRequest request, Ec2Client client)
-			throws UnexpectedException {
-		try {
-			client.terminateInstances(request);
-		} catch (Exception e) {
-			String instanceId = request.instanceIds().listIterator().next();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId), e);
-			throw new UnexpectedException();
-		}
-	}
+    protected void doDeleteInstance(String instanceId, Ec2Client client) throws UnexpectedException {
+        TerminateInstancesRequest request = TerminateInstancesRequest.builder()
+                .instanceIds(instanceId)
+                .build();
+        try {
+            client.terminateInstances(request);
+        } catch (Exception e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message);
+        }
+    }
 	
-	protected String doRunInstancesRequests(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
-			RunInstancesRequest request, Ec2Client client) throws UnexpectedException {
-		try {
-			RunInstancesResponse response = client.runInstances(request);
-			String instanceId = null;
-			Instance instance;
-			if (response != null && !response.instances().isEmpty()) {
-				instance = response.instances().listIterator().next();
-				instanceId = instance.instanceId();
-				String name = FogbowCloudUtil.defineInstanceName(computeOrder.getName());
-				AwsV2CloudUtil.createTagsRequest(instanceId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
-				updateInstanceAllocation(computeOrder, flavor, instance, client);
-			}
-			return instanceId;
-		} catch (Exception e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
-
-	private void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
-			Ec2Client client) throws FogbowException {
-		
-		synchronized (computeOrder) {
-			int vCPU = instance.cpuOptions().coreCount();
-			int memory = flavor.getMemory();
-			String imageId = flavor.getImageId();
-			Image image = getImageById(imageId, client);
-			int disk = getImageSize(image);
-			int instances = INSTANCES_LAUNCH_NUMBER;
-			ComputeAllocation actualAllocation = new ComputeAllocation(vCPU, memory, instances, disk);
-			computeOrder.setActualAllocation(actualAllocation);
-		}
-	}
-
-	protected Image getImageById(String imageId, Ec2Client client) throws FogbowException {
-		DescribeImagesRequest request = DescribeImagesRequest.builder()
-				.imageIds(imageId)
-				.build();
-		
-		DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
-		if (response != null && !response.images().isEmpty()) {
-			return response.images().listIterator().next();
-		}
-		throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
-	}
-
+    protected ComputeInstance doGetInstance(ComputeOrder order, Ec2Client client) throws FogbowException {
+        DescribeInstancesResponse instancesResponse = AwsV2CloudUtil.describeInstance(order.getInstanceId(), client);
+        Instance instance = AwsV2CloudUtil.getInstanceReservation(instancesResponse);
+        List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
+        return buildComputeInstance(instance, volumes);
+    }
+	
 	protected ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
 		String id = instance.instanceId();
 		String cloudState = instance.state().nameAsString();
@@ -279,36 +222,102 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		}
 		return 0;
 	}
+	
+    protected String doRequestInstance(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
+            RunInstancesRequest request, Ec2Client client) throws UnexpectedException {
+        
+        try {
+            RunInstancesResponse response = client.runInstances(request);
+            String instanceId = null;
+            Instance instance;
+            if (response != null && !response.instances().isEmpty()) {
+                instance = response.instances().listIterator().next();
+                instanceId = instance.instanceId();
+                String instanceName = FogbowCloudUtil.defineInstanceName(computeOrder.getName());
+                AwsV2CloudUtil.createTagsRequest(instanceId, AwsV2CloudUtil.AWS_TAG_NAME, instanceName, client);
+                updateInstanceAllocation(computeOrder, flavor, instance, client);
+            }
+            return instanceId;
+        } catch (Exception e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
 
-	protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
-		List<String> subnetIds = new ArrayList<String>();
-		// Only the first network from the network's list can get a public ip for now.
-		subnetIds.addAll(computeOrder.getNetworkIds());
-		subnetIds.add(this.defaultSubnetId);
-		return subnetIds;
-	}
+    private void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
+            Ec2Client client) throws FogbowException {
 
-	protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(List<String> subnetIds) {
-		List<InstanceNetworkInterfaceSpecification> networkInterfaces = new ArrayList<>();
-		InstanceNetworkInterfaceSpecification nis;
-		String subnetId;
-		for (int i = 0; i < subnetIds.size(); i++) {
-			subnetId = subnetIds.get(i);
-			nis = buildNetworkInterfaces(subnetId, i);
-			networkInterfaces.add(nis);
-		}
-		return networkInterfaces;
-	}
+        synchronized (computeOrder) {
+            int vCPU = instance.cpuOptions().coreCount();
+            int memory = flavor.getMemory();
+            String imageId = flavor.getImageId();
+            Image image = getImageById(imageId, client);
+            int disk = getImageSize(image);
+            int instances = INSTANCES_LAUNCH_NUMBER;
+            ComputeAllocation actualAllocation = new ComputeAllocation(vCPU, memory, instances, disk);
+            computeOrder.setActualAllocation(actualAllocation);
+        }
+    }
+    
+    protected Image getImageById(String imageId, Ec2Client client) throws FogbowException {
+        DescribeImagesRequest request = DescribeImagesRequest.builder()
+                .imageIds(imageId)
+                .build();
 
-	protected InstanceNetworkInterfaceSpecification buildNetworkInterfaces(String subnetId, int deviceIndex) {
-		InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
-				.subnetId(subnetId)
-				.deviceIndex(deviceIndex)
-				.groups(this.defaultGroupId)
-				.build();
+        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
+        if (response != null && !response.images().isEmpty()) {
+            return response.images().listIterator().next();
+        }
+        throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
+    }
 
-		return networkInterface;
-	}
+    protected RunInstancesRequest buildResquestInstance(ComputeOrder order, AwsHardwareRequirements flavor) {
+        String imageId = flavor.getImageId();
+        InstanceType instanceType = InstanceType.fromValue(flavor.getName());
+        List<String> subnetIds = getSubnetIdsFrom(order);
+        List<InstanceNetworkInterfaceSpecification> networkInterfaces = loadNetworkInterfaces(subnetIds);
+        String userData = this.launchCommandGenerator.createLaunchCommand(order);
+
+        RunInstancesRequest request = RunInstancesRequest.builder()
+                .imageId(imageId)
+                .instanceType(instanceType)
+                .maxCount(INSTANCES_LAUNCH_NUMBER)
+                .minCount(INSTANCES_LAUNCH_NUMBER)
+                .networkInterfaces(networkInterfaces)
+                .userData(userData)
+                .build();
+
+        return request;
+    }
+	
+    protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(List<String> subnetIds) {
+        List<InstanceNetworkInterfaceSpecification> networkInterfaces = new ArrayList<>();
+        InstanceNetworkInterfaceSpecification nis;
+        String subnetId;
+        for (int i = 0; i < subnetIds.size(); i++) {
+            subnetId = subnetIds.get(i);
+            nis = buildNetworkInterfaces(subnetId, i);
+            networkInterfaces.add(nis);
+        }
+        return networkInterfaces;
+    }
+	
+    protected InstanceNetworkInterfaceSpecification buildNetworkInterfaces(String subnetId, int deviceIndex) {
+        InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
+                .subnetId(subnetId)
+                .deviceIndex(deviceIndex)
+                .groups(this.defaultGroupId)
+                .build();
+
+        return networkInterface;
+    }
+	
+    protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
+        List<String> subnetIds = new ArrayList<String>();
+        // Only the first network from the network's list can get a public ip for now.
+        subnetIds.addAll(computeOrder.getNetworkIds());
+        subnetIds.add(this.defaultSubnetId);
+        return subnetIds;
+    }
 
 	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
 			throws FogbowException {

@@ -14,8 +14,11 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
@@ -25,6 +28,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.CpuOptions;
@@ -46,6 +50,8 @@ import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
+import software.amazon.awssdk.services.ec2.model.TerminateInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
@@ -59,12 +65,12 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
     private static final String TEST_INSTANCE_TYPE = "t2.micro";
 
-    private static final int AMOUNT_SSD_STORAGE = 2;
     private static final int INSTANCE_TYPE_CPU_VALUE = 1;
-    private static final int ONE_GIGABYTE = 1024;
+    private static final int FLAVOR_MEMORY_VALUE = 1;
     private static final int ZERO_VALUE = 0;
 	
     private AwsV2ComputePlugin plugin;
+    private Ec2Client client;
     private LaunchCommandGenerator launchCommandGenerator;
 
     @Before
@@ -80,6 +86,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         this.plugin = Mockito.spy(new AwsV2ComputePlugin(awsConfFilePath));
         this.plugin.setLaunchCommandGenerator(launchCommandGenerator);
+        this.client = this.testUtils.getAwsMockedClient();
     }
 	
     // test case: When calling the requestInstance method, with a compute order and
@@ -87,7 +94,6 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     @Test
     public void testRequestInstance() throws FogbowException {
         // set up
-        Ec2Client client = this.testUtils.getAwsMockedClient();
         List networkOrderIds = getNetworkOrderIds();
         ComputeOrder order = this.testUtils.createLocalComputeOrder(networkOrderIds);
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -95,152 +101,73 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         AwsHardwareRequirements flavor = createFlavor(null);
         Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(Mockito.eq(order), Mockito.eq(cloudUser));
 
-        RunInstancesRequest request = RunInstancesRequest.builder().imageId(flavor.getImageId())
-                .instanceType(InstanceType.T2_MICRO)
-                .maxCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
-                .minCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
-                .networkInterfaces(buildNetworkInterfaceCollection())
-                .userData(this.launchCommandGenerator.createLaunchCommand(order))
-                .build();
+        RunInstancesRequest request = buildRunInstancesResquest(order, flavor);
+        Mockito.doReturn(request).when(this.plugin).buildResquestInstance(Mockito.eq(order), Mockito.eq(flavor));
 
-        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRunInstancesRequests(Mockito.eq(order),
-                Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(client));
+        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order),
+                Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(this.client));
 
         // exercise
         this.plugin.requestInstance(order, cloudUser);
 
         // verify
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(Mockito.eq(order),
                 Mockito.eq(cloudUser));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetIdsFrom(Mockito.eq(order));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .loadNetworkInterfaces(Mockito.eq(networkOrderIds));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRunInstancesRequests(Mockito.eq(order),
-                Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResquestInstance(Mockito.eq(order),
+                Mockito.eq(flavor));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order),
+                Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(this.client));
     }
-    
-//	// test case: When calling the requestInstance method with a valid compute orderinstanceResponse
-//	// and an error occurs when the client attempts to execute instances, an
-//	// UnexpectedException will be thrown.
-//	@Test(expected = UnexpectedException.class) // verify
-//	public void testRequestInstanceUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		DescribeImagesResponse imageResponse = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class)))
-//				.thenReturn(imageResponse);
-//
-//		RunInstancesResponse instanceResponse = RunInstancesResponse.builder().build();
-//		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(instanceResponse);
-//
-//		Mockito.doThrow(AwsServiceException.class).when(client).runInstances(Mockito.any(RunInstancesRequest.class));
-//
-//		ComputeOrder computeOrder = createComputeOrder(null);
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//		// exercise
-//		this.plugin.requestInstance(computeOrder, cloudUser);
-//	}
+
+    // test case: check if the calls are made as expected when getInstance is
+    // invoked properly
+    @Test
+    public void testGetInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        Mockito.doNothing().when(this.plugin).updateHardwareRequirements(Mockito.eq(cloudUser));
+
+        ComputeInstance instance = Mockito.mock(ComputeInstance.class);
+        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.eq(order), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.getInstance(order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .updateHardwareRequirements(Mockito.eq(cloudUser));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(order),
+                Mockito.eq(this.client));
+    }
 	
-//	// test case: check if the calls are made as expected
-//	//when getInstance is invoked properly
-//	@Test
-//	public void testGetInstance() throws FogbowException {
-//		// set up
-//		PowerMockito.mockStatic(AwsV2CloudUtil.class);
-//
-//		Mockito.when(AwsV2CloudUtil.doDescribeImagesRequest(Mockito.any(), Mockito.any())).thenCallRealMethod();
-//		Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.any(), Mockito.any())).thenCallRealMethod();
-//		Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.any())).thenCallRealMethod();
-//
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		DescribeImagesResponse imageResponse = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(imageResponse);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		DescribeVolumesResponse volumeResponse = createVolumeResponse();
-//		Mockito.when(client.describeVolumes(Mockito.any(DescribeVolumesRequest.class))).thenReturn(volumeResponse);
-//
-//		DescribeInstancesResponse instanceResponse = createInstanceResponse();
-//		Mockito.when(client.describeInstances(Mockito.any(DescribeInstancesRequest.class)))
-//				.thenReturn(instanceResponse);
-//
-//		ComputeOrder computeOrder = createComputeOrder(null);
-//
-//		// exercise
-//		this.plugin.getInstance(computeOrder, cloudUser);
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(3));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Mockito.verify(client, Mockito.times(1)).describeInstances(Mockito.any(DescribeInstancesRequest.class));
-//
-//		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-//		AwsV2CloudUtil.describeInstance(Mockito.any(), Mockito.any());
-//
-//		PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(1));
-//		AwsV2CloudUtil.getInstanceReservation(Mockito.any(DescribeInstancesResponse.class));
-//
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, Mockito.times(1));
-//		AwsV2CloudUtil.getInstanceVolumes(Mockito.any(Instance.class), Mockito.eq(client));
-//		
-//		Mockito.verify(this.plugin, Mockito.times(1)).buildComputeInstance(Mockito.any(Instance.class),
-//				Mockito.any());
-//	}
-	
-//	// test case: When calling the deleteInstance method, with a compute order and
-//	// cloud user valid, the instance in the cloud must be terminated.
-//	@Test
-//	public void testDeleteInstanceSuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		ComputeOrder computeOrder = createComputeOrder(null);
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//		// exercise
-//		this.plugin.deleteInstance(computeOrder, cloudUser);
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Mockito.verify(client, Mockito.times(1)).terminateInstances(Mockito.any(TerminateInstancesRequest.class));
-//	}
-	
-//	// test case: When calling the deleteInstance method, with a compute order and
-//	// cloud user valid, and an error will occur, the UnexpectedException will be
-//	// thrown.
-//	@Test(expected = UnexpectedException.class) // verify
-//	public void testDeleteInstanceUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		Mockito.doThrow(Ec2Exception.class).when(client)
-//				.terminateInstances(Mockito.any(TerminateInstancesRequest.class));
-//
-//		ComputeOrder computeOrder = createComputeOrder(null);
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//		// exercise
-//		this.plugin.deleteInstance(computeOrder, cloudUser);
-//	}
+    // test case: When calling the deleteInstance method, with a compute order and
+    // cloud user valid, the instance in the cloud must be terminated.
+    @Test
+    public void testDeleteInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+        
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.deleteInstance(order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+    }
 	
 	// test case: When calling the isReady method with the cloud state RUNNING,
 	// this means that the state of compute is READY and it must return true.
@@ -302,6 +229,124 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		// verify
 		Assert.assertTrue(this.plugin.getFlavors().isEmpty());
 		Assert.assertEquals(expected, memory);
+	}
+	
+    // test case: When calling the doDeleteInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoDeleteInstance() throws FogbowException {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        TerminateInstancesRequest request = TerminateInstancesRequest.builder()
+                .instanceIds(instanceId)
+                .build();
+
+        Mockito.when(this.client.terminateInstances(Mockito.eq(request)))
+                .thenReturn(TerminateInstancesResponse.builder().build());
+
+        // exercise
+        this.plugin.doDeleteInstance(instanceId, client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).terminateInstances(Mockito.eq(request));
+    }
+    
+    // test case: When calling the doDeleteInstance method, and an unexpected error
+    // occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testDoDeleteInstanceFail() {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        Mockito.when(this.client.terminateInstances(Mockito.any(TerminateInstancesRequest.class)))
+                .thenThrow(SdkClientException.builder().build());
+
+        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, AwsV2ComputePlugin.RESOURCE_NAME,
+                instanceId);
+
+        try {
+            // exercise
+            this.plugin.doDeleteInstance(instanceId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doGetInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoGetInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+
+        DescribeInstancesResponse response = buildInstanceResponse();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client)))
+                .thenReturn(response);
+
+        Instance instance = buildInstance();
+        Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.eq(response))).thenReturn(instance);
+
+        List volumes = buildVolumesCollection();
+        Mockito.when(AwsV2CloudUtil.getInstanceVolumes(Mockito.eq(instance), Mockito.eq(this.client)))
+                .thenReturn(volumes);
+        
+        ComputeInstance computeInstance = Mockito.mock(ComputeInstance.class);
+        Mockito.doReturn(computeInstance).when(this.plugin).buildComputeInstance(Mockito.eq(instance),
+                Mockito.eq(volumes));
+
+        // exercise
+        this.plugin.doGetInstance(order, this.client);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.describeInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getInstanceReservation(Mockito.eq(response));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getInstanceVolumes(Mockito.eq(instance), Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildComputeInstance(Mockito.eq(instance),
+                Mockito.eq(volumes));
+    }
+    
+    // test case: When calling the buildComputeInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testBuildComputeInstance() {
+        // set up
+        Instance instance = buildInstance();
+        Mockito.doReturn(FLAVOR_MEMORY_VALUE).when(this.plugin).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
+        
+        List<Volume> volumes = buildVolumesCollection();
+        Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
+        
+        List<String> ipAddresses = buildIpAdressesCollection();
+        Mockito.doReturn(ipAddresses).when(this.plugin).getIpAddresses(Mockito.eq(instance));
+
+        // exercise
+        this.plugin.buildComputeInstance(instance, volumes);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAllDisksSize(Mockito.eq(volumes));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getIpAddresses(Mockito.eq(instance));
+    }
+	
+	// test case: When calling the getIpAddresses method, it must verify
+    // that is call was successful.
+	@Test
+	public void testGetIpAddresses() {
+	    // set up
+	    
+	    // exercise
+	    
+	    // verify
 	}
 	
 //	// test case: When calling the findSmallestFlavor method, with a compute order
@@ -550,63 +595,6 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 //		this.plugin.getImageById(imageId, client);
 //	}
 	
-	private DescribeInstancesResponse createInstanceResponse() {
-		EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
-				.volumeId(TestUtils.FAKE_VOLUME_ID)
-				.build();
-		
-		InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
-				.ebs(ebs)
-				.build();
-		
-		CpuOptions cpuOptions = CpuOptions.builder()
-				.coreCount(1)
-				.build();
-		
-		InstancePrivateIpAddress instancePrivateIpAddress = InstancePrivateIpAddress.builder()
-				.privateIpAddress(FAKE_IP_ADDRESS)
-				.build();
-		
-		InstanceNetworkInterfaceAssociation association = InstanceNetworkInterfaceAssociation.builder()
-				.publicIp(FAKE_IP_ADDRESS)
-				.build();
-		
-		InstanceNetworkInterface instanceNetworkInterface = InstanceNetworkInterface.builder()
-				.privateIpAddresses(instancePrivateIpAddress)
-				.association(association)
-				.build();
-		
-		InstanceState instanceState = InstanceState.builder()
-				.name(AwsV2StateMapper.AVAILABLE_STATE)
-				.build();
-		
-		Tag tag = Tag.builder()
-				.key(AWS_TAG_NAME)
-				.value(TestUtils.FAKE_INSTANCE_NAME)
-				.build();
-		
-		Instance instance = Instance.builder()
-				.blockDeviceMappings(blockDeviceMapping)
-				.cpuOptions(cpuOptions)
-				.imageId(TestUtils.FAKE_INSTANCE_ID)
-				.instanceId(TestUtils.FAKE_INSTANCE_ID)
-				.instanceType(InstanceType.T1_MICRO)
-				.networkInterfaces(instanceNetworkInterface)
-				.state(instanceState)
-				.tags(tag)
-				.build();
-		
-		Reservation reservation = Reservation.builder()
-				.instances(instance)
-				.build();
-		
-		DescribeInstancesResponse response = DescribeInstancesResponse.builder()
-				.reservations(reservation)
-				.build();
-		
-		return response;
-	}
-
 	private void mockRunningInstance(Ec2Client client) {
 		CpuOptions cpuOptions = CpuOptions.builder()
 				.coreCount(1)
@@ -627,7 +615,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 	private DescribeVolumesResponse createVolumeResponse() {
 		Volume volume = Volume.builder()
 				.volumeId(TestUtils.FAKE_VOLUME_ID)
-				.size(ONE_GIGABYTE)
+				.size(AwsV2ComputePlugin.ONE_GIGABYTE)
 				.build();
 		
 		DescribeVolumesResponse response = DescribeVolumesResponse.builder()
@@ -654,16 +642,6 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 		return DescribeImagesResponse.builder()
 				.images(image)
 				.build();
-	}
-	
-	private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
-		String name = TEST_INSTANCE_TYPE;
-		String flavorId = TestUtils.FAKE_INSTANCE_ID;
-		int cpu = INSTANCE_TYPE_CPU_VALUE;
-		int memory = TestUtils.MEMORY_VALUE;
-		int disk = TestUtils.DISK_VALUE;
-		String imageId = TestUtils.FAKE_IMAGE_ID;
-		return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
 	}
 	
 //	private ComputeOrder createComputeOrder(Map<String, String> requirements) {
@@ -701,9 +679,95 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 //		return computeOrder;
 //	}
 	
-	private List<String> getNetworkOrderIds() {
-        String[] networkOrderIds = { FAKE_SUBNET_ID };
-        return Arrays.asList(networkOrderIds);
+	private List<String> buildIpAdressesCollection() {
+        String[] ipAdresses = { FAKE_IP_ADDRESS }; 
+        return Arrays.asList(ipAdresses);
+    }
+	
+    private List<Volume> buildVolumesCollection() {
+        Volume[] volumes = { 
+                Volume.builder()
+                    .volumeId(TestUtils.FAKE_VOLUME_ID)
+                    .size(AwsV2ComputePlugin.ONE_GIGABYTE)
+                    .build() 
+                };
+        return Arrays.asList(volumes);
+    }
+	
+    private Instance buildInstance() {
+        EbsInstanceBlockDevice ebs = EbsInstanceBlockDevice.builder()
+                .volumeId(TestUtils.FAKE_VOLUME_ID)
+                .build();
+        
+        InstanceBlockDeviceMapping blockDeviceMapping = InstanceBlockDeviceMapping.builder()
+                .ebs(ebs)
+                .build();
+        
+        CpuOptions cpuOptions = CpuOptions.builder()
+                .coreCount(1)
+                .build();
+        
+        InstancePrivateIpAddress instancePrivateIpAddress = InstancePrivateIpAddress.builder()
+                .privateIpAddress(FAKE_IP_ADDRESS)
+                .build();
+        
+        InstanceNetworkInterfaceAssociation association = InstanceNetworkInterfaceAssociation.builder()
+                .publicIp(FAKE_IP_ADDRESS)
+                .build();
+        
+        InstanceNetworkInterface instanceNetworkInterface = InstanceNetworkInterface.builder()
+                .privateIpAddresses(instancePrivateIpAddress)
+                .association(association)
+                .build();
+        
+        InstanceState instanceState = InstanceState.builder()
+                .name(AwsV2StateMapper.AVAILABLE_STATE)
+                .build();
+        
+        Tag tag = Tag.builder()
+                .key(AWS_TAG_NAME)
+                .value(TestUtils.FAKE_INSTANCE_NAME)
+                .build();
+        
+        Instance instance = Instance.builder()
+                .blockDeviceMappings(blockDeviceMapping)
+                .cpuOptions(cpuOptions)
+                .imageId(TestUtils.FAKE_INSTANCE_ID)
+                .instanceId(TestUtils.FAKE_INSTANCE_ID)
+                .instanceType(InstanceType.T1_MICRO)
+                .networkInterfaces(instanceNetworkInterface)
+                .state(instanceState)
+                .tags(tag)
+                .build();
+        
+        return instance;
+    }
+    
+    private DescribeInstancesResponse buildInstanceResponse() {
+        Instance instance = buildInstance();
+        
+        Reservation reservation = Reservation.builder()
+                .instances(instance)
+                .build();
+        
+        DescribeInstancesResponse response = DescribeInstancesResponse.builder()
+                .reservations(reservation)
+                .build();
+        
+        return response;
+    }
+    
+    private RunInstancesRequest buildRunInstancesResquest(ComputeOrder order, AwsHardwareRequirements flavor) {
+        RunInstancesRequest request = RunInstancesRequest.builder()
+                .imageId(flavor.getImageId())
+                .instanceType(InstanceType.T2_MICRO)
+                .maxCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
+                .minCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
+                .networkInterfaces(buildNetworkInterfaceCollection())
+                .userData(this.launchCommandGenerator.createLaunchCommand(order))
+                .build();
+        
+        return request;
     }
 
     private List<InstanceNetworkInterfaceSpecification> buildNetworkInterfaceCollection() {
@@ -716,5 +780,20 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 };
         return Arrays.asList(networkInterfaces);
     }
+    
+    private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
+        String name = TEST_INSTANCE_TYPE;
+        String flavorId = TestUtils.FAKE_INSTANCE_ID;
+        int cpu = INSTANCE_TYPE_CPU_VALUE;
+        int memory = TestUtils.MEMORY_VALUE;
+        int disk = TestUtils.DISK_VALUE;
+        String imageId = TestUtils.FAKE_IMAGE_ID;
+        return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
+    }
 	
+    private List<String> getNetworkOrderIds() {
+        String[] networkOrderIds = { FAKE_SUBNET_ID };
+        return Arrays.asList(networkOrderIds);
+    }
+    
 }
