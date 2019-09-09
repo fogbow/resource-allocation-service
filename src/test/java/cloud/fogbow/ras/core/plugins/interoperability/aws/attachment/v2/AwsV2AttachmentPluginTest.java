@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2;
 
+import static org.assertj.core.api.Assertions.in;
+
 import java.io.File;
 
 import org.junit.Assert;
@@ -147,15 +149,11 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
         // set up
         AttachmentOrder order = createAttachmentOrder();
 
-        DetachVolumeRequest request = DetachVolumeRequest.builder()
-                .volumeId(order.getVolumeId())
-                .build();
-
-        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(order.getVolumeId()), Mockito.eq(request),
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(order.getVolumeId()),
                 Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-        
+
         // exercise
         this.plugin.deleteInstance(order, cloudUser);
 
@@ -164,7 +162,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(order.getVolumeId()),
-                Mockito.eq(request), Mockito.eq(this.client));
+                Mockito.eq(this.client));
     }
 
     // test case: When calling the getInstance method, with an attachment order and
@@ -175,17 +173,9 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
         // set up
         AttachmentOrder order = createAttachmentOrder();
 
-        DescribeVolumesRequest request = DescribeVolumesRequest.builder()
-                .volumeIds(order.getInstanceId())
-                .build();
-
-        DescribeVolumesResponse response = createVolumeResponse();
-        PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        BDDMockito.given(AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(client)))
-                .willReturn(response);
-
         AttachmentInstance instance = createAttachmentInstance();
-        Mockito.doReturn(instance).when(this.plugin).buildAttachmentInstance(response);
+        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.eq(order.getInstanceId()),
+                Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -196,9 +186,36 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(order.getInstanceId()),
+                Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the doGetInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoGetInstance() throws FogbowException {
+        // set up
+        String attachmentId = TestUtils.FAKE_INSTANCE_ID;
+
+        DescribeVolumesRequest request = DescribeVolumesRequest.builder()
+                .volumeIds(attachmentId)
+                .build();
+        
+        DescribeVolumesResponse response = createVolumeResponse();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        BDDMockito.given(AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(client)))
+                .willReturn(response);
+        
+        AttachmentInstance instance = createAttachmentInstance();
+        Mockito.doReturn(instance).when(this.plugin).buildAttachmentInstance(response);
+        
+        // exercise
+        this.plugin.doGetInstance(attachmentId, this.client);
+
+        // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.doDescribeVolumesRequest(Mockito.eq(request), Mockito.eq(this.client));
-
+        
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .buildAttachmentInstance(Mockito.any(DescribeVolumesResponse.class));
     }
@@ -218,7 +235,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
         Mockito.when(client.detachVolume(Mockito.eq(request))).thenReturn(response);
 
         // exercise
-        this.plugin.doDeleteInstance(volumeId, request, this.client);
+        this.plugin.doDeleteInstance(volumeId, this.client);
 
         // verify
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).detachVolume(Mockito.eq(request));
@@ -227,7 +244,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
     // test case: When calling the doDeleteInstance method, and an unexpected error
     // occurs, it should check if an UnexpectedException has been thrown.
     @Test
-    public void testDoDeleteInstanceFail() throws FogbowException {
+    public void testDoDeleteInstanceFail() {
         // set up
         String volumeId = TestUtils.FAKE_VOLUME_ID;
 
@@ -241,7 +258,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
                 AwsV2AttachmentPlugin.RESOURCE_NAME, volumeId);
         try {
             // exercise
-            this.plugin.doDeleteInstance(volumeId, request, this.client);
+            this.plugin.doDeleteInstance(volumeId, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
