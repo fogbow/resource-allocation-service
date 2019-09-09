@@ -18,9 +18,15 @@ public class GetVirtualMachineRequestTest {
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
                 GetVirtualMachineRequest.LIST_VMS_COMMAND);
-        String urlExpected = uriBuilder.toString();
+        String urlBaseExpected = uriBuilder.toString();
         String idExpected = "idExpexted";
         String idStructureUrl = String.format("%s=%s", VIRTUAL_MACHINE_ID_KEY, idExpected);
+        String[] urlStructure = new String[] {
+                urlBaseExpected,
+                idStructureUrl
+        };
+        String urlExpectedStr = String.join(
+                CloudstackTestUtils.AND_OPERATION_URL_PARAMETER, urlStructure);
 
         // exercise
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
@@ -29,8 +35,7 @@ public class GetVirtualMachineRequestTest {
         String getVirtualMachineRequesttUrl = getVirtualMachineRequest.getUriBuilder().toString();
 
         // verify
-        Assert.assertTrue(getVirtualMachineRequesttUrl.contains(urlExpected));
-        Assert.assertTrue(getVirtualMachineRequesttUrl.contains(idStructureUrl));
+        Assert.assertEquals(urlExpectedStr, getVirtualMachineRequesttUrl);
     }
 
     /**

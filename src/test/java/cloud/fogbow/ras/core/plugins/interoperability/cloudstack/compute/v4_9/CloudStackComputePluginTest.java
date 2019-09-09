@@ -770,23 +770,16 @@ public class CloudStackComputePluginTest {
         this.plugin.getInstance(computeOrder, cloudStackUser);
     }
 
-    // Test case: deleting an instance
+    // Test case: deleting an instance successfully
     @Test
     public void deleteInstance() throws FogbowException, HttpResponseException {
         // set up
-        String endpoint = getBaseEndpointFromCloudStackConf();
-        String computeCommand = DestroyVirtualMachineRequest.DESTROY_VIRTUAL_MACHINE_COMMAND;
-
-        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
-                RESPONSE_KEY, JSON,
-                ID_KEY, FAKE_ID,
-                EXPUNGE_KEY, FAKE_EXPUNGE);
-
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
-        // Delete response is unused
-        Mockito.when(this.client.doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN)).thenReturn("");
+        Mockito.when(this.client.doGetRequest(
+                Mockito.anyString(), Mockito.eq(FAKE_TOKEN))).thenReturn("");
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(FAKE_ID);
@@ -794,27 +787,20 @@ public class CloudStackComputePluginTest {
         // exercise
         this.plugin.deleteInstance(computeOrder, FAKE_TOKEN);
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
+        Mockito.verify(this.client, Mockito.times(1))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(FAKE_TOKEN));
     }
 
     // Test case: failing to delete an instance
     @Test(expected = FogbowException.class)
     public void deleteInstanceFail() throws FogbowException, HttpResponseException {
         // set up
-        String endpoint = getBaseEndpointFromCloudStackConf();
-        String computeCommand = DestroyVirtualMachineRequest.DESTROY_VIRTUAL_MACHINE_COMMAND;
-
-        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
-                RESPONSE_KEY, JSON,
-                ID_KEY, FAKE_ID,
-                EXPUNGE_KEY, FAKE_EXPUNGE);
-
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
         // Delete response is unused
-        Mockito.when(this.client.doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN)).thenThrow(
-                new HttpResponseException(503, "service unavailable"));
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(FAKE_TOKEN)))
+                .thenThrow(createBadRequestHttpResponse());
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(FAKE_ID);
@@ -822,27 +808,9 @@ public class CloudStackComputePluginTest {
         // exercise
         this.plugin.deleteInstance(computeOrder, FAKE_TOKEN);
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
-    }
-
-    private String getBaseEndpointFromCloudStackConf() {
-        return this.properties.getProperty(CLOUDSTACK_URL);
-    }
-
-    private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
-        if (keysAndValues.length % 2 != 0) {
-            // there should be one value for each key
-            return null;
-        }
-
-        String url = String.format("%s?command=%s", endpoint, command);
-        for (int i = 0; i < keysAndValues.length; i += 2) {
-            String key = keysAndValues[i];
-            String value = keysAndValues[i + 1];
-            url += String.format("&%s=%s", key, value);
-        }
-
-        return url;
+        // verify
+        Mockito.verify(this.client, Mockito.times(1))
+                .doGetRequest(Mockito.anyString(), FAKE_TOKEN);
     }
 
     private String getVirtualMachineResponse(String id, String name, String state,

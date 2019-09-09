@@ -21,6 +21,8 @@ public class CloudstackTestUtils {
             "plugins" + File.separator + "interoperability" + File.separator +
             "cloudstack" + File.separator;
 
+    protected static final String AND_OPERATION_URL_PARAMETER = "&";
+
     protected static final String CLOUDSTACK_URL_DEFAULT = "http://localhost";
 
     static String createGetAllServiceOfferingsResponseJson(
@@ -70,6 +72,22 @@ public class CloudstackTestUtils {
         String rawJson = readFileAsString(getPathCloudstackFile() + NIC_VIRTUAL_MACHINE_RESPONSE);
 
         return String.format(rawJson, idAddress);
+    }
+
+    private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
+        if (keysAndValues.length % 2 != 0) {
+            // there should be one value for each key
+            return null;
+        }
+
+        String url = String.format("%s?command=%s", endpoint, command);
+        for (int i = 0; i < keysAndValues.length; i += 2) {
+            String key = keysAndValues[i];
+            String value = keysAndValues[i + 1];
+            url += String.format("&%s=%s", key, value);
+        }
+
+        return url;
     }
 
     private static String readFileAsString(final String fileName) throws IOException {

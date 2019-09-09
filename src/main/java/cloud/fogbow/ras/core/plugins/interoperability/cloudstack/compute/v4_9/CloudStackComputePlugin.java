@@ -180,12 +180,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
         } catch (HttpResponseException e) {
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, order.getInstanceId()), e);
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
-
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
     }
 
     @Nullable
