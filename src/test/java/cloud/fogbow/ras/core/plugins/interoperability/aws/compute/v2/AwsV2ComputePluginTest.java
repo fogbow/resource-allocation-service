@@ -2,8 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,6 +16,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
@@ -32,9 +36,9 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.CpuOptions;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.EbsBlockDevice;
 import software.amazon.awssdk.services.ec2.model.EbsInstanceBlockDevice;
 import software.amazon.awssdk.services.ec2.model.Image;
@@ -63,10 +67,13 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-default-security-group-id";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
+    private static final String MEMORY_KEY = "memory";
     private static final String TEST_INSTANCE_TYPE = "t2.micro";
+    private static final String VCPU_KEY = "vCPU";
 
-    private static final int INSTANCE_TYPE_CPU_VALUE = 1;
-    private static final int FLAVOR_MEMORY_VALUE = 1;
+    private static final int INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE = 1;
+    private static final int FLAVOR_CPU_VALUE = INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE;
+    private static final int FLAVOR_MEMORY_VALUE = INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE;
     private static final int ZERO_VALUE = 0;
 	
     private AwsV2ComputePlugin plugin;
@@ -94,7 +101,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     @Test
     public void testRequestInstance() throws FogbowException {
         // set up
-        List networkOrderIds = getNetworkOrderIds();
+        List networkOrderIds = createNetworkOrderIds();
         ComputeOrder order = this.testUtils.createLocalComputeOrder(networkOrderIds);
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -102,7 +109,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(Mockito.eq(order), Mockito.eq(cloudUser));
 
         RunInstancesRequest request = buildRunInstancesResquest(order, flavor);
-        Mockito.doReturn(request).when(this.plugin).buildResquestInstance(Mockito.eq(order), Mockito.eq(flavor));
+        Mockito.doReturn(request).when(this.plugin).buildRequestInstance(Mockito.eq(order), Mockito.eq(flavor));
 
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order),
                 Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(this.client));
@@ -116,7 +123,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(Mockito.eq(order),
                 Mockito.eq(cloudUser));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResquestInstance(Mockito.eq(order),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildRequestInstance(Mockito.eq(order),
                 Mockito.eq(flavor));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order),
                 Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(this.client));
@@ -290,7 +297,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Instance instance = buildInstance();
         Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.eq(response))).thenReturn(instance);
 
-        List volumes = buildVolumesCollection();
+        List volumes = createVolumesCollection();
         Mockito.when(AwsV2CloudUtil.getInstanceVolumes(Mockito.eq(instance), Mockito.eq(this.client)))
                 .thenReturn(volumes);
         
@@ -323,7 +330,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Instance instance = buildInstance();
         Mockito.doReturn(FLAVOR_MEMORY_VALUE).when(this.plugin).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
         
-        List<Volume> volumes = buildVolumesCollection();
+        List<Volume> volumes = createVolumesCollection();
         Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
         
         List<String> ipAddresses = buildIpAdressesCollection();
@@ -394,50 +401,309 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(expected, ipAdresses);
     }
     
-    // test case: ...
+    // test case: When calling the getAllDisksSize method, it must verify that
+    // the obtained size is the equals as expected.
     @Test
     public void testGetAllDisksSize() {
         // set up
+        List volumes = createVolumesCollection();
+        int expected = AwsV2ComputePlugin.ONE_GIGABYTE;
         
         // exercise
+        int size = this.plugin.getAllDisksSize(volumes);
         
         // verify
+        Assert.assertEquals(expected, size);
     }
     
-    // test case: ...
+    // test case: When calling the getMemoryValueFrom method, it must verify that
+    // the obtained memory is the equals as expected.
     @Test
     public void testGetMemoryValueFrom() {
         // set up
+        TreeSet flavors = createFlavorsCollection();
+        Mockito.doReturn(flavors).when(this.plugin).getFlavors();
+
+        int expected = FLAVOR_MEMORY_VALUE;
 
         // exercise
+        int memory = this.plugin.getMemoryValueFrom(InstanceType.T2_MICRO);
 
         // verify
+        Assert.assertEquals(expected, memory);
     }
-	
-//	// test case: When calling the findSmallestFlavor method, with a compute order
-//	// and cloud user valid, and return the null result, the
-//	// NoAvailableResourcesException will be thrown.
-//	@Test(expected = NoAvailableResourcesException.class) // verify
-//	public void testFindSmallestFlavorUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		ComputeOrder computeOrder = createComputeOrder(null);
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		Mockito.doNothing().when(this.plugin).updateHardwareRequirements(cloudUser);
-//
-//		TreeSet<AwsHardwareRequirements> flavors = new TreeSet<AwsHardwareRequirements>();
-//		Map<String, String> requirements = null;
-//		AwsHardwareRequirements flavor = createFlavor(requirements);
-//		flavors.add(flavor);
-//		Mockito.doReturn(flavors).when(this.plugin).getFlavorsByRequirements(requirements);
-//
-//		// exercise
-//		this.plugin.findSmallestFlavor(computeOrder, cloudUser);
-//	}
-	
+    
+    // test case: When calling the doRequestInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoRequestInstance() throws Exception {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsHardwareRequirements flavor = createFlavor(null);
+        Instance instance = mockRunningInstance();
+        String tagName = AwsV2CloudUtil.AWS_TAG_NAME;
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD,
+                Mockito.eq(instance.instanceId()), Mockito.eq(tagName), Mockito.eq(order.getName()),
+                Mockito.eq(this.client));
+
+        Mockito.doNothing().when(this.plugin).updateInstanceAllocation(Mockito.eq(order), Mockito.eq(flavor),
+                Mockito.eq(instance), Mockito.eq(this.client));
+
+        RunInstancesRequest request = buildRunInstancesResquest(order, flavor);
+        
+        // exercise
+        this.plugin.doRequestInstance(order, flavor, request, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).runInstances(Mockito.eq(request));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class);
+        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instance.instanceId()), Mockito.eq(tagName),
+                Mockito.eq(order.getName()), Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateInstanceAllocation(Mockito.eq(order),
+                Mockito.eq(flavor), Mockito.eq(instance), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the doRequestInstance method, and an unexpected error
+    // occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testDoRequestInstanceFail() throws Exception {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsHardwareRequirements flavor = createFlavor(null);
+        RunInstancesRequest request = buildRunInstancesResquest(order, flavor);
+        
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.runInstances(request)).thenThrow(exception);
+        
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.doRequestInstance(order, flavor, request, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the updateInstanceAllocation method, it must verify
+    // that is call was successful.
+    @Test
+    public void testUpdateInstanceAllocation() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsHardwareRequirements flavor = createFlavor(null);
+        Instance instance = mockRunningInstance();
+
+        String imageId = TestUtils.FAKE_IMAGE_ID;
+        Image image = buildImage();
+        
+        Mockito.doReturn(image).when(this.plugin).getImageById(Mockito.eq(imageId), Mockito.eq(client));
+        Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getImageSize(Mockito.eq(image));
+
+        // exercise
+        this.plugin.updateInstanceAllocation(order, flavor, instance, client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageById(Mockito.eq(imageId), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageSize(Mockito.eq(image));
+    }
+    
+    // test case: When calling the getImageById method, it must verify
+    // that is call was successful.
+    @Test
+    public void testGetImageById() throws Exception {
+        // set up
+        String imageId = TestUtils.FAKE_IMAGE_ID;
+        
+        DescribeImagesRequest request = DescribeImagesRequest.builder()
+                .imageIds(imageId)
+                .build();
+        
+        DescribeImagesResponse response = buildDescribeImages();
+        
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_IMAGES_REQUEST_METHOD, Mockito.eq(request), Mockito.eq(this.client));
+        
+        Image expected = buildImage();
+
+        // exercise
+        Image image = this.plugin.getImageById(imageId, this.client);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class);
+        AwsV2CloudUtil.doDescribeImagesRequest(Mockito.eq(request), Mockito.eq(this.client));
+        
+        Assert.assertEquals(expected, image);
+    }
+    
+    // test case: When calling the getImageById method, with a null response or
+    // empty image, it must verify if an InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetImageByIdFail() throws Exception {
+        // set up
+        String imageId = TestUtils.FAKE_IMAGE_ID;
+
+        DescribeImagesRequest request = DescribeImagesRequest.builder()
+                .imageIds(imageId)
+                .build();
+
+        DescribeImagesResponse response = DescribeImagesResponse.builder().build();
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_IMAGES_REQUEST_METHOD,
+                Mockito.eq(request), Mockito.eq(this.client));
+
+        String expected = Messages.Exception.IMAGE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.getImageById(imageId, this.client);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the buildRequestInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testBuildRequestInstance() {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsHardwareRequirements flavor = createFlavor(null);
+
+        List networkOrderIds = createNetworkOrderIds();
+        Mockito.doReturn(networkOrderIds).when(this.plugin).getSubnetIdsFrom(Mockito.eq(order));
+        
+        List networkInterfaces = createNetworkInterfaceCollection();
+        Mockito.doReturn(networkInterfaces).when(this.plugin).loadNetworkInterfaces(Mockito.eq(networkOrderIds));
+        
+        RunInstancesRequest expected = buildRunInstancesResquest(order, flavor);
+
+        // exercise
+        RunInstancesRequest request = this.plugin.buildRequestInstance(order, flavor);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetIdsFrom(Mockito.eq(order));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .loadNetworkInterfaces(Mockito.eq(networkOrderIds));
+        
+        Assert.assertEquals(expected, request);
+    }
+    
+    // test case: When calling the loadNetworkInterfaces method, it must verify
+    // that is call was successful.
+    @Test
+    public void testLoadNetworkInterfaces() {
+        // set up
+        List subnetIds = createNetworkOrderIds();
+        String subnetId = FAKE_SUBNET_ID;
+        int index = ZERO_VALUE;
+
+        InstanceNetworkInterfaceSpecification networkInterface = buildNetworkInterface();
+        Mockito.doReturn(networkInterface).when(this.plugin).buildNetworkInterfaces(Mockito.eq(subnetId),
+                Mockito.eq(index));
+
+        // exercise
+        this.plugin.loadNetworkInterfaces(subnetIds);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkInterfaces(Mockito.eq(subnetId),
+                Mockito.eq(index));
+    }
+    
+    // test case: When calling the buildNetworkInterfaces method, it must verify
+    // that the obtained network interface is the equals as expected.
+    @Test
+    public void testBuildNetworkInterfaces() {
+        // set up
+        String subnetId = FAKE_SUBNET_ID;
+        int index = ZERO_VALUE;
+
+        InstanceNetworkInterfaceSpecification expected = buildNetworkInterface();
+
+        // exercise
+        InstanceNetworkInterfaceSpecification networkInterface = this.plugin.buildNetworkInterfaces(subnetId, index);
+
+        // verify
+        Assert.assertEquals(expected, networkInterface);
+    }
+    
+    // test case: When calling the getSubnetIdsFrom method, it must verify
+    // that the obtained a list of sub-net ID is the equals as expected.
+    @Test
+    public void testGetSubnetIdsFromOrder() {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        
+        List expected = createNetworkOrderIds();
+
+        // exercise
+        List subnetIds = this.plugin.getSubnetIdsFrom(order);
+
+        // verify
+        Assert.assertEquals(expected, subnetIds);
+    }
+    
+    // test case: When calling the findSmallestFlavor method, it must verify
+    // that is call was successful.
+    @Test
+    public void testFindSmallestFlavor() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        Mockito.doNothing().when(this.plugin).updateHardwareRequirements(cloudUser);
+
+        Map<String, String> requirements = new HashMap<String, String>();
+        requirements.put(MEMORY_KEY, String.valueOf(TestUtils.MEMORY_VALUE));
+        requirements.put(VCPU_KEY, String.valueOf(TestUtils.CPU_VALUE));
+
+        TreeSet flavors = createFlavorsCollection();
+        flavors.add(createFlavor(requirements));
+        Mockito.doReturn(flavors).when(this.plugin).getFlavorsByRequirements(Mockito.any());
+
+        // exercise
+        this.plugin.findSmallestFlavor(order, cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .updateHardwareRequirements(Mockito.eq(cloudUser));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFlavorsByRequirements(Mockito.any());
+    }
+    
+    // test case: When calling the findSmallestFlavor method, with a null response,
+    // it must verify if an NoAvailableResourcesException has been thrown.
+    @Test
+    public void testFindSmallestFlavorFail() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        Mockito.doNothing().when(this.plugin).updateHardwareRequirements(cloudUser);
+        
+        TreeSet flavors = createFlavorsCollection();
+        Mockito.doReturn(flavors).when(this.plugin).getFlavorsByRequirements(Mockito.any());
+
+        String expected = Messages.Exception.NO_MATCHING_FLAVOR;
+
+        try {
+            // exercise
+            this.plugin.findSmallestFlavor(order, cloudUser);
+            Assert.fail();
+        } catch (NoAvailableResourcesException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
 //	// test case: When calling the getFlavorsByRequirements method, with a
 //	// requirements map, it must filter the possibilities according to that map,
 //	// returning the corresponding results.
@@ -660,96 +926,55 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 //		this.plugin.getImageById(imageId, client);
 //	}
 	
-	private void mockRunningInstance(Ec2Client client) {
-		CpuOptions cpuOptions = CpuOptions.builder()
-				.coreCount(1)
-				.build();
-		
-		Instance instance = Instance.builder()
-				.cpuOptions(cpuOptions)
-				.instanceId(TestUtils.FAKE_INSTANCE_ID)
-				.build();
-
-		RunInstancesResponse response = RunInstancesResponse.builder()
-				.instances(instance)
-				.build();
-
-		Mockito.when(client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(response);
-	}
-	
-	private DescribeVolumesResponse createVolumeResponse() {
-		Volume volume = Volume.builder()
-				.volumeId(TestUtils.FAKE_VOLUME_ID)
-				.size(AwsV2ComputePlugin.ONE_GIGABYTE)
-				.build();
-		
-		DescribeVolumesResponse response = DescribeVolumesResponse.builder()
-				.volumes(volume)
-				.build();
-		
-		return response;
-	}
-	
-	private DescribeImagesResponse createDescribeImage() {
-		EbsBlockDevice ebsBlockDevice = EbsBlockDevice.builder()
-				.volumeSize(AwsV2ComputePlugin.ONE_GIGABYTE)
-				.build();
-		
-		BlockDeviceMapping blockDeviceMapping = BlockDeviceMapping.builder()
-				.ebs(ebsBlockDevice)
-				.build();
-		
-        Image image = Image.builder()
-        		.imageId(TestUtils.FAKE_IMAGE_ID)
-        		.blockDeviceMappings(blockDeviceMapping)
-        		.build();
+	private DescribeImagesResponse buildDescribeImages() {
+        DescribeImagesResponse response = DescribeImagesResponse.builder()
+                .images(buildImage())
+                .build();
         
-		return DescribeImagesResponse.builder()
-				.images(image)
-				.build();
-	}
+        return response;
+    }
 	
-//	private ComputeOrder createComputeOrder(Map<String, String> requirements) {
-//		int cpu = 2;
-//		int memory = 627;
-//		int disk = 8;
-//		
-//		String imageId = TestUtils.FAKE_IMAGE_ID;
-//		String name = null, providingMember = null, requestingMember = null, cloudName = null;
-//		String publicKey = TestUtils.FAKE_PUBLIC_KEY;
-//		
-//		SystemUser systemUser = null;
-//		List<String> networksId = null;
-//		ArrayList<UserData> userData = testUtils.createUserDataList();
-//		
-//		ComputeOrder computeOrder = new ComputeOrder(
-//				systemUser,
-//				requestingMember, 
-//				providingMember,
-//				cloudName,
-//				name, 
-//				cpu, 
-//				memory, 
-//				disk, 
-//				imageId,
-//				userData,
-//				publicKey, 
-//				networksId);
-//		
-//		computeOrder.setCloudName(CLOUD_NAME);
-//		computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
-//		computeOrder.setRequirements(requirements);
-//		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-//		
-//		return computeOrder;
-//	}
+	private Image buildImage() {
+        EbsBlockDevice ebsBlockDevice = EbsBlockDevice.builder()
+                .volumeSize(AwsV2ComputePlugin.ONE_GIGABYTE)
+                .build();
+        
+        BlockDeviceMapping blockDeviceMapping = BlockDeviceMapping.builder()
+                .ebs(ebsBlockDevice)
+                .build();
+        
+        Image image = Image.builder()
+                .imageId(TestUtils.FAKE_IMAGE_ID)
+                .blockDeviceMappings(blockDeviceMapping)
+                .build();
+        
+        return image;
+    }
+	
+	private Instance mockRunningInstance() {
+        Instance instance = buildInstance();
+
+        RunInstancesResponse response = RunInstancesResponse.builder()
+                .instances(instance)
+                .build();
+
+        Mockito.when(this.client.runInstances(Mockito.any(RunInstancesRequest.class))).thenReturn(response);
+        
+        return instance;
+    }
+	
+    private TreeSet<AwsHardwareRequirements> createFlavorsCollection() {
+        AwsHardwareRequirements[] flavors = { createFlavor(null) };
+        List flavorsList = Arrays.asList(flavors);
+        return new TreeSet(flavorsList);
+    }
 	
 	private List<String> buildIpAdressesCollection() {
         String[] ipAdresses = { FAKE_IP_ADDRESS }; 
         return Arrays.asList(ipAdresses);
     }
 	
-    private List<Volume> buildVolumesCollection() {
+    private List<Volume> createVolumesCollection() {
         Volume[] volumes = { 
                 Volume.builder()
                     .volumeId(TestUtils.FAKE_VOLUME_ID)
@@ -769,7 +994,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 .build();
         
         CpuOptions cpuOptions = CpuOptions.builder()
-                .coreCount(1)
+                .coreCount(FLAVOR_CPU_VALUE)
                 .build();
         
         InstancePrivateIpAddress instancePrivateIpAddress = InstancePrivateIpAddress.builder()
@@ -828,35 +1053,48 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 .instanceType(InstanceType.T2_MICRO)
                 .maxCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
                 .minCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
-                .networkInterfaces(buildNetworkInterfaceCollection())
+                .networkInterfaces(createNetworkInterfaceCollection())
                 .userData(this.launchCommandGenerator.createLaunchCommand(order))
                 .build();
         
         return request;
     }
 
-    private List<InstanceNetworkInterfaceSpecification> buildNetworkInterfaceCollection() {
+    private List<InstanceNetworkInterfaceSpecification> createNetworkInterfaceCollection() {
         InstanceNetworkInterfaceSpecification[] networkInterfaces = { 
-                InstanceNetworkInterfaceSpecification.builder()
-                    .subnetId(FAKE_SUBNET_ID)
-                    .deviceIndex(ZERO_VALUE)
-                    .groups(FAKE_DEFAULT_SECURITY_GROUP_ID)
-                    .build() 
+                buildNetworkInterface() 
                 };
         return Arrays.asList(networkInterfaces);
+    }
+
+    private InstanceNetworkInterfaceSpecification buildNetworkInterface() {
+        InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
+                .subnetId(FAKE_SUBNET_ID)
+                .deviceIndex(ZERO_VALUE)
+                .groups(FAKE_DEFAULT_SECURITY_GROUP_ID)
+                .build();
+        
+        return networkInterface;
     }
     
     private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
         String name = TEST_INSTANCE_TYPE;
         String flavorId = TestUtils.FAKE_INSTANCE_ID;
-        int cpu = INSTANCE_TYPE_CPU_VALUE;
-        int memory = TestUtils.MEMORY_VALUE;
+        int cpu = selectValueBy(requirements, VCPU_KEY);
+        int memory = selectValueBy(requirements, MEMORY_KEY);
         int disk = TestUtils.DISK_VALUE;
         String imageId = TestUtils.FAKE_IMAGE_ID;
         return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
     }
+
+    private int selectValueBy(Map<String, String> requirements, String key) {
+        if (requirements != null && requirements.containsKey(key)) {
+            return Integer.parseInt(requirements.get(key));
+        }
+        return INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE;
+    }
 	
-    private List<String> getNetworkOrderIds() {
+    private List<String> createNetworkOrderIds() {
         String[] networkOrderIds = { FAKE_SUBNET_ID };
         return Arrays.asList(networkOrderIds);
     }
