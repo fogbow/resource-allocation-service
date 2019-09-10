@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import java.io.File;
-import java.util.Properties;
-
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +12,8 @@ import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.datastore.Datastore;
+import org.opennebula.client.datastore.DatastorePool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.powermock.api.mockito.PowerMockito;
@@ -19,96 +21,96 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({Image.class, OpenNebulaClientUtil.class})
-public class OpenNebulaVolumePluginTest {
+import java.util.Iterator;
 
-	private static final String DISK_VALUE_8GB = "8";
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4.OpenNebulaVolumePlugin.DATASTORE_FREE_PATH_FORMAT;
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4.OpenNebulaVolumePlugin.IMAGE_TYPE;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({Image.class, OpenNebulaClientUtil.class, SharedOrderHolders.class, DatabaseManager.class})
+public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
+
+	private static final String DISK_VALUE_30GB = "30720";
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
-	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
-	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String STATE_READY = "READY";
 	private static final String STRING_VALUE_ONE = "1";
 	private static final String EMPTY_STRING = "";
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private OpenNebulaVolumePlugin plugin;
+	private VolumeOrder volumeOrder;
+	private String template;
+	private OneResponse response;
 
 	@Before
-	public void setUp() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin(opennebulaConfFilePath));
+	public void setUp() throws FogbowException {
+	    super.setUp();
+
+		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin(this.openNebulaConfFilePath));
+		this.volumeOrder = this.createVolumeOrder();
+		this.template = this.getTemplateWithouDefaultName();
+		this.response = Mockito.mock(OneResponse.class);
+
+		Mockito.when(this.response.getMessage()).thenReturn(this.volumeOrder.getInstanceId());
 	}
 
-	// test case: When calling the getDataStoreId method without getting a valid
-	// datastore ID from the configuration file, it must throw an
-	// UnexpectedException.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testGetDataStoreIdThrowUnexpectedException() throws FogbowException {
-		// set up
-		String key = OpenNebulaVolumePlugin.DEFAULT_DATASTORE_ID;
-		Properties properties = Mockito.mock(Properties.class);
-		Mockito.when(properties.getProperty(Mockito.eq(key))).thenReturn(EMPTY_STRING);
-		this.plugin.setProperties(properties);
-
-		// exercise
-		this.plugin.getDataStoreId(null, 0);
-	}
-	
-	// test case: When calling the requestInstance method, with a valid client and a
-	// request without a volume name, a template must be generated for a default
+	// test case: When calling the requestInstance method, with valid client and
+	// request, a template must be generated for a default
 	// volume name and the other associated data, to allocate a volume, returning
 	// its instance ID.
 	@Test
-	public void testRequestInstanceSuccessfullyWithDefaultVolumeName() throws FogbowException {
+	public void testRequestInstance() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		Mockito.doReturn(FAKE_VOLUME_NAME).when(this.plugin).getRandomUUID();
-		
-		String template = generateImageTemplate(0);
-		String instanceId = STRING_VALUE_ONE;
-
-		BDDMockito.given(OpenNebulaClientUtil.allocateImage(Mockito.eq(client), Mockito.eq(template), Mockito.anyInt()))
-				.willReturn(instanceId);
-
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(Image.class);
-		BDDMockito.given(Image.allocate(Mockito.eq(client), Mockito.eq(template), Mockito.anyInt()))
-				.willReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.when(response.getMessage()).thenReturn(instanceId);
-
-		
-
-		String volumeName = null;
-		VolumeOrder volumeOrder = createVolumeOrder(volumeName);
-		CloudUser cloudUser = createCloudUser();
+        Mockito.doReturn(STRING_VALUE_ONE).when(this.plugin).doRequestInstance(
+        		Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
 
 		// exercise
-		this.plugin.requestInstance(volumeOrder, cloudUser);
+		this.plugin.requestInstance(this.volumeOrder, this.cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateImage(Mockito.eq(client), Mockito.eq(template), Mockito.anyInt());
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
+	}
+
+	// test case: When calling the requestInstance method, with valid client and
+	// request, a template must be generated for a default
+	// volume name and the other associated data, to allocate a volume, returning
+	// its instance ID.
+	@Test
+	public void testDoRequestInstance() throws FogbowException {
+		// set up
+		int datastoreId = 0;
+		DatastorePool datastorePool = Mockito.mock(DatastorePool.class);
+		Datastore datastore = Mockito.mock(Datastore.class);
+		Iterator<Datastore> iterator = Mockito.mock(Iterator.class);
+		String diskSizePath = String.format(DATASTORE_FREE_PATH_FORMAT, STRING_VALUE_ONE);
+
+		Mockito.when(iterator.hasNext()).thenReturn(true, false);
+		Mockito.when(iterator.next()).thenReturn(datastore);
+		Mockito.when(datastorePool.iterator()).thenReturn(iterator);
+		Mockito.when(datastore.typeStr()).thenReturn(IMAGE_TYPE);
+		Mockito.when(datastore.xpath(Mockito.eq(diskSizePath))).thenReturn(DISK_VALUE_30GB);
+		Mockito.when(datastore.id()).thenReturn(datastoreId);
+		Mockito.when(OpenNebulaClientUtil.getDatastorePool(Mockito.any(Client.class))).thenReturn(datastorePool);
+
+		// exercise
+		this.plugin.requestInstance(this.volumeOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.allocateImage(Mockito.any(Client.class), Mockito.eq(this.template), Mockito.eq(datastoreId));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
 	}
 	
 	// test case: When calling the requestInstance method, with a valid client and a
@@ -135,11 +137,8 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(response.isError()).thenReturn(false);
 		Mockito.when(response.getMessage()).thenReturn(instanceId);
 
-		CloudUser cloudUser = createCloudUser();
-		VolumeOrder volumeOrder = createVolumeOrder(FAKE_VOLUME_NAME);
-
 		// exercise
-		this.plugin.requestInstance(volumeOrder, cloudUser);
+		this.plugin.requestInstance(this.volumeOrder, this.cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -165,18 +164,12 @@ public class OpenNebulaVolumePluginTest {
 		
 		Image image = Mockito.mock(Image.class);
 		Mockito.when(imagePool.getById(Mockito.anyInt())).thenReturn(image);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(DISK_VALUE_8GB);
+		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(DISK_VALUE_30GB);
 		Mockito.when(image.getName()).thenReturn(FAKE_VOLUME_NAME);
 		Mockito.when(image.stateString()).thenReturn(STATE_READY);
 
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = STRING_VALUE_ONE;
-
-		VolumeOrder volumeOrder = new VolumeOrder();
-		volumeOrder.setInstanceId(instanceId);
-		
 		// exercise
-		this.plugin.getInstance(volumeOrder, cloudUser);
+		this.plugin.getInstance(this.volumeOrder, this.cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -211,14 +204,8 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(image.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
 
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = STRING_VALUE_ONE;
-
-		VolumeOrder volumeOrder = new VolumeOrder();
-		volumeOrder.setInstanceId(instanceId);
-
 		// exercise
-		this.plugin.deleteInstance(volumeOrder, cloudUser);
+		this.plugin.deleteInstance(this.volumeOrder, this.cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -251,14 +238,8 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(image.delete()).thenReturn(response);
 		Mockito.when(response.isError()).thenReturn(true);
 
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = STRING_VALUE_ONE;
-
-		VolumeOrder volumeOrder = new VolumeOrder();
-		volumeOrder.setInstanceId(instanceId);
-
 		// exercise
-		this.plugin.deleteInstance(volumeOrder, cloudUser);
+		this.plugin.deleteInstance(this.volumeOrder, this.cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -294,7 +275,7 @@ public class OpenNebulaVolumePluginTest {
 				+ "    <FSTYPE>raw</FSTYPE>\n"
 				+ "    <PERSISTENT>YES</PERSISTENT>\n"
 				+ "    <TYPE>DATABLOCK</TYPE>\n"
-				+ "    <NAME>fogbow-fake-volume-name</NAME>\n"
+				+ "    <NAME>fogbow-fake-order-name</NAME>\n"
 				+ "    <SIZE>1</SIZE>\n"
 				+ "</IMAGE>\n";
 		return template;
@@ -308,36 +289,17 @@ public class OpenNebulaVolumePluginTest {
 				+ "    <FSTYPE>raw</FSTYPE>\n"
 				+ "    <PERSISTENT>YES</PERSISTENT>\n"
 				+ "    <TYPE>DATABLOCK</TYPE>\n"
-				+ "    <NAME>fake-volume-name</NAME>\n"
-				+ "    <SIZE>1</SIZE>\n"
+				+ "    <NAME>fake-order-name</NAME>\n"
+				+ "    <SIZE>30720</SIZE>\n"
 				+ "</IMAGE>\n";
 		return template;
 	}
 	
-	private VolumeOrder createVolumeOrder(String volumeName) {
-		SystemUser systemUser = null;
-		String requestingMember = null;
-		String providingMember = null;
-		String cloudName = null;
-		String name = volumeName;
-		int volumeSize = 1;
-				
-		VolumeOrder volumeOrder = new VolumeOrder(
-				systemUser,
-				requestingMember, 
-				providingMember,
-				cloudName,
-				name, 
-				volumeSize);
-		
+	private VolumeOrder createVolumeOrder() {
+	    VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+	    volumeOrder.setInstanceId(STRING_VALUE_ONE);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
+
 		return volumeOrder;
-	}
-
-	private CloudUser createCloudUser() {
-		String userId = null;
-		String userName = FAKE_USER_NAME;
-		String tokenValue = LOCAL_TOKEN_VALUE;
-
-		return new CloudUser(userId, userName, tokenValue);
 	}
 }
