@@ -36,6 +36,7 @@ import static cloud.fogbow.common.constants.OpenStackConstants.Compute.*;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateComputeRequest implements JsonSerializable {
+
     @SerializedName(SERVER_KEY_JSON)
     private Server server;
 
