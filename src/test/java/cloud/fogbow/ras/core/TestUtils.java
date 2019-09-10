@@ -41,7 +41,9 @@ public class TestUtils {
 
     public static final long DEFAULT_SLEEP_TIME = 500;
     
+    public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String DO_DESCRIBE_IMAGES_REQUEST_METHOD = "doDescribeImagesRequest";
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
