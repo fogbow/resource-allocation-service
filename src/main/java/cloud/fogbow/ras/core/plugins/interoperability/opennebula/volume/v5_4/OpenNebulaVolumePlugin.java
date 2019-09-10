@@ -32,12 +32,12 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
     
-    private static final String BLOCK_DISK_TYPE = "BLOCK";
-    private static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
-    private static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
-    private static final String FILE_SYSTEM_TYPE_RAW = "raw";
-    private static final String PERSISTENT_DISK_CONFIRMATION = "YES";
-	private static final int CONVERT_DISK = 1024;
+    protected static final String BLOCK_DISK_TYPE = "BLOCK";
+    protected static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
+    protected static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
+    protected static final String FILE_SYSTEM_TYPE_RAW = "raw";
+    protected static final String PERSISTENT_DISK_CONFIRMATION = "YES";
+	protected static final int CONVERT_DISK = 1024;
 
 	protected static final String DATASTORE_FREE_PATH_FORMAT = "//DATASTORE[%s]/FREE_MB";
 	protected static final String IMAGE_TYPE = "IMAGE";
@@ -116,9 +116,10 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	protected String doRequestInstance(CreateVolumeRequest createVolumeRequest, Client client)
 			throws NoAvailableResourcesException, UnexpectedException, InvalidParameterException {
+	    VolumeImage volumeImage = createVolumeRequest.getVolumeImage();
 
-		String template = createVolumeRequest.getVolumeImage().marshalTemplate();
-		Integer datastoreId = this.getDataStoreId(client, createVolumeRequest.getVolumeImage().getSize());
+		String template = volumeImage.marshalTemplate();
+		Integer datastoreId = this.getDataStoreId(client, volumeImage.getSize());
 		if (datastoreId == null) {
 			throw new NoAvailableResourcesException();
 		}
