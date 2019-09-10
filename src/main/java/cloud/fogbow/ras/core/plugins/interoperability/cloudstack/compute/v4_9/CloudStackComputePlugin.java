@@ -36,10 +36,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     protected static final String CLOUDUSER_NULL_EXCEPTION_MSG =
             String.format(Messages.Error.IRREGULAR_VALUE_NULL_EXCEPTION_MSG, "Cloud User");
-    protected static final String ZONE_ID_REQUIRED_ERROR_MESSAGE =
-            String.format(Messages.Error.CONFIGURATION_REQUIRED, "Zone ID");
-    protected static final String DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE =
-            String.format(Messages.Error.CONFIGURATION_REQUIRED, "Default Network ID");
     private static final String DEFAULT_VOLUME_TYPE = "ROOT";
 
     protected static final String ZONE_ID_KEY = "zone_id";
@@ -66,8 +62,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
         this.client = new CloudStackHttpClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-
-        checkParameters();
     }
 
     @VisibleForTesting
@@ -370,15 +364,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     int convertBytesToGigabyte(long bytes) {
         return (int) (bytes / GIGABYTE_IN_BYTES);
-    }
-
-    @VisibleForTesting
-    void checkParameters() {
-        if (this.zoneId == null || this.zoneId.isEmpty()) {
-            throw new FatalErrorException(ZONE_ID_REQUIRED_ERROR_MESSAGE);
-        } else if (this.defaultNetworkId == null || this.defaultNetworkId.isEmpty()) {
-            throw new FatalErrorException(DEFAULT_NETWORK_ID_REQUIRED_ERROR_MESSAGE);
-        }
     }
 
     protected String getRandomUUID() {

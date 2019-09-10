@@ -131,7 +131,6 @@ public class Messages {
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String IRREGULAR_VALUE_NULL_EXCEPTION_MSG = "This value must not be null: %s";
-        public static final String CONFIGURATION_REQUIRED = "This configuration is required: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_CONVERTING_TO_INTEGER = "Error while converting the input string to an integer.";
