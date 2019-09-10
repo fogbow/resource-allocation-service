@@ -11,9 +11,14 @@ import java.util.List;
 public class CloudstackTestUtils {
 
     private static final String LIST_SERVICE_OFFERINGS_RESPONSE = "listserviceofferingsresponse.json";
+    private static final String LIST_SERVICE_OFFERINGS_EMPTY_RESPONSE =
+            "listserviceofferingsresponse_empty.json";
     private static final String LIST_DISK_OFFERINGS_RESPONSE = "listdiskofferingsresponse.json";
+    private static final String LIST_DISK_OFFERINGS_EMPTY_RESPONSE = "listdiskofferingsresponse_empty.json";
     private static final String DEPLOY_VIRTUAL_MACHINE_RESPONSE = "deployvirtualmachineresponse.json";
     private static final String LIST_VIRTUAL_MACHINE_RESPONSE = "listvirtualmachinesresponse.json";
+    private static final String LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE =
+            "listvirtualmachinesresponse_empty.json";
     private static final String NIC_VIRTUAL_MACHINE_RESPONSE = "nic.json";
     private static final String LIST_VOLUMES_RESPONSE = "listvolumesresponse.json";
     private static final String LIST_VOLUMES_EMPRY_RESPONSE = "listvolumesresponse_empty.json";
@@ -34,12 +39,26 @@ public class CloudstackTestUtils {
         return String.format(rawJson, id, name, cpuNumber, memory, tags);
     }
 
+    static String createGetAllServiceOfferingsEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_SERVICE_OFFERINGS_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
     static String createGetAllDiskOfferingsResponseJson(
             String id, int disk, boolean customized, String tags) throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile() + LIST_DISK_OFFERINGS_RESPONSE);
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_DISK_OFFERINGS_RESPONSE);
 
         return String.format(rawJson, id, disk, customized, tags);
+    }
+
+    static String createGetAllDiskOfferingsEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile() + LIST_DISK_OFFERINGS_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
     }
 
     static String createDeployVirtualMachineResponseJson(String id) throws IOException {
@@ -81,6 +100,13 @@ public class CloudstackTestUtils {
         String nicsFullStr = String.join(",", nicsStrsArr);
 
         return String.format(rawJson, id, name, state, memory, cpuNumber, nicsFullStr);
+    }
+
+    static String createGetVirtualMachineEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
     }
 
     static String createNicJson(String idAddress) throws IOException {

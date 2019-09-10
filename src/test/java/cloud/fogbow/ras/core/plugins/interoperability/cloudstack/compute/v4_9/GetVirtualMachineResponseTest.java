@@ -39,4 +39,19 @@ public class GetVirtualMachineResponseTest {
         Assert.assertEquals(nics.size(), firstVirtualMachine.getNic().length);
     }
 
+    // test case: create GetVirtualMachineResponse from Cloudstack Json response but it comes empty
+    @Test
+    public void testGetVirtualMachineEmptyResponseFromJson() throws Exception {
+        // set up
+        String getVirtualMachineResponseJson = CloudstackTestUtils
+                .createGetVirtualMachineEmptyResponseJson();
+
+        // execute
+        GetVirtualMachineResponse getVirtualMachineResponse =
+                GetVirtualMachineResponse.fromJson(getVirtualMachineResponseJson);
+
+        // verify
+        Assert.assertTrue(getVirtualMachineResponse.getVirtualMachines().isEmpty());
+    }
+
 }

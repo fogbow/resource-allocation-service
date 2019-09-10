@@ -32,6 +32,21 @@ public class GetAllServiceOfferingsResponseTest {
         Assert.assertEquals(tags, firstServiceOffering.getTags());
     }
 
+    // test case: create GetAllServiceOfferingsResponse from Cloudstack Json Response but it comes empty
+    @Test
+    public void testGetAllServiceOfferingsEmptyResponseFromJson() throws Exception {
+        // set up
+        String getAllServiceOfferingsResponseJson = CloudstackTestUtils
+                .createGetAllServiceOfferingsEmptyResponseJson();
+
+        // execute
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                GetAllServiceOfferingsResponse.fromJson(getAllServiceOfferingsResponseJson);
+
+        // verify
+        Assert.assertTrue(getAllServiceOfferingsResponse.getServiceOfferings().isEmpty());
+    }
+
     // test case: create GetAllServiceOfferingsResponse from unexpected Cloudstack Json Response
     @Test(expected = FogbowException.class)
     public void testGetAllServiceOfferingsResponseUnexpectedJson() throws FogbowException {

@@ -33,6 +33,20 @@ public class GetAllDiskOfferingsResponseTest {
         Assert.assertEquals(tags, firstDiskOffering.getTags());
     }
 
+    // test case: create GetAllDiskOfferingsResponse from Cloudstack Json Response but it comes empty
+    @Test
+    public void testGetAllDiskOfferingsEmptyResponse() throws IOException, FogbowException {
+        // set up
+        String json = CloudstackTestUtils.createGetAllDiskOfferingsEmptyResponseJson();
+
+        // exercise
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
+                GetAllDiskOfferingsResponse.fromJson(json);
+
+        //verify
+        Assert.assertTrue(getAllDiskOfferingsResponse.getDiskOfferings().isEmpty());
+    }
+
     // test case: create GetAllDiskOfferingsResponse from unexpected Cloudstack Json Response
     @Test(expected = FogbowException.class)
     public void testGetAllDiskOfferingsResponseUnexpectedJson() throws FogbowException {
