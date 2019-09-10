@@ -100,7 +100,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
-        RunInstancesRequest request = buildResquestInstance(computeOrder, flavor);
+        RunInstancesRequest request = buildRequestInstance(computeOrder, flavor);
         return doRequestInstance(computeOrder, flavor, request, client);
     }
 
@@ -209,9 +209,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	}
 
 	protected int getMemoryValueFrom(InstanceType instanceType) {
-		for (AwsHardwareRequirements flavors : getFlavors()) {
-			if (flavors.getName().equals(instanceType.toString())) {
-				return flavors.getMemory();
+		for (AwsHardwareRequirements flavor : getFlavors()) {
+			if (flavor.getName().equals(instanceType.toString())) {
+				return flavor.getMemory();
 			}
 		}
 		return 0;
@@ -237,7 +237,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
 
-    private void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
+    protected void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
             Ec2Client client) throws FogbowException {
 
         synchronized (computeOrder) {
@@ -264,7 +264,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
     }
 
-    protected RunInstancesRequest buildResquestInstance(ComputeOrder order, AwsHardwareRequirements flavor) {
+    protected RunInstancesRequest buildRequestInstance(ComputeOrder order, AwsHardwareRequirements flavor) {
         String imageId = flavor.getImageId();
         InstanceType instanceType = InstanceType.fromValue(flavor.getName());
         List<String> subnetIds = getSubnetIdsFrom(order);
@@ -316,26 +316,16 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
 			throws FogbowException {
 
-		AwsHardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
-		if (bestFlavor == null) {
-			throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
-		}
-		return bestFlavor;
-	}
-
-	protected AwsHardwareRequirements getBestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
-			throws FogbowException {
-
-		updateHardwareRequirements(cloudUser);
-		TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
-		for (AwsHardwareRequirements hardwareRequirements : resultset) {
-			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
-					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
-				return hardwareRequirements;
-			}
-		}
-		return null;
+	    updateHardwareRequirements(cloudUser);
+	    TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
+	    for (AwsHardwareRequirements hardwareRequirements : resultset) {
+	        if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
+	                && hardwareRequirements.getMemory() >= computeOrder.getMemory()
+	                && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+	            return hardwareRequirements;
+	        }
+	    }
+	    throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
 	}
 
 	/**
