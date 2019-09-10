@@ -1,14 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -17,7 +18,6 @@ import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -30,8 +30,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaState
 import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4.OpenNebulaAttachmentPlugin.IMAGE_ID_PATH_FORMAT;
 import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4.OpenNebulaAttachmentPlugin.TARGET_PATH_FORMAT;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DatabaseManager.class, OpenNebulaClientUtil.class, SharedOrderHolders.class, VirtualMachine.class})
+@PrepareForTest({DatabaseManager.class, OpenNebulaClientUtil.class, VirtualMachine.class})
 public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 
 	private static final String FAKE_DEVICE = "hdb";
@@ -145,8 +144,12 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testRequestInstance() throws FogbowException {
 		// set up
-		Mockito.when(this.virtualMachine.diskAttach(this.template)).thenReturn(this.response);
-		Mockito.when(this.response.isError()).thenReturn(false);
+		Mockito.doReturn(this.virtualMachine).when(this.plugin).doRequestInstance(
+				Mockito.any(Client.class),
+				Mockito.eq(this.attachmentOrder.getComputeId()),
+				Mockito.eq(this.attachmentOrder.getVolumeId()),
+				Mockito.eq(this.template));
+		Mockito.doReturn(FAKE_VOLUME_ID).when(this.plugin).getDiskIdFromContentOf(this.virtualMachine);
 
 		// exercise
 		this.plugin.requestInstance(this.attachmentOrder, this.cloudUser);
@@ -212,6 +215,23 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 		}
 	}
 
+	// test case: when calling getDiskIdFromContentOf with a valid virtual machine object, the plugin
+	// should unmarshall the vm xml content, extract and return the appropriate disk id.
+	@Test
+	public void testGetDiskIdFromContentOf() {
+	    // set up
+		String expectedDiskId = FAKE_VOLUME_ID;
+
+		// exercise
+		String diskId = this.plugin.getDiskIdFromContentOf(this.virtualMachine);
+
+		// verify
+		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).info();
+		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
+
+		Assert.assertEquals(diskId, expectedDiskId);
+	}
+
 	// test case: When calling the deleteInstance method, with an attachmentOrder
 	// and a valid cloudUser, the volume image disk associated to a virtual machine
 	// will be detached.
@@ -219,9 +239,10 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 	public void testDeleteInstance() throws FogbowException {
 		// set up
 		int diskId = Integer.parseInt(this.attachmentOrder.getVolumeId());
+		String computeId = this.attachmentOrder.getComputeId();
 
-		Mockito.when(this.virtualMachine.diskDetach(diskId)).thenReturn(this.response);
-		Mockito.when(this.response.isError()).thenReturn(false);
+		Mockito.doNothing().when(this.plugin).doDeleteInstance(
+				Mockito.any(Client.class), Mockito.eq(computeId), Mockito.eq(diskId));
 
 		// exercise
 		this.plugin.deleteInstance(this.attachmentOrder, this.cloudUser);
@@ -231,7 +252,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(
-				Mockito.any(Client.class), Mockito.eq(this.attachmentOrder.getComputeId()), Mockito.eq(diskId));
+				Mockito.any(Client.class), Mockito.eq(computeId), Mockito.eq(diskId));
 	}
 
 	// test case: When calling the deleteInstance method with an nonexistent AttachmentOrder,
@@ -310,15 +331,13 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetInstance() throws FogbowException {
 		// set up
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Image image = Mockito.mock(Image.class);
-		int diskId = 1;
+		String fakeInstanceId = this.attachmentOrder.getInstanceId();
 
-		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
-		Mockito.when(imagePool.getById(diskId)).thenReturn(image);
-		Mockito.when(image.stateString()).thenReturn(IMAGE_STATE_READY);
-		Mockito.when(this.virtualMachine.xpath(String.format(IMAGE_ID_PATH_FORMAT, diskId))).thenReturn(String.valueOf(diskId));
-		Mockito.when(this.virtualMachine.xpath(String.format(TARGET_PATH_FORMAT, diskId))).thenReturn(FAKE_DEVICE);
+        Mockito.doReturn(new AttachmentInstance(fakeInstanceId)).when(this.plugin).doGetInstance(
+        		Mockito.any(Client.class),
+				Mockito.eq(fakeInstanceId),
+				Mockito.eq(this.attachmentOrder.getComputeId()),
+				Mockito.eq(this.attachmentOrder.getVolumeId()));
 
 		// exercise
 		this.plugin.getInstance(this.attachmentOrder, this.cloudUser);
@@ -328,7 +347,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(
-			Mockito.any(Client.class), Mockito.eq(this.attachmentOrder.getInstanceId()),
+			Mockito.any(Client.class), Mockito.eq(fakeInstanceId),
 			Mockito.eq(this.attachmentOrder.getComputeId()), Mockito.eq(this.attachmentOrder.getVolumeId()));
 	}
 
