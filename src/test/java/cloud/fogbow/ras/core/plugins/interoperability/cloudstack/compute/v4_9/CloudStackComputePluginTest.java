@@ -381,13 +381,45 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(networksIDExpected, networksID);
     }
 
-    // TODO(chico): check with Fogbow team the requirements. To finish the implementation
-    @Ignore
     // test case: get service offering successfuly with use requirements
     @Test
-    public void testGetServiceOfferingWithRequirements() throws FogbowException { }
+    public void testGetServiceOfferingWithRequirements() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
-    // TODO(chico): check with Fogbow team the requirements. To finish the implementation
+        ComputeOrder computeOrder = createComputeOrder(
+                new ArrayList<UserData>(), "fake-image-id");
+        Map<String, String> requirements = new HashMap<>();
+        String tagRequirement = "tag00";
+        String valueRequirement = "value00";
+        requirements.put(tagRequirement, valueRequirement);
+        computeOrder.setRequirements(requirements);
+        String tagExpected = tagRequirement +
+                CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR +
+                valueRequirement;
+
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                Mockito.mock(GetAllServiceOfferingsResponse.class);
+
+        int amoutExtraServicesOffering = 5;
+        String idServiceOfferingExpected = "idServiceOfferingExpected";
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
+                createServicesOfferingObjects(idServiceOfferingExpected,
+                        tagExpected, amoutExtraServicesOffering);
+        Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
+                .thenReturn(servicesOfferingExpected);
+        Mockito.doReturn(getAllServiceOfferingsResponse)
+                .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
+
+        // exercise
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(servicesOfferingExpected.get(0), serviceOffering);
+    }
+
+    // TODO(chico) - review
     // test case: get service offering successfuly without use requirements
     @Test
     public void testGetServiceOfferingWithoutRequirements() throws FogbowException {
@@ -403,7 +435,7 @@ public class CloudStackComputePluginTest {
         int amoutExtraServicesOffering = 5;
         String idServiceOfferingExpected = "idServiceOfferingExpected";
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
-                createServicesOfferingObjects(idServiceOfferingExpected, amoutExtraServicesOffering);
+                createServicesOfferingObjects(idServiceOfferingExpected, "", amoutExtraServicesOffering);
         Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
                 .thenReturn(servicesOfferingExpected);
         Mockito.doReturn(getAllServiceOfferingsResponse)
@@ -417,6 +449,7 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(servicesOfferingExpected.get(0), serviceOffering);
     }
 
+    // TODO(chico) - review
     // test case: get service offering and return null because there are not services offerings in the cloud
     @Test
     public void testGetServiceOfferingAndEmptyServicesOffering() throws FogbowException {
@@ -1026,19 +1059,21 @@ public class CloudStackComputePluginTest {
     }
 
     private List<GetAllServiceOfferingsResponse.ServiceOffering> createServicesOfferingObjects(
-            String idServiceOfferingToTest, int amoutExtraServicesOffering) {
+            String idServiceOfferingToTest, String tagServiceOffetingToTest, int amoutExtraServicesOffering) {
 
         if (amoutExtraServicesOffering < 0) {
             throw new IllegalArgumentException("Value not allowed");
         }
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering = new ArrayList<>();
         servicesOffering.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
-                idServiceOfferingToTest, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY)));
+                idServiceOfferingToTest, Integer.parseInt(FAKE_CPU_NUMBER),
+                Integer.parseInt(FAKE_MEMORY), tagServiceOffetingToTest));
 
         for (int i = 0; i < amoutExtraServicesOffering; i++) {
             String randonId = UUID.randomUUID().toString();
             servicesOffering.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
-                    randonId, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY)));
+                    randonId, Integer.parseInt(FAKE_CPU_NUMBER),
+                    Integer.parseInt(FAKE_MEMORY), tagServiceOffetingToTest));
         }
 
         int amoutExpected = amoutExtraServicesOffering + 1;

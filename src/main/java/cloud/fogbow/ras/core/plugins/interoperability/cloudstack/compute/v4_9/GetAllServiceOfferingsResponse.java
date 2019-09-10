@@ -57,10 +57,11 @@ public class GetAllServiceOfferingsResponse {
     public class ServiceOffering {
 
         @VisibleForTesting
-        ServiceOffering(String id, int cpuNumber, int memory) {
+        ServiceOffering(String id, int cpuNumber, int memory, String tags) {
             this.id = id;
             this.cpuNumber = cpuNumber;
             this.memory = memory;
+            this.tags = tags;
         }
 
         @SerializedName(ID_KEY_JSON)
