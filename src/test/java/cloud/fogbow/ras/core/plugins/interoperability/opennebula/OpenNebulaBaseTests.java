@@ -1,9 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -23,8 +20,7 @@ public class OpenNebulaBaseTests extends BaseUnitTests {
     protected String openNebulaConfFilePath;
 
     @Before
-    public void setUp() throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException,
-            InvalidParameterException {
+    public void setUp() throws FogbowException {
         this.testUtils.mockReadOrdersFromDataBase();
 
         this.openNebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME

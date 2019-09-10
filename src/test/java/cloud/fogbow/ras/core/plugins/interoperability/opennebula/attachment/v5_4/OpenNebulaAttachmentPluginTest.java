@@ -6,7 +6,6 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,8 +49,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 	private Client client;
 
 	@Before
-	public void setUp() throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException,
-			InvalidParameterException {
+	public void setUp() throws FogbowException {
 	    super.setUp();
 		this.plugin = Mockito.spy(new OpenNebulaAttachmentPlugin(this.openNebulaConfFilePath));
 		this.attachmentOrder = createAttachmentOrder();
