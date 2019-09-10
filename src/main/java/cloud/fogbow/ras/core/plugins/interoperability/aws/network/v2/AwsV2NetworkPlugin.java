@@ -22,7 +22,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
@@ -64,7 +63,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String cidr = networkOrder.getCidr();
-		String name = FogbowCloudUtil.defineInstanceName(networkOrder.getName());
+		String name = networkOrder.getName();
 
 		CreateSubnetRequest request = CreateSubnetRequest.builder()
 				.availabilityZone(this.zone)
