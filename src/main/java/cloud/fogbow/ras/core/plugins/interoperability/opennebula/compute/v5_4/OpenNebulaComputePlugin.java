@@ -74,8 +74,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		String name = computeOrder.getName() == null ?
-				SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID().toString() : computeOrder.getName();
+		String name = computeOrder.getName();
 		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
 				ConfigurationPropertyDefaults.SSH_COMMON_USER);
 		String publicKey = computeOrder.getPublicKey();

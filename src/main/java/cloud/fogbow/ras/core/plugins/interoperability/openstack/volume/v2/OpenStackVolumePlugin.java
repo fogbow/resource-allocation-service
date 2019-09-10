@@ -27,7 +27,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2.GetAllTypesResponse.Type;
-import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 
 public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     
@@ -61,7 +60,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String size = String.valueOf(order.getVolumeSize());
-        String name = FogbowCloudUtil.defineInstanceName(order.getName());
+        String name = order.getName();
         String volumeTypeId = findVolumeTypeId(order.getRequirements(), projectId, cloudUser);
         String jsonRequest = generateJsonRequest(size, name, volumeTypeId);
         String endpoint = getPrefixEndpoint(projectId) + VOLUMES;

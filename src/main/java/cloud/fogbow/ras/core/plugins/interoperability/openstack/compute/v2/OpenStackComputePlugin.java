@@ -18,7 +18,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
-import cloud.fogbow.ras.core.plugins.interoperability.util.FogbowCloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -185,8 +184,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
         if (publicKey != null && !publicKey.isEmpty()) {
             String osKeypairEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_KEYPAIRS);
-
-            keyName = FogbowCloudUtil.getRandomUUID();
+            keyName = getRandomUUID();
             CreateOsKeypairRequest request = new CreateOsKeypairRequest.Builder()
                     .name(keyName)
                     .publicKey(publicKey)
@@ -241,9 +239,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         // do not specify security groups if no additional network was given
         securityGroups = securityGroups.isEmpty() ? null : securityGroups;
 
-        String name = FogbowCloudUtil.defineInstanceName(instanceName);
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
-                .name(name)
+                .name(instanceName)
                 .imageReference(imageRef)
                 .flavorReference(flavorRef)
                 .userData(userdata)
@@ -408,6 +405,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         synchronized (this.hardwareRequirementsList) {
             this.hardwareRequirementsList = hardwareRequirementsList;
         }
+    }
+
+    private String getRandomUUID() {
+        return UUID.randomUUID().toString();
     }
 
     // for testing only
