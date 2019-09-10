@@ -410,11 +410,12 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         }
     }
 
-    public void setClient(OpenStackHttpClient client) {
+    // for testing only
+    protected void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 
-    public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+    protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
         this.launchCommandGenerator = launchCommandGenerator;
     }
 }
