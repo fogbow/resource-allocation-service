@@ -1,11 +1,16 @@
 package cloud.fogbow.ras.api.parameters;
 
 import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.CloudListController;
+import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Map;
+import java.util.UUID;
 
 @ApiModel
 public class Volume implements OrderApiParameter {
@@ -22,7 +27,13 @@ public class Volume implements OrderApiParameter {
 
     @Override
     public VolumeOrder getOrder() {
-        VolumeOrder order = new VolumeOrder(provider, cloudName, name, size);
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        String defaultCloudName = (new CloudListController()).getDefaultCloudName();
+        if (this.provider == null) this.provider = localProviderId;
+        if (this.cloudName == null) this.cloudName = defaultCloudName;
+        if (this.name == null) this.name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID();
+        VolumeOrder order = new VolumeOrder(this.provider, this.cloudName, this.name, this.size);
+        order.setRequester(localProviderId);
         order.setRequirements(requirements);
         return order;
     }

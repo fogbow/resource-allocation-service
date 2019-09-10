@@ -572,7 +572,7 @@ public class OpenStackComputePluginTest {
     public void testRequestInstanceWhenThereIsNoNetworkId() throws IOException, FogbowException {
         // set up
         List<String> networksId = null;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
+        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX+idInstanceName, bestCpu, bestMemory, bestDisk, imageId, null,
                 publicKey, networksId);
         responseNetworkIds.remove(this.privateNetworkId);
 
