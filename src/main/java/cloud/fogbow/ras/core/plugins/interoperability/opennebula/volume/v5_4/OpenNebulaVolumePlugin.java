@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import java.util.Properties;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
