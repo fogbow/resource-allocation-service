@@ -15,7 +15,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.json.JSONException;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -49,39 +48,31 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
                                       OpenStackV3User cloudUser) throws FogbowException {
             CreateSecurityRuleResponse createSecurityRuleResponse = null;
 
-            String cidr = securityRule.getCidr();
-            int portFrom = securityRule.getPortFrom();
-            int portTo = securityRule.getPortTo();
-            String direction = securityRule.getDirection().toString();
-            String etherType = securityRule.getEtherType().toString();
-            String protocol = securityRule.getProtocol().toString();
+        String cidr = securityRule.getCidr();
+        int portFrom = securityRule.getPortFrom();
+        int portTo = securityRule.getPortTo();
+        String direction = securityRule.getDirection().toString();
+        String etherType = securityRule.getEtherType().toString();
+        String protocol = securityRule.getProtocol().toString();
 
-            String securityGroupName = retrieveSecurityGroupName(majorOrder);
-            String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
+        String securityGroupName = retrieveSecurityGroupName(majorOrder);
+        String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
 
-            try {
-                CreateSecurityRuleRequest createSecurityRuleRequest = new CreateSecurityRuleRequest.Builder()
-                        .securityGroupId(securityGroupId)
-                        .remoteIpPrefix(cidr)
-                        .portRangeMin(portFrom)
-                        .portRangeMax(portTo)
-                        .direction(direction)
-                        .etherType(etherType)
-                        .protocol(protocol)
-                        .build();
+        CreateSecurityRuleRequest createSecurityRuleRequest = new CreateSecurityRuleRequest.Builder()
+                .securityGroupId(securityGroupId)
+                .remoteIpPrefix(cidr)
+                .portRangeMin(portFrom)
+                .portRangeMax(portTo)
+                .direction(direction)
+                .etherType(etherType)
+                .protocol(protocol)
+                .build();
 
-                String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-                String response = this.client.doPostRequest(endpoint, createSecurityRuleRequest.toJson(), cloudUser);
-                createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
-            } catch (JSONException e) {
-                String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
-                LOGGER.error(message, e);
-                throw new InvalidParameterException(message, e);
-            } catch (HttpResponseException e) {
-                OpenStackHttpToFogbowExceptionMapper.map(e);
-            }
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
+        String response = doPostRequest(createSecurityRuleRequest.toJson(), endpoint, cloudUser);
+        createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
 
-            return createSecurityRuleResponse.getId();
+        return createSecurityRuleResponse.getId();
     }
 
     @Override
@@ -91,32 +82,46 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
 
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + QUERY_PREFIX +
                 SECURITY_GROUP_ID_PARAM + VALUE_QUERY_PREFIX + securityGroupId;
-        String responseStr = null;
 
-        try {
-            responseStr = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
-
+        String responseStr = doGetRequest(endpoint, cloudUser);
         return getSecurityRulesFromJson(responseStr);
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityRuleId;
+        doDeleteRequest(endpoint, cloudUser);
+    }
 
+    protected void doDeleteRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityRuleId), e);
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, cloudUser.getToken()));
     }
 
-    private String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
+    protected String doPostRequest(String createSecurityRuleRequest, String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        String response = null;
+        try {
+            response = this.client.doPostRequest(endpoint, createSecurityRuleRequest, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+        return response;
+    }
+
+    protected String doGetRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        String response = null;
+        try {
+            response = this.client.doGetRequest(endpoint, cloudUser);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+        return response;
+    }
+
+    protected String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
         String securityGroupName;
         switch (majorOrder.getType()) {
             case NETWORK:
@@ -139,12 +144,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
                 .build();
 
         String endpoint = uri.toString();
-        String responseStr = null;
-        try {
-            responseStr = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String responseStr = doGetRequest(endpoint, cloudUser);
 
         GetSecurityGroupsResponse getSecurityGroupsResponse = GetSecurityGroupsResponse.fromJson(responseStr);
         List<GetSecurityGroupsResponse.SecurityGroup> securityGroups = getSecurityGroupsResponse.getSecurityGroups();
@@ -160,42 +160,42 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
         List<GetSecurityRulesResponse.SecurityRules> securityRules = getSecurityGroupResponse.getSecurityRules();
 
         List<SecurityRuleInstance> rules = new ArrayList<>();
-        try {
-            for (GetSecurityRulesResponse.SecurityRules secRules : securityRules) {
-                SecurityRule.Direction direction = secRules.getDirection().
-                        equalsIgnoreCase("ingress") ? SecurityRule.Direction.IN : SecurityRule.Direction.OUT;
-                SecurityRule.EtherType etherType = secRules.getEtherType().
-                        equals("IPv6") ? SecurityRule.EtherType.IPv6 : SecurityRule.EtherType.IPv4;
-                SecurityRule.Protocol protocol;
+        for (GetSecurityRulesResponse.SecurityRules secRules : securityRules) {
+            SecurityRule.Direction direction = secRules.getDirection().
+                    equalsIgnoreCase("ingress") ? SecurityRule.Direction.IN : SecurityRule.Direction.OUT;
+            SecurityRule.EtherType etherType = secRules.getEtherType().
+                    equals("IPv6") ? SecurityRule.EtherType.IPv6 : SecurityRule.EtherType.IPv4;
+            SecurityRule.Protocol protocol = defineRuleProtocol(secRules);
 
-                if (secRules.getProtocol() != null) {
-                    switch(secRules.getProtocol()) {
-                        case "tcp":
-                            protocol = SecurityRule.Protocol.TCP;
-                            break;
-                        case "udp":
-                            protocol = SecurityRule.Protocol.UDP;
-                            break;
-                        case "icmp":
-                            protocol = SecurityRule.Protocol.ICMP;
-                            break;
-                        default:
-                            throw new FogbowException(String.format(Messages.Exception.INVALID_PROTOCOL, secRules.getProtocol(),
-                                    SecurityRule.Protocol.values()));
-                    }
-                } else {
-                    protocol = SecurityRule.Protocol.ANY;
-                }
-                SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(secRules.getId(), direction, secRules.getPortFrom(), secRules.getPortTo(), secRules.getCidr(), etherType, protocol);
-                rules.add(securityRuleInstance);
+            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(secRules.getId(), direction,
+                    secRules.getPortFrom(), secRules.getPortTo(), secRules.getCidr(), etherType, protocol);
+            rules.add(securityRuleInstance);
+        }
+        return rules;
+    }
+
+    protected SecurityRule.Protocol defineRuleProtocol(GetSecurityRulesResponse.SecurityRules secRules) throws FogbowException {
+        SecurityRule.Protocol protocol;
+        if (secRules.getProtocol() != null) {
+            switch(secRules.getProtocol()) {
+                case "tcp":
+                    protocol = SecurityRule.Protocol.TCP;
+                    break;
+                case "udp":
+                    protocol = SecurityRule.Protocol.UDP;
+                    break;
+                case "icmp":
+                    protocol = SecurityRule.Protocol.ICMP;
+                    break;
+                default:
+                    throw new FogbowException(String.format(Messages.Exception.INVALID_PROTOCOL, secRules.getProtocol(),
+                            SecurityRule.Protocol.values()));
             }
-        } catch (JSONException e) {
-            String message = String.format(Messages.Error.UNABLE_TO_GET_SECURITY_GROUP, json);
-            LOGGER.error(message, e);
-            throw new InvalidParameterException(message, e);
+        } else {
+            protocol = SecurityRule.Protocol.ANY;
         }
 
-        return rules;
+        return protocol;
     }
 
     private void initClient() {
