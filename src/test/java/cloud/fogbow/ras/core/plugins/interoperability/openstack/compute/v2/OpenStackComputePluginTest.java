@@ -1,858 +1,773 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
-import cloud.fogbow.common.constants.OpenStackConstants;
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import com.google.gson.Gson;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.skyscreamer.jsonassert.JSONAssert;
 
-import java.io.IOException;
 import java.util.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class})
-public class OpenStackComputePluginTest {
+@PrepareForTest({DatabaseManager.class, GetFlavorResponse.class,
+        PropertiesUtil.class, OpenStackHttpToFogbowExceptionMapper.class,
+        OpenStackCloudUtils.class, GetFlavorExtraSpecsResponse.class,
+        GetAllFlavorsResponse.class})
+public class OpenStackComputePluginTest extends BaseUnitTests {
 
     private OpenStackComputePlugin computePlugin;
-    private OpenStackV3User openStackV3User;
+    private OpenStackV3User cloudUser;
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private OpenStackHttpClient clientMock;
     private Properties propertiesMock;
-    private PropertiesHolder propertiesHolderMock;
-    private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<String> argBodyString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<OpenStackV3User> argCloudToken = ArgumentCaptor.forClass(OpenStackV3User.class);
     private final String defaultNetworkId = "fake-default-network-id";
-    private final String imageId = "image-id";
     private final String publicKey = "public-key";
-    private final String idKeyName = "493315b3-dd01-4b38-974f-289570f8e7ee";
     private final String bestFlavorId = "best-flavor";
-    private final int bestCpu = 2;
-    private final int bestMemory = 1024;
 
-    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_NAME = "fake-name";
+    private static final int FAKE_FLAVOR_DISK = 80;
+    private static final int FAKE_FLAVOR_MEMORY = 16;
+    private static final int FAKE_FLAVOR_VCPU = 4;
+
+    private static final String ANY_URL = "http://localhost:8008";
+    private static final String ANY_STRING = "any-string";
+    private static final String FAKE_CONF_FILE_PATH = "fake-conf-file-path";
+    private static final String FAKE_FLAVOR_ID = "fake-flavor-id";
+    private static final String FAKE_FLAVOR_NAME = "fake-flavor-name";
+    private static final String FAKE_KEY_NAME = "fake-key-name";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
+    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
 
-    private final int bestDisk = 8;
+    private static final String FAKE_REQUIREMENT = "fake-key-1";
+    private static final String FAKE_UNMET_REQUIREMENT = "this-requiremnt-isnot-going-to-be-fullfiled";
+    private static final String MAP_METHOD = "map";
+
     private final String privateNetworkId = "fake-private-network-id";
     private final String userData = "userDataFromLauchCommand";
-    private final JSONObject rootKeypairJson = generateRootKeyPairJson(idKeyName, publicKey);
     private final List<String> networksId = new ArrayList<String>();
-    private final List<String> responseNetworkIds = new ArrayList<String>(networksId);
-    private final String idInstanceName = "12345678-dd01-4b38-974f-289570f8e7ee";
-    private final String expectedInstanceId = "instance-id-00";
-    private final String expectedInstanceIdJson = generateInstaceId(expectedInstanceId);
-    private final String localIpAddress = "localIpAddress";
     private final String instanceId = "compute-instance-id";
-    private final String requirementTag = "besttag";
-    private final String requirementValue = "bestvalue";
-    private final int vCPU = 10;
-    private final int ram = 15;
-    private final int disk = 20;
-    private String computeEndpoint;
-    private String flavorEndpoint;
-    private String flavorExtraSpecsEndpoint;
-    private String osKeyPairEndpoint;
-    private String hostName = "hostName";
     private String flavorId = "flavorId";
     private final String computeNovaV2UrlKey = "compute-nova-v2-url-key";
-    private String openstackStateActive = OpenStackStateMapper.ACTIVE_STATUS;
-    private SharedOrderHolders sharedOrderHolders;
 
     @Before
     public void setUp() throws Exception {
-        this.propertiesHolderMock = Mockito.mock(PropertiesHolder.class);
-        this.propertiesMock = Mockito.mock(Properties.class);
+        testUtils.mockReadOrdersFromDataBase();
+
+        this.propertiesMock = getPropertiesMock();
         this.clientMock = Mockito.mock(OpenStackHttpClient.class);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.networksId.add(privateNetworkId);
-        this.responseNetworkIds.add(defaultNetworkId);
-        this.responseNetworkIds.add(privateNetworkId);
 
-        this.openStackV3User = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        PowerMockito.mockStatic(PropertiesUtil.class);
+        BDDMockito.given(PropertiesUtil.readProperties(Mockito.eq(FAKE_CONF_FILE_PATH)))
+                .willReturn(this.propertiesMock);
 
-        this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
-                this.launchCommandGeneratorMock, this.clientMock));
-        this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
-                + this.openStackV3User.getProjectId()
-                + OpenStackComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
-        this.computeEndpoint = computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
-                + this.openStackV3User.getProjectId()
-                + OpenStackComputePlugin.SERVERS;
-        this.flavorEndpoint = this.computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
-                + this.openStackV3User.getProjectId()
-                + OpenStackComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
+        this.computePlugin = Mockito.spy(new OpenStackComputePlugin(FAKE_CONF_FILE_PATH));
 
-        this.flavorExtraSpecsEndpoint = this.computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
-                + this.openStackV3User.getProjectId()
-                + OpenStackComputePlugin.SUFFIX_ENDPOINT_FLAVORS
-                + "/%s"
-                + OpenStackComputePlugin.SUFFIX_FLAVOR_EXTRA_SPECS;
+        this.computePlugin.setClient(this.clientMock);
+        this.computePlugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
 
-        Mockito.when(this.propertiesMock.getProperty(OpenStackComputePlugin.COMPUTE_NOVAV2_URL_KEY))
-                .thenReturn(this.computeNovaV2UrlKey);
-        Mockito.when(this.propertiesMock.getProperty(OpenStackComputePlugin.DEFAULT_NETWORK_ID_KEY))
-                .thenReturn(defaultNetworkId);
-        Mockito.when(propertiesHolderMock.getProperties()).thenReturn(propertiesMock);
-
-        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-
-        PowerMockito.mockStatic(SharedOrderHolders.class);
-        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-
-        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-                .thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
-
+        this.cloudUser = new OpenStackV3User(TestUtils.FAKE_USER_ID, TestUtils.FAKE_USER_NAME,
+                this.FAKE_TOKEN_VALUE, this.FAKE_PROJECT_ID);
     }
 
-    // test case: If a RequestInstance method works as expected
+    // test case: when given an order, it should return a flavor with it's resources
+    // greater than or equal the requested
     @Test
-    public void testRequestInstance() throws IOException, FogbowException {
+    public void testGetBestFlavor() throws FogbowException {
+        // setup
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        Mockito.doNothing().when(this.computePlugin)
+                .updateFlavors(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
 
-        // set up
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null,
-                bestCpu, bestMemory, bestDisk, imageId, null, publicKey, networksId);
-        JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
-                idInstanceName);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argBodyString.capture(), argCloudToken.capture());
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .getHardwareRequirementsList();
 
         // exercise
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        HardwareRequirements requirements = this.computePlugin.getBestFlavor(computeOrder, cloudUser);
 
         // verify
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(0), this.openStackV3User);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
-
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(1), this.openStackV3User);
-        // ToDo: fix the assertion below
-        // JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
-
-        Assert.assertEquals(expectedInstanceId, instanceId);
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .updateFlavors(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getHardwareRequirementsList();
+        Assert.assertTrue(testUtils.DISK_VALUE <= requirements.getDisk());
+        Assert.assertTrue(testUtils.CPU_VALUE <= requirements.getCpu());
+        Assert.assertTrue(testUtils.MEMORY_VALUE <= requirements.getMemory());
     }
 
-    // test case: create instance with extra requirement
+    // test case: when given and order with huge resources it should not be capable
+    // of allocating any flavor
     @Test
-    public void testRequestInstanceWithRequirements() throws IOException, FogbowException {
+    public void testGetBestFlavorMismatch() throws FogbowException {
+        // setup
+        int bigVcpu = 9999;
+        int bigMemory = 99999999;
+        int bigDisk = 99999999;
+        ComputeOrder computeOrder = new ComputeOrder(testUtils.FAKE_USER_ID, testUtils.createSystemUser(), testUtils.FAKE_REMOTE_MEMBER_ID, testUtils.LOCAL_MEMBER_ID,
+                testUtils.DEFAULT_CLOUD_NAME, testUtils.FAKE_INSTANCE_NAME, bigVcpu, bigMemory, bigDisk, testUtils.FAKE_IMAGE_ID,
+                testUtils.mockUserData(), publicKey, null);
 
-        // set up
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null,
-                bestCpu, bestMemory, bestDisk, imageId, null, publicKey, networksId);
-        Map<String, String> requirements = new HashMap<>();
-        requirements.put(requirementTag, requirementValue);
-        computeOrder.setRequirements(requirements);
-        JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
-                idInstanceName);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argBodyString.capture(), argCloudToken.capture());
+        Mockito.doNothing().when(this.computePlugin)
+                .updateFlavors(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
+
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .getHardwareRequirementsList();
 
         // exercise
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        HardwareRequirements requirements = this.computePlugin.getBestFlavor(computeOrder, cloudUser);
 
         // verify
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(0), this.openStackV3User);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
-
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(1), this.openStackV3User);
-        // ToDo: fix the assertion below
-        // JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
-
-        Assert.assertEquals(expectedInstanceId, instanceId);
+        Assert.assertNull(requirements);
     }
 
-    // test case: if there is no flavor available with all order requirements, raise exception
+    // test case: when an order is given, return any hardwareRequirements
+    // that suits the order's needs
+    @Test
+    public void testFindSmallestFlavor() throws FogbowException {
+        // setup
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        HardwareRequirements bestRequirements = getHardwareRequirementsList().last();
+        Mockito.doReturn(bestRequirements).when(this.computePlugin)
+                .getBestFlavor(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
+
+        // exercise
+        HardwareRequirements actualRequirements = this.computePlugin.findSmallestFlavor(computeOrder, cloudUser);
+
+        // verify
+        Assert.assertEquals(bestRequirements, actualRequirements);
+        Mockito.verify(this.computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getBestFlavor(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
+    }
+
+    // test case: when a order is given, no flavor will match the order so a NoAvailableResourcesException
+    // will be thrown
     @Test(expected = NoAvailableResourcesException.class)
-    public void testRequestInstanceRequirementsNotFound() throws IOException, FogbowException {
-        // set up
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null,
-                bestCpu, bestMemory, bestDisk, imageId, null, publicKey, networksId);
-        Map<String, String> requirements = new HashMap<>();
-        requirements.put(requirementTag, requirementValue);
-        requirements.put("additionalReqTag", "additionalReqValue");
-        computeOrder.setRequirements(requirements);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argBodyString.capture(), argCloudToken.capture());
+    public void testFindSmallestFlavorWhenNoResourceAvailable() throws FogbowException {
+        // setup
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        Mockito.doReturn(null).when(this.computePlugin)
+                .getBestFlavor(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
 
         // exercise
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.findSmallestFlavor(computeOrder, cloudUser);
     }
 
-    // test case: Check if a getInstance builds a compute instance from http response properly
+    // test case: test if works correctly by calling doCreateKeyName()
     @Test
-    public void testGetInstance() throws FogbowException, HttpResponseException {
+    public void testGetKeyName() throws FogbowException, HttpResponseException {
         // set up
-        String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        String computeInstanceJson = generateComputeInstanceJson(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        List<String> ipAddresses = new ArrayList<>();
-        ipAddresses.add(localIpAddress);
-
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
-
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, ipAddresses);
-
-        Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
-        mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
+        Mockito.doNothing().when(this.computePlugin)
+                .doCreateKeyName(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
 
         // exercise
-        ComputeInstance pluginComputeInstance = this.computePlugin.getInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.getKeyName(this.FAKE_PROJECT_ID, publicKey, cloudUser);
 
         // verify
-        Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
-        Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
-        Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
+        Mockito.verify(this.computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .doCreateKeyName(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
     }
 
-    // test case: If a DeleteInstance method works as expected
+    // test case: when calling doCreateKeyName() method, it must verify that the
+    // call was successful.
     @Test
-    public void testDeleteInstance() throws HttpResponseException, FogbowException {
-        // set up
-        String deleteEndpoint = this.computeEndpoint + "/" + instanceId;
-        Mockito.doNothing().when(this.clientMock).doDeleteRequest(this.argString.capture(),
-                this.argCloudToken.capture());
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
-
+    public void testDoCreateKeyNameSuccessfully() throws Exception {
         // exercise
-        this.computePlugin.deleteInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.doCreateKeyName(ANY_URL, ANY_STRING, cloudUser);
 
         // verify
-        Assert.assertEquals(this.argString.getValue(), deleteEndpoint);
-        Assert.assertEquals(this.argCloudToken.getValue(), this.openStackV3User);
+        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE))
+                .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any());
     }
 
-    // test case: GetInstance should throw Unauthorized if a http request is Forbidden
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetInstanceOnForbidden() throws FogbowException, HttpResponseException {
-        // set up
-        String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, ""));
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
-
-        // exercise/verify
-        this.computePlugin.getInstance(computeOrder, this.openStackV3User);
-    }
-
-    // test case: DeleteInstance should return Unauthorized is a http request is Forbidden
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testDeleteInstanceTestOnForbidden() throws HttpResponseException, FogbowException {
-        // set up
-        String deleteEndpoint = this.computeEndpoint + "/" + instanceId;
-        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.clientMock)
-                .doDeleteRequest(deleteEndpoint, this.openStackV3User);
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
-
-        // exercise
-        this.computePlugin.deleteInstance(computeOrder, this.openStackV3User);
-    }
-
-    // test case: Request Instance should throw Unauthenticated if a http request is Anauthorized
-    @Test(expected = UnauthenticatedUserException.class)
-    public void testRequestInstanceOnAnauthorizedComputePost() throws IOException, FogbowException {
-        // set up
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, "", null, "",
-                null);
-
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any())).thenReturn("");
-        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, ""));
-
-        // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
-    }
-
-    // test case: RequestInstance should still work even if there is no public key as parameter
+    // test case: when doCreateKeyName() request fails, it must
+    // call OpenStackHttpToFogbowExceptionMapper.map(e)
     @Test
-    public void testRequestInstanceWhenPublicKeyIsNull() throws IOException, FogbowException {
+    public void testDoCreateKeyNameUnsuccessfully() throws Exception {
         // set up
-        String publicKey = null;
-        String idKeyName = null;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null,
-                bestCpu, bestMemory, bestDisk, imageId, null, publicKey, networksId);
-        JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
-                idInstanceName);
+        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
+        Mockito.when(this.clientMock.doPostRequest(Mockito.anyString(),
+                Mockito.anyString(), Mockito.eq(cloudUser))).thenThrow(exception);
 
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn(expectedInstanceIdJson);
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         // exercise
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        try {
+            this.computePlugin.doCreateKeyName(ANY_URL, ANY_STRING, cloudUser);
+            Assert.fail();
+        } catch (FogbowException e) {
+            // verify
+            Assert.assertEquals(exception.getMessage(), e.getMessage());
+
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+        }
+    }
+
+    // test case: test if deleteKeyName() will call doDeleteRequest passing the keyName
+    @Test
+    public void testDeleteKeyName() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        // exercise
+        this.computePlugin.deleteKeyName(FAKE_PROJECT_ID, ANY_STRING, cloudUser);
 
         // verify
-        Assert.assertEquals(computeEndpoint, this.argString.getValue());
-        Assert.assertEquals(this.openStackV3User, this.argCloudToken.getValue());
-        // ToDo: fix the assertion below
-        // JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getValue(), false);
-        Assert.assertEquals(expectedInstanceId, instanceId);
+        Mockito.verify(this.clientMock, Mockito.times(testUtils.RUN_ONCE))
+                .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
     }
 
-    // test case: RequestInstance should throw InvalidParameter when KeyName post returns Bad Request
-    @Test(expected = InvalidParameterException.class)
-    public void testRequestInstanceOnBadRequestKeyNamePost() throws IOException, FogbowException {
-        // set up
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null,
-                "default", null, bestCpu, bestMemory, bestDisk, imageId, null, publicKey, null);
+    // test case: when calling doDeleteRequest() method, it must verify that the
+    // call was successful.
+    @Test
+    public void testDoDeleteSuccessfully() throws Exception {
+        // exercise
+        this.computePlugin.doDeleteRequest(ANY_URL, cloudUser);
 
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, ""));
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
+        // verify
+        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteRequest(Mockito.anyString(), Mockito.any());
+    }
+
+    // test case: when doDeleteRequest() request fails, it must
+    // call OpenStackHttpToFogbowExceptionMapper.map(e)
+    @Test
+    public void testDoDeleteUnsuccessfully() throws Exception {
+        // set up
+        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
+        Mockito.doThrow(exception).when(this.clientMock)
+                .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        try {
+            this.computePlugin.doDeleteRequest(ANY_URL, cloudUser);
+            Assert.fail();
+        } catch (FogbowException e) {
+            // verify
+            Assert.assertEquals(exception.getMessage(), e.getMessage());
+
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+        }
     }
 
-    // test case: Request Instance should throw Unauthenticated when delete key is Anauthorized
-    @Test(expected = UnauthenticatedUserException.class)
-    public void testRequestInstanceWhenDeleteKeyUnauthorized() throws IOException, FogbowException {
+    // test case: test if getRequestBody() will return an CreateComputeRequest instance
+    @Test
+    public void testGetRequestBody() {
         // set up
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null,
-                "default", null, bestCpu, bestMemory, bestDisk, imageId, null, publicKey, null);
+        CreateComputeRequest requestMock = Mockito.mock(CreateComputeRequest.class);
+        Mockito.doReturn(requestMock).when(this.computePlugin)
+                .getCreateComputeRequest(Mockito.anyString(), Mockito.anyString(),
+                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                        Mockito.any(), Mockito.any());
+        List<String> networksIds = getMockedNetworkIds();
 
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.when(this.clientMock.doPostRequest(argString.capture(), argString.capture(), argCloudToken.capture()
-        )).thenReturn(expectedInstanceIdJson);
-        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, "")).when(this.clientMock)
+        //exercise
+        CreateComputeRequest createComputeRequest = this.computePlugin.getRequestBody(
+                FAKE_INSTANCE_NAME, testUtils.FAKE_IMAGE_ID, flavorId, userData, ANY_STRING, networksIds);
+
+        // verify
+        Mockito.verify(this.computePlugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getCreateComputeRequest(Mockito.anyString(), Mockito.anyString(),
+                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                        Mockito.any(), Mockito.any());
+    }
+
+    // test case: When given a list of Flavor, check if it does have them cached, else
+    // it should perform a request for those flavors.
+    @Test
+    public void testDetailFlavors() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .getHardwareRequirementsList();
+        List<String> flavorIds = getFlavorIdsFromHardwareRequirementsList();
+        String unCachedFlavorId = "uncached-flavor-id";
+        flavorIds   .add(unCachedFlavorId);
+
+        HardwareRequirements requirementsMock = Mockito.mock(HardwareRequirements.class);
+        Mockito.doReturn(requirementsMock).when(this.computePlugin)
+                .fetchHardwareRequirements(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
+
+        // exercise
+        this.computePlugin.detailFlavors(ANY_URL, flavorIds, cloudUser);
+
+        // verify
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getHardwareRequirementsList();
+
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .fetchHardwareRequirements(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
+    }
+
+    @Test
+    public void testFetchHardwareRequirements() throws FogbowException, HttpResponseException {
+        // set up
+        GetFlavorResponse mockedResponse = createGetFlavorResponseMock();
+        PowerMockito.mockStatic(GetFlavorResponse.class);
+        BDDMockito.given(GetFlavorResponse.fromJson(Mockito.anyString()))
+                .willReturn(mockedResponse);
+
+        Mockito.doReturn(ANY_STRING).when(this.computePlugin)
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        // exercise
+        this.computePlugin.fetchHardwareRequirements(ANY_URL, ANY_STRING, cloudUser);
+
+        // verify
+        Mockito.verify(this.computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetFlavorResponse.class);
+        GetFlavorResponse.fromJson(Mockito.anyString());
+    }
+
+    private GetFlavorResponse createGetFlavorResponseMock() {
+        GetFlavorResponse response = Mockito.mock(GetFlavorResponse.class);
+        Mockito.when(response.getName()).thenReturn(FAKE_FLAVOR_NAME);
+        Mockito.when(response.getId()).thenReturn(FAKE_FLAVOR_ID);
+        Mockito.when(response.getVcpusCount()).thenReturn(FAKE_FLAVOR_VCPU);
+        Mockito.when(response.getMemory()).thenReturn(FAKE_FLAVOR_MEMORY);
+        Mockito.when(response.getDisk()).thenReturn(FAKE_FLAVOR_DISK);
+
+        return response;
+    }
+
+    // test case: When performing an unsuccessful request, it must re-wrap the
+    // HttpResponseException into an UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testDetailFlavorsUnsuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .getHardwareRequirementsList();
+        List<String> flavorIds = getFlavorIdsFromHardwareRequirementsList();
+        String unCachedFlavorId = "uncached-flavor-id";
+        flavorIds.add(unCachedFlavorId);
+
+        Mockito.when(this.clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
+
+        // exercise
+        this.computePlugin.detailFlavors(ANY_URL, flavorIds, cloudUser);
+
+        Assert.fail();
+    }
+
+    @Test
+    public void getInstanceFromJson() {
+        // set up
+        String getRawResponse = createGetComputeResponseJson(testUtils.FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
+
+        // exercise
+        ComputeInstance computeInstance = this.computePlugin.getInstanceFromJson(getRawResponse);
+
+        // verify
+        Assert.assertEquals(testUtils.FAKE_INSTANCE_ID, computeInstance.getId());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, computeInstance.getName());
+    }
+
+    // test case: checks if a given flavor has a requirement
+    @Test
+    public void testFlavorHasRequirements() throws FogbowException, HttpResponseException {
+        // set up
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+                .willReturn(ANY_STRING);
+
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        String getFlavorsResponseJson = createExtraSpecsResponseJson(createFakeExtraSpecs());
+        Mockito.doReturn(getFlavorsResponseJson)
+                .when(computePlugin).doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(GetFlavorExtraSpecsResponse.class);
+        BDDMockito.given(GetFlavorExtraSpecsResponse.fromJson(Mockito.anyString()))
+                .willCallRealMethod();
+
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_REQUIREMENT, ANY_STRING);
+
+        // exercise
+        boolean hasRequirement = this.computePlugin.flavorHasRequirements(cloudUser, fakeRequirement, flavorId);
+
+        // verify
+        Assert.assertTrue(hasRequirement);
+
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        Mockito.verify(computePlugin, Mockito.times(1))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetFlavorExtraSpecsResponse.class);
+        GetFlavorExtraSpecsResponse.fromJson(Mockito.anyString());
+    }
+
+    // test case: when a flavor does not have a requirement, it should return false
+    @Test
+    public void testFlavorHasNotRequirements() throws FogbowException, HttpResponseException {
+        // set up
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+                .willReturn(ANY_STRING);
+
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        String getFlavorsResponseJson = createExtraSpecsResponseJson(createFakeExtraSpecs());
+        Mockito.doReturn(getFlavorsResponseJson)
+                .when(computePlugin).doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.mockStatic(GetFlavorExtraSpecsResponse.class);
+        BDDMockito.given(GetFlavorExtraSpecsResponse.fromJson(Mockito.anyString()))
+                .willCallRealMethod();
+
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_UNMET_REQUIREMENT, FAKE_UNMET_REQUIREMENT);
+
+        // exercise
+        boolean hasRequirement = this.computePlugin.flavorHasRequirements(cloudUser, fakeRequirement, flavorId);
+
+        // verify
+        Assert.assertFalse(hasRequirement);
+
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        Mockito.verify(computePlugin, Mockito.times(1))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetFlavorExtraSpecsResponse.class);
+        GetFlavorExtraSpecsResponse.fromJson(Mockito.anyString());
+    }
+
+    // test case: the updateFlavors() should perform a HTTP request for the flavors and
+    // update the current data the plugin holds
+    @Test
+    public void testUpdateFlavorsSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+                .willReturn(ANY_STRING);
+
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        String getAllFlavorsResponseJson = createGetAllFlavorsResponseJson();
+        Mockito.doReturn(getAllFlavorsResponseJson)
+                .when(computePlugin).doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.spy(GetAllFlavorsResponse.class);
+        BDDMockito.given(GetAllFlavorsResponse.fromJson(Mockito.anyString()))
+                .willCallRealMethod();
+
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_REQUIREMENT, ANY_STRING);
+        computeOrder.setRequirements(fakeRequirement);
+
+        Mockito.doNothing().when(this.computePlugin).setHardwareRequirementsList(Mockito.any());
+        Mockito.doReturn(false).doReturn(true).when(this.computePlugin)
+                .flavorHasRequirements(Mockito.eq(cloudUser), Mockito.any(), Mockito.any());
+
+        Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
+                .detailFlavors(Mockito.any(), Mockito.any(), Mockito.any());
+
+        // exercise
+        this.computePlugin.updateFlavors(computeOrder, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+
+        PowerMockito.verifyStatic(GetAllFlavorsResponse.class);
+        GetAllFlavorsResponse.fromJson(Mockito.anyString());
+
+        Mockito.verify(this.computePlugin, Mockito.atLeast(1))
+                .flavorHasRequirements(Mockito.eq(cloudUser), Mockito.any(), Mockito.any());
+
+        Mockito.verify(this.computePlugin, Mockito.times(1))
+                .detailFlavors(Mockito.any(), Mockito.any(), Mockito.any());
+
+        Mockito.verify(this.computePlugin, Mockito.times(1)).setHardwareRequirementsList(Mockito.any());
+    }
+
+    // test case: when a request is unsuccessful, it should thrown UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testUpdateFlavorsUnsuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Map<String, String> fakeRequirement = new HashMap<>();
+        fakeRequirement.put(FAKE_REQUIREMENT, ANY_STRING);
+        computeOrder.setRequirements(fakeRequirement);
+
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
+
+        // exercise
+        this.computePlugin.updateFlavors(computeOrder, cloudUser);
+
+        Assert.fail();
+    }
+
+    // test case: given and order, it should call
+    @Test
+    public void testDeleteInstance() throws FogbowException, HttpResponseException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        Mockito.doNothing().when(this.computePlugin)
                 .doDeleteRequest(Mockito.any(), Mockito.any());
 
         // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
-    }
-
-    // test case: test if Hardware Requirements caching works as expected
-    @Test
-    public void testRequestInstanceHardwareRequirementsCaching() throws IOException, FogbowException {
-        // set up
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null,
-                "default", null, bestCpu, bestMemory, bestDisk, imageId, null, publicKey, networksId);
-        JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
-                idInstanceName);
-
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argBodyString.capture(), argCloudToken.capture());
-
-        //exercise 1
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
-
-        //verify 1
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(0), this.openStackV3User);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
-
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(1), this.openStackV3User);
-        // ToDo: fix the assertion below
-        //JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1), computeJson.toString(), false);
-        Assert.assertEquals(expectedInstanceId, instanceId);
-
-        // exercise 2
-        instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
-
-        // verify 2
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(0), this.openStackV3User);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
-
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argCloudToken.getAllValues().get(1), this.openStackV3User);
-        // ToDo: fix the assertion below
-        // JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
-        Assert.assertEquals(expectedInstanceId, instanceId);
-    }
-
-    // test case: Get Instance should still work even if there is no address field on response
-    @Test
-    public void testGetInstanceWhenThereIsNoAddressFieldOnResponse() throws FogbowException, HttpResponseException {
-        // set up
-        String localIpAddress = null;
-        String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, new ArrayList());
-        String computeInstanceJson = generateComputeInstanceJsonWithoutAddressField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
-        mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
-
-        // exercise
-        ComputeInstance pluginComputeInstance = this.computePlugin.getInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.deleteInstance(computeOrder, cloudUser);
 
         // verify
-        Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
-        Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
-        Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
+        Mockito.verify(this.computePlugin, Mockito.times(1))
+                .doDeleteRequest(Mockito.any(), Mockito.eq(cloudUser));
     }
 
-    // test case: Get Instance should still work even if there is no provider network field on response
+    // test case: Test if after a successful request, it can return the
+    // appropriate computeInstance
     @Test
-    public void testGetInstanceWhenThereIsNoProviderNetworkFieldOnResponse() throws FogbowException, HttpResponseException {
+    public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
-        String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        String computeInstanceJson = generateComputeInstanceJsonWithoutProviderNetworkField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, openstackStateActive, hostName, new ArrayList());
+        PowerMockito.mockStatic(OpenStackCloudUtils.class);
+        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+                .willReturn(ANY_STRING);
 
-        Mockito.when(this.clientMock.doGetRequest(newComputeEndpoint, this.openStackV3User)).thenReturn(computeInstanceJson);
-        mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(instanceId);
+        Mockito.doReturn(ANY_URL).when(this.computePlugin)
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
+
+        String rawInstanceResponse = createGetComputeResponseJson(testUtils.FAKE_INSTANCE_ID, FAKE_INSTANCE_NAME);
+        Mockito.doReturn(rawInstanceResponse).when(this.computePlugin)
+                .doGetRequest(Mockito.any(), Mockito.any());
+
+        ComputeInstance fakeComputeInstance = new ComputeInstance(instanceId, ANY_STRING, ANY_STRING, null);
+        Mockito.doReturn(fakeComputeInstance).when(computePlugin)
+                .getInstanceFromJson(Mockito.anyString());
+
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
         // exercise
-        ComputeInstance pluginComputeInstance = this.computePlugin.getInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.getInstance(computeOrder, cloudUser);
 
         // verify
-        Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
-        Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
-        Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
+        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
+        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+
+        Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
+                .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
     }
 
-    // test case: Request Instance should throw NoAvailableResources when there is no cpu that meets the criteria
-    @Test(expected = NoAvailableResourcesException.class)
-    public void testRequestInstanceWhenThereIsNoFlavorAvailableForCPU() throws IOException, FogbowException {
+    // test case: when a request is unsuccessful, it should thrown UnexpectedException
+    @Test(expected = UnexpectedException.class)
+    public void testGetInstanceUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        int worst = -1;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, null);
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
-        mockGetFlavorsRequest(bestFlavorId, bestCpu + worst, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argString.capture(), argCloudToken.capture());
+        Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
+                .thenThrow(HttpResponseException.class);
 
         // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.getInstance(computeOrder, cloudUser);
+
+        Assert.fail();
     }
 
-    // test case: Request Instance should throw NoAvailableResources when there is no memory that meets the criteria
-    @Test(expected = NoAvailableResourcesException.class)
-    public void testRequestInstanceWhenThereIsNoFlavorAvailableForMemory() throws IOException, FogbowException {
-        // set up
-        int worst = -1;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, null);
-
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory + worst, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argString.capture(), argCloudToken.capture());
-
-        // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
-    }
-
-    // test case: Request Instance should throw NoAvailableResources when there is no disk that meets the criteria
-    @Test(expected = NoAvailableResourcesException.class)
-    public void testRequestInstanceWhenThereIsNoFlavorAvailableForDisk() throws IOException, FogbowException {
-        // set up
-        int worst = -1;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, null);
-
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk + worst);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argString.capture(), argCloudToken.capture());
-
-        // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
-    }
-
-    // test case: Request Instance should still work even if there is no user data (null)
+    // test case: Test if the networkdIds contain the defaultNetworkId
     @Test
-    public void testRequestInstanceWhenThereIsNoUserData() throws IOException, FogbowException {
+    public void testGetNetworkIds() {
         // set up
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, networksId);
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
-                idInstanceName);
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argBodyString.capture(), argCloudToken.capture());
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
         // exercise
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        List<String> networkIds = this.computePlugin.getNetworkIds(computeOrder);
 
         // verify
-        Assert.assertEquals(this.osKeyPairEndpoint, this.argString.getAllValues().get(0));
-        Assert.assertEquals(this.openStackV3User, this.argCloudToken.getAllValues().get(0));
-        JSONAssert.assertEquals(rootKeypairJson.toString(), this.argBodyString.getAllValues().get(0).toString(), false);
-
-        Assert.assertEquals(computeEndpoint, this.argString.getAllValues().get(1));
-        Assert.assertEquals(this.openStackV3User, this.argCloudToken.getAllValues().get(1));
-        // ToDo: fix the assertion below
-        // JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getAllValues().get(1).toString(), false);
-
-        Assert.assertEquals(expectedInstanceId, instanceId);
+        Assert.assertEquals(defaultNetworkId, networkIds.get(0));
     }
 
-    // test case: Compute networksId should always contain a default network id even if there is no network id in a compute order
+    // test case? test if
     @Test
-    public void testRequestInstanceWhenThereIsNoNetworkId() throws IOException, FogbowException {
+    public void testSetAllocationToOrder() {
         // set up
-        List<String> networksId = null;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX+idInstanceName, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, networksId);
-        responseNetworkIds.remove(this.privateNetworkId);
-
-        JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
-                idInstanceName);
-
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argBodyString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argBodyString.capture(), argCloudToken.capture());
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        HardwareRequirements hardwareRequirements = Mockito.mock(HardwareRequirements.class);
 
         // exercise
-        String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.setAllocationToOrder(computeOrder, hardwareRequirements);
 
         // verify
-        Assert.assertEquals(this.osKeyPairEndpoint, this.argString.getAllValues().get(0));
-        Assert.assertEquals(this.openStackV3User, this.argCloudToken.getAllValues().get(0));
-        JSONAssert.assertEquals(rootKeypairJson.toString(), this.argBodyString.getAllValues().get(0).toString(), false);
-
-        Assert.assertEquals(computeEndpoint, this.argString.getAllValues().get(1));
-        Assert.assertEquals(this.openStackV3User, this.argCloudToken.getAllValues().get(1));
-        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getAllValues().get(1).toString(), false);
-
-        Assert.assertEquals(expectedInstanceId, instanceId);
+        Mockito.verify(computeOrder, Mockito.times(testUtils.RUN_ONCE))
+                .setActualAllocation(Mockito.any(ComputeAllocation.class));
     }
 
-    // test case: Request Instance should throw InvalidParameter if the Get Request on updateFlavors returns Bad Request
-    // while getting flavors id
-    @Test(expected = InvalidParameterException.class)
-    public void testRequestInstanceWhenFlavorsIdRequestException() throws HttpResponseException, FogbowException {
+    @Test
+    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, networksId);
-        Mockito.when(this.clientMock.doGetRequest(Mockito.any(), Mockito.any()))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, ""));
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argString.capture(), argCloudToken.capture());
+        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(createCreateComputeResponseJson());
 
         // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        String instanceId = this.computePlugin.doRequestInstance(FAKE_PROJECT_ID, FAKE_KEY_NAME, ANY_STRING, cloudUser);
+
+        // verify
+        Assert.assertEquals(this.instanceId, instanceId);
     }
 
-    // test case: Request Instance should throw InvalidParameter if the Get Request on updateFlavors returns Bad Request
-    // while getting flavor specification
-    @Test(expected = InvalidParameterException.class)
-    public void testRequestInstanceWhenSpecificFlavorRequestException() throws IOException, FogbowException {
+    @Test(expected = UnexpectedException.class)
+    public void testDoRequestInstanceUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        String newEndpoint = flavorEndpoint + "/" + bestFlavorId;
-        ComputeOrder computeOrder = new ComputeOrder(null, null, null, "default", null, bestCpu, bestMemory, bestDisk, imageId, null,
-                publicKey, networksId);
-        mockGetFlavorsRequest(bestFlavorId, bestCpu, bestMemory, bestDisk);
-        Mockito.doThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "")).when(this.clientMock)
-                .doGetRequest(newEndpoint, this.openStackV3User);
-
-        Mockito.when(this.clientMock.doPostRequest(this.argString.capture(), this.argString.capture(), this.argCloudToken.capture()
-        )).thenReturn("");
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder)).thenReturn(userData);
-        Mockito.doReturn(idKeyName).doReturn(idInstanceName).when(this.computePlugin).getRandomUUID();
-        Mockito.doReturn(expectedInstanceIdJson).when(this.clientMock).doPostRequest(argString.capture(),
-                argString.capture(), argCloudToken.capture());
+        Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(HttpResponseException.class);
 
         // exercise
-        this.computePlugin.requestInstance(computeOrder, this.openStackV3User);
+        this.computePlugin.doRequestInstance(FAKE_PROJECT_ID, FAKE_KEY_NAME, ANY_STRING, cloudUser);
+
+        // verify
+        Assert.fail();
     }
 
-    /*
-     * This method mocks the behavior of a http flavor request by mocking GET"/flavors" and GET"/flavors/id" and adds
-     * bestFlavorId as a flavor from this response in addition to other flavors. Besides that, bestFlavorId will be
-     * the flavor with best Vcpu, memory and disk from this response. 
-     */
-    private void mockGetFlavorsRequest(String bestFlavorId, int bestVcpu, int bestMemory, int bestDisk) throws HttpResponseException, FogbowException {
+    @Test
+    public void testRequestInstance() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
-        int qtdFlavors = 100;
+        HardwareRequirements mockRequirements = Mockito.mock(HardwareRequirements.class);
+        Mockito.doReturn(mockRequirements).when(this.computePlugin).findSmallestFlavor(computeOrder, cloudUser);
+        Mockito.doReturn(new ArrayList<String>()).when(this.computePlugin).getNetworkIds(Mockito.any());
+        Mockito.doReturn(ANY_STRING).when(this.computePlugin).getKeyName(Mockito.any(), Mockito.any(), Mockito.any());
 
-        Mockito.when(this.clientMock.doGetRequest(flavorEndpoint, this.openStackV3User))
-                .thenReturn(generateJsonFlavors(qtdFlavors, bestFlavorId));
+        Mockito.doReturn(ANY_STRING).when(this.computePlugin)
+                .doRequestInstance(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
-        for (int i = 0; i < qtdFlavors - 1; i++) {
-            String flavorId = "flavor" + Integer.toString(i);
-            String newEndpoint = flavorEndpoint + "/" + flavorId;
-            String newSpecsEndpoint = String.format(this.flavorExtraSpecsEndpoint, flavorId);
-            String flavorJson = generateJsonFlavor(
-                    flavorId,
+        // exercise
+        String instanceId = this.computePlugin.requestInstance(computeOrder, cloudUser);
+
+        // verify
+        Assert.assertEquals(ANY_STRING, instanceId);
+    }
+
+    private Map<String, String> createFakeExtraSpecs() {
+        Map<String, String> extraSpecs = new HashMap();
+
+        extraSpecs.put(FAKE_REQUIREMENT, ANY_STRING);
+
+        return extraSpecs;
+    }
+
+    private String createExtraSpecsResponseJson(Map<String, String> extraSpecs) {
+        List<String> specs = new ArrayList();
+
+        for (Map.Entry entry : extraSpecs.entrySet()) {
+            specs.add(entry.getKey() + ":\"" + entry.getValue()+"\"");
+        }
+
+        return "{\"extra_specs\": {"+String.join(",", specs)+"}}";
+    }private String createGetComputeResponseJson(String id, String name) {
+        return "{\"server\":{\"id\":\""+id+"\",\"name\":\""+name+"\",\"addresses\":{\"provider\":" +
+                "[{\"addr\":\"192.168.0.3\"}]},\"flavor\":{\"id\":1},\"status\":\"ACTIVE\"}}";
+    }
+
+    private String createGetAllFlavorsResponseJson() {
+        return "{\"flavors\":[{\"id\":\"1\"},{\"id\":\"2\"},{\"id\":\"3\"},{\"id\":\"4\"}]}";
+    }
+
+    private String createCreateComputeResponseJson () {
+        return "{\"server\":{\"id\":\""+this.instanceId+"\"}}";
+    }
+
+    private List<String> getFlavorIdsFromHardwareRequirementsList() {
+        List<String> flavorIds = new ArrayList();
+        TreeSet<HardwareRequirements> requirements = getHardwareRequirementsList();
+
+        for (HardwareRequirements requirement : requirements) {
+            flavorIds.add(requirement.getFlavorId());
+        }
+        return flavorIds;
+    }
+
+    private List<String> getMockedNetworkIds() {
+        List<String> networksIds = new ArrayList<>();
+        int qtd = 5;
+        for (int i = 0; i < qtd; ++i) {
+            String fakeNetworksId = privateNetworkId + Integer.toString(i);
+            networksIds.add(fakeNetworksId);
+        }
+
+        return networksIds;
+    }
+
+    private Properties getPropertiesMock() {
+        Properties properties = Mockito.mock(Properties.class);
+
+        Mockito.when(properties.getProperty(OpenStackComputePlugin.COMPUTE_NOVAV2_URL_KEY))
+                .thenReturn(this.computeNovaV2UrlKey);
+        Mockito.when(properties.getProperty(OpenStackComputePlugin.DEFAULT_NETWORK_ID_KEY))
+                .thenReturn(defaultNetworkId);
+
+        return properties;
+    }
+
+    private TreeSet<HardwareRequirements> getHardwareRequirementsList() {
+        TreeSet<HardwareRequirements> hardwareRequirements = new TreeSet();
+
+        int qtd = 10;
+        for (int i = 0; i < qtd-1; ++i) {
+            HardwareRequirements requirements = new HardwareRequirements(
                     "nameflavor" + Integer.toString(i),
-                    Integer.toString(Math.max(1, bestVcpu - 1 - i)),
-                    Integer.toString(Math.max(1, bestMemory - 1 - i)),
-                    Integer.toString(Math.max(1, bestDisk - 1 - i)));
-            String flavorSpecJson = generateJsonFlavorExtraSpecs("tag" + i, "value" + i);
-            Mockito.when(this.clientMock.doGetRequest(newEndpoint, this.openStackV3User))
-                    .thenReturn(flavorJson);
-            // Mocks /flavors/{flavor_id}/os-extra_specs
-            Mockito.when(this.clientMock.doGetRequest(newSpecsEndpoint, this.openStackV3User))
-                    .thenReturn(flavorSpecJson);
+                    Integer.toString(i),
+                    Math.max(1, testUtils.CPU_VALUE - 1 - i),
+                    Math.max(1, testUtils.MEMORY_VALUE - 1 - i),
+                    Math.max(1, testUtils.MEMORY_VALUE - 1 - i));
+
+            hardwareRequirements.add(requirements);
         }
 
-        String newEndpoint = flavorEndpoint + "/" + bestFlavorId;
-        String flavorJson = generateJsonFlavor(
+        hardwareRequirements.add(
+                new HardwareRequirements(
+                        "nameflavor" + bestFlavorId,
                 bestFlavorId,
-                "nameflavor" + bestFlavorId,
-                Integer.toString(bestVcpu),
-                Integer.toString(bestMemory),
-                Integer.toString(bestDisk));
-        String bestflavorSpecJson = generateJsonFlavorExtraSpecs(this.requirementTag, this.requirementValue);
-        String newSpecsEndpoint = String.format(this.flavorExtraSpecsEndpoint, bestFlavorId);
-
-        Mockito.when(this.clientMock.doGetRequest(newEndpoint, this.openStackV3User))
-                .thenReturn(flavorJson);
-        Mockito.when(this.clientMock.doGetRequest(newSpecsEndpoint, this.openStackV3User))
-                .thenReturn(bestflavorSpecJson);
-    }
-
-    //mocks GET"/flavors"
-    private String generateJsonFlavors(int qtd, String bestFlavorId) {
-        Map<String, Object> jsonFlavorsMap = new HashMap<String, Object>();
-        List<Map<String, String>> jsonArrayFlavors = new ArrayList<Map<String, String>>();
-        for (int i = 0; i < qtd - 1; i++) {
-            Map<String, String> flavor = new HashMap<String, String>();
-            flavor.put(OpenStackConstants.Compute.ID_KEY_JSON, "flavor" + Integer.toString(i));
-            jsonArrayFlavors.add(flavor);
-        }
-
-        Map<String, String> flavor = new HashMap<String, String>();
-        flavor.put(OpenStackConstants.Compute.ID_KEY_JSON, bestFlavorId);
-        jsonArrayFlavors.add(flavor);
-
-        jsonFlavorsMap.put(OpenStackConstants.Compute.FLAVORS_KEY_JSON, jsonArrayFlavors);
-        Gson gson = new Gson();
-        return gson.toJson(jsonFlavorsMap);
-    }
-
-    private String generateJsonFlavor(String id, String name, String vcpu, String memory, String disk) {
-        Map<String, Object> flavorMap = new HashMap<String, Object>();
-        Map<String, String> flavorAttributes = new HashMap<String, String>();
-        flavorAttributes.put(OpenStackConstants.Compute.ID_KEY_JSON, id);
-        flavorAttributes.put(OpenStackConstants.Compute.NAME_KEY_JSON, name);
-        flavorAttributes.put(OpenStackConstants.Compute.DISK_KEY_JSON, disk);
-        flavorAttributes.put(OpenStackConstants.Compute.MEMORY_KEY_JSON, memory);
-        flavorAttributes.put(OpenStackConstants.Compute.VCPUS_KEY_JSON, vcpu);
-        flavorMap.put(OpenStackConstants.Compute.FLAVOR_KEY_JSON, flavorAttributes);
-        return new Gson().toJson(flavorMap);
-    }
-
-    private String generateJsonFlavorExtraSpecs(String tag, String value) {
-        Map<String, Object> flavorExtraSpecsMap = new HashMap<String, Object>();
-        Map<String, String> flavorExtraSpecs = new HashMap<String, String>();
-        flavorExtraSpecs.put(tag, value);
-        flavorExtraSpecsMap.put(OpenStackConstants.Compute.FLAVOR_EXTRA_SPECS_KEY_JSON, flavorExtraSpecs);
-        return new Gson().toJson(flavorExtraSpecsMap);
-    }
-
-    private String generateInstaceId(String id) {
-        Map<String, String> instanceMap = new HashMap<String, String>();
-        instanceMap.put(OpenStackConstants.Compute.ID_KEY_JSON, id);
-        Map<String, Object> root = new HashMap<String, Object>();
-        root.put(OpenStackConstants.Compute.SERVER_KEY_JSON, instanceMap);
-        return new Gson().toJson(root);
-    }
-
-    private JSONObject generateRootKeyPairJson(String keyName, String publicKey) {
-        JSONObject keypair = new JSONObject();
-        keypair.put(OpenStackConstants.Compute.NAME_KEY_JSON, keyName);
-        keypair.put(OpenStackConstants.Compute.PUBLIC_KEY_KEY_JSON, publicKey);
-        JSONObject root = new JSONObject();
-        root.put(OpenStackConstants.Compute.KEY_PAIR_KEY_JSON, keypair);
-        return root;
-    }
-
-    private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networkIds, String randomUUID) {
-        JSONObject server = new JSONObject();
-
-        // when the user doesn't provide a network, the default network should be added in the request
-        if (networkIds.isEmpty()) {
-            networkIds.add(defaultNetworkId);
-        }
-
-        server.put(OpenStackConstants.Compute.NAME_KEY_JSON, SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomUUID);
-        server.put(OpenStackConstants.Compute.IMAGE_REFERENCE_KEY_JSON, imageId);
-        server.put(OpenStackConstants.Compute.FLAVOR_REFERENCE_KEY_JSON, flavorId);
-        server.put(OpenStackConstants.Compute.USER_DATA_KEY_JSON, userData);
-
-        JSONArray networks = new JSONArray();
-
-        for (String id : networkIds) {
-            JSONObject netId = new JSONObject();
-            netId.put(OpenStackConstants.Compute.UUID_KEY_JSON, id);
-            networks.put(netId);
-        }
-        server.put(OpenStackConstants.Compute.NETWORKS_KEY_JSON, networks);
-
-        if (networkIds.size() > 0) {
-            for (String networkId : networkIds) {
-                if (!networkId.equals(defaultNetworkId)) {
-                    JSONArray securityGroups = new JSONArray();
-                    JSONObject securityGroup = new JSONObject();
-                    String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
-                    securityGroup.put(OpenStackConstants.Compute.NAME_KEY_JSON, securityGroupName);
-                    securityGroups.put(securityGroup);
-                    server.put(OpenStackConstants.Compute.SECURITY_GROUPS_KEY_JSON, securityGroups);
-                }
-            }
-        }
-
-        if (keyName != null) {
-            server.put(OpenStackConstants.Compute.KEY_NAME_KEY_JSON, keyName);
-        }
-
-        JSONObject root = new JSONObject();
-        root.put(OpenStackConstants.Compute.SERVER_KEY_JSON, server);
-        return root;
-    }
-
-
-    private String generateComputeInstanceJson(String instanceId, String hostName, String localIpAddress, String flavorId, String status) {
-        Map<String, Object> root = new HashMap<String, Object>();
-        Map<String, Object> computeInstance = new HashMap<String, Object>();
-        computeInstance.put(OpenStackConstants.Compute.ID_KEY_JSON, instanceId);
-        computeInstance.put(OpenStackConstants.Compute.NAME_KEY_JSON, hostName);
-
-        Map<String, Object> addressField = new HashMap<String, Object>();
-        List<Object> providerNetworkArray = new ArrayList<Object>();
-        Map<String, String> providerNetwork = new HashMap<String, String>();
-        providerNetwork.put(OpenStackConstants.Compute.ADDRESS_KEY_JSON, localIpAddress);
-        providerNetworkArray.add(providerNetwork);
-        addressField.put(OpenStackConstants.Compute.PROVIDER_KEY_JSON, providerNetworkArray);
-
-        Map<String, Object> flavor = new HashMap<String, Object>();
-        flavor.put(OpenStackConstants.Compute.ID_KEY_JSON, flavorId);
-
-        computeInstance.put(OpenStackConstants.Compute.FLAVOR_KEY_JSON, flavor);
-        computeInstance.put(OpenStackConstants.Compute.ADDRESSES_KEY_JSON, addressField);
-        computeInstance.put(OpenStackConstants.Compute.STATUS_KEY_JSON, status);
-
-        root.put(OpenStackConstants.Compute.SERVER_KEY_JSON, computeInstance);
-        return new Gson().toJson(root);
-    }
-
-    private String generateComputeInstanceJsonWithoutAddressField(String instanceId, String hostName, String localIpAddress, String flavorId, String status) {
-        Map<String, Object> root = new HashMap<String, Object>();
-        Map<String, Object> computeInstance = new HashMap<String, Object>();
-        computeInstance.put(OpenStackConstants.Compute.ID_KEY_JSON, instanceId);
-        computeInstance.put(OpenStackConstants.Compute.NAME_KEY_JSON, hostName);
-
-        List<Object> providerNetworkArray = new ArrayList<Object>();
-        Map<String, String> providerNetwork = new HashMap<String, String>();
-        providerNetwork.put(OpenStackConstants.Compute.ADDRESS_KEY_JSON, localIpAddress);
-        providerNetworkArray.add(providerNetwork);
-
-        Map<String, Object> flavor = new HashMap<String, Object>();
-        flavor.put(OpenStackConstants.Compute.ID_KEY_JSON, flavorId);
-
-        computeInstance.put(OpenStackConstants.Compute.FLAVOR_KEY_JSON, flavor);
-        computeInstance.put(OpenStackConstants.Compute.STATUS_KEY_JSON, status);
-
-        root.put(OpenStackConstants.Compute.SERVER_KEY_JSON, computeInstance);
-        return new Gson().toJson(root);
-    }
-
-    private String generateComputeInstanceJsonWithoutProviderNetworkField(String instanceId, String hostName, String localIpAddress, String flavorId, String status) {
-        Map<String, Object> root = new HashMap<String, Object>();
-        Map<String, Object> computeInstance = new HashMap<String, Object>();
-        computeInstance.put(OpenStackConstants.Compute.ID_KEY_JSON, instanceId);
-        computeInstance.put(OpenStackConstants.Compute.NAME_KEY_JSON, hostName);
-
-        Map<String, Object> addressField = new HashMap<String, Object>();
-
-        Map<String, Object> flavor = new HashMap<String, Object>();
-        flavor.put(OpenStackConstants.Compute.ID_KEY_JSON, flavorId);
-
-        computeInstance.put(OpenStackConstants.Compute.FLAVOR_KEY_JSON, flavor);
-        computeInstance.put(OpenStackConstants.Compute.ADDRESSES_KEY_JSON, addressField);
-        computeInstance.put(OpenStackConstants.Compute.STATUS_KEY_JSON, status);
-
-        root.put(OpenStackConstants.Compute.SERVER_KEY_JSON, computeInstance);
-        return new Gson().toJson(root);
+                testUtils.CPU_VALUE,
+                testUtils.MEMORY_VALUE,
+                testUtils.DISK_VALUE)
+        );
+        return hardwareRequirements;
     }
 }
