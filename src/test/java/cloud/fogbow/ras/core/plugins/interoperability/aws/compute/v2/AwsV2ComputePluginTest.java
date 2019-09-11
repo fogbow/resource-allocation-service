@@ -1,10 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2;
 
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import org.junit.Assert;
@@ -15,6 +17,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
@@ -64,16 +67,16 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     private static final String ANY_VALUE = "anything";
     private static final String AWS_TAG_NAME = "Name";
     private static final String CLOUD_NAME = "amazon";
+    private static final String CPU_TEST_KEY = "cpu-test-key";
     private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-default-security-group-id";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
-    private static final String MEMORY_KEY = "memory";
-    private static final String TEST_INSTANCE_TYPE = "t2.micro";
-    private static final String VCPU_KEY = "vCPU";
+    private static final String MEMORY_TEST_KEY = "memory-test-key";
+    private static final String PROCESSOR_REQUIREMENT_VALUE = "Intel_Xeon_E5-2686_v4_2.3GHz";
+    private static final String STORAGE_REQUIREMENT_VALUE = "1x75-SSD-NVMe";
 
-    private static final int INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE = 1;
-    private static final int FLAVOR_CPU_VALUE = INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE;
-    private static final int FLAVOR_MEMORY_VALUE = INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE;
+    private static final int FLAVOR_CPU_VALUE = 1;
+    private static final int FLAVOR_MEMORY_VALUE = 1;
     private static final int ZERO_VALUE = 0;
 	
     private AwsV2ComputePlugin plugin;
@@ -329,10 +332,10 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         // set up
         Instance instance = buildInstance();
         Mockito.doReturn(FLAVOR_MEMORY_VALUE).when(this.plugin).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
-        
+
         List<Volume> volumes = createVolumesCollection();
         Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
-        
+
         List<String> ipAddresses = buildIpAdressesCollection();
         Mockito.doReturn(ipAddresses).when(this.plugin).getIpAddresses(Mockito.eq(instance));
 
@@ -340,7 +343,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         this.plugin.buildComputeInstance(instance, volumes);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getMemoryValueFrom(Mockito.eq(instance.instanceType()));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAllDisksSize(Mockito.eq(volumes));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getIpAddresses(Mockito.eq(instance));
     }
@@ -421,7 +425,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetMemoryValueFrom() {
         // set up
-        TreeSet flavors = createFlavorsCollection();
+        AwsHardwareRequirements flavor = createFlavor(null);
+        TreeSet flavors = createFlavorsCollection(flavor);
         Mockito.doReturn(flavors).when(this.plugin).getFlavors();
 
         int expected = FLAVOR_MEMORY_VALUE;
@@ -452,7 +457,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 Mockito.eq(instance), Mockito.eq(this.client));
 
         RunInstancesRequest request = buildRunInstancesResquest(order, flavor);
-        
+
         // exercise
         this.plugin.doRequestInstance(order, flavor, request, this.client);
 
@@ -502,7 +507,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         String imageId = TestUtils.FAKE_IMAGE_ID;
         Image image = buildImage();
-        
+
         Mockito.doReturn(image).when(this.plugin).getImageById(Mockito.eq(imageId), Mockito.eq(client));
         Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getImageSize(Mockito.eq(image));
 
@@ -510,7 +515,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         this.plugin.updateInstanceAllocation(order, flavor, instance, client);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageById(Mockito.eq(imageId), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageById(Mockito.eq(imageId),
+                Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageSize(Mockito.eq(image));
     }
     
@@ -520,16 +526,17 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     public void testGetImageById() throws Exception {
         // set up
         String imageId = TestUtils.FAKE_IMAGE_ID;
-        
+
         DescribeImagesRequest request = DescribeImagesRequest.builder()
                 .imageIds(imageId)
                 .build();
-        
+
         DescribeImagesResponse response = buildDescribeImages();
-        
+
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_IMAGES_REQUEST_METHOD, Mockito.eq(request), Mockito.eq(this.client));
-        
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_IMAGES_REQUEST_METHOD,
+                Mockito.eq(request), Mockito.eq(this.client));
+
         Image expected = buildImage();
 
         // exercise
@@ -538,7 +545,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class);
         AwsV2CloudUtil.doDescribeImagesRequest(Mockito.eq(request), Mockito.eq(this.client));
-        
+
         Assert.assertEquals(expected, image);
     }
     
@@ -581,10 +588,10 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         List networkOrderIds = createNetworkOrderIds();
         Mockito.doReturn(networkOrderIds).when(this.plugin).getSubnetIdsFrom(Mockito.eq(order));
-        
+
         List networkInterfaces = createNetworkInterfaceCollection();
         Mockito.doReturn(networkInterfaces).when(this.plugin).loadNetworkInterfaces(Mockito.eq(networkOrderIds));
-        
+
         RunInstancesRequest expected = buildRunInstancesResquest(order, flavor);
 
         // exercise
@@ -594,7 +601,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetIdsFrom(Mockito.eq(order));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .loadNetworkInterfaces(Mockito.eq(networkOrderIds));
-        
+
         Assert.assertEquals(expected, request);
     }
     
@@ -663,11 +670,12 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.doNothing().when(this.plugin).updateHardwareRequirements(cloudUser);
 
         Map<String, String> requirements = new HashMap<String, String>();
-        requirements.put(MEMORY_KEY, String.valueOf(TestUtils.MEMORY_VALUE));
-        requirements.put(VCPU_KEY, String.valueOf(TestUtils.CPU_VALUE));
+        requirements.put(MEMORY_TEST_KEY, String.valueOf(TestUtils.MEMORY_VALUE));
+        requirements.put(CPU_TEST_KEY, String.valueOf(TestUtils.CPU_VALUE));
 
-        TreeSet flavors = createFlavorsCollection();
-        flavors.add(createFlavor(requirements));
+        AwsHardwareRequirements flavor = createFlavor(null);
+        AwsHardwareRequirements flavorWithRequirements = createFlavor(requirements);
+        TreeSet flavors = createFlavorsCollection(flavor, flavorWithRequirements);
         Mockito.doReturn(flavors).when(this.plugin).getFlavorsByRequirements(Mockito.any());
 
         // exercise
@@ -689,7 +697,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.plugin).updateHardwareRequirements(cloudUser);
         
-        TreeSet flavors = createFlavorsCollection();
+        AwsHardwareRequirements flavor = createFlavor(null);
+        TreeSet flavors = createFlavorsCollection(flavor);
         Mockito.doReturn(flavors).when(this.plugin).getFlavorsByRequirements(Mockito.any());
 
         String expected = Messages.Exception.NO_MATCHING_FLAVOR;
@@ -704,227 +713,114 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         }
     }
     
-//	// test case: When calling the getFlavorsByRequirements method, with a
-//	// requirements map, it must filter the possibilities according to that map,
-//	// returning the corresponding results.
-//	@Test
-//	public void testGetFlavorsByRequirementsSuccessful() throws FogbowException {
-//
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//		
-//		DescribeImagesResponse response = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		Map<String, String> requirements = new HashMap<String, String>();
-//		requirements.put(AwsV2ComputePlugin.STORAGE_REQUIREMENT, "1x75-SSD-NVMe");
-//		requirements.put(AwsV2ComputePlugin.BANDWIDTH_REQUIREMENT, "<3500");
-//		requirements.put(AwsV2ComputePlugin.PERFORMANCE_REQUIREMENT, "<10");
-//		requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, "Intel_Xeon_Platinum_8175_3.1GHz");
-//
-//		ComputeOrder computeOrder = createComputeOrder(requirements);
-//		int expected = AMOUNT_SSD_STORAGE;
-//
-//		// exercise
-//		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Mockito.verify(this.plugin, Mockito.times(4)).filterFlavors(Mockito.any(), Mockito.any());
-//		Assert.assertEquals(expected, flavors.size());
-//	}
-	
-//	// test case: When calling the getFlavorsByRequirements method with a
-//	// requirements map containing high-level graphical attributes, it must filter
-//	// the possibilities according to that map and return a set with a
-//	// higher-performing instance type.
-//	@Test
-//	public void testGetFlavorsByRequirementsWithHighPerformanceGraphic() throws FogbowException {
-//
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//		
-//		DescribeImagesResponse response = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		Map<String, String> requirements = new HashMap<String, String>();
-//		requirements.put(AwsV2ComputePlugin.GRAPHIC_SHARING_REQUIREMENT, "NVLink");
-//		requirements.put(AwsV2ComputePlugin.GRAPHIC_PROCESSOR_REQUIREMENT, "8");
-//		requirements.put(AwsV2ComputePlugin.GRAPHIC_MEMORY_REQUIREMENT, "256");
-//
-//		ComputeOrder computeOrder = createComputeOrder(requirements);
-//		String expected = InstanceType.P3_DN_24_XLARGE.toString();
-//
-//		// exercise
-//		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Mockito.verify(this.plugin, Mockito.times(3)).filterFlavors(Mockito.any(), Mockito.any());
-//		Assert.assertEquals(expected, flavors.first().getName());
-//	}
-	
-//	// test case: When calling the getFlavorsByRequirements method with a
-//	// requirements map containing the most demanding graphics emulation attributes,
-//	// it must filter the possibilities according to that map and return a set with
-//	// an instance type with the highest performance of this level.
-//	@Test
-//	public void testGetFlavorsByRequirementsWithGraphicEmulationAtribute() throws FogbowException {
-//
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//		
-//		DescribeImagesResponse response = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		Map<String, String> requirements = new HashMap<String, String>();
-//		requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, "Intel_Xeon_E5-2686_v4_2.3GHz");
-//		requirements.put(AwsV2ComputePlugin.GRAPHIC_EMULATION_REQUIREMENT, "8");
-//
-//		ComputeOrder computeOrder = createComputeOrder(requirements);
-//		String expected = InstanceType.F1_16_XLARGE.toString();
-//
-//		// exercise
-//		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Mockito.verify(this.plugin, Mockito.times(2)).filterFlavors(Mockito.any(), Mockito.any());
-//		Assert.assertEquals(expected, flavors.first().getName());
-//	}
-	
-//	// test case: When calling the getFlavorsByRequirements method, with a null map,
-//	// there will be no filter to limit the results, returning all the flavors
-//	// obtained in the last update.
-//	@Test
-//	public void testGetFlavorsByRequirementsWithNullMap() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//		
-//		DescribeImagesResponse response = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		Map<String, String> requirements = null;
-//		ComputeOrder computeOrder = createComputeOrder(requirements);
-//		int expected = this.plugin.loadLinesFromFlavorFile().size() - 1;
-//
-//		// exercise
-//		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Assert.assertEquals(expected, flavors.size());
-//	}
-	
-//	// test case: When calling the getFlavorsByRequirements method, with an empty
-//	// map, there will be no filter to limit the results, returning all the flavors
-//	// obtained in the last update.
-//	@Test
-//	public void testGetFlavorsByRequirementsWithEmptyMap() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//		
-//		DescribeImagesResponse response = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		Map<String, String> requirements = new HashMap<String, String>();
-//		ComputeOrder computeOrder = createComputeOrder(requirements);
-//		int expected = this.plugin.loadLinesFromFlavorFile().size() - 1;
-//
-//		// exercise
-//		TreeSet<AwsHardwareRequirements> flavors = this.plugin.getFlavorsByRequirements(computeOrder.getRequirements());
-//
-//		// verify
-//		PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(1));
-//		AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString());
-//
-//		Assert.assertEquals(expected, flavors.size());
-//	}
-		
-//	// test case: When calling the loadLinesFromFlavorFile method, without a valid
-//	// file path, the ConfigurationErrorException will be thrown.
-//	@Test(expected = ConfigurationErrorException.class) // verify
-//	public void testLoadLinesFromFlavorFileUnsuccessful() throws ConfigurationErrorException {
-//		// set up
-//		Mockito.doReturn(ANY_VALUE).when(this.plugin).getFlavorsFilePath();
-//
-//		// exercise
-//		this.plugin.loadLinesFromFlavorFile();
-//	}
-		
-//	// test case: When calling the updateHardwareRequirements method, with a valid
-//	// cloud user, there will be updating the set of available flavors.
-//	@Test
-//	public void testUpdateHardwareRequirementsSuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//		
-//		DescribeImagesResponse response = createDescribeImage();
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//		int expected = this.plugin.loadLinesFromFlavorFile().size() - 1;
-//
-//		// exercise
-//		this.plugin.updateHardwareRequirements(cloudUser);
-//
-//		// verify
-//		Assert.assertEquals(expected, this.plugin.getFlavors().size());
-//	}
+    // test case: When calling the getFlavorsByRequirements method, with a specific
+    // requirements map, it must filter the possibilities that match the resources
+    // in the flavor file, returning the corresponding results.
+    @Test
+    public void testGetFlavorsByRequirements() {
+        // set up
+        Map<String, String> requirements = new HashMap<String, String>();
+        requirements.put(AwsV2ComputePlugin.STORAGE_REQUIREMENT, STORAGE_REQUIREMENT_VALUE);
 
-//	// test case: When calling the getImageById method, and no image is returned ,
-//	// an InstanceNotFoundException will be thrown.
-//	@Test(expected = InstanceNotFoundException.class) // verify
-//	public void testGetImageByIdUnsuccessful() throws FogbowException {
-//		// set up
-//		Ec2Client client = Mockito.mock(Ec2Client.class);
-//		PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//		BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//		DescribeImagesResponse response = null;
-//		Mockito.when(client.describeImages(Mockito.any(DescribeImagesRequest.class))).thenReturn(response);
-//
-//		String imageId = TestUtils.FAKE_IMAGE_ID;
-//
-//		// exercise
-//		this.plugin.getImageById(imageId, client);
-//	}
+        AwsHardwareRequirements flavor = createFlavor(null);
+        AwsHardwareRequirements flavorWithRequirements = createFlavor(requirements);
+        TreeSet<AwsHardwareRequirements> flavors = createFlavorsCollection(flavor, flavorWithRequirements);
+
+        Mockito.doReturn(flavors).when(this.plugin).getFlavors();
+        Mockito.doReturn(Arrays.asList(flavor)).when(this.plugin).filterFlavors(Mockito.any(), Mockito.any());
+
+        // exercise
+        this.plugin.getFlavorsByRequirements(requirements);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFlavors();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).filterFlavors(Mockito.any(), Mockito.any());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).parseToTreeSet(Mockito.any());
+    }
+    
+    // test case: When calling the getFlavorsByRequirements method, with a null map,
+    // there will be no filter to limit the results, returning all the flavors
+    // obtained in the last update.
+    @Test
+    public void testGetFlavorsByRequirementsWithNullMap() {
+        // set up
+        Map<String, String> requirements = null;
+        
+        TreeSet<AwsHardwareRequirements> flavors = createFlavorsCollection();
+        Mockito.doReturn(flavors).when(this.plugin).getFlavors();
+        
+        int expected = flavors.size();
+        
+        // exercise
+        TreeSet<AwsHardwareRequirements> resultSet = this.plugin.getFlavorsByRequirements(requirements);
+        
+        // verify
+        Assert.assertEquals(expected, resultSet.size());
+    }
+    
+    // test case: When calling the getFlavorsByRequirements method, with an empty
+    // map, there will be no filter to limit the results, returning all the flavors
+    // obtained in the last update.
+    @Test
+    public void testGetFlavorsByRequirementsWithEmptyMap() {
+        // set up
+        Map<String, String> requirements = new HashMap<String, String>();
+        
+        TreeSet<AwsHardwareRequirements> flavors = createFlavorsCollection();
+        Mockito.doReturn(flavors).when(this.plugin).getFlavors();
+        
+        int expected = flavors.size();
+        
+        // exercise
+        TreeSet<AwsHardwareRequirements> resultSet = this.plugin.getFlavorsByRequirements(requirements);
+        
+        // verify
+        Assert.assertEquals(expected, resultSet.size());
+    }
+    
+    // test case: When calling the filterFlavors method, it must return the flavor
+    // that matches the requirements passed by the parameter.
+    @Test
+    public void testFilterFlavors() {
+        // set up
+        Map<String, String> requirements = new HashMap<String, String>();
+        requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, PROCESSOR_REQUIREMENT_VALUE);
+        requirements.put(AwsV2ComputePlugin.GRAPHIC_EMULATION_REQUIREMENT, String.valueOf(TestUtils.CPU_VALUE));
+
+        AwsHardwareRequirements flavor = createFlavor(new HashMap<String, String>());
+        AwsHardwareRequirements flavorWithRequirements = createFlavor(requirements);
+        TreeSet<AwsHardwareRequirements> flavors = createFlavorsCollection(flavor, flavorWithRequirements);
+
+        AwsHardwareRequirements[] expected = { flavorWithRequirements };
+
+        // exercise
+        List<AwsHardwareRequirements> resultList = null;
+        for (Entry<String, String> requirement : requirements.entrySet()) {
+            resultList = this.plugin.filterFlavors(flavors, requirement);
+        }
+        // verify
+        Assert.assertEquals(Arrays.asList(expected), resultList);
+    }
+    
+    // test case: When calling the loadLinesFromFlavorFile method, without a valid
+    // file path, the ConfigurationErrorException will be thrown.
+    @Test
+    public void testLoadLinesFromFlavorFile() {
+        // set up
+        Mockito.doReturn(ANY_VALUE).when(this.plugin).getFlavorsFilePath();
+
+        NoSuchFileException exception = new NoSuchFileException(ANY_VALUE);
+        String expected = String.format(Messages.Error.ERROR_MESSAGE, exception);
+
+        try {
+            // exercise
+            this.plugin.loadLinesFromFlavorFile();
+            Assert.fail();
+        } catch (ConfigurationErrorException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
 	
 	private DescribeImagesResponse buildDescribeImages() {
         DescribeImagesResponse response = DescribeImagesResponse.builder()
@@ -963,10 +859,14 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         return instance;
     }
 	
-    private TreeSet<AwsHardwareRequirements> createFlavorsCollection() {
-        AwsHardwareRequirements[] flavors = { createFlavor(null) };
-        List flavorsList = Arrays.asList(flavors);
-        return new TreeSet(flavorsList);
+    private TreeSet<AwsHardwareRequirements> createFlavorsCollection(AwsHardwareRequirements...flavor) {
+        TreeSet<AwsHardwareRequirements> flavors = new TreeSet<AwsHardwareRequirements>();
+        for (int i = 0; i < flavor.length; i++) {
+            String flavorId = flavor[i].getFlavorId();
+            flavor[i].setFlavorId(flavorId + String.valueOf(i));
+            flavors.add(flavor[i]);
+        }
+        return flavors;
     }
 	
 	private List<String> buildIpAdressesCollection() {
@@ -1078,22 +978,19 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     }
     
     private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
-        String name = TEST_INSTANCE_TYPE;
-        String flavorId = TestUtils.FAKE_INSTANCE_ID;
-        int cpu = selectValueBy(requirements, VCPU_KEY);
-        int memory = selectValueBy(requirements, MEMORY_KEY);
+        int cpu = (requirements != null && requirements.containsKey(CPU_TEST_KEY))
+                ? Integer.parseInt(requirements.get(CPU_TEST_KEY))
+                : FLAVOR_CPU_VALUE;
+        int memory = (requirements != null && requirements.containsKey(MEMORY_TEST_KEY))
+                ? Integer.parseInt(requirements.get(MEMORY_TEST_KEY))
+                : FLAVOR_MEMORY_VALUE;
         int disk = TestUtils.DISK_VALUE;
+        String name = InstanceType.T2_MICRO.toString();
+        String flavorId = TestUtils.FAKE_FLAVOR_ID;
         String imageId = TestUtils.FAKE_IMAGE_ID;
         return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
     }
 
-    private int selectValueBy(Map<String, String> requirements, String key) {
-        if (requirements != null && requirements.containsKey(key)) {
-            return Integer.parseInt(requirements.get(key));
-        }
-        return INSTANCE_TYPE_DEFAULT_RESOURCE_VALUE;
-    }
-	
     private List<String> createNetworkOrderIds() {
         String[] networkOrderIds = { FAKE_SUBNET_ID };
         return Arrays.asList(networkOrderIds);

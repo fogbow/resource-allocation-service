@@ -357,14 +357,15 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return resultSet;
 	}
 
-	protected List<AwsHardwareRequirements> filterFlavors(TreeSet<AwsHardwareRequirements> flavors,
-			Entry<String, String> requirements) {
-		
-		String key = requirements.getKey().trim();
-		String value = requirements.getValue().trim();
-		return flavors.stream().filter(flavor -> flavor.getRequirements().get(key).equalsIgnoreCase(value))
-				.collect(Collectors.toList());
-	}
+    protected List<AwsHardwareRequirements> filterFlavors(TreeSet<AwsHardwareRequirements> flavors,
+            Entry<String, String> requirements) {
+
+        String key = requirements.getKey().trim();
+        String value = requirements.getValue().trim();
+        return flavors.stream()
+                .filter(flavor -> value.equalsIgnoreCase(flavor.getRequirements().get(key)))
+                .collect(Collectors.toList());
+    }
 
 	protected TreeSet<AwsHardwareRequirements> getFlavors() {
 		synchronized (this.flavors) {
@@ -449,16 +450,17 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return imageMap;
 	}
 
-	protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
-		String file = getFlavorsFilePath();
-		Path path = Paths.get(file);
-		try {
-			return Files.readAllLines(path);
-		} catch (IOException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
-			throw new ConfigurationErrorException();
-		}
-	}
+    protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
+        String file = getFlavorsFilePath();
+        Path path = Paths.get(file);
+        try {
+            return Files.readAllLines(path);
+        } catch (IOException e) {
+            String message = String.format(Messages.Error.ERROR_MESSAGE, e);
+            LOGGER.error(message, e);
+            throw new ConfigurationErrorException(message);
+        }
+    }
 
 	protected int getImageSize(Image image) {
 		int size = 0;
