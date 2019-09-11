@@ -40,8 +40,10 @@ public class TestUtils {
     public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
+    
     public static final long DEFAULT_SLEEP_TIME = 500;
-
+    
+    public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
@@ -63,8 +65,7 @@ public class TestUtils {
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-    private static final String MESSAGE_STATUS_CODE = "Internal server error.";
-
+    public static final String MESSAGE_STATUS_CODE = "Internal server error.";
 
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
@@ -244,6 +245,7 @@ public class TestUtils {
     public HttpResponseException getHttpInternalServerErrorResponseException() {
         return new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
     }
+    
     /*
      * Create fake user data for testing.
      */
