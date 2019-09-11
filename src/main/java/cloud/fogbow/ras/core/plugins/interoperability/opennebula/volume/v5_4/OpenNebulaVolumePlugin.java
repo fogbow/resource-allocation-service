@@ -87,27 +87,21 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(volumeOrder.getInstanceId()));
+		Image image = this.doGetInstance(client, volumeOrder.getInstanceId());
+		int imageSize = this.getImageSize(image.xpath(OpenNebulaConstants.SIZE));
 
-		int imageSize = Integer.parseInt(image.xpath(OpenNebulaConstants.SIZE)) / CONVERT_DISK;
-		String imageName = image.getName();
-		String imageState = image.stateString();
-
-		return new VolumeInstance(volumeOrder.getInstanceId(), imageState, imageName, imageSize);
+		return new VolumeInstance(volumeOrder.getInstanceId(), image.stateString(), image.getName(), imageSize);
 	}
 
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(volumeOrder.getInstanceId()));
+		Image image = this.doGetInstance(client, volumeOrder.getInstanceId());
 
 		OneResponse response = image.delete();
 		if (response.isError()) {
-			String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_VOLUME_IMAGE,
-					                       volumeOrder.getInstanceId(),
-					                       response.getMessage());
+			String message = String.format(
+					Messages.Error.ERROR_WHILE_REMOVING_VOLUME_IMAGE, volumeOrder.getInstanceId(), response.getMessage());
 			LOGGER.error(message);
 			throw new UnexpectedException(message);
 		}
@@ -126,13 +120,23 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);
 	}
 
+	protected Image doGetInstance(Client client, String instanceId) throws UnexpectedException, InstanceNotFoundException {
+		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
+		Image image = imagePool.getById(Integer.parseInt(instanceId));
+		if (image == null) {
+			throw new InstanceNotFoundException();
+		}
+
+		return image;
+	}
+
 	@Nullable
 	protected Integer getDataStoreId(Client client, long diskSize) throws UnexpectedException {
 		DatastorePool datastorePool = OpenNebulaClientUtil.getDatastorePool(client);
 
 		int index = 1;
 		for (Datastore datastore : datastorePool) {
-		    Long freeDiskSize = null;
+			Long freeDiskSize = null;
 			if (datastore.typeStr().equals(IMAGE_TYPE)) {
 				try {
 					freeDiskSize = Long.valueOf(datastore.xpath(String.format(DATASTORE_FREE_PATH_FORMAT, index)));
@@ -151,7 +155,18 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 		return null;
 	}
-	
+
+	protected int getImageSize(String size) {
+	    int imageSize = 0;
+		try {
+			imageSize = Integer.parseInt(size) / CONVERT_DISK;
+		} catch (NumberFormatException e) {
+			LOGGER.error(e.getMessage());
+		}
+
+		return imageSize;
+	}
+
 	protected String getRandomUUID() {
         return UUID.randomUUID().toString();
     }
