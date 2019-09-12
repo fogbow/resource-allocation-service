@@ -1,207 +1,167 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
+import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class})
-public class OpenNebulaImagePluginTest {
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper.IMAGE_READY_STATE;
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4.OpenNebulaImagePlugin.*;
+
+@PrepareForTest({OpenNebulaClientUtil.class, OpenNebulaStateMapper.class, DatabaseManager.class})
+public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 
 	private static final String EMPTY_STRING = "";
 	private static final String FAKE_ID = "fake-id";
 	private static final String FAKE_NAME = "fake-name";
-	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String ID_VALUE_ONE = "1";
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
-
-	private static final int VALUE_ONE = 1;
 
 	private OpenNebulaImagePlugin plugin;
 
 	@Before
-	public void setUp() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+	public void setUp() throws FogbowException {
+		super.setUp();
 
-		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(opennebulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(this.openNebulaConfFilePath));
 	}
 	
 	// test case: When invoking the getAllImages method, with a valid client, a
 	// collection of images must be loaded, returning a list of operating systems
 	// images with ID and name.
 	@Test
-	public void testGetAllImagesSuccessfully() throws FogbowException {
+	public void testGetAllImages() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
+		List<ImageSummary> imageSummaryList = new ArrayList<>();
 
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(image.xpath(Mockito.eq(String.format(OpenNebulaImagePlugin.FORMAT_IMAGE_TYPE_PATH, VALUE_ONE))))
-				.thenReturn(OpenNebulaImagePlugin.OPERATIONAL_SYSTEM_IMAGE_TYPE);
-		Mockito.when(image.getId()).thenReturn(FAKE_ID);
-		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
-
-		CloudUser cloudUser = createCloudUser();
+		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any())).thenReturn(imagePool);
+		Mockito.doReturn(imageSummaryList).when(this.plugin).getImageSummaryList(imagePool);
 
 		// exercise
-		List<ImageSummary> imageSummaryList = this.plugin.getAllImages(cloudUser);
+		this.plugin.getAllImages(this.cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
 
-		Mockito.verify(image, Mockito.times(1))
-				.xpath(Mockito.eq(String.format(OpenNebulaImagePlugin.FORMAT_IMAGE_TYPE_PATH, VALUE_ONE)));
-		Mockito.verify(image, Mockito.times(1)).getId();
-		Mockito.verify(image, Mockito.times(1)).getName();
-		
-		Assert.assertTrue(imageSummaryList.get(0).getId().equals(FAKE_ID));
-		Assert.assertTrue(imageSummaryList.get(0).getName().equals(FAKE_NAME));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageSummaryList(Mockito.eq(imagePool));
 	}
-	
-	// test case: When invoking the getAllImages method, with a collection of images
-	// without any OS (Operational System) type, it must return an empty map.
-	@Test
-	public void testGetAllImagesWithoutOperationalSystemType() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
 
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(image.xpath(Mockito.eq(String.format(OpenNebulaImagePlugin.FORMAT_IMAGE_TYPE_PATH, VALUE_ONE))))
-				.thenReturn(ID_VALUE_ONE);
-
-		CloudUser cloudUser = createCloudUser();
-
-		// exercise
-		List<ImageSummary> imageSummaryList = this.plugin.getAllImages(cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
-
-		Mockito.verify(image, Mockito.times(1))
-				.xpath(Mockito.eq(String.format(OpenNebulaImagePlugin.FORMAT_IMAGE_TYPE_PATH, VALUE_ONE)));
-
-		Assert.assertTrue(imageSummaryList.isEmpty());
-	}
-	
 	// test case: When invoking the getImage method, with a valid client, the image
 	// of the specific ID passed by parameter will be loaded, to return its instance
 	// with name, size and status.
 	@Test
-	public void testGetImageSuccessfully() throws FogbowException {
+	public void testGetImage() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
+        Image image = Mockito.mock(Image.class);
+		ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
 
-		String imageID = ID_VALUE_ONE;
-		String name = FAKE_NAME;
-		Image image = Mockito.mock(Image.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImage(Mockito.eq(client), Mockito.eq(imageID))).willReturn(image);
-
-		Mockito.when(image.getId()).thenReturn(imageID);
-		Mockito.when(image.getName()).thenReturn(name);
-		Mockito.when(image.xpath(OpenNebulaImagePlugin.IMAGE_SIZE_PATH)).thenReturn(imageID);
-		Mockito.when(image.state()).thenReturn(VALUE_ONE);
-
-		CloudUser cloudUser = createCloudUser();
+		Mockito.when(OpenNebulaClientUtil.getImage(Mockito.any(Client.class), Mockito.anyString())).thenReturn(image);
+		Mockito.doReturn(imageInstance).when(this.plugin).mount(image);
 
 		// exercise
-		this.plugin.getImage(imageID, cloudUser);
+		this.plugin.getImage(FAKE_ID, cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImage(Mockito.eq(client), Mockito.eq(imageID));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getImage(Mockito.any(Client.class), Mockito.eq(FAKE_ID));
 
-		Mockito.verify(image, Mockito.times(1)).getId();
-		Mockito.verify(image, Mockito.times(1)).getName();
-		Mockito.verify(image, Mockito.times(1)).xpath(OpenNebulaImagePlugin.IMAGE_SIZE_PATH);
-		Mockito.verify(image, Mockito.times(1)).state();
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).mount(Mockito.eq(image));
 	}
-	
-	// Test case: When invoking the getImage method, with a valid client and ID, and
-	// unable to load a valid size from an instance in the cloud, it must throw an
-	// InvalidParameterException.
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testGetImageThrowInvalidParameterException() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
 
-		String imageID = ID_VALUE_ONE;
+	// test case: when calling getImageSummaryList with a valid image pool, return a list
+	// of the respective ImageSummary list
+	@Test
+	public void testGetImageSummaryList() {
+	    // set up
+		ImagePool imagePool = Mockito.mock(ImagePool.class);
 		Image image = Mockito.mock(Image.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImage(Mockito.eq(client), Mockito.eq(imageID))).willReturn(image);
-		Mockito.when(image.xpath(OpenNebulaImagePlugin.IMAGE_SIZE_PATH)).thenReturn(EMPTY_STRING);
+		Iterator<Image> iterator = Mockito.mock(Iterator.class);
+		String imageTypePath = String.format(FORMAT_IMAGE_TYPE_PATH, ID_VALUE_ONE);
 
-		CloudUser cloudUser = createCloudUser();
+		Mockito.when(iterator.hasNext()).thenReturn(true, false);
+		Mockito.when(iterator.next()).thenReturn(image);
+		Mockito.when(imagePool.iterator()).thenReturn(iterator);
+		Mockito.when(image.xpath(Mockito.eq(imageTypePath))).thenReturn(OPERATIONAL_SYSTEM_IMAGE_TYPE);
+		Mockito.when(image.getId()).thenReturn(FAKE_ID);
+		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
 
 		// exercise
-		this.plugin.getImage(imageID, cloudUser);
-	}
-	
-	private CloudUser createCloudUser() {
-		String userId = FAKE_ID;
-		String userName = FAKE_NAME;
-		String tokenValue = LOCAL_TOKEN_VALUE;
+		List<ImageSummary> imageSummaryList = this.plugin.getImageSummaryList(imagePool);
 
-		CloudUser cloudUser = new CloudUser(userId, userName, tokenValue);
-		return cloudUser;
+		// verify
+		Mockito.verify(image, Mockito.times(TestUtils.RUN_ONCE)).xpath(imageTypePath);
+
+		Assert.assertEquals(1, imageSummaryList.size());
+		Assert.assertEquals(FAKE_ID, imageSummaryList.get(0).getId());
+		Assert.assertEquals(FAKE_NAME, imageSummaryList.get(0).getName());
+	}
+
+	@Test
+	public void testMount() {
+	    // set up
+		Image image = Mockito.mock(Image.class);
+
+		Mockito.when(image.getId()).thenReturn(FAKE_ID);
+		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
+		Mockito.when(image.state()).thenReturn(IMAGE_READY_STATE);
+		Mockito.when(image.xpath(Mockito.eq(IMAGE_SIZE_PATH))).thenReturn(ID_VALUE_ONE);
+		Mockito.doReturn(Integer.parseInt(ID_VALUE_ONE)).when(this.plugin).convertToInteger(ID_VALUE_ONE);
+
+		PowerMockito.mockStatic(OpenNebulaStateMapper.class);
+		Mockito.when(OpenNebulaStateMapper.map(Mockito.any(ResourceType.class), Mockito.anyInt()))
+				.thenReturn(InstanceState.READY);
+
+		// exercise
+		ImageInstance instance = this.plugin.mount(image);
+
+		// verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(ID_VALUE_ONE);
+
+		Assert.assertEquals(FAKE_ID, instance.getId());
+		Assert.assertEquals(FAKE_NAME, instance.getName());
+		Assert.assertEquals(InstanceState.READY.getValue(), instance.getStatus());
+		Assert.assertEquals(Integer.parseInt(ID_VALUE_ONE), instance.getSize());
+	}
+
+	@Test
+	public void testConvertToInteger() {
+		// set up
+		int expectedIntSuccess = 1;
+		int expectedIntFail = 0;
+
+		// exercise
+		int convertedIntSuccess = this.plugin.convertToInteger(ID_VALUE_ONE);
+		int convertedIntFail = this.plugin.convertToInteger(EMPTY_STRING);
+
+		// verify
+		Assert.assertEquals(expectedIntSuccess, convertedIntSuccess);
+		Assert.assertEquals(expectedIntFail, convertedIntFail);
 	}
 }
