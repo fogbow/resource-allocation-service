@@ -54,52 +54,52 @@ import software.amazon.awssdk.services.ec2.model.Volume;
 
 public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
-	private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
 	
-	private static final String COMMENTED_LINE_PREFIX = "#";
-	private static final String CSV_COLUMN_SEPARATOR = ",";
+    private static final String COMMENTED_LINE_PREFIX = "#";
+    private static final String CSV_COLUMN_SEPARATOR = ",";
 	
-	private static final int INSTANCE_TYPE_COLUMN = 0;
-	private static final int VCPU_COLUMN = 1;
-	private static final int MEMORY_COLUMN = 2;
-	private static final int STORAGE_COLUMN = 3;
-	private static final int PROCESSOR_COLUMN = 4;
-	private static final int NETWORK_PERFORMANCE_COLUMN = 5;
-	private static final int DEDICATED_EBS_BANDWIDTH_COLUMN = 6;
-	private static final int GRAPHIC_PROCESSOR_COLUMN = 7;
-	private static final int GRAPHIC_MEMORY_COLUMN = 8;
-	private static final int GRAPHIC_SHARING_COLUMN = 9;
-	private static final int GRAPHIC_EMULATION_COLUMN = 10;
+    private static final int DEDICATED_EBS_BANDWIDTH_COLUMN = 6;
+    private static final int GRAPHIC_PROCESSOR_COLUMN = 7;
+    private static final int GRAPHIC_MEMORY_COLUMN = 8;
+    private static final int GRAPHIC_SHARING_COLUMN = 9;
+    private static final int GRAPHIC_EMULATION_COLUMN = 10;
+    private static final int INSTANCE_TYPE_COLUMN = 0;
+    private static final int MEMORY_COLUMN = 2;
+    private static final int NETWORK_PERFORMANCE_COLUMN = 5;
+    private static final int PROCESSOR_COLUMN = 4;
+    private static final int STORAGE_COLUMN = 3;
+    private static final int VCPU_COLUMN = 1;
 
-	protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
-	protected static final String GRAPHIC_PROCESSOR_REQUIREMENT = "GPUs";
-	protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
-	protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
-	protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
-	protected static final String PERFORMANCE_REQUIREMENT = "performance";
-	protected static final String PROCESSOR_REQUIREMENT = "processor";
-	protected static final String RESOURCE_NAME = "Compute";
-	protected static final String STORAGE_REQUIREMENT = "storage";
+    protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
+    protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
+    protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
+    protected static final String GRAPHIC_PROCESSOR_REQUIREMENT = "GPUs";
+    protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
+    protected static final String PERFORMANCE_REQUIREMENT = "performance";
+    protected static final String PROCESSOR_REQUIREMENT = "processor";
+    protected static final String RESOURCE_NAME = "Compute";
+    protected static final String STORAGE_REQUIREMENT = "storage";
 	
-	protected static final int INSTANCES_LAUNCH_NUMBER = 1;
-	protected static final int ONE_GIGABYTE = 1024;
+    protected static final int INSTANCES_LAUNCH_NUMBER = 1;
+    protected static final int ONE_GIGABYTE = 1024;
 
-	private String defaultGroupId;
-	private String defaultSubnetId;
-	private String flavorsFilePath;
-	private String region;
-	private TreeSet<AwsHardwareRequirements> flavors;
-	private LaunchCommandGenerator launchCommandGenerator;
+    private String defaultGroupId;
+    private String defaultSubnetId;
+    private String flavorsFilePath;
+    private String region;
+    private TreeSet<AwsHardwareRequirements> flavors;
+    private LaunchCommandGenerator launchCommandGenerator;
 
     public AwsV2ComputePlugin(String confFilePath) {
-		Properties properties = PropertiesUtil.readProperties(confFilePath);
-		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
-		this.defaultGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
-		this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
-		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-		this.flavors = new TreeSet<AwsHardwareRequirements>();
-	}
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+        this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
+        this.defaultGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
+        this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
+        this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
+        this.flavors = new TreeSet<AwsHardwareRequirements>();
+    }
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
@@ -156,72 +156,72 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         return buildComputeInstance(instance, volumes);
     }
 	
-	protected ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
-		String id = instance.instanceId();
-		String cloudState = instance.state().nameAsString();
-		String name = instance.tags().listIterator().next().value();
-		int cpu = instance.cpuOptions().coreCount();
-		int memory = getMemoryValueFrom(instance.instanceType());
-		int disk = getAllDisksSize(volumes);
-		List<String> ipAddresses = getIpAddresses(instance);
-		return new ComputeInstance(id, cloudState, name, cpu, memory, disk, ipAddresses);
-	}
+    protected ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
+        String id = instance.instanceId();
+        String cloudState = instance.state().nameAsString();
+        String name = instance.tags().listIterator().next().value();
+        int cpu = instance.cpuOptions().coreCount();
+        int memory = getMemoryValueFrom(instance.instanceType());
+        int disk = getAllDisksSize(volumes);
+        List<String> ipAddresses = getIpAddresses(instance);
+        return new ComputeInstance(id, cloudState, name, cpu, memory, disk, ipAddresses);
+    }
 
-	protected List<String> getIpAddresses(Instance instance) {
-		List<String> ipAddresses = new ArrayList<>();
-		List<String> privateIpaddresses;
-		String publicIpAddress;
-		for (int i = 0; i < instance.networkInterfaces().size(); i++) {
-			privateIpaddresses = getPrivateIpAddresses(instance, i);
-			if (!privateIpaddresses.isEmpty()) {
-				ipAddresses.addAll(privateIpaddresses);
-			}
-			publicIpAddress = getPublicIpAddresses(instance, i);
-			if (publicIpAddress != null) {
-				ipAddresses.add(publicIpAddress);
-			}
-		}
-		return ipAddresses;
-	}
+    protected List<String> getIpAddresses(Instance instance) {
+        List<String> ipAddresses = new ArrayList<>();
+        List<String> privateIpaddresses;
+        String publicIpAddress;
+        for (int i = 0; i < instance.networkInterfaces().size(); i++) {
+            privateIpaddresses = getPrivateIpAddresses(instance, i);
+            if (!privateIpaddresses.isEmpty()) {
+                ipAddresses.addAll(privateIpaddresses);
+            }
+            publicIpAddress = getPublicIpAddresses(instance, i);
+            if (publicIpAddress != null) {
+                ipAddresses.add(publicIpAddress);
+            }
+        }
+        return ipAddresses;
+    }
 
-	protected String getPublicIpAddresses(Instance awsInstance, int index) {
-		String ipAddress = null;
-		InstanceNetworkInterfaceAssociation association;
-		association = awsInstance.networkInterfaces().get(index).association();
-		if (association != null) {
-			ipAddress = association.publicIp();
-		}
-		return ipAddress;
-	}
+    protected String getPublicIpAddresses(Instance awsInstance, int index) {
+        String ipAddress = null;
+        InstanceNetworkInterfaceAssociation association;
+        association = awsInstance.networkInterfaces().get(index).association();
+        if (association != null) {
+            ipAddress = association.publicIp();
+        }
+        return ipAddress;
+    }
 
-	protected List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
-		List<String> ipAddresses = new ArrayList<String>();
-		List<InstancePrivateIpAddress> instancePrivateIpAddresses;
-		instancePrivateIpAddresses = awsInstance.networkInterfaces().get(index).privateIpAddresses();
-		if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
-			for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
-				ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
-			}
-		}
-		return ipAddresses;
-	}
+    protected List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
+        List<String> ipAddresses = new ArrayList<String>();
+        List<InstancePrivateIpAddress> instancePrivateIpAddresses;
+        instancePrivateIpAddresses = awsInstance.networkInterfaces().get(index).privateIpAddresses();
+        if (instancePrivateIpAddresses != null && !instancePrivateIpAddresses.isEmpty()) {
+            for (InstancePrivateIpAddress instancePrivateIpAddress : instancePrivateIpAddresses) {
+                ipAddresses.add(instancePrivateIpAddress.privateIpAddress());
+            }
+        }
+        return ipAddresses;
+    }
 
-	protected int getAllDisksSize(List<Volume> volumes) {
-		int size = 0;
-		for (Volume volume : volumes) {
-			size += volume.size();
-		}
-		return size;
-	}
+    protected int getAllDisksSize(List<Volume> volumes) {
+        int size = 0;
+        for (Volume volume : volumes) {
+            size += volume.size();
+        }
+        return size;
+    }
 
-	protected int getMemoryValueFrom(InstanceType instanceType) {
-		for (AwsHardwareRequirements flavor : getFlavors()) {
-			if (flavor.getName().equals(instanceType.toString())) {
-				return flavor.getMemory();
-			}
-		}
-		return 0;
-	}
+    protected int getMemoryValueFrom(InstanceType instanceType) {
+        for (AwsHardwareRequirements flavor : getFlavors()) {
+            if (flavor.getName().equals(instanceType.toString())) {
+                return flavor.getMemory();
+            }
+        }
+        return 0;
+    }
 	
     protected String doRequestInstance(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
             RunInstancesRequest request, Ec2Client client) throws UnexpectedException {
@@ -319,49 +319,49 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         return subnetIds;
     }
 
-	protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
-			throws FogbowException {
+    protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
+            throws FogbowException {
 
-	    updateHardwareRequirements(cloudUser);
-	    TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
-	    for (AwsHardwareRequirements hardwareRequirements : resultset) {
-	        if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-	                && hardwareRequirements.getMemory() >= computeOrder.getMemory()
-	                && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
-	            return hardwareRequirements;
-	        }
-	    }
-	    throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
-	}
+        updateHardwareRequirements(cloudUser);
+        TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
+        for (AwsHardwareRequirements hardwareRequirements : resultset) {
+            if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
+                    && hardwareRequirements.getMemory() >= computeOrder.getMemory()
+                    && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+                return hardwareRequirements;
+            }
+        }
+        throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
+    }
 
-	/**
-	 * this method attempts to filter the set of flavors available from a
-	 * requirements map passed by parameter. If there are valid requirements on the
-	 * map, it will filter these insights, returning only the common flavors to the
-	 * requested order. Otherwise returns the complete flavor set without changes.
-	 * 
-	 * @param orderRequirements: a map of requirements in the compute order request.
-	 * @return a set of requirements-filtered flavors or the current set of flavors.
-	 */
-	protected TreeSet<AwsHardwareRequirements> getFlavorsByRequirements(Map<String, String> orderRequirements) {
-		TreeSet<AwsHardwareRequirements> resultSet = getFlavors();
-		List<AwsHardwareRequirements> resultList = null;
-		if (orderRequirements != null && !orderRequirements.isEmpty()) {
-			for (Entry<String, String> requirements : orderRequirements.entrySet()) {
-				resultList = filterFlavors(resultSet, requirements);
-				if (resultList.size() < resultSet.size()) {
-					resultSet = parseToTreeSet(resultList);
-				}
-			}
-		}
-		return resultSet;
-	}
+    /**
+     * this method attempts to filter the set of flavors available from a
+     * requirements map passed by parameter. If there are valid requirements on the
+     * map, it will filter these insights, returning only the common flavors to the
+     * requested order. Otherwise returns the complete flavor set without changes.
+     * 
+     * @param orderRequirements: a map of requirements in the compute order request.
+     * @return a set of requirements-filtered flavors or the current set of flavors.
+     */
+    protected TreeSet<AwsHardwareRequirements> getFlavorsByRequirements(Map<String, String> orderRequirements) {
+        TreeSet<AwsHardwareRequirements> resultSet = getFlavors();
+        List<AwsHardwareRequirements> resultList = null;
+        if (orderRequirements != null && !orderRequirements.isEmpty()) {
+            for (Entry<String, String> requirements : orderRequirements.entrySet()) {
+                resultList = filterFlavors(resultSet, requirements);
+                if (resultList.size() < resultSet.size()) {
+                    resultSet = parseToTreeSet(resultList);
+                }
+            }
+        }
+        return resultSet;
+    }
 
-	protected TreeSet<AwsHardwareRequirements> parseToTreeSet(List<AwsHardwareRequirements> list) {
-		TreeSet<AwsHardwareRequirements> resultSet = new TreeSet<AwsHardwareRequirements>();
-		resultSet.addAll(list);
-		return resultSet;
-	}
+    protected TreeSet<AwsHardwareRequirements> parseToTreeSet(List<AwsHardwareRequirements> list) {
+        TreeSet<AwsHardwareRequirements> resultSet = new TreeSet<AwsHardwareRequirements>();
+        resultSet.addAll(list);
+        return resultSet;
+    }
 
     protected List<AwsHardwareRequirements> filterFlavors(TreeSet<AwsHardwareRequirements> flavors,
             Entry<String, String> requirements) {
@@ -373,59 +373,61 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
                 .collect(Collectors.toList());
     }
 
-	protected TreeSet<AwsHardwareRequirements> getFlavors() {
-		synchronized (this.flavors) {
-			return this.flavors;
-		}
-	}
+    protected TreeSet<AwsHardwareRequirements> getFlavors() {
+        synchronized (this.flavors) {
+            return this.flavors;
+        }
+    }
 
-	/**
-	 * This method loads all of the flavor file lines containing the hardware
-	 * requirements by instance type AWS, and a map of available images in the
-	 * cloud, to assemble a set of flavors ordered by the simplest requirements.
-	 * 
-	 * @param cloudUser: the user of the AWS cloud.
-	 * @throws FogbowException: if any error occurs.
-	 */
-	protected void updateHardwareRequirements(AwsV2User cloudUser) throws FogbowException {
-		List<String> lines = loadLinesFromFlavorFile();
-		String[] requirements = null;
-		AwsHardwareRequirements flavor = null;
+    /**
+     * This method loads all of the flavor file lines containing the hardware
+     * requirements by instance type AWS, and a map of available images in the
+     * cloud, to assemble a set of flavors ordered by the simplest requirements.
+     * 
+     * @param cloudUser: the user of the AWS cloud.
+     * @throws FogbowException: if any error occurs.
+     */
+    protected void updateHardwareRequirements(AwsV2User cloudUser) throws FogbowException {
+        List<String> lines = loadLinesFromFlavorFile();
+        String[] requirements = null;
+        AwsHardwareRequirements flavor = null;
 
-		Map<String, Integer> imagesMap = generateImagesSizeMap(cloudUser);
-		for (Entry<String, Integer> imageEntry : imagesMap.entrySet()) {
-			for (String line : lines) {
-				if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
-					requirements = line.split(CSV_COLUMN_SEPARATOR);
-					flavor = buildHardwareRequirements(imageEntry, requirements);
-					this.flavors.add(flavor);
-				}
-			}
-		}
-	}
+        Map<String, Integer> imagesMap = generateImagesSizeMap(cloudUser);
+        for (Entry<String, Integer> imageEntry : imagesMap.entrySet()) {
+            for (String line : lines) {
+                if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
+                    requirements = line.split(CSV_COLUMN_SEPARATOR);
+                    flavor = buildHardwareRequirements(imageEntry, requirements);
+                    this.flavors.add(flavor);
+                }
+            }
+        }
+    }
 
-	protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
-	    String file = getFlavorsFilePath();
-	    Path path = Paths.get(file);
-	    try {
-	        return Files.readAllLines(path);
-	    } catch (IOException e) {
-	        String message = String.format(Messages.Error.ERROR_MESSAGE, e);
-	        LOGGER.error(message, e);
-	        throw new ConfigurationErrorException(message);
-	    }
-	}
+    protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
+        String file = getFlavorsFilePath();
+        Path path = Paths.get(file);
+        try {
+            return Files.readAllLines(path);
+        } catch (IOException e) {
+            String message = String.format(Messages.Error.ERROR_MESSAGE, e);
+            LOGGER.error(message, e);
+            throw new ConfigurationErrorException(message);
+        }
+    }
 	
-	protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> imageEntry, String[] requirements) {
-		String name = requirements[INSTANCE_TYPE_COLUMN];
-		String flavorId = generateFlavorId();
-		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
-		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
-		int disk = imageEntry.getValue();
-		String imageId = imageEntry.getKey();
-		Map<String, String> requirementsMap = loadRequirementsMap(requirements);
-		return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, imageId, requirementsMap);
-	}
+    protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> imageEntry,
+            String[] requirements) {
+
+        String name = requirements[INSTANCE_TYPE_COLUMN];
+        String flavorId = generateFlavorId();
+        int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
+        Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
+        int disk = imageEntry.getValue();
+        String imageId = imageEntry.getKey();
+        Map<String, String> requirementsMap = loadRequirementsMap(requirements);
+        return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, imageId, requirementsMap);
+    }
 
     protected Map<String, String> loadRequirementsMap(String[] requirements) {
         Map<String, String> requirementsMap = new HashMap<String, String>();
@@ -440,33 +442,32 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         return requirementsMap;
     }
 
-	protected Map<String, Integer> generateImagesSizeMap(AwsV2User cloudUser)
-			throws FogbowException {
+    protected Map<String, Integer> generateImagesSizeMap(AwsV2User cloudUser) throws FogbowException {
 
-		Map<String, Integer> imageMap = new HashMap<String, Integer>();
-		String cloudUserId = cloudUser.getId();
-		DescribeImagesRequest request = DescribeImagesRequest.builder()
-				.owners(cloudUserId)
-				.build();
+        Map<String, Integer> imageMap = new HashMap<String, Integer>();
+        String cloudUserId = cloudUser.getId();
+        DescribeImagesRequest request = DescribeImagesRequest.builder()
+                .owners(cloudUserId)
+                .build();
 
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        DescribeImagesResponse response = AwsV2CloudUtil.doDescribeImagesRequest(request, client);
 
-		List<Image> images = response.images();
-		for (Image image : images) {
-			int size = getImageSize(image);
-			imageMap.put(image.imageId(), size);
-		}
-		return imageMap;
-	}
+        List<Image> images = response.images();
+        for (Image image : images) {
+            int size = getImageSize(image);
+            imageMap.put(image.imageId(), size);
+        }
+        return imageMap;
+    }
 
-	protected int getImageSize(Image image) {
-		int size = 0;
-		for (BlockDeviceMapping device : image.blockDeviceMappings()) {
-			size = device.ebs().volumeSize();
-		}
-		return size;
-	}
+    protected int getImageSize(Image image) {
+        int size = 0;
+        for (BlockDeviceMapping device : image.blockDeviceMappings()) {
+            size = device.ebs().volumeSize();
+        }
+        return size;
+    }
 
     // The following methods are used to assist in testing.
 	

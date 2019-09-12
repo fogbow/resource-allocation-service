@@ -51,6 +51,7 @@ public class TestUtils {
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
+    public static final String FAKE_FLAVOR_ID = "fake-flavor-id";
     public static final String FAKE_GATEWAY = "fake-gateway";
     public static final String FAKE_IMAGE_ID = "fake-image-id";
     public static final String FAKE_INSTANCE_ID = "fake-instance-id";
@@ -65,7 +66,6 @@ public class TestUtils {
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
-    public static final String FAKE_FLAVOR_ID = "fake-flavor-id";
     public static final String LOCAL_MEMBER_ID =
             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     public static final String MESSAGE_STATUS_CODE = "Internal server error.";

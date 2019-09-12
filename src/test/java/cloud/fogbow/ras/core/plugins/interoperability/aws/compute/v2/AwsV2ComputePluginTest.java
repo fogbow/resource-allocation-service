@@ -938,23 +938,23 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         return requirements;
     }
 	
-	private DescribeImagesResponse buildDescribeImages() {
+    private DescribeImagesResponse buildDescribeImages() {
         DescribeImagesResponse response = DescribeImagesResponse.builder()
                 .images(buildImage())
                 .build();
-        
+
         return response;
     }
 	
-	private Image buildImage() {
+    private Image buildImage() {
         EbsBlockDevice ebs = buildEbsBlockDevice();
         BlockDeviceMapping blockDeviceMapping = buildBlockDeviceMapping(ebs);
-        
+
         Image image = Image.builder()
                 .imageId(TestUtils.FAKE_IMAGE_ID)
                 .blockDeviceMappings(blockDeviceMapping)
                 .build();
-        
+
         return image;
     }
 
@@ -996,8 +996,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         return flavors;
     }
 	
-	private List<String> buildIpAdressesCollection() {
-        String[] ipAdresses = { FAKE_IP_ADDRESS }; 
+    private List<String> buildIpAdressesCollection() {
+        String[] ipAdresses = { FAKE_IP_ADDRESS };
         return Arrays.asList(ipAdresses);
     }
 	
