@@ -4,8 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -386,51 +392,55 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		String[] requirements = null;
 		AwsHardwareRequirements flavor = null;
 
-		Map<String, Integer> imagesMap = getImagesMap(cloudUser);
-		for (Entry<String, Integer> images : imagesMap.entrySet()) {
+		Map<String, Integer> imagesMap = generateImagesSizeMap(cloudUser);
+		for (Entry<String, Integer> imageEntry : imagesMap.entrySet()) {
 			for (String line : lines) {
 				if (!line.startsWith(COMMENTED_LINE_PREFIX)) {
 					requirements = line.split(CSV_COLUMN_SEPARATOR);
-					flavor = buildHardwareRequirements(images, requirements);
+					flavor = buildHardwareRequirements(imageEntry, requirements);
 					this.flavors.add(flavor);
 				}
 			}
 		}
 	}
 
-	protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> image, String[] requirements) {
+	protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
+	    String file = getFlavorsFilePath();
+	    Path path = Paths.get(file);
+	    try {
+	        return Files.readAllLines(path);
+	    } catch (IOException e) {
+	        String message = String.format(Messages.Error.ERROR_MESSAGE, e);
+	        LOGGER.error(message, e);
+	        throw new ConfigurationErrorException(message);
+	    }
+	}
+	
+	protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> imageEntry, String[] requirements) {
 		String name = requirements[INSTANCE_TYPE_COLUMN];
-		String flavorId = UUID.randomUUID().toString();
+		String flavorId = generateFlavorId();
 		int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
 		Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
-		int disk = image.getValue();
-		String imageId = image.getKey();
+		int disk = imageEntry.getValue();
+		String imageId = imageEntry.getKey();
 		Map<String, String> requirementsMap = loadRequirementsMap(requirements);
 		return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, imageId, requirementsMap);
 	}
 
-	protected Map<String, String> loadRequirementsMap(String[] requirements) {
-		Map<String, String> requirementsMap = new HashMap<String, String>();
-		String processor = requirements[PROCESSOR_COLUMN];
-		String performance = requirements[NETWORK_PERFORMANCE_COLUMN];
-		String storage = requirements[STORAGE_COLUMN];
-		String bandwidth = requirements[DEDICATED_EBS_BANDWIDTH_COLUMN];
-		String graphicsProcessor = requirements[GRAPHIC_PROCESSOR_COLUMN];
-		String graphicsMemory = requirements[GRAPHIC_MEMORY_COLUMN];
-		String graphicSharing = requirements[GRAPHIC_SHARING_COLUMN];
-		String graphicEmulation = requirements[GRAPHIC_EMULATION_COLUMN];
-		requirementsMap.put(PROCESSOR_REQUIREMENT, processor);
-		requirementsMap.put(PERFORMANCE_REQUIREMENT, performance);
-		requirementsMap.put(STORAGE_REQUIREMENT, storage);
-		requirementsMap.put(BANDWIDTH_REQUIREMENT, bandwidth);
-		requirementsMap.put(GRAPHIC_PROCESSOR_REQUIREMENT, graphicsProcessor);
-		requirementsMap.put(GRAPHIC_MEMORY_REQUIREMENT, graphicsMemory);
-		requirementsMap.put(GRAPHIC_SHARING_REQUIREMENT, graphicSharing);
-		requirementsMap.put(GRAPHIC_EMULATION_REQUIREMENT, graphicEmulation);
-		return requirementsMap;
-	}
+    protected Map<String, String> loadRequirementsMap(String[] requirements) {
+        Map<String, String> requirementsMap = new HashMap<String, String>();
+        requirementsMap.put(BANDWIDTH_REQUIREMENT, requirements[DEDICATED_EBS_BANDWIDTH_COLUMN]);
+        requirementsMap.put(GRAPHIC_EMULATION_REQUIREMENT, requirements[GRAPHIC_EMULATION_COLUMN]);
+        requirementsMap.put(GRAPHIC_MEMORY_REQUIREMENT, requirements[GRAPHIC_MEMORY_COLUMN]);
+        requirementsMap.put(GRAPHIC_PROCESSOR_REQUIREMENT, requirements[GRAPHIC_PROCESSOR_COLUMN]);
+        requirementsMap.put(GRAPHIC_SHARING_REQUIREMENT, requirements[GRAPHIC_SHARING_COLUMN]);
+        requirementsMap.put(PERFORMANCE_REQUIREMENT, requirements[NETWORK_PERFORMANCE_COLUMN]);
+        requirementsMap.put(PROCESSOR_REQUIREMENT, requirements[PROCESSOR_COLUMN]);
+        requirementsMap.put(STORAGE_REQUIREMENT, requirements[STORAGE_COLUMN]);
+        return requirementsMap;
+    }
 
-	protected Map<String, Integer> getImagesMap(AwsV2User cloudUser)
+	protected Map<String, Integer> generateImagesSizeMap(AwsV2User cloudUser)
 			throws FogbowException {
 
 		Map<String, Integer> imageMap = new HashMap<String, Integer>();
@@ -450,18 +460,6 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return imageMap;
 	}
 
-    protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
-        String file = getFlavorsFilePath();
-        Path path = Paths.get(file);
-        try {
-            return Files.readAllLines(path);
-        } catch (IOException e) {
-            String message = String.format(Messages.Error.ERROR_MESSAGE, e);
-            LOGGER.error(message, e);
-            throw new ConfigurationErrorException(message);
-        }
-    }
-
 	protected int getImageSize(Image image) {
 		int size = 0;
 		for (BlockDeviceMapping device : image.blockDeviceMappings()) {
@@ -470,13 +468,17 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 		return size;
 	}
 
-	// The following methods are used to assist in testing.
+    // The following methods are used to assist in testing.
 	
-	protected String getFlavorsFilePath() {
-		return flavorsFilePath;
-	}
+    protected String generateFlavorId() {
+        return UUID.randomUUID().toString();
+    }
 	
-	protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+    protected String getFlavorsFilePath() {
+        return flavorsFilePath;
+    }
+	
+    protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
         this.launchCommandGenerator = launchCommandGenerator;
     }
 
