@@ -81,8 +81,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
 
 		int defaultNetworkID = convertToInteger(this.defaultNetwork);
-		String networkName = networkOrder.getName();
-		String name = networkName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : networkName;
+		String name = networkOrder.getName();
 
 		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(networkOrder.getCidr()).getInfo();
 		int size = subnetInfo.getAddressCount();

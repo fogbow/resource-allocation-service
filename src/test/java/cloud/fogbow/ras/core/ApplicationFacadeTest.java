@@ -130,7 +130,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
 
@@ -139,7 +139,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getCloudNames();
@@ -153,7 +153,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String remoteMember = TestUtils.FAKE_REMOTE_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
 
         RemoteGetCloudNamesRequest cloudNamesRequest = Mockito.mock(RemoteGetCloudNamesRequest.class);
         Mockito.doReturn(cloudNamesRequest).when(this.facade).getCloudNamesFromRemoteRequest(Mockito.eq(remoteMember),
@@ -166,7 +166,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(cloudNamesRequest, Mockito.times(TestUtils.RUN_ONCE)).send();
@@ -181,7 +181,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String remoteMember = TestUtils.FAKE_REMOTE_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
 
         // exercise
         this.facade.getCloudNames(remoteMember, userToken);
@@ -555,7 +555,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.COMPUTE;
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
@@ -565,7 +565,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
@@ -580,7 +580,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.VOLUME;
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
@@ -590,7 +590,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
@@ -605,7 +605,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.ATTACHMENT;
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
@@ -615,7 +615,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
@@ -630,7 +630,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.NETWORK;
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
@@ -640,7 +640,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
@@ -655,7 +655,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.PUBLIC_IP;
         
@@ -666,7 +666,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
@@ -680,7 +680,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         String providerId = null;
         String cloudName = EMPTY_STRING;
@@ -706,7 +706,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         String providerId = null;
         String cloudName = EMPTY_STRING;
@@ -757,7 +757,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         NetworkOrder order = this.testUtils.createLocalNetworkOrder();
         this.orderController.activateOrder(order);
@@ -772,7 +772,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
@@ -786,7 +786,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         this.orderController.activateOrder(order);
@@ -801,7 +801,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
@@ -838,7 +838,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         NetworkOrder order = this.testUtils.createLocalNetworkOrder();
         this.orderController.activateOrder(order);
@@ -851,7 +851,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
@@ -865,7 +865,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         this.orderController.activateOrder(order);
@@ -878,7 +878,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE))
@@ -916,7 +916,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         NetworkOrder order = this.testUtils.createLocalNetworkOrder();
         this.orderController.activateOrder(order);
@@ -932,7 +932,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityRule(
@@ -947,7 +947,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         this.orderController.activateOrder(order);
@@ -963,7 +963,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.securityRuleController, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityRule(
@@ -978,7 +978,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
         String providerId = TestUtils.LOCAL_MEMBER_ID;
@@ -992,7 +992,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
@@ -1006,7 +1006,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
         computeOrder.setInstanceId(TestUtils.FAKE_COMPUTE_ID);
@@ -1028,7 +1028,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1043,7 +1043,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
         computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1061,7 +1061,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1077,7 +1077,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ComputeOrder order = this.testUtils.createLocalComputeOrder();
         order.setProvider(null);
@@ -1093,7 +1093,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Assert.assertNotNull(order.getProvider());
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1109,7 +1109,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ComputeOrder order = this.testUtils.createLocalComputeOrder();
         order.setProvider(EMPTY_STRING);
@@ -1125,7 +1125,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Assert.assertFalse(order.getProvider().isEmpty());
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1141,7 +1141,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         NetworkOrder order = this.testUtils.createLocalNetworkOrder();
         order.setCloudName(null);
@@ -1157,7 +1157,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1173,7 +1173,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         VolumeOrder order = this.testUtils.createLocalVolumeOrder();
         order.setCloudName(EMPTY_STRING);
@@ -1189,7 +1189,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1204,7 +1204,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalComputeOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1218,7 +1218,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.COMPUTE),
@@ -1233,7 +1233,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalVolumeOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1247,7 +1247,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.VOLUME),
@@ -1262,7 +1262,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
                 this.testUtils.createLocalVolumeOrder());
@@ -1277,7 +1277,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET),
                 Mockito.eq(ResourceType.ATTACHMENT), Mockito.eq(order));
@@ -1291,7 +1291,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalNetworkOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1305,7 +1305,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.NETWORK),
@@ -1320,7 +1320,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1334,7 +1334,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.PUBLIC_IP),
@@ -1349,7 +1349,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalComputeOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1362,7 +1362,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE),
@@ -1377,7 +1377,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalVolumeOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1390,7 +1390,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.VOLUME),
@@ -1405,7 +1405,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         Order order = testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
                 this.testUtils.createLocalVolumeOrder());
@@ -1419,7 +1419,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE),
@@ -1434,7 +1434,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
 
         Order order = testUtils.createLocalNetworkOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1447,7 +1447,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.NETWORK),
@@ -1462,7 +1462,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
 
         Order order = testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -1475,7 +1475,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
                 Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.PUBLIC_IP),
@@ -1491,7 +1491,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
 
         String cloudName = null;
         String providerId = TestUtils.LOCAL_MEMBER_ID;
@@ -1504,7 +1504,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
@@ -1520,7 +1520,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).getRequesterFromToken(Mockito.eq(userToken));
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
 
         String cloudName = EMPTY_STRING;
         String providerId = TestUtils.LOCAL_MEMBER_ID;
@@ -1534,7 +1534,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .getRequesterFromToken(Mockito.eq(userToken));
+                .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
