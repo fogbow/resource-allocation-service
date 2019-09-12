@@ -69,7 +69,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
                 .build();
 
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-        String response = doPostRequest(createSecurityRuleRequest.toJson(), endpoint, cloudUser);
+        String response = doPostRequest(endpoint, createSecurityRuleRequest.toJson(), cloudUser);
         createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
 
         return createSecurityRuleResponse.getId();
@@ -101,10 +101,10 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
         }
     }
 
-    protected String doPostRequest(String createSecurityRuleRequest, String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    protected String doPostRequest(String endpoint, String createSecurityRuleBody, OpenStackV3User cloudUser) throws FogbowException {
         String response = null;
         try {
-            response = this.client.doPostRequest(endpoint, createSecurityRuleRequest, cloudUser);
+            response = this.client.doPostRequest(endpoint, createSecurityRuleBody, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }

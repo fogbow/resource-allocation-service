@@ -30,7 +30,7 @@ public class GetSecurityGroupsResponse {
         return GsonHolder.getInstance().fromJson(json, GetSecurityGroupsResponse.class);
     }
 
-    public class SecurityGroup {
+    public static class SecurityGroup {
 
         private String id;
 
