@@ -37,12 +37,17 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 	private static final String ID_VALUE_ONE = "1";
 
 	private OpenNebulaImagePlugin plugin;
+	private Image image;
 
 	@Before
 	public void setUp() throws FogbowException {
 		super.setUp();
 
 		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(this.openNebulaConfFilePath));
+		this.image = Mockito.mock(Image.class);
+
+		Mockito.when(this.image.getId()).thenReturn(FAKE_ID);
+		Mockito.when(this.image.getName()).thenReturn(FAKE_NAME);
 	}
 	
 	// test case: When invoking the getAllImages method, with a valid client, a
@@ -76,11 +81,10 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetImage() throws FogbowException {
 		// set up
-        Image image = Mockito.mock(Image.class);
 		ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
 
 		Mockito.when(OpenNebulaClientUtil.getImage(Mockito.any(Client.class), Mockito.anyString())).thenReturn(image);
-		Mockito.doReturn(imageInstance).when(this.plugin).mount(image);
+		Mockito.doReturn(imageInstance).when(this.plugin).mount(this.image);
 
 		// exercise
 		this.plugin.getImage(FAKE_ID, cloudUser);
@@ -92,7 +96,7 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getImage(Mockito.any(Client.class), Mockito.eq(FAKE_ID));
 
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).mount(Mockito.eq(image));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).mount(Mockito.eq(this.image));
 	}
 
 	// test case: when calling getImageSummaryList with a valid image pool, return a list
@@ -101,22 +105,19 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 	public void testGetImageSummaryList() {
 	    // set up
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		Image image = Mockito.mock(Image.class);
 		Iterator<Image> iterator = Mockito.mock(Iterator.class);
 		String imageTypePath = String.format(FORMAT_IMAGE_TYPE_PATH, ID_VALUE_ONE);
 
 		Mockito.when(iterator.hasNext()).thenReturn(true, false);
 		Mockito.when(iterator.next()).thenReturn(image);
 		Mockito.when(imagePool.iterator()).thenReturn(iterator);
-		Mockito.when(image.xpath(Mockito.eq(imageTypePath))).thenReturn(OPERATIONAL_SYSTEM_IMAGE_TYPE);
-		Mockito.when(image.getId()).thenReturn(FAKE_ID);
-		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
+		Mockito.when(this.image.xpath(Mockito.eq(imageTypePath))).thenReturn(OPERATIONAL_SYSTEM_IMAGE_TYPE);
 
 		// exercise
 		List<ImageSummary> imageSummaryList = this.plugin.getImageSummaryList(imagePool);
 
 		// verify
-		Mockito.verify(image, Mockito.times(TestUtils.RUN_ONCE)).xpath(imageTypePath);
+		Mockito.verify(this.image, Mockito.times(TestUtils.RUN_ONCE)).xpath(imageTypePath);
 
 		Assert.assertEquals(1, imageSummaryList.size());
 		Assert.assertEquals(FAKE_ID, imageSummaryList.get(0).getId());
@@ -126,12 +127,8 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testMount() {
 	    // set up
-		Image image = Mockito.mock(Image.class);
-
-		Mockito.when(image.getId()).thenReturn(FAKE_ID);
-		Mockito.when(image.getName()).thenReturn(FAKE_NAME);
-		Mockito.when(image.state()).thenReturn(IMAGE_READY_STATE);
-		Mockito.when(image.xpath(Mockito.eq(IMAGE_SIZE_PATH))).thenReturn(ID_VALUE_ONE);
+		Mockito.when(this.image.state()).thenReturn(IMAGE_READY_STATE);
+		Mockito.when(this.image.xpath(Mockito.eq(IMAGE_SIZE_PATH))).thenReturn(ID_VALUE_ONE);
 		Mockito.doReturn(Integer.parseInt(ID_VALUE_ONE)).when(this.plugin).convertToInteger(ID_VALUE_ONE);
 
 		PowerMockito.mockStatic(OpenNebulaStateMapper.class);
@@ -139,7 +136,7 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 				.thenReturn(InstanceState.READY);
 
 		// exercise
-		ImageInstance instance = this.plugin.mount(image);
+		ImageInstance instance = this.plugin.mount(this.image);
 
 		// verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(ID_VALUE_ONE);
