@@ -55,22 +55,14 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 		return computeQuota;
 	}
 	
-	private int convertToInteger(String number) {
-		if (isValidNumber(number)) {
-			double value = Double.parseDouble(number);
-			return (int) Math.round(value);
-		}
-		return 0;
-	}
-
-	private boolean isValidNumber(String number) {
-		try {
-			Double.parseDouble(number);
+	protected int convertToInteger(String number) {
+		int converted = 0;
+	    try {
+			converted = (int) Math.round(Double.parseDouble(number));
 		} catch (NumberFormatException e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e));
-			return false;
 		}
-		return true;
+
+	    return converted;
 	}
-	
 }

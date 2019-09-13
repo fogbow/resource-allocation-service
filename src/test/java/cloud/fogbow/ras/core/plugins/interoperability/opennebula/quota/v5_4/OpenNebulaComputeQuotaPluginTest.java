@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 import java.io.File;
 import java.util.Iterator;
 
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,9 +28,8 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class})
-public class OpenNebulaComputeQuotaPluginTest {
+@PrepareForTest({OpenNebulaClientUtil.class, DatabaseManager.class})
+public class OpenNebulaComputeQuotaPluginTest extends OpenNebulaBaseTests {
 
 	private static final String CPU_MAX_VALUE = "8";
 	private static final String CPU_USED_VALUE = "2";
@@ -47,7 +48,6 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String QUOTA_VMS_PATH = OpenNebulaComputeQuotaPlugin.QUOTA_VMS_PATH;
 	private static final String VMS_MAX_VALUE = "5";
 	private static final String VMS_USED_VALUE = "1";
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private static final int CPU_EXPECTED = 6;
 	private static final int MEMORY_EXPECTED = 30720;
@@ -57,12 +57,10 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private OpenNebulaComputeQuotaPlugin plugin;
 
 	@Before
-	public void setUp() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin(opennebulaConfFilePath));
+	public void setUp() throws FogbowException {
+	    super.setUp();
+
+		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin(this.openNebulaConfFilePath));
 	}
 	
 	// test case: When invoking the getUserQuota method, with a valid client, a
@@ -71,7 +69,6 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@Test
 	public void testGetUserQuotaSuccessful() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
@@ -125,7 +122,6 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@Test
 	public void testGetUserQuotaWithoutValidData() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
@@ -179,7 +175,6 @@ public class OpenNebulaComputeQuotaPluginTest {
 	@Test
 	public void testGetUserQuotaWithFractionOfResourceUsed() throws FogbowException {
 		// set up
-		Client client = Mockito.mock(Client.class);
 		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
 		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
 				.willReturn(client);
