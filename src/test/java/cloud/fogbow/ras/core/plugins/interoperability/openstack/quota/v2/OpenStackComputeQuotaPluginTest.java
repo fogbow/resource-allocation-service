@@ -55,7 +55,7 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         this.client = Mockito.mock(OpenStackHttpClient.class);
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin(cloudConfPath));
         this.plugin.setClient(client);
-        this.cloudUser = new OpenStackV3User(testUtils.FAKE_USER_ID, testUtils.FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+        this.cloudUser = new OpenStackV3User(TestUtils.FAKE_USER_ID, TestUtils.FAKE_USER_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right
@@ -87,7 +87,7 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         ComputeAllocation retrievedUsedQuota = quota.getUsedQuota();
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(testUtils.RUN_ONCE))
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .doGetQuota(Mockito.anyString(), Mockito.eq(cloudUser));
 
         Assert.assertEquals(totalQuota.getvCPU(), retrievedTotalQuota.getvCPU());
