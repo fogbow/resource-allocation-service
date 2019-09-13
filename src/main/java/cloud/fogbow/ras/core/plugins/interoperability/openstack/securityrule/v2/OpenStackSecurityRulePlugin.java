@@ -177,7 +177,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     protected SecurityRule.Protocol defineRuleProtocol(GetSecurityRulesResponse.SecurityRules secRules) throws FogbowException {
         SecurityRule.Protocol protocol;
         if (secRules.getProtocol() != null) {
-            switch(secRules.getProtocol()) {
+            switch(secRules.getProtocol().toLowerCase()) {
                 case "tcp":
                     protocol = SecurityRule.Protocol.TCP;
                     break;

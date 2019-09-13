@@ -37,30 +37,34 @@ import java.util.Properties;
         CreateSecurityRuleResponse.class,
         DatabaseManager.class,
         GetSecurityGroupsResponse.class,
+        GetSecurityRulesResponse.class,
         OpenStackHttpToFogbowExceptionMapper.class,
         PropertiesUtil.class,
 })
 public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
 
+    private static final int FAKE_PORT_FROM = 1024;
+    private static final int FAKE_PORT_TO = 2048;
+    
     private static final String ANY_STRING = "any-string";
     private static final String ANY_URL = "http://localhost:8007";
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
+    private static final String INGRESS_TRAFFIC = "ingress";
     private static final String SECURITY_RULE_ID = "securityRuleId";
     private static final String SECURITY_GROUP_ID = "securityGroupId";
     private static final String SECURITY_GROUP_NAME = "securityGroupName";
 
-    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
+    private static final String FAKE_ETHERTYPE = "IPv4";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
-    private static final String FAKE_CLOUD_NAME = "fake-cloud-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_USER_NAME = "fake-user-name";
-    private static final String FAKE_MEMBER_ID = "fake-member-id";
-    private static final String FAKE_GATEWAY = "fake-gateway";
-    private static final String FAKE_ADDRESS = "fake-address";
     private static final String MAP_METHOD = "map";
+    private static final String PROTOCOL_ANY = "ANY";
+    private static final String PROTOCOL_ICMP = "ICMP";
+    private static final String PROTOCOL_TCP = "TCP";
+    private static final String PROTOCOL_UDP = "UDP";
 
 
     private OpenStackSecurityRulePlugin plugin;
@@ -392,88 +396,63 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         }
     }
 
-    // test case:
+    // test case: when calling testGetSecurityRulesFromJson() method, it
+    // must verify that the call was successful.
     @Test
-    public void testGetSecurityRulesFromJson() {
+    public void testGetSecurityRulesFromJson() throws FogbowException {
+        // setup
+        GetSecurityRulesResponse securityRulesResponseMock = createSecurityRulesResponseMock();
 
+        PowerMockito.mockStatic(GetSecurityRulesResponse.class);
+        BDDMockito.when(GetSecurityRulesResponse.fromJson(Mockito.anyString()))
+                .thenReturn(securityRulesResponseMock);
+
+        Mockito.doReturn(SecurityRule.Protocol.ANY).when(plugin).defineRuleProtocol(Mockito.any());
+
+        // exercise
+        List<SecurityRuleInstance> rules = plugin.getSecurityRulesFromJson(ANY_STRING);
+
+        // verify
+        Assert.assertEquals(testUtils.FAKE_INSTANCE_ID, rules.get(0).getId());
+        PowerMockito.verifyStatic(GetSecurityRulesResponse.class);
+        GetSecurityRulesResponse.fromJson(Mockito.anyString());
+
+        Mockito.verify(securityRulesResponseMock, Mockito.times(testUtils.RUN_ONCE)).getSecurityRules();
     }
 
-//    //test case: Tests get security rule from json response
-//    @Test
-//    public void testGetSecurityRuleFromJson() throws Exception {
-//        //set up
-//        String id = "securityRuleId";
-//        String cidr = "0.0.0.0";
-//        int portFrom = 0;
-//        int portTo = 0;
-//        String direction = "egress";
-//        String etherType = "IPv4";
-//        String protocol = "tcp";
-//
-//        // Generating security rule response string
-//        JSONObject securityRuleContentJsonObject = generateJsonResponseForSecurityRules(id, cidr, portFrom, portTo,
-//                direction, etherType, protocol);
-//
-//        Mockito.doReturn(securityRuleContentJsonObject.toString()).when(this.clientMock).
-//                doGetRequest(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
-//        Mockito.doReturn(SECURITY_GROUP_ID).when(this.plugin).
-//                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3User.class));
-//
-//        //exercise
-//        List<SecurityRuleInstance> securityRuleInstances = this.plugin.getSecurityRules(majorOrder,
-//                this.cloudUser);
-//        SecurityRuleInstance securityRuleInstance = securityRuleInstances.get(0);
-//
-//        //verify
-//        Assert.assertEquals(id, securityRuleInstance.getId());
-//        Assert.assertEquals(cidr, securityRuleInstance.getCidr());
-//        Assert.assertEquals(portFrom, securityRuleInstance.getPortFrom());
-//        Assert.assertEquals(portTo, securityRuleInstance.getPortTo());
-//        Assert.assertEquals(direction, securityRuleInstance.getDirection().toString());
-//        Assert.assertEquals(etherType, securityRuleInstance.getEtherType().toString());
-//        Assert.assertEquals(protocol, securityRuleInstance.getProtocol().toString());
-//    }
-//
-//    //test case: Tests remove security rule
-//    @Test
-//    public void testRemoveInstance() throws IOException, JSONException, FogbowException {
-//        //set up
-//        String suffixEndpointSecurityRules = OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" +
-//                SECURITY_RULE_ID;
-//
-//        Mockito.doNothing().when(this.clientMock).doDeleteRequest(
-//                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.cloudUser));
-//
-//        //exercise
-//        this.plugin.deleteSecurityRule(SECURITY_RULE_ID, this.cloudUser);
-//
-//        //verify
-//        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE)).doDeleteRequest(
-//                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.cloudUser));
-//    }
-//
-//
-//    private JSONObject generateJsonResponseForSecurityRules(String securityGroupId, String cidr, int portFrom, int portTo,
-//                                                            String direction, String etherType, String protocol) {
-//        JSONObject securityRuleContentJsonObject = new JSONObject();
-//
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.ID_KEY_JSON, securityGroupId);
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON, cidr);
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.MAX_PORT_KEY_JSON, portTo);
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.MIN_PORT_KEY_JSON, portFrom);
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.DIRECTION_KEY_JSON, direction);
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.ETHER_TYPE_KEY_JSON, etherType);
-//        securityRuleContentJsonObject.put(OpenStackConstants.Network.PROTOCOL_KEY_JSON, protocol);
-//
-//        JSONArray securityRulesJsonArray = new JSONArray();
-//        securityRulesJsonArray.add(securityRuleContentJsonObject);
-//
-//        JSONObject securityRulesContentJsonObject = new JSONObject();
-//        securityRulesContentJsonObject.put(OpenStackConstants.Network.SECURITY_GROUP_RULES_KEY_JSON,
-//                securityRulesJsonArray);
-//
-//        return securityRulesContentJsonObject;
-//    }
+    // test case: when given securityRules with protocols set, it should the Protocol value
+    @Test
+    public void testDefineRuleProtocolSuccessful() throws FogbowException {
+        // setup
+        GetSecurityRulesResponse.SecurityRules tcpSecurityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_TCP);
+        GetSecurityRulesResponse.SecurityRules udpSecurityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_UDP);
+        GetSecurityRulesResponse.SecurityRules icmpSecurityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_ICMP);
+        GetSecurityRulesResponse.SecurityRules anySecurityRule = createMockedSecurityRulesWithProtocol(null);
+
+        // exercise
+        SecurityRule.Protocol tcpProtocol = plugin.defineRuleProtocol(tcpSecurityRule);
+        SecurityRule.Protocol udpProtocol = plugin.defineRuleProtocol(udpSecurityRule);
+        SecurityRule.Protocol icmpProtocol = plugin.defineRuleProtocol(icmpSecurityRule);
+        SecurityRule.Protocol anyProtocol = plugin.defineRuleProtocol(anySecurityRule);
+
+        // verify
+        Assert.assertEquals(SecurityRule.Protocol.TCP, tcpProtocol);
+        Assert.assertEquals(SecurityRule.Protocol.UDP, udpProtocol);
+        Assert.assertEquals(SecurityRule.Protocol.ICMP, icmpProtocol);
+        Assert.assertEquals(SecurityRule.Protocol.ANY, anyProtocol);
+    }
+
+    // test case: when given an unsupported protocol, it should throw an exception
+    @Test(expected = FogbowException.class)
+    public void testDefineRuleProtocolUnsuccessful() throws FogbowException {
+        // setup
+        String nonExistingProtocol = "its-very-unlikelly-that-this-protocol-is-gonna-exist";
+        GetSecurityRulesResponse.SecurityRules tcpSecurityRule = createMockedSecurityRulesWithProtocol(nonExistingProtocol);
+
+        // verify
+        plugin.defineRuleProtocol(tcpSecurityRule);
+        Assert.fail();
+    }
 
     private GetSecurityGroupsResponse createMockedSecurityGroupList(List<String> groupIds) {
         GetSecurityGroupsResponse response = Mockito.mock(GetSecurityGroupsResponse.class);
@@ -497,8 +476,22 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         return new SecurityRule(SecurityRule.Direction.OUT, 0, 0, "0.0.0.0/0 ", SecurityRule.EtherType.IPv4, SecurityRule.Protocol.TCP);
     }
 
-    private List<GetSecurityRulesResponse.SecurityRules> getSecurityRulesMock() {
+    private GetSecurityRulesResponse createSecurityRulesResponseMock() {
+        GetSecurityRulesResponse.SecurityRules securityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_TCP);
 
+        List<GetSecurityRulesResponse.SecurityRules> securityRules = new ArrayList<>();
+        securityRules.add(securityRule);
+
+        GetSecurityRulesResponse response = Mockito.mock(GetSecurityRulesResponse.class);
+        Mockito.when(response.getSecurityRules()).thenReturn(securityRules);
+
+        return response;
+    }
+
+    private GetSecurityRulesResponse.SecurityRules createMockedSecurityRulesWithProtocol(String protocol) {
+        return createMockedSecurityRules(
+                testUtils.FAKE_INSTANCE_ID, INGRESS_TRAFFIC, FAKE_PORT_FROM, FAKE_PORT_TO,
+                testUtils.FAKE_CIDR, FAKE_ETHERTYPE, protocol);
     }
 
     private GetSecurityRulesResponse.SecurityRules createMockedSecurityRules(String id, String direction,

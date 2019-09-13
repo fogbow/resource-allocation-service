@@ -45,6 +45,7 @@ public class TestUtils {
     public static final String DEFAULT_CLOUD_NAME = "default";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
+    public static final String FAKE_CIDR = "10.0.0.19/8";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
     public static final String FAKE_GATEWAY = "fake-gateway";
