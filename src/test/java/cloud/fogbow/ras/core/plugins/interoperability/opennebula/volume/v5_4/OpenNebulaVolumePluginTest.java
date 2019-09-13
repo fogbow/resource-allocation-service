@@ -42,7 +42,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 
 	@Before
 	public void setUp() throws FogbowException {
-	    super.setUp();
+		super.setUp();
 
 		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin(this.openNebulaConfFilePath));
 		this.volumeOrder = this.createVolumeOrder();
@@ -59,11 +59,11 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		// set up
 		String cloudState = OpenNebulaStateMapper.DEFAULT_READY_STATE;
 
-        // exercise
-        boolean status = this.plugin.isReady(cloudState);
+		// exercise
+		boolean status = this.plugin.isReady(cloudState);
 
-        // verify
-        Assert.assertTrue(status);
+		// verify
+		Assert.assertTrue(status);
 	}
 
 	// test case: When calling the isReady method with the cloud states ERROR, this
@@ -121,8 +121,8 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testRequestInstance() throws FogbowException {
 		// set up
-        Mockito.doReturn(STRING_VALUE_ONE).when(this.plugin).doRequestInstance(
-        		Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
+		Mockito.doReturn(STRING_VALUE_ONE).when(this.plugin).doRequestInstance(
+				Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
 
 		// exercise
 		String volumeId = this.plugin.requestInstance(this.volumeOrder, this.cloudUser);
@@ -148,7 +148,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		Mockito.doReturn(datastoreId).when(this.plugin).getDataStoreId(Mockito.any(Client.class), Mockito.anyLong());
 
 		// exercise
-        this.plugin.doRequestInstance(createVolumeRequest, this.client);
+		this.plugin.doRequestInstance(createVolumeRequest, this.client);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -168,11 +168,11 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		Mockito.doReturn(null).when(this.plugin).getDataStoreId(Mockito.any(Client.class), Mockito.anyLong());
 
 		// exercise
-        try {
+		try {
 			this.plugin.doRequestInstance(createVolumeRequest, this.client);
 			Assert.fail();
 		} catch (NoAvailableResourcesException e) {
-        	Assert.assertEquals(e.getMessage(), "No available resources.");
+			Assert.assertEquals(e.getMessage(), "No available resources.");
 		}
 
 		// verify
@@ -218,7 +218,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetInstance() throws FogbowException {
 		// set up
-        Mockito.when(this.image.xpath(OpenNebulaConstants.SIZE)).thenReturn(DISK_VALUE_30GB);
+		Mockito.when(this.image.xpath(OpenNebulaConstants.SIZE)).thenReturn(DISK_VALUE_30GB);
 		Mockito.doReturn(this.image).when(this.plugin).doGetInstance(Mockito.any(Client.class), Mockito.anyString());
 		Mockito.doReturn(this.volumeOrder.getVolumeSize()).when(this.plugin).getImageSize(Mockito.anyString());
 
@@ -265,11 +265,11 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		Mockito.when(imagePool.getById(Mockito.anyInt())).thenReturn(null);
 
 		// exercise
-        try {
+		try {
 			this.plugin.doGetInstance(this.client, this.volumeOrder.getInstanceId());
 			Assert.fail();
 		} catch (InstanceNotFoundException e) {
-        	Assert.assertEquals(e.getMessage(), "Instance not found.");
+			Assert.assertEquals(e.getMessage(), "Instance not found.");
 		}
 
 		// verify
@@ -286,9 +286,9 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		int expectedImageSizeInGb = 30;
 
 		// exercise
-        int imageSize = this.plugin.getImageSize(DISK_VALUE_30GB);
+		int imageSize = this.plugin.getImageSize(DISK_VALUE_30GB);
 
-        // verify
+		// verify
 		Assert.assertEquals(expectedImageSizeInGb, imageSize);
 	}
 
@@ -298,13 +298,13 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testDeleteInstance() throws FogbowException {
 		// set up
-        OneResponse response = Mockito.mock(OneResponse.class);
+		OneResponse response = Mockito.mock(OneResponse.class);
 
-        Mockito.doReturn(this.image).when(this.plugin).doGetInstance(Mockito.any(Client.class), Mockito.anyString());
-        Mockito.when(this.image.delete()).thenReturn(response);
-        Mockito.when(response.isError()).thenReturn(false);
+		Mockito.doReturn(this.image).when(this.plugin).doGetInstance(Mockito.any(Client.class), Mockito.anyString());
+		Mockito.when(this.image.delete()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
 
-        // exercise
+		// exercise
 		this.plugin.deleteInstance(this.volumeOrder, this.cloudUser);
 
 		// verify
@@ -360,10 +360,10 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 				+ "</IMAGE>\n";
 		return template;
 	}
-	
+
 	private VolumeOrder createVolumeOrder() {
-	    VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
-	    volumeOrder.setInstanceId(STRING_VALUE_ONE);
+		VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+		volumeOrder.setInstanceId(STRING_VALUE_ONE);
 		SharedOrderHolders.getInstance().getActiveOrdersMap().put(volumeOrder.getId(), volumeOrder);
 
 		return volumeOrder;

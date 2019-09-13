@@ -29,19 +29,19 @@ import javax.annotation.Nullable;
 
 public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
-    private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
-    
-    protected static final String BLOCK_DISK_TYPE = "BLOCK";
-    protected static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
-    protected static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
-    protected static final String FILE_SYSTEM_TYPE_RAW = "raw";
-    protected static final String PERSISTENT_DISK_CONFIRMATION = "YES";
+	private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
+
+	protected static final String BLOCK_DISK_TYPE = "BLOCK";
+	protected static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
+	protected static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
+	protected static final String FILE_SYSTEM_TYPE_RAW = "raw";
+	protected static final String PERSISTENT_DISK_CONFIRMATION = "YES";
 	protected static final int CONVERT_DISK = 1024;
 
 	protected static final String DATASTORE_FREE_PATH_FORMAT = "//DATASTORE[%s]/FREE_MB";
 	protected static final String IMAGE_TYPE = "IMAGE";
 
-    private String endpoint;
+	private String endpoint;
 
 	public OpenNebulaVolumePlugin(String confFilePath) throws FatalErrorException {
 		this.endpoint = PropertiesUtil.readProperties(confFilePath)
@@ -70,7 +70,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		String diskType = BLOCK_DISK_TYPE;
 		String devicePrefix = DEFAULT_DATASTORE_DEVICE_PREFIX;
 		long size = volumeOrder.getVolumeSize() * CONVERT_DISK;
-		
+
 		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
 				.name(name)
 				.size(size)
@@ -109,7 +109,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	protected String doRequestInstance(CreateVolumeRequest createVolumeRequest, Client client)
 			throws NoAvailableResourcesException, UnexpectedException, InvalidParameterException {
-	    VolumeImage volumeImage = createVolumeRequest.getVolumeImage();
+		VolumeImage volumeImage = createVolumeRequest.getVolumeImage();
 
 		String template = volumeImage.marshalTemplate();
 		Integer datastoreId = this.getDataStoreId(client, volumeImage.getSize());
@@ -157,7 +157,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	protected int getImageSize(String size) {
-	    int imageSize = 0;
+		int imageSize = 0;
 		try {
 			imageSize = Integer.parseInt(size) / CONVERT_DISK;
 		} catch (NumberFormatException e) {
@@ -168,6 +168,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	protected String getRandomUUID() {
-        return UUID.randomUUID().toString();
-    }
+		return UUID.randomUUID().toString();
+	}
 }
