@@ -58,6 +58,7 @@ public class Messages {
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
+        public static final String UNABLE_TO_RETRIEVE_SECURITY_GROUP_ID = "Unable to retrieve security group id from json %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -132,12 +133,14 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
         public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
+        public static final String ERROR_WHILE_CREATING_RESOURCE_S = "Error while creating %s.";
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting disk size.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
+        public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = "Error while getting %s from the cloud.";
         public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
