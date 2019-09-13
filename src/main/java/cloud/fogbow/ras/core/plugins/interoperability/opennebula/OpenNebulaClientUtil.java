@@ -6,11 +6,13 @@ import org.opennebula.client.ClientConfigurationException;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.Pool;
 import org.opennebula.client.PoolElement;
+import org.opennebula.client.datastore.DatastorePool;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.secgroup.SecurityGroup;
+import org.opennebula.client.secgroup.SecurityGroupPool;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
@@ -35,12 +37,19 @@ public class OpenNebulaClientUtil {
 	protected static final String RESPONSE_DONE = "DONE";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 	protected static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
+
+	public static Client instance;
 	
 	private static final int CHMOD_PERMISSION_744 = 744;
 	
 	public static Client createClient(String endpoint, String tokenValue) throws UnexpectedException {
 		try {
-			return new Client(tokenValue, endpoint);
+			synchronized (Client.class) {
+				if (instance == null) {
+					instance = new Client(tokenValue, endpoint);
+				}
+				return instance;
+			}
 		} catch (ClientConfigurationException e) {
 			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
 			throw new UnexpectedException();
@@ -87,10 +96,21 @@ public class OpenNebulaClientUtil {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
 			throw new UnexpectedException(response.getErrorMessage());
 		}
-		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, imagePool.getLength()));
 		return imagePool;
 	}
-	
+
+	public static DatastorePool getDatastorePool(Client client) throws UnexpectedException {
+		DatastorePool datastorePool = (DatastorePool) generateOnePool(client, DatastorePool.class);
+		OneResponse response = datastorePool.info();
+
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+		}
+
+		return datastorePool;
+	}
+
 	public static VirtualMachine getVirtualMachine(Client client, String virtualMachineId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -137,7 +157,6 @@ public class OpenNebulaClientUtil {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
 			throw new UnexpectedException(response.getErrorMessage());
 		}
-		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, templatePool.getLength()));
 		return templatePool;
 	}
 
@@ -148,7 +167,6 @@ public class OpenNebulaClientUtil {
  			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USERS, response.getErrorMessage()));
 			throw new UnexpectedException(response.getErrorMessage());
  		}
- 		LOGGER.info(String.format(Messages.Info.USER_POOL_LENGTH, userpool.getLength()));
 		return userpool;
 	}
 
@@ -307,8 +325,10 @@ public class OpenNebulaClientUtil {
             return new ImagePool(client);
         } else if (classType.isAssignableFrom(UserPool.class)) {
 		    return new UserPool(client);
-        }
+        } else if (classType.isAssignableFrom(DatastorePool.class)) {
+			return new DatastorePool(client);
+		}
+
 		return null;
 	}
-	
 }

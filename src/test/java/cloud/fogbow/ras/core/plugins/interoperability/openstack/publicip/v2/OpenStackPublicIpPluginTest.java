@@ -47,9 +47,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.Remov
 })
 public class OpenStackPublicIpPluginTest extends BaseUnitTests {
 
-	private OpenStackPublicIpPlugin plugin;
-	private OpenStackHttpClient client;
-
 	private static final String EMPTY_PORTS_FROM_JSON_RESPONSE = "{\"ports\":[]}";
 	private static final String EMPTY_SECURITY_GROUP_FROM_JSON_RESPONSE = "{\"security_groups\":[]}";
 	private static final String FAKE_CREATE_FLOATING_IP_FROM_JSON_RESPONSE = "{\"floatingip\":{\"id\":\"fake-instance-id\"}}";
@@ -65,6 +62,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     private static final String COMPUTE_PREFIX_ENDPOINT = "https://mycloud.domain:8774";
     
     private static final int RUN_TWICE = 2;
+    
+    private OpenStackPublicIpPlugin plugin;
+    private OpenStackHttpClient client;
     
     @Before
     public void setUp() throws Exception {

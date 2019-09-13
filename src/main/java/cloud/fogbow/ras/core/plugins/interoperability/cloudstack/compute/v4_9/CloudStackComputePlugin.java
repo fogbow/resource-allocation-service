@@ -97,7 +97,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         String instanceName = computeOrder.getName();
-        if (instanceName == null) instanceName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
 
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOffering.getId())
