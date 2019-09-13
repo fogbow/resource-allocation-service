@@ -147,7 +147,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.doNothing().when(this.plugin).updateHardwareRequirements(Mockito.eq(cloudUser));
 
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
-        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.eq(order), Mockito.eq(this.client));
+        Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
 
         // exercise
         this.plugin.getInstance(order, cloudUser);
@@ -158,7 +158,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .updateHardwareRequirements(Mockito.eq(cloudUser));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(order),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(order.getInstanceId()),
                 Mockito.eq(this.client));
     }
 	
@@ -294,11 +294,11 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     @Test
     public void testDoGetInstance() throws FogbowException {
         // set up
-        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
 
         DescribeInstancesResponse response = buildInstanceResponse();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client)))
+        Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.eq(instanceId), Mockito.eq(this.client)))
                 .thenReturn(response);
 
         Instance instance = buildInstance();
@@ -313,11 +313,11 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 Mockito.eq(volumes));
 
         // exercise
-        this.plugin.doGetInstance(order, this.client);
+        this.plugin.doGetInstance(instanceId, this.client);
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.describeInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+        AwsV2CloudUtil.describeInstance(Mockito.eq(instanceId), Mockito.eq(this.client));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.getInstanceReservation(Mockito.eq(response));

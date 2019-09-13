@@ -115,7 +115,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         updateHardwareRequirements(cloudUser);
-        return doGetInstance(computeOrder, client);
+        String instanceId = computeOrder.getInstanceId();
+        return doGetInstance(instanceId, client);
     }
 
     @Override
@@ -149,9 +150,9 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
 	
-    protected ComputeInstance doGetInstance(ComputeOrder order, Ec2Client client) throws FogbowException {
-        DescribeInstancesResponse instancesResponse = AwsV2CloudUtil.describeInstance(order.getInstanceId(), client);
-        Instance instance = AwsV2CloudUtil.getInstanceReservation(instancesResponse);
+    protected ComputeInstance doGetInstance(String instanceId, Ec2Client client) throws FogbowException {
+        DescribeInstancesResponse response = AwsV2CloudUtil.describeInstance(instanceId, client);
+        Instance instance = AwsV2CloudUtil.getInstanceReservation(response);
         List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
         return buildComputeInstance(instance, volumes);
     }
