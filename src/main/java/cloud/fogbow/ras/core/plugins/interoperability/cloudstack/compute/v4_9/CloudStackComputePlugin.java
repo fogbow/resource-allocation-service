@@ -25,6 +25,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandG
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -121,7 +122,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String jsonResponse = null;
         DeployVirtualMachineResponse response = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
 
             synchronized (computeOrder) {
                 ComputeAllocation actualAllocation = new ComputeAllocation(
@@ -153,7 +154,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String jsonResponse = null;
         GetVirtualMachineResponse computeResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
             computeResponse = GetVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
@@ -177,7 +178,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         try {
-            this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            doGet(request.getUriBuilder().toString(), cloudUser);
             LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, order.getInstanceId(), cloudUser.getToken()));
         } catch (HttpResponseException e) {
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, order.getInstanceId()), e);
@@ -240,7 +241,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -278,7 +279,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -348,7 +349,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
@@ -361,6 +362,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             return convertBytesToGigabyte(sizeInBytes);
         } else {
             throw new InstanceNotFoundException();
+        }
+    }
+
+    @VisibleForTesting
+    String doGet(String url, CloudStackUser cloudUser) throws HttpResponseException {
+        try {
+            return this.client.doGetRequest(url, cloudUser);
+        } catch (FogbowException e) {
+            throw  new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
