@@ -119,6 +119,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        DeployVirtualMachineResponse response = null;
         try {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
 
@@ -130,11 +131,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                         diskOffering.getDiskSize());
                 computeOrder.setActualAllocation(actualAllocation);
             }
+
+            response = DeployVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        DeployVirtualMachineResponse response = DeployVirtualMachineResponse.fromJson(jsonResponse);
         return response.getId();
     }
 
@@ -149,13 +151,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        GetVirtualMachineResponse computeResponse = null;
         try {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            computeResponse = GetVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetVirtualMachineResponse computeResponse = GetVirtualMachineResponse.fromJson(jsonResponse);
         List<GetVirtualMachineResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
         if (vms != null) {
             return getComputeInstance(vms.get(0), cloudUser);

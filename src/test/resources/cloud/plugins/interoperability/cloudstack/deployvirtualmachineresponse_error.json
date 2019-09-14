@@ -1,0 +1,6 @@
+{
+  "deployvirtualmachineresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

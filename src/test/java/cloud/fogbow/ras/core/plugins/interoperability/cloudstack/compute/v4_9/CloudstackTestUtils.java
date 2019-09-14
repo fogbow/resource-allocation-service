@@ -16,9 +16,12 @@ public class CloudstackTestUtils {
     private static final String LIST_DISK_OFFERINGS_RESPONSE = "listdiskofferingsresponse.json";
     private static final String LIST_DISK_OFFERINGS_EMPTY_RESPONSE = "listdiskofferingsresponse_empty.json";
     private static final String DEPLOY_VIRTUAL_MACHINE_RESPONSE = "deployvirtualmachineresponse.json";
+    private static final String DEPLOY_VIRTUAL_MACHINE_ERROR_RESPONSE = "deployvirtualmachineresponse_error.json";
     private static final String LIST_VIRTUAL_MACHINE_RESPONSE = "listvirtualmachinesresponse.json";
     private static final String LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE =
             "listvirtualmachinesresponse_empty.json";
+    private static final String LIST_VIRTUAL_MACHINE_ERROR_RESPONSE =
+            "listvirtualmachinesresponse_error.json";
     private static final String NIC_VIRTUAL_MACHINE_RESPONSE = "nic.json";
     private static final String LIST_VOLUMES_RESPONSE = "listvolumesresponse.json";
     private static final String LIST_VOLUMES_EMPRY_RESPONSE = "listvolumesresponse_empty.json";
@@ -67,6 +70,15 @@ public class CloudstackTestUtils {
         return String.format(rawJson, id);
     }
 
+    static String createDeployVirtualMachineErrorResponseJson(
+            int errorCode, String errorText) throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DEPLOY_VIRTUAL_MACHINE_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
     static String createEmptyGetVolumesResponseJson() throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_EMPRY_RESPONSE);
 
@@ -107,6 +119,15 @@ public class CloudstackTestUtils {
                 + LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE);
 
         return String.format(rawJson);
+    }
+
+    static String createGetVirtualMachineErrorResponseJson(
+            int errorCode, String errorText) throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_VIRTUAL_MACHINE_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
     }
 
     static String createNicJson(String idAddress) throws IOException {
