@@ -969,6 +969,24 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(Mockito.anyString(), CLOUD_STACK_USER);
     }
 
+    // test case: execute the doGet and a Fogbow Exception is throw
+    @Test
+    public void testDoGetFogbowError() throws FogbowException, HttpResponseException {
+        // set up
+        String url = "anyUrl";
+        String exceptionMessage = "anyMessage";
+        Mockito.when(this.client.doGetRequest(
+                Mockito.eq(url), Mockito.any(CloudStackUser.class)))
+                .thenThrow(new FogbowException(exceptionMessage));
+
+        // verify
+        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expectMessage(exceptionMessage);
+
+        // exercise
+        this.plugin.doGet(url, CLOUD_STACK_USER);
+    }
+
     private String getVirtualMachineResponse(String id, String name, String state,
             int cpunumber, int memory, String ipaddress) throws IOException {
 
