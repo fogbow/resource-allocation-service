@@ -1,10 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.io.IOException;
 
 public class GetVolumeResponseTest {
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     // test case: create GetVolumeResponse from Cloudstack Json Response
     @Test
@@ -43,4 +52,20 @@ public class GetVolumeResponseTest {
         Assert.assertTrue(getVolumeResponse.getVolumes().isEmpty());
     }
 
+    // test case: create GetVolumeResponse from error Cloudstack Json Response
+    @Test
+    public void testGetVolumeErrorResponseJson() throws IOException {
+        // set up
+        String errorText = "anyString";
+        int errorCode = HttpStatus.SC_BAD_REQUEST;
+        String volumesErrorResponseJson = CloudstackTestUtils
+                .createGetVolumesErrorResponseJson(errorCode, errorText);
+
+        // verify
+        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expectMessage(errorText);
+
+        // execute
+        GetVolumeResponse.fromJson(volumesErrorResponseJson);
+    }
 }

@@ -1,10 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.FogbowException;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.io.IOException;
 
 public class GetAllServiceOfferingsResponseTest {
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     // test case: create GetAllServiceOfferingsResponse from Cloudstack Json Response
     @Test
@@ -47,13 +55,20 @@ public class GetAllServiceOfferingsResponseTest {
         Assert.assertTrue(getAllServiceOfferingsResponse.getServiceOfferings().isEmpty());
     }
 
-    // test case: create GetAllServiceOfferingsResponse from unexpected Cloudstack Json Response
-    @Test(expected = FogbowException.class)
-    public void testGetAllServiceOfferingsResponseUnexpectedJson() throws FogbowException {
+    // test case: create GetAllServiceOfferingsResponse from error Cloudstack Json Response
+    @Test
+    public void testGetAllServiceOfferingsResponseUnexpectedJson() throws IOException {
         // set up
-        String unexpectedJsonResponse = "{}";
+        String errorText = "anyString";
+        int errorCode = HttpStatus.SC_BAD_REQUEST;
+        String getAllServiceOfferingsResponseJson = CloudstackTestUtils
+                .createGetAllServiceOfferingsErrotResponseJson(errorCode, errorText);
 
-        // execute and verify
-        GetAllServiceOfferingsResponse.fromJson(unexpectedJsonResponse);
+        // verify
+        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expectMessage(errorText);
+
+        // execute
+        GetAllServiceOfferingsResponse.fromJson(getAllServiceOfferingsResponseJson);
     }
 }

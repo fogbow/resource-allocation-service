@@ -28,7 +28,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -240,13 +239,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse = null;
         try {
             jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
+            getAllServiceOfferingsResponse = GetAllServiceOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
+        return getAllServiceOfferingsResponse;
     }
 
     @Nullable
@@ -278,13 +279,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = null;
         try {
             jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
+            getAllDiskOfferingsResponse = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+        return getAllDiskOfferingsResponse;
     }
 
     @VisibleForTesting
@@ -348,13 +351,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        GetVolumeResponse volumeResponse = null;
         try {
             jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
+            volumeResponse = GetVolumeResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetVolumeResponse volumeResponse = GetVolumeResponse.fromJson(jsonResponse);
         List<GetVolumeResponse.Volume> volumes = volumeResponse.getVolumes();
         if (volumes != null) {
             GetVolumeResponse.Volume volume = volumes.get(0);

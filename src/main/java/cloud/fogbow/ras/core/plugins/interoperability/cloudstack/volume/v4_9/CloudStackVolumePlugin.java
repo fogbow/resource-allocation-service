@@ -85,15 +85,15 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        GetVolumeResponse response = null;
         try {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            response = GetVolumeResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
         List<GetVolumeResponse.Volume> volumes = response.getVolumes();
-
         if (volumes != null && volumes.size() > 0) {
             // since an id were specified, there should be no more than one volume in the response
             return loadInstance(volumes.get(FIRST_ELEMENT_POSITION));
@@ -132,13 +132,14 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String jsonResponse = null;
+        GetAllDiskOfferingsResponse response = null;
         try {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = response.getDiskOfferings();
         List<GetAllDiskOfferingsResponse.DiskOffering> toRemove = new ArrayList<>();
 

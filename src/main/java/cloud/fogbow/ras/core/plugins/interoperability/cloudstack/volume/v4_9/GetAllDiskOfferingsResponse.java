@@ -1,8 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
-import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
 
@@ -27,28 +28,23 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
  */
 public class GetAllDiskOfferingsResponse {
 
-    static final String UNEXPECTED_RESPONSE = "Unexpected AllServiceOfferingsResponse response.";
-
     @SerializedName(DISK_OFFERINGS_KEY_JSON)
-    private ListDiskOfferingsResponse response;
-
-    public class ListDiskOfferingsResponse {
-        @SerializedName(DISK_OFFERING_KEY_JSON)
-        private List<DiskOffering> diskOfferings;
-    }
+    private ListDiskOfferingsResponse listDiskOfferingsResponse;
 
     public List<DiskOffering> getDiskOfferings() {
-        return this.response.diskOfferings;
+        return this.listDiskOfferingsResponse.diskOfferings;
     }
 
-    public static GetAllDiskOfferingsResponse fromJson(String json) throws FogbowException {
+    public static GetAllDiskOfferingsResponse fromJson(String json) throws HttpResponseException {
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = GsonHolder.getInstance().
                 fromJson(json, GetAllDiskOfferingsResponse.class);
-
-        if (getAllDiskOfferingsResponse.response == null) {
-            throw new FogbowException(UNEXPECTED_RESPONSE);
-        }
+        getAllDiskOfferingsResponse.listDiskOfferingsResponse.checkErrorExistence();
         return getAllDiskOfferingsResponse;
+    }
+
+    public class ListDiskOfferingsResponse extends CloudStackErrorResponse {
+        @SerializedName(DISK_OFFERING_KEY_JSON)
+        private List<DiskOffering> diskOfferings;
     }
 
     public class DiskOffering {
