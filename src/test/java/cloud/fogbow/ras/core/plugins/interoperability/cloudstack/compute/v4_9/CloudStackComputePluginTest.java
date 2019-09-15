@@ -48,27 +48,25 @@ import java.util.*;
         DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class})
 public class CloudStackComputePluginTest {
 
-    private static final String BAD_REQUEST_MSG = "BAD Request";
-
-    public static final String FAKE_ID = "fake-id";
-    public static final String FAKE_INSTANCE_NAME = "fake-name";
-    public static final String FAKE_CPU_NUMBER = "4";
-    public static final String FAKE_MEMORY = "2024";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
-    public static final String FAKE_DISK = "25";
-    public static final String FAKE_NETWORK_ID = "fake-network-id";
-    public static final String FAKE_MEMBER = "fake-member";
-    public static final String FAKE_PUBLIC_KEY = "fake-public-key";
-
+    private static final String BAD_REQUEST_MSG = "BAD Request";
+    private final int AMOUNT_EXTRA_SERVICE_OFFERING = 4;
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-name";
     private static final String FAKE_ID_PROVIDER = "fake-id-provider";
     private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-
-    public static final CloudStackUser CLOUD_STACK_USER =  new CloudStackUser(
+    private static final String FAKE_ID = "fake-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-name";
+    private static final String FAKE_CPU_NUMBER = "4";
+    private static final String FAKE_MEMORY = "2024";
+    private static final String FAKE_DISK = "25";
+    private static final String FAKE_NETWORK_ID = "fake-network-id";
+    private static final String FAKE_MEMBER = "fake-member";
+    private static final String FAKE_PUBLIC_KEY = "fake-public-key";
+    private static final CloudStackUser CLOUD_STACK_USER =  new CloudStackUser(
             FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
-    public static final String CLOUD_NAME = "cloudstack";
+    private static final String CLOUD_NAME = "cloudstack";
 
     private CloudStackComputePlugin plugin;
     private CloudStackHttpClient client;
@@ -78,7 +76,7 @@ public class CloudStackComputePluginTest {
     private String defaultNetworkId;
 
     @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    private ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -318,9 +316,7 @@ public class CloudStackComputePluginTest {
     public void testGetServiceOfferingWithRequirements() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        ComputeOrder computeOrder = createComputeOrder(
-                new ArrayList<UserData>(), "fake-image-id");
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
         Map<String, String> requirements = new HashMap<>();
         String tagRequirement = "tag00";
         String valueRequirement = "value00";
@@ -330,14 +326,15 @@ public class CloudStackComputePluginTest {
                 CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR +
                 valueRequirement;
 
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
+                createServicesOfferingObjects(Integer.parseInt(FAKE_MEMORY),
+                        Integer.parseInt(FAKE_CPU_NUMBER));
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOfferingExpected =
+                new GetAllServiceOfferingsResponse().new ServiceOffering("idServiceOffering",
+                        Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), tagExpected);
+        servicesOfferingExpected.add(serviceOfferingExpected);
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
                 Mockito.mock(GetAllServiceOfferingsResponse.class);
-
-        int amoutExtraServicesOffering = 5;
-        String idServiceOfferingExpected = "idServiceOfferingExpected";
-        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
-                createServicesOfferingObjects(idServiceOfferingExpected,
-                        tagExpected, amoutExtraServicesOffering);
         Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
                 .thenReturn(servicesOfferingExpected);
         Mockito.doReturn(getAllServiceOfferingsResponse)
@@ -348,26 +345,24 @@ public class CloudStackComputePluginTest {
                 this.plugin.getServiceOffering(computeOrder, cloudStackUser);
 
         // verify
-        Assert.assertEquals(servicesOfferingExpected.get(0), serviceOffering);
+        Assert.assertEquals(serviceOfferingExpected, serviceOffering);
     }
 
-    // TODO(chico) - review
-    // test case: get service offering successfuly without use requirements
+    // test case: get service offering successfully without using requirements
     @Test
     public void testGetServiceOfferingWithoutRequirements() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        ComputeOrder computeOrder = createComputeOrder(
-                new ArrayList<UserData>(), "fake-image-id");
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
                 Mockito.mock(GetAllServiceOfferingsResponse.class);
 
-        int amoutExtraServicesOffering = 5;
         String idServiceOfferingExpected = "idServiceOfferingExpected";
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
-                createServicesOfferingObjects(idServiceOfferingExpected, "", amoutExtraServicesOffering);
+                createServicesOfferingObjects(Integer.parseInt(FAKE_MEMORY), Integer.parseInt(FAKE_CPU_NUMBER));
+        servicesOfferingExpected.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
+                idServiceOfferingExpected, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), ""));
         Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
                 .thenReturn(servicesOfferingExpected);
         Mockito.doReturn(getAllServiceOfferingsResponse)
@@ -381,7 +376,6 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(servicesOfferingExpected.get(0), serviceOffering);
     }
 
-    // TODO(chico) - review
     // test case: get service offering and return null because there are not services offerings in the cloud
     @Test
     public void testGetServiceOfferingAndEmptyServicesOffering() throws FogbowException {
@@ -407,6 +401,39 @@ public class CloudStackComputePluginTest {
         // verify
         Assert.assertNull(serviceOffering);
     }
+
+    // test case: get service offering and return null because the resources don't match
+    @Test
+    public void testGetServiceOfferingNoMatchServicesOffering() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+
+        ComputeOrder computeOrder = createComputeOrder(
+                new ArrayList<UserData>(), "fake-image-id");
+
+        final int EXCEEDED_VALUE = 1;
+        int overMemory = Integer.parseInt(FAKE_CPU_NUMBER) + EXCEEDED_VALUE;
+        int overCpu = Integer.parseInt(FAKE_MEMORY) + EXCEEDED_VALUE;
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
+                createServicesOfferingObjects(overMemory, overCpu);
+        servicesOfferingExpected.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
+                "anyId", overCpu, overMemory, "anyTag"));
+
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                Mockito.mock(GetAllServiceOfferingsResponse.class);
+        Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
+                .thenReturn(servicesOfferingExpected);
+        Mockito.doReturn(getAllServiceOfferingsResponse)
+                .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
+
+        // exercise
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
+
+        // verify
+        Assert.assertNull(serviceOffering);
+    }
+
 
     // test case: get service offering and return null because services offering comes null
     @Test
@@ -991,25 +1018,17 @@ public class CloudStackComputePluginTest {
     }
 
     private List<GetAllServiceOfferingsResponse.ServiceOffering> createServicesOfferingObjects(
-            String idServiceOfferingToTest, String tagServiceOffetingToTest, int amoutExtraServicesOffering) {
+            int memory, int cpu) {
 
-        if (amoutExtraServicesOffering < 0) {
-            throw new IllegalArgumentException("Value not allowed");
-        }
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering = new ArrayList<>();
-        servicesOffering.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
-                idServiceOfferingToTest, Integer.parseInt(FAKE_CPU_NUMBER),
-                Integer.parseInt(FAKE_MEMORY), tagServiceOffetingToTest));
 
-        for (int i = 0; i < amoutExtraServicesOffering; i++) {
+        for (int i = 0; i < AMOUNT_EXTRA_SERVICE_OFFERING; i++) {
             String randonId = UUID.randomUUID().toString();
             servicesOffering.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
-                    randonId, Integer.parseInt(FAKE_CPU_NUMBER),
-                    Integer.parseInt(FAKE_MEMORY), tagServiceOffetingToTest));
+                    randonId, cpu, memory, "anyTag"));
         }
 
-        int amoutExpected = amoutExtraServicesOffering + 1;
-        Assert.assertEquals(amoutExpected, servicesOffering.size());
+        Assert.assertEquals(AMOUNT_EXTRA_SERVICE_OFFERING, servicesOffering.size());
 
         return servicesOffering;
     }
