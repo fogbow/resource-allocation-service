@@ -7,12 +7,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -32,8 +30,12 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
+import software.amazon.awssdk.services.ec2.model.DeleteSubnetResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
@@ -42,36 +44,36 @@ import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsV2NetworkPluginTest extends BaseUnitTests {
 
-	private static final String ANY_VALUE = "anything";
-	private static final String CLOUD_NAME = "amazon";
-	private static final String DEFAULT_AVAILABILITY_ZONE = "sa-east-1a";
-	private static final String DEFAULT_CIDR_DESTINATION = "0.0.0.0/0";
-	private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
-	private static final String FAKE_GROUP_ID = "fake-group-id";
-	private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
-	private static final String FAKE_SUBNET_ID = "fake-subnet-id";
-	private static final String FAKE_VPC_ID = "fake-vpc-id";
+    private static final String ANY_VALUE = "anything";
+    private static final String CLOUD_NAME = "amazon";
+    private static final String DEFAULT_AVAILABILITY_ZONE = "sa-east-1a";
+    private static final String DEFAULT_CIDR_DESTINATION = "0.0.0.0/0";
+    private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
+    private static final String FAKE_GROUP_ID = "fake-group-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    private static final String FAKE_ROUTE_TABLE_ID = "fake-route-table-id";
+    private static final String FAKE_SUBNET_ID = "fake-subnet-id";
+    private static final String FAKE_VPC_ID = "fake-vpc-id";
 	
-	private AwsV2NetworkPlugin plugin;
-	private Ec2Client client;
+    private AwsV2NetworkPlugin plugin;
+    private Ec2Client client;
 
-	@Before
-	public void setUp() throws FogbowException {
-		this.testUtils.mockReadOrdersFromDataBase();
-	    String awsConfFilePath = HomeDir.getPath() 
-				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator 
-				+ CLOUD_NAME 
-				+ File.separator 
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+    @Before
+    public void setUp() throws FogbowException {
+        this.testUtils.mockReadOrdersFromDataBase();
+        String awsConfFilePath = HomeDir.getPath() 
+                + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+                + File.separator 
+                + CLOUD_NAME 
+                + File.separator 
+                + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-		this.plugin = Mockito.spy(new AwsV2NetworkPlugin(awsConfFilePath));
-		this.client = this.testUtils.getAwsMockedClient();
-	}
+        this.plugin = Mockito.spy(new AwsV2NetworkPlugin(awsConfFilePath));
+        this.client = this.testUtils.getAwsMockedClient();
+    }
 	
     // test case: When calling the requestInstance method, with a network order and
     // cloud user valid, a client is invoked to create a network instance, returning
@@ -150,50 +152,51 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
                 .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
     }
 	
-	// test case: When calling the isReady method with the cloud state AVAILABLE,
-	// this means that the state of network is READY and it must return true.
-	@Test
-	public void testIsReadySuccessful() {
-		// set up
-		String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
+    // test case: When calling the isReady method with the cloud state AVAILABLE,
+    // this means that the state of network is READY and it must return true.
+    @Test
+    public void testIsReady() {
+        // set up
+        String cloudState = AwsV2StateMapper.AVAILABLE_STATE;
 
-		// exercise
-		boolean status = this.plugin.isReady(cloudState);
+        // exercise
+        boolean status = this.plugin.isReady(cloudState);
 
-		// verify
-		Assert.assertTrue(status);
-	}
+        // verify
+        Assert.assertTrue(status);
+    }
 
-	// test case: When calling the isReady method with the cloud states different
-	// than AVAILABLE, this means that the state of compute is not READY and it must
-	// return false.
-	@Test
-	public void testIsReadyUnsuccessful() {
-		// set up
-		String[] cloudStates = { ANY_VALUE, AwsV2StateMapper.PENDING_STATE, AwsV2StateMapper.UNKNOWN_TO_SDK_VERSION_STATE };
+    // test case: When calling the isReady method with the cloud states different
+    // than AVAILABLE, this means that the state of compute is not READY and it must
+    // return false.
+    @Test
+    public void testIsNotReady() {
+        // set up
+        String[] cloudStates = { ANY_VALUE, AwsV2StateMapper.PENDING_STATE,
+                AwsV2StateMapper.UNKNOWN_TO_SDK_VERSION_STATE };
 
-		for (String cloudState : cloudStates) {
-			// exercise
-			boolean status = this.plugin.isReady(cloudState);
+        for (String cloudState : cloudStates) {
+            // exercise
+            boolean status = this.plugin.isReady(cloudState);
 
-			// verify
-			Assert.assertFalse(status);
-		}
-	}
+            // verify
+            Assert.assertFalse(status);
+        }
+    }
 		
-	// test case: Whenever you call the hasFailed method, no matter the value, it
-	// must return false.
-	@Test
-	public void testHasFailed() {
-		// set up
-		String cloudState = ANY_VALUE;
+    // test case: Whenever you call the hasFailed method, no matter the value, it
+    // must return false.
+    @Test
+    public void testHasFailed() {
+        // set up
+        String cloudState = ANY_VALUE;
 
-		// exercise
-		boolean status = this.plugin.hasFailed(cloudState);
+        // exercise
+        boolean status = this.plugin.hasFailed(cloudState);
 
-		// verify
-		Assert.assertFalse(status);
-	}
+        // verify
+        Assert.assertFalse(status);
+    }
 	
     // test case: When calling the doDeleteInstance method, it must verify
     // that is call was successful.
@@ -259,41 +262,6 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
             this.plugin.getGroupIdFrom(subnet);
             Assert.fail();
         } catch (Exception e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the doDescribeRouteTables method, it must verify
-    // that is call was successful.
-    @Test
-    public void testDoDescribeRouteTables() throws FogbowException {
-        // set up
-        DescribeRouteTablesResponse response = buildDescribeRouteTablesResponse();
-        Mockito.doReturn(response).when(this.client).describeRouteTables();
-        
-        // exercise
-        this.plugin.doDescribeRouteTables(this.client);
-        
-        // verify
-        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeRouteTables();
-    }
-    
-    // test case: When calling the doDescribeRouteTables method, and an unexpected error
-    // occurs, it must verify if an UnexpectedException has been thrown.
-    @Test
-    public void testDoDescribeRouteTablesFail() throws FogbowException {
-        // set up
-        SdkClientException exception = SdkClientException.builder().build();
-        Mockito.doThrow(SdkClientException.builder().build()).when(this.client).describeRouteTables();
-
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
-        
-        try {
-            // exercise
-            this.plugin.doDescribeRouteTables(this.client);
-            Assert.fail();
-        } catch (UnexpectedException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -513,6 +481,9 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.CREATE_SECURITY_GROUP_METHOD,
                 Mockito.eq(vpcId), Mockito.eq(groupName), Mockito.eq(descrition), Mockito.eq(this.client));
 
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD, Mockito.eq(subnetId),
+                Mockito.eq(tagKey), Mockito.eq(groupId), Mockito.eq(this.client));
+        
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
                 .cidrIp(cidr)
                 .groupId(groupId)
@@ -522,8 +493,6 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD, Mockito.eq(request),
                 Mockito.eq(this.client));
         
-        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD, Mockito.eq(subnetId),
-                Mockito.eq(tagKey), Mockito.eq(groupId), Mockito.eq(this.client));
 
         // exercise
         this.plugin.handleSecurityIssues(subnetId, cidr, this.client);
@@ -534,11 +503,284 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
                 Mockito.eq(this.client));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(Mockito.eq(request), Mockito.eq(this.client));
-
-        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.createTagsRequest(Mockito.eq(subnetId), Mockito.eq(tagKey), Mockito.eq(groupId),
                 Mockito.eq(this.client));
+        
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(Mockito.eq(request), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the handleSecurityIssues method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // thrown.
+    @Test
+    public void testHandleSecurityIssuesFail() throws Exception {
+        // set up
+        String subnetId = FAKE_SUBNET_ID;
+        String cidr = FAKE_CIDR_ADDRESS;
+        String descrition = AwsV2NetworkPlugin.SECURITY_GROUP_DESCRIPTION;
+        String groupId = FAKE_GROUP_ID;
+        String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
+        String tagKey = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
+        String vpcId = FAKE_VPC_ID;
+        
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.CREATE_SECURITY_GROUP_METHOD,
+                Mockito.eq(vpcId), Mockito.eq(groupName), Mockito.eq(descrition), Mockito.eq(this.client));
+
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD, Mockito.eq(subnetId),
+                Mockito.eq(tagKey), Mockito.eq(groupId), Mockito.eq(this.client));
+        
+        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                .cidrIp(cidr)
+                .groupId(groupId)
+                .ipProtocol(AwsV2NetworkPlugin.ALL_PROTOCOLS)
+                .build();
+
+        UnexpectedException exception = new UnexpectedException();
+        PowerMockito.doThrow(exception).when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD, Mockito.eq(request),
+                Mockito.eq(this.client));
+        
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.handleSecurityIssues(subnetId, cidr, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId), Mockito.eq(this.client));
+        }
+    }
+    
+    // test case: When calling the doAssociateRouteTables method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoAssociateRouteTables() throws FogbowException {
+        // set up
+        String subnetId = FAKE_SUBNET_ID;
+        String routeTableId = FAKE_ROUTE_TABLE_ID;
+        
+        RouteTable routeTable = buildRouteTables();
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(this.client));
+        
+        AssociateRouteTableRequest request = AssociateRouteTableRequest.builder()
+                .routeTableId(routeTableId )
+                .subnetId(subnetId)
+                .build();
+        
+        // exercise
+        this.plugin.doAssociateRouteTables(subnetId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).associateRouteTable(Mockito.eq(request));
+    }
+    
+    // test case: When calling the doAssociateRouteTables method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // thrown.
+    @Test
+    public void testDoAssociateRouteTablesFail() throws FogbowException {
+        // set up
+        String subnetId = FAKE_SUBNET_ID;
+
+        RouteTable routeTable = buildRouteTables();
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(this.client));
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).associateRouteTable(Mockito.any(AssociateRouteTableRequest.class));
+        Mockito.doNothing().when(this.plugin).doDeleteSubnet(Mockito.eq(subnetId), Mockito.eq(this.client));
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.doAssociateRouteTables(subnetId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId),
+                    Mockito.eq(this.client));
+        }
+    }
+    
+    // test case: When calling the doDeleteSubnet method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoDeleteSubnet() throws FogbowException {
+        // set up
+        String subnetId = FAKE_SUBNET_ID;
+
+        DeleteSubnetRequest request = DeleteSubnetRequest.builder()
+                .subnetId(subnetId)
+                .build();
+
+        DeleteSubnetResponse response = DeleteSubnetResponse.builder().build();
+        Mockito.doReturn(response).when(this.client).deleteSubnet(Mockito.eq(request));
+
+        // exercise
+        this.plugin.doDeleteSubnet(subnetId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).deleteSubnet(Mockito.eq(request));
+    }
+    
+    // test case: When calling the doDeleteSubnet method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // thrown.
+    @Test
+    public void testDoDeleteSubnetFail() throws FogbowException {
+        // set up
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).deleteSubnet(Mockito.any(DeleteSubnetRequest.class));
+
+        String subnetId = FAKE_SUBNET_ID;
+        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+                AwsV2NetworkPlugin.SUBNET_RESOURCE, subnetId);
+        try {
+            // exercise
+            this.plugin.doDeleteSubnet(subnetId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getRouteTables method, it must verify
+    // that is call was successful.
+    @Test
+    public void testGetRouteTables() throws FogbowException {
+        // set up
+        DescribeRouteTablesResponse response = buildDescribeRouteTablesResponse();
+        Mockito.doReturn(response).when(this.plugin).doDescribeRouteTables(Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.getRouteTables(this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDescribeRouteTables(Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the getRouteTables method, without a list of route
+    // tables, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testGetRouteTablesFail() throws FogbowException {
+        // set up
+        DescribeRouteTablesResponse response = DescribeRouteTablesResponse.builder().build();
+        Mockito.doReturn(response).when(this.plugin).doDescribeRouteTables(Mockito.eq(this.client));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.getRouteTables(this.client);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doDescribeRouteTables method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoDescribeRouteTables() throws FogbowException {
+        // set up
+        DescribeRouteTablesResponse response = buildDescribeRouteTablesResponse();
+        Mockito.doReturn(response).when(this.client).describeRouteTables();
+
+        // exercise
+        this.plugin.doDescribeRouteTables(this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeRouteTables();
+    }
+    
+    // test case: When calling the doDescribeRouteTables method, and an unexpected error
+    // occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testDoDescribeRouteTablesFail() throws FogbowException {
+        // set up
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(SdkClientException.builder().build()).when(this.client).describeRouteTables();
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        
+        try {
+            // exercise
+            this.plugin.doDescribeRouteTables(this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doCreateSubnetResquest method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoCreateSubnetResquest() throws FogbowException {
+        // set up
+        String cidr = FAKE_CIDR_ADDRESS;
+        String instanceName = TestUtils.FAKE_INSTANCE_NAME;
+        String vpcId = FAKE_VPC_ID;
+
+        CreateSubnetRequest request = CreateSubnetRequest.builder()
+                .availabilityZone(DEFAULT_AVAILABILITY_ZONE)
+                .cidrBlock(cidr)
+                .vpcId(vpcId)
+                .build();
+
+        CreateSubnetResponse response = buildCreateSubnetsResponse();
+        Mockito.doReturn(response).when(this.client).createSubnet(Mockito.eq(request));
+
+        // exercise
+        this.plugin.doCreateSubnetResquest(instanceName, request, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createSubnet(Mockito.eq(request));
+    }
+    
+    // test case: When calling the doCreateSubnetResquest method, and an unexpected
+    // error occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testDoCreateSubnetResquestFail() throws FogbowException {
+        // set up
+        String cidr = FAKE_CIDR_ADDRESS;
+        String instanceName = TestUtils.FAKE_INSTANCE_NAME;
+        String vpcId = FAKE_VPC_ID;
+
+        CreateSubnetRequest request = CreateSubnetRequest.builder()
+                .availabilityZone(DEFAULT_AVAILABILITY_ZONE)
+                .cidrBlock(cidr)
+                .vpcId(vpcId)
+                .build();
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).createSubnet(Mockito.eq(request));
+        
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.doCreateSubnetResquest(instanceName, request, this.client);
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createSubnet(Mockito.eq(request));
+    }
+    
+    private CreateSubnetResponse buildCreateSubnetsResponse() {
+        CreateSubnetResponse response = CreateSubnetResponse.builder()
+                .subnet(buildSubnet())
+                .build();
+        
+        return response;
     }
 
     private List<Route> createRouteCollection() {
@@ -569,7 +811,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
 
     private RouteTable buildRouteTables() {
         RouteTable routeTable = RouteTable.builder()
-	            .routeTableId(AwsV2NetworkPlugin.LOCAL_GATEWAY_DESTINATION)
+	            .routeTableId(FAKE_ROUTE_TABLE_ID)
 	            .vpcId(FAKE_VPC_ID)
 	            .build();
         
