@@ -183,67 +183,67 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
     }
 	
-	// test case: When calling the isReady method with the cloud state RUNNING,
-	// this means that the state of compute is READY and it must return true.
-	@Test
-	public void testIsReadySuccessful() {
-		// set up
-		String cloudState = AwsV2StateMapper.RUNNING_STATE;
+    // test case: When calling the isReady method with the cloud state RUNNING,
+    // this means that the state of compute is READY and it must return true.
+    @Test
+    public void testIsReady() {
+        // set up
+        String cloudState = AwsV2StateMapper.RUNNING_STATE;
 
-		// exercise
-		boolean status = this.plugin.isReady(cloudState);
+        // exercise
+        boolean status = this.plugin.isReady(cloudState);
 
-		// verify
-		Assert.assertTrue(status);
-	}
+        // verify
+        Assert.assertTrue(status);
+    }
 
-	// test case: When calling the isReady method with the cloud states different
-	// than RUNNING, this means that the state of compute is not READY and it must
-	// return false.
-	@Test
-	public void testIsReadyUnsuccessful() {
-		// set up
-		String[] cloudStates = { ANY_VALUE, AwsV2StateMapper.PENDING_STATE, AwsV2StateMapper.SHUTTING_DOWN_STATE,
-				AwsV2StateMapper.STOPPING_STATE };
+    // test case: When calling the isReady method with the cloud states different
+    // than RUNNING, this means that the state of compute is not READY and it must
+    // return false.
+    @Test
+    public void testIsNotReady() {
+        // set up
+        String[] cloudStates = { ANY_VALUE, AwsV2StateMapper.PENDING_STATE, AwsV2StateMapper.SHUTTING_DOWN_STATE,
+                AwsV2StateMapper.STOPPING_STATE };
 
-		for (String cloudState : cloudStates) {
-			// exercise
-			boolean status = this.plugin.isReady(cloudState);
+        for (String cloudState : cloudStates) {
+            // exercise
+            boolean status = this.plugin.isReady(cloudState);
 
-			// verify
-			Assert.assertFalse(status);
-		}
-	}
+            // verify
+            Assert.assertFalse(status);
+        }
+    }
 	
-	// test case: Whenever you call the hasFailed method, no matter the value, it
-	// must return false.
-	@Test
-	public void testHasFailed() {
-		// set up
-		String cloudState = ANY_VALUE;
+    // test case: Whenever you call the hasFailed method, no matter the value, it
+    // must return false.
+    @Test
+    public void testHasFailed() {
+        // set up
+        String cloudState = ANY_VALUE;
 
-		// exercise
-		boolean status = this.plugin.hasFailed(cloudState);
+        // exercise
+        boolean status = this.plugin.hasFailed(cloudState);
 
-		// verify
-		Assert.assertFalse(status);
-	}
+        // verify
+        Assert.assertFalse(status);
+    }
 	
-	// test case: When calling the getMemoryValueFrom method, with a empty set
-	// flavors, it must return a zero value.
-	@Test
-	public void testGetMemoryValueWithASetFlavorsEmpty() {
-		// set up
-		InstanceType instanceType = InstanceType.T1_MICRO;
-		int expected = ZERO_VALUE;
+    // test case: When calling the getMemoryValueFrom method, with a empty set
+    // flavors, it must return a zero value.
+    @Test
+    public void testGetMemoryValueWithASetFlavorsEmpty() {
+        // set up
+        InstanceType instanceType = InstanceType.T1_MICRO;
+        int expected = ZERO_VALUE;
 
-		// exercise
-		int memory = this.plugin.getMemoryValueFrom(instanceType);
+        // exercise
+        int memory = this.plugin.getMemoryValueFrom(instanceType);
 
-		// verify
-		Assert.assertTrue(this.plugin.getFlavors().isEmpty());
-		Assert.assertEquals(expected, memory);
-	}
+        // verify
+        Assert.assertTrue(this.plugin.getFlavors().isEmpty());
+        Assert.assertEquals(expected, memory);
+    }
 	
     // test case: When calling the doDeleteInstance method, it must verify
     // that is call was successful.
