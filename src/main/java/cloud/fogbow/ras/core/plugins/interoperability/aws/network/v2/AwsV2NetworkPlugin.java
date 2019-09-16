@@ -39,66 +39,65 @@ import software.amazon.awssdk.services.ec2.model.Tag;
 
 public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
 
-	private static final Logger LOGGER = Logger.getLogger(AwsV2NetworkPlugin.class);
-	
-	protected static final String ALL_PROTOCOLS = "-1";
-	protected static final String LOCAL_GATEWAY_DESTINATION = "local";
-	protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
-	protected static final String SUBNET_RESOURCE = "Subnet";
-	
-	private String defaultVpcId;
-	private String region;
-	private String zone;
+    private static final Logger LOGGER = Logger.getLogger(AwsV2NetworkPlugin.class);
 
-	public AwsV2NetworkPlugin(String confFilePath) {
-		Properties properties = PropertiesUtil.readProperties(confFilePath);
-		this.defaultVpcId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_ID_KEY);
-		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-		this.zone = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
-	}
+    protected static final String ALL_PROTOCOLS = "-1";
+    protected static final String LOCAL_GATEWAY_DESTINATION = "local";
+    protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
+    protected static final String SUBNET_RESOURCE = "Subnet";
 
-	@Override
-	public String requestInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String cidr = networkOrder.getCidr();
-		String instanceName = networkOrder.getName();
+    private String defaultVpcId;
+    private String region;
+    private String zone;
 
-		CreateSubnetRequest request = CreateSubnetRequest.builder()
-				.availabilityZone(this.zone)
-				.cidrBlock(cidr)
-				.vpcId(this.defaultVpcId)
-				.build();
+    public AwsV2NetworkPlugin(String confFilePath) {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.defaultVpcId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_ID_KEY);
+        this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
+        this.zone = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
+    }
 
-		return doRequestInstance(instanceName, request, client);
-	}
+    @Override
+    public String requestInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String cidr = networkOrder.getCidr();
+        String instanceName = networkOrder.getName();
 
-	@Override
-	public NetworkInstance getInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
-		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String subnetId = networkOrder.getInstanceId();
-		return doGetInstance(subnetId, client);
-	}
+        CreateSubnetRequest request = CreateSubnetRequest.builder()
+                .availabilityZone(this.zone)
+                .cidrBlock(cidr)
+                .vpcId(this.defaultVpcId)
+                .build();
+
+        return doRequestInstance(instanceName, request, client);
+    }
+
+    @Override
+    public NetworkInstance getInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String subnetId = networkOrder.getInstanceId();
+        return doGetInstance(subnetId, client);
+    }
 
     @Override
     public void deleteInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String subnetId = networkOrder.getInstanceId();
-		doDeleteInstance(subnetId, client);
-	}
+        doDeleteInstance(subnetId, client);
+    }
 
-	@Override
-	public boolean isReady(String instanceState) {
-		return AwsV2StateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.READY);
-	}
+    @Override
+    public boolean isReady(String instanceState) {
+        return AwsV2StateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.READY);
+    }
 
-	@Override
-	public boolean hasFailed(String instanceState) {
-		return false;
-	}
-	
+    @Override
+    public boolean hasFailed(String instanceState) {
+        return false;
+    }
 
     protected void doDeleteInstance(String subnetId, Ec2Client client) throws FogbowException {
         Subnet subnet = getSubnetById(subnetId, client);
@@ -107,24 +106,16 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         doDeleteSubnet(subnetId, client);
     }
 
-	protected String getGroupIdFrom(Subnet subnet) throws FogbowException {
-	    for (Tag tag : subnet.tags()) {
-	        if (tag.key().equals(AwsV2CloudUtil.AWS_TAG_GROUP_ID)) {
-	            return tag.value();
-	        }
-	    }
-	    throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
-	}
-	
-	protected DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws FogbowException {
-		try {
-			return client.describeRouteTables();
-		} catch (SdkException e) {
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-		}
-	}
-	
-	protected Subnet getSubnetFrom(DescribeSubnetsResponse response) throws FogbowException {
+    protected String getGroupIdFrom(Subnet subnet) throws FogbowException {
+        for (Tag tag : subnet.tags()) {
+            if (tag.key().equals(AwsV2CloudUtil.AWS_TAG_GROUP_ID)) {
+                return tag.value();
+            }
+        }
+        throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+    }
+
+    protected Subnet getSubnetFrom(DescribeSubnetsResponse response) throws FogbowException {
         if (response != null && !response.subnets().isEmpty()) {
             return response.subnets().listIterator().next();
         }
@@ -136,7 +127,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         RouteTable routeTable = getRouteTables(client);
         return buildNetworkInstance(subnet, routeTable);
     }
-    
+
     protected NetworkInstance buildNetworkInstance(Subnet subnet, RouteTable routeTable) {
         String id = subnet.subnetId();
         String cloudState = subnet.stateAsString();
@@ -151,7 +142,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         return new NetworkInstance(id, cloudState, name, cidr, gateway, vLAN, networkAllocationMode, networkInterface,
                 macInterface, interfaceState);
     }
-    
+
     protected String getGatewayFromRouteTables(List<Route> routes) {
         for (Route route : routes) {
             if (!route.gatewayId().equals(LOCAL_GATEWAY_DESTINATION)) {
@@ -160,16 +151,16 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         }
         return null;
     }
-    
+
     protected Subnet getSubnetById(String subnetId, Ec2Client client) throws FogbowException {
         DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
                 .subnetIds(subnetId)
                 .build();
-        
+
         DescribeSubnetsResponse response = doDescribeSubnetsRequest(request, client);
         return getSubnetFrom(response);
     }
-    
+
     protected DescribeSubnetsResponse doDescribeSubnetsRequest(DescribeSubnetsRequest request, Ec2Client client)
             throws FogbowException {
         try {
@@ -178,24 +169,26 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
-    
-    protected String doRequestInstance(String instanceName, CreateSubnetRequest request, Ec2Client client) throws FogbowException {
+
+    protected String doRequestInstance(String instanceName, CreateSubnetRequest request, Ec2Client client)
+            throws FogbowException {
+        
         String subnetId = doCreateSubnetResquest(instanceName, request, client);
         doAssociateRouteTables(subnetId, client);
         handleSecurityIssues(subnetId, request.cidrBlock(), client);
         return subnetId;
     }
-    
+
     protected void handleSecurityIssues(String subnetId, String cidr, Ec2Client client) throws FogbowException {
         String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
         try {
             String groupId = AwsV2CloudUtil.createSecurityGroup(this.defaultVpcId, groupName,
                     SECURITY_GROUP_DESCRIPTION, client);
-            
-            AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()   
-                    .cidrIp(cidr)   
-                    .groupId(groupId)   
-                    .ipProtocol(ALL_PROTOCOLS)  
+
+            AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                    .cidrIp(cidr)
+                    .groupId(groupId)
+                    .ipProtocol(ALL_PROTOCOLS)
                     .build();
 
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
@@ -205,7 +198,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
-    
+
     protected void doAssociateRouteTables(String subnetId, Ec2Client client) throws FogbowException {
         RouteTable routeTable = getRouteTables(client);
         String routeTableId = routeTable.routeTableId();
@@ -220,7 +213,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
-    
+
     protected void doDeleteSubnet(String subnetId, Ec2Client client) throws FogbowException {
         DeleteSubnetRequest request = DeleteSubnetRequest.builder()
                 .subnetId(subnetId)
@@ -228,11 +221,12 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         try {
             client.deleteSubnet(request);
         } catch (SdkException e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SUBNET_RESOURCE, subnetId), e);
-            throw new UnexpectedException();
+            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SUBNET_RESOURCE, subnetId);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message);
         }
     }
-    
+
     protected RouteTable getRouteTables(Ec2Client client) throws FogbowException {
         DescribeRouteTablesResponse response = doDescribeRouteTables(client);
         List<RouteTable> routeTables = response.routeTables();
@@ -242,6 +236,14 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
             }
         }
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+    }
+
+    protected DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws FogbowException {
+        try {
+            return client.describeRouteTables();
+        } catch (SdkException e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
     }
 
     protected String doCreateSubnetResquest(String instanceName, CreateSubnetRequest request, Ec2Client client)
