@@ -14,6 +14,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -46,27 +47,14 @@ import java.util.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, GetVolumeResponse.class,
         DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class})
-public class CloudStackComputePluginTest {
+public class CloudStackComputePluginTest extends BaseUnitTests {
 
-    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
-    private static final String BAD_REQUEST_MSG = "BAD Request";
+    private static final CloudStackUser CLOUD_STACK_USER =
+            new CloudStackUser("", "", "", "", new HashMap<>());
+    private static final String BAD_REQUEST_MSG = "Bad Request";
     private final int AMOUNT_EXTRA_SERVICE_OFFERING = 4;
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USERNAME = "fake-name";
-    private static final String FAKE_ID_PROVIDER = "fake-id-provider";
-    private static final String FAKE_DOMAIN = "fake-domain";
-    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final String FAKE_ID = "fake-id";
-    private static final String FAKE_INSTANCE_NAME = "fake-name";
-    private static final String FAKE_CPU_NUMBER = "4";
-    private static final String FAKE_MEMORY = "2024";
-    private static final String FAKE_DISK = "25";
     private static final String FAKE_NETWORK_ID = "fake-network-id";
-    private static final String FAKE_MEMBER = "fake-member";
-    private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-    private static final CloudStackUser CLOUD_STACK_USER =  new CloudStackUser(
-            FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
-    private static final String CLOUD_NAME = "cloudstack";
+    private static final String CLOUDSTACK_CLOUD_NAME = "cloudstack";
 
     private CloudStackComputePlugin plugin;
     private CloudStackHttpClient client;
@@ -82,7 +70,7 @@ public class CloudStackComputePluginTest {
     public void setUp() {
         String cloudStackConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
-                + CLOUD_NAME + File.separator
+                + CLOUDSTACK_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.defaultNetworkId = this.properties.getProperty(
@@ -304,9 +292,9 @@ public class CloudStackComputePluginTest {
 
         String idServiceOfferingExpected = "idServiceOfferingExpected";
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
-                createServicesOfferingObjects(Integer.parseInt(FAKE_MEMORY), Integer.parseInt(FAKE_CPU_NUMBER));
+                createServicesOfferingObjects(this.testUtils.MEMORY_VALUE, this.testUtils.CPU_VALUE);
         servicesOfferingExpected.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
-                idServiceOfferingExpected, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), ""));
+                idServiceOfferingExpected, this.testUtils.MEMORY_VALUE, this.testUtils.CPU_VALUE, ""));
         Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
                 .thenReturn(servicesOfferingExpected);
         Mockito.doReturn(getAllServiceOfferingsResponse)
@@ -356,8 +344,8 @@ public class CloudStackComputePluginTest {
                 new ArrayList<UserData>(), "fake-image-id");
 
         final int EXCEEDED_VALUE = 1;
-        int overMemory = Integer.parseInt(FAKE_CPU_NUMBER) + EXCEEDED_VALUE;
-        int overCpu = Integer.parseInt(FAKE_MEMORY) + EXCEEDED_VALUE;
+        int overMemory = this.testUtils.CPU_VALUE + EXCEEDED_VALUE;
+        int overCpu = this.testUtils.MEMORY_VALUE + EXCEEDED_VALUE;
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
                 createServicesOfferingObjects(overMemory, overCpu);
         servicesOfferingExpected.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
@@ -892,7 +880,7 @@ public class CloudStackComputePluginTest {
                 Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER))).thenReturn("");
 
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(FAKE_ID);
+        computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
         // exercise
         this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
@@ -914,7 +902,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(createBadRequestHttpResponse());
 
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(FAKE_ID);
+        computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
         // exercise
         this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
@@ -1035,7 +1023,7 @@ public class CloudStackComputePluginTest {
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "");
 
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering =
-                createServicesOfferingObjects(1, 1);
+                createServicesOfferingObjects(this.testUtils.MEMORY_VALUE, this.testUtils.CPU_VALUE);
 
         // exercise
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
@@ -1075,20 +1063,20 @@ public class CloudStackComputePluginTest {
     }
 
     private ComputeOrder createComputeOrder(ArrayList<UserData> fakeUserData, String fakeImageId) {
-        SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_ID_PROVIDER);
-        NetworkOrder networkOrder = new NetworkOrder(FAKE_NETWORK_ID);
-        networkOrder.setSystemUser(requester);
-        networkOrder.setProvider(FAKE_MEMBER);
-        networkOrder.setCloudName(CLOUD_NAME);
+        SystemUser requester = this.testUtils.createSystemUser();
+        NetworkOrder networkOrder = this.testUtils.createLocalNetworkOrder();
         networkOrder.setInstanceId(FAKE_NETWORK_ID);
-        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+
         this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
+
         List<String> networkOrderIds = new ArrayList<>();
         networkOrderIds.add(networkOrder.getId());
-        ComputeOrder computeOrder = new ComputeOrder(requester, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME,
-                FAKE_INSTANCE_NAME, Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, networkOrderIds);
-        computeOrder.setInstanceId(FAKE_ID);
+        ComputeOrder computeOrder = new ComputeOrder(requester, this.testUtils.FAKE_REMOTE_MEMBER_ID,
+                this.testUtils.FAKE_REMOTE_MEMBER_ID, this.testUtils.DEFAULT_CLOUD_NAME,
+                "", this.testUtils.CPU_VALUE, this.testUtils.MEMORY_VALUE,
+                this.testUtils.DISK_VALUE, fakeImageId, fakeUserData, "", networkOrderIds);
+        computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
+
         this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
         return computeOrder;
     }
