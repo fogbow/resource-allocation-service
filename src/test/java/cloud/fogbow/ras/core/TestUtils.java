@@ -7,6 +7,7 @@ import java.util.List;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
+import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
@@ -14,6 +15,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -33,15 +35,19 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 
 public class TestUtils {
-    
+
     public static final int CPU_VALUE = 8;
     public static final int DISK_VALUE = 30;
+    public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
-
+    
     public static final long DEFAULT_SLEEP_TIME = 500;
     
+    public static final String ANY_VALUE = "anything";
+    public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
@@ -49,20 +55,26 @@ public class TestUtils {
     public static final String FAKE_IMAGE_ID = "fake-image-id";
     public static final String FAKE_INSTANCE_ID = "fake-instance-id";
     public static final String FAKE_INSTANCE_NAME = "fake-instance-name";
+    public static final String FAKE_NETWORK_ID = "fake-network-id";
     public static final String FAKE_ORDER_ID = "fake-order-id";
     public static final String FAKE_ORDER_NAME = "fake-order-name";
+    public static final String FAKE_PROJECT_ID = "fake-project-id";
     public static final String FAKE_PUBLIC_KEY= "fake-public-key";
     public static final String FAKE_REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    public static final String FAKE_SECURITY_GROUP_ID = "fake-security-group-id";
     public static final String FAKE_SECURITY_RULE_ID = "fake-security-rule-id";
     public static final String FAKE_TAG = "fake-tag";
+    public static final String FAKE_TOKEN_VALUE = "fake-token-value";
     public static final String FAKE_USER_DATA = "fake-user-data";
     public static final String FAKE_USER_ID = "fake-user-id";
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
-    public static final String LOCAL_MEMBER_ID =
-            PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
-    public static final String EMPTY_STRING = "";
-    
+    public static final String FROM_JSON_METHOD = "fromJson";
+    public static final String JSON_MALFORMED = "{anything:}";
+    public static final String LOCAL_MEMBER_ID = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+    public static final String MAP_METHOD = "map";
+    public static final String MESSAGE_STATUS_CODE = "Internal server error.";
+
     public void cleanList(ChainedList<Order> list) {
         list.resetPointer();
         Order order = null;
@@ -238,6 +250,10 @@ public class TestUtils {
         return orders;
     }
 
+    public HttpResponseException getHttpInternalServerErrorResponseException() {
+        return new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+    }
+    
     /*
      * Create fake user data for testing.
      */
@@ -253,5 +269,16 @@ public class TestUtils {
         PowerMockito.mockStatic(AwsV2ClientUtil.class);
         BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
         return client;
+    }
+    
+    /*
+     * Create fake OpenStack user for testing.
+     */
+    public OpenStackV3User createOpenStackUser() {
+        String userId = TestUtils.FAKE_USER_ID;
+        String userName = TestUtils.FAKE_USER_NAME;
+        String tokenValue = TestUtils.FAKE_TOKEN_VALUE;
+        String projectId = TestUtils.FAKE_PROJECT_ID;
+        return new OpenStackV3User(userId, userName, tokenValue, projectId);
     }
 }

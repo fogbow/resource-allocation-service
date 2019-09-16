@@ -31,9 +31,9 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
-	private static final String RESOURCE_NAME = "Attachment";
 	
 	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
+	protected static final String RESOURCE_NAME = "Attachment";
 
 	private String region;
 
@@ -73,24 +73,20 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
-
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String volumeId = attachmentOrder.getVolumeId();
+        doDeleteInstance(volumeId, client);
+    }
 
-        DetachVolumeRequest request = DetachVolumeRequest.builder()
-                .volumeId(volumeId)
-                .build();
-
-		doDeleteInstance(volumeId, request, client);
-	}
-
-	@Override
+    @Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
-
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String attachmentId = attachmentOrder.getInstanceId();
-        
+        return doGetInstance(attachmentId, client);
+    }
+
+    protected AttachmentInstance doGetInstance(String attachmentId, Ec2Client client) throws FogbowException {
         DescribeVolumesRequest request = DescribeVolumesRequest.builder()
                 .volumeIds(attachmentId)
                 .build();
@@ -99,14 +95,20 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         return buildAttachmentInstance(response);
     }
 
-	protected void doDeleteInstance(String volumeId, DetachVolumeRequest request, Ec2Client client) throws UnexpectedException {
-		try {
-			client.detachVolume(request);
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
-			throw new UnexpectedException();
-		}
-	}
+    protected void doDeleteInstance(String volumeId, Ec2Client client)
+            throws UnexpectedException {
+        
+        DetachVolumeRequest request = DetachVolumeRequest.builder()
+                .volumeId(volumeId)
+                .build();
+        try {
+            client.detachVolume(request);
+        } catch (Exception e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message);
+        }
+    }
 
 	protected AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
 			throws FogbowException {
@@ -127,7 +129,7 @@ public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
 	
-	private String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
+	protected String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
             throws FogbowException {
 
         String attachmentId;
