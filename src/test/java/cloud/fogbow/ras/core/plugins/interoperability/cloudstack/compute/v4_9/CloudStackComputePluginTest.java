@@ -292,43 +292,6 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(networksIDExpected, networksID);
     }
 
-    // test case: get service offering successfuly with use requirements
-    @Test
-    public void testGetServiceOfferingWithRequirements() throws FogbowException {
-        // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        Map<String, String> requirements = new HashMap<>();
-        String tagRequirement = "tag00";
-        String valueRequirement = "value00";
-        requirements.put(tagRequirement, valueRequirement);
-        computeOrder.setRequirements(requirements);
-        String tagExpected = tagRequirement +
-                CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR +
-                valueRequirement;
-
-        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
-                createServicesOfferingObjects(Integer.parseInt(FAKE_MEMORY),
-                        Integer.parseInt(FAKE_CPU_NUMBER));
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOfferingExpected =
-                new GetAllServiceOfferingsResponse().new ServiceOffering("idServiceOffering",
-                        Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), tagExpected);
-        servicesOfferingExpected.add(serviceOfferingExpected);
-        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
-                Mockito.mock(GetAllServiceOfferingsResponse.class);
-        Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
-                .thenReturn(servicesOfferingExpected);
-        Mockito.doReturn(getAllServiceOfferingsResponse)
-                .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
-
-        // exercise
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
-                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
-
-        // verify
-        Assert.assertEquals(serviceOfferingExpected, serviceOffering);
-    }
-
     // test case: get service offering successfully without using requirements
     @Test
     public void testGetServiceOfferingWithoutRequirements() throws FogbowException {
@@ -988,6 +951,98 @@ public class CloudStackComputePluginTest {
 
         // exercise
         this.plugin.doGet(url, CLOUD_STACK_USER);
+    }
+
+    // test case: filter services offering by requirements. Matching with several requirements.
+    @Test
+    public void testFilterServicesOfferingByRequirements() {
+        // set up
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "");
+        Map<String, String> requirements = new HashMap<>();
+        String keyOne = "one";
+        String valueOne = "one";
+        String tagOne = keyOne + CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR + valueOne;
+        requirements.put(keyOne, valueOne);
+        String keyTwo = "two";
+        String valueTwo = "two";
+        String tagTwo = keyTwo + CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR + valueTwo;
+        requirements.put(keyTwo, valueTwo);
+        computeOrder.setRequirements(requirements);
+        String tagExpected = tagOne + CloudStackComputePlugin.CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR + tagTwo;
+
+        int anyMemory = 1;
+        int anyCpu = 1;
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering =
+                createServicesOfferingObjects(anyMemory, anyCpu);
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOfferingA =
+                new GetAllServiceOfferingsResponse().new ServiceOffering(
+                "anyId", anyCpu, anyMemory, tagExpected) ;
+        servicesOffering.add(serviceOfferingA);
+
+        // verify before
+        Assert.assertEquals(AMOUNT_EXTRA_SERVICE_OFFERING + 1, servicesOffering.size());
+
+        // exercise
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
+                this.plugin.filterServicesOfferingByRequirements(servicesOffering, computeOrder);
+
+        // verify
+        Assert.assertEquals(1, serviceOfferingsFilted.size());
+        Assert.assertEquals(serviceOfferingA, serviceOfferingsFilted.get(0));
+    }
+
+    // test case: Doesn't match at all because 1 tag doesn't match.
+    @Test
+    public void testFilterServicesOfferingByRequirementsOneTagMissing() {
+        // set up
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "");
+        Map<String, String> requirements = new HashMap<>();
+        String keyOne = "one";
+        String valueOne = "one";
+        String tagOne = keyOne + CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR + valueOne;
+        requirements.put(keyOne, valueOne);
+        String keyTwo = "two";
+        String valueTwo = "two";
+        String tagTwo = keyTwo + CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR + valueTwo;
+        requirements.put(keyTwo, valueTwo);
+        computeOrder.setRequirements(requirements);
+        String tagExpected = tagOne;
+
+        int anyMemory = 1;
+        int anyCpu = 1;
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering =
+                createServicesOfferingObjects(anyMemory, anyCpu);
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOfferingA =
+                new GetAllServiceOfferingsResponse().new ServiceOffering(
+                        "anyId", anyCpu, anyMemory, tagExpected) ;
+        servicesOffering.add(serviceOfferingA);
+
+        // verify before
+        Assert.assertEquals(AMOUNT_EXTRA_SERVICE_OFFERING + 1, servicesOffering.size());
+
+        // exercise
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
+                this.plugin.filterServicesOfferingByRequirements(servicesOffering, computeOrder);
+
+        // verify
+        Assert.assertEquals(0, serviceOfferingsFilted.size());
+    }
+
+    // test case: There are no requirements
+    @Test
+    public void testFilterServicesOfferingWithEmptyRequirements() {
+        // set up
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "");
+
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering =
+                createServicesOfferingObjects(1, 1);
+
+        // exercise
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
+                this.plugin.filterServicesOfferingByRequirements(servicesOffering, computeOrder);
+
+        // verify
+        Assert.assertEquals(AMOUNT_EXTRA_SERVICE_OFFERING , serviceOfferingsFilted.size());
     }
 
     private String getVirtualMachineResponse(String id, String name, String state,

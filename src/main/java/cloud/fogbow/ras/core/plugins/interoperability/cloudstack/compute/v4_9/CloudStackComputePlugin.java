@@ -28,8 +28,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
+
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
@@ -40,6 +42,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     private static final String DEFAULT_VOLUME_TYPE = "ROOT";
     protected static final String ZONE_ID_KEY = "zone_id";
+    protected static final String CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR = ",";
     protected static final String FOGBOW_TAG_SEPARATOR = ":";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
@@ -208,28 +211,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             return null;
         }
 
-        List<GetAllServiceOfferingsResponse.ServiceOffering> toRemove = new ArrayList<>();
-        if (computeOrder.getRequirements() != null && computeOrder.getRequirements().size() > 0) {
-            for (Map.Entry<String, String> tag : computeOrder.getRequirements().entrySet()) {
-                String concatenatedTag = tag.getKey() + FOGBOW_TAG_SEPARATOR + tag.getValue();
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
+                filterServicesOfferingByRequirements(serviceOfferings, computeOrder);
 
-                for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
-                    if (serviceOffering.getTags() == null) {
-                        toRemove.add(serviceOffering);
-                        continue;
-                    }
-
-                    List<String> tags = new ArrayList<>(Arrays.asList(serviceOffering.getTags().split(",")));
-                    if (!tags.contains(concatenatedTag)) {
-                        toRemove.add(serviceOffering);
-                    }
-                }
-            }
-        }
-
-        serviceOfferings.removeAll(toRemove);
-
-        for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+        for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferingsFilted) {
             if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
                     serviceOffering.getMemory() >= computeOrder.getMemory()) {
                 return serviceOffering;
@@ -237,6 +222,31 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         return null;
+    }
+
+    @VisibleForTesting
+    List<GetAllServiceOfferingsResponse.ServiceOffering> filterServicesOfferingByRequirements(
+            final List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings,
+            final ComputeOrder computeOrder) {
+
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted = serviceOfferings;
+        Map<String, String> requirements = computeOrder.getRequirements();
+        if (requirements == null && requirements.size() == 0) {
+            return serviceOfferings;
+        }
+
+        for (Map.Entry<String, String> tag : requirements.entrySet()) {
+            String tagFromRequirements = tag.getKey() + FOGBOW_TAG_SEPARATOR + tag.getValue();
+            serviceOfferingsFilted = serviceOfferingsFilted.stream().filter(serviceOffering -> {
+                String tagsServiceOffering = serviceOffering.getTags();
+                boolean isMatchingWithRequirements = tagsServiceOffering != null &&
+                        !tagsServiceOffering.isEmpty() &&
+                        tagsServiceOffering.contains(tagFromRequirements);
+                return isMatchingWithRequirements;
+            }).collect(Collectors.toList());
+        }
+
+        return serviceOfferingsFilted;
     }
 
     @VisibleForTesting
