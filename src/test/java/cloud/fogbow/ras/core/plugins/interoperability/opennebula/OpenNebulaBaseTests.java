@@ -8,6 +8,8 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.opennebula.client.Client;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -23,17 +25,21 @@ public class OpenNebulaBaseTests extends BaseUnitTests {
 
     protected String openNebulaConfFilePath;
     protected CloudUser cloudUser;
+    protected Client client;
 
     @Before
     public void setUp() throws FogbowException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.cloudUser = this.createCloudUser();
+        this.client = Mockito.mock(Client.class);
 
         this.openNebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
                 + File.separator + CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         PowerMockito.mockStatic(OpenNebulaClientUtil.class);
+        Mockito.when(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(this.client);
     }
 
     private CloudUser createCloudUser() {
