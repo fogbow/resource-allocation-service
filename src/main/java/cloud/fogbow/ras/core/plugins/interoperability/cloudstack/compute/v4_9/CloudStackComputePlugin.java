@@ -36,10 +36,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     protected static final String CLOUDUSER_NULL_EXCEPTION_MSG =
             String.format(Messages.Error.IRREGULAR_VALUE_NULL_EXCEPTION_MSG, "Cloud User");
+    private static final String DEFAULT_EXPUNGE_ON_DEPLOY_VALUE = "true";
+    private static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     private static final String DEFAULT_VOLUME_TYPE = "ROOT";
-
     protected static final String ZONE_ID_KEY = "zone_id";
-    protected static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     protected static final String FOGBOW_TAG_SEPARATOR = ":";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
@@ -58,7 +58,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.zoneId = this.properties.getProperty(ZONE_ID_KEY);
-        this.expungeOnDestroy = this.properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
+        this.expungeOnDestroy = this.properties.getProperty(
+                EXPUNGE_ON_DESTROY_KEY, DEFAULT_EXPUNGE_ON_DEPLOY_VALUE);
         this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
         this.client = new CloudStackHttpClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
@@ -79,6 +80,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, final CloudStackUser cloudUser) throws FogbowException {
+        if (cloudUser == null) {
+            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
+        }
+
         String templateId = computeOrder.getImageId();
         if (templateId == null) {
             String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK;
@@ -124,10 +129,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
 
             synchronized (computeOrder) {
+                final int AMOUNT_INSTANCE = 1;
                 ComputeAllocation actualAllocation = new ComputeAllocation(
                         serviceOffering.getCpuNumber(),
                         serviceOffering.getMemory(),
-                        1,
+                        AMOUNT_INSTANCE,
                         diskOffering.getDiskSize());
                 computeOrder.setActualAllocation(actualAllocation);
             }
@@ -169,6 +175,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @Override
     public void deleteInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
+        if (cloudUser == null) {
+            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
+        }
+
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .expunge(this.expungeOnDestroy)
@@ -271,10 +281,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     GetAllDiskOfferingsResponse getDiskOfferings(final CloudStackUser cloudUser) throws FogbowException {
-        if (cloudUser == null) {
-            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
-        }
-
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -342,7 +348,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    int getVirtualMachineDiskSize(String virtualMachineId, CloudStackUser cloudUser) throws FogbowException {
+    int getVirtualMachineDiskSize(String virtualMachineId, CloudStackUser cloudUser)
+            throws FogbowException {
+
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
                 .type(DEFAULT_VOLUME_TYPE)
@@ -383,11 +391,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return (int) (bytes / GIGABYTE_IN_BYTES);
     }
 
-    protected String getRandomUUID() {
+    private String getRandomUUID() {
         return UUID.randomUUID().toString();
     }
 
-    protected void setLaunchCommandGenerator(LaunchCommandGenerator commandGenerator) {
+    @VisibleForTesting
+    void setLaunchCommandGenerator(LaunchCommandGenerator commandGenerator) {
         this.launchCommandGenerator = commandGenerator;
     }
 

@@ -185,25 +185,6 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(tagsExpected, firstServiceOffering.getTags());
     }
 
-    // Test case: The cloudStackUser parameter is null and this throw a exception
-    @Test
-    public void testGetDiskOfferingsParameterNull() throws FogbowException {
-        // set up
-        CloudStackUser cloudStackUser = null;
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
-                Mockito.anyString())).thenCallRealMethod();
-
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
-
-        // exercise
-        this.plugin.getDiskOfferings(cloudStackUser);
-    }
-
     // Test case: Trying to get all DiskOfferings in the Cloudstack, but it occurs an error
     @Test
     public void testGetDiskOfferingsErrorInCloudstack() throws FogbowException, HttpResponseException {
@@ -662,6 +643,17 @@ public class CloudStackComputePluginTest {
         this.plugin.requestInstance(order, CLOUD_STACK_USER);
     }
 
+    // test case: request instance and the clouduser is null
+    @Test
+    public void testRequestInstanceCloudUserNull() throws FogbowException{
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
+
+        // exercise
+        this.plugin.requestInstance(Mockito.mock(ComputeOrder.class), null);
+    }
+
     // test case: get compute instace successfully
     @Test
     public void testGetComputeInstance() throws FogbowException {
@@ -967,6 +959,17 @@ public class CloudStackComputePluginTest {
         // verify
         Mockito.verify(this.client, Mockito.times(1))
                 .doGetRequest(Mockito.anyString(), CLOUD_STACK_USER);
+    }
+
+    // test case: delete instance and the clouduser is null
+    @Test
+    public void testDeleteInstanceCloudUserNull() throws FogbowException{
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
+
+        // exercise
+        this.plugin.deleteInstance(Mockito.mock(ComputeOrder.class), null);
     }
 
     // test case: execute the doGet and a Fogbow Exception is throw
