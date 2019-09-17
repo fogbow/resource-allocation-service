@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -98,18 +99,20 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         }
     }
 
-    protected String getResourceIdByAddressTag(String key, String resourceId, Ec2Client client) throws FogbowException {
-        Address address = getAddressById(resourceId, client);
+    protected String getResourceIdByAddressTag(String key, String allocationId, Ec2Client client) throws FogbowException {
+        Address address = getAddressById(allocationId, client);
         for (Tag tag : address.tags()) {
             if (tag.key().equals(key)) {
                 return tag.value();
             }
         }
-        throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+        throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, key));
     }
 
     protected void doDisassociateAddresses(String associationId, Ec2Client client) throws FogbowException {
-        DisassociateAddressRequest request = DisassociateAddressRequest.builder().associationId(associationId).build();
+        DisassociateAddressRequest request = DisassociateAddressRequest.builder()
+                .associationId(associationId)
+                .build();
         try {
             client.disassociateAddress(request);
         } catch (SdkException e) {
@@ -129,16 +132,23 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         PublicIpInstance publicIpInstance = new PublicIpInstance(id, cloudState, ip);
         return publicIpInstance;
     }
+    
+    protected String setPublicIpInstanceState(Address address) {
+        if (address.instanceId() != null) {
+            return AwsV2StateMapper.AVAILABLE_STATE;
+        }
+        return AwsV2StateMapper.ERROR_STATE;
+    }
 
     protected Address getAddressById(String allocationId, Ec2Client client) throws FogbowException {
-        DescribeAddressesResponse response = doDescribeAddressesRequests(allocationId, client);
+        DescribeAddressesResponse response = doDescribeAddresses(allocationId, client);
         if (response != null && !response.addresses().isEmpty()) {
             return response.addresses().listIterator().next();
         }
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    protected DescribeAddressesResponse doDescribeAddressesRequests(String allocationId, Ec2Client client)
+    protected DescribeAddressesResponse doDescribeAddresses(String allocationId, Ec2Client client)
             throws FogbowException {
 
         DescribeAddressesRequest request = DescribeAddressesRequest.builder()
@@ -149,13 +159,6 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
-    }
-
-    protected String setPublicIpInstanceState(Address address) {
-        if (address.instanceId() != null) {
-            return AwsV2StateMapper.AVAILABLE_STATE;
-        }
-        return AwsV2StateMapper.ERROR_STATE;
     }
 
     protected String doRequestInstance(String computeId, Ec2Client client) throws FogbowException {
@@ -194,8 +197,8 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             client.modifyNetworkInterfaceAttribute(request);
         } catch (SdkException e) {
             // if the group associated to the instance is the default group, it shouldn't be
-            // removed in a failure case
-            // otherwise it should because it'd be useless in other context.
+            // removed in a failure case otherwise it should because it'd be useless in 
+            // other context.
             if (!groupId.equals(this.defaultGroupId)) {
                 AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
                 doReleaseAddresses(allocationId, client);
@@ -205,7 +208,9 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     }
 
     protected void doReleaseAddresses(String allocationId, Ec2Client client) throws FogbowException {
-        ReleaseAddressRequest request = ReleaseAddressRequest.builder().allocationId(allocationId).build();
+        ReleaseAddressRequest request = ReleaseAddressRequest.builder()
+                .allocationId(allocationId)
+                .build();
         try {
             client.releaseAddress(request);
         } catch (SdkException e) {
@@ -214,7 +219,6 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     }
 
     protected String getInstanceNetworkInterfaceId(String instanceId, Ec2Client client) throws FogbowException {
-
         DescribeInstancesResponse response = AwsV2CloudUtil.describeInstance(instanceId, client);
         Instance instance = getInstanceReservation(response);
         InstanceNetworkInterface networkInterface = selectNetworkInterfaceFrom(instance);
