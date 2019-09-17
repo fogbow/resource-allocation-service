@@ -41,13 +41,14 @@ public class TestUtils {
     public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
-    public static final int RUN_THREE_TIMES = 3;
     
     public static final long DEFAULT_SLEEP_TIME = 500;
     
     public static final String ANY_VALUE = "anything";
     public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String DESCRIBE_INSTANCE = "describeInstance";
+    public static final String DO_DELETE_SECURITY_GROUP = "doDeleteSecurityGroup";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
