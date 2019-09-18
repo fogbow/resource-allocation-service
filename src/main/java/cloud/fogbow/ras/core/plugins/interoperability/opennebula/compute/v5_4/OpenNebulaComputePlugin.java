@@ -93,32 +93,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return this.doRequestInstance(client, request);
 	}
 
-	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
-			throws UnexpectedException, NoAvailableResourcesException {
-		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
-				ConfigurationPropertyDefaults.SSH_COMMON_USER);
-
-		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
-		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
-		String graphicsType = DEFAULT_GRAPHIC_TYPE;
-		String architecture = DEFAULT_ARCHITECTURE;
-
-		String name = computeOrder.getName();
-		String publicKey = computeOrder.getPublicKey();
-		String imageId = computeOrder.getImageId();
-
-		List<String> networks = this.getNetworkIds(computeOrder.getNetworkIds());
-		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-
-		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
-		String cpu = String.valueOf(foundFlavor.getCpu());
-		String memory = String.valueOf(foundFlavor.getMemory());
-		String disk = String.valueOf(foundFlavor.getDisk());
-
-		return this.createComputeRequest(name, hasNetwork, publicKey, userName, startScriptBase64,
-				cpu, graphicsAddress, graphicsType, imageId, disk, memory, networks, architecture);
-	}
-
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
@@ -167,6 +141,31 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return computeInstance;
 	}
 
+	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
+			throws UnexpectedException, NoAvailableResourcesException {
+		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
+				ConfigurationPropertyDefaults.SSH_COMMON_USER);
+
+		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
+		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
+		String graphicsType = DEFAULT_GRAPHIC_TYPE;
+		String architecture = DEFAULT_ARCHITECTURE;
+
+		String name = computeOrder.getName();
+		String publicKey = computeOrder.getPublicKey();
+		String imageId = computeOrder.getImageId();
+
+		List<String> networks = this.getNetworkIds(computeOrder.getNetworkIds());
+		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+
+		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
+		String cpu = String.valueOf(foundFlavor.getCpu());
+		String memory = String.valueOf(foundFlavor.getMemory());
+		String disk = String.valueOf(foundFlavor.getDisk());
+
+		return this.createComputeRequest(name, hasNetwork, publicKey, userName, startScriptBase64,
+				cpu, graphicsAddress, graphicsType, imageId, disk, memory, networks, architecture);
+	}
 
 	protected List<String> getNetworkIds(List<String> networkIds) {
 		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
