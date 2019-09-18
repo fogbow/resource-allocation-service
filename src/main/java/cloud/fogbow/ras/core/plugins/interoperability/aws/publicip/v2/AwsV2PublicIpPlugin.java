@@ -27,10 +27,10 @@ import java.util.Properties;
 public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
     private static final Logger LOGGER = Logger.getLogger(AwsV2PublicIpPlugin.class);
-    private static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
-    private static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
 
     protected static final String AWS_TAG_ASSOCIATION_ID = "associationId";
+    protected static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
+    protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final int SSH_DEFAULT_PORT = 22;
 
@@ -270,11 +270,11 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     }
 
     protected String doAllocateAddresses(Ec2Client client) throws FogbowException {
-        AllocateAddressRequest allocateAddressRequest = AllocateAddressRequest.builder()
+        AllocateAddressRequest request = AllocateAddressRequest.builder()
                 .domain(DomainType.VPC)
                 .build();
         try {
-            AllocateAddressResponse response = client.allocateAddress(allocateAddressRequest);
+            AllocateAddressResponse response = client.allocateAddress(request);
             return response.allocationId();
         } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
