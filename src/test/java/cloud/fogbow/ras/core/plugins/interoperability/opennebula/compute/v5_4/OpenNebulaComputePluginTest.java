@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,17 +9,17 @@ import java.util.Map;
 import java.util.TreeSet;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.OrderState;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
@@ -50,13 +49,15 @@ import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.OpenNebulaComputePlugin.*;
+
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class, OpenNebulaClientUtil.class, VirtualMachine.class})
-public class OpenNebulaComputePluginTest {
-	private static final String FAKE_USER_ID = "fake-user-id";
+@PrepareForTest({OpenNebulaClientUtil.class, VirtualMachine.class, DatabaseManager.class})
+public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	private static final String FAKE_NAME = "fake-name";
-	private static final String FAKE_ID_PROVIDER = "fake-id-provider";
-	private static final String FAKE_PROVIDER = "fake-provider";
+	private static final String USER_NAME = PropertiesHolder.getInstance().getProperty(
+			ConfigurationPropertyKeys.SSH_COMMON_USER_KEY, ConfigurationPropertyDefaults.SSH_COMMON_USER);
+	private static final String FAKE_BASE64_SCRIPT = "fake-base64-script";
 
 	private static final String ANOTHER_FAKE_NAME = "another-fake-name";
 	private static final String DECIMAL_STRING_VALUE = "0.1";
@@ -89,6 +90,7 @@ public class OpenNebulaComputePluginTest {
 	private static final String TEMPLATE_MEMORY_PATH = OpenNebulaComputePlugin.TEMPLATE_MEMORY_PATH;
 	private static final String TEMPLATE_MEMORY_VALUE = "1024";
 	private static final String TEMPLATE_IMAGE_ID_PATH = OpenNebulaComputePlugin.TEMPLATE_IMAGE_ID_PATH;
+	private static final String CLOUD_NAME = "opennebula";
 
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
 			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
@@ -104,29 +106,22 @@ public class OpenNebulaComputePluginTest {
 	private static final int DISK_VALUE_8GB = 8192;
 	private static final int ZERO_VALUE = 0;
 	private static final int DEFAULT_NETWORK_ID = ZERO_VALUE;
-	private static final String CLOUD_NAME = "opennebula";
 
 	private OpenNebulaComputePlugin plugin;
 	private TreeSet<HardwareRequirements> flavors;
-	private SharedOrderHolders sharedOrderHolders;
+	private ComputeOrder computeOrder;
+	private HardwareRequirements hardwareRequirements;
+	private List<String> networkIds;
 
 	@Before
-	public void setUp() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + CLOUD_NAME + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+	public void setUp() throws FogbowException {
+	    super.setUp();
 
-		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(opennebulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(this.openNebulaConfFilePath));
 		this.flavors = Mockito.spy(new TreeSet<>());
-
-		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-
-		PowerMockito.mockStatic(SharedOrderHolders.class);
-		BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-
-		Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-				.thenReturn(new SynchronizedDoublyLinkedList<>());
-		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
+		this.computeOrder = this.getComputeOrder();
+		this.hardwareRequirements = this.createHardwareRequirements();
+		this.networkIds = this.listNetworkIds();
 	}
 
 	// test case: When calling the updateHardwareRequirements method with a set of
@@ -191,6 +186,43 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
 		Assert.assertEquals(expected, this.plugin.getFlavors());
+	}
+
+	@Test
+	public void testRequestInstance() throws FogbowException {
+	    // set up
+	    LaunchCommandGenerator launchCommandGenerator = Mockito.mock(LaunchCommandGenerator.class);
+
+	    Mockito.when(launchCommandGenerator.createLaunchCommand(Mockito.any(ComputeOrder.class))).thenReturn(FAKE_BASE64_SCRIPT);
+		Mockito.doReturn(this.networkIds).when(this.plugin).getNetworkIds(Mockito.anyList());
+		Mockito.doReturn(this.hardwareRequirements).when(this.plugin).findSmallestFlavor(
+				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
+		Mockito.doReturn(this.getCreateComputeRequest()).when(this.plugin).createComputeRequest(
+				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyList(),
+				Mockito.anyString());
+		Mockito.doReturn(FAKE_ID).when(this.plugin).doRequestInstance(
+				Mockito.any(Client.class), Mockito.any(CreateComputeRequest.class));
+
+		// exercise
+		this.plugin.requestInstance(this.computeOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkIds(Mockito.eq(this.computeOrder.getNetworkIds()));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(
+				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createComputeRequest(
+				Mockito.eq(this.computeOrder.getName()), Mockito.eq(NETWORK_CONFIRMATION_CONTEXT),
+				Mockito.eq(this.computeOrder.getPublicKey()), Mockito.eq(USER_NAME), Mockito.eq(FAKE_BASE64_SCRIPT),
+				Mockito.eq(String.valueOf(this.hardwareRequirements.getCpu())), Mockito.eq(DEFAULT_GRAPHIC_ADDRESS),
+				Mockito.eq(DEFAULT_GRAPHIC_TYPE), Mockito.eq(this.computeOrder.getImageId()),
+				Mockito.eq(String.valueOf(this.hardwareRequirements.getDisk())),
+				Mockito.eq(String.valueOf(this.hardwareRequirements.getMemory())), Mockito.eq(this.networkIds),
+				Mockito.eq(DEFAULT_ARCHITECTURE));
 	}
  	
 	// test case: When calling the updateHardwareRequirements method with an updated
@@ -1024,16 +1056,8 @@ public class OpenNebulaComputePluginTest {
 	}
 
 	private List<String> listNetworkIds() {
-		NetworkOrder networkOrder = new NetworkOrder();
-		SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
-		networkOrder.setSystemUser(requester);
-		networkOrder.setProvider(FAKE_PROVIDER);
-		networkOrder.setCloudName(CLOUD_NAME);
-		networkOrder.setInstanceId(FAKE_PRIVATE_NETWORK_ID);
-		networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-		this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
 		List<String> networksId = new ArrayList<>();
-		networksId.add(networkOrder.getId());
+		networksId.addAll(this.computeOrder.getNetworkIds());
 		return networksId;
 	}
 	
@@ -1224,5 +1248,17 @@ public class OpenNebulaComputePluginTest {
 		
 		return xml;
 	}
-	
+
+	private ComputeOrder getComputeOrder() {
+		ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+		return computeOrder;
+	}
+
+	private CreateComputeRequest getCreateComputeRequest() {
+		return this.plugin.createComputeRequest(
+				this.computeOrder.getName(), NETWORK_CONFIRMATION_CONTEXT, this.computeOrder.getPublicKey(), USER_NAME,
+				FAKE_BASE64_SCRIPT, String.valueOf(this.hardwareRequirements.getCpu()), DEFAULT_GRAPHIC_ADDRESS,
+				DEFAULT_GRAPHIC_TYPE, this.computeOrder.getImageId(), String.valueOf(this.hardwareRequirements.getDisk()),
+				String.valueOf(this.hardwareRequirements.getMemory()), this.networkIds, DEFAULT_ARCHITECTURE);
+	}
 }
