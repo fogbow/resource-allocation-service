@@ -54,17 +54,17 @@ import software.amazon.awssdk.services.ec2.model.Tag;
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsV2PublicIpPluginTest extends BaseUnitTests {
 
-	private static final String CLOUD_NAME = "amazon";
-	private static final String FAKE_ALLOCATION_ID = "fake-allocation-id";
-	private static final String FAKE_ASSOCIATION_ID = "fake-association-id";
-	private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
-	private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-default-security-group-id";
-	private static final String FAKE_DEFAULT_VPC_ID = "fake-vpc-id";
-	private static final String FAKE_GROUP_ID = "fake-group-id";
-	private static final String FAKE_NETWORK_INTERFACE_ID = "fake-network-interface-id";
+    private static final String CLOUD_NAME = "amazon";
+    private static final String FAKE_ALLOCATION_ID = "fake-allocation-id";
+    private static final String FAKE_ASSOCIATION_ID = "fake-association-id";
+    private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
+    private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-security-group-id";
+    private static final String FAKE_DEFAULT_VPC_ID = "fake-vpc-id";
+    private static final String FAKE_GROUP_ID = "fake-group-id";
+    private static final String FAKE_NETWORK_INTERFACE_ID = "fake-network-interface-id";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
 	
-	private AwsV2PublicIpPlugin plugin;
+    private AwsV2PublicIpPlugin plugin;
     private Ec2Client client;
 
     @Before
