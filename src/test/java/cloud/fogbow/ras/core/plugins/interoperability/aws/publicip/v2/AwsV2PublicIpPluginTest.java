@@ -31,19 +31,24 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Address;
+import software.amazon.awssdk.services.ec2.model.AllocateAddressRequest;
+import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.DisassociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.DisassociateAddressResponse;
+import software.amazon.awssdk.services.ec2.model.DomainType;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterface;
 import software.amazon.awssdk.services.ec2.model.ModifyNetworkInterfaceAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.ModifyNetworkInterfaceAttributeResponse;
 import software.amazon.awssdk.services.ec2.model.ReleaseAddressRequest;
 import software.amazon.awssdk.services.ec2.model.ReleaseAddressResponse;
+import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
@@ -54,6 +59,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
 	private static final String FAKE_ASSOCIATION_ID = "fake-association-id";
 	private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
 	private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-default-security-group-id";
+	private static final String FAKE_DEFAULT_VPC_ID = "fake-vpc-id";
 	private static final String FAKE_GROUP_ID = "fake-group-id";
 	private static final String FAKE_NETWORK_INTERFACE_ID = "fake-network-interface-id";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
@@ -732,8 +738,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the getInstanceNetworkInterfaceId method, it must
-    // verify
-    // that is call was successful.
+    // verify that is call was successful.
     @Test
     public void testGetInstanceNetworkInterfaceId() throws Exception {
         // set up
@@ -796,65 +801,257 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(expected, networkInterface);
     }
-
-    // test case: ...
+    
+    // test case: When calling the getInstanceReservation method with a response
+    // containing a valid instance reservation, it must return the instance
+    // contained in this reservation.
     @Test
-    public void testGetInstanceReservation() {
+    public void testGetInstanceReservation() throws FogbowException {
         // set up
+        DescribeInstancesResponse response = buildDescribeInstancesResponse();
+
+        Instance expected = buildInstance();
 
         // exercise
+        Instance instance = this.plugin.getInstanceReservation(response);
 
         // verify
+        Assert.assertEquals(expected, instance);
+    }
+
+    // test case: When calling the getInstanceReservation method and return a null
+    // response, it must verify that an InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetInstanceReservationWithNullResponse() throws FogbowException {
+        // set up
+        DescribeInstancesResponse response = null;
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(response);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
-    // test case: ...
+    // test case: When calling the getInstanceReservation method and return a empty
+    // response, it must verify that an InstanceNotFoundException has been thrown.
     @Test
-    public void testGetInstanceReservationFail() {
+    public void testGetInstanceReservationWithEmptyResponse() throws FogbowException {
         // set up
+        DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
 
-        // exercise
-
-        // verify
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(response);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
-    // test case: ...
+    // test case: When calling the getInstanceReservation method and return a
+    // response with null reservation, it must verify that an
+    // InstanceNotFoundException has been thrown.
     @Test
-    public void testHandleSecurityIssues() {
+    public void testGetInstanceReservationNull() throws FogbowException {
         // set up
+        Reservation reservation = null;
+        DescribeInstancesResponse response = buildDescribeInstancesResponse(reservation);
 
-        // exercise
-
-        // verify
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(response);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
-    // test case: ...
+    // test case: When calling the getInstanceReservation method and return a
+    // response with an empty reservation, it must verify that an
+    // InstanceNotFoundException has been thrown.
     @Test
-    public void testHandleSecurityIssuesFail() {
+    public void testGetInstanceReservationEmpty() throws FogbowException {
         // set up
+        Reservation reservation = Reservation.builder().build();
+        DescribeInstancesResponse response = buildDescribeInstancesResponse(reservation);
 
-        // exercise
-
-        // verify
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(response);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
-    // test case: ...
+    // test case: When calling the handleSecurityIssues method, it must
+    // verify that is call was successful.
     @Test
-    public void testDoAllocateAddresses() {
+    public void testHandleSecurityIssues() throws Exception {
         // set up
+        String allocationId = FAKE_ALLOCATION_ID;
+        String defaultVpcId = FAKE_DEFAULT_VPC_ID;
+        String description = AwsV2PublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
+        String groupId = FAKE_GROUP_ID;
+        String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
+        String tagKey = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
+
+        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                .cidrIp(AwsV2PublicIpPlugin.DEFAULT_DESTINATION_CIDR)
+                .fromPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
+                .toPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
+                .groupId(groupId)
+                .ipProtocol(AwsV2PublicIpPlugin.TCP_PROTOCOL)
+                .build();
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.CREATE_SECURITY_GROUP_METHOD,
+                Mockito.eq(defaultVpcId), Mockito.eq(groupName), Mockito.eq(description), Mockito.eq(this.client));
+
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD,
+                Mockito.eq(request), Mockito.eq(this.client));
+
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD,
+                Mockito.eq(allocationId), Mockito.eq(tagKey), Mockito.eq(groupId), Mockito.eq(this.client));
 
         // exercise
+        this.plugin.handleSecurityIssues(allocationId, this.client);
 
         // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.createSecurityGroup(Mockito.eq(defaultVpcId), Mockito.eq(groupName), Mockito.eq(description),
+                Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(Mockito.eq(request), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.createTagsRequest(Mockito.eq(allocationId), Mockito.eq(tagKey), Mockito.eq(groupId),
+                Mockito.eq(this.client));
     }
     
-    // test case: ...
+    // test case: When calling the handleSecurityIssues method, and an unexpected
+    // error occurs, it must verify if an UnexpectedException has been thrown and
+    // after that, the doReleaseAddresses methods must also be invoked.
     @Test
-    public void testDoAllocateAddressesFail() {
+    public void testHandleSecurityIssuesFail() throws Exception {
         // set up
+        String allocationId = FAKE_ALLOCATION_ID;
+        String defaultVpcId = FAKE_DEFAULT_VPC_ID;
+        String description = AwsV2PublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
+        String groupId = FAKE_GROUP_ID;
+        String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
+
+        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                .cidrIp(AwsV2PublicIpPlugin.DEFAULT_DESTINATION_CIDR)
+                .fromPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
+                .toPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
+                .groupId(groupId)
+                .ipProtocol(AwsV2PublicIpPlugin.TCP_PROTOCOL)
+                .build();
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.CREATE_SECURITY_GROUP_METHOD,
+                Mockito.eq(defaultVpcId), Mockito.eq(groupName), Mockito.eq(description), Mockito.eq(this.client));
+
+        UnexpectedException exception = new UnexpectedException();
+        PowerMockito.doThrow(exception).when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD,
+                Mockito.eq(request), Mockito.eq(this.client));
+        
+        Mockito.doNothing().when(this.plugin).doReleaseAddresses(Mockito.eq(allocationId), Mockito.eq(this.client));
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.handleSecurityIssues(allocationId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doReleaseAddresses(Mockito.eq(allocationId),
+                    Mockito.eq(this.client));
+        }
+    }
+    
+    // test case: When calling the doAllocateAddresses method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoAllocateAddresses() throws FogbowException {
+        // set up
+        AllocateAddressRequest request = AllocateAddressRequest.builder()
+                .domain(DomainType.VPC)
+                .build();
+
+        AllocateAddressResponse response = buildAllocateAddressResponse();
+        Mockito.doReturn(response).when(this.client).allocateAddress(Mockito.eq(request));
 
         // exercise
+        this.plugin.doAllocateAddresses(this.client);
 
         // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).allocateAddress(Mockito.eq(request));
+    }
+
+    // test case: When calling the doAllocateAddresses method, and an unexpected
+    // error occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testDoAllocateAddressesFail() throws FogbowException {
+        // set up
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).allocateAddress(Mockito.any(AllocateAddressRequest.class));
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        try {
+            // exercise
+            this.plugin.doAllocateAddresses(this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    private AllocateAddressResponse buildAllocateAddressResponse() {
+        String allocationId = FAKE_ALLOCATION_ID;
+        
+        AllocateAddressResponse response = AllocateAddressResponse.builder()
+                .allocationId(allocationId)
+                .build();
+        
+        return response;
+    }
+    
+    private DescribeInstancesResponse buildDescribeInstancesResponse(Reservation... reservations) {
+        Reservation reservation = reservations.length > 0 ? reservations[0]
+                : buildReservation();
+
+        DescribeInstancesResponse response = DescribeInstancesResponse.builder()
+                .reservations(reservation)
+                .build();
+
+        return response;
+    }
+
+    private Reservation buildReservation(Instance... instances) {
+        Instance instance = instances.length > 0 ? instances[0] : buildInstance();
+
+        Reservation reservation = Reservation.builder()
+                .instances(instance)
+                .build();
+
+        return reservation;
     }
     
     private Instance buildInstance(String... subnetIds) {
