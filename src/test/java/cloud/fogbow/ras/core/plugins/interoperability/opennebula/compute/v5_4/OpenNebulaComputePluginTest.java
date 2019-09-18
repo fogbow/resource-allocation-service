@@ -90,7 +90,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	private static final String TEMPLATE_MEMORY_PATH = OpenNebulaComputePlugin.TEMPLATE_MEMORY_PATH;
 	private static final String TEMPLATE_MEMORY_VALUE = "1024";
 	private static final String TEMPLATE_IMAGE_ID_PATH = OpenNebulaComputePlugin.TEMPLATE_IMAGE_ID_PATH;
-	private static final String CLOUD_NAME = "opennebula";
 
 	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
 			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, FAKE_TAG) };
@@ -122,6 +121,153 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		this.computeOrder = this.getComputeOrder();
 		this.hardwareRequirements = this.createHardwareRequirements();
 		this.networkIds = this.listNetworkIds();
+	}
+
+	// test case: when invoking the requestInstance method with valid compute order and
+	// cloud user, the plugin should mount an appropriate ONe create compute request,
+	// run it via the ONe client and return the instance id.
+	@Test
+	public void testRequestInstance() throws FogbowException {
+		// set up
+		CreateComputeRequest createComputeRequest = this.getCreateComputeRequest();
+
+		Mockito.doReturn(createComputeRequest).when(this.plugin).getCreateComputeRequest(
+				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
+		Mockito.doReturn(FAKE_ID).when(this.plugin).doRequestInstance(
+				Mockito.any(Client.class), Mockito.any(CreateComputeRequest.class));
+
+		// exercise
+		this.plugin.requestInstance(this.computeOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getCreateComputeRequest(
+				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.eq(this.client), Mockito.eq(createComputeRequest));
+	}
+
+	// test case: when invoking the getCreateRequestInstance method with a valid client and compute order,
+	// the plugin should create the base64 script using the appropriate launch command generator; create
+	// the network ids list; and, find an appropriate 'flavor' for the order.
+	@Test
+	public void testGetCreateRequestInstance() throws UnexpectedException, NoAvailableResourcesException {
+		// set up
+		LaunchCommandGenerator launchCommandGenerator = Mockito.mock(LaunchCommandGenerator.class);
+		this.plugin.setLaunchCommandGenerator(launchCommandGenerator);
+
+		Mockito.when(launchCommandGenerator.createLaunchCommand(Mockito.any(ComputeOrder.class))).thenReturn(FAKE_BASE64_SCRIPT);
+		Mockito.doReturn(this.networkIds).when(this.plugin).getNetworkIds(Mockito.anyList());
+		Mockito.doReturn(this.hardwareRequirements).when(this.plugin).findSmallestFlavor(
+				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
+		Mockito.doReturn(this.getCreateComputeRequest()).when(this.plugin).createComputeRequest(
+				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyList(),
+				Mockito.anyString());
+
+		// exercise
+		this.plugin.getCreateComputeRequest(this.client, this.computeOrder);
+
+		// verify
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkIds(Mockito.eq(this.computeOrder.getNetworkIds()));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(
+				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createComputeRequest(
+				Mockito.eq(this.computeOrder.getName()), Mockito.eq(NETWORK_CONFIRMATION_CONTEXT),
+				Mockito.eq(this.computeOrder.getPublicKey()), Mockito.eq(USER_NAME), Mockito.eq(FAKE_BASE64_SCRIPT),
+				Mockito.eq(String.valueOf(this.hardwareRequirements.getCpu())), Mockito.eq(DEFAULT_GRAPHIC_ADDRESS),
+				Mockito.eq(DEFAULT_GRAPHIC_TYPE), Mockito.eq(this.computeOrder.getImageId()),
+				Mockito.eq(String.valueOf(this.hardwareRequirements.getDisk())),
+				Mockito.eq(String.valueOf(this.hardwareRequirements.getMemory())), Mockito.eq(this.networkIds),
+				Mockito.eq(DEFAULT_ARCHITECTURE));
+	}
+
+	// test case: when invoking the doRequestInstance method with valid client and create compute
+	// request, the plugin should allocate a new virtual machine in ONe and return its instance id.
+	@Test
+	public void testDoRequestInstance() throws InvalidParameterException, NoAvailableResourcesException, QuotaExceededException {
+		// set up
+		CreateComputeRequest createComputeRequest = Mockito.spy(this.getCreateComputeRequest());
+		Mockito.when(OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(this.computeOrder.getInstanceId());
+
+		// exercise
+		this.plugin.doRequestInstance(this.client, createComputeRequest);
+
+		// verify
+		Mockito.verify(createComputeRequest, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachine();
+
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.allocateVirtualMachine(this.client, createComputeRequest.getVirtualMachine().marshalTemplate());
+	}
+
+	// test case: when invoking listNetworkIds with a non-empty list of network ids,
+    // a new network ids list should be returned containing all of the passed list ids
+	// and the default network id.
+	@Test
+	public void testListNetworkIds() {
+		// set up
+		String defaultNetworkId = "0";
+		this.networkIds.add(FAKE_PRIVATE_NETWORK_ID);
+
+		// exercise
+		List<String> networkIds = this.plugin.getNetworkIds(this.networkIds);
+
+		// verify
+		Assert.assertEquals(2, networkIds.size());
+		Assert.assertEquals(defaultNetworkId, networkIds.get(0));
+		Assert.assertEquals(FAKE_PRIVATE_NETWORK_ID, networkIds.get(1));
+	}
+
+	// test case: when invoking listNetworkIds with an empty list of network ids,
+	// a new network ids list should be returned containing only default network id.
+	@Test
+	public void testListNetworkIdsEmptyNetworkIds() {
+		// set up
+		String defaultNetworkId = "0";
+
+		// exercise
+		List<String> networkIds = this.plugin.getNetworkIds(this.networkIds);
+
+		// verify
+		Assert.assertEquals(1, networkIds.size());
+		Assert.assertEquals(defaultNetworkId, networkIds.get(0));
+	}
+
+	@Test
+	public void testFindSmallestFlavor() throws UnexpectedException, NoAvailableResourcesException {
+		// set up
+		Mockito.doReturn(this.hardwareRequirements).when(this.plugin).getBestFlavor(
+				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
+
+		// exercise
+		this.plugin.findSmallestFlavor(this.client, this.computeOrder);
+
+		// verify
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getBestFlavor(
+				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
+	}
+
+	@Test
+	public void testFindSmallestFlavorFail() throws UnexpectedException {
+		// set up
+		Mockito.doReturn(null).when(this.plugin).getBestFlavor(
+				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
+
+		// exercise
+		try {
+			this.plugin.findSmallestFlavor(this.client, this.computeOrder);
+			Assert.fail();
+		} catch (NoAvailableResourcesException e) {
+		    Assert.assertEquals("No available resources.", e.getMessage());
+		}
+
+		// verify
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getBestFlavor(
+				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 	}
 
 	// test case: When calling the updateHardwareRequirements method with a set of
@@ -188,43 +334,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertEquals(expected, this.plugin.getFlavors());
 	}
 
-	@Test
-	public void testRequestInstance() throws FogbowException {
-	    // set up
-	    LaunchCommandGenerator launchCommandGenerator = Mockito.mock(LaunchCommandGenerator.class);
-
-	    Mockito.when(launchCommandGenerator.createLaunchCommand(Mockito.any(ComputeOrder.class))).thenReturn(FAKE_BASE64_SCRIPT);
-		Mockito.doReturn(this.networkIds).when(this.plugin).getNetworkIds(Mockito.anyList());
-		Mockito.doReturn(this.hardwareRequirements).when(this.plugin).findSmallestFlavor(
-				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
-		Mockito.doReturn(this.getCreateComputeRequest()).when(this.plugin).createComputeRequest(
-				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyList(),
-				Mockito.anyString());
-		Mockito.doReturn(FAKE_ID).when(this.plugin).doRequestInstance(
-				Mockito.any(Client.class), Mockito.any(CreateComputeRequest.class));
-
-		// exercise
-		this.plugin.requestInstance(this.computeOrder, this.cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
-
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkIds(Mockito.eq(this.computeOrder.getNetworkIds()));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(
-				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createComputeRequest(
-				Mockito.eq(this.computeOrder.getName()), Mockito.eq(NETWORK_CONFIRMATION_CONTEXT),
-				Mockito.eq(this.computeOrder.getPublicKey()), Mockito.eq(USER_NAME), Mockito.eq(FAKE_BASE64_SCRIPT),
-				Mockito.eq(String.valueOf(this.hardwareRequirements.getCpu())), Mockito.eq(DEFAULT_GRAPHIC_ADDRESS),
-				Mockito.eq(DEFAULT_GRAPHIC_TYPE), Mockito.eq(this.computeOrder.getImageId()),
-				Mockito.eq(String.valueOf(this.hardwareRequirements.getDisk())),
-				Mockito.eq(String.valueOf(this.hardwareRequirements.getMemory())), Mockito.eq(this.networkIds),
-				Mockito.eq(DEFAULT_ARCHITECTURE));
-	}
- 	
 	// test case: When calling the updateHardwareRequirements method with an updated
 	// set of flavors, nothing will be added to the existing flavor set.
 	@Test
@@ -575,315 +684,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertFalse(condition);
 	}
 
-    
-	// test case: When calling the requestInstance method, with the valid client and
-	// template with a list of networks ID, a virtual network will be allocated,
-	// returned a instance ID.
-    @Test
-	public void testRequestInstanceSuccessfulWithTwoNetworkIds() throws FogbowException, UnexpectedException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
-		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
-		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
-		
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
-		HardwareRequirements flavor = createHardwareRequirements();
-		this.flavors.add(flavor);
-		this.plugin.setFlavors(this.flavors);
-		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor));
-
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-
-		List<String> networkIds = listNetworkIds();
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_2, MEMORY_VALUE_1024, DISK_VALUE_8GB);
-		CloudUser cloudUser = createCloudUser();
-		
-		int choice = 0;
-		String valueOfCpu = String.valueOf(CPU_VALUE_4);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
-		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
-		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
-		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
-		String virtualMachineTemplate = generateTemplate(choice, valueOfCpu, valueOfRam, defaultNetworkId,
-				privateNetworkId, valueOfDisk);
-		
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
-
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
-	}
-	
-	// test case: When calling the requestInstance method, with the valid client and
-	// template without a list of networks ID, a virtual network will be allocated,
-	// returned a instance ID.
-	@Test
-	public void testRequestInstanceSuccessfulWithoutNetworksId() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
-		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
-		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
-		
-		CloudUser cloudUser = createCloudUser();
-		List<String> networkIds = null;
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_1, MEMORY_VALUE_2048, DISK_VALUE_8GB);
-		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
-
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-		
-		int choice = 1;
-		String networkId = null;
-		String valueOfCpu = String.valueOf(CPU_VALUE_4);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
-		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
-		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
-
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(Client.class),
-				Mockito.any(ComputeOrder.class));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(template));
-	}
-	
-	// test case: When calling the requestInstance method, with a disk size smaller
-	// than the image, a configuration for volatile disk will be defined in the
-	// model for allocation, returning an instance ID.
-	@Test
-	public void testRequestInstanceSuccessfulWithVolatileDisk() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
-		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
-		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
-
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
-		HardwareRequirements flavor = createHardwareRequirements();
-		this.flavors.add(flavor);
-		this.plugin.setFlavors(this.flavors);
-		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor));
-
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-
-		List<String> networkIds = null;
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_2, MEMORY_VALUE_1024, DISK_VALUE_6GB);
-		CloudUser cloudUser = createCloudUser();
-
-		int choice = 2;
-		String valueOfCpu = String.valueOf(CPU_VALUE_4);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
-		String valueOfDisk = String.valueOf(DISK_VALUE_6GB);
-		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
-		String virtualMachineTemplate = generateTemplate(choice, valueOfCpu, valueOfRam, defaultNetworkId, valueOfDisk);
-
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(2));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
-
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(Client.class),
-				Mockito.any(ComputeOrder.class));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
-	}
-	
-	// test case: When calling getBestFlavor during requestInstance method, and it
-	// returns a null instance, a NoAvailableResourcesException will be thrown.
-	@Test(expected = NoAvailableResourcesException.class) // verify
-	public void testRequestInstanceThrowNoAvailableResourcesExceptionWhenCallGetBestFlavor() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		BDDMockito.given(OpenNebulaClientUtil.getImagePool(Mockito.any())).willReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
-		CloudUser cloudUser = createCloudUser();
-		List<String> networkIds = null;
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_1, MEMORY_VALUE_2048, DISK_VALUE_8GB);
-
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-	}
-	
-	// test case: When calling the requestInstance method, and an error not
-	// specified occurs while attempting to allocate a virtual machine, an
-	// InvalidParameterException will be thrown.
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testRequestInstanceThrowInvalidParameterException() throws FogbowException {
-		// set up
-		CloudUser cloudUser = createCloudUser();
-		List<String> networkIds = null;
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
-		HardwareRequirements flavor = createHardwareRequirements();
-		Client client = Mockito.mock(Client.class);
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
-
-		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
-		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
-		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
-
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_ANYTHING);
-
-		int choice = 1;
-		String networkId = null;
-		String valueOfCpu = String.valueOf(CPU_VALUE_4);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
-		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
-		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
-
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-	}
-	
-	// test case: When you attempt to allocate a virtual machine with the
-	// requestInstance method call, and an insufficient free memory error message
-	// occurs, a NoAvailableResourcesException will be thrown.
-	@Test(expected = NoAvailableResourcesException.class) // verify
-	public void testRequestInstanceWithMemoryInsufficientThrowNoAvailableResourcesException() throws FogbowException {
-		// set up
-		CloudUser cloudUser = createCloudUser();
-
-		List<String> networkIds = null;
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
-		HardwareRequirements flavor = createHardwareRequirements();
-		Client client = Mockito.mock(Client.class);
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
-
-		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
-		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
-		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
-
-		int choice = 1;
-		String networkId = null;
-		String valueOfCpu = String.valueOf(CPU_VALUE_4);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
-		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
-		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
-
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-		Mockito.when(response.getErrorMessage()).thenReturn(RESPONSE_NOT_ENOUGH_FREE_MEMORY);
-
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-	}
-	
-	// test case: When attempting to allocate a virtual machine with the
-	// requestInstance method call, and an error message occurs with the words limit
-	// and quota, a QuotaExceededException will be thrown.
-	@Test(expected = QuotaExceededException.class) // verify
-	public void testRequestInstanceThrowQuotaExceededException() throws FogbowException {
-		// set up
-		CloudUser cloudUser = createCloudUser();
-		List<String> networkIds = null;
-		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
-		HardwareRequirements flavor = createHardwareRequirements();
-		Client client = Mockito.mock(Client.class);
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
-
-		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
-		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
-		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
-
-		int choice = 1;
-		String networkId = null;
-		String valueOfCpu = String.valueOf(CPU_VALUE_4);
-		String valueOfRam = String.valueOf(MEMORY_VALUE_2048);
-		String valueOfDisk = String.valueOf(DISK_VALUE_8GB);
-		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
-
-		String message = FIELD_RESPONSE_LIMIT + SEPARATOR + FIELD_RESPONSE_QUOTA;
-		
-		OneResponse response = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-		Mockito.when(response.getErrorMessage()).thenReturn(message);
-
-		// exercise
-		this.plugin.requestInstance(computeOrder, cloudUser);
-	}
-	
-	// test case: When calling the getInstance method of a resource without the volatile disk size passing 
+	// test case: When calling the getInstance method of a resource without the volatile disk size passing
 	// a valid client of a token value and an instance ID, it must return an instance of a virtual machine.
 	@Test
 	public void testGetInstanceSuccessfulWithoutVolatileDiskResource() throws FogbowException {
@@ -1255,10 +1056,22 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	}
 
 	private CreateComputeRequest getCreateComputeRequest() {
-		return this.plugin.createComputeRequest(
-				this.computeOrder.getName(), NETWORK_CONFIRMATION_CONTEXT, this.computeOrder.getPublicKey(), USER_NAME,
-				FAKE_BASE64_SCRIPT, String.valueOf(this.hardwareRequirements.getCpu()), DEFAULT_GRAPHIC_ADDRESS,
-				DEFAULT_GRAPHIC_TYPE, this.computeOrder.getImageId(), String.valueOf(this.hardwareRequirements.getDisk()),
-				String.valueOf(this.hardwareRequirements.getMemory()), this.networkIds, DEFAULT_ARCHITECTURE);
+		CreateComputeRequest request = new CreateComputeRequest.Builder()
+				.name(this.computeOrder.getName())
+				.contextNetwork(NETWORK_CONFIRMATION_CONTEXT)
+				.publicKey(this.computeOrder.getPublicKey())
+				.userName(USER_NAME)
+				.startScriptBase64(FAKE_BASE64_SCRIPT)
+				.cpu(String.valueOf(this.hardwareRequirements.getCpu()))
+				.graphicsAddress(DEFAULT_GRAPHIC_ADDRESS)
+				.graphicsType(DEFAULT_GRAPHIC_TYPE)
+				.imageId(this.computeOrder.getImageId())
+				.diskSize(String.valueOf(this.hardwareRequirements.getDisk()))
+				.memory(String.valueOf(this.hardwareRequirements.getMemory()))
+				.networks(this.networkIds)
+				.architecture(DEFAULT_ARCHITECTURE)
+				.build();
+
+		return request;
 	}
 }
