@@ -39,11 +39,11 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	private static final int MB_CONVERT = 1024;
 	protected static final int DEFAULT_NUMBER_OF_INSTANCES = 1;
 
-	private static final String DEFAULT_ARCHITECTURE = "x86_64";
-	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
-	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
-	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
-	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
+	protected static final String DEFAULT_ARCHITECTURE = "x86_64";
+	protected static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
+	protected static final String DEFAULT_GRAPHIC_TYPE = "vnc";
+	protected static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
+	protected static final String NIC_IP_EXPRESSION = "//NIC/IP";
 
 	protected static final boolean SHUTS_DOWN_HARD = true;
 
@@ -78,34 +78,45 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-
-		String name = computeOrder.getName();
-		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
-				ConfigurationPropertyDefaults.SSH_COMMON_USER);
-		String publicKey = computeOrder.getPublicKey();
-		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
-		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
-		String graphicsType = DEFAULT_GRAPHIC_TYPE;
-		String architecture = DEFAULT_ARCHITECTURE;
-		List<String> networks = this.getNetworkIds(computeOrder.getNetworkIds());
-
-		HardwareRequirements foundFlavor = findSmallestFlavor(client, computeOrder);
-		String cpu = String.valueOf(foundFlavor.getCpu());
-		String memory = String.valueOf(foundFlavor.getMemory());
-		String imageId = computeOrder.getImageId();
-		String disk = String.valueOf(foundFlavor.getDisk());
-
-		CreateComputeRequest request = this.createComputeRequest(name, hasNetwork, publicKey, userName, startScriptBase64,
-				cpu, graphicsAddress, graphicsType, imageId, disk, memory, networks, architecture);
+		CreateComputeRequest request = this.getCreateComputeRequest(client, computeOrder);
+		VirtualMachineTemplate virtualMachine = request.getVirtualMachine();
 
 		synchronized (computeOrder) {
 			ComputeAllocation actualAllocation = new ComputeAllocation(
-					Integer.parseInt(cpu), Integer.parseInt(memory), DEFAULT_NUMBER_OF_INSTANCES, Integer.parseInt(disk));
+					Integer.parseInt(virtualMachine.getCpu()),
+					Integer.parseInt(virtualMachine.getMemory()),
+					DEFAULT_NUMBER_OF_INSTANCES,
+					Integer.parseInt(virtualMachine.getDisk().getSize()));
 			computeOrder.setActualAllocation(actualAllocation);
 		}
 
 		return this.doRequestInstance(client, request);
+	}
+
+	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
+			throws UnexpectedException, NoAvailableResourcesException {
+		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
+				ConfigurationPropertyDefaults.SSH_COMMON_USER);
+
+		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
+		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
+		String graphicsType = DEFAULT_GRAPHIC_TYPE;
+		String architecture = DEFAULT_ARCHITECTURE;
+
+		String name = computeOrder.getName();
+		String publicKey = computeOrder.getPublicKey();
+		String imageId = computeOrder.getImageId();
+
+		List<String> networks = this.getNetworkIds(computeOrder.getNetworkIds());
+		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+
+		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
+		String cpu = String.valueOf(foundFlavor.getCpu());
+		String memory = String.valueOf(foundFlavor.getMemory());
+		String disk = String.valueOf(foundFlavor.getDisk());
+
+		return this.createComputeRequest(name, hasNetwork, publicKey, userName, startScriptBase64,
+				cpu, graphicsAddress, graphicsType, imageId, disk, memory, networks, architecture);
 	}
 
 	@Override
@@ -168,7 +179,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return networks;
 	}
 
-	private CreateComputeRequest createComputeRequest(String name, String hasNetwork, String publicKey, String userName,
+	protected CreateComputeRequest createComputeRequest(String name, String hasNetwork, String publicKey, String userName,
 			String startScriptBase64, String cpu, String graphicsAddress, String graphicsType, String imageId, String disk,
 			String memory, List<String> networks, String architecture) {
 
