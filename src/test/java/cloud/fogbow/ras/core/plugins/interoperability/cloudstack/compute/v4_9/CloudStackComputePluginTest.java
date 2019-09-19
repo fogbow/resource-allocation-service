@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, GetVolumeResponse.class,
         DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class,
         DatabaseManager.class})
