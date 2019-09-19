@@ -1,12 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -16,10 +12,10 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
@@ -34,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -46,7 +41,8 @@ import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, GetVolumeResponse.class,
-        DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class})
+        DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class,
+        DatabaseManager.class})
 public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private static final CloudStackUser CLOUD_STACK_USER =
@@ -59,7 +55,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private CloudStackComputePlugin plugin;
     private CloudStackHttpClient client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
-    private SharedOrderHolders sharedOrderHolders;
     private Properties properties;
     private String defaultNetworkId;
 
@@ -67,7 +62,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private ExpectedException expectedException = ExpectedException.none();
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
         String cloudStackConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + CLOUDSTACK_CLOUD_NAME + File.separator
@@ -81,14 +76,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
 
-        this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-
-        PowerMockito.mockStatic(SharedOrderHolders.class);
-        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-
-        Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-                .thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
+        this.testUtils.mockReadOrdersFromDataBase();
     }
 
     // Test case: Trying to get all ServiceOfferings in the Cloudstack, but it occurs an error
@@ -452,8 +440,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
         Mockito.when(diskOffering.getId()).thenReturn(diskOfferingIdExpected);
         Mockito.when(diskOffering.getDiskSize()).thenReturn(diskOfferingSizeExpected);
+        int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
-                Mockito.eq(order.getDisk()), Mockito.any(CloudStackUser.class));
+                Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
 
         // ignoring CloudStackUrlUtil
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -533,8 +522,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
         GetAllDiskOfferingsResponse.DiskOffering diskOffering = null;
+        int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
-                Mockito.eq(order.getDisk()), Mockito.any(CloudStackUser.class));
+                Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
         // verify
         this.expectedException.expect(NoAvailableResourcesException.class);
         this.expectedException.expectMessage(
@@ -571,8 +561,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
         Mockito.when(diskOffering.getId()).thenReturn(diskOfferingIdExpected);
         Mockito.when(diskOffering.getDiskSize()).thenReturn(diskOfferingSizeExpected);
+        int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
-                Mockito.eq(order.getDisk()), Mockito.any(CloudStackUser.class));
+                Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
 
         // ignoring CloudStackUrlUtil
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -1064,21 +1055,22 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private ComputeOrder createComputeOrder(ArrayList<UserData> fakeUserData, String fakeImageId) {
         SystemUser requester = this.testUtils.createSystemUser();
+
         NetworkOrder networkOrder = this.testUtils.createLocalNetworkOrder();
-        networkOrder.setInstanceId(FAKE_NETWORK_ID);
-
-        this.sharedOrderHolders.getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
-
-        List<String> networkOrderIds = new ArrayList<>();
+        networkOrder.setId(FAKE_NETWORK_ID);
+        List<String> networkOrderIds = Mockito.spy(new ArrayList<>());
         networkOrderIds.add(networkOrder.getId());
+
         ComputeOrder computeOrder = new ComputeOrder(requester, this.testUtils.FAKE_REMOTE_MEMBER_ID,
                 this.testUtils.FAKE_REMOTE_MEMBER_ID, this.testUtils.DEFAULT_CLOUD_NAME,
                 "", this.testUtils.CPU_VALUE, this.testUtils.MEMORY_VALUE,
                 this.testUtils.DISK_VALUE, fakeImageId, fakeUserData, "", networkOrderIds);
         computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
-        this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-        return computeOrder;
+        ComputeOrder computeOrderMock = Mockito.spy(computeOrder);
+        Mockito.when(networkOrderIds.isEmpty()).thenReturn(false);
+        Mockito.doReturn(networkOrderIds).when(computeOrderMock).getNetworkIds();
+        return computeOrderMock;
     }
 
     private List<GetAllServiceOfferingsResponse.ServiceOffering> createServicesOfferingObjects(
