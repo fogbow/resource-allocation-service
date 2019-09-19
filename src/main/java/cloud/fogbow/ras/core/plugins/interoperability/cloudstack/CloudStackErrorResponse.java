@@ -3,11 +3,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import com.google.gson.annotations.SerializedName;
 import org.apache.http.client.HttpResponseException;
 
-public class CloudStackErrorResponse {
+import static cloud.fogbow.common.constants.CloudStackConstants.ERROR_CODE_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.ERROR_TEXT_KEY_JSON;
 
-    // TODO(chico) - Refactor: add this constants in the CloudStackConstants class
-    private static final String ERROR_CODE_KEY_JSON = "errorcode";
-    private static final String ERROR_TEXT_KEY_JSON = "errortext";
+public class CloudStackErrorResponse {
 
     @SerializedName(ERROR_CODE_KEY_JSON)
     private Integer errorCode;
