@@ -293,7 +293,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(servicesOfferingExpected.get(0), serviceOffering);
     }
 
-    // test case: get service offering and return null because there are not services offerings in the cloud
+    // test case: get service offering and return en exception because there are not services offerings in the cloud
     @Test
     public void testGetServiceOfferingAndEmptyServicesOffering() throws FogbowException {
         // set up
@@ -311,15 +311,17 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(getAllServiceOfferingsResponse)
                 .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
 
-        // exercise
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
-                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
-
         // verify
-        Assert.assertNull(serviceOffering);
+        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expectMessage(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
+
+        // exercise
+        this.plugin.getServiceOffering(computeOrder, cloudStackUser);
+
     }
 
-    // test case: get service offering and return null because the resources don't match
+    // test case: get service offering and return an exception because the resources don't match
     @Test
     public void testGetServiceOfferingNoMatchServicesOffering() throws FogbowException {
         // set up
@@ -343,18 +345,19 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(getAllServiceOfferingsResponse)
                 .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
 
-        // exercise
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
-                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
-
         // verify
-        Assert.assertNull(serviceOffering);
+        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expectMessage(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
+
+        // exercise
+        this.plugin.getServiceOffering(computeOrder, cloudStackUser);
     }
 
 
-    // test case: get service offering and return null because services offering comes null
+    // test case: get service offering and return an exception because services offering comes null
     @Test
-    public void testGetServiceOfferingAndNullServicesOffering() throws FogbowException {
+    public void testGetServiceOfferingAndExceptionServicesOffering() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
@@ -370,12 +373,14 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(getAllServiceOfferingsResponse)
                 .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
 
-        // exercise
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
-                this.plugin.getServiceOffering(computeOrder, cloudStackUser);
-
         // verify
-        Assert.assertNull(serviceOffering);
+        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expectMessage(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
+
+
+        // exercise
+        this.plugin.getServiceOffering(computeOrder, cloudStackUser);
     }
 
     // test case: instance name does not change
@@ -480,9 +485,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.requestInstance(order, CLOUD_STACK_USER);
     }
 
-    // Test case: request instance but the service offering is null and throw a exception
+    // Test case: request instance but the service offering is not available
     @Test
-    public void testRequestInstanceServiceOfferingNull() throws FogbowException {
+    public void testRequestInstanceServiceOfferingThrowException() throws FogbowException {
         // set up
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
@@ -490,22 +495,23 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(networksIds).when(this.plugin)
                 .normalizeNetworksID(Mockito.any(ComputeOrder.class));
 
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering = null;
-        Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
+        Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getServiceOffering(
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
         // verify
         this.expectedException.expect(NoAvailableResourcesException.class);
-        this.expectedException.expectMessage(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
 
         // exercise
         this.plugin.requestInstance(order, CLOUD_STACK_USER);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(0))
+                .getDiskOffering(Mockito.any(), Mockito.any());
     }
 
-    // Test case: request instance but the disk offering is null and throw a exception
+    // Test case: request instance but it throw an exception because the disk offering
     @Test
-    public void testRequestInstanceDiskOfferingNull() throws FogbowException {
+    public void testRequestInstanceDiskOfferingThrowException() throws FogbowException {
         // set up
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
@@ -520,15 +526,17 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         GetAllDiskOfferingsResponse.DiskOffering diskOffering = null;
         int orderDisk = order.getDisk();
-        Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
+        Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getDiskOffering(
                 Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
         // verify
         this.expectedException.expect(NoAvailableResourcesException.class);
-        this.expectedException.expectMessage(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 
         // exercise
         this.plugin.requestInstance(order, CLOUD_STACK_USER);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(0))
+                .normalizeInstanceName(Mockito.any());
     }
 
     // Test case: request instance but it occurs a error in the request to the cloud and throw a exception

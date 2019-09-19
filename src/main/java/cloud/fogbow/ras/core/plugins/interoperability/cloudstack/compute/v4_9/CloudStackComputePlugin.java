@@ -29,7 +29,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
-import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -82,39 +82,20 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, final CloudStackUser cloudUser) throws FogbowException {
-        if (cloudUser == null) {
-            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
-        }
+    public String requestInstance(@NotNull ComputeOrder computeOrder, final CloudStackUser cloudUser)
+            throws FogbowException {
 
-        String templateId = computeOrder.getImageId();
-        if (templateId == null) {
-            String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK;
-            LOGGER.error(errorMsg);
-            throw new InvalidParameterException(errorMsg);
-        }
-
+        checkCloudUser(cloudUser);
+        String templateId = getTemplateId(computeOrder);
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String networksId = normalizeNetworksID(computeOrder);
-
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering = getServiceOffering(computeOrder, cloudUser);
-        if (serviceOffering == null) {
-            String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK;
-            LOGGER.error(errorMsg);
-            throw new NoAvailableResourcesException(errorMsg);
-        }
-
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                getServiceOffering(computeOrder, cloudUser);
         int disk = computeOrder.getDisk();
         GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(disk, cloudUser);
-        if (diskOffering == null) {
-            String errorMsg = Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK;
-            LOGGER.error(errorMsg);
-            throw new NoAvailableResourcesException(errorMsg);
-        }
-
         String instanceName = normalizeInstanceName(computeOrder.getName());
 
-        DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
+        DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOffering.getId())
                 .templateId(templateId)
                 .zoneId(this.zoneId)
@@ -123,36 +104,17 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .userData(userData)
                 .networksId(networksId)
                 .build(this.cloudStackUrl);
-
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
-
-        String jsonResponse = null;
-        DeployVirtualMachineResponse response = null;
-        try {
-            jsonResponse = doGet(request.getUriBuilder().toString(), cloudUser);
-
-            synchronized (computeOrder) {
-                final int AMOUNT_INSTANCE = 1;
-                ComputeAllocation actualAllocation = new ComputeAllocation(
-                        serviceOffering.getCpuNumber(),
-                        serviceOffering.getMemory(),
-                        AMOUNT_INSTANCE,
-                        diskOffering.getDiskSize());
-                computeOrder.setActualAllocation(actualAllocation);
-            }
-
-            response = DeployVirtualMachineResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        return response.getId();
+        DeployVirtualMachineResponse deployVirtualMachineResponse = doRequestInstance(
+                deployVirtualMachineRequest, cloudUser);
+        updateComputeOrder(computeOrder, serviceOffering, diskOffering);
+        return deployVirtualMachineResponse.getId();
     }
 
     @Override
-    public ComputeInstance getInstance(ComputeOrder order, CloudStackUser cloudUser)
+    public ComputeInstance getInstance(ComputeOrder order, final CloudStackUser cloudUser)
             throws FogbowException {
 
+        checkCloudUser(cloudUser);
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
@@ -178,9 +140,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @Override
     public void deleteInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
-        if (cloudUser == null) {
-            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
-        }
+        checkCloudUser(cloudUser);
 
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
@@ -198,7 +158,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    @Nullable
     @VisibleForTesting
     GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
             ComputeOrder computeOrder, CloudStackUser cloudUser) throws FogbowException {
@@ -207,21 +166,20 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
 
-        if (serviceOfferings == null || serviceOfferings.isEmpty()) {
-            return null;
-        }
-
-        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
-                filterServicesOfferingByRequirements(serviceOfferings, computeOrder);
-
-        for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferingsFilted) {
-            if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
-                    serviceOffering.getMemory() >= computeOrder.getMemory()) {
-                return serviceOffering;
+        // TODO(chico) - create a method
+        if (serviceOfferings != null && !serviceOfferings.isEmpty()) {
+            List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
+                    filterServicesOfferingByRequirements(serviceOfferings, computeOrder);
+            for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferingsFilted) {
+                if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
+                        serviceOffering.getMemory() >= computeOrder.getMemory()) {
+                    return serviceOffering;
+                }
             }
         }
 
-        return null;
+        throw new NoAvailableResourcesException(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
     }
 
     @VisibleForTesting
@@ -251,9 +209,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     GetAllServiceOfferingsResponse getServiceOfferings(final CloudStackUser cloudUser) throws FogbowException {
-        if (cloudUser == null) {
-            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
-        }
+        checkCloudUser(cloudUser);
 
         GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -270,14 +226,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return getAllServiceOfferingsResponse;
     }
 
-    @Nullable
     @VisibleForTesting
-    GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize, CloudStackUser cloudUser)
+    GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize,
+                                                             @NotNull final CloudStackUser cloudUser)
             throws FogbowException {
 
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
+        // TODO(chico) - add create method
         if (diskOfferings != null) {
             for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
                 if (diskOffering.getDiskSize() >= diskSize) {
@@ -286,7 +243,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             }
         }
 
-        return null;
+        throw new NoAvailableResourcesException(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
     }
 
     @VisibleForTesting
@@ -399,6 +357,52 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     int convertBytesToGigabyte(long bytes) {
         return (int) (bytes / GIGABYTE_IN_BYTES);
+    }
+
+    private void updateComputeOrder(@NotNull ComputeOrder computeOrder,
+                                    @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
+                                    @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering) {
+
+        synchronized (computeOrder) {
+            final int AMOUNT_INSTANCE = 1;
+            ComputeAllocation actualAllocation = new ComputeAllocation(
+                    serviceOffering.getCpuNumber(),
+                    serviceOffering.getMemory(),
+                    AMOUNT_INSTANCE,
+                    diskOffering.getDiskSize());
+            computeOrder.setActualAllocation(actualAllocation);
+        }
+    }
+
+    private DeployVirtualMachineResponse doRequestInstance(
+            @NotNull DeployVirtualMachineRequest deployVirtualMachineRequest,
+            @NotNull CloudStackUser cloudUser)
+            throws FogbowException {
+
+        CloudStackUrlUtil.sign(deployVirtualMachineRequest.getUriBuilder(), cloudUser.getToken());
+
+        DeployVirtualMachineResponse response = null;
+        try {
+            String jsonResponse = doGet(deployVirtualMachineRequest.getUriBuilder().toString(), cloudUser);
+            response = DeployVirtualMachineResponse.fromJson(jsonResponse);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowExceptionMapper.map(e);
+        }
+        return response;
+    }
+
+    private void checkCloudUser(final CloudStackUser cloudUser) throws FogbowException {
+        if (cloudUser == null) {
+            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
+        }
+    }
+
+    private String getTemplateId(@NotNull final ComputeOrder computeOrder) throws InvalidParameterException {
+        String templateId = computeOrder.getImageId();
+        if (templateId == null) {
+            throw new InvalidParameterException(Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);
+        }
+        return templateId;
     }
 
     private String getRandomUUID() {
