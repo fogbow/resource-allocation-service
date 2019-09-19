@@ -395,6 +395,98 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertTrue(this.plugin.getFlavors().isEmpty());
 	}
 
+	// test case: when invoking getImagesSizes with a valid client, a map of all image ids and respective sizes
+	// should be returned
+	@Test
+	public void testGetImagesSizes() throws UnexpectedException {
+	    // setup
+		ImagePool imagePool = Mockito.mock(ImagePool.class);
+		Image image = Mockito.mock(Image.class);
+		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
+		String fakeImageSize = String.valueOf(DISK_VALUE_6GB);
+
+		Mockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
+		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
+		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
+		Mockito.when(imageIterator.next()).thenReturn(image);
+		Mockito.when(image.getId()).thenReturn(this.computeOrder.getImageId());
+		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(fakeImageSize);
+
+		// exercise
+		Map<String, String> imagesSizes = this.plugin.getImagesSizes(this.client);
+
+		// verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.getImagePool(Mockito.eq(this.client));
+
+        Assert.assertEquals(1, imagesSizes.size());
+        Assert.assertEquals(fakeImageSize, imagesSizes.get(this.computeOrder.getImageId()));
+	}
+
+	// test case: when invoking convertToInteger with a parsable string, its respective int value should
+	// be returned; otherwise 0 should be returned.
+	@Test
+	public void testConvertToInteger() {
+	    // set up
+		int expectedConvertedFail = 0;
+
+		// exercise
+		int converted = this.plugin.convertToInteger(String.valueOf(DISK_VALUE_6GB));
+		int convertedFail = this.plugin.convertToInteger(EMPTY_STRING);
+
+		// verify
+		Assert.assertEquals(DISK_VALUE_6GB, converted);
+		Assert.assertEquals(expectedConvertedFail, convertedFail);
+	}
+
+	// test case: when invoking getDiskSizeFromImageSizeMap with a valid disk sizes map and
+	// image id, return the respective disk int-converted disk size; otherwise, return 0
+	@Test
+	public void testGetDiskSizeFromImageSizeMap() {
+		// set up
+		Map<String, String> diskSizeMap = new HashMap<>();
+		diskSizeMap.put(FAKE_IMAGE_ID, String.valueOf(DISK_VALUE_6GB));
+		int expectedDiskSizeFail = 0;
+
+		// exercise
+		int diskSize = this.plugin.getDiskSizeFromImageSizeMap(diskSizeMap, FAKE_IMAGE_ID);
+		int diskSizeFail = this.plugin.getDiskSizeFromImageSizeMap(diskSizeMap, FAKE_ID);
+
+		// verify
+		Assert.assertEquals(DISK_VALUE_6GB, diskSize);
+		Assert.assertEquals(expectedDiskSizeFail, diskSizeFail);
+	}
+
+	// test case: when invoking containsFlavor with a valid hardware requirements object, return
+	// true in case it is found on the flavors cache
+	@Test
+	public void testContainsFlavor() {
+	    // set up
+		this.plugin.setFlavors(new TreeSet<>(Arrays.asList(this.hardwareRequirements)));
+
+		// exercise
+		boolean hasFlavor = this.plugin.containsFlavor(this.hardwareRequirements);
+
+		// verify
+		Assert.assertTrue(hasFlavor);
+	}
+
+	// test case: when invoking containsFlavor with a valid hardware requirements object, return
+	// false in case it is not found on the flavors cache
+	@Test
+	public void testContainsFlavorFail() {
+		// set up
+		HardwareRequirements fakeFlavor = new HardwareRequirements(
+				FAKE_NAME, FAKE_ID, CPU_VALUE_1, MEMORY_VALUE_1024, DISK_VALUE_6GB);
+		this.plugin.setFlavors(new TreeSet<>(Arrays.asList(this.hardwareRequirements)));
+
+		// exercise
+		boolean hasFlavor = this.plugin.containsFlavor(fakeFlavor);
+
+		// verify
+		Assert.assertFalse(hasFlavor);
+	}
+
 	// test case: When calling the getComputeInstance method passing a valid virtual
 	// machine, it must obtain the data to mount an instance of this resource.
 	@Test
@@ -439,149 +531,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(response, Mockito.times(1)).getMessage();
 
 		Assert.assertEquals(expected, computeInstance);
-	}
-
-	// test case: When calling the getDisckSizeFromImages method with valid
-	// parameters, it must return a valid disk size.
-	@Test
-	public void testGetDiskSizeFromImagesSuccessfully() {
-		// set up
-		String imageId = ONE_STRING_VALUE;
-		String imageSize = IMAGE_SIZE_STRING_VALUE;
-		Map<String, String> imageSizeMap = new HashMap<String, String>();
-		imageSizeMap.put(imageId, imageSize);
-
-		int expected = Integer.parseInt(imageSize);
-
-		// exercise
-		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
-
-		// verify
-		Assert.assertEquals(expected, value);
-	}
-    
-	// test case: When calling the getDisckSizeFromImages method with the null
-	// imageSizeMap parameter, it must log the error that occurred and return the
-	// value zero.
-	@Test
-	public void testGetDiskSizeFromImagesWithImageSizeMapNull() {
-		// set up
-		String imageId = FAKE_IMAGE_ID;
-		Map<String, String> imageSizeMap = null;
-		int expected = ZERO_VALUE;
-
-		// exercise
-		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
-
-		// verify
-		Assert.assertEquals(expected, value);
-	}
-    
-	// test case: When calling the getDisckSizeFromImages method with the null
-	// imageId parameter, it must log the error that occurred and return the value
-	// zero.
-	@Test
-	public void testGetDiskSizeFromImagesWithImageIdNull() {
-		// set up
-		String imageId = null;
-		Map<String, String> imageSizeMap = new HashMap<String, String>();
-		int expected = ZERO_VALUE;
-
-		// exercise
-		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
-
-		// verify
-		Assert.assertEquals(expected, value);
-	}
-    
-	// test case: When calling the getDisckSizeFromImages method with the two null
-	// parameters, it must log the error that occurred and return the value zero.
-	@Test
-	public void testGetDiskSizeFromImagesWithTwoParametersNull() {
-		// set up
-		String imageId = null;
-		Map<String, String> imageSizeMap = null;
-		int expected = ZERO_VALUE;
-
-		// exercise
-		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
-
-		// verify
-		Assert.assertEquals(expected, value);
-	}
-    
-	// test case: When calling the convertToInteger method with a valid numeric
-	// string, it will be converted to a valid integer value.
-	@Test
-	public void testConvertToIntegerSuccessfully() {
-		// set up
-		String number = TEMPLATE_CPU_VALUE;
-		int expected = CPU_VALUE_2;
-
-		// exercise
-		int value = this.plugin.convertToInteger(number);
-
-		// verify
-		Assert.assertEquals(expected, value);
-	}
-    
-	// test case: When calling the convertToInteger method with an invalid numeric
-	// string, it must register the error and return the value zero.
-	@Test
-	public void testConvertToIntegerUnsuccessfully() {
-		// set up
-		String number = EMPTY_STRING;
-		int expected = ZERO_VALUE;
-
-		// exercise
-		int value = this.plugin.convertToInteger(number);
-
-		// verify
-		Assert.assertEquals(expected, value);
-	}
-    
-	// test case: When calling the containsFlavor method as an existing flavor in
-	// the collection, it must return true.
-	@Test
-	public void testContainsFlavor() {
-		// set up
-		int cpu = CPU_VALUE_1;
-		int memory = MEMORY_VALUE_1024;
-		int disk = DISK_VALUE_6GB;
-		String flavorId = FAKE_ID;
-		String name = FAKE_NAME;
-		HardwareRequirements flavor = new HardwareRequirements(name, flavorId, cpu, memory, disk);
-		List<HardwareRequirements> flavors = new ArrayList<>();
-		flavors.add(flavor);
-
-		// exercise
-		boolean condition = this.plugin.containsFlavor(flavor);
-
-		// verify
-		Assert.assertTrue(condition);
-	}
-    
-	// test case: When calling the containsFlavor method as a flavor that does not
-	// exist in the collection, it must return false.
-	@Test
-	public void testNotContainsFlavor() {
-		// set up
-		int cpu = CPU_VALUE_1;
-		int memory = MEMORY_VALUE_1024;
-		int disk = DISK_VALUE_6GB;
-		String flavorId = FAKE_ID;
-		String name = FAKE_NAME;
-		String anotherName = ANOTHER_FAKE_NAME;
-		HardwareRequirements flavor = new HardwareRequirements(name, flavorId, cpu, memory, disk);
-		HardwareRequirements anotherFlavor = new HardwareRequirements(anotherName, flavorId, cpu, memory, disk);
-		List<HardwareRequirements> flavors = new ArrayList<>();
-		flavors.add(flavor);
-
-		// exercise
-		boolean condition = this.plugin.containsFlavor(anotherFlavor);
-
-		// verify
-		Assert.assertFalse(condition);
 	}
 
 	// test case: When calling the getInstance method of a resource without the volatile disk size passing
