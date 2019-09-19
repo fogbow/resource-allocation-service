@@ -46,4 +46,11 @@ public class GetVolumeRequestTest {
         Assert.assertEquals(urlExpectedStr, destroyVirtualMachineRequestUrl);
     }
 
+    // test case: trying create GetVolumeRequestRequest but it occur an error
+    @Test(expected = InvalidParameterException.class)
+    public void testCreateGetVolumeRequestRequestWithError() throws InvalidParameterException {
+        // exercise and verify
+        new GetVolumeRequest.Builder().build(null);
+    }
+
 }

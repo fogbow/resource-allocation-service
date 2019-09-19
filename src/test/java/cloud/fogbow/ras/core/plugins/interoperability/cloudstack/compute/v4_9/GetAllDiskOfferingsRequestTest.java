@@ -28,11 +28,6 @@ public class GetAllDiskOfferingsRequestTest {
         Assert.assertEquals(urlExpected, getAllDiskOfferingsRequestUrl);
     }
 
-    /**
-     * TODO(Chico) fix the Fogbow Commom code. The CloudStackRequest throws a
-     * InvalidParameterException from the package java.security instead the FogbowException
-     **/
-    @Ignore
     // test case: trying create GetAllDiskOfferingsRequestUrl but it occur an error
     @Test(expected = InvalidParameterException.class)
     public void testCreateGetAllDiskOfferingsRequestWithError() throws InvalidParameterException {

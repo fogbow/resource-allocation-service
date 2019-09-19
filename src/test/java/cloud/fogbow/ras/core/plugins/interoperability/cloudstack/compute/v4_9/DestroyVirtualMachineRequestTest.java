@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,4 +42,12 @@ public class DestroyVirtualMachineRequestTest {
         // verify
         Assert.assertEquals(urlExpectedStr, destroyVirtualMachineRequestUrl);
     }
+
+    // test case: trying create DestroyVirtualMachineRequest but it occur an error
+    @Test(expected = InvalidParameterException.class)
+    public void testCreateDestroyVirtualMachineRequestWithError() throws InvalidParameterException {
+        // exercise and verify
+        new DestroyVirtualMachineRequest.Builder().build(null);
+    }
+
 }

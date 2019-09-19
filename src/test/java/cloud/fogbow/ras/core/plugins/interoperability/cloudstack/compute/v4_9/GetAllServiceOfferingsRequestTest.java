@@ -27,11 +27,6 @@ public class GetAllServiceOfferingsRequestTest {
         Assert.assertEquals(urlExpected, getAllServiceOfferingsRequestUrl);
     }
 
-    /**
-       TODO(Chico) fix the Fogbow Commom code. The CloudStackRequest throws a
-       InvalidParameterException from the package java.security instead the FogbowException
-     **/
-    @Ignore
     // test case: trying create GetAllServiceOfferingsRequestUrl but it occur an error
     @Test(expected = InvalidParameterException.class)
     public void testCreateGetAllServiceOfferingsRequestWithError() throws InvalidParameterException {
