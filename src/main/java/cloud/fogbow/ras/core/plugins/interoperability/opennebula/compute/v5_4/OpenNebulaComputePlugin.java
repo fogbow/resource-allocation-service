@@ -215,7 +215,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected HardwareRequirements getBestFlavor(Client client, ComputeOrder computeOrder) throws UnexpectedException {
 		this.updateHardwareRequirements(client);
 
-		for (HardwareRequirements hardwareRequirements : getFlavors()) {
+		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
 					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {
@@ -289,7 +289,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected int getDiskSizeFromImageSizeMap(Map<String, String> imageSizeMap, String imageId) {
-		if (imageSizeMap != null && imageId != null) {
+		if (imageSizeMap != null && !imageSizeMap.isEmpty() && imageId != null) {
 			String diskSize = imageSizeMap.get(imageId);
 			return this.convertToInteger(diskSize);
 		} else {

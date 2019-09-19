@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
@@ -98,11 +99,11 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 
 	private static final int CPU_VALUE_1 = 1;
 	private static final int CPU_VALUE_2 = 2;
-	private static final int CPU_VALUE_4 = 4;
+	private static final int CPU_VALUE_8 = 8;
 	private static final int MEMORY_VALUE_1024 = 1024;
 	private static final int MEMORY_VALUE_2048 = 2048;
 	private static final int DISK_VALUE_6GB = 6144;
-	private static final int DISK_VALUE_8GB = 8192;
+	private static final int DISK_VALUE_30GB = 30720;
 	private static final int ZERO_VALUE = 0;
 	private static final int DEFAULT_NETWORK_ID = ZERO_VALUE;
 
@@ -237,6 +238,8 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertEquals(defaultNetworkId, networkIds.get(0));
 	}
 
+	// test case: when invoking findSmallestFlavor with valid client and compute order, the plugin
+	// should return an appropriate flavor in case one fits the order hardware requirements
 	@Test
 	public void testFindSmallestFlavor() throws UnexpectedException, NoAvailableResourcesException {
 		// set up
@@ -251,6 +254,9 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 	}
 
+	// test case: when invoking findSmallestFlavor with valid client and compute order, the plugin
+	// should throw a NoAvailableResourcesException when no appropriate flavor fits the order
+	// hardware requirements
 	@Test
 	public void testFindSmallestFlavorFail() throws UnexpectedException {
 		// set up
@@ -270,231 +276,125 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 	}
 
+	// test case: when invoking getBestFlavor with valid client and compute order, the plugin
+	// should return the first flavor in the flavors cache that fits the order hardware
+	// requirements
+	@Test
+	public void testGetBestFlavor() throws UnexpectedException {
+		// set up
+		this.plugin.setFlavors(new TreeSet<>(Arrays.asList(this.hardwareRequirements)));
+		Mockito.doNothing().when(this.plugin).updateHardwareRequirements(Mockito.any(Client.class));
+
+		// exercise
+		HardwareRequirements hardwareRequirements = this.plugin.getBestFlavor(this.client, this.computeOrder);
+
+		// verify
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateHardwareRequirements(Mockito.eq(this.client));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFlavors();
+		Assert.assertEquals(this.hardwareRequirements, hardwareRequirements);
+	}
+
+	// test case: when invoking getBestFlavor with valid client and compute order, the plugin
+	// should return null when no flavor in the flavors cache fits the order hardware requirements
+	@Test
+	public void testGetBestFlavorNull() throws UnexpectedException {
+		// set up
+		this.hardwareRequirements.setCpu(CPU_VALUE_1);
+		this.plugin.setFlavors(new TreeSet<>(Arrays.asList(this.hardwareRequirements)));
+
+		Mockito.doNothing().when(this.plugin).updateHardwareRequirements(Mockito.any(Client.class));
+
+		// exercise
+		HardwareRequirements hardwareRequirements = this.plugin.getBestFlavor(this.client, this.computeOrder);
+
+		// verify
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateHardwareRequirements(Mockito.eq(this.client));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFlavors();
+		Assert.assertEquals(null, hardwareRequirements);
+	}
+
 	// test case: When calling the updateHardwareRequirements method with a set of
 	// outdated flavors, a collection of valid resources must be obtained in the
 	// cloud and compared to existing flavors, adding new flavors to the set when
 	// they do not exist.
 	@Test
-	public void testUpdateHardwareRequirementsSuccessfully() throws UnexpectedException {
+	public void testUpdateHardwareRequirements() throws UnexpectedException {
 		// set up
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		PowerMockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
 		TemplatePool templatePool = Mockito.mock(TemplatePool.class);
-		PowerMockito.when(OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class))).thenReturn(templatePool);
-
 		Template template = Mockito.mock(Template.class);
 		Iterator<Template> templateIterator = Mockito.mock(Iterator.class);
+
+		Mockito.doReturn(new HashMap<String, String>()).when(this.plugin).getImagesSizes(Mockito.any(Client.class));
+		PowerMockito.when(OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class))).thenReturn(templatePool);
+
+		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
 		Mockito.when(templateIterator.hasNext()).thenReturn(true, false);
 		Mockito.when(templateIterator.next()).thenReturn(template);
-		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
-		Mockito.when(template.getId()).thenReturn(ONE_STRING_VALUE);
-		Mockito.when(template.getName()).thenReturn(FAKE_NAME);
-		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(ONE_STRING_VALUE);
-		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(MEMORY_STRING_VALUE);
-		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(ONE_STRING_VALUE);
+		Mockito.when(template.getId()).thenReturn(this.hardwareRequirements.getFlavorId());
+		Mockito.when(template.getName()).thenReturn(this.hardwareRequirements.getName());
+		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getCpu()));
+		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getMemory()));
+		Mockito.when(template.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getDisk()));
 
-		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
-
-		int cpu = CPU_VALUE_1;
-		int memory = MEMORY_VALUE_1024;
-		int disk = DISK_VALUE_8GB;
-		String flavorId = ONE_STRING_VALUE;
-		String name = FAKE_NAME;
-		HardwareRequirements flavor = new HardwareRequirements(name, flavorId, cpu, memory, disk);
-		TreeSet<HardwareRequirements> expected = new TreeSet<HardwareRequirements>();
-		expected.add(flavor);
-
-		Client client = Mockito.mock(Client.class);
+		TreeSet<HardwareRequirements> expected = new TreeSet<>(Arrays.asList(this.hardwareRequirements));
 
 		// exercise
-		this.plugin.updateHardwareRequirements(client);
+		this.plugin.updateHardwareRequirements(this.client);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getTemplatePool(Mockito.eq(this.client));
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class));
-
-		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.anyString());
-		Mockito.verify(template, Mockito.times(1)).getId();
-		Mockito.verify(template, Mockito.times(1)).getName();
-		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImagesSizes(Mockito.eq(this.client));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_THRICE)).convertToInteger(Mockito.anyString());
+		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getId();
+		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getName();
+		Mockito.verify(template, Mockito.times(TestUtils.RUN_THRICE)).xpath(Mockito.anyString());
 
 		Assert.assertEquals(expected, this.plugin.getFlavors());
 	}
 
-	// test case: When calling the updateHardwareRequirements method with an updated
-	// set of flavors, nothing will be added to the existing flavor set.
+	// test case: when invoking updateHardwareRequirements with a set of no new flavors, then
+	// the plugin flavor should have no update
 	@Test
-	public void testUpdateHardwareRequirementsWithUpdatedFlavorSet() throws UnexpectedException {
+	public void testUpdateHardwareRequirementsNoNewFlavors() throws UnexpectedException {
 		// set up
-		int cpu = CPU_VALUE_1;
-		int memory = MEMORY_VALUE_1024;
-		int disk = DISK_VALUE_8GB;
-		String flavorId = ONE_STRING_VALUE;
-		String name = FAKE_NAME;
-		HardwareRequirements flavor = new HardwareRequirements(name, flavorId, cpu, memory, disk);
-		TreeSet<HardwareRequirements> flavors = new TreeSet<HardwareRequirements>();
-		flavors.add(flavor);
-		this.plugin.setFlavors(flavors);
-		int expected = this.plugin.getFlavors().size();
-
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		PowerMockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
 		TemplatePool templatePool = Mockito.mock(TemplatePool.class);
-		PowerMockito.when(OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class))).thenReturn(templatePool);
-
 		Template template = Mockito.mock(Template.class);
 		Iterator<Template> templateIterator = Mockito.mock(Iterator.class);
-		Mockito.when(templateIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(templateIterator.next()).thenReturn(template);
-		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
-		Mockito.when(template.getId()).thenReturn(ONE_STRING_VALUE);
-		Mockito.when(template.getName()).thenReturn(FAKE_NAME);
-		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(ONE_STRING_VALUE);
-		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(MEMORY_STRING_VALUE);
-		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(ONE_STRING_VALUE);
+		String flavorId = this.hardwareRequirements.getFlavorId();
 
-		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
-
-		Client client = Mockito.mock(Client.class);
-
-		// exercise
-		this.plugin.updateHardwareRequirements(client);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class));
-
-		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.anyString());
-		Mockito.verify(template, Mockito.times(1)).getId();
-		Mockito.verify(template, Mockito.times(1)).getName();
-		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
-
-		Assert.assertEquals(expected, this.plugin.getFlavors().size());
-	}
-	
-	// test case: When calling the updateHardwareRequirements method and getting
-	// invalid resource values in the cloud, it must not add them to the existing
-	// flavor set.
-	@Test
-	public void testUpdateHardwareRequirementsWithInvalidResourceValue() throws UnexpectedException {
-		// set up
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		PowerMockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
-
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
-		TemplatePool templatePool = Mockito.mock(TemplatePool.class);
+		Mockito.doReturn(new HashMap<String, String>()).when(this.plugin).getImagesSizes(Mockito.any(Client.class));
+		Mockito.doReturn(DISK_VALUE_30GB).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.any(Map.class), Mockito.anyString());
+		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.any(HardwareRequirements.class));
 		PowerMockito.when(OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class))).thenReturn(templatePool);
 
-		Template template = Mockito.mock(Template.class);
-		Iterator<Template> templateIterator = Mockito.mock(Iterator.class);
+		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
 		Mockito.when(templateIterator.hasNext()).thenReturn(true, false);
 		Mockito.when(templateIterator.next()).thenReturn(template);
-		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
-		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(DECIMAL_STRING_VALUE);
-		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(DECIMAL_STRING_VALUE);
-		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(DECIMAL_STRING_VALUE);
-
-		Mockito.doReturn(0).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
-
-		TreeSet<HardwareRequirements> expected = new TreeSet<HardwareRequirements>();
-
-		Client client = Mockito.mock(Client.class);
+		Mockito.when(template.getId()).thenReturn(flavorId);
+		Mockito.when(template.getName()).thenReturn(this.hardwareRequirements.getName());
+		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getCpu()));
+		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getMemory()));
+		Mockito.when(template.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn("0");
+		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(flavorId);
 
 		// exercise
-		this.plugin.updateHardwareRequirements(client);
+		this.plugin.updateHardwareRequirements(this.client);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getTemplatePool(Mockito.eq(this.client));
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImagesSizes(Mockito.eq(this.client));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_THRICE)).convertToInteger(Mockito.anyString());
+		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getId();
+		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getName();
+		Mockito.verify(template, Mockito.times(4)).xpath(Mockito.anyString());
 
-		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.anyString());
-		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
-
-		Assert.assertEquals(expected, this.plugin.getFlavors());
+		Assert.assertTrue(this.plugin.getFlavors().isEmpty());
 	}
-	
-	// test case: When calling the updateHardwareRequirements method and the flavor
-	// collection is already up to date with the feature set in the cloud, it must
-	// not add any existing flavors.
-	@Test
-	public void testUpdateHardwareRequirementsWithoutAnythingUpdatedFlavor() throws UnexpectedException {
-		// set up
-		ImagePool imagePool = Mockito.mock(ImagePool.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		PowerMockito.when(OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class))).thenReturn(imagePool);
 
-		Image image = Mockito.mock(Image.class);
-		Iterator<Image> imageIterator = Mockito.mock(Iterator.class);
-		Mockito.when(imageIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(imageIterator.next()).thenReturn(image);
-		Mockito.when(imagePool.iterator()).thenReturn(imageIterator);
-		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(IMAGE_SIZE_STRING_VALUE);
-
-		TemplatePool templatePool = Mockito.mock(TemplatePool.class);
-		PowerMockito.when(OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class))).thenReturn(templatePool);
-
-		Template template = Mockito.mock(Template.class);
-		Iterator<Template> templateIterator = Mockito.mock(Iterator.class);
-		Mockito.when(templateIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(templateIterator.next()).thenReturn(template);
-		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
-
-		Client client = Mockito.mock(Client.class);
-
-		// exercise
-		this.plugin.updateHardwareRequirements(client);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getImagePool(Mockito.any(Client.class));
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getTemplatePool(Mockito.any(Client.class));
-
-		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.anyString());
-		Mockito.verify(template, Mockito.times(1)).getId();
-		Mockito.verify(template, Mockito.times(1)).getName();
-		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
-	}
-    
 	// test case: When calling the getComputeInstance method passing a valid virtual
 	// machine, it must obtain the data to mount an instance of this resource.
 	@Test
@@ -504,7 +404,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		String name = FAKE_NAME;
 		int cpu = CPU_VALUE_1;
 		int memory = MEMORY_VALUE_1024;
-		int disk = DISK_VALUE_8GB;
+		int disk = DISK_VALUE_30GB;
 		List<String> ipAddresses = new ArrayList<String>();
 		ipAddresses.add(IP_ADDRESS_ONE);
 		ipAddresses.add(IP_ADDRESS_TWO);
@@ -817,9 +717,9 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	}
 
 	private ComputeInstance CreateComputeInstance() {
-		int cpu = CPU_VALUE_4;
+		int cpu = CPU_VALUE_8;
 		int ram = MEMORY_VALUE_2048;
-		int disk = DISK_VALUE_8GB;
+		int disk = DISK_VALUE_30GB;
 		
 		String id = FAKE_INSTANCE_ID;
 		String hostName = FAKE_HOST_NAME;
@@ -849,9 +749,9 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		String id = FAKE_ID;
 		String name = FLAVOR_KIND_NAME;
 		
-		int cpu = CPU_VALUE_4;
+		int cpu = CPU_VALUE_8;
 		int ram = MEMORY_VALUE_2048;
-		int disk = DISK_VALUE_8GB;
+		int disk = DISK_VALUE_30GB;
 		
 		return new HardwareRequirements(name, id, cpu, ram, disk);
 	}
