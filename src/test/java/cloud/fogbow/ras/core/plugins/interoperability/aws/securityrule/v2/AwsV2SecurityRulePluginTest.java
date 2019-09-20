@@ -1,35 +1,49 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.securityrule.v2;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
+import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
-import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
-import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupEgressRequest;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
-@PrepareForTest({AwsV2ClientUtil.class, AwsV2SecurityRuleUtils.class, AuthorizeSecurityGroupIngressRequest.class, RevokeSecurityGroupEgressRequest.class })
+@PrepareForTest({AwsV2ClientUtil.class, AwsV2SecurityRuleUtils.class, DatabaseManager.class })
 public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
 
     private static final String CLOUD_NAME = "amazon";
-    private static final String FAKE_GROUP_ID ="groupId";
-    private static final String DEFAULT_CIDR = "0.0.0.0/24";
-    private static final String INSTANCE_ID = "instanceId";
+    private static final String DEFAULT_IP_ADDRESS = "0.0.0.0";
+    private static final String DEFAULT_ADDRESS_RANGE = "24";
     private static final int DEFAULT_PORT_FROM = 0;
     private static final int DEFAULT_PORT_TO = 22;
-    private static final String DEFAULT_RULE_ID = INSTANCE_ID + "@" + "0.0.0.0" + "@" + "24" + "@" + DEFAULT_PORT_FROM + "@" + DEFAULT_PORT_TO + "@" + "%s@%s@%s";
 
     private AwsV2SecurityRulePlugin plugin;
-    private AwsV2SecurityRuleUtils utils;
+    private Ec2Client client;
     
     @Before
-    public void setup() throws FogbowException {
+    public void setUp() throws FogbowException {
         this.testUtils.mockReadOrdersFromDataBase();
         String awsConfFilePath = HomeDir.getPath()
             + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
@@ -39,390 +53,204 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
             + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         this.plugin = Mockito.spy(new AwsV2SecurityRulePlugin(awsConfFilePath));
-        this.testUtils.getAwsMockedClient();
+        this.client = this.testUtils.getAwsMockedClient();
+    }
+    
+    // test case: When calling the requestSecurityRule method, it must verify
+    // that is call was successful and return the expected security rule id.
+    @Test
+    public void testRequestSecurityRule() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder();
+
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        Mockito.doReturn(groupId).when(this.plugin).getSecurityGroupId(Mockito.eq(majorOrder.getInstanceId()),
+                Mockito.eq(majorOrder.getType()), Mockito.eq(this.client));
+
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+        Mockito.doNothing().when(this.plugin).addRuleToSecurityGroup(Mockito.eq(groupId), Mockito.eq(securityRule),
+                Mockito.eq(this.client));
+
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        String expected = defineSecurityRuleId(Direction.IN);
+
+        // exercise
+        String securityRuleId = this.plugin.requestSecurityRule(securityRule, majorOrder, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupId(
+                Mockito.eq(majorOrder.getInstanceId()), Mockito.eq(majorOrder.getType()), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).addRuleToSecurityGroup(Mockito.eq(groupId),
+                Mockito.eq(securityRule), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doPackingSecurityRuleId(
+                Mockito.eq(majorOrder.getInstanceId()), Mockito.eq(securityRule), Mockito.eq(majorOrder.getType()));
+
+        Assert.assertEquals(expected, securityRuleId);
+    }
+    
+    // test case: When calling the getSecurityRules method, it must verify
+    // that is call was successful.
+    @Test
+    public void testGetSecurityRules() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder();
+
+        List<SecurityRuleInstance> instances = createSecurityRuleInstancesCollection();
+        Mockito.doReturn(instances).when(this.plugin).doGetSecurityRules(Mockito.eq(majorOrder.getInstanceId()),
+                Mockito.eq(majorOrder.getType()), Mockito.eq(this.client));
+
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        // exercise
+        this.plugin.getSecurityRules(majorOrder, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetSecurityRules(
+                Mockito.eq(majorOrder.getInstanceId()), Mockito.eq(majorOrder.getType()), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the deleteSecurityRule method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDeleteSecurityRule() throws FogbowException {
+        // set up
+        String securityRuleId = defineSecurityRuleId(Direction.IN);
+
+        Mockito.doNothing().when(this.plugin).doDeleteSecurityRule(Mockito.eq(securityRuleId), Mockito.eq(this.client));
+
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        // exercise
+        this.plugin.deleteSecurityRule(securityRuleId, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSecurityRule(Mockito.eq(securityRuleId),
+                Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the doDeleteSecurityRule method with an ingress rule
+    // to network resource type, it must verify that is call was successful.
+    @Test
+    public void testDoDeleteIngressSecurityRule() throws FogbowException {
+        // set up
+        SecurityRule rule = createSecurityRule(Direction.IN);
+        ResourceType type = ResourceType.NETWORK;
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String securityRuleId = defineSecurityRuleId(Direction.IN, type);
+
+        Mockito.doReturn(groupId).when(this.plugin).getSecurityGroupId(Mockito.eq(instanceId), Mockito.eq(type),
+                Mockito.eq(this.client));
+
+        Mockito.doNothing().when(this.plugin).revokeIngressRule(Mockito.eq(groupId), Mockito.eq(rule),
+                Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.doDeleteSecurityRule(securityRuleId, this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupId(Mockito.eq(instanceId),
+                Mockito.eq(type), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doUnpackingSecurityRuleId(Mockito.eq(securityRuleId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).revokeIngressRule(Mockito.eq(groupId),
+                Mockito.eq(rule), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the doDeleteSecurityRule method with an egress rule
+    // to public IP resource type, it must verify that is call was successful.
+    @Test
+    public void testDoEgressDeleteSecurityRule() throws FogbowException {
+        // set up
+        SecurityRule rule = createSecurityRule(Direction.OUT);
+        ResourceType type = ResourceType.PUBLIC_IP;
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String securityRuleId = defineSecurityRuleId(Direction.OUT, type);
+        
+        Mockito.doReturn(groupId).when(this.plugin).getSecurityGroupId(Mockito.eq(instanceId), Mockito.eq(type),
+                Mockito.eq(this.client));
+
+        Mockito.doNothing().when(this.plugin).revokeEgressRule(Mockito.eq(groupId), Mockito.eq(rule),
+                Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.doDeleteSecurityRule(securityRuleId, this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupId(Mockito.eq(instanceId),
+                Mockito.eq(type), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doUnpackingSecurityRuleId(Mockito.eq(securityRuleId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).revokeEgressRule(Mockito.eq(groupId),
+                Mockito.eq(rule), Mockito.eq(this.client));
+    }
+    
+    // test case: ...
+    @Test
+    public void test() {
+        // set up
+        
+        // exercise
+        
+        // verify
+    }
+    
+    private List<SecurityRuleInstance> createSecurityRuleInstancesCollection() {
+        SecurityRuleInstance[] ruleInstances = { 
+                buildSecurityRuleInstance(Direction.IN),
+                buildSecurityRuleInstance(Direction.OUT) 
+        };
+        return Arrays.asList(ruleInstances);
     }
 
-//    public void mockUtils() {
-//        String awsConfFilePath = HomeDir.getPath()
-//            + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-//            + File.separator
-//            + CLOUD_NAME
-//            + File.separator
-//            + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-//
-//        utils = Mockito.mock(AwsV2SecurityRuleUtils.class);
-//        PowerMockito.mockStatic(AwsV2SecurityRuleUtils.class);
-//        BDDMockito.given(AwsV2SecurityRuleUtils.getInstance()).willReturn(utils);
-//        this.plugin = Mockito.spy(new AwsV2SecurityRulePlugin(awsConfFilePath));
-//    }
+    private SecurityRuleInstance buildSecurityRuleInstance(Direction direction, Protocol... protocols) {
+        Protocol protocol = protocols.length > 0 ? protocols[0] : Protocol.ANY;
+        EtherType etherType = EtherType.IPv4;
+        int portFrom = DEFAULT_PORT_FROM;
+        int portTo = DEFAULT_PORT_TO;
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        String cidr = DEFAULT_IP_ADDRESS + AwsV2SecurityRulePlugin.CIDR_SEPARATOR + DEFAULT_ADDRESS_RANGE;
+        return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
+    }
 
-//    // test case: Test if the request method return the expected rule id
-//    @Test
-//    public void testRequestIngressSecurityRule() throws FogbowException {
-//        // setup
-//        mockUtils();
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        SecurityRule rule = createRule(SecurityRule.Direction.IN, 0, 22, SecurityRule.Protocol.TCP);
-//        Order order = createOrder(ResourceType.NETWORK);
-//        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//        BDDMockito.given(utils.getSecurityGroup(
-//                order.getInstanceId(), order.getType(), client)).willReturn(createGroup(FAKE_GROUP_ID, null));
-//        BDDMockito.given(utils.getId(
-//                rule, order)).willReturn(String.format(DEFAULT_RULE_ID, "TCP", "IN", "NETWORK"));
-//
-//        AuthorizeSecurityGroupIngressRequest request = Mockito.mock(AuthorizeSecurityGroupIngressRequest.class);
-//        PowerMockito.mockStatic(AuthorizeSecurityGroupIngressRequest.class);
-//        AuthorizeSecurityGroupIngressRequest.Builder builder = Mockito.mock(AuthorizeSecurityGroupIngressRequest.Builder.class);
-//        PowerMockito.mockStatic(AuthorizeSecurityGroupIngressRequest.Builder.class);
-//        BDDMockito.given(AuthorizeSecurityGroupIngressRequest.builder()).willReturn(builder);
-//        BDDMockito.given(builder.build()).willReturn(request);
-//        BDDMockito.given(client.authorizeSecurityGroupIngress(request)).willReturn(null);
-//
-//        //exercise
-//        String id = this.plugin.requestSecurityRule(rule, order, cloudUser);
-//
-//        //verify
-//        Assert.assertEquals(String.format(DEFAULT_RULE_ID, "TCP", "IN", "NETWORK"), id);
-//        Mockito.verify(utils, Mockito.times(1)).getSecurityGroup(Mockito.anyString(), Mockito.any(ResourceType.class), Mockito.any(Ec2Client.class));
-//        Mockito.verify(utils, Mockito.times(1)).getId(Mockito.any(SecurityRule.class), Mockito.any(Order.class));
-//    }
-//
-//    // test case: Test if the request method return the expected rule id
-//    // and call the expected methods
-//    @Test
-//    public void testRequestEgressSecurityRule() throws FogbowException {
-//        // setup
-//        mockUtils();
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        SecurityRule rule = createRule(SecurityRule.Direction.OUT, 0, 22, SecurityRule.Protocol.TCP);
-//        Order order = createOrder(ResourceType.NETWORK);
-//        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//        BDDMockito.given(utils.getSecurityGroup(
-//                order.getInstanceId(), order.getType(), client)).willReturn(createGroup(FAKE_GROUP_ID, null));
-//        BDDMockito.given(utils.getId(
-//                rule, order)).willReturn(String.format(DEFAULT_RULE_ID, "TCP", "OUT", "NETWORK"));
-//
-//        //exercise
-//        String id = this.plugin.requestSecurityRule(rule, order, cloudUser);
-//
-//        //verify
-//        Assert.assertEquals(String.format(DEFAULT_RULE_ID, "TCP", "OUT", "NETWORK"), id);
-//        Mockito.verify(utils, Mockito.times(1)).getSecurityGroup(Mockito.anyString(), Mockito.any(ResourceType.class), Mockito.any(Ec2Client.class));
-//        Mockito.verify(utils, Mockito.times(1)).getId(Mockito.any(SecurityRule.class), Mockito.any(Order.class));
-//    }
-//
-//    // test case: test if the get method returns a list with the expected size
-//    // and if the right aux methods are called.
-//    @Test
-//    public void getSecurityRules() throws FogbowException{
-//        //setup
-//        mockUtils();
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        IpRange ipRange = IpRange.builder()
-//            .cidrIp(DEFAULT_CIDR)
-//            .build();
-//
-//        List<IpPermission> ipPermissions = new ArrayList<>();
-//        ipPermissions.add(IpPermission.builder()
-//                .fromPort(0)
-//                .toPort(22)
-//                .ipProtocol("tcp")
-//                .ipRanges(ipRange)
-//                .build());
-//        ipPermissions.add(IpPermission.builder()
-//                .fromPort(0)
-//                .toPort(22)
-//                .ipProtocol("icmp")
-//                .ipRanges(ipRange)
-//                .build());
-//
-//        BDDMockito.given(utils.getSecurityGroup(
-//                Mockito.anyString(), Mockito.any(ResourceType.class), Mockito.any(Ec2Client.class))).willReturn(createGroup(FAKE_GROUP_ID, ipPermissions));
-//        BDDMockito.given(utils.getRules(Mockito.any(Order.class), Mockito.any(List.class), Mockito.any(SecurityRule.Direction.class))).willCallRealMethod();
-//        BDDMockito.given(utils.validateIpPermission(Mockito.any(IpPermission.class))).willCallRealMethod();
-//
-//        Order order = createOrder(ResourceType.PUBLIC_IP);
-//        order.setInstanceId(INSTANCE_ID);
-//        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//        // exercise
-//        List<SecurityRuleInstance> result = this.plugin.getSecurityRules(order, cloudUser);
-//
-//        // verify
-//        Mockito.verify(utils, Mockito.times(ipPermissions.size())).validateIpPermission(Mockito.any(IpPermission.class));
-//        Mockito.verify(utils, Mockito.times(2)).getRules(Mockito.any(Order.class), Mockito.any(List.class), Mockito.any(SecurityRule.Direction.class));
-//        Assert.assertTrue(result.size() == ipPermissions.size());
-//
-//    }
-//
-//    // test case: Test if the delete method call the expected methods.
-//    @Test
-//    public void testDeleteSecurityRule() throws FogbowException{
-//        // setup
-//        mockUtils();
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        BDDMockito.given(utils.getSecurityGroup(
-//                Mockito.anyString(), Mockito.any(ResourceType.class), Mockito.any(Ec2Client.class))).willReturn(createGroup(FAKE_GROUP_ID, null));
-//        BDDMockito.given(utils.getRuleFromId(Mockito.anyString())).willCallRealMethod();
-//        Mockito.doCallRealMethod().when(utils).revokeIngressRule(Mockito.any(SecurityRule.class), Mockito.any(SecurityGroup.class), Mockito.any(Ec2Client.class));
-//        Mockito.doCallRealMethod().when(utils).revokeEgressRule(Mockito.any(SecurityRule.class), Mockito.any(SecurityGroup.class), Mockito.any(Ec2Client.class));
-//
-//        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
-//
-//        //exercise
-//        this.plugin.deleteSecurityRule(String.format(DEFAULT_RULE_ID, "TCP", "IN", "NETWORK"), cloudUser);
-//        this.plugin.deleteSecurityRule(String.format(DEFAULT_RULE_ID, "TCP", "OUT", "NETWORK"), cloudUser);
-//
-//        //verify
-//        Mockito.verify(client, Mockito.times(1)).revokeSecurityGroupIngress(Mockito.any(RevokeSecurityGroupIngressRequest.class));
-//        Mockito.verify(client, Mockito.times(1)).revokeSecurityGroupEgress(Mockito.any(RevokeSecurityGroupEgressRequest.class));
-//    }
-//
-//    // test case: Check if the getId is returning the rule id in the right format
-//    @Test
-//    public void testGetId() throws FogbowException {
-//        // setup
-//        AwsV2SecurityRuleUtils utils = AwsV2SecurityRuleUtils.getInstance();
-//        SecurityRule rule = createRule(SecurityRule.Direction.IN, 0, 22, SecurityRule.Protocol.TCP);
-//        Order order = createOrder(ResourceType.NETWORK);
-//
-//        // exercise
-//        String id = utils.getId(rule, order);
-//
-//        // verify
-//        Assert.assertEquals(String.format(DEFAULT_RULE_ID, "TCP", "IN", "NETWORK"), id);
-//    }
-//
-//    // test case: Test if the validateIpPermission works properly
-//    @Test
-//    public void testValidateIpPermission() {
-//        // setup
-//        AwsV2SecurityRuleUtils utils = AwsV2SecurityRuleUtils.getInstance();
-//
-//        IpRange ipRange = IpRange.builder()
-//            .cidrIp(DEFAULT_CIDR)
-//            .build();
-//
-//        IpPermission ipPermission = IpPermission.builder()
-//            .fromPort(0)
-//            .toPort(22)
-//            .ipProtocol("tcp")
-//            .ipRanges(ipRange)
-//            .build();
-//
-//        // exercise and verify
-//        Assert.assertTrue(utils.validateIpPermission(ipPermission));
-//
-//        // setup
-//        ipPermission = IpPermission.builder()
-//                .fromPort(0)
-//                .toPort(22)
-//                .ipRanges(ipRange)
-//                .build();
-//
-//        // exercise and verify
-//        Assert.assertFalse(utils.validateIpPermission(ipPermission));
-//
-//        // setup
-//        ipPermission = IpPermission.builder()
-//                .fromPort(0)
-//                .ipProtocol("tcp")
-//                .ipRanges(ipRange)
-//                .build();
-//
-//        // exercise and verify
-//        Assert.assertFalse(utils.validateIpPermission(ipPermission));
-//
-//        // setup
-//        ipPermission = IpPermission.builder()
-//                .toPort(22)
-//                .ipProtocol("tcp")
-//                .ipRanges(ipRange)
-//                .build();
-//
-//        // exercise and verify
-//        Assert.assertFalse(utils.validateIpPermission(ipPermission));
-//    }
-//
-//    //test case: test if the method iterates over the tags properly to get the right groupId
-//    // and if the expected methods are called
-//    @Test
-//    public void testGetSecurityGroupBySubnetId() throws FogbowException {
-//        // setup
-//        mockUtils();
-//
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        Tag tag = Tag.builder()
-//            .key("groupId")
-//            .value(FAKE_GROUP_ID)
-//            .build();
-//
-//        Subnet subnet = Subnet.builder()
-//            .tags(tag)
-//            .build();
-//
-//        DescribeSubnetsResponse response = DescribeSubnetsResponse.builder()
-//            .subnets(subnet)
-//            .build();
-//
-//        BDDMockito.given(client.describeSubnets(Mockito.any(DescribeSubnetsRequest.class))).willReturn(response);
-//
-//        List<SecurityGroup> groups = new ArrayList<>();
-//        groups.add(createGroup(FAKE_GROUP_ID, null));
-//
-//        DescribeSecurityGroupsResponse groupsResponse = DescribeSecurityGroupsResponse.builder()
-//            .securityGroups(groups)
-//            .build();
-//
-//        BDDMockito.given(client.describeSecurityGroups(Mockito.any(DescribeSecurityGroupsRequest.class))).willReturn(groupsResponse);
-//        BDDMockito.given(utils.getSecurityGroupBySubnetId(Mockito.anyString(), Mockito.any(Ec2Client.class))).willCallRealMethod();
-//        BDDMockito.given(utils.getGroupIdBySubnet(Mockito.anyString(), Mockito.any(Ec2Client.class))).willCallRealMethod();
-//        BDDMockito.given(utils.getSubnetById(Mockito.anyString(), Mockito.any(Ec2Client.class))).willCallRealMethod();
-//        BDDMockito.given(utils.doDescribeSubnetsRequests(Mockito.anyString(), Mockito.any(Ec2Client.class))).willCallRealMethod();
-//
-//        // exercise
-//        SecurityGroup group = utils.getSecurityGroupBySubnetId(INSTANCE_ID, client);
-//
-//        // verify
-//        Assert.assertEquals(groups.get(0), group);
-//        Mockito.verify(client, Mockito.times(1)).describeSecurityGroups(Mockito.any(DescribeSecurityGroupsRequest.class));
-//        Mockito.verify(client, Mockito.times(1)).describeSubnets(Mockito.any(DescribeSubnetsRequest.class));
-//
-//    }
-//
-//    // test case: test if the method iterates over the tags properly
-//    // and if it calls the expected methods.
-//    @Test
-//    public void testGetSecurityGroupByAllocationId() throws FogbowException{
-//        // setup
-//        mockUtils();
-//
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        Tag tag = Tag.builder()
-//            .key("groupId")
-//            .value(FAKE_GROUP_ID)
-//            .build();
-//
-//        Address address = Address.builder().tags(tag).build();
-//
-//        DescribeAddressesResponse addressesResponse = DescribeAddressesResponse.builder()
-//            .addresses(address)
-//            .build();
-//
-//        BDDMockito.given(client.describeAddresses(Mockito.any(DescribeAddressesRequest.class))).willReturn(addressesResponse);
-//        BDDMockito.when(utils.getGroupById(FAKE_GROUP_ID, client)).thenReturn(createGroup(FAKE_GROUP_ID, null));
-//        BDDMockito.given(utils.getAddress(Mockito.anyString(), Mockito.any(Ec2Client.class))).willCallRealMethod();
-//        BDDMockito.given(utils.getSecurityGroupByAllocationId(Mockito.anyString(), Mockito.any(Ec2Client.class))).willCallRealMethod();
-//
-//        // exercise
-//        SecurityGroup group = utils.getSecurityGroupByAllocationId("", client);
-//
-//        // verify
-//        Assert.assertEquals(createGroup(FAKE_GROUP_ID, null), group);
-//        Mockito.verify(client, Mockito.times(1)).describeAddresses(Mockito.any(DescribeAddressesRequest.class));
-//        Mockito.verify(utils, Mockito.times(1)).getGroupById(FAKE_GROUP_ID, client);
-//    }
-//
-//    // test case: test if the addRule method calls the expected aux methods.
-//    @Test
-//    public void testAddIngressRule() throws FogbowException{
-//        // setup
-//        utils = AwsV2SecurityRuleUtils.getInstance();
-//
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        AuthorizeSecurityGroupIngressResponse authorizeGroupIngressResponse = AuthorizeSecurityGroupIngressResponse.builder()
-//            .build();
-//
-//        BDDMockito.given(client.authorizeSecurityGroupIngress(Mockito.any(AuthorizeSecurityGroupIngressRequest.class))).willReturn(authorizeGroupIngressResponse);
-//
-//        SecurityRule rule = createRule(SecurityRule.Direction.IN, 0, 22, SecurityRule.Protocol.TCP);
-//
-//        //exercise
-//        utils.addIngressRule(createGroup(FAKE_GROUP_ID, null), rule, client);
-//
-//        //verify
-//        Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupIngress(Mockito.any(AuthorizeSecurityGroupIngressRequest.class));
-//    }
-//
-//    // test case: test if the addRule method calls the expected aux methods.
-//    @Test
-//    public void testAddEgressRule() throws FogbowException{
-//        // setup
-//        utils = AwsV2SecurityRuleUtils.getInstance();
-//
-//        Ec2Client client = Mockito.mock(Ec2Client.class);
-//        PowerMockito.mockStatic(AwsV2ClientUtil.class);
-//        BDDMockito.given(AwsV2ClientUtil.createEc2Client(Mockito.anyString(), Mockito.anyString())).willReturn(client);
-//
-//        AuthorizeSecurityGroupEgressResponse authorizeGroupEgressResponse = AuthorizeSecurityGroupEgressResponse.builder()
-//                .build();
-//
-//        BDDMockito.given(client.authorizeSecurityGroupEgress(Mockito.any(AuthorizeSecurityGroupEgressRequest.class))).willReturn(authorizeGroupEgressResponse);
-//
-//        SecurityRule rule = createRule(SecurityRule.Direction.OUT, 0, 22, SecurityRule.Protocol.TCP);
-//
-//        // exercise
-//        utils.addEgressRule(createGroup(FAKE_GROUP_ID, null), rule, client);
-//
-//        // verify
-//        Mockito.verify(client, Mockito.times(1)).authorizeSecurityGroupEgress(Mockito.any(AuthorizeSecurityGroupEgressRequest.class));
-//    }
+    private String defineSecurityRuleId(Direction direction, ResourceType... types) {
+        String securityRuleId = String.format(AwsV2SecurityRulePlugin.SECURITY_RULE_IDENTIFIER_FORMAT, 
+                TestUtils.FAKE_INSTANCE_ID,
+                DEFAULT_IP_ADDRESS,
+                DEFAULT_ADDRESS_RANGE,
+                DEFAULT_PORT_FROM,
+                DEFAULT_PORT_TO,
+                Protocol.ANY,
+                direction,
+                types.length > 0 ? types[0].getValue() : ResourceType.NETWORK.getValue()
+        );
+        return securityRuleId;
+    }
 
-//    private SecurityGroup createGroup(String groupId, List<IpPermission> ipPermissions) {
-//        SecurityGroup group;
-//        if (ipPermissions != null) {
-//            group = SecurityGroup.builder()
-//                .ipPermissions(ipPermissions)
-//                .groupId(groupId)
-//                .build();
-//        } else {
-//            group = SecurityGroup.builder()
-//                .groupId(groupId)
-//                .build();
-//        }
-//        return group;
-//    }
-//
-//    private SecurityRule createRule(SecurityRule.Direction direction, int portFrom, int portTo, SecurityRule.Protocol protocol) {
-//        return new SecurityRule(direction, portFrom, portTo, DEFAULT_CIDR, SecurityRule.EtherType.IPv4, protocol);
-//    }
-
-//    private Order createOrder(ResourceType type) throws FogbowException{
-//        switch (type) {
-//            case NETWORK:
-//                NetworkOrder networkOrder = new NetworkOrder();
-//                networkOrder.setInstanceId(INSTANCE_ID);
-//                return networkOrder;
-//            case PUBLIC_IP:
-//                PublicIpOrder piOrder = new PublicIpOrder();
-//                piOrder.setInstanceId(INSTANCE_ID);
-//                return piOrder;
-//            default:
-//                throw new FogbowException();
-//        }
-//    }
+    private SecurityRule createSecurityRule(Direction direction, Protocol... protocols) {
+        Protocol protocol = protocols.length > 0 ? protocols[0] : Protocol.ANY;
+        EtherType etherType = EtherType.IPv4;
+        int portFrom = DEFAULT_PORT_FROM;
+        int portTo = DEFAULT_PORT_TO;
+        String cidr = DEFAULT_IP_ADDRESS + AwsV2SecurityRulePlugin.CIDR_SEPARATOR + DEFAULT_ADDRESS_RANGE;
+        return new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+    
+    private Order createMajorOrder() {
+        NetworkOrder majorOrder = this.testUtils.createLocalNetworkOrder();
+        majorOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        return majorOrder;
+    }
 
 }
