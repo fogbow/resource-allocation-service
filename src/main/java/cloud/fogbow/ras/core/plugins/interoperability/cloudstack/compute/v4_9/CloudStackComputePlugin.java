@@ -250,9 +250,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     GetAllDiskOfferingsResponse getDiskOfferings(@NotNull final CloudStackUser cloudUser)
             throws FogbowException {
 
-        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder()
+        GetAllDiskOfferingsRequest getAllDiskOfferingsRequest = new GetAllDiskOfferingsRequest.Builder()
                 .build(this.cloudStackUrl);
-        URIBuilder uriRequest = request.getUriBuilder();
+        URIBuilder uriRequest = getAllDiskOfferingsRequest.getUriBuilder();
         String token = cloudUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 

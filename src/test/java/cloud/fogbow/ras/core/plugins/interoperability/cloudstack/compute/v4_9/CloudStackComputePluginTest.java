@@ -149,9 +149,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
         HttpResponseException badRequestHttpResponse = createBadRequestHttpResponse();
-        Mockito.when(this.client.doGetRequest(
-                Mockito.anyString(), Mockito.any(CloudStackUser.class)))
-                .thenThrow(badRequestHttpResponse);
+        Mockito.doThrow(badRequestHttpResponse).when(this.plugin).doGet(
+                Mockito.anyString(), Mockito.any(CloudStackUser.class));
 
         // ignoring CloudStackUrlUtil
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -181,9 +180,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         String getAllDiskOfferingRequestJsonStr = getListDiskOfferrings(
                 idExpected, diskExpected, customizedExpected);
 
-        Mockito.when(this.client.doGetRequest(
-                Mockito.eq(getAllDiskOfferingRequestUrl), Mockito.eq(cloudStackUser)))
-                .thenReturn(getAllDiskOfferingRequestJsonStr);
+        Mockito.doReturn(getAllDiskOfferingRequestJsonStr).when(this.plugin).doGet(
+                Mockito.eq(getAllDiskOfferingRequestUrl), Mockito.eq(cloudStackUser));
 
         // ignoring CloudStackUrlUtil
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -203,21 +201,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(idExpected, firstDiskOffering.getId());
         Assert.assertEquals(diskExpected, firstDiskOffering.getDiskSize());
         Assert.assertEquals(customizedExpected, firstDiskOffering.isCustomized());
-    }
-
-    // test case: initialization CloudstackComputePLugin and checkparameters successfully
-    @Test
-    public void testGetCheckParametersSuccessfully() {
-        // set up
-        Properties properties = new Properties();
-        properties.put(CloudStackComputePlugin.ZONE_ID_KEY_CONF, "1");
-        properties.put(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "1");
-
-        PowerMockito.mockStatic(PropertiesUtil.class);
-        PowerMockito.when(PropertiesUtil.readProperties("")).thenReturn(properties);
-
-        // exercise and verify
-        new CloudStackComputePlugin("");
     }
 
     // test case: normalizing networks id successfuly
@@ -1046,8 +1029,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetDiskOfferingNotMatch() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         int diskExpected = 1;
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
         Mockito.doReturn(getAllDiskOfferingsResponse)
@@ -1094,6 +1077,41 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // exercise
         int anyThing = 10;
         this.plugin.getDiskOffering(anyThing, cloudStackUser);
+    }
+
+    // test case: successfully case
+    @Test
+    public void testDoGet() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        String url = "http://localhost";
+        String responseStrExpeced = "response";
+
+        Mockito.when(this.client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser)))
+                .thenReturn(responseStrExpeced);
+
+        // exercise
+        String responseStr = this.plugin.doGet(url, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(responseStrExpeced, responseStr);
+    }
+
+    // test case: catching a FogbowException
+    @Test
+    public void testDoGetFogbowException() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        String url = "http://localhost";
+        String responseStrExpeced = "response";
+
+        Mockito.when(this.client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser)))
+                .thenThrow(createBadRequestHttpResponse());
+
+        this.expectedException.expect(HttpResponseException.class);
+
+        // exercise
+        this.plugin.doGet(url, cloudStackUser);
     }
 
     private String getVirtualMachineResponse(String id, String name, String state,
