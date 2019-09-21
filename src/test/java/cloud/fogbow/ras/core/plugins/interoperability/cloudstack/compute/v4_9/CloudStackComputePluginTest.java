@@ -39,7 +39,7 @@ import java.util.*;
 
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, GetVolumeResponse.class,
         DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class,
-        DatabaseManager.class})
+        DatabaseManager.class, DeployVirtualMachineResponse.class})
 public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private static final CloudStackUser CLOUD_STACK_USER =
@@ -424,8 +424,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         String idVirtualMachineExpected = "1";
         String serviceOfferingResponse = getDeployVirtualMachineResponse(idVirtualMachineExpected);
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
-                .thenReturn(serviceOfferingResponse);
+        Mockito.doReturn(serviceOfferingResponse).when(this.plugin)
+                .doGet(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER));
 
         // exercise
         String createdVirtualMachineId = this.plugin.requestInstance(order, CLOUD_STACK_USER);
@@ -546,8 +546,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class)))
                 .thenReturn(fakeUserDataString);
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
-                .thenThrow(createBadRequestHttpResponse());
+        Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
+                .doGet(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER));
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -725,7 +725,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // exercise
         this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
     }
-
 
     // test case: get virtual machine disks and occour an exception in the cloud
     @Test
@@ -1103,7 +1102,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         String url = "http://localhost";
-        String responseStrExpeced = "response";
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser)))
                 .thenThrow(createBadRequestHttpResponse());
@@ -1113,6 +1111,61 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // exercise
         this.plugin.doGet(url, cloudStackUser);
     }
+
+    // test case: successfully case
+    @Test
+    public void testDoRequestInstance() throws FogbowException, IOException {
+        // set up
+        DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
+                .build("");
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
+
+        String responseStr = "";
+        Mockito.when(this.client.doGetRequest(
+                Mockito.any(), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
+
+        DeployVirtualMachineResponse deployVirtualMachineResponseExpected =
+                Mockito.mock(DeployVirtualMachineResponse.class);
+        PowerMockito.mockStatic(DeployVirtualMachineResponse.class);
+        PowerMockito.when(DeployVirtualMachineResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(deployVirtualMachineResponseExpected);
+
+        // exercise
+        DeployVirtualMachineResponse deployVirtualMachineResponse =
+                this.plugin.doRequestInstance(deployVirtualMachineRequest, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(deployVirtualMachineResponseExpected, deployVirtualMachineResponse);
+    }
+
+    // test case: the request throws a HttpResponseException
+    @Test
+    public void testDoRequestInstanceAndHttpResponseException() throws FogbowException, IOException {
+        // set up
+        DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
+                .build("anything");
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
+
+        Mockito.when(this.client.doGetRequest(
+                Mockito.any(), Mockito.eq(cloudStackUser))).thenThrow(createBadRequestHttpResponse());
+
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doRequestInstance(deployVirtualMachineRequest, cloudStackUser);
+    }
+
 
     private String getVirtualMachineResponse(String id, String name, String state,
             int cpunumber, int memory, String ipaddress) throws IOException {

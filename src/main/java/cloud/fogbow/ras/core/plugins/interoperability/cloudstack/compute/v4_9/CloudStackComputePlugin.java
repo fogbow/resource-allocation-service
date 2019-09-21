@@ -186,7 +186,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted = serviceOfferings;
         Map<String, String> requirements = computeOrder.getRequirements();
-        if (requirements == null && requirements.size() == 0) {
+        if (requirements == null || requirements.size() == 0) {
             return serviceOfferings;
         }
 
@@ -381,7 +381,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @NotNull
-    private DeployVirtualMachineResponse doRequestInstance(
+    @VisibleForTesting
+    DeployVirtualMachineResponse doRequestInstance(
             @NotNull DeployVirtualMachineRequest deployVirtualMachineRequest,
             @NotNull final CloudStackUser cloudUser)
             throws FogbowException {
