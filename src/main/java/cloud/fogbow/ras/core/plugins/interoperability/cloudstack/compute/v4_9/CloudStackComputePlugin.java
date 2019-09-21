@@ -37,18 +37,19 @@ import java.util.stream.Collectors;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    // TODO(chico) - review: Some constans might be moved to the CloudstackConstans
     protected static final String CLOUDUSER_NULL_EXCEPTION_MSG =
             String.format(Messages.Error.IRREGULAR_VALUE_NULL_EXCEPTION_MSG, "Cloud User");
+
+    private static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
+    private static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
+    protected static final String ZONE_ID_KEY_CONF = "zone_id";
+
     private static final String DEFAULT_EXPUNGE_ON_DEPLOY_VALUE = "true";
-    private static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
-    private static final String DEFAULT_VOLUME_TYPE = "ROOT";
-    protected static final String ZONE_ID_KEY = "zone_id";
-    protected static final String CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR = ",";
-    protected static final String FOGBOW_TAG_SEPARATOR = ":";
-    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
-    protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
+    private static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
     protected static final int UNKNOWN_DISK_VALUE = -1;
+
+    protected static final String FOGBOW_TAG_SEPARATOR = ":";
+    protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
 
     private LaunchCommandGenerator launchCommandGenerator;
     private CloudStackHttpClient client;
@@ -60,11 +61,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     public CloudStackComputePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-
-        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.zoneId = this.properties.getProperty(ZONE_ID_KEY);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL_CONF);
+        this.zoneId = this.properties.getProperty(ZONE_ID_KEY_CONF);
         this.expungeOnDestroy = this.properties.getProperty(
-                EXPUNGE_ON_DESTROY_KEY, DEFAULT_EXPUNGE_ON_DEPLOY_VALUE);
+                EXPUNGE_ON_DESTROY_KEY_CONF, DEFAULT_EXPUNGE_ON_DEPLOY_VALUE);
         this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
         this.client = new CloudStackHttpClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
@@ -326,7 +326,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         GetVolumeRequest getVolumeRequest = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
-                .type(DEFAULT_VOLUME_TYPE)
+                .type(DEFAULT_VOLUME_TYPE_VALUE)
                 .build(this.cloudStackUrl);
         URIBuilder uriRequest = getVolumeRequest.getUriBuilder();
         String token = cloudUser.getToken();

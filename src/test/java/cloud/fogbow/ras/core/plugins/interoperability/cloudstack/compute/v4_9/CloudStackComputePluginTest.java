@@ -72,7 +72,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin = Mockito.spy(new CloudStackComputePlugin(cloudStackConfFilePath));
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
-
         this.testUtils.mockReadOrdersFromDataBase();
     }
 
@@ -211,7 +210,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testGetCheckParametersSuccessfully() {
         // set up
         Properties properties = new Properties();
-        properties.put(CloudStackComputePlugin.ZONE_ID_KEY, "1");
+        properties.put(CloudStackComputePlugin.ZONE_ID_KEY_CONF, "1");
         properties.put(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "1");
 
         PowerMockito.mockStatic(PropertiesUtil.class);
@@ -937,7 +936,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         String tagTwo = keyTwo + CloudStackComputePlugin.FOGBOW_TAG_SEPARATOR + valueTwo;
         requirements.put(keyTwo, valueTwo);
         computeOrder.setRequirements(requirements);
-        String tagExpected = tagOne + CloudStackComputePlugin.CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR + tagTwo;
+        String tagExpected = tagOne + CloudstackTestUtils.CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR + tagTwo;
 
         int anyMemory = 1;
         int anyCpu = 1;

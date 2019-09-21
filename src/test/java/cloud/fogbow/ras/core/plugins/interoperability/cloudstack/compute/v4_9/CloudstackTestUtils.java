@@ -35,6 +35,7 @@ public class CloudstackTestUtils {
             "cloudstack" + File.separator;
 
     protected static final String AND_OPERATION_URL_PARAMETER = "&";
+    protected static final String CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR = ",";
 
     protected static final String CLOUDSTACK_URL_DEFAULT = "http://localhost";
 
