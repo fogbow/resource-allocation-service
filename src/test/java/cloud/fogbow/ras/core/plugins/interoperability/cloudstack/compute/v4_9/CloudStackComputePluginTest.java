@@ -100,21 +100,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getServiceOfferings(cloudStackUser);
     }
 
-    // Test case: The cloudStackUser parameter is null and this throw a exception
-    @Test
-    public void testGetServiceOfferingsCloudStackUserNull() throws FogbowException {
-        // set up
-        CloudStackUser cloudStackUser = null;
-
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(CloudStackComputePlugin.
-                CLOUDUSER_NULL_EXCEPTION_MSG);
-
-        // exercise
-        this.plugin.getServiceOfferings(cloudStackUser);
-    }
-
     // Test case: Getting all ServiceOfferings in the Cloudstack successfully
     @Test
     public void testGetServiceOfferings() throws FogbowException, IOException {
