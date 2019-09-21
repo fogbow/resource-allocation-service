@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
 import org.apache.http.client.HttpResponseException;
 

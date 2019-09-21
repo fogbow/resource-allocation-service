@@ -1012,6 +1012,89 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(AMOUNT_EXTRA_SERVICE_OFFERING , serviceOfferingsFilted.size());
     }
+    
+    // test case: get first disk that it matches with the disk size required
+    @Test
+    public void testGetDiskOffering() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        int diskExpected = 1;
+
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
+        Mockito.doReturn(getAllDiskOfferingsResponse)
+                .when(this.plugin).getDiskOfferings(Mockito.eq(cloudStackUser));
+        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = new ArrayList<>();
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskExpected - 1);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskExpected);
+        diskOfferings.add(diskOfferingOne);
+        diskOfferings.add(diskOfferingTwo);
+        Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
+
+        // exercise
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
+                this.plugin.getDiskOffering(diskExpected, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(diskOfferingTwo.getDiskSize(), diskOffering.getDiskSize());
+    }
+
+    // test case: No one matches with the disk required
+    @Test
+    public void testGetDiskOfferingNotMatch() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        int diskExpected = 1;
+
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
+        Mockito.doReturn(getAllDiskOfferingsResponse)
+                .when(this.plugin).getDiskOfferings(Mockito.eq(cloudStackUser));
+        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = Mockito.spy(new ArrayList<>())
+                ;
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskExpected - 1);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskExpected - 1);
+        diskOfferings.add(diskOfferingOne);
+        diskOfferings.add(diskOfferingTwo);
+        Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
+
+        // verify
+        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expectMessage(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
+
+        // exercise
+        this.plugin.getDiskOffering(diskExpected, cloudStackUser);
+    }
+
+    // test case: There are no disks
+    @Test
+    public void testGetDiskOfferingDisksEmpty() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
+                Mockito.mock(GetAllDiskOfferingsResponse.class);
+        Mockito.doReturn(getAllDiskOfferingsResponse).when(this.plugin)
+                .getDiskOfferings(Mockito.eq(cloudStackUser));
+        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = new ArrayList<>();
+        Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
+
+        // verify
+        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expectMessage(
+                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
+
+        // exercise
+        int anyThing = 10;
+        this.plugin.getDiskOffering(anyThing, cloudStackUser);
+    }
 
     private String getVirtualMachineResponse(String id, String name, String state,
             int cpunumber, int memory, String ipaddress) throws IOException {

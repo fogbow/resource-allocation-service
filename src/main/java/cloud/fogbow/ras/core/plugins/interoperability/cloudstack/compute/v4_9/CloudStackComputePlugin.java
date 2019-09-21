@@ -233,7 +233,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
-        if (diskOfferings != null) {
+        if (diskOfferings != null && !diskOfferings.isEmpty()) {
             for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
                 if (diskOffering.getDiskSize() >= diskSize) {
                     return diskOffering;
