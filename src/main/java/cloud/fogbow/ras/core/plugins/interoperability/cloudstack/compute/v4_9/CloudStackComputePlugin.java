@@ -50,6 +50,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     protected static final String FOGBOW_TAG_SEPARATOR = ":";
     protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
+    protected static final int AMOUNT_INSTANCE = 1;
 
     private LaunchCommandGenerator launchCommandGenerator;
     private CloudStackHttpClient client;
@@ -365,12 +366,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return (int) (bytes / GIGABYTE_IN_BYTES);
     }
 
-    private void updateComputeOrder(@NotNull ComputeOrder computeOrder,
+    @VisibleForTesting
+    void updateComputeOrder(@NotNull ComputeOrder computeOrder,
                                     @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
                                     @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering) {
 
         synchronized (computeOrder) {
-            final int AMOUNT_INSTANCE = 1;
             ComputeAllocation actualAllocation = new ComputeAllocation(
                     serviceOffering.getCpuNumber(),
                     serviceOffering.getMemory(),

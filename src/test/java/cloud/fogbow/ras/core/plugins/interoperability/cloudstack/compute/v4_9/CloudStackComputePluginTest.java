@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -1166,6 +1167,41 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.doRequestInstance(deployVirtualMachineRequest, cloudStackUser);
     }
 
+    // test case: successfully case
+    @Test
+    public void testUpdateComputeOrder() {
+        // set up
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "");
+
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
+                Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
+        int memoryExpected = 2;
+        int cpuExpected = 3;
+        Mockito.when(serviceOffering.getMemory()).thenReturn(memoryExpected);
+        Mockito.when(serviceOffering.getCpuNumber()).thenReturn(cpuExpected);
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        int diskExpected = 10;
+        Mockito.when(diskOffering.getDiskSize()).thenReturn(diskExpected);
+
+        // verify before
+        ComputeAllocation actualAllocationBefore = computeOrder.getActualAllocation();
+        int DEFAULT_VALUE = 0;
+        Assert.assertEquals(DEFAULT_VALUE, actualAllocationBefore.getDisk());
+        Assert.assertEquals(DEFAULT_VALUE, actualAllocationBefore.getInstances());
+        Assert.assertEquals(DEFAULT_VALUE, actualAllocationBefore.getRam());
+        Assert.assertEquals(DEFAULT_VALUE, actualAllocationBefore.getvCPU());
+
+        // exercise
+        this.plugin.updateComputeOrder(computeOrder, serviceOffering, diskOffering);
+
+        // verify after
+        ComputeAllocation actualAllocationAfter = computeOrder.getActualAllocation();
+        Assert.assertEquals(diskExpected, actualAllocationAfter.getDisk());
+        Assert.assertEquals(CloudStackComputePlugin.AMOUNT_INSTANCE, actualAllocationAfter.getInstances());
+        Assert.assertEquals(memoryExpected, actualAllocationAfter.getRam());
+        Assert.assertEquals(cpuExpected, actualAllocationAfter.getvCPU());
+    }
 
     private String getVirtualMachineResponse(String id, String name, String state,
             int cpunumber, int memory, String ipaddress) throws IOException {
