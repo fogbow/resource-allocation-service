@@ -408,8 +408,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @NotNull
-    private GetVirtualMachineResponse doGetInstance(@NotNull GetVirtualMachineRequest getVirtualMachineRequest,
-                                                    @NotNull final CloudStackUser cloudStackUser)
+    @VisibleForTesting
+    GetVirtualMachineResponse doGetInstance(@NotNull GetVirtualMachineRequest getVirtualMachineRequest,
+                                            @NotNull final CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
@@ -424,8 +425,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @NotNull
-    private ComputeInstance getVM(@NotNull GetVirtualMachineResponse getVirtualMachineResponse,
-                                  @NotNull final CloudStackUser cloudStackUser)
+    @VisibleForTesting
+    ComputeInstance getVM(@NotNull GetVirtualMachineResponse getVirtualMachineResponse,
+                          @NotNull final CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
         List<GetVirtualMachineResponse.VirtualMachine> vms = getVirtualMachineResponse.getVirtualMachines();

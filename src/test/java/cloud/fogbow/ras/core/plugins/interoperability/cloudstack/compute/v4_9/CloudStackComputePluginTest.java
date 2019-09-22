@@ -25,6 +25,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandG
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -750,32 +751,113 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
     }
 
-    // test case: get instance successfully
+    // test case: getVM successfully
     @Test
-    public void testGetInstance() throws FogbowException, IOException {
+    public void testGetVM() throws InstanceNotFoundException {
         // set up
-        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        String id = "id";
-        String name = "name";
-        String state = "state";
-        int cpu = 1;
-        int memory = 2;
-        String idAddress = "10.10.0.10";
-        String getVirtualMachineResponse = getVirtualMachineResponse(
-                id, name, state, cpu, memory, idAddress);
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
-                .thenReturn(getVirtualMachineResponse);
+        GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
+        GetVirtualMachineResponse.VirtualMachine virtualMachine =
+                Mockito.mock(GetVirtualMachineResponse.VirtualMachine.class);
+        virtualMachines.add(virtualMachine);
+        Mockito.when(getVirtualMachineResponse.getVirtualMachines()).thenReturn(virtualMachines);
 
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
-        Mockito.doReturn(computeInstanceExpected).when(this.plugin)
-                .getComputeInstance(Mockito.any(), Mockito.any());
+        Mockito.doReturn(computeInstanceExpected).when(this.plugin).getComputeInstance(
+                Mockito.eq(virtualMachine), Mockito.eq(cloudStackUser));
+
+        // exercise
+        ComputeInstance computeInstance = this.plugin.getVM(getVirtualMachineResponse, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(computeInstanceExpected, computeInstance);
+    }
+
+    // test case: getVM throw an InstanceNotFoundException
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetVMInstanceNotFoundException() throws InstanceNotFoundException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
+        Mockito.when(getVirtualMachineResponse.getVirtualMachines()).thenReturn(virtualMachines);
+
+        // exercise
+        this.plugin.getVM(getVirtualMachineResponse, cloudStackUser);
+    }
+
+    // test case: doGetInstance successfully
+    @Test
+    public void testDoGetInstance() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
+                .build("anything");
+        URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
 
         // ignoring CloudStackUrlUtil
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
                 Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        String responseStr = "anyResponseStr";
+        Mockito.doReturn(responseStr).when(this.plugin)
+                .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
+
+        PowerMockito.mockStatic(GetVirtualMachineResponse.class);
+        GetVirtualMachineResponse getVirtualMachineResponseExpexted =
+                Mockito.mock(GetVirtualMachineResponse.class);
+        PowerMockito.when(GetVirtualMachineResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(getVirtualMachineResponseExpexted);
+
+        // exercise
+        GetVirtualMachineResponse getVirtualMachineResponse =
+                this.plugin.doGetInstance(getVirtualMachineRequest, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(getVirtualMachineResponseExpexted, getVirtualMachineResponse);
+    }
+
+    // test case: doGetInstance treating a HttpResponseException
+    @Test
+    public void testDoGetInstanceThrowException() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
+                .build("anything");
+        URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
+                .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doGetInstance(getVirtualMachineRequest, cloudStackUser);
+    }
+
+    // test case: get instance successfully
+    @Test
+    public void testGetInstance() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+
+        GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
+        Mockito.doReturn(getVirtualMachineResponse).when(this.plugin)
+                .doGetInstance(Mockito.any(), Mockito.eq(CLOUD_STACK_USER));
+
+        ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
+        Mockito.doReturn(computeInstanceExpected).when(this.plugin)
+                .getVM(Mockito.eq(getVirtualMachineResponse), Mockito.eq(cloudStackUser));
 
         // exercise
         ComputeInstance computeInstance = this.plugin.getInstance(computeOrder, cloudStackUser);
@@ -784,51 +866,25 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(computeInstanceExpected, computeInstance);
     }
 
-    // test case: get instance not found
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetInstanceNoFound() throws FogbowException, IOException {
-        // set up
-        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        String responseRequest = new String();
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
-                .thenReturn(responseRequest);
-
-        GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
-        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = null;
-        Mockito.when(getVirtualMachineResponse.getVirtualMachines()).thenReturn(virtualMachines);
-
-        PowerMockito.mockStatic(GetVirtualMachineResponse.class);
-        PowerMockito.when(GetVirtualMachineResponse.fromJson(Mockito.eq(responseRequest)))
-                .thenReturn(getVirtualMachineResponse);
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        // exercise and verify
-        this.plugin.getInstance(computeOrder, cloudStackUser);
-    }
-
     // test case: get instance and occurs a bad request
-    @Test(expected = FogbowException.class)
-    public void testGetInstanceBadRequest() throws FogbowException, IOException {
+    @Test
+    public void testGetInstanceBadRequest() throws FogbowException {
         // set up
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
-                .thenThrow(createBadRequestHttpResponse());
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .doGetInstance(Mockito.any(), Mockito.eq(CLOUD_STACK_USER));
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        // exercise and verify
-        this.plugin.getInstance(computeOrder, cloudStackUser);
+        // exercise
+        try {
+            this.plugin.getInstance(computeOrder, cloudStackUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Mockito.verify(this.plugin, Mockito.times(0))
+                    .getVM(Mockito.any(), Mockito.any());
+        }
     }
 
     // Test case: deleting an instance successfully
