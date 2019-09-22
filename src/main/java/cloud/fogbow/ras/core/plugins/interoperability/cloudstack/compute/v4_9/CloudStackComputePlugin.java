@@ -440,9 +440,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    private String getTemplateId(@NotNull final ComputeOrder computeOrder) throws InvalidParameterException {
+    @VisibleForTesting
+    String getTemplateId(@NotNull final ComputeOrder computeOrder) throws InvalidParameterException {
         String templateId = computeOrder.getImageId();
-        if (templateId == null) {
+        if (templateId == null || templateId.isEmpty()) {
             throw new InvalidParameterException(Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);
         }
         return templateId;

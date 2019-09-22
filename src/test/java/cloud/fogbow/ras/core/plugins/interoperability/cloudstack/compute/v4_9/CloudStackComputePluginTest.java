@@ -386,72 +386,44 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     // Test case: request instance successfully
     @Test
-    public void testRequestInstance() throws FogbowException, IOException {
+    public void testRequestInstance() throws FogbowException {
         // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
         String networksIds = "networksId";
         Mockito.doReturn(networksIds).when(this.plugin)
                 .normalizeNetworksID(Mockito.any(ComputeOrder.class));
 
-        String serviceOfferingIdExpected = "serviceOfferingId";
-        int serviceOfferingCpuExpected = 10;
-        int serviceOfferingMemoryExpected = 20;
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
-        Mockito.when(serviceOffering.getId()).thenReturn(serviceOfferingIdExpected);
-        Mockito.when(serviceOffering.getMemory()).thenReturn(serviceOfferingMemoryExpected);
-        Mockito.when(serviceOffering.getCpuNumber()).thenReturn(serviceOfferingCpuExpected);
         Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
-        String diskOfferingIdExpected = "diskOfferingId";
-        int diskOfferingSizeExpected = 10;
         GetAllDiskOfferingsResponse.DiskOffering diskOffering =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOffering.getId()).thenReturn(diskOfferingIdExpected);
-        Mockito.when(diskOffering.getDiskSize()).thenReturn(diskOfferingSizeExpected);
         int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
                 Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
         String fakeUserDataString = "anystring";
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class)))
                 .thenReturn(fakeUserDataString);
 
-        String idVirtualMachineExpected = "1";
-        String serviceOfferingResponse = getDeployVirtualMachineResponse(idVirtualMachineExpected);
-        Mockito.doReturn(serviceOfferingResponse).when(this.plugin)
-                .doGet(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER));
+        DeployVirtualMachineResponse deployVirtualMachineResponse =
+                Mockito.mock(DeployVirtualMachineResponse.class);
+        Mockito.doReturn(deployVirtualMachineResponse).when(this.plugin)
+                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
+
+        Mockito.doNothing().when(this.plugin).updateComputeOrder(
+                Mockito.eq(order), Mockito.eq(serviceOffering), Mockito.eq(diskOffering));
 
         // exercise
-        String createdVirtualMachineId = this.plugin.requestInstance(order, CLOUD_STACK_USER);
+        this.plugin.requestInstance(order, cloudStackUser);
 
         // verify
-        Assert.assertEquals(idVirtualMachineExpected, createdVirtualMachineId);
-        Assert.assertEquals(diskOfferingSizeExpected, order.getActualAllocation().getDisk());
-        Assert.assertEquals(serviceOfferingMemoryExpected, order.getActualAllocation().getRam());
-        Assert.assertEquals(serviceOfferingCpuExpected, order.getActualAllocation().getvCPU());
-    }
-
-    // Test case: request instance but the templateId comes null and throw a exception
-    @Test
-    public void testRequestInstanceTemplateIdNull() throws FogbowException {
-        // set up
-        ComputeOrder order = Mockito.mock(ComputeOrder.class);
-        Mockito.when(order.getImageId()).thenReturn(null);
-
-        // verify
-        this.expectedException.expect(InvalidParameterException.class);
-        this.expectedException.expectMessage(Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);
-
-        // exercise
-        this.plugin.requestInstance(order, CLOUD_STACK_USER);
+        Mockito.verify(this.plugin, Mockito.times(1))
+                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
     }
 
     // Test case: request instance but the service offering is not available
@@ -509,54 +481,34 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     }
 
     // Test case: request instance but it occurs a error in the request to the cloud and throw a exception
-    @Test
+    @Test(expected = FogbowException.class)
     public void testRequestInstanceErrorInRequest() throws FogbowException, HttpResponseException {
         // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
-        String networksIds = "networksId";
-        Mockito.doReturn(networksIds).when(this.plugin)
+        Mockito.doReturn("networksId").when(this.plugin)
                 .normalizeNetworksID(Mockito.any(ComputeOrder.class));
 
-        String serviceOfferingIdExpected = "serviceOfferingId";
-        int serviceOfferingCpuExpected = 10;
-        int serviceOfferingMemoryExpected = 20;
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
-        Mockito.when(serviceOffering.getId()).thenReturn(serviceOfferingIdExpected);
-        Mockito.when(serviceOffering.getMemory()).thenReturn(serviceOfferingMemoryExpected);
-        Mockito.when(serviceOffering.getCpuNumber()).thenReturn(serviceOfferingCpuExpected);
         Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
-                Mockito.eq(order) , Mockito.any(CloudStackUser.class));
+                Mockito.eq(order), Mockito.any(CloudStackUser.class));
 
-        String diskOfferingIdExpected = "diskOfferingId";
-        int diskOfferingSizeExpected = 10;
         GetAllDiskOfferingsResponse.DiskOffering diskOffering =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOffering.getId()).thenReturn(diskOfferingIdExpected);
-        Mockito.when(diskOffering.getDiskSize()).thenReturn(diskOfferingSizeExpected);
         int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
                 Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(
+                Mockito.any(ComputeOrder.class))).thenReturn("anystring");
 
-        String fakeUserDataString = "anystring";
-        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class)))
-                .thenReturn(fakeUserDataString);
-
-        Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
-                .doGet(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER));
-
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
 
         // exercise
-        this.plugin.requestInstance(order, CLOUD_STACK_USER);
+        this.plugin.requestInstance(order, cloudStackUser);
     }
 
     // test case: request instance and the clouduser is null
@@ -976,7 +928,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     // test case: delete instance and the clouduser is null
     @Test
-    public void testDeleteInstanceCloudUserNull() throws FogbowException{
+    public void testDeleteInstanceCloudUserNull() throws FogbowException {
         // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
@@ -1302,13 +1254,39 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(cpuExpected, actualAllocationAfter.getvCPU());
     }
 
-    private String getVirtualMachineResponse(String id, String name, String state,
-            int cpunumber, int memory, String ipaddress) throws IOException {
+    // test case: getTemplateId successfully case
+    @Test
+    public void testGetTemplateId() throws InvalidParameterException {
+        // set up
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
 
-        List<GetVirtualMachineResponse.Nic> nics = new ArrayList<>();
-        nics.add(new GetVirtualMachineResponse().new Nic(ipaddress));
-        return CloudstackTestUtils.createGetVirtualMachineResponseJson(
-                id, name, state, cpunumber, memory, nics);
+        // exercise
+        String templateId = this.plugin.getTemplateId(computeOrder);
+
+        // verify
+        Assert.assertEquals(this.testUtils.FAKE_IMAGE_ID, templateId);
+    }
+
+    // test case: getTemplateId throws an exception because there is not image id int the order
+    @Test(expected = InvalidParameterException.class)
+    public void testGetTemplateIdThrowException() throws InvalidParameterException {
+        // set up
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getImageId()).thenReturn(null);
+
+        // exercise
+        this.plugin.getTemplateId(computeOrder);
+    }
+
+    // test case: getTemplateId throws an exception because image id is empty in the order
+    @Test(expected = InvalidParameterException.class)
+    public void testGetTemplateIdThrowExceptionEmptyImageId() throws InvalidParameterException {
+        // set up
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getImageId()).thenReturn("");
+
+        // exercise
+        this.plugin.getTemplateId(computeOrder);
     }
 
     private String getVolumeResponse(String id, String name, double size, String state) throws IOException {
@@ -1325,10 +1303,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         return CloudstackTestUtils.createGetAllServiceOfferingsResponseJson(
                 id, name, cpuNumber, memory, tags);
-    }
-
-    private String getDeployVirtualMachineResponse(String id) throws IOException {
-        return CloudstackTestUtils.createDeployVirtualMachineResponseJson(id);
     }
 
     private ComputeOrder createComputeOrder(ArrayList<UserData> fakeUserData, String fakeImageId) {
