@@ -8,7 +8,7 @@ import java.util.List;
 import static cloud.fogbow.common.constants.OpenStackConstants.Compute.ID_KEY_JSON;
 import static cloud.fogbow.common.constants.OpenStackConstants.Compute.SECURITY_GROUPS_KEY_JSON;
 
-public class ListSecurityGroups {
+public class GetSecurityGroupsResponse {
 
     @SerializedName(SECURITY_GROUPS_KEY_JSON)
     private List<SecurityGroup> securityGroups;
@@ -21,8 +21,8 @@ public class ListSecurityGroups {
         this.securityGroups = securityGroups;
     }
 
-    public static ListSecurityGroups fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, ListSecurityGroups.class);
+    public static GetSecurityGroupsResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetSecurityGroupsResponse.class);
     }
 
     public String toJson() {
