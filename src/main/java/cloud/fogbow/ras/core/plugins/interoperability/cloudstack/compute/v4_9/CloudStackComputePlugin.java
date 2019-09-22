@@ -127,8 +127,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return getVM(getVirtualMachineResponse, cloudUser);
     }
 
-    private void doDeleteInstance(@NotNull DestroyVirtualMachineRequest destroyVirtualMachineRequest,
-                                  @NotNull final CloudStackUser cloudStackUser, String instanceId)
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull DestroyVirtualMachineRequest destroyVirtualMachineRequest,
+                          @NotNull final CloudStackUser cloudStackUser, String instanceId)
             throws FogbowException {
 
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();

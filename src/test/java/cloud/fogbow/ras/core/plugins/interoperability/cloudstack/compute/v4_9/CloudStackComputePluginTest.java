@@ -881,41 +881,85 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
             this.plugin.getInstance(computeOrder, cloudStackUser);
             Assert.fail();
         } catch (Exception e) {
-            // verify
+                // verify
             Mockito.verify(this.plugin, Mockito.times(0))
                     .getVM(Mockito.any(), Mockito.any());
         }
     }
 
-    // Test case: deleting an instance successfully
+    // test case: testDoDeleteInstance successfully
     @Test
-    public void deleteInstance() throws FogbowException, HttpResponseException {
-        // set up
+    public void testDoDeleteInstance() throws FogbowException, HttpResponseException {
+        //set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        DestroyVirtualMachineRequest destroyVirtualMachineRequest = new DestroyVirtualMachineRequest
+                .Builder().build("anything");
+        URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
+        String instanceId = "InstanceId";
+
+        // ignoring CloudStackUrlUtil
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
                 Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
+        Mockito.doReturn(new String()).when(this.plugin).doGet(Mockito.eq(uriRequest.toString()),
+                Mockito.eq(cloudStackUser));
+
+        // exercise
+        this.plugin.doDeleteInstance(destroyVirtualMachineRequest, cloudStackUser, instanceId);
+
+        Mockito.verify(this.plugin, Mockito.times(1))
+                .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
+    }
+
+    // test case: exercising testDoDeleteInstance and it occurs a HttpResponseException
+    @Test
+    public void testDoDeleteInstanceHttpResponseException() throws FogbowException, HttpResponseException {
+        //set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        DestroyVirtualMachineRequest destroyVirtualMachineRequest = new DestroyVirtualMachineRequest
+                .Builder().build("anything");
+        URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
+        String instanceId = "InstanceId";
+
+        // ignoring CloudStackUrlUtil
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
+                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
+                .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
+
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doDeleteInstance(destroyVirtualMachineRequest, cloudStackUser, instanceId);
+    }
+
+    // Test case: deleting an instance successfully
+    @Test
+    public void testDeleteInstance() throws FogbowException, HttpResponseException {
+        // set up
         Mockito.when(this.client.doGetRequest(
                 Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER))).thenReturn("");
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(),
+                Mockito.eq(CLOUD_STACK_USER), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+
         // exercise
         this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
 
-        Mockito.verify(this.client, Mockito.times(1))
-                .doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER));
+        Mockito.verify(this.plugin, Mockito.times(1)).doDeleteInstance(Mockito.any(),
+                        Mockito.eq(CLOUD_STACK_USER), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
     }
 
     // Test case: failing to delete an instance
     @Test(expected = FogbowException.class)
-    public void deleteInstanceFail() throws FogbowException, HttpResponseException {
-        // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
+    public void testDeleteInstanceFail() throws FogbowException, HttpResponseException {
         // Delete response is unused
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
                 .thenThrow(createBadRequestHttpResponse());
@@ -923,12 +967,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
+        Mockito.doThrow(new FogbowException()).when(this.plugin).doDeleteInstance(Mockito.any(),
+                Mockito.eq(CLOUD_STACK_USER), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+
         // exercise
         this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
-
-        // verify
-        Mockito.verify(this.client, Mockito.times(1))
-                .doGetRequest(Mockito.anyString(), CLOUD_STACK_USER);
     }
 
     // test case: delete instance and the clouduser is null
