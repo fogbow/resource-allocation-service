@@ -45,24 +45,24 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
     private static final Logger LOGGER = Logger.getLogger(AwsV2SecurityRulePlugin.class);
     
-    private static final String ALL_PROTOCOLS = "-1";
     private static final String EGRESS_DIRECTION = "OUT";
     private static final String INGRESS_DIRECTION = "IN";
     private static final String INGRESS_VALUE = "ingress";
     private static final String PUBLIC_IP_RESOURCE_TYPE = "publicIp";
-    
-    protected static final String CIDR_SEPARATOR = "/";
-    protected static final String SECURITY_RULE_IDENTIFIER_FORMAT = "%s@%s@%s@%s@%s@%s@%s@%s";
 
     private static final int CIDR_FIELD_POSITION = 1;
     private static final int DIRECTION_FIELD_POSITION = 6;
-    private static final int FIRST_POSITION = 0;
     private static final int PORT_FROM_FIELD_POSITION = 3;
     private static final int PORT_TO_FIELD_POSITION = 4;
     private static final int PROTOCOL_FIELD_POSITION = 5;
     private static final int SECURITY_RULE_ID_FIELDS_NUMBER = 8;
     private static final int TYPE_FIELD_POSITION = 7;
     
+    protected static final String ALL_PROTOCOLS = "-1";
+    protected static final String CIDR_SEPARATOR = "/";
+    protected static final String SECURITY_RULE_IDENTIFIER_FORMAT = "%s@%s@%s@%s@%s@%s@%s@%s";
+    
+    protected static final int FIRST_POSITION = 0;
     
     private String region;
 
@@ -118,21 +118,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     }
 
     protected void revokeEgressRule(String groupId, SecurityRule rule, Ec2Client client) throws FogbowException {
-        IpPermission ipPermission = getIpPermission(rule);
-
-        RevokeSecurityGroupIngressRequest request = RevokeSecurityGroupIngressRequest.builder()
-                .ipPermissions(ipPermission)
-                .groupId(groupId)
-                .build();
-        try {
-            client.revokeSecurityGroupIngress(request);
-        } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-        }
-    }
-
-    protected void revokeIngressRule(String groupId, SecurityRule rule, Ec2Client client) throws UnexpectedException {
-        IpPermission ipPermission = getIpPermission(rule);
+        IpPermission ipPermission = buildIpPermission(rule);
 
         RevokeSecurityGroupEgressRequest request = RevokeSecurityGroupEgressRequest.builder()
                 .ipPermissions(ipPermission)
@@ -145,18 +131,38 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
 
+    protected void revokeIngressRule(String groupId, SecurityRule rule, Ec2Client client) throws FogbowException {
+        IpPermission ipPermission = buildIpPermission(rule);
+
+        RevokeSecurityGroupIngressRequest request = RevokeSecurityGroupIngressRequest.builder()
+                .ipPermissions(ipPermission)
+                .groupId(groupId)
+                .build();
+        try {
+            client.revokeSecurityGroupIngress(request);
+        } catch (SdkException e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
     protected SecurityRule doUnpackingSecurityRuleId(String securityRuleId) {
         String[] fields = securityRuleId.split(AwsConstants.SECURITY_RULE_ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
             int portFrom = Integer.valueOf(fields[PORT_FROM_FIELD_POSITION]);
             int portTo = Integer.valueOf(fields[PORT_TO_FIELD_POSITION]);
             String cidr = fields[CIDR_FIELD_POSITION] + CIDR_SEPARATOR + fields[CIDR_FIELD_POSITION + 1];
-            Direction direction = Direction.valueOf(fields[DIRECTION_FIELD_POSITION].equals(INGRESS_VALUE) ? INGRESS_DIRECTION : EGRESS_DIRECTION);
+            Direction direction = getDirectionValueFrom(fields[DIRECTION_FIELD_POSITION]);
             EtherType etherType = EtherType.IPv4;
             Protocol protocol = Protocol.valueOf(fields[PROTOCOL_FIELD_POSITION].toUpperCase());
             return new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
         }
         throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, securityRuleId));
+    }
+
+    protected Direction getDirectionValueFrom(String fieldValue) {
+        return Direction.valueOf(fieldValue.equals(INGRESS_VALUE) 
+                ? INGRESS_DIRECTION 
+                : EGRESS_DIRECTION);
     }
     
     protected String extractFieldFrom(String securityRuleId, int position) {
@@ -173,8 +179,8 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         String securityGroupId = getSecurityGroupId(instanceId, resourceType, client);
         SecurityGroup securityGroup = getSecurityGroupById(securityGroupId, client);
 
-        List inboundInstances = loadRuleInstances(instanceId, Direction.IN, securityGroup.ipPermissions());
-        List outboundInstances = loadRuleInstances(instanceId, Direction.OUT, securityGroup.ipPermissionsEgress());
+        List inboundInstances = loadSecurityRuleInstances(instanceId, Direction.IN, securityGroup.ipPermissions());
+        List outboundInstances = loadSecurityRuleInstances(instanceId, Direction.OUT, securityGroup.ipPermissionsEgress());
 
         List<SecurityRuleInstance> resultList = new ArrayList<>();
         resultList.addAll(inboundInstances);
@@ -182,19 +188,21 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return resultList;
     }
     
-    protected List<SecurityRuleInstance> loadRuleInstances(String instanceId, Direction direction, List<IpPermission> ipPermissions) {
-        List<SecurityRuleInstance> ruleInstancesList = new ArrayList<>();
+    protected List<SecurityRuleInstance> loadSecurityRuleInstances(String instanceId, Direction direction,
+            List<IpPermission> ipPermissions) {
         
+        List<SecurityRuleInstance> instancesList = new ArrayList<>();
+
         ipPermissions = ipPermissions.stream()
                 .filter(ipPermission -> validateIpPermission(ipPermission))
                 .collect(Collectors.toList());
-        
-        SecurityRuleInstance ruleInstance;
+
+        SecurityRuleInstance instance;
         for (IpPermission ipPermission : ipPermissions) {
-            ruleInstance = buildSecurityRuleInstance(instanceId, direction, ipPermission);
-            ruleInstancesList.add(ruleInstance);
+            instance = buildSecurityRuleInstance(instanceId, direction, ipPermission);
+            instancesList.add(instance);
         }
-        return ruleInstancesList;
+        return instancesList;
     }
     
     protected SecurityRuleInstance buildSecurityRuleInstance(String instanceId, Direction direction,
@@ -211,8 +219,8 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     protected boolean validateIpPermission(IpPermission ipPermission) {
         return ipPermission.fromPort() != null 
                 && ipPermission.toPort() != null 
-                && ipPermission.ipRanges() != null
-                && ipPermission.ipProtocol() != null;
+                && ipPermission.ipProtocol() != null
+                && !ipPermission.ipRanges().isEmpty();
     }
     
     protected SecurityGroup getSecurityGroupById(String groupId, Ec2Client client) throws FogbowException {
@@ -260,7 +268,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     protected void addRuleToSecurityGroup(String groupId, SecurityRule securityRule, Ec2Client client)
             throws FogbowException {
         
-        IpPermission ipPermission = getIpPermission(securityRule);
+        IpPermission ipPermission = buildIpPermission(securityRule);
         Direction direction = securityRule.getDirection();
 
         switch (direction) {
@@ -301,7 +309,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
     
-    protected IpPermission getIpPermission(SecurityRule securityRule) {
+    protected IpPermission buildIpPermission(SecurityRule securityRule) {
         int fromPort = securityRule.getPortFrom();
         int toPort = securityRule.getPortTo();
         String ipProtocol = securityRule.getProtocol().equals(Protocol.ANY) ? ALL_PROTOCOLS
