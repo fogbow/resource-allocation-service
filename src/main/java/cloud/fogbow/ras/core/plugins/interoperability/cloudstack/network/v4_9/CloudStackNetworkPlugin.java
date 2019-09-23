@@ -8,11 +8,11 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
@@ -22,17 +22,15 @@ import org.apache.log4j.Logger;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
-    private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
     public static final String NETWORK_OFFERING_ID = "network_offering_id";
     public static final String ZONE_ID = "zone_id";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
-    protected String networkOfferingId = null;
-    protected String zoneId = null;
+    protected String networkOfferingId;
+    protected String zoneId;
     protected String cloudStackUrl;
 
     private CloudStackHttpClient client;
@@ -41,7 +39,6 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     public CloudStackNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-
         this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
         this.zoneId = properties.getProperty(ZONE_ID);
         this.client = new CloudStackHttpClient();
@@ -132,10 +129,6 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
-    }
-
-    private String generateRandomNetworkName() {
-        return "fogbow_network_" + UUID.randomUUID();
     }
 
     private SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) {
