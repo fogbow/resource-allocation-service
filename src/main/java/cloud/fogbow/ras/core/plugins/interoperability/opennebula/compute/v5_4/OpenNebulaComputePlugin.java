@@ -97,7 +97,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
-		return this.doGetComputeInstance(virtualMachine);
+		return this.doComputeInstance(virtualMachine);
 	}
 
 	@Override
@@ -106,8 +106,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
-					response.getMessage()));
+		    String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
+					response.getMessage());
+		    throw new UnexpectedException(message);
 		}
 	}
 
@@ -120,7 +121,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return instanceId;
 	}
 
-	protected ComputeInstance doGetComputeInstance(VirtualMachine virtualMachine) {
+	protected ComputeInstance doComputeInstance(VirtualMachine virtualMachine) {
 		OneResponse response = virtualMachine.info();
 
 		String id = virtualMachine.getId();
@@ -215,7 +216,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected HardwareRequirements getBestFlavor(Client client, ComputeOrder computeOrder) throws UnexpectedException {
 		this.updateHardwareRequirements(client);
 
-		for (HardwareRequirements hardwareRequirements : getFlavors()) {
+		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
 					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {

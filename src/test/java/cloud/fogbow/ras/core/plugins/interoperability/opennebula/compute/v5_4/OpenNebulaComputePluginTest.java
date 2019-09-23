@@ -387,7 +387,7 @@ public class OpenNebulaComputePluginTest {
 		ComputeInstance expected = new ComputeInstance(id, OpenNebulaStateMapper.COMPUTE_RUNNING_STATE, name, cpu, memory, disk, ipAddresses);
 
 		// exercise
-		ComputeInstance computeInstance = this.plugin.doGetComputeInstance(virtualMachine);
+		ComputeInstance computeInstance = this.plugin.doComputeInstance(virtualMachine);
 
 		// verify
 		Mockito.verify(virtualMachine, Mockito.times(1)).info();
@@ -870,7 +870,7 @@ public class OpenNebulaComputePluginTest {
 				.willReturn(virtualMachine);
 
 		ComputeInstance computeInstance = CreateComputeInstance();
-		Mockito.doReturn(computeInstance).when(this.plugin).doGetComputeInstance(virtualMachine);
+		Mockito.doReturn(computeInstance).when(this.plugin).doComputeInstance(virtualMachine);
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
@@ -888,7 +888,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).doGetComputeInstance(virtualMachine);
+		Mockito.verify(this.plugin, Mockito.times(1)).doComputeInstance(virtualMachine);
 	}
 	
 	// Test case: When calling the deleteInstance method, with the instance ID and
