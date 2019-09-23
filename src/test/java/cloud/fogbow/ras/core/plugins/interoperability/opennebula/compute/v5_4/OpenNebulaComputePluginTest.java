@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -41,11 +43,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.QuotaExceededException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.OpenNebulaComputePlugin.*;
@@ -483,6 +480,26 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 
 		// verify
 		Assert.assertFalse(hasFlavor);
+	}
+
+	@Test
+	public void testGetInstance() throws FogbowException {
+	    // set up
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		ComputeInstance computeInstance = new ComputeInstance(this.computeOrder.getInstanceId());
+
+        Mockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(virtualMachine);
+        Mockito.doReturn(computeInstance).when(this.plugin).doGetInstance(Mockito.any(VirtualMachine.class));
+
+        // exercise
+		this.plugin.getInstance(this.computeOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(this.client), Mockito.eq(this.computeOrder.getInstanceId()));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(virtualMachine));
 	}
 
 	// test case: When calling the getComputeInstance method passing a valid virtual
