@@ -127,6 +127,18 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return getVM(getVirtualMachineResponse, cloudUser);
     }
 
+    @Override
+    public void deleteInstance(@NotNull final ComputeOrder order, final CloudStackUser cloudUser)
+            throws FogbowException {
+
+        checkCloudUser(cloudUser);
+        DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
+                .id(order.getInstanceId())
+                .expunge(this.expungeOnDestroy)
+                .build(this.cloudStackUrl);
+        doDeleteInstance(request, cloudUser, order.getInstanceId());
+    }
+
     @VisibleForTesting
     void doDeleteInstance(@NotNull DestroyVirtualMachineRequest destroyVirtualMachineRequest,
                           @NotNull final CloudStackUser cloudStackUser, String instanceId)
@@ -143,18 +155,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, instanceId), e);
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
-    }
-
-    @Override
-    public void deleteInstance(@NotNull final ComputeOrder order, final CloudStackUser cloudUser)
-            throws FogbowException {
-
-        checkCloudUser(cloudUser);
-        DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
-                .id(order.getInstanceId())
-                .expunge(this.expungeOnDestroy)
-                .build(this.cloudStackUrl);
-        doDeleteInstance(request, cloudUser, order.getInstanceId());
     }
 
     @NotNull
@@ -431,9 +431,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                           @NotNull final CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
-        List<GetVirtualMachineResponse.VirtualMachine> vms = getVirtualMachineResponse.getVirtualMachines();
-        if (vms != null && !vms.isEmpty()) {
-            GetVirtualMachineResponse.VirtualMachine firstVirtualMachine = vms.get(0);
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines =
+                getVirtualMachineResponse.getVirtualMachines();
+        if (virtualMachines != null && !virtualMachines.isEmpty()) {
+            GetVirtualMachineResponse.VirtualMachine firstVirtualMachine = virtualMachines.get(0);
             return getComputeInstance(firstVirtualMachine, cloudStackUser);
         } else {
             throw new InstanceNotFoundException();
