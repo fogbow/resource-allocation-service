@@ -211,9 +211,15 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         int portFrom = ipPermission.fromPort();
         int portTo = ipPermission.toPort();
         String cidr = ipPermission.ipRanges().iterator().next().cidrIp();
-        Protocol protocol = Protocol.valueOf(ipPermission.ipProtocol().toUpperCase());
+        Protocol protocol = getProtocolFrom(ipPermission.ipProtocol());
         EtherType etherType = EtherType.IPv4;
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+    
+    protected Protocol getProtocolFrom(String ipProtocol) {
+        return ipProtocol == ALL_PROTOCOLS 
+                ? Protocol.ANY 
+                : Protocol.valueOf(ipProtocol.toUpperCase());
     }
 
     protected boolean validateIpPermission(IpPermission ipPermission) {
@@ -277,9 +283,6 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
             break;
         case OUT:
             addEgressRule(groupId, ipPermission, client);
-            break;
-        default:
-            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, direction));
         }
     }
 
@@ -312,8 +315,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     protected IpPermission buildIpPermission(SecurityRule securityRule) {
         int fromPort = securityRule.getPortFrom();
         int toPort = securityRule.getPortTo();
-        String ipProtocol = securityRule.getProtocol().equals(Protocol.ANY) ? ALL_PROTOCOLS
-                : securityRule.getProtocol().toString();
+        String ipProtocol = defineIpProtocolFrom(securityRule.getProtocol());
         
         IpRange ipRange = buildIpAddressRange(securityRule);
 
@@ -327,6 +329,12 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return ipPermission;
     }
 
+    protected String defineIpProtocolFrom(Protocol protocol) {
+        return protocol.equals(Protocol.ANY) 
+                ? ALL_PROTOCOLS
+                : protocol.toString();
+    }
+    
     protected IpRange buildIpAddressRange(SecurityRule securityRule) {
         String cidrIp = securityRule.getCidr();
         validateIpAddress(cidrIp);
