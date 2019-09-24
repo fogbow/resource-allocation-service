@@ -36,6 +36,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationProp
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
@@ -143,7 +144,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
                 .build();
         try {
             client.terminateInstances(request);
-        } catch (Exception e) {
+        } catch (SdkException e) {
             String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId);
             LOGGER.error(message, e);
             throw new UnexpectedException(message);
