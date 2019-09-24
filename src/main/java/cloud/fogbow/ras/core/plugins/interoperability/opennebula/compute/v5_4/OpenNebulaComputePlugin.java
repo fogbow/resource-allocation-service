@@ -36,7 +36,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
 
-	private static final int MB_CONVERT = 1024;
+	protected static final int MB_CONVERT = 1024;
 	protected static final int DEFAULT_NUMBER_OF_INSTANCES = 1;
 
 	protected static final String DEFAULT_ARCHITECTURE = "x86_64";
@@ -106,9 +106,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-		    String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
-					response.getMessage());
-		    throw new UnexpectedException(message);
+			throw new UnexpectedException(String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
+					response.getMessage()));
 		}
 	}
 
