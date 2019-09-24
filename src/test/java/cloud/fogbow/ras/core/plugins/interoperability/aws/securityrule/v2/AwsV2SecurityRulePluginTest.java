@@ -4,7 +4,6 @@ import java.io.File;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.Assert;
@@ -34,8 +33,14 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.Address;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupEgressRequest;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupEgressResponse;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse;
 import software.amazon.awssdk.services.ec2.model.IpPermission;
@@ -45,8 +50,10 @@ import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupEgressRespon
 import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupIngressResponse;
 import software.amazon.awssdk.services.ec2.model.SecurityGroup;
+import software.amazon.awssdk.services.ec2.model.Subnet;
+import software.amazon.awssdk.services.ec2.model.Tag;
 
-@PrepareForTest({AwsV2ClientUtil.class, AwsV2SecurityRuleUtils.class, DatabaseManager.class })
+@PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
 
     private static final String CLOUD_NAME = "amazon";
@@ -91,7 +98,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
-        String expected = defineSecurityRuleId(Direction.IN);
+        String expected = defineSecurityRuleId(Direction.IN, ResourceType.NETWORK);
 
         // exercise
         String securityRuleId = this.plugin.requestSecurityRule(securityRule, majorOrder, cloudUser);
@@ -139,7 +146,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testDeleteSecurityRule() throws FogbowException {
         // set up
-        String securityRuleId = defineSecurityRuleId(Direction.IN);
+        String securityRuleId = defineSecurityRuleId(Direction.IN, ResourceType.PUBLIC_IP);
 
         Mockito.doNothing().when(this.plugin).doDeleteSecurityRule(Mockito.eq(securityRuleId), Mockito.eq(this.client));
 
@@ -418,7 +425,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
 
         IpPermission[] ipPermissions = loadIpPermissionsCollection();
 
-        SecurityRuleInstance instance = buildSecurityRuleInstance(direction, Protocol.TCP);
+        SecurityRuleInstance instance = buildSecurityRuleInstance(direction);
         List<SecurityRuleInstance> expected = loadSecurityRuleInstancesCollection(instance);
 
         // exercise
@@ -554,14 +561,336 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeSecurityGroups(Mockito.eq(request));
     }
     
-    // test case: ...
+    // test case: When calling the addRuleToSecurityGroup method with a ingress
+    // rule, it must verify that is call was successful.
     @Test
-    public void test() {
+    public void testAddIngressRuleToSecurityGroup() throws FogbowException {
         // set up
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+
+        Mockito.doNothing().when(this.plugin).addIngressRule(Mockito.eq(groupId), Mockito.any(IpPermission.class),
+                Mockito.eq(this.client));
         
         // exercise
-        
+        this.plugin.addRuleToSecurityGroup(groupId, securityRule, this.client);
+
         // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildIpPermission(Mockito.eq(securityRule));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).addIngressRule(Mockito.eq(groupId),
+                Mockito.any(IpPermission.class), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the addRuleToSecurityGroup method with a egress
+    // rule, it must verify that is call was successful.
+    @Test
+    public void testAddEgressRuleToSecurityGroup() throws FogbowException {
+     // set up
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        SecurityRule securityRule = createSecurityRule(Direction.OUT);
+
+        Mockito.doNothing().when(this.plugin).addEgressRule(Mockito.eq(groupId), Mockito.any(IpPermission.class),
+                Mockito.eq(this.client));
+        
+        // exercise
+        this.plugin.addRuleToSecurityGroup(groupId, securityRule, this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildIpPermission(Mockito.eq(securityRule));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).addEgressRule(Mockito.eq(groupId),
+                Mockito.any(IpPermission.class), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the addEgressRule method, it must
+    // verify that is call was successful.
+    @Test
+    public void testAddEgressRule() throws FogbowException {
+        // set up
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        IpPermission ipPermission = buildIpPermission();
+
+        AuthorizeSecurityGroupEgressRequest request = AuthorizeSecurityGroupEgressRequest.builder()
+                .groupId(groupId)
+                .ipPermissions(ipPermission)
+                .build();
+
+        AuthorizeSecurityGroupEgressResponse response = AuthorizeSecurityGroupEgressResponse.builder().build();
+        Mockito.doReturn(response).when(this.client).authorizeSecurityGroupEgress(Mockito.eq(request));
+
+        // exercise
+        this.plugin.addEgressRule(groupId, ipPermission, client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .authorizeSecurityGroupEgress(Mockito.eq(request));
+    }
+    
+    // test case: When calling the addEgressRule method, and an unexpected
+    // error occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testAddEgressRuleFail() throws FogbowException {
+        // set up
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        IpPermission ipPermission = buildIpPermission();
+
+        AuthorizeSecurityGroupEgressRequest request = AuthorizeSecurityGroupEgressRequest.builder()
+                .groupId(groupId)
+                .ipPermissions(ipPermission)
+                .build();
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).authorizeSecurityGroupEgress(Mockito.eq(request));
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.addEgressRule(groupId, ipPermission, client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the addIngressRule method, it must
+    // verify that is call was successful.
+    @Test
+    public void testAddIngressRule() throws FogbowException {
+        // set up
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        IpPermission ipPermission = buildIpPermission();
+
+        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                .groupId(groupId)
+                .ipPermissions(ipPermission)
+                .build();
+
+        AuthorizeSecurityGroupIngressResponse response = AuthorizeSecurityGroupIngressResponse.builder().build();
+        Mockito.doReturn(response).when(this.client).authorizeSecurityGroupIngress(Mockito.eq(request));
+
+        // exercise
+        this.plugin.addIngressRule(groupId, ipPermission, client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .authorizeSecurityGroupIngress(Mockito.eq(request));
+    }
+    
+    // test case: When calling the addIngressRule method, and an unexpected
+    // error occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testAddIngressRuleFail() throws FogbowException {
+        // set up
+        String groupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        IpPermission ipPermission = buildIpPermission();
+
+        AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
+                .groupId(groupId)
+                .ipPermissions(ipPermission)
+                .build();
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).authorizeSecurityGroupIngress(Mockito.eq(request));
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.addIngressRule(groupId, ipPermission, client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getSecurityGroupId method with NETWORK resource
+    // type, it must verify that is call was successful.
+    @Test
+    public void testGetSecurityGroupIdWithNetworkResourceType() throws Exception {
+        // set up
+        String subnetId = TestUtils.FAKE_INSTANCE_ID;
+        ResourceType resourceType = ResourceType.NETWORK;
+
+        Subnet subnet = buildSubnet();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(subnet).when(AwsV2CloudUtil.class, TestUtils.GET_SUBNET_BY_ID_METHOD,
+                Mockito.eq(subnetId), Mockito.eq(this.client));
+
+        PowerMockito.doReturn(TestUtils.FAKE_SECURITY_GROUP_ID).when(AwsV2CloudUtil.class,
+                TestUtils.GET_GROUP_ID_FROM_METHOD, Mockito.eq(subnet.tags()));
+
+        // exercise
+        this.plugin.getSecurityGroupId(subnetId, resourceType, this.client);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getGroupIdFrom(Mockito.eq(subnet.tags()));
+    }
+    
+    // test case: When calling the getSecurityGroupId method with PUBLIC_IP resource
+    // type, it must verify that is call was successful.
+    @Test
+    public void testGetSecurityGroupIdWithPublicIpResourceType() throws Exception {
+        // set up
+        String allocationId = TestUtils.FAKE_INSTANCE_ID;
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+
+        Address address = buildAddress();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(address).when(AwsV2CloudUtil.class, TestUtils.GET_ADDRESS_BY_ID_METHOD,
+                Mockito.eq(allocationId), Mockito.eq(this.client));
+
+        PowerMockito.doReturn(TestUtils.FAKE_SECURITY_GROUP_ID).when(AwsV2CloudUtil.class,
+                TestUtils.GET_GROUP_ID_FROM_METHOD, Mockito.eq(address.tags()));
+
+        // exercise
+        this.plugin.getSecurityGroupId(allocationId, resourceType, this.client);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getGroupIdFrom(Mockito.eq(address.tags()));
+    }
+
+    // test case: When calling the getSecurityGroupId method with a invalid resource
+    // type, it must verify that an InvalidParameterException has been thrown.
+    @Test
+    public void testgetSecurityGroupIdWithInvalidResourceType() throws FogbowException {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        ResourceType resourceType = ResourceType.GENERIC_RESOURCE;
+        
+        String expected = String.format(Messages.Exception.INVALID_PARAMETER_S, resourceType);
+
+        try {
+            // exercise
+            this.plugin.getSecurityGroupId(instanceId, resourceType, client);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getProtocolFrom method for all protocols, the ANY
+    // type from Protocol must be returned.
+    @Test
+    public void testGetProtocolFromAllProtocols() {
+        // set up
+        String ipProtocol = AwsV2SecurityRulePlugin.ALL_PROTOCOLS;
+
+        Protocol expected = Protocol.ANY;
+
+        // exercise
+        Protocol protocol = this.plugin.getProtocolFrom(ipProtocol);
+
+        // verify
+        Assert.assertEquals(expected, protocol);
+    }
+    
+    // test case: When calling the getProtocolFrom method for other protocols, the
+    // corresponding type of each protocol must be returned.
+    @Test
+    public void testGetProtocolFromOtherProtocols() {
+        // set up
+        String[] ipProtocol = { "icmp", "tcp", "udp" };
+
+        Protocol[] expected = { Protocol.ICMP, Protocol.TCP, Protocol.UDP };
+
+        for (int i = 0; i < ipProtocol.length; i++) {
+            // exercise
+            Protocol protocol = this.plugin.getProtocolFrom(ipProtocol[i]);
+
+            // verify
+            Assert.assertEquals(expected[i], protocol);
+        }
+    }
+    
+    // test case: When calling the defineIpProtocolFrom method for Protocol of type
+    // ANY, it must return the representation value for all protocols.
+    @Test
+    public void testDefineIpProtocolFromAnyProtocol() {
+        // set up
+        String expected = AwsV2SecurityRulePlugin.ALL_PROTOCOLS;
+        
+        // exercise
+        String ipProtocol = this.plugin.defineIpProtocolFrom(Protocol.ANY);
+
+        // verify
+        Assert.assertEquals(expected, ipProtocol);
+    }
+    
+    // test case: When calling the defineIpProtocolFrom method for other protocols, the
+    // corresponding value of each protocol must be returned.
+    @Test
+    public void testdefineIpProtocolFromOtherProtocols() {
+        // set up
+        Protocol[] protocols = { Protocol.ICMP, Protocol.TCP, Protocol.UDP };
+
+        String[] expected = { "icmp", "tcp", "udp" };
+
+        for (int i = 0; i < protocols.length; i++) {
+            // exercise
+            String value = this.plugin.defineIpProtocolFrom(protocols[i]);
+
+            // verify
+            Assert.assertEquals(expected[i], value);
+        }
+    }
+    
+    // test case: When calling the validateIpAddress method with a invalid CIDR IP,
+    // it must verify that an InvalidParameterException has been thrown.
+    @Test
+    public void testValidateIpAddressFail() {
+        // set up
+        String cidrIp = TestUtils.ANY_VALUE;
+        
+        String expected = String.format(Messages.Exception.INVALID_CIDR_FORMAT, cidrIp);
+
+        try {
+            // exercise
+            this.plugin.validateIpAddress(cidrIp);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    private Address buildAddress() {
+        Tag[] tags = { buildTagGroupId() };
+        
+        Address address = Address.builder()
+                .tags(Arrays.asList(tags))
+                .build();
+        
+        return address;
+    }
+    
+    private Subnet buildSubnet() {
+        Tag[] tags = { buildTagGroupId() };
+        
+        Subnet subnet = Subnet.builder()
+                .tags(Arrays.asList(tags))
+                .build();
+        
+        return subnet;
+    }
+
+    private Tag buildTagGroupId() {
+        Tag tag = Tag.builder()
+                .key(AwsV2CloudUtil.AWS_TAG_GROUP_ID)
+                .value(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .build();
+        
+        return tag;
     }
     
     private DescribeSecurityGroupsResponse buildSecurityGroupsResponse(SecurityGroup... groups) {
@@ -600,7 +929,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         IpPermission ipPermission = IpPermission.builder()
                 .fromPort(DEFAULT_PORT_FROM)
                 .toPort(DEFAULT_PORT_TO)
-                .ipProtocol("tcp")
+                .ipProtocol(AwsV2SecurityRulePlugin.ALL_PROTOCOLS)
                 .ipRanges(buildIpRange())
                 .build();
         
@@ -629,8 +958,8 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         return securityRuleInstances;
     }
 
-    private SecurityRuleInstance buildSecurityRuleInstance(Direction direction, Protocol... protocols) {
-        Protocol protocol = protocols.length > 0 ? protocols[0] : Protocol.ANY;
+    private SecurityRuleInstance buildSecurityRuleInstance(Direction direction) {
+        Protocol protocol = Protocol.ANY;
         EtherType etherType = EtherType.IPv4;
         int portFrom = DEFAULT_PORT_FROM;
         int portTo = DEFAULT_PORT_TO;
@@ -639,7 +968,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
-    private String defineSecurityRuleId(Direction direction, ResourceType... types) {
+    private String defineSecurityRuleId(Direction direction, ResourceType resourceType) {
         String securityRuleId = String.format(AwsV2SecurityRulePlugin.SECURITY_RULE_IDENTIFIER_FORMAT, 
                 TestUtils.FAKE_INSTANCE_ID,
                 DEFAULT_IP_ADDRESS,
@@ -648,13 +977,13 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
                 DEFAULT_PORT_TO,
                 Protocol.ANY,
                 direction,
-                types.length > 0 ? types[0].getValue() : ResourceType.NETWORK.getValue()
+                resourceType.getValue()
         );
         return securityRuleId;
     }
 
-    private SecurityRule createSecurityRule(Direction direction, Protocol... protocols) {
-        Protocol protocol = protocols.length > 0 ? protocols[0] : Protocol.ANY;
+    private SecurityRule createSecurityRule(Direction direction) {
+        Protocol protocol = Protocol.ANY;
         EtherType etherType = EtherType.IPv4;
         int portFrom = DEFAULT_PORT_FROM;
         int portTo = DEFAULT_PORT_TO;
