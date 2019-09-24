@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class CreateNetworkRequest extends CloudStackRequest {
+    // TODO(chico) - move this constats to the Cloudstack Constants
     public static final String CREATE_NETWORK_COMMAND = "createNetwork";
     public static final String NAME_KEY = "name";
     public static final String NETWORK_OFFERING_ID_KEY = "networkofferingid";

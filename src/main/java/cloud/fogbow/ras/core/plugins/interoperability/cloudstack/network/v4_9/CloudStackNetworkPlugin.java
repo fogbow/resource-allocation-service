@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -16,10 +17,12 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+import org.apache.http.client.utils.URIBuilder;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Properties;
 
@@ -55,18 +58,16 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
-        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
-        if (subnetInfo == null) {
-            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, networkOrder.getCidr()));
-        }
+    public String requestInstance(@NotNull final NetworkOrder networkOrder,
+                                  @NotNull final CloudStackUser cloudStackUser) throws FogbowException {
 
+        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         String name = networkOrder.getName();
         String startingIp = subnetInfo.getLowAddress();
         String endingIp = subnetInfo.getHighAddress();
         String gateway = networkOrder.getGateway();
 
-        CreateNetworkRequest request = new CreateNetworkRequest.Builder()
+        CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                 .name(name)
                 .displayText(name)
                 .networkOfferingId(this.networkOfferingId)
@@ -76,18 +77,27 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 .gateway(gateway)
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
+        CreateNetworkResponse createNetworkResponse = doRequestInstance(createNetworkRequest, cloudStackUser);
+        return createNetworkResponse.getId();
+    }
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+    @NotNull
+    @VisibleForTesting
+    CreateNetworkResponse doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
+                                            @NotNull final CloudStackUser cloudStackUser)
+            throws FogbowException {
 
-        String jsonResponse = null;
+        URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
+        String token = cloudStackUser.getToken();
+        CloudStackUrlUtil.sign(uriRequest, token);
+
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            return CreateNetworkResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
+            return null;
         }
-
-        CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
-        return response.getId();
     }
 
     @Override
@@ -131,11 +141,13 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         }
     }
 
-    private SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) {
+    @VisibleForTesting
+    SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) throws InvalidParameterException {
         try {
             return new SubnetUtils(cidrNotation).getInfo();
         } catch (IllegalArgumentException e) {
-            return null;
+            throw new InvalidParameterException(
+                    String.format(Messages.Exception.INVALID_CIDR, cidrNotation));
         }
     }
 
