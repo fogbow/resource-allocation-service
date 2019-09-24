@@ -165,6 +165,23 @@ public class CloudStackNetworkPluginTest {
         this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
     }
 
+    // test case:
+    @Test
+    public void testDoGetInstance() {
+        Assert.fail();
+    }
+
+    // test case:
+    @Test
+    public void testDoGetInstanceHttpResponseException() {
+        Assert.fail();
+    }
+
+    @Test
+    public void testGetNetworkInstance() {
+        Assert.fail();
+    }
+
     @Test
     // test case: when getting a network, the token should be signed and an HTTP GET request should be made
     public void testGettingAValidNetwork() throws FogbowException, HttpResponseException {
