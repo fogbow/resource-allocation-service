@@ -97,7 +97,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
-		return this.doComputeInstance(virtualMachine);
+		return this.doGetInstance(virtualMachine);
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return instanceId;
 	}
 
-	protected ComputeInstance doComputeInstance(VirtualMachine virtualMachine) {
+	protected ComputeInstance doGetInstance(VirtualMachine virtualMachine) {
 		OneResponse response = virtualMachine.info();
 
 		String id = virtualMachine.getId();
