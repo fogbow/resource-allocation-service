@@ -207,10 +207,13 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         String subnetId = FAKE_SUBNET_ID;
         Subnet subnet = buildSubnet();
 
-        Mockito.doReturn(subnet).when(this.plugin).getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
-        Mockito.doReturn(groupId).when(this.plugin).getGroupIdFrom(Mockito.eq(subnet));
-
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(subnet).when(AwsV2CloudUtil.class, TestUtils.GET_SUBNET_BY_ID_METHOD,
+                Mockito.eq(subnetId), Mockito.eq(this.client));
+        
+        PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.eq(subnet.tags()));
+        
         PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD,
                 Mockito.eq(groupId), Mockito.eq(this.client));
 
@@ -220,9 +223,11 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         plugin.doDeleteInstance(subnetId, this.client);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetById(Mockito.eq(subnetId),
-                Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getGroupIdFrom(Mockito.eq(subnet));
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
+        
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getGroupIdFrom(Mockito.eq(subnet.tags()));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.doDeleteSecurityGroup(Mockito.eq(groupId), Mockito.eq(this.client));
@@ -231,104 +236,17 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
                 Mockito.eq(this.client));
     }
     
-    // test case: When calling the getGroupIdFrom method with a valid sub-net, it
-    // must return the group ID of this sub-net.
-    @Test
-    public void testGetGroupIdFromValidSubnet() throws FogbowException {
-        // set up
-        Subnet subnet = buildSubnet();
-
-        String expected = FAKE_GROUP_ID;
-
-        // exercise
-        String groupId = this.plugin.getGroupIdFrom(subnet);
-
-        // verify
-        Assert.assertEquals(expected, groupId);
-    }
-    
-    // test case: When calling the getGroupIdFrom method with a invalid sub-net, the
-    // UnexpectedException will be thrown.
-    @Test
-    public void testGetGroupIdFromInvalidSubnet() {
-        // set up
-        Tag tag = buildTags(ANY_VALUE, ANY_VALUE);
-        Subnet subnet = buildSubnet(tag);
-
-        String expected = Messages.Exception.UNEXPECTED_ERROR;
-
-        try {
-            // exercise
-            this.plugin.getGroupIdFrom(subnet);
-            Assert.fail();
-        } catch (Exception e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the getSubnetFrom method with a valid response, it
-    // must verify that is call was successful.
-    @Test
-    public void testGetSubnetFrom() throws FogbowException {
-        // set up
-        DescribeSubnetsResponse response = buildDescribeSubnetsResponse();
-
-        Subnet expected = buildSubnet();
-
-        // exercise
-        Subnet subnet = this.plugin.getSubnetFrom(response);
-
-        // verify
-        Assert.assertEquals(expected, subnet);
-    }
-    
-    // test case: When calling the getSubnetFrom method with a null response, it
-    // must verify that an InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetSubnetFromNullResponse() throws FogbowException {
-        // set up
-        DescribeSubnetsResponse response = null;
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-
-        try {
-            // exercise
-            this.plugin.getSubnetFrom(response);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the getSubnetFrom method with a empty response, it
-    // must verify that an InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetSubnetFromEmptyResponse() throws FogbowException {
-        // set up
-        DescribeSubnetsResponse response = DescribeSubnetsResponse.builder().build();
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-
-        try {
-            // exercise
-            this.plugin.getSubnetFrom(response);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
     // test case: When calling the getSubnetFrom method, it must verify that is call
     // was successful.
     @Test
-    public void testDoGetInstance() throws FogbowException {
+    public void testDoGetInstance() throws Exception {
         // set up
         String subnetId = FAKE_SUBNET_ID;
         Subnet subnet = buildSubnet();
-        Mockito.doReturn(subnet).when(this.plugin).getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
+        
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(subnet).when(AwsV2CloudUtil.class, TestUtils.GET_SUBNET_BY_ID_METHOD,
+                Mockito.eq(subnetId), Mockito.eq(this.client));
 
         RouteTable routeTable = buildRouteTables();
         Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(client));
@@ -337,8 +255,9 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         this.plugin.doGetInstance(subnetId, this.client);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetById(Mockito.eq(subnetId),
-                Mockito.eq(this.client));
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
+        
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getRouteTables(Mockito.eq(client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkInstance(Mockito.eq(subnet),
                 Mockito.eq(routeTable));
@@ -358,80 +277,6 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(expected, destinationAddress);
-    }
-    
-    // test case: When calling the getGatewayFromRouteTables method, it must verify
-    // that is call was successful.
-    @Test
-    public void testGetSubnetById() throws FogbowException {
-        // set up
-        String subnetId = FAKE_SUBNET_ID;
-
-        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
-                .subnetIds(subnetId)
-                .build();
-
-        DescribeSubnetsResponse response = buildDescribeSubnetsResponse();
-        Mockito.doReturn(response).when(this.plugin).doDescribeSubnetsRequest(Mockito.eq(request),
-                Mockito.eq(this.client));
-        
-        
-
-        // exercise
-        this.plugin.getSubnetById(subnetId, this.client);
-
-        // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDescribeSubnetsRequest(Mockito.eq(request),
-                Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetFrom(Mockito.eq(response));
-    }
-    
-    // test case: When calling the doDescribeSubnetsRequest method, it must verify
-    // that is call was successful.
-    @Test
-    public void testDoDescribeSubnetsRequest() throws FogbowException {
-        // set up
-        String subnetId = FAKE_SUBNET_ID;
-
-        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
-                .subnetIds(subnetId)
-                .build();
-
-        DescribeSubnetsResponse response = buildDescribeSubnetsResponse();
-        Mockito.doReturn(response).when(this.client).describeSubnets(Mockito.eq(request));
-
-        // exercise
-        this.plugin.doDescribeSubnetsRequest(request, this.client);
-
-        // verify
-        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeSubnets(Mockito.eq(request));
-    }
-    
-    // test case: When calling the doDescribeSubnetsRequest method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has been
-    // thrown.
-    @Test
-    public void testDoDescribeSubnetsRequestFail() throws FogbowException {
-        // set up
-        String subnetId = FAKE_SUBNET_ID;
-
-        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
-                .subnetIds(subnetId)
-                .build();
-
-        SdkClientException exception = SdkClientException.builder().build();
-        Mockito.doThrow(exception).when(this.client).describeSubnets(Mockito.eq(request));
-
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
-        
-        try {
-            // exercise
-            this.plugin.doDescribeSubnetsRequest(request, this.client);
-            Assert.fail();
-        } catch (UnexpectedException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
     }
     
     // test case: When calling the doRequestInstance method, it must verify
