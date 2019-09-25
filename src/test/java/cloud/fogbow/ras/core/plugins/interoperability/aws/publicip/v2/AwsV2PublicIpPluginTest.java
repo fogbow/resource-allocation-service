@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -12,7 +14,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
@@ -36,8 +37,6 @@ import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.DisassociateAddressRequest;
 import software.amazon.awssdk.services.ec2.model.DisassociateAddressResponse;
@@ -216,19 +215,22 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         // setup
         String allocationId = FAKE_ALLOCATION_ID;
         String defaultGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
-
         Address address = buildAddress();
-        Mockito.doReturn(address).when(this.plugin).getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
 
-        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).getResourceIdByAddressTag(Mockito.anyString(),
-                Mockito.anyString(), Mockito.eq(this.client));
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(address).when(AwsV2CloudUtil.class, TestUtils.GET_ADDRESS_BY_ID_METHOD,
+                Mockito.eq(allocationId), Mockito.eq(this.client));
+
+        Mockito.doReturn(FAKE_ASSOCIATION_ID).when(this.plugin).getAssociationIdFrom(Mockito.eq(address.tags()));
+
+        PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.eq(address.tags()));
 
         Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
                 Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()), Mockito.eq(this.client));
 
-        PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD, Mockito.anyString(),
-                Mockito.eq(this.client));
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD,
+                Mockito.anyString(), Mockito.eq(this.client));
 
         Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
 
@@ -238,13 +240,14 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         plugin.doDeleteInstance(allocationId, this.client);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAddressById(Mockito.eq(allocationId),
-                Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getResourceIdByAddressTag(
-                Mockito.eq(AwsV2PublicIpPlugin.AWS_TAG_ASSOCIATION_ID), Mockito.eq(allocationId),
-                Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getResourceIdByAddressTag(
-                Mockito.eq(AwsV2CloudUtil.AWS_TAG_GROUP_ID), Mockito.eq(allocationId), Mockito.eq(this.client));
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAssociationIdFrom(Mockito.eq(address.tags()));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getGroupIdFrom(Mockito.eq(address.tags()));
+
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doModifyNetworkInterfaceAttributes(
                 Mockito.eq(allocationId), Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()),
                 Mockito.eq(this.client));
@@ -267,17 +270,20 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         // setup
         String allocationId = FAKE_ALLOCATION_ID;
         String defaultGroupId = FAKE_DEFAULT_SECURITY_GROUP_ID;
-
         Address address = buildAddress();
-        Mockito.doReturn(address).when(this.plugin).getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
 
-        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).getResourceIdByAddressTag(Mockito.anyString(),
-                Mockito.anyString(), Mockito.eq(this.client));
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(address).when(AwsV2CloudUtil.class, TestUtils.GET_ADDRESS_BY_ID_METHOD,
+                Mockito.eq(allocationId), Mockito.eq(this.client));
 
+        Mockito.doReturn(FAKE_ASSOCIATION_ID).when(this.plugin).getAssociationIdFrom(Mockito.eq(address.tags()));
+
+        PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.eq(address.tags()));
+        
         Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
                 Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()), Mockito.eq(this.client));
 
-        PowerMockito.mockStatic(AwsV2CloudUtil.class);
         PowerMockito.doThrow(new UnexpectedException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD, Mockito.anyString(),
                 Mockito.eq(this.client));
 
@@ -298,47 +304,40 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         }
     }
     
-    // test case: When calling the getResourceIdByAddressTag method, it must verify
-    // that the resource ID was successful.
+    // test case: When calling the getAssociationIdFrom method with a valid tags
+    // from a address, it must return a expected association ID.
     @Test
-    public void testGetResourceIdByAddressTag() throws FogbowException {
+    public void testGetAssociationIdFromTags() throws FogbowException {
         // set up
-        String key = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
-        String allocationId = FAKE_ALLOCATION_ID;
+        List<Tag> tags = buildAddress().tags();
         
-        Address address = buildAddress();
-        Mockito.doReturn(address).when(this.plugin).getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
-        
-        String expected = FAKE_GROUP_ID;
+        String expected = FAKE_ASSOCIATION_ID;
         
         // exercise
-        String resourceId = this.plugin.getResourceIdByAddressTag(key, allocationId, this.client);
+        String associationId = this.plugin.getAssociationIdFrom(tags);
         
         // verify
-        Assert.assertEquals(expected, resourceId);
+        Assert.assertEquals(expected, associationId);
     }
     
-    // test case: When calling the getResourceIdByAddressTag method with a invalid
-    // parameter, it must verify if an InvalidParameterException has been thrown.
+    // test case: When calling the getAssociationIdFrom method, and an unexpected
+    // error occurs, it must verify if an UnexpectedException has been thrown.
     @Test
-    public void testGetResourceIdByAddressTagFail() throws FogbowException {
+    public void testGetAssociationIdFromTagsFail() throws FogbowException {
         // set up
-        String key = TestUtils.ANY_VALUE;
-        String allocationId = FAKE_ALLOCATION_ID;
+        Tag[] tags = { Tag.builder().key(TestUtils.ANY_VALUE).build() };
 
-        Address address = buildAddress();
-        Mockito.doReturn(address).when(this.plugin).getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
-
-        String expected = String.format(Messages.Exception.INVALID_PARAMETER_S, key);
+        String expected = Messages.Exception.UNEXPECTED_ERROR;
 
         try {
             // exercise
-            this.plugin.getResourceIdByAddressTag(key, allocationId, this.client);
+            this.plugin.getAssociationIdFrom(Arrays.asList(tags));
             Assert.fail();
-        } catch (InvalidParameterException e) {
+        } catch (UnexpectedException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
+
     }
     
     // test case: When calling the doDisassociateAddresses method, it must verify
@@ -391,18 +390,22 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
     // test case: When calling the doGetInstance method, it must verify
     // that is call was successful.
     @Test
-    public void testDoGetInstance() throws FogbowException {
+    public void testDoGetInstance() throws Exception {
         // set up
         String allocationId = FAKE_ALLOCATION_ID;
-        
         Address address = buildAddress();
-        Mockito.doReturn(address).when(this.plugin).getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(address).when(AwsV2CloudUtil.class, TestUtils.GET_ADDRESS_BY_ID_METHOD,
+                Mockito.eq(allocationId), Mockito.eq(this.client));
         
         // exercise
         this.plugin.doGetInstance(allocationId, this.client);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
+        
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildPublicIpInstance(address);
     }
     
@@ -420,116 +423,6 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(expected, state);
-    }
-    
-    // test case: When calling the getAddressById method, it must verify
-    // that is call was successful.
-    @Test
-    public void testGetAddressById() throws FogbowException {
-        // set up
-        String allocationId = FAKE_ALLOCATION_ID;
-
-        DescribeAddressesResponse response = buildDescribeAddresses();
-
-        Mockito.doReturn(response).when(this.plugin).doDescribeAddresses(Mockito.eq(allocationId),
-                Mockito.eq(this.client));
-
-        // exercise
-        this.plugin.getAddressById(allocationId, this.client);
-
-        // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doDescribeAddresses(Mockito.eq(allocationId), Mockito.eq(this.client));
-    }
-
-    // test case: When calling the getAddressById method with a null response, it
-    // must verify that an InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetAddressByIdWithNullResponse() throws FogbowException {
-        // set up
-        String allocationId = FAKE_ALLOCATION_ID;
-
-        DescribeAddressesResponse response = null;
-        Mockito.doReturn(response).when(this.plugin).doDescribeAddresses(Mockito.eq(allocationId),
-                Mockito.eq(this.client));
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-
-        try {
-            // exercise
-            this.plugin.getAddressById(allocationId, this.client);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the getAddressById method and return a response
-    // without addresses, it must verify that an InstanceNotFoundException has been
-    // thrown.
-    @Test
-    public void testGetAddressByIdWithEmptyResponse() throws FogbowException {
-        // set up
-        String allocationId = FAKE_ALLOCATION_ID;
-
-        DescribeAddressesResponse response = DescribeAddressesResponse.builder().build();
-        Mockito.doReturn(response).when(this.plugin).doDescribeAddresses(Mockito.eq(allocationId),
-                Mockito.eq(this.client));
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-
-        try {
-            // exercise
-            this.plugin.getAddressById(allocationId, this.client);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the doDescribeAddresses method, it must verify
-    // that is call was successful.
-    @Test
-    public void testDoDescribeAddresses() throws FogbowException {
-        // set up
-        String allocationId = FAKE_ALLOCATION_ID;
-
-        DescribeAddressesRequest request = DescribeAddressesRequest.builder()
-                .allocationIds(allocationId)
-                .build();
-        
-        DescribeAddressesResponse response = buildDescribeAddresses();
-        Mockito.doReturn(response).when(this.client).describeAddresses(Mockito.eq(request));
-        
-        // exercise
-        this.plugin.doDescribeAddresses(allocationId, this.client);
-
-        // verify
-        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeAddresses(request);
-    }
-    
-    // test case: When calling the doDescribeAddresses method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
-    @Test
-    public void testDoDescribeAddressesFail() throws FogbowException {
-        // set up
-        String allocationId = FAKE_ALLOCATION_ID;
-
-        SdkClientException exception = SdkClientException.builder().build();
-        Mockito.doThrow(exception).when(this.client).describeAddresses(Mockito.any(DescribeAddressesRequest.class));
-
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
-
-        try {
-            // exercise
-            this.plugin.doDescribeAddresses(allocationId, this.client);
-            Assert.fail();
-        } catch (UnexpectedException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
     }
     
     // test case: When calling the doRequestInstance method, it must verify
@@ -1073,14 +966,6 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 .build();
 
         return networkInterface;
-    }
-    
-    private DescribeAddressesResponse buildDescribeAddresses() {
-        DescribeAddressesResponse response = DescribeAddressesResponse.builder()
-                .addresses(buildAddress())
-                .build();
-        
-        return response;
     }
     
     private Address buildAddress() {

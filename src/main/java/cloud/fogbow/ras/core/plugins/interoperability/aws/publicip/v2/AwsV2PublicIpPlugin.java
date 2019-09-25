@@ -1,8 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -17,12 +21,23 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
-import org.apache.log4j.Logger;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
-
-import java.util.Properties;
+import software.amazon.awssdk.services.ec2.model.Address;
+import software.amazon.awssdk.services.ec2.model.AllocateAddressRequest;
+import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
+import software.amazon.awssdk.services.ec2.model.AssociateAddressRequest;
+import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
+import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DisassociateAddressRequest;
+import software.amazon.awssdk.services.ec2.model.DomainType;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterface;
+import software.amazon.awssdk.services.ec2.model.ModifyNetworkInterfaceAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.ReleaseAddressRequest;
+import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.Tag;
 
 public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
@@ -82,10 +97,10 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     }
 
     protected void doDeleteInstance(String allocationId, Ec2Client client) throws FogbowException {
-        Address address = getAddressById(allocationId, client);
+        Address address = AwsV2CloudUtil.getAddressById(allocationId, client);
         String networkInterfaceId = address.networkInterfaceId();
-        String associationId = getResourceIdByAddressTag(AWS_TAG_ASSOCIATION_ID, allocationId, client);
-        String groupId = getResourceIdByAddressTag(AwsV2CloudUtil.AWS_TAG_GROUP_ID, allocationId, client);
+        String associationId = getAssociationIdFrom(address.tags());
+        String groupId = AwsV2CloudUtil.getGroupIdFrom(address.tags());
         doModifyNetworkInterfaceAttributes(allocationId, this.defaultGroupId, networkInterfaceId, client);
         try {
             AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
@@ -98,15 +113,14 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             doReleaseAddresses(allocationId, client);
         }
     }
-
-    protected String getResourceIdByAddressTag(String key, String allocationId, Ec2Client client) throws FogbowException {
-        Address address = getAddressById(allocationId, client);
-        for (Tag tag : address.tags()) {
-            if (tag.key().equals(key)) {
+    
+    public String getAssociationIdFrom(List<Tag> tags) throws FogbowException {
+        for (Tag tag : tags) {
+            if (tag.key().equals(AWS_TAG_ASSOCIATION_ID)) {
                 return tag.value();
             }
         }
-        throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, key));
+        throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
     }
 
     protected void doDisassociateAddresses(String associationId, Ec2Client client) throws FogbowException {
@@ -121,7 +135,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     }
 
     protected PublicIpInstance doGetInstance(String allocationId, Ec2Client client) throws FogbowException {
-        Address address = getAddressById(allocationId, client);
+        Address address = AwsV2CloudUtil.getAddressById(allocationId, client);
         return buildPublicIpInstance(address);
     }
 
@@ -138,27 +152,6 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             return AwsV2StateMapper.AVAILABLE_STATE;
         }
         return AwsV2StateMapper.ERROR_STATE;
-    }
-
-    protected Address getAddressById(String allocationId, Ec2Client client) throws FogbowException {
-        DescribeAddressesResponse response = doDescribeAddresses(allocationId, client);
-        if (response != null && !response.addresses().isEmpty()) {
-            return response.addresses().listIterator().next();
-        }
-        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-    }
-
-    protected DescribeAddressesResponse doDescribeAddresses(String allocationId, Ec2Client client)
-            throws FogbowException {
-
-        DescribeAddressesRequest request = DescribeAddressesRequest.builder()
-                .allocationIds(allocationId)
-                .build();
-        try {
-            return client.describeAddresses(request);
-        } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-        }
     }
 
     protected String doRequestInstance(String computeId, Ec2Client client) throws FogbowException {
