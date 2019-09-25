@@ -37,8 +37,6 @@ import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
 import software.amazon.awssdk.services.ec2.model.Route;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.Subnet;
@@ -638,14 +636,6 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         return Arrays.asList(routes);
     }
 	
-	private DescribeSubnetsResponse buildDescribeSubnetsResponse() {
-        DescribeSubnetsResponse response = DescribeSubnetsResponse.builder()
-                .subnets(buildSubnet())
-                .build();
-        
-        return response;
-    }
-
 	private DescribeRouteTablesResponse buildDescribeRouteTablesResponse() {
 	    DescribeRouteTablesResponse response = DescribeRouteTablesResponse.builder()
 	            .routeTables(buildRouteTables())
