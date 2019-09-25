@@ -139,7 +139,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
 	}
 
 	private List<Instance> getInstanceReservations(Ec2Client client) throws FogbowException {
-		DescribeInstancesResponse response = AwsV2CloudUtil.describeInstances(client);
+		DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstances(client);
 		List<Instance> instances = new ArrayList<>();
 		for (Reservation reservation : response.reservations()) {
 			instances.addAll(reservation.instances());
