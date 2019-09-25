@@ -227,7 +227,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()), Mockito.eq(this.client));
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP, Mockito.anyString(),
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD, Mockito.anyString(),
                 Mockito.eq(this.client));
 
         Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
@@ -278,7 +278,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()), Mockito.eq(this.client));
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doThrow(new UnexpectedException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP, Mockito.anyString(),
+        PowerMockito.doThrow(new UnexpectedException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD, Mockito.anyString(),
                 Mockito.eq(this.client));
 
         Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
@@ -673,7 +673,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 .modifyNetworkInterfaceAttribute(Mockito.any(ModifyNetworkInterfaceAttributeRequest.class));
         
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP, Mockito.eq(groupId), Mockito.eq(this.client));
+        PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD, Mockito.eq(groupId), Mockito.eq(this.client));
         
         Mockito.doNothing().when(this.plugin).doReleaseAddresses(Mockito.eq(groupId), Mockito.eq(this.client));
 
@@ -747,7 +747,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DESCRIBE_INSTANCE, Mockito.eq(instanceId),
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DESCRIBE_INSTANCE_METHOD, Mockito.eq(instanceId),
                 Mockito.eq(this.client));
 
         Instance instance = Instance.builder().instanceId(instanceId).build();
