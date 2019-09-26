@@ -428,14 +428,13 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testGetServiceOfferingAndExceptionServicesOffering() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        ComputeOrder computeOrder = createComputeOrder(
-                new ArrayList<UserData>(), "fake-image-id");
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
                 Mockito.mock(GetAllServiceOfferingsResponse.class);
 
-        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected = null;
+        List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
+                new ArrayList<>();
         Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
                 .thenReturn(servicesOfferingExpected);
         Mockito.doReturn(getAllServiceOfferingsResponse)
@@ -610,12 +609,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.requestInstance(order, cloudStackUser);
     }
 
-    // test case: get compute instace successfully
+    // test case: create compute instace successfully
     @Test
-    public void testGetComputeInstance() throws FogbowException {
+    public void testCreateComputeInstance() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
         String idExpected = "id";
         String nameExpected = "name";
         int vCpuExpected = 1;
@@ -639,68 +636,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         };
         Mockito.when(virtualMachine.getNic()).thenReturn(nics);
 
-        Mockito.doReturn(diskExpected).when(this.plugin)
-                .getVirtualMachineDiskSize(Mockito.any(), Mockito.any());
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        ignoringCloudStackUrl();
 
         // verify
         ComputeInstance computeInstance =
-                this.plugin.getComputeInstance(virtualMachine, cloudStackUser);
-
-        // exercise
-        Assert.assertEquals(idExpected, computeInstance.getId());
-        Assert.assertEquals(nameExpected, computeInstance.getName());
-        Assert.assertEquals(vCpuExpected, computeInstance.getvCPU());
-        Assert.assertEquals(memoryExpected, computeInstance.getMemory());
-        Assert.assertEquals(diskExpected, computeInstance.getDisk());
-        Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses().get(0));
-        Assert.assertEquals(networkDefaultExpected, computeInstance.getNetworks().get(0).getId());
-    }
-
-    // test case: getting compute instace and occur a error when is getting the disk size
-    @Test
-    public void testGetComputeInstanceErrorToGetDisk() throws FogbowException {
-        // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        String idExpected = "id";
-        String nameExpected = "name";
-        int vCpuExpected = 1;
-        int memoryExpected = 2;
-        int diskExpected = CloudStackComputePlugin.UNKNOWN_DISK_VALUE;
-        String ipAddressExpected = "10.10.10.10";
-        String networkDefaultExpected = this.defaultNetworkId;
-        String cloudStateExpected = "state";
-        GetVirtualMachineResponse.VirtualMachine virtualMachine =
-                Mockito.mock(GetVirtualMachineResponse.VirtualMachine.class);
-        Mockito.when(virtualMachine.getId()).thenReturn(idExpected);
-        Mockito.when(virtualMachine.getName()).thenReturn(nameExpected);
-        Mockito.when(virtualMachine.getName()).thenReturn(nameExpected);
-        Mockito.when(virtualMachine.getCpuNumber()).thenReturn(vCpuExpected);
-        Mockito.when(virtualMachine.getMemory()).thenReturn(memoryExpected);
-        Mockito.when(virtualMachine.getState()).thenReturn(cloudStateExpected);
-        GetVirtualMachineResponse.Nic nic = Mockito.mock(GetVirtualMachineResponse.Nic.class);
-        Mockito.when(nic.getIpAddress()).thenReturn(ipAddressExpected);
-        GetVirtualMachineResponse.Nic[] nics = new GetVirtualMachineResponse.Nic[] {
-                nic
-        };
-        Mockito.when(virtualMachine.getNic()).thenReturn(nics);
-
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
-                .getVirtualMachineDiskSize(Mockito.any(), Mockito.any());
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        // verify
-        ComputeInstance computeInstance =
-                this.plugin.getComputeInstance(virtualMachine, cloudStackUser);
+                this.plugin.createComputeInstance(virtualMachine, diskExpected);
 
         // exercise
         Assert.assertEquals(idExpected, computeInstance.getId());
@@ -719,32 +659,38 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         String virtualMachineId = "id";
 
-        String idExpected = "";
-        String nameExpected = "name";
-        int sizeExpected = 10;
-        double sizeInBytes = CloudStackComputePlugin.GIGABYTE_IN_BYTES * sizeExpected;
-        String stateExpected = "READY";
-        String getVolumeResponse = getVolumeResponse(
-                idExpected, nameExpected, sizeInBytes, stateExpected);
+        String getVolumeResponseStr = "anyString";
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
+                .thenReturn(getVolumeResponseStr);
+
+        PowerMockito.mockStatic(GetVolumeResponse.class);
+        GetVolumeResponse getVolumeResponse = Mockito.mock(GetVolumeResponse.class);
+
+        List<GetVolumeResponse.Volume> volumes = new ArrayList<>();
+        int sizeGBExpected = 5;
+        long sizeBytes = (long) (sizeGBExpected * CloudStackComputePlugin.GIGABYTE_IN_BYTES);
+        GetVolumeResponse.Volume volume = Mockito.mock(GetVolumeResponse.Volume.class);
+        Mockito.when(volume.getSize()).thenReturn(sizeBytes);
+        volumes.add(volume);
+
+        Mockito.when(getVolumeResponse.getVolumes()).thenReturn(volumes);
+
+        PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(getVolumeResponseStr)))
                 .thenReturn(getVolumeResponse);
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        ignoringCloudStackUrl();
 
         // exercise
         int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(
                 virtualMachineId, cloudStackUser);
 
         // verify
-        Assert.assertEquals(sizeExpected, virtualMachineDiskSize);
+        Assert.assertEquals(sizeGBExpected, virtualMachineDiskSize);
     }
 
-    // test case: getting virtual machine disk size and do not found volumes
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetVirtualMachineDiskSizeNotFoundVolumes() throws FogbowException, IOException {
+    // test case: return default value because there are no volumes
+    @Test
+    public void testGetVirtualMachineDiskSizeEmptyVolumes() throws FogbowException, IOException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         String virtualMachineId = "id";
@@ -754,21 +700,22 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .thenReturn(anyResponse);
 
         GetVolumeResponse volumeResponse = Mockito.mock(GetVolumeResponse.class);
-        Mockito.when(volumeResponse.getVolumes()).thenReturn(null);
+        List<GetVolumeResponse.Volume> volumesEmpty = new ArrayList<>();
+        Mockito.when(volumeResponse.getVolumes()).thenReturn(volumesEmpty);
         PowerMockito.mockStatic(GetVolumeResponse.class);
         PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(anyResponse)))
                 .thenReturn(volumeResponse);
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        ignoringCloudStackUrl();
 
         // exercise
-        this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
+        int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(CloudStackComputePlugin.UNKNOWN_DISK_VALUE, virtualMachineDiskSize);
     }
 
-    // test case: get virtual machine disks and occour an exception in the cloud
+    // test case: get virtual machine disks and occur any exception. It will return de value default
     @Test
     public void testGetVirtualMachineDiskSizeException() throws FogbowException, IOException {
         // set up
@@ -779,36 +726,40 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .thenThrow(createBadRequestHttpResponse());
 
         // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(BAD_REQUEST_MSG);
+        ignoringCloudStackUrl();
 
         // exercise
-        this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
+        int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(CloudStackComputePlugin.UNKNOWN_DISK_VALUE, virtualMachineDiskSize);
     }
 
     // test case: buildComputeInstance successfully
     @Test
-    public void testBuildComputeInstance() throws InstanceNotFoundException {
+    public void testBuildComputeInstance() throws InstanceNotFoundException, InvalidParameterException, UnauthorizedRequestException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
         GetVirtualMachineResponse.VirtualMachine virtualMachine =
                 Mockito.mock(GetVirtualMachineResponse.VirtualMachine.class);
+        String virtualMachineId = "virtualMachineId";
+        Mockito.when(virtualMachine.getId()).thenReturn(virtualMachineId);
         virtualMachines.add(virtualMachine);
         Mockito.when(getVirtualMachineResponse.getVirtualMachines()).thenReturn(virtualMachines);
 
+        int disk = 5;
+        Mockito.doReturn(disk).when(this.plugin).getVirtualMachineDiskSize(
+                Mockito.eq(virtualMachineId), Mockito.eq(cloudStackUser));
+
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
-        Mockito.doReturn(computeInstanceExpected).when(this.plugin).getComputeInstance(
-                Mockito.eq(virtualMachine), Mockito.eq(cloudStackUser));
+        Mockito.doReturn(computeInstanceExpected).when(this.plugin).createComputeInstance(
+                Mockito.eq(virtualMachine), Mockito.eq(disk));
 
         // exercise
-        ComputeInstance computeInstance = this.plugin.buildComputeInstance(getVirtualMachineResponse, cloudStackUser);
+        ComputeInstance computeInstance = this.plugin.buildComputeInstance(
+                getVirtualMachineResponse, cloudStackUser);
 
         // verify
         Assert.assertEquals(computeInstanceExpected, computeInstance);
@@ -1368,10 +1319,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getTemplateId(computeOrder);
     }
 
-    private String getVolumeResponse(String id, String name, double size, String state) throws IOException {
-        return CloudstackTestUtils.createGetVolumesResponseJson(id, name, size, state);
-    }
-
     private String getListDiskOfferrings(String id, int diskSize, boolean customized) throws IOException {
         return CloudstackTestUtils.createGetAllDiskOfferingsResponseJson(
                 id, diskSize, customized, "");
@@ -1422,5 +1369,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
+    }
+
+    private void ignoringCloudStackUrl() throws InvalidParameterException {
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
     }
 }

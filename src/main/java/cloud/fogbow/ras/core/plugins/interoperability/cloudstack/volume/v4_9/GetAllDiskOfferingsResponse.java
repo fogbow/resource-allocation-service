@@ -6,6 +6,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
 import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
@@ -32,6 +33,7 @@ public class GetAllDiskOfferingsResponse {
     @SerializedName(DISK_OFFERINGS_KEY_JSON)
     private ListDiskOfferingsResponse listDiskOfferingsResponse;
 
+    @NotNull
     public List<DiskOffering> getDiskOfferings() {
         return this.listDiskOfferingsResponse.diskOfferings;
     }

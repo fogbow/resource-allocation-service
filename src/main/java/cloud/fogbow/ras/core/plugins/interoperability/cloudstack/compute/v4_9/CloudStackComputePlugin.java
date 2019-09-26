@@ -116,7 +116,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
-
         return doGetInstance(request, cloudUser);
     }
 
@@ -180,7 +179,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = response.
                 getServiceOfferings();
 
-        if (serviceOfferings != null && !serviceOfferings.isEmpty()) {
+        if (!serviceOfferings.isEmpty()) {
             List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFiltered =
                     filterServicesOfferingByRequirements(serviceOfferings, computeOrder);
             for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferingsFiltered) {
@@ -249,7 +248,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
-        if (diskOfferings != null && !diskOfferings.isEmpty()) {
+        if (!diskOfferings.isEmpty()) {
             for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
                 if (diskOffering.getDiskSize() >= diskSize) {
                     return diskOffering;
@@ -302,24 +301,17 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    ComputeInstance getComputeInstance(@NotNull GetVirtualMachineResponse.VirtualMachine vm,
-                                       @NotNull CloudStackUser cloudUser) {
-        String instanceId = vm.getId();
-        String hostName = vm.getName();
-        int vcpusCount = vm.getCpuNumber();
-        int memory = vm.getMemory();
+    ComputeInstance createComputeInstance(@NotNull GetVirtualMachineResponse.VirtualMachine virtualMachine,
+                                          int disk) {
 
-        int disk = UNKNOWN_DISK_VALUE;
-        try {
-            disk = getVirtualMachineDiskSize(instanceId, cloudUser);
-        } catch (FogbowException e) {
-            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()), e);
-        }
+        String instanceId = virtualMachine.getId();
+        String hostName = virtualMachine.getName();
+        int vcpusCount = virtualMachine.getCpuNumber();
+        int memory = virtualMachine.getMemory();
+        String cloudStackState = virtualMachine.getState();
 
-        String cloudStackState = vm.getState();
-        GetVirtualMachineResponse.Nic[] nics = vm.getNic();
+        GetVirtualMachineResponse.Nic[] nics = virtualMachine.getNic();
         List<String> addresses = new ArrayList<>();
-
         for (GetVirtualMachineResponse.Nic nic : nics) {
             addresses.add(nic.getIpAddress());
         }
@@ -337,33 +329,30 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    int getVirtualMachineDiskSize(String virtualMachineId, @NotNull CloudStackUser cloudUser)
-            throws FogbowException {
-
-        GetVolumeRequest request = new GetVolumeRequest.Builder()
-                .virtualMachineId(virtualMachineId)
-                .type(DEFAULT_VOLUME_TYPE_VALUE)
-                .build(this.cloudStackUrl);
-        URIBuilder uriRequest = request.getUriBuilder();
-        String token = cloudUser.getToken();
-        CloudStackUrlUtil.sign(uriRequest, token);
-
-        GetVolumeResponse volumeResponse = null;
+    int getVirtualMachineDiskSize(String virtualMachineId, @NotNull CloudStackUser cloudUser) {
         try {
-            String jsonResponse = doGet(uriRequest.toString(), cloudUser);
-            volumeResponse = GetVolumeResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
+            GetVolumeRequest request = new GetVolumeRequest.Builder()
+                    .virtualMachineId(virtualMachineId)
+                    .type(DEFAULT_VOLUME_TYPE_VALUE)
+                    .build(this.cloudStackUrl);
 
-        List<GetVolumeResponse.Volume> volumes = volumeResponse.getVolumes();
-        if (volumes != null && !volumes.isEmpty()) {
-            GetVolumeResponse.Volume firstVolume = volumes.get(0);
-            long sizeInBytes = firstVolume.getSize();
-            return convertBytesToGigabyte(sizeInBytes);
-        } else {
-            throw new InstanceNotFoundException();
+            URIBuilder uriRequest = request.getUriBuilder();
+            String token = cloudUser.getToken();
+            CloudStackUrlUtil.sign(uriRequest, token);
+            String jsonResponse = doGet(uriRequest.toString(), cloudUser);
+            GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
+
+            List<GetVolumeResponse.Volume> volumes = response.getVolumes();
+            if (!volumes.isEmpty()) {
+                GetVolumeResponse.Volume firstVolume = volumes.get(0);
+                long sizeInBytes = firstVolume.getSize();
+                return convertBytesToGigabyte(sizeInBytes);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Error while trying to get the virtual machine size", e);
         }
+        LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, virtualMachineId));
+        return UNKNOWN_DISK_VALUE;
     }
 
     @NotNull
@@ -439,16 +428,17 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                                          @NotNull CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
-        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines =
-                response.getVirtualMachines();
-        if (virtualMachines != null && !virtualMachines.isEmpty()) {
-            GetVirtualMachineResponse.VirtualMachine firstVirtualMachine = virtualMachines.get(0);
-            return getComputeInstance(firstVirtualMachine, cloudStackUser);
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = response.getVirtualMachines();
+        if (!virtualMachines.isEmpty()) {
+            GetVirtualMachineResponse.VirtualMachine virtualMachine = virtualMachines.get(0);
+            int disk = getVirtualMachineDiskSize(virtualMachine.getId(), cloudStackUser);
+            return createComputeInstance(virtualMachine, disk);
         } else {
             throw new InstanceNotFoundException();
         }
     }
 
+    @NotNull
     @VisibleForTesting
     String getTemplateId(@NotNull ComputeOrder computeOrder) throws InvalidParameterException {
         String templateId = computeOrder.getImageId();

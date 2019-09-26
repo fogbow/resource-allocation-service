@@ -5,6 +5,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackError
 import com.google.gson.annotations.SerializedName;
 import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
@@ -30,6 +31,7 @@ public class GetVolumeResponse {
     @SerializedName(VOLUMES_KEY_JSON)
     private ListVolumesResponse listVolumesResponse;
 
+    @NotNull
     public List<Volume> getVolumes() {
         return this.listVolumesResponse.volumes;
     }
