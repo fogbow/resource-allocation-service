@@ -62,7 +62,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private ExpectedException expectedException = ExpectedException.none();
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws UnexpectedException, InvalidParameterException {
         String cloudStackConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + CLOUDSTACK_CLOUD_NAME + File.separator
@@ -76,6 +76,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
         this.testUtils.mockReadOrdersFromDataBase();
+        ignoringCloudStackUrl();
     }
 
     // test case: successffuly case
@@ -187,11 +188,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.anyString(), Mockito.any(CloudStackUser.class)))
                 .thenThrow(badRequestHttpResponse);
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
-                Mockito.anyString())).thenCallRealMethod();
-
         // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(BAD_REQUEST_MSG);
@@ -221,11 +217,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.eq(getAllServiceOfferingRequestUrl), Mockito.eq(cloudStackUser)))
                 .thenReturn(getAllServiceOfferingRequestJsonStr);
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).
-                thenCallRealMethod();
-
         // exercise
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
                 this.plugin.getServiceOfferings(cloudStackUser);
@@ -253,11 +244,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doThrow(badRequestHttpResponse).when(this.plugin).doGet(
                 Mockito.anyString(), Mockito.any(CloudStackUser.class));
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
-                Mockito.anyString())).thenCallRealMethod();
-
         // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(BAD_REQUEST_MSG);
@@ -283,11 +269,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         Mockito.doReturn(getAllDiskOfferingRequestJsonStr).when(this.plugin).doGet(
                 Mockito.eq(getAllDiskOfferingRequestUrl), Mockito.eq(cloudStackUser));
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
         // exercise
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
@@ -636,8 +617,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         };
         Mockito.when(virtualMachine.getNic()).thenReturn(nics);
 
-        ignoringCloudStackUrl();
-
         // verify
         ComputeInstance computeInstance =
                 this.plugin.createComputeInstance(virtualMachine, diskExpected);
@@ -678,8 +657,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(getVolumeResponseStr)))
                 .thenReturn(getVolumeResponse);
 
-        ignoringCloudStackUrl();
-
         // exercise
         int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(
                 virtualMachineId, cloudStackUser);
@@ -706,8 +683,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(anyResponse)))
                 .thenReturn(volumeResponse);
 
-        ignoringCloudStackUrl();
-
         // exercise
         int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
 
@@ -724,9 +699,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
                 .thenThrow(createBadRequestHttpResponse());
-
-        // ignoring CloudStackUrlUtil
-        ignoringCloudStackUrl();
 
         // exercise
         int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
@@ -787,11 +759,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .build("anything");
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
         String responseStr = "anyResponseStr";
         Mockito.doReturn(responseStr).when(this.plugin)
                 .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
@@ -820,11 +787,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
                 .build("anything");
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
         Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
                 .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
@@ -890,11 +852,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
         String instanceId = "InstanceId";
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
         Mockito.doReturn(new String()).when(this.plugin).doGet(Mockito.eq(uriRequest.toString()),
                 Mockito.eq(cloudStackUser));
 
@@ -914,11 +871,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .Builder().build("anything");
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
         String instanceId = "InstanceId";
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(
-                Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
 
         Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
                 .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
@@ -1202,11 +1154,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .build("");
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
-                Mockito.anyString())).thenCallRealMethod();
-
         String responseStr = "";
         Mockito.when(this.client.doGetRequest(
                 Mockito.any(), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
@@ -1232,11 +1179,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("anything");
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
-
-        // ignoring CloudStackUrlUtil
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
-                Mockito.anyString())).thenCallRealMethod();
 
         Mockito.when(this.client.doGetRequest(
                 Mockito.any(), Mockito.eq(cloudStackUser))).thenThrow(createBadRequestHttpResponse());
