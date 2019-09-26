@@ -79,43 +79,19 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
+		String cidr = networkOrder.getCidr();
+		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
 
-		int defaultNetworkID = convertToInteger(this.defaultNetwork);
 		String name = networkOrder.getName();
-
-		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(networkOrder.getCidr()).getInfo();
 		int size = subnetInfo.getAddressCount();
+
 		Integer addressRangeIndex = this.getAddressRangeIndex(virtualNetwork, subnetInfo.getLowAddress(), size);
-		String addressRangeId = null;
-
-		if (addressRangeIndex != null) {
-			addressRangeId = virtualNetwork.xpath(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, addressRangeIndex));
-		} else {
-			throw new NoAvailableResourcesException(String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE,
-					networkOrder.getCidr()));
-		}
-
+		String addressRangeId = this.getAddressRangeId(virtualNetwork, addressRangeIndex, cidr);
 		String ip = this.getNextAvailableAddress(virtualNetwork, addressRangeIndex);
-		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()
-				.name(name)
-				.size(size)
-				.ip(ip)
-				.addressRangeId(addressRangeId)
-				.build();
 
-		String networkReserveTemplate = reserveRequest.getVirtualNetworkReserved().marshalTemplate();
-		String networkInstance = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkID,
-				networkReserveTemplate);
+		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(name, size, ip, addressRangeId);
 
-		String fogbowSecurityGroup = createSecurityGroup(client, networkInstance, networkOrder);
-
-		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
-				.securityGroups(fogbowSecurityGroup)
-				.build();
-
-		int virtualNetworkID = convertToInteger(networkInstance);
-		String networkUpdateTemplate = updateRequest.getVirtualNetworkUpdate().marshalTemplate();
-		return OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkID, networkUpdateTemplate);
+		return this.doRequestInstance(client, networkOrder.getId(), request);
 	}
 
 	@Override
@@ -137,6 +113,133 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 		deleteVirtualNetwork(virtualNetwork);
 	}
+
+	protected String doRequestInstance(Client client, String networkOrderId, CreateNetworkReserveRequest createNetworkReserveRequest)
+			throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
+
+		int defaultNetworkId = this.convertToInteger(this.defaultNetwork);
+		String networkReserveTemplate = createNetworkReserveRequest.getVirtualNetworkReserved().marshalTemplate();
+		String networkInstanceId = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkId, networkReserveTemplate);
+		String networkUpdateTemplate = this.getNetworkUpdateTemplate(client, networkInstanceId, networkOrderId);
+
+		return OpenNebulaClientUtil.updateVirtualNetwork(client, this.convertToInteger(networkInstanceId), networkUpdateTemplate);
+	}
+
+	protected Integer getAddressRangeIndex(VirtualNetwork virtualNetwork, String lowAddress, int addressRangeSize)
+			throws InvalidParameterException {
+
+		for (int i = 1; i < Integer.MAX_VALUE; i++) {
+			String addressRangeFirstIp = virtualNetwork.xpath(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, i));
+			String currentAddressRangeSize = virtualNetwork.xpath(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, i));
+			String addressRangeLeases = virtualNetwork.xpath(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, i));
+			int usedLeases = NumberUtils.toInt(addressRangeLeases);
+
+			// NOTE(pauloewerton): no more address ranges
+			if (addressRangeFirstIp.isEmpty() || currentAddressRangeSize.isEmpty()) break;
+
+			String addressRangeCidr = String.format(CIDR_FORMAT, addressRangeFirstIp,
+					this.calculateCIDR(this.convertToInteger(currentAddressRangeSize)));
+
+			SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(addressRangeCidr).getInfo();
+			int availableAddresses = subnetInfo.getAddressCount() - usedLeases;
+			if (subnetInfo.isInRange(lowAddress) && availableAddresses >= addressRangeSize) {
+				return i;
+			}
+		}
+
+		return null;
+	}
+
+	protected String getAddressRangeId(VirtualNetwork virtualNetwork, Integer addressRangeIndex, String cidr)
+			throws NoAvailableResourcesException {
+
+		if (addressRangeIndex != null) {
+			return virtualNetwork.xpath(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, addressRangeIndex));
+		} else {
+			throw new NoAvailableResourcesException(String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE,
+					cidr));
+		}
+	}
+
+	protected String getNextAvailableAddress(VirtualNetwork virtualNetwork, Integer addressRangeIndex)
+			throws InvalidParameterException {
+
+		String addressRangeFirstIp = virtualNetwork.xpath(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, addressRangeIndex));
+		String currentAddressRangeSize = virtualNetwork.xpath(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, addressRangeIndex));
+		String addressRangeLeases = virtualNetwork.xpath(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, addressRangeIndex));
+		int usedLeases = NumberUtils.toInt(addressRangeLeases);
+
+		if (usedLeases > 0) {
+			String addressRangeCidr = String.format(CIDR_FORMAT, addressRangeFirstIp,
+					this.calculateCIDR(this.convertToInteger(currentAddressRangeSize)));
+			SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(addressRangeCidr).getInfo();
+
+			return subnetInfo.getAllAddresses()[usedLeases];
+		}
+
+		return addressRangeFirstIp;
+	}
+
+	private CreateNetworkReserveRequest getCreateNetworkReserveRequest(String name, int size, String ip, String addressRangeId) {
+		return new CreateNetworkReserveRequest.Builder()
+				.name(name)
+				.size(size)
+				.ip(ip)
+				.addressRangeId(addressRangeId)
+				.build();
+	}
+
+	protected String getNetworkUpdateTemplate(Client client, String networkInstanceId, String networkOrderId)
+			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
+
+		String fogbowSecurityGroupId = this.createSecurityGroup(client, networkInstanceId, networkOrderId);
+
+		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
+				.securityGroups(fogbowSecurityGroupId)
+				.build();
+
+		return updateRequest.getVirtualNetworkUpdate().marshalTemplate();
+	}
+
+	protected String createSecurityGroup(Client client, String virtualNetworkId, String networkOrderId)
+			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
+
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
+		String ip = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
+		String size = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
+		String name = generateSecurityGroupName(networkOrderId);
+
+		// "ALL" setting applies to all protocols if a port range is not defined
+		String protocol = ALL_PROTOCOLS;
+
+		// An undefined port range is interpreted by opennebula as all open
+		String rangeAll = null;
+
+		// An undefined ip and size is interpreted by opennebula as any network
+		String ipAny = null;
+		String sizeAny = null;
+
+		// The networkId and securityGroupId parameters are not used in this context.
+		String networkId = null;
+		String securityGroupId = null;
+
+		Rule inputRule = new Rule(protocol, ip, size, rangeAll, INPUT_RULE_TYPE, networkId, securityGroupId);
+		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, networkId, securityGroupId);
+
+		List<Rule> rules = new ArrayList<>();
+		rules.add(inputRule);
+		rules.add(outputRule);
+
+		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+				.name(name)
+				.rules(rules)
+				.build();
+
+		String template = request.getSecurityGroup().marshalTemplate();
+
+		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
+	}
+
 
 	private void deleteSecurityGroup(SecurityGroup securityGroup) {
 		OneResponse response = securityGroup.delete();
@@ -171,44 +274,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return securityGroup;
 	}
 
-	protected String createSecurityGroup(Client client, String virtualNetworkId, NetworkOrder networkOrder)
-			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 
-		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
-		String ip = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
-		String size = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
-		String name = generateSecurityGroupName(networkOrder.getId());
-		
-		// "ALL" setting applies to all protocols if a port range is not defined
-		String protocol = ALL_PROTOCOLS;
-
-		// An undefined port range is interpreted by opennebula as all open
-		String rangeAll = null;
-
-		// An undefined ip and size is interpreted by opennebula as any network
-		String ipAny = null;
-		String sizeAny = null;
-
-		// The networkId and securityGroupId parameters are not used in this context.
-		String networkId = null;
-		String securityGroupId = null;
-
-		Rule inputRule = new Rule(protocol, ip, size, rangeAll, INPUT_RULE_TYPE, networkId, securityGroupId);
-		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, networkId, securityGroupId);
-
-		List<Rule> rules = new ArrayList<>();
-		rules.add(inputRule);
-		rules.add(outputRule);
-
-		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
-				.name(name)
-				.rules(rules)
-				.build();
-
-		String template = request.getSecurityGroup().marshalTemplate();
-		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
-	}
-	
 	protected String generateSecurityGroupName(String instanceId) {
 		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
 	}
@@ -272,47 +338,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	protected Integer getAddressRangeIndex(VirtualNetwork virtualNetwork, String lowAddress, int addressRangeSize)
-			throws InvalidParameterException {
-		for (int i = 1; i < Integer.MAX_VALUE; i++) {
-			String addressRangeFirstIp = virtualNetwork.xpath(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, i));
-			String currentAddressRangeSize = virtualNetwork.xpath(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, i));
-			String addressRangeLeases = virtualNetwork.xpath(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, i));
-			int usedLeases = NumberUtils.toInt(addressRangeLeases);
 
-			// NOTE(pauloewerton): no more address ranges
-			if (addressRangeFirstIp.isEmpty() || currentAddressRangeSize.isEmpty()) break;
-
-			String addressRangeCidr = String.format(CIDR_FORMAT, addressRangeFirstIp,
-					this.calculateCIDR(this.convertToInteger(currentAddressRangeSize)));
-
-			SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(addressRangeCidr).getInfo();
-			int availableAddresses = subnetInfo.getAddressCount() - usedLeases;
-			if (subnetInfo.isInRange(lowAddress) && availableAddresses >= addressRangeSize) {
-				return i;
-			}
-		}
-
-		return null;
-	}
-
-	protected String getNextAvailableAddress(VirtualNetwork virtualNetwork, Integer addressRangeIndex)
-			throws InvalidParameterException {
-		String addressRangeFirstIp = virtualNetwork.xpath(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, addressRangeIndex));
-		String currentAddressRangeSize = virtualNetwork.xpath(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, addressRangeIndex));
-		String addressRangeLeases = virtualNetwork.xpath(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, addressRangeIndex));
-		int usedLeases = NumberUtils.toInt(addressRangeLeases);
-
-		if (usedLeases > 0) {
-			String addressRangeCidr = String.format(CIDR_FORMAT, addressRangeFirstIp,
-					this.calculateCIDR(this.convertToInteger(currentAddressRangeSize)));
-			SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(addressRangeCidr).getInfo();
-
-			return subnetInfo.getAllAddresses()[usedLeases];
-		}
-
-		return addressRangeFirstIp;
-	}
 
 	protected String getRandomUUID() {
 		return UUID.randomUUID().toString();
