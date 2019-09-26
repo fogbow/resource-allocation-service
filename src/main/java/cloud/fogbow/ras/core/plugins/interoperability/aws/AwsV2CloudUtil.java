@@ -38,7 +38,7 @@ public class AwsV2CloudUtil {
     public static final String AWS_TAG_NAME = "Name";
     public static final String SECURITY_GROUP_RESOURCE = "Security Groups";
     
-    public static Image getImagesFrom(DescribeImagesResponse response) throws InstanceNotFoundException {
+    public static Image getImagesFrom(DescribeImagesResponse response) throws FogbowException {
         if (response != null && !response.images().isEmpty()) {
             return response.images().listIterator().next();
         }
@@ -54,7 +54,7 @@ public class AwsV2CloudUtil {
         }
     }
     
-    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws InstanceNotFoundException {
+    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws FogbowException {
         if (response != null && !response.volumes().isEmpty()) {
             return response.volumes().listIterator().next();
         }
@@ -100,12 +100,14 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client) throws FogbowException {
+    public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client)
+            throws FogbowException {
+        
         CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-            .description(description)
-            .groupName(groupName)
-            .vpcId(vpcId)
-            .build();
+                .description(description)
+                .groupName(groupName)
+                .vpcId(vpcId)
+                .build();
         try {
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
             return response.groupId();
@@ -145,7 +147,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static Instance getInstanceFrom(DescribeInstancesResponse response) throws InstanceNotFoundException {
+    public static Instance getInstanceFrom(DescribeInstancesResponse response) throws FogbowException {
         if (!response.reservations().isEmpty()) {
             Reservation reservation = response.reservations().listIterator().next();
             if (!reservation.instances().isEmpty()) {
@@ -186,7 +188,7 @@ public class AwsV2CloudUtil {
         return getAddressFrom(response);
     }
 
-    public static Address getAddressFrom(DescribeAddressesResponse response) throws InstanceNotFoundException {
+    public static Address getAddressFrom(DescribeAddressesResponse response) throws FogbowException {
         if (response != null && !response.addresses().isEmpty()) {
             return response.addresses().listIterator().next();
         }

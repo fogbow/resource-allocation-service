@@ -37,11 +37,14 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
@@ -53,6 +56,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     private static final String FAKE_GROUP_DESCRIPTION = "fake-description";
     private static final String FAKE_GROUP_NAME = "fake-group-name";
     private static final String FAKE_RESOURCE_ID = "compute_id";
+    private static final String FAKE_SUBNET_ID = "fake-subnet-id";
     private static final String FAKE_TAG_KEY = "fake-tag-key";
     private static final String FAKE_TAG_VALUE = "fake-tag-value";
     private static final String FAKE_VPC_ID = "fake-vpc-id";
@@ -72,7 +76,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws an InstanceNotFoundException when the response is null
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetImagesFromWithNullResponse() throws InstanceNotFoundException {
+    public void testGetImagesFromWithNullResponse() throws FogbowException {
         //setup
         Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         DescribeImagesResponse response = null;
@@ -82,7 +86,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws an InstanceNotFoundException when the response is empty
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetImagesFromWithEmptyResponse() throws InstanceNotFoundException {
+    public void testGetImagesFromWithEmptyResponse() throws FogbowException {
         //setup
         Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         DescribeImagesResponse response = DescribeImagesResponse.builder().images(new ArrayList<>()).build();
@@ -92,7 +96,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: test if the method returns the expected image
     @Test
-    public void testGetImagesFromWithValidResponse() throws InstanceNotFoundException{
+    public void testGetImagesFromWithValidResponse() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getImagesFrom(Mockito.any())).thenCallRealMethod();
         Image image = Image.builder().imageId(TestUtils.FAKE_IMAGE_ID).build();
@@ -116,7 +120,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws an InstanceNotFoundException when the response is null
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetVolumeFromWithNullResponse() throws InstanceNotFoundException {
+    public void testGetVolumeFromWithNullResponse() throws FogbowException {
         //setup
         Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         DescribeVolumesResponse response = null;
@@ -126,7 +130,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws an InstanceNotFoundException when the response is empty
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetVolumeFromWithEmptyResponse() throws InstanceNotFoundException {
+    public void testGetVolumeFromWithEmptyResponse() throws FogbowException {
         //setup
         Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         DescribeVolumesResponse response = DescribeVolumesResponse.builder().volumes(new ArrayList<>()).build();
@@ -136,7 +140,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: test if the method returns the expected instance
     @Test
-    public void testGetVolumeFromWithValidResponse() throws InstanceNotFoundException{
+    public void testGetVolumeFromWithValidResponse() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getVolumeFrom(Mockito.any())).thenCallRealMethod();
         Volume volume = Volume.builder().volumeId(TestUtils.FAKE_VOLUME_ID).build();
@@ -287,7 +291,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws InstanceNotFoundException when there is no reservation
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetInstanceReservationWithNoReservation() throws InstanceNotFoundException{
+    public void testGetInstanceReservationWithNoReservation() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.any())).thenCallRealMethod();
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().reservations(new ArrayList<>()).build();
@@ -297,7 +301,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws InstanceNotFoundException when there is no instance
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetInstanceReservationWithNoInstance() throws InstanceNotFoundException{
+    public void testGetInstanceReservationWithNoInstance() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.any())).thenCallRealMethod();
         Reservation reservation = Reservation.builder().instances(new ArrayList<>()).build();
@@ -308,7 +312,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method returns the expected instance when the response is ok
     @Test
-    public void testGetInstanceReservationWithAValidResponse() throws InstanceNotFoundException{
+    public void testGetInstanceReservationWithAValidResponse() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.any())).thenCallRealMethod();
         Instance instance = Instance.builder().instanceId(FAKE_RESOURCE_ID).build();
@@ -444,7 +448,9 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         // set up
         Mockito.when(AwsV2CloudUtil.doDescribeAddressesRequests(Mockito.any(), Mockito.any())).thenCallRealMethod();
 
-        DescribeAddressesRequest request = DescribeAddressesRequest.builder().allocationIds(FAKE_ALLOCATION_ID).build();
+        DescribeAddressesRequest request = DescribeAddressesRequest.builder()
+                .allocationIds(FAKE_ALLOCATION_ID)
+                .build();
 
         DescribeAddressesResponse response = buildDescribeAddresses();
         Mockito.doReturn(response).when(this.client).describeAddresses(Mockito.eq(request));
@@ -482,16 +488,205 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         }
     }
     
-    // test case: ...
+    // test case: When calling the getSubnetById method, it must verify
+    // that is call was successful.
     @Test
-    public void test() {
+    public void testGetSubnetById() throws Exception {
         // set up
+        Mockito.when(AwsV2CloudUtil.getSubnetById(Mockito.any(), Mockito.any())).thenCallRealMethod();
+
+        String subnetId = FAKE_SUBNET_ID;
+        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+                .subnetIds(subnetId)
+                .build();
+
+        DescribeSubnetsResponse response = buildDescribeSubnets();
+        Mockito.when(AwsV2CloudUtil.doDescribeSubnetsRequest(Mockito.eq(request), Mockito.eq(this.client)))
+                .thenReturn(response);
+
+        Subnet subnet = Subnet.builder().build();
+        Mockito.when(AwsV2CloudUtil.getSubnetFrom(Mockito.eq(response))).thenReturn(subnet);
 
         // exercise
+        AwsV2CloudUtil.getSubnetById(subnetId, this.client);
 
         // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.doDescribeSubnetsRequest(Mockito.eq(request), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getSubnetFrom(Mockito.eq(response));
     }
     
+    // test case: When calling the getSubnetFrom method, it must returned a
+    // expected subnet.
+    @Test
+    public void testGetSubnetFromResponse() throws Exception {
+        // set up
+        Mockito.when(AwsV2CloudUtil.getSubnetFrom(Mockito.any())).thenCallRealMethod();
+
+        DescribeSubnetsResponse response = buildDescribeSubnets();
+
+        Subnet expected = buildSubnet();
+
+        // exercise
+        Subnet subnet = AwsV2CloudUtil.getSubnetFrom(response);
+
+        // verify
+        Assert.assertEquals(expected, subnet);
+    }
+    
+    // test case: When calling the getSubnetFrom method with a null response, an
+    // InstanceNotFoundException will be thrown.
+    @Test
+    public void testGetSubnetFromNullResponse() throws Exception {
+        // set up
+        Mockito.when(AwsV2CloudUtil.getSubnetFrom(Mockito.any())).thenCallRealMethod();
+
+        DescribeSubnetsResponse response = null;
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            AwsV2CloudUtil.getSubnetFrom(response);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getSubnetFrom method with a response containing
+    // an empty subnets list, an InstanceNotFoundException will be thrown.
+    @Test
+    public void testGetSubnetFromEmptyResponse() throws Exception {
+        // set up
+        Mockito.when(AwsV2CloudUtil.getSubnetFrom(Mockito.any())).thenCallRealMethod();
+
+        Subnet[] subnets = {};
+        DescribeSubnetsResponse response = DescribeSubnetsResponse.builder()
+                .subnets(Arrays.asList(subnets))
+                .build();
+        
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            AwsV2CloudUtil.getSubnetFrom(response);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+ // test case: When calling the doDescribeSubnetsRequest method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoDescribeSubnetsRequest() throws Exception {
+        // set up
+        Mockito.when(AwsV2CloudUtil.doDescribeSubnetsRequest(Mockito.any(), Mockito.any())).thenCallRealMethod();
+
+        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+                .subnetIds(FAKE_SUBNET_ID)
+                .build();
+
+        DescribeSubnetsResponse response = buildDescribeSubnets();
+        Mockito.doReturn(response).when(this.client).describeSubnets(Mockito.eq(request));
+
+        // exercise
+        AwsV2CloudUtil.doDescribeSubnetsRequest(request, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeSubnets(Mockito.eq(request));
+    }
+    
+    // test case: When calling the doDescribeSubnetsRequest method, and an error
+    // occurs during the request, an UnexpectedException will be thrown.
+    @Test
+    public void testDoDescribeSubnetsRequestFail() throws Exception {
+        // set up
+        Mockito.when(AwsV2CloudUtil.doDescribeSubnetsRequest(Mockito.any(), Mockito.any())).thenCallRealMethod();
+
+        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+                .subnetIds(FAKE_SUBNET_ID)
+                .build();
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.doThrow(exception).when(this.client).describeSubnets(Mockito.eq(request));
+        
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            AwsV2CloudUtil.doDescribeSubnetsRequest(request, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getGroupIdFrom method with a collection of tags
+    // containing a valid group ID, it must returned the expected group ID.
+    @Test
+    public void testGetGroupIdFromTags() throws FogbowException {
+        // set up
+        Mockito.when(AwsV2CloudUtil.getGroupIdFrom(Mockito.any())).thenCallRealMethod();
+        
+        Tag[] tags = { buildTagGroupId() };
+        
+        String expected = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        // exercise
+        String groupId = AwsV2CloudUtil.getGroupIdFrom(Arrays.asList(tags));
+
+        // verify
+        Assert.assertEquals(expected, groupId);
+    }
+    
+    // test case: When calling the getGroupIdFrom method with a collection of tags
+    // without a group ID, an UnexpectedException will be thrown.
+    @Test
+    public void testGetGroupIdFromTagsFail() throws FogbowException {
+        // set up
+        Mockito.when(AwsV2CloudUtil.getGroupIdFrom(Mockito.any())).thenCallRealMethod();
+        
+        Tag[] tags = { Tag.builder().key(TestUtils.ANY_VALUE).build() };
+        
+        String expected = Messages.Exception.UNEXPECTED_ERROR;
+
+        try {
+            // exercise
+            AwsV2CloudUtil.getGroupIdFrom(Arrays.asList(tags));
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+
+    }
+    
+    private DescribeSubnetsResponse buildDescribeSubnets() {
+        DescribeSubnetsResponse response = DescribeSubnetsResponse.builder()
+                .subnets(buildSubnet())
+                .build();
+
+        return response;
+    }
+    
+    private Subnet buildSubnet() {
+        Tag tagGroupId = buildTagGroupId();
+        
+        Subnet subnet = Subnet.builder()
+                .subnetId(FAKE_SUBNET_ID)
+                .tags(tagGroupId)
+                .build();
+        
+        return subnet;
+    }
+
     private DescribeAddressesResponse buildDescribeAddresses() {
         DescribeAddressesResponse response = DescribeAddressesResponse.builder()
                 .addresses(buildAddress())
@@ -501,10 +696,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     }
 
     private Address buildAddress() {
-        Tag tagGroupId = Tag.builder()
-                .key(AwsV2CloudUtil.AWS_TAG_GROUP_ID)
-                .value(TestUtils.FAKE_SECURITY_GROUP_ID)
-                .build();
+        Tag tagGroupId = buildTagGroupId();
         
         Address address = Address.builder()
                 .allocationId(FAKE_ALLOCATION_ID)
@@ -513,6 +705,15 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
                 .build();
         
         return address;
+    }
+
+    private Tag buildTagGroupId() {
+        Tag tagGroupId = Tag.builder()
+                .key(AwsV2CloudUtil.AWS_TAG_GROUP_ID)
+                .value(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .build();
+        
+        return tagGroupId;
     }
 
 }
