@@ -106,11 +106,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .userData(userData)
                 .networksId(networksId)
                 .build(this.cloudStackUrl);
-        DeployVirtualMachineResponse deployVirtualMachineResponse = doRequestInstance(
-                deployVirtualMachineRequest, cloudUser);
 
-        updateComputeOrder(computeOrder, serviceOffering, diskOffering);
-        return deployVirtualMachineResponse.getId();
+        return doRequestInstance(deployVirtualMachineRequest,
+                serviceOffering, diskOffering, computeOrder, cloudUser);
     }
 
     @Override
@@ -122,7 +120,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
         GetVirtualMachineResponse getVirtualMachineResponse = doGetInstance(getVirtualMachineRequest, cloudUser);
-        return getVM(getVirtualMachineResponse, cloudUser);
+        return buildComputeInstance(getVirtualMachineResponse, cloudUser);
     }
 
     @Override
@@ -134,6 +132,19 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
         doDeleteInstance(request, cloudUser, order.getInstanceId());
+    }
+
+    @NotNull
+    @VisibleForTesting
+    String doRequestInstance(@NotNull DeployVirtualMachineRequest request,
+                             @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
+                             @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering,
+                             @NotNull ComputeOrder computeOrder,
+                             @NotNull CloudStackUser cloudUser) throws FogbowException {
+
+        DeployVirtualMachineResponse response = requestDeployVirtualMachine(request, cloudUser);
+        updateComputeOrder(computeOrder, serviceOffering, diskOffering);
+        return response.getId();
     }
 
     @VisibleForTesting
@@ -157,7 +168,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
-            @NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser) throws FogbowException {
+            @NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser)
+            throws FogbowException {
 
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
@@ -366,8 +378,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     void updateComputeOrder(@NotNull ComputeOrder computeOrder,
-                                    @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
-                                    @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering) {
+                            @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
+                            @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering) {
 
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
@@ -381,7 +393,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    DeployVirtualMachineResponse doRequestInstance(
+    DeployVirtualMachineResponse requestDeployVirtualMachine(
             @NotNull DeployVirtualMachineRequest deployVirtualMachineRequest,
             @NotNull CloudStackUser cloudUser)
             throws FogbowException {
@@ -418,8 +430,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    ComputeInstance getVM(@NotNull GetVirtualMachineResponse getVirtualMachineResponse,
-                          @NotNull CloudStackUser cloudStackUser)
+    ComputeInstance buildComputeInstance(@NotNull GetVirtualMachineResponse getVirtualMachineResponse,
+                                         @NotNull CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines =

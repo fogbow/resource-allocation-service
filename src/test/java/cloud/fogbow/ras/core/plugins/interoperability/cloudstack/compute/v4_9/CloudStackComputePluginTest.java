@@ -13,6 +13,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -75,6 +76,62 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
         this.testUtils.mockReadOrdersFromDataBase();
+    }
+
+    // test case: successfully case
+    @Test
+    public void testDoRequestInstance() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffice =
+                Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
+        DeployVirtualMachineRequest request = Mockito.mock(DeployVirtualMachineRequest.class);
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+
+        String instanceIdExpected = "instanceId";
+        DeployVirtualMachineResponse response = Mockito.mock(DeployVirtualMachineResponse.class);
+        Mockito.when(response.getId()).thenReturn(instanceIdExpected);
+        Mockito.doReturn(response).when(this.plugin)
+                .requestDeployVirtualMachine(Mockito.eq(request), Mockito.eq(cloudStackUser));
+
+        Mockito.doNothing().when(this.plugin).updateComputeOrder(Mockito.eq(computeOrder),
+                Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
+
+        String instanceId = this.plugin.doRequestInstance(
+                request, serviceOffice, diskOffering, computeOrder, cloudStackUser);
+
+        Assert.assertEquals(instanceIdExpected, instanceId);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateComputeOrder(
+                Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
+    }
+
+    // test case: It's throw an exception in the request to cloud and the method never update the order
+    @Test
+    public void testDoRequestInstanceExpectionToCloudRequest() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        GetAllServiceOfferingsResponse.ServiceOffering serviceOffice =
+                Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
+        DeployVirtualMachineRequest request = Mockito.mock(DeployVirtualMachineRequest.class);
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .requestDeployVirtualMachine(Mockito.any(), Mockito.any());
+
+        // exercise
+        try {
+            this.plugin.doRequestInstance(request, serviceOffice, diskOffering, computeOrder, cloudStackUser);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
+                    .updateComputeOrder(Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
+        }
+
     }
 
     // Test case: Trying to get all ServiceOfferings in the Cloudstack, but it occurs an error
@@ -413,7 +470,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         DeployVirtualMachineResponse deployVirtualMachineResponse =
                 Mockito.mock(DeployVirtualMachineResponse.class);
         Mockito.doReturn(deployVirtualMachineResponse).when(this.plugin)
-                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
+                .requestDeployVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
         Mockito.doNothing().when(this.plugin).updateComputeOrder(
                 Mockito.eq(order), Mockito.eq(serviceOffering), Mockito.eq(diskOffering));
@@ -423,7 +480,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(1))
-                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
+                .requestDeployVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
     }
 
     // Test case: request instance but the service offering is not available
@@ -505,7 +562,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.any(ComputeOrder.class))).thenReturn("anystring");
 
         Mockito.doThrow(new FogbowException()).when(this.plugin)
-                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
+                .requestDeployVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
         // exercise
         this.plugin.requestInstance(order, cloudStackUser);
@@ -692,9 +749,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
     }
 
-    // test case: getVM successfully
+    // test case: buildComputeInstance successfully
     @Test
-    public void testGetVM() throws InstanceNotFoundException {
+    public void testBuildComputeInstance() throws InstanceNotFoundException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
@@ -709,15 +766,15 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.eq(virtualMachine), Mockito.eq(cloudStackUser));
 
         // exercise
-        ComputeInstance computeInstance = this.plugin.getVM(getVirtualMachineResponse, cloudStackUser);
+        ComputeInstance computeInstance = this.plugin.buildComputeInstance(getVirtualMachineResponse, cloudStackUser);
 
         // verify
         Assert.assertEquals(computeInstanceExpected, computeInstance);
     }
 
-    // test case: getVM throw an InstanceNotFoundException
+    // test case: buildComputeInstance throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetVMInstanceNotFoundException() throws InstanceNotFoundException {
+    public void testBuildComputeInstanceInstanceNotFoundException() throws InstanceNotFoundException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
@@ -725,7 +782,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.when(getVirtualMachineResponse.getVirtualMachines()).thenReturn(virtualMachines);
 
         // exercise
-        this.plugin.getVM(getVirtualMachineResponse, cloudStackUser);
+        this.plugin.buildComputeInstance(getVirtualMachineResponse, cloudStackUser);
     }
 
     // test case: doGetInstance successfully
@@ -798,7 +855,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(computeInstanceExpected).when(this.plugin)
-                .getVM(Mockito.eq(getVirtualMachineResponse), Mockito.eq(cloudStackUser));
+                .buildComputeInstance(Mockito.eq(getVirtualMachineResponse), Mockito.eq(cloudStackUser));
 
         // exercise
         ComputeInstance computeInstance = this.plugin.getInstance(computeOrder, cloudStackUser);
@@ -824,7 +881,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         } catch (Exception e) {
                 // verify
             Mockito.verify(this.plugin, Mockito.times(0))
-                    .getVM(Mockito.any(), Mockito.any());
+                    .buildComputeInstance(Mockito.any(), Mockito.any());
         }
     }
 
@@ -1144,7 +1201,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     // test case: successfully case
     @Test
-    public void testDoRequestInstance() throws FogbowException, IOException {
+    public void testRequestDeployVirtualMachine() throws FogbowException, IOException {
         // set up
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("");
@@ -1167,7 +1224,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         // exercise
         DeployVirtualMachineResponse deployVirtualMachineResponse =
-                this.plugin.doRequestInstance(deployVirtualMachineRequest, cloudStackUser);
+                this.plugin.requestDeployVirtualMachine(deployVirtualMachineRequest, cloudStackUser);
 
         // verify
         Assert.assertEquals(deployVirtualMachineResponseExpected, deployVirtualMachineResponse);
@@ -1175,7 +1232,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     // test case: the request throws a HttpResponseException
     @Test
-    public void testDoRequestInstanceAndHttpResponseException() throws FogbowException, IOException {
+    public void testRequestDeployVirtualMachineAndHttpResponseException() throws FogbowException, IOException {
         // set up
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("anything");
@@ -1193,7 +1250,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.expectedException.expectMessage(BAD_REQUEST_MSG);
 
         // exercise
-        this.plugin.doRequestInstance(deployVirtualMachineRequest, cloudStackUser);
+        this.plugin.requestDeployVirtualMachine(deployVirtualMachineRequest, cloudStackUser);
     }
 
     // test case: successfully case
