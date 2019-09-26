@@ -48,10 +48,12 @@ public class TestUtils {
     public static final String ANY_VALUE = "anything";
     public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String DO_DESCRIBE_IMAGES_REQUEST_METHOD = "doDescribeImagesRequest";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
+    public static final String FAKE_FLAVOR_ID = "fake-flavor-id";
     public static final String FAKE_GATEWAY = "fake-gateway";
     public static final String FAKE_IMAGE_ID = "fake-image-id";
     public static final String FAKE_INSTANCE_ID = "fake-instance-id";
