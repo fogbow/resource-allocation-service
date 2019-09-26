@@ -111,6 +111,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 serviceOffering, diskOffering, computeOrder, cloudUser);
     }
 
+    @VisibleForTesting
+    ComputeInstance doGetInstance(@NotNull GetVirtualMachineRequest request,
+                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        GetVirtualMachineResponse getVirtualMachineResponse = requestGetVirtualMachine(request, cloudStackUser);
+        return buildComputeInstance(getVirtualMachineResponse, cloudStackUser);
+    }
+
     @Override
     public ComputeInstance getInstance(@NotNull ComputeOrder order,
                                        @NotNull CloudStackUser cloudUser)
@@ -119,8 +127,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
-        GetVirtualMachineResponse getVirtualMachineResponse = doGetInstance(getVirtualMachineRequest, cloudUser);
-        return buildComputeInstance(getVirtualMachineResponse, cloudUser);
+
+        return doGetInstance(getVirtualMachineRequest, cloudUser);
     }
 
     @Override
@@ -413,8 +421,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    GetVirtualMachineResponse doGetInstance(@NotNull GetVirtualMachineRequest getVirtualMachineRequest,
-                                            @NotNull CloudStackUser cloudStackUser)
+    GetVirtualMachineResponse requestGetVirtualMachine(@NotNull GetVirtualMachineRequest getVirtualMachineRequest,
+                                                       @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
