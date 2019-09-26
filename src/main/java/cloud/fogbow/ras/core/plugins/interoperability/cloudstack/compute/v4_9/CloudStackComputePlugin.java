@@ -85,10 +85,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(@NotNull ComputeOrder computeOrder, final CloudStackUser cloudUser)
+    public String requestInstance(@NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        checkCloudUser(cloudUser);
         String templateId = getTemplateId(computeOrder);
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String networksId = normalizeNetworksID(computeOrder);
@@ -115,11 +114,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(@NotNull final ComputeOrder order,
-                                       final CloudStackUser cloudUser)
+    public ComputeInstance getInstance(@NotNull ComputeOrder order,
+                                       @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        checkCloudUser(cloudUser);
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
@@ -128,10 +126,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(@NotNull final ComputeOrder order, final CloudStackUser cloudUser)
+    public void deleteInstance(@NotNull ComputeOrder order, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        checkCloudUser(cloudUser);
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .expunge(this.expungeOnDestroy)
@@ -141,7 +138,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     void doDeleteInstance(@NotNull DestroyVirtualMachineRequest destroyVirtualMachineRequest,
-                          @NotNull final CloudStackUser cloudStackUser, String instanceId)
+                          @NotNull CloudStackUser cloudStackUser, String instanceId)
             throws FogbowException {
 
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
@@ -160,7 +157,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
-            final ComputeOrder computeOrder, final CloudStackUser cloudUser) throws FogbowException {
+            @NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser) throws FogbowException {
 
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
@@ -183,8 +180,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     List<GetAllServiceOfferingsResponse.ServiceOffering> filterServicesOfferingByRequirements(
-            @NotNull final List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings,
-            @NotNull final ComputeOrder computeOrder) {
+            @NotNull List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings,
+            @NotNull ComputeOrder computeOrder) {
 
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted = serviceOfferings;
         Map<String, String> requirements = computeOrder.getRequirements();
@@ -208,7 +205,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    GetAllServiceOfferingsResponse getServiceOfferings(@NotNull final CloudStackUser cloudStackUser)
+    GetAllServiceOfferingsResponse getServiceOfferings(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         GetAllServiceOfferingsRequest getAllServiceOfferingsRequest = new GetAllServiceOfferingsRequest.Builder()
@@ -229,7 +226,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize,
-                                                             @NotNull final CloudStackUser cloudUser)
+                                                             @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
@@ -249,7 +246,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    GetAllDiskOfferingsResponse getDiskOfferings(@NotNull final CloudStackUser cloudUser)
+    GetAllDiskOfferingsResponse getDiskOfferings(@NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         GetAllDiskOfferingsRequest getAllDiskOfferingsRequest = new GetAllDiskOfferingsRequest.Builder()
@@ -269,7 +266,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    String normalizeNetworksID(@NotNull final ComputeOrder computeOrder) {
+    String normalizeNetworksID(@NotNull ComputeOrder computeOrder) {
         List<String> networks = new ArrayList<>();
         networks.add(this.defaultNetworkId);
         List<String> userDefinedNetworks = computeOrder.getNetworkIds();
@@ -289,7 +286,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     ComputeInstance getComputeInstance(@NotNull GetVirtualMachineResponse.VirtualMachine vm,
-                                       @NotNull final CloudStackUser cloudUser) {
+                                       @NotNull CloudStackUser cloudUser) {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
@@ -323,7 +320,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    int getVirtualMachineDiskSize(String virtualMachineId, @NotNull final CloudStackUser cloudUser)
+    int getVirtualMachineDiskSize(String virtualMachineId, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         GetVolumeRequest getVolumeRequest = new GetVolumeRequest.Builder()
@@ -354,7 +351,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    String doGet(String url, @NotNull final CloudStackUser cloudUser) throws HttpResponseException {
+    String doGet(String url, @NotNull CloudStackUser cloudUser) throws HttpResponseException {
         try {
             return this.client.doGetRequest(url, cloudUser);
         } catch (FogbowException e) {
@@ -386,7 +383,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     DeployVirtualMachineResponse doRequestInstance(
             @NotNull DeployVirtualMachineRequest deployVirtualMachineRequest,
-            @NotNull final CloudStackUser cloudUser)
+            @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         URIBuilder uriRequest = deployVirtualMachineRequest.getUriBuilder();
@@ -402,16 +399,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    private void checkCloudUser(final CloudStackUser cloudUser) throws FogbowException {
-        if (cloudUser == null) {
-            throw new FogbowException(CLOUDUSER_NULL_EXCEPTION_MSG);
-        }
-    }
-
     @NotNull
     @VisibleForTesting
     GetVirtualMachineResponse doGetInstance(@NotNull GetVirtualMachineRequest getVirtualMachineRequest,
-                                            @NotNull final CloudStackUser cloudStackUser)
+                                            @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
@@ -428,7 +419,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     ComputeInstance getVM(@NotNull GetVirtualMachineResponse getVirtualMachineResponse,
-                          @NotNull final CloudStackUser cloudStackUser)
+                          @NotNull CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines =
@@ -442,7 +433,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    String getTemplateId(@NotNull final ComputeOrder computeOrder) throws InvalidParameterException {
+    String getTemplateId(@NotNull ComputeOrder computeOrder) throws InvalidParameterException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || templateId.isEmpty()) {
             throw new InvalidParameterException(Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);

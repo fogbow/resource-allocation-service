@@ -511,17 +511,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.requestInstance(order, cloudStackUser);
     }
 
-    // test case: request instance and the clouduser is null
-    @Test
-    public void testRequestInstanceCloudUserNull() throws FogbowException{
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
-
-        // exercise
-        this.plugin.requestInstance(Mockito.mock(ComputeOrder.class), null);
-    }
-
     // test case: get compute instace successfully
     @Test
     public void testGetComputeInstance() throws FogbowException {
@@ -924,17 +913,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
-    }
-
-    // test case: delete instance and the clouduser is null
-    @Test
-    public void testDeleteInstanceCloudUserNull() throws FogbowException {
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(CloudStackComputePlugin.CLOUDUSER_NULL_EXCEPTION_MSG);
-
-        // exercise
-        this.plugin.deleteInstance(Mockito.mock(ComputeOrder.class), null);
     }
 
     // test case: execute the doGet and a Fogbow Exception is throw
