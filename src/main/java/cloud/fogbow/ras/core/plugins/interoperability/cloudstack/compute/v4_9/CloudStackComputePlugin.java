@@ -37,9 +37,6 @@ import java.util.stream.Collectors;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    protected static final String CLOUDUSER_NULL_EXCEPTION_MSG =
-            String.format(Messages.Error.IRREGULAR_VALUE_NULL_EXCEPTION_MSG, "Cloud User");
-
     private static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
     private static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
     protected static final String ZONE_ID_KEY_CONF = "zone_id";
@@ -97,7 +94,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(disk, cloudUser);
         String instanceName = normalizeInstanceName(computeOrder.getName());
 
-        DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
+        DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOffering.getId())
                 .templateId(templateId)
                 .zoneId(this.zoneId)
@@ -107,16 +104,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .networksId(networksId)
                 .build(this.cloudStackUrl);
 
-        return doRequestInstance(deployVirtualMachineRequest,
+        return doRequestInstance(request,
                 serviceOffering, diskOffering, computeOrder, cloudUser);
-    }
-
-    @VisibleForTesting
-    ComputeInstance doGetInstance(@NotNull GetVirtualMachineRequest request,
-                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
-
-        GetVirtualMachineResponse getVirtualMachineResponse = requestGetVirtualMachine(request, cloudStackUser);
-        return buildComputeInstance(getVirtualMachineResponse, cloudStackUser);
     }
 
     @Override
@@ -124,11 +113,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                                        @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
+        GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
 
-        return doGetInstance(getVirtualMachineRequest, cloudUser);
+        return doGetInstance(request, cloudUser);
     }
 
     @Override
@@ -140,6 +129,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
         doDeleteInstance(request, cloudUser, order.getInstanceId());
+    }
+
+    @VisibleForTesting
+    ComputeInstance doGetInstance(@NotNull GetVirtualMachineRequest request,
+                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        GetVirtualMachineResponse response = requestGetVirtualMachine(request, cloudStackUser);
+        return buildComputeInstance(response, cloudStackUser);
     }
 
     @NotNull
@@ -156,11 +153,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    void doDeleteInstance(@NotNull DestroyVirtualMachineRequest destroyVirtualMachineRequest,
+    void doDeleteInstance(@NotNull DestroyVirtualMachineRequest request,
                           @NotNull CloudStackUser cloudStackUser, String instanceId)
             throws FogbowException {
 
-        URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         String token = cloudStackUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
@@ -179,8 +176,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             @NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudUser);
-        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
+        GetAllServiceOfferingsResponse response = getServiceOfferings(cloudUser);
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = response.
                 getServiceOfferings();
 
         if (serviceOfferings != null && !serviceOfferings.isEmpty()) {
@@ -228,9 +225,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     GetAllServiceOfferingsResponse getServiceOfferings(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        GetAllServiceOfferingsRequest getAllServiceOfferingsRequest = new GetAllServiceOfferingsRequest.Builder()
+        GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder()
                 .build(this.cloudStackUrl);
-        URIBuilder uriRequest = getAllServiceOfferingsRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         String token = cloudStackUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
@@ -269,9 +266,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     GetAllDiskOfferingsResponse getDiskOfferings(@NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        GetAllDiskOfferingsRequest getAllDiskOfferingsRequest = new GetAllDiskOfferingsRequest.Builder()
+        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder()
                 .build(this.cloudStackUrl);
-        URIBuilder uriRequest = getAllDiskOfferingsRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         String token = cloudUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
@@ -343,11 +340,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     int getVirtualMachineDiskSize(String virtualMachineId, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        GetVolumeRequest getVolumeRequest = new GetVolumeRequest.Builder()
+        GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
                 .type(DEFAULT_VOLUME_TYPE_VALUE)
                 .build(this.cloudStackUrl);
-        URIBuilder uriRequest = getVolumeRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         String token = cloudUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
@@ -402,11 +399,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     DeployVirtualMachineResponse requestDeployVirtualMachine(
-            @NotNull DeployVirtualMachineRequest deployVirtualMachineRequest,
+            @NotNull DeployVirtualMachineRequest request,
             @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        URIBuilder uriRequest = deployVirtualMachineRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         String token = cloudUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
@@ -421,11 +418,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    GetVirtualMachineResponse requestGetVirtualMachine(@NotNull GetVirtualMachineRequest getVirtualMachineRequest,
+    GetVirtualMachineResponse requestGetVirtualMachine(@NotNull GetVirtualMachineRequest request,
                                                        @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
         try {
             String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
@@ -438,12 +435,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    ComputeInstance buildComputeInstance(@NotNull GetVirtualMachineResponse getVirtualMachineResponse,
+    ComputeInstance buildComputeInstance(@NotNull GetVirtualMachineResponse response,
                                          @NotNull CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines =
-                getVirtualMachineResponse.getVirtualMachines();
+                response.getVirtualMachines();
         if (virtualMachines != null && !virtualMachines.isEmpty()) {
             GetVirtualMachineResponse.VirtualMachine firstVirtualMachine = virtualMachines.get(0);
             return getComputeInstance(firstVirtualMachine, cloudStackUser);
