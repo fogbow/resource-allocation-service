@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.quota.v2;
 import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +51,12 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
     @Before
     public void setUp() throws FogbowException {
         this.testUtils.mockReadOrdersFromDataBase();
-        String awsConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-                + File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        String awsConfFilePath = HomeDir.getPath() 
+                + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
+                + File.separator 
+                + CLOUD_NAME 
+                + File.separator 
+                + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         this.plugin = Mockito.spy(new AwsV2ComputeQuotaPlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
