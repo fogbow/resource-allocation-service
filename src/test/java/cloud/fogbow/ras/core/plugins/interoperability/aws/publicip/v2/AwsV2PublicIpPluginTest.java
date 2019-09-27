@@ -749,26 +749,6 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the getInstanceReservation method and return a
-    // response with null reservation, it must verify that an
-    // InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetInstanceReservationNull() throws FogbowException {
-        // set up
-        Reservation reservation = null;
-        DescribeInstancesResponse response = buildDescribeInstancesResponse(reservation);
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-        try {
-            // exercise
-            this.plugin.getInstanceReservation(response);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the getInstanceReservation method and return a
     // response with an empty reservation, it must verify that an
     // InstanceNotFoundException has been thrown.
     @Test

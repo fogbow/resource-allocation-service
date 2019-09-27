@@ -194,8 +194,8 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             // other context.
             if (!groupId.equals(this.defaultGroupId)) {
                 AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
-                doReleaseAddresses(allocationId, client);
             }
+            doReleaseAddresses(allocationId, client);
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
@@ -232,7 +232,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     protected Instance getInstanceReservation(DescribeInstancesResponse response) throws FogbowException {
         if (response != null && !response.reservations().isEmpty()) {
             Reservation reservation = response.reservations().listIterator().next();
-            if (reservation != null && !reservation.instances().isEmpty()) {
+            if (!reservation.instances().isEmpty()) {
                 return reservation.instances().listIterator().next();
             }
         }
