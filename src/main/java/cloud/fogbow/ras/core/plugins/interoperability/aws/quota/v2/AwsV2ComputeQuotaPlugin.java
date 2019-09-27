@@ -162,7 +162,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
         }
     }
 
-    private ComputeAllocation buildAvailableInstance(String[] requirements) {
+    protected ComputeAllocation buildAvailableInstance(String[] requirements) {
         int instances = Integer.parseInt(requirements[LIMITS_COLUMN]);
         int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
         Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
@@ -176,8 +176,9 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
         try {
             return Files.readAllLines(path);
         } catch (IOException e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
-            throw new ConfigurationErrorException();
+            String message = String.format(Messages.Error.ERROR_MESSAGE, e);
+            LOGGER.error(message, e);
+            throw new ConfigurationErrorException(message);
         }
     }
 

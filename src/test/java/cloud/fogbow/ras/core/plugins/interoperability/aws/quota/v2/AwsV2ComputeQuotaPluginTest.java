@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.quota.v2;
 
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +15,13 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
@@ -25,10 +29,12 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.EbsInstanceBlockDevice;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceBlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
+import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
@@ -36,6 +42,7 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
 
     private static final String CLOUD_NAME = "amazon";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
+    private static final String FLAVOR_LINE_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s";
 
     private static final int ONE_VALUE = 1;
 
@@ -147,6 +154,8 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
         Mockito.doReturn(allocation).when(this.plugin).buildAllocatedInstance(Mockito.eq(instance),
                 Mockito.eq(this.client));
 
+        String expectedMapKey = InstanceType.T1_MICRO.toString();
+        
         // exercise
         this.plugin.loadInstancesAllocated(this.client);
 
@@ -154,6 +163,9 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getInstanceReservations(Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildAllocatedInstance(Mockito.eq(instance),
                 Mockito.eq(this.client));
+        
+        Assert.assertTrue(this.plugin.getInstancesAllocatedMap().containsKey(expectedMapKey));
+        Assert.assertEquals(allocation, this.plugin.getInstancesAllocatedMap().get(expectedMapKey));
     }
 
     // test case: When calling the buildAllocatedInstance method with an instance
@@ -233,15 +245,118 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(ramExpected, allocation.getRam());
         Assert.assertEquals(diskExpected, allocation.getDisk());
     }
-
-    // test case: ...
+    
+    // test case: When calling the getInstanceReservations method, it must verify
+    // that is call was successful.
     @Test
-    public void test() {
+    public void testGetInstanceReservations() throws FogbowException {
         // set up
+        DescribeInstancesResponse response = buildDescribeInstance();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        Mockito.when(AwsV2CloudUtil.describeInstances(Mockito.eq(this.client))).thenReturn(response);
 
+        List<Instance> expected = buildInstancesCollections();
         // exercise
+        List<Instance> instances = this.plugin.getInstanceReservations(this.client);
 
         // verify
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.describeInstances(Mockito.eq(this.client));
+        
+        Assert.assertEquals(expected, instances);
+    }
+    
+    // test case: When calling the loadAvailableAllocations method, it must verify
+    // that is call was successful.
+    @Test
+    public void testLoadAvailableAllocations() throws FogbowException {
+        // set up
+        String[] requirements = generateRequirements();
+        String line = String.format(FLAVOR_LINE_FORMAT, requirements);
+        Mockito.doReturn(Arrays.asList(line)).when(this.plugin).loadLinesFromFlavorFile();
+
+        ComputeAllocation allocation = createComputeAllocation();
+        Mockito.doReturn(allocation).when(this.plugin).buildAvailableInstance(Mockito.eq(requirements));
+
+        String expectedMapKey = InstanceType.T1_MICRO.toString();
+
+        // exercise
+        this.plugin.loadAvailableAllocations();
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).loadLinesFromFlavorFile();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildAvailableInstance(Mockito.eq(requirements));
+
+        Assert.assertTrue(this.plugin.getTotalAllocationsMap().containsKey(expectedMapKey));
+        Assert.assertEquals(allocation, this.plugin.getTotalAllocationsMap().get(expectedMapKey));
+    }
+    
+    // test case: When calling the buildAvailableInstance method, it must verify
+    // that is call was successful and return the expected result.
+    @Test
+    public void testBuildAvailableInstance() {
+        // set up
+        String[] requirements = generateRequirements();
+
+        int instanceExpected = ONE_VALUE;
+        int cpuExpected = TestUtils.CPU_VALUE;
+        int ramExpected = TestUtils.MEMORY_VALUE;
+        
+        // exercise
+        ComputeAllocation allocation = this.plugin.buildAvailableInstance(requirements);
+
+        // verify
+        Assert.assertEquals(instanceExpected, allocation.getInstances());
+        Assert.assertEquals(cpuExpected, allocation.getvCPU());
+        Assert.assertEquals(ramExpected, allocation.getRam());
+    }
+
+    // test case: When calling the loadLinesFromFlavorFile method, without a valid
+    // file path, the ConfigurationErrorException will be thrown.
+    @Test
+    public void testLoadLinesFromFlavorFile() throws FogbowException {
+        // set up
+        Mockito.doReturn(TestUtils.ANY_VALUE).when(this.plugin).getFlavorsFilePath();
+
+        NoSuchFileException exception = new NoSuchFileException(TestUtils.ANY_VALUE);
+        String expected = String.format(Messages.Error.ERROR_MESSAGE, exception);
+
+        try {
+            // exercise
+            this.plugin.loadLinesFromFlavorFile();
+            Assert.fail();
+        } catch (ConfigurationErrorException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    private String[] generateRequirements() {
+        String[] requirements = { 
+                InstanceType.T1_MICRO.toString(), 
+                String.valueOf(TestUtils.CPU_VALUE), 
+                String.valueOf(ONE_VALUE), 
+                TestUtils.ANY_VALUE, 
+                TestUtils.ANY_VALUE,
+                TestUtils.ANY_VALUE,
+                TestUtils.ANY_VALUE,
+                TestUtils.ANY_VALUE,
+                TestUtils.ANY_VALUE,
+                TestUtils.ANY_VALUE,
+                TestUtils.ANY_VALUE,
+                String.valueOf(ONE_VALUE)
+        };
+        return requirements;
+    }
+    
+    private DescribeInstancesResponse buildDescribeInstance() {
+        DescribeInstancesResponse response = DescribeInstancesResponse.builder()
+                .reservations(Reservation.builder()
+                        .instances(buildInstance(InstanceType.T1_MICRO))
+                        .build())
+                .build();
+        
+        return response;
     }
 
     private List<Volume> buildVolumesCollection() {
