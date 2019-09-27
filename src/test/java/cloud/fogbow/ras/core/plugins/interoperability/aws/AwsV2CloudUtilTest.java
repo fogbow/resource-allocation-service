@@ -262,7 +262,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method makes the expected call
     @Test
-    public void testDescribeInstance() throws FogbowException{
+    public void testDoDescribeInstanceById() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.doDescribeInstanceById(Mockito.any(), Mockito.any())).thenCallRealMethod();
         DescribeInstancesRequest describeInstancesRequest = DescribeInstancesRequest.builder()
@@ -278,7 +278,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method makes the expected call
     @Test
-    public void testDescribeInstances() throws FogbowException{
+    public void testDoDescribeInstances() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.doDescribeInstances(Mockito.any())).thenCallRealMethod();
         DescribeInstancesResponse describeInstancesResponse = DescribeInstancesResponse.builder().build();
@@ -291,7 +291,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws InstanceNotFoundException when there is no reservation
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetInstanceReservationWithNoReservation() throws FogbowException{
+    public void testgetInstanceFromResponseWithoutInstancesReservation() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.any())).thenCallRealMethod();
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().reservations(new ArrayList<>()).build();
@@ -301,7 +301,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method throws InstanceNotFoundException when there is no instance
     @Test(expected = InstanceNotFoundException.class)//verify
-    public void testGetInstanceReservationWithNoInstance() throws FogbowException{
+    public void testGetInstanceFromResponseWithoutInstances() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.any())).thenCallRealMethod();
         Reservation reservation = Reservation.builder().instances(new ArrayList<>()).build();
@@ -312,7 +312,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
 
     //test case: check if the method returns the expected instance when the response is ok
     @Test
-    public void testGetInstanceReservationWithAValidResponse() throws FogbowException{
+    public void testGetInstanceFromResponse() throws FogbowException{
         //setup
         Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.any())).thenCallRealMethod();
         Instance instance = Instance.builder().instanceId(FAKE_RESOURCE_ID).build();
@@ -465,7 +465,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     // test case: When calling the doDescribeAddressesRequests method, and an error
     // occurs during the request, an UnexpectedException will be thrown.
     @Test
-    public void testdoDescribeAddressesRequestsFail() throws Exception {
+    public void testDoDescribeAddressesRequestsFail() throws Exception {
         // set up
         Mockito.when(AwsV2CloudUtil.doDescribeAddressesRequests(Mockito.any(), Mockito.any())).thenCallRealMethod();
 
