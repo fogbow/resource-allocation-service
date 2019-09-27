@@ -6,6 +6,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -27,11 +28,13 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerato
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
+import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -57,6 +60,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private Properties properties;
     private String defaultNetworkId;
+    private String cloudstackUrl;
+    private String zoneId;
 
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
@@ -70,9 +75,13 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.defaultNetworkId = this.properties.getProperty(
                 CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
+        this.zoneId = this.properties.getProperty(
+                CloudStackComputePlugin.ZONE_ID_KEY_CONF);
+        this.cloudstackUrl = this.properties.getProperty(
+                CloudStackComputePlugin.CLOUDSTACK_URL_CONF);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
-        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = Mockito.spy(new CloudStackComputePlugin(cloudStackConfFilePath));
+        this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
         this.testUtils.mockReadOrdersFromDataBase();
@@ -142,9 +151,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doNothing().when(this.plugin).updateComputeOrder(Mockito.eq(computeOrder),
                 Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
 
+        // exercise
         String instanceId = this.plugin.doRequestInstance(
                 request, serviceOffice, diskOffering, computeOrder, cloudStackUser);
 
+        // verify
         Assert.assertEquals(instanceIdExpected, instanceId);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateComputeOrder(
                 Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
@@ -202,7 +213,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetAllServiceOfferingsRequest getAllServiceOfferingRequest = new GetAllServiceOfferingsRequest
-                .Builder().build(this.plugin.getCloudStackUrl());
+                .Builder().build(this.cloudstackUrl);
         String getAllServiceOfferingRequestUrl = getAllServiceOfferingRequest.getUriBuilder().toString();
 
         String idExpected = "id";
@@ -258,7 +269,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetAllDiskOfferingsRequest getAllDiskOfferingRequest = new GetAllDiskOfferingsRequest
-                .Builder().build(this.plugin.getCloudStackUrl());
+                .Builder().build(this.cloudstackUrl);
         String getAllDiskOfferingRequestUrl = getAllDiskOfferingRequest.getUriBuilder().toString();
 
         String idExpected = "id";
@@ -497,12 +508,23 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doNothing().when(this.plugin).updateComputeOrder(
                 Mockito.eq(order), Mockito.eq(serviceOffering), Mockito.eq(diskOffering));
 
+        DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
+                .serviceOfferingId(serviceOffering.getId())
+                .templateId(order.getImageId())
+                .zoneId(this.zoneId)
+                .name(order.getName())
+                .diskOfferingId(diskOffering.getId())
+                .userData(fakeUserDataString)
+                .networksId(networksIds)
+                .build(this.cloudstackUrl);
+
         // exercise
         this.plugin.requestInstance(order, cloudStackUser);
 
         // verify
+        Matcher<DeployVirtualMachineRequest> matcher = new CloudStackRequestMatcher.DeployVirtualMachineRequest(request);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .requestDeployVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
+                .requestDeployVirtualMachine(Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
     }
 
     // Test case: request instance but the service offering is not available
@@ -1317,5 +1339,35 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
                 Mockito.anyString())).thenCallRealMethod();
+    }
+
+    public static class CloudStackRequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher<T> {
+
+        private CloudStackRequest internalRequest;
+
+        private CloudStackRequestMatcher(CloudStackRequest cloudStackRequest) {
+            this.internalRequest = cloudStackRequest;
+        }
+
+        @Override
+        public boolean matches(Object externalObj)  {
+            try {
+                CloudStackRequest externalRequest = (CloudStackRequest) externalObj;
+                String internalURL = this.internalRequest.getUriBuilder().toString();
+                String externalURL = externalRequest.getUriBuilder().toString();
+                return internalURL.equals(externalURL);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        public static class DeployVirtualMachineRequest extends CloudStackRequestMatcher<cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DeployVirtualMachineRequest> {
+
+            public DeployVirtualMachineRequest(CloudStackRequest cloudStackRequest) {
+                super(cloudStackRequest);
+            }
+
+        }
+
     }
 }

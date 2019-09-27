@@ -38,7 +38,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
     private static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
-    private static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
+    protected static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
     protected static final String ZONE_ID_KEY_CONF = "zone_id";
 
     private static final String DEFAULT_EXPUNGE_ON_DEPLOY_VALUE = "true";
@@ -462,8 +462,4 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         this.client = client;
     }
 
-    @VisibleForTesting
-    String getCloudStackUrl() {
-        return cloudStackUrl;
-    }
 }
