@@ -37,12 +37,12 @@ import java.util.stream.Collectors;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    private static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
+    protected static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
     protected static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
     protected static final String ZONE_ID_KEY_CONF = "zone_id";
 
     private static final String DEFAULT_EXPUNGE_ON_DEPLOY_VALUE = "true";
-    private static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
+    protected static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
     protected static final int UNKNOWN_DISK_VALUE = -1;
 
     protected static final String FOGBOW_TAG_SEPARATOR = ":";
@@ -412,7 +412,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
-        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+        String token = cloudStackUser.getToken();
+        CloudStackUrlUtil.sign(uriRequest, token)
+        ;
         try {
             String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
             return GetVirtualMachineResponse.fromJson(jsonResponse);
