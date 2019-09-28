@@ -46,7 +46,7 @@ import java.util.*;
 
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, GetVolumeResponse.class,
         DefaultLaunchCommandGenerator.class, PropertiesUtil.class, GetVirtualMachineResponse.class,
-        DatabaseManager.class, DeployVirtualMachineResponse.class})
+        DatabaseManager.class, DeployVirtualMachineResponse.class, GetAllServiceOfferingsResponse.class})
 public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private static final CloudStackUser CLOUD_STACK_USER =
@@ -92,7 +92,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         ignoringCloudStackUrl();
     }
 
-    // test case: successffuly case
+    // test case: When calling the doGetInstance method, secondary methods are mocked
+    // and it must verify if returned the computeInstance correct
     @Test
     public void testDoGetInstance() throws FogbowException {
         // set up
@@ -114,9 +115,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(computeInstanceExpeceted, computeInstance);
     }
 
-    // test case: It's throw an exception in the request to the cloud
+    // test case: When calling the doGetInstance method, it is threw a FogbowException in the
+    // requestGetVirtualMachine method and it never will call the buildComputeInstanceMethod
     @Test
-    public void testDoGetInstanceExpecetionCloudRequest() throws FogbowException {
+    public void testDoGetInstanceFail() throws FogbowException {
         // set up
         GetVirtualMachineRequest request = Mockito.mock(GetVirtualMachineRequest.class);
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
@@ -134,9 +136,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         }
     }
 
-    // test case: successfully case
+    // test case: calling the doRequestInstance method, secondary methods are mocked
+    // and it must verify if returned the instanceId correct
     @Test
-    public void testDoRequestInstance() throws FogbowException {
+    public void testDoRequestInstanceSuccessfully() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
@@ -165,9 +168,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
     }
 
-    // test case: It's throw an exception in the request to the cloud and the method never update the order
+    // test case: When calling the doRequestInstance method, it is threw a FogbowException in the
+    // requestDeployVirtualMachine method and It never will call the updateComputeOrder
     @Test
-    public void testDoRequestInstanceExceptionCloudRequest() throws FogbowException {
+    public void testDoRequestInstanceFail() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
@@ -192,9 +196,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     }
 
-    // Test case: Trying to get all ServiceOfferings in the Cloudstack, but it occurs an error
+    // test case: When calling the getServiceOfferings method, a HttpResponseException occurs,
+    // and it must verify if a FogbowException has been thrown.
+    // note: CloudStackUrlUtil.sign() is ignored in the @Before test method.
     @Test
-    public void testGetServiceOfferingsErrorInCloudstack() throws FogbowException, HttpResponseException {
+    public void testGetServiceOfferingsFail() throws FogbowException, HttpResponseException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
@@ -211,47 +217,40 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getServiceOfferings(cloudStackUser);
     }
 
-    // Test case: Getting all ServiceOfferings in the Cloudstack successfully
+    // test case: calling the getServiceOfferings method, secondary methods are mocked
+    // and it must verify if returned the instanceId correct
+    // note: CloudStackUrlUtil.sign() is ignored in the @Before test method.
     @Test
-    public void testGetServiceOfferings() throws FogbowException, IOException {
+    public void testGetServiceOfferingsSuccessfully() throws FogbowException, IOException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetAllServiceOfferingsRequest getAllServiceOfferingRequest = new GetAllServiceOfferingsRequest
                 .Builder().build(this.cloudstackUrl);
         String getAllServiceOfferingRequestUrl = getAllServiceOfferingRequest.getUriBuilder().toString();
 
-        String idExpected = "id";
-        String nameExpected = "name";
-        String tagsExpected = "tags";
-        int cpuNumberExpected = 10;
-        int memoryExpected = 10;
-        String getAllServiceOfferingRequestJsonStr = getListServiceOfferrings(
-                idExpected, nameExpected, cpuNumberExpected, memoryExpected, tagsExpected);
-
+        String responseStr = "anyString";
         Mockito.when(this.client.doGetRequest(
                 Mockito.eq(getAllServiceOfferingRequestUrl), Mockito.eq(cloudStackUser)))
-                .thenReturn(getAllServiceOfferingRequestJsonStr);
+                .thenReturn(responseStr);
+
+        PowerMockito.mockStatic(GetAllServiceOfferingsResponse.class);
+        GetAllServiceOfferingsResponse responseExpected = Mockito.mock(GetAllServiceOfferingsResponse.class);
+        PowerMockito.when(GetAllServiceOfferingsResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(responseExpected);
 
         // exercise
-        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+        GetAllServiceOfferingsResponse response =
                 this.plugin.getServiceOfferings(cloudStackUser);
 
         // verify
-        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings =
-                getAllServiceOfferingsResponse.getServiceOfferings();
-        GetAllServiceOfferingsResponse.ServiceOffering firstServiceOffering = serviceOfferings.get(0);
-
-        Assert.assertNotNull(serviceOfferings);
-        Assert.assertEquals(idExpected, firstServiceOffering.getId());
-        Assert.assertEquals(nameExpected, firstServiceOffering.getName());
-        Assert.assertEquals(cpuNumberExpected, firstServiceOffering.getCpuNumber());
-        Assert.assertEquals(memoryExpected, firstServiceOffering.getMemory());
-        Assert.assertEquals(tagsExpected, firstServiceOffering.getTags());
+        Assert.assertEquals(responseExpected, response);
     }
 
-    // Test case: Trying to get all DiskOfferings in the Cloudstack, but it occurs an error
+    // test case: When calling the getDiskOfferings method, a HttpResponseException occurs,
+    // and it must verify if a FogbowException has been thrown.
+    // note: CloudStackUrlUtil.sign() is ignored in the @Before test method.
     @Test
-    public void testGetDiskOfferingsErrorInCloudstack() throws FogbowException, HttpResponseException {
+    public void testGetDiskOfferingsFail() throws FogbowException, HttpResponseException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
 
@@ -267,9 +266,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getDiskOfferings(cloudStackUser);
     }
 
+    // TODO(chico) - Complete this refactor
     // Test case: Getting all DiskOfferings in the Cloudstack successfully
     @Test
-    public void testGetDiskOfferings() throws FogbowException, IOException {
+    public void testGetDiskOfferingsSuccessfully() throws FogbowException, IOException {
         // set up
         CloudStackUser cloudStackUser = CLOUD_STACK_USER;
         GetAllDiskOfferingsRequest getAllDiskOfferingRequest = new GetAllDiskOfferingsRequest
@@ -1320,13 +1320,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private String getListDiskOfferrings(String id, int diskSize, boolean customized) throws IOException {
         return CloudstackTestUtils.createGetAllDiskOfferingsResponseJson(
                 id, diskSize, customized, "");
-    }
-
-    private String getListServiceOfferrings(
-            String id, String name, int cpuNumber, int memory, String tags) throws IOException {
-
-        return CloudstackTestUtils.createGetAllServiceOfferingsResponseJson(
-                id, name, cpuNumber, memory, tags);
     }
 
     private ComputeOrder createComputeOrder(ArrayList<UserData> fakeUserData, String fakeImageId) {
