@@ -50,8 +50,6 @@ import java.util.*;
         GetAllDiskOfferingsResponse.class})
 public class CloudStackComputePluginTest extends BaseUnitTests {
 
-    private static final CloudStackUser CLOUD_STACK_USER =
-            new CloudStackUser("", "", "", "", new HashMap<>());
     private static final String BAD_REQUEST_MSG = "Bad Request";
     private final int AMOUNT_EXTRA_SERVICE_OFFERING = 4;
     private static final String CLOUDSTACK_CLOUD_NAME = "cloudstack";
@@ -98,7 +96,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testDoGetInstance() throws FogbowException {
         // set up
         GetVirtualMachineRequest request = Mockito.mock(GetVirtualMachineRequest.class);
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         GetVirtualMachineResponse response = Mockito.mock(GetVirtualMachineResponse.class);
         Mockito.doReturn(response).when(this.plugin).requestGetVirtualMachine(
@@ -121,7 +119,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testDoGetInstanceFail() throws FogbowException {
         // set up
         GetVirtualMachineRequest request = Mockito.mock(GetVirtualMachineRequest.class);
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         GetVirtualMachineResponse response = Mockito.mock(GetVirtualMachineResponse.class);
         Mockito.doThrow(new FogbowException()).when(this.plugin).requestGetVirtualMachine(
@@ -141,7 +139,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstanceSuccessfully() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffice =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
@@ -173,7 +171,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstanceFail() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffice =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
@@ -202,7 +200,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetServiceOfferingsFail() throws FogbowException, HttpResponseException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         HttpResponseException badRequestHttpResponse = createBadRequestHttpResponse();
         Mockito.when(this.client.doGetRequest(
@@ -223,7 +221,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetServiceOfferingsSuccessfully() throws FogbowException, IOException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetAllServiceOfferingsRequest getAllServiceOfferingRequest = new GetAllServiceOfferingsRequest
                 .Builder().build(this.cloudstackUrl);
         String getAllServiceOfferingRequestUrl = getAllServiceOfferingRequest.getUriBuilder().toString();
@@ -252,7 +250,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetDiskOfferingsFail() throws FogbowException, HttpResponseException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         HttpResponseException badRequestHttpResponse = createBadRequestHttpResponse();
         Mockito.doThrow(badRequestHttpResponse).when(this.plugin).doGet(
@@ -272,7 +270,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetDiskOfferingsSuccessfully() throws FogbowException, IOException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetAllDiskOfferingsRequest getAllDiskOfferingRequest = new GetAllDiskOfferingsRequest
                 .Builder().build(this.cloudstackUrl);
         String getAllDiskOfferingRequestUrl = getAllDiskOfferingRequest.getUriBuilder().toString();
@@ -331,7 +329,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetServiceOfferingSuccessfully() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
@@ -358,7 +356,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetServiceOfferingFail() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         ComputeOrder computeOrder = createComputeOrder(
                 new ArrayList<UserData>(), "fake-image-id");
@@ -387,7 +385,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetServiceOfferingWithoutMatching() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         ComputeOrder computeOrder = createComputeOrder(
                 new ArrayList<UserData>(), "fake-image-id");
@@ -456,7 +454,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testRequestInstanceSuccessfully() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
         String networksIds = "networksId";
@@ -512,7 +510,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testRequestInstanceFailOnServiceOffering() throws FogbowException {
         // set up
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         String networksIds = "networksId";
         Mockito.doReturn(networksIds).when(this.plugin)
@@ -540,7 +538,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testRequestInstanceFailOnDiskOffering() throws FogbowException {
         // set up
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         String networksIds = "networksId";
         Mockito.doReturn(networksIds).when(this.plugin)
@@ -572,7 +570,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testRequestInstanceFailErrorInRequest() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
 
         Mockito.doReturn("networksId").when(this.plugin)
@@ -653,11 +651,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetVirtualMachineDiskSizeSuccessfully() throws FogbowException, IOException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         String virtualMachineIdExpected = "id";
 
         String getVolumeResponseStr = "anyString";
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudStackUser)))
                 .thenReturn(getVolumeResponseStr);
 
         PowerMockito.mockStatic(GetVolumeResponse.class);
@@ -696,11 +694,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetVirtualMachineDiskFailWhenNoVolumes() throws FogbowException, IOException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         String virtualMachineIdExpected = "id";
 
         String anyResponse = "";
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudStackUser)))
                 .thenReturn(anyResponse);
 
         GetVolumeResponse volumeResponse = Mockito.mock(GetVolumeResponse.class);
@@ -731,10 +729,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetVirtualMachineDiskSizeFail() throws FogbowException, IOException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         String virtualMachineId = "id";
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudStackUser)))
                 .thenThrow(createBadRequestHttpResponse());
 
         // exercise
@@ -749,7 +747,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testBuildComputeInstanceSuccessfully() throws InstanceNotFoundException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
         GetVirtualMachineResponse.VirtualMachine virtualMachine =
@@ -780,7 +778,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testBuildComputeInstanceFail() throws InstanceNotFoundException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
         Mockito.when(getVirtualMachineResponse.getVirtualMachines()).thenReturn(virtualMachines);
@@ -797,7 +795,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testRequestGetVirtualMachineSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
                 .build("anything");
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
@@ -827,7 +825,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
             throws FogbowException, HttpResponseException {
 
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
                 .build("anything");
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
@@ -850,11 +848,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         GetVirtualMachineResponse getVirtualMachineResponse = Mockito.mock(GetVirtualMachineResponse.class);
         Mockito.doReturn(getVirtualMachineResponse).when(this.plugin)
-                .requestGetVirtualMachine(Mockito.any(), Mockito.eq(CLOUD_STACK_USER));
+                .requestGetVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(computeInstanceExpected).when(this.plugin)
@@ -880,10 +878,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testGetInstanceFail() throws FogbowException {
         // set up
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         Mockito.doThrow(new FogbowException()).when(this.plugin)
-                .requestGetVirtualMachine(Mockito.any(), Mockito.eq(CLOUD_STACK_USER));
+                .requestGetVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
         // exercise
         try {
@@ -901,7 +899,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
         //set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         DestroyVirtualMachineRequest destroyVirtualMachineRequest = new DestroyVirtualMachineRequest
                 .Builder().build("anything");
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
@@ -922,7 +920,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDoDeleteInstanceFail() throws FogbowException, HttpResponseException {
         //set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         DestroyVirtualMachineRequest destroyVirtualMachineRequest = new DestroyVirtualMachineRequest
                 .Builder().build("anything");
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
@@ -943,14 +941,15 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         Mockito.when(this.client.doGetRequest(
-                Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER))).thenReturn("");
+                Mockito.anyString(), Mockito.eq(cloudStackUser))).thenReturn("");
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
         Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(),
-                Mockito.eq(CLOUD_STACK_USER), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+                Mockito.eq(cloudStackUser), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
 
         CloudStackRequest requestExpected = new DestroyVirtualMachineRequest.Builder()
                 .id(computeOrder.getInstanceId())
@@ -958,12 +957,12 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .build(this.cloudstackUrl);
 
         // exercise
-        this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
+        this.plugin.deleteInstance(computeOrder, cloudStackUser);
 
         // verify
         Matcher<DestroyVirtualMachineRequest> matcher = new RequestMatcher.DestroyVirtualMachine(requestExpected);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.argThat(matcher),
-                        Mockito.eq(CLOUD_STACK_USER), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+                        Mockito.eq(cloudStackUser), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
     }
 
     // test case: calling the deleteInstance method and it occurs a Exception,
@@ -971,20 +970,21 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDeleteInstanceFail() throws FogbowException, HttpResponseException {
         // set up
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(CLOUD_STACK_USER)))
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudStackUser)))
                 .thenThrow(createBadRequestHttpResponse());
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
 
         Mockito.doThrow(new FogbowException()).when(this.plugin).doDeleteInstance(Mockito.any(),
-                Mockito.eq(CLOUD_STACK_USER), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+                Mockito.eq(cloudStackUser), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
 
         // verify
         this.expectedException.expect(FogbowException.class);
 
         // exercise
-        this.plugin.deleteInstance(computeOrder, CLOUD_STACK_USER);
+        this.plugin.deleteInstance(computeOrder, cloudStackUser);
     }
 
     // test case: When calling the filterServicesOfferingByRequirements method with secondary methods mocked,
@@ -1087,7 +1087,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetDiskOfferingSuccessfully() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         int diskExpected = 1;
 
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
@@ -1122,7 +1122,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         int diskExpected = 1;
         int diskNotMatch = diskExpected - 1;
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
         Mockito.doReturn(getAllDiskOfferingsResponse)
@@ -1155,7 +1155,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetDiskOfferingFailWhenThereAreNotDisck() throws FogbowException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
                 Mockito.mock(GetAllDiskOfferingsResponse.class);
@@ -1179,7 +1179,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testDoGetSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         String url = "http://localhost";
         String responseStrExpeced = "response";
 
@@ -1209,7 +1209,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.expectedException.expectMessage(exceptionMessage);
 
         // exercise
-        this.plugin.doGet(url, CLOUD_STACK_USER);
+        this.plugin.doGet(url, CloudstackTestUtils.CLOUD_STACK_USER);
     }
 
     // test case: When calling the requestDeployVirtualMachine method with secondary methods mocked,
@@ -1219,7 +1219,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         String responseStr = "";
         Mockito.when(this.client.doGetRequest(
@@ -1246,7 +1246,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("anything");
-        CloudStackUser cloudStackUser = CLOUD_STACK_USER;
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         Mockito.when(this.client.doGetRequest(
                 Mockito.any(), Mockito.eq(cloudStackUser))).thenThrow(createBadRequestHttpResponse());
