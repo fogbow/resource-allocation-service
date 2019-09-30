@@ -16,7 +16,7 @@ public class VolumeImage extends OpenNebulaMarshaller {
     private String fileSystemType;
     private String diskType;
     private String devicePrefix;
-    private int size;
+    private long size;
 
     @XmlElement(name = NAME)
     public String getName() {
@@ -73,11 +73,11 @@ public class VolumeImage extends OpenNebulaMarshaller {
     }
     
     @XmlElement(name = SIZE)
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
     
