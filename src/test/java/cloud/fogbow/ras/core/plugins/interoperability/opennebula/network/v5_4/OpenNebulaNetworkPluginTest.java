@@ -3,6 +3,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 import java.io.File;
 import java.util.UUID;
 
+import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
+import org.apache.commons.net.util.SubnetUtils;
+import org.h2.security.Fog;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -19,11 +26,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -31,12 +33,15 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.OpenNebulaNetworkPlugin.*;
+
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class, SecurityGroup.class, UUID.class, VirtualNetwork.class})
-public class OpenNebulaNetworkPluginTest {
+@PrepareForTest({OpenNebulaClientUtil.class, SecurityGroup.class, UUID.class, VirtualNetwork.class, DatabaseManager.class})
+public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 	private static final String EMPTY_STRING = "";
 	private static final String FAKE_ADDRESS = "10.1.0.0";
+	private static final String FIRST_ADDRESS = "10.1.0.1";
 	private static final String FAKE_CIDR_ADDRESS = "10.1.0.0/24";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 	private static final String FAKE_NETWORK_NAME = "fake-network-name";
@@ -47,21 +52,139 @@ public class OpenNebulaNetworkPluginTest {
 	private static final String ID_VALUE_ZERO = "0";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_ORDER_ID = "fake-order-id";
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 
 	private static final int MAXIMUM_INTEGER_VALUE = 2147483647;
 	private static final int NEGATIVE_SIZE_VALUE = -1;
 	private static final int ZERO_VALUE = 0;
-	
+
 	private OpenNebulaNetworkPlugin plugin;
+	private VirtualNetwork virtualNetwork;
+	private NetworkOrder networkOrder;
 
 	@Before
-	public void setUp() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+	public void setUp() throws FogbowException {
+	    super.setUp();
 
-		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(opennebulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(this.openNebulaConfFilePath));
+		this.virtualNetwork = Mockito.mock(VirtualNetwork.class);
+		this.networkOrder = Mockito.spy(this.createNetworkOrder());
+
+		Mockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(this.virtualNetwork);
+	}
+
+	@Test
+	public void testRequestInstance() throws FogbowException {
+	    // set up
+		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_CIDR_ADDRESS).getInfo();
+		String firstAddress = subnetInfo.getLowAddress();
+		int size = subnetInfo.getAddressCount();
+
+		Mockito.doReturn(ZERO_VALUE).when(this.plugin).getAddressRangeIndex(
+				Mockito.any(VirtualNetwork.class), Mockito.anyString(), Mockito.anyInt());
+		Mockito.doReturn(ID_VALUE_ZERO).when(this.plugin).getAddressRangeId(
+				Mockito.any(VirtualNetwork.class), Mockito.anyInt(), Mockito.anyString());
+		Mockito.doReturn(FAKE_ADDRESS).when(this.plugin).getNextAvailableAddress(
+				Mockito.any(VirtualNetwork.class), Mockito.anyInt());
+		Mockito.doReturn(this.networkOrder.getInstanceId()).when(this.plugin).doRequestInstance(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
+
+		// exercise
+		this.plugin.requestInstance(this.networkOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString());
+
+		Mockito.verify(this.networkOrder, Mockito.times(TestUtils.RUN_ONCE)).getCidr();
+		Mockito.verify(this.networkOrder, Mockito.times(TestUtils.RUN_ONCE)).getName();
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAddressRangeIndex(
+				Mockito.eq(this.virtualNetwork), Mockito.eq(firstAddress), Mockito.eq(size));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAddressRangeId(
+				Mockito.eq(this.virtualNetwork), Mockito.eq(ZERO_VALUE), Mockito.eq(FAKE_CIDR_ADDRESS));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNextAvailableAddress(
+				Mockito.eq(this.virtualNetwork), Mockito.eq(ZERO_VALUE));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
+	}
+
+	@Test
+	public void testGetAddressRangeIndex() throws InvalidParameterException {
+		// set up
+		Integer fakeIndex = 1;
+
+	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, fakeIndex))))
+				.thenReturn(FAKE_ADDRESS)
+				.thenReturn(EMPTY_STRING);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, fakeIndex))))
+				.thenReturn("10");
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, fakeIndex))))
+				.thenReturn(ID_VALUE_ZERO);
+
+		// exercise
+		Integer index = this.plugin.getAddressRangeIndex(this.virtualNetwork, FIRST_ADDRESS, fakeIndex);
+		Integer nullIndex = this.plugin.getAddressRangeIndex(this.virtualNetwork, FIRST_ADDRESS, fakeIndex);
+
+		// verifiy
+		Mockito.verify(this.virtualNetwork, Mockito.times(6)).xpath(Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.anyString());
+		Assert.assertEquals(fakeIndex, index);
+		Assert.assertEquals(null, nullIndex);
+	}
+
+	@Test
+	public void testGetAddressRangeId() throws NoAvailableResourcesException {
+		// set up
+		Integer fakeIndex = 1;
+
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, fakeIndex))))
+				.thenReturn(String.valueOf(fakeIndex));
+
+		// exercise
+		String index = this.plugin.getAddressRangeId(this.virtualNetwork, fakeIndex, FAKE_CIDR_ADDRESS);
+
+		// verify
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.anyString());
+		Assert.assertEquals(String.valueOf(fakeIndex), index);
+	}
+
+	@Test
+	public void testGetAddressRangeIdFail() {
+	    // set up
+		String expectedMessage = String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE, FAKE_CIDR_ADDRESS);
+
+		try {
+			// exercise
+			String index = this.plugin.getAddressRangeId(this.virtualNetwork, null, FAKE_CIDR_ADDRESS);
+			Assert.fail();
+		} catch (NoAvailableResourcesException e) {
+		    // verify
+            Assert.assertEquals(expectedMessage, e.getMessage());
+		}
+	}
+
+	@Test
+	public void testGetNextAvailableAddress() throws InvalidParameterException {
+		// set up
+		Integer fakeIndex = 1;
+
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, fakeIndex))))
+				.thenReturn(FAKE_ADDRESS);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, fakeIndex))))
+				.thenReturn("10");
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, fakeIndex))))
+				.thenReturn(String.valueOf(fakeIndex))
+				.thenReturn(ID_VALUE_ZERO);
+
+		// exercise
+		this.plugin.getNextAvailableAddress(this.virtualNetwork, fakeIndex);
+		String defaultFistIp = this.plugin.getNextAvailableAddress(this.virtualNetwork, fakeIndex);
+
+		// verify
+		Mockito.verify(this.virtualNetwork, Mockito.times(6)).xpath(Mockito.anyString());
+		Assert.assertEquals(FAKE_ADDRESS, defaultFistIp);
 	}
 
 	// test case: When you call the createSecurityGroup method with a valid client,
@@ -181,7 +304,7 @@ public class OpenNebulaNetworkPluginTest {
 
 		int defaultNetworkID = Integer.parseInt(ID_VALUE_ZERO);
 		String networkName = null;
-		NetworkOrder networkOrder = createNetworkOrder(networkName);
+		NetworkOrder networkOrder = createNetworkOrder();
 
 		networkName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + FAKE_NETWORK_NAME;
 		String networkReserveTemplate = getNetworkReserveTemplate(networkName);
@@ -236,7 +359,7 @@ public class OpenNebulaNetworkPluginTest {
 
 		int defaultNetworkID = Integer.parseInt(ID_VALUE_ZERO);
 		String networkName = FAKE_NETWORK_NAME;
-		NetworkOrder networkOrder = createNetworkOrder(networkName);
+		NetworkOrder networkOrder = createNetworkOrder();
 		String networkReserveTemplate = getNetworkReserveTemplate(networkName);
 
 		BDDMockito.given(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client), Mockito.eq(defaultNetworkID),
@@ -518,22 +641,22 @@ public class OpenNebulaNetworkPluginTest {
 		this.plugin.convertToInteger(number);
 	}
 
-	private NetworkOrder createNetworkOrder(String networkName) {
+	private NetworkOrder createNetworkOrder() {
 		String providingMember = null;
 		String cloudName = null;
-		String name = networkName;
+		String name = FAKE_NETWORK_NAME;
 		String gateway = "10.10.10.1";
-		String cidr = "10.10.10.0/24";
+		String cidr = FAKE_CIDR_ADDRESS;
 		NetworkAllocationMode allocation = null;
-				
+
 		NetworkOrder networkOrder = new NetworkOrder(
-				providingMember, 
-				cloudName, 
-				name, 
-				gateway, 
-				cidr, 
+				providingMember,
+				cloudName,
+				name,
+				gateway,
+				cidr,
 				allocation);
-		
+
 		return networkOrder;
 	}
 
@@ -544,7 +667,7 @@ public class OpenNebulaNetworkPluginTest {
 		CloudUser cloudUser = new CloudUser(userId, null, tokenValue);
 		return cloudUser;
 	}
-	
+
 	private String getSecurityGroupTemplate(String securityGroupName) {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
 				+ "<TEMPLATE>\n"
