@@ -29,6 +29,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import org.opennebula.client.vnet.VirtualNetwork;
 
 import javax.annotation.Nullable;
 
@@ -81,16 +82,10 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		CreateComputeRequest request = this.getCreateComputeRequest(client, computeOrder);
 		VirtualMachineTemplate virtualMachine = request.getVirtualMachine();
 
-		synchronized (computeOrder) {
-			ComputeAllocation actualAllocation = new ComputeAllocation(
-					Integer.parseInt(virtualMachine.getCpu()),
-					Integer.parseInt(virtualMachine.getMemory()),
-					DEFAULT_NUMBER_OF_INSTANCES,
-					Integer.parseInt(virtualMachine.getDisk().getSize()));
-			computeOrder.setActualAllocation(actualAllocation);
-		}
+		String instanceId = this.doRequestInstance(client, request);
+		this.setOrderAllocation(computeOrder, virtualMachine);
 
-		return this.doRequestInstance(client, request);
+		return instanceId;
 	}
 
 	@Override
@@ -164,25 +159,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String memory = String.valueOf(foundFlavor.getMemory());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
-		return this.createComputeRequest(name, hasNetwork, publicKey, userName, startScriptBase64,
-				cpu, graphicsAddress, graphicsType, imageId, disk, memory, networks, architecture);
-	}
-
-	protected List<String> getNetworkIds(List<String> networkIds) {
-		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
-		List<String>  networks = new ArrayList<>();
-		networks.add(defaultNetworkId);
-		if (!networkIds.isEmpty()) {
-			networks.addAll(networkIds);
-		}
-
-		return networks;
-	}
-
-	protected CreateComputeRequest createComputeRequest(String name, String hasNetwork, String publicKey, String userName,
-			String startScriptBase64, String cpu, String graphicsAddress, String graphicsType, String imageId, String disk,
-			String memory, List<String> networks, String architecture) {
-
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
 				.name(name)
 				.contextNetwork(hasNetwork)
@@ -200,6 +176,26 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				.build();
 
 		return request;
+	}
+
+	protected synchronized void setOrderAllocation(ComputeOrder computeOrder, VirtualMachineTemplate virtualMachine) {
+		ComputeAllocation actualAllocation = new ComputeAllocation(
+				Integer.parseInt(virtualMachine.getCpu()),
+				Integer.parseInt(virtualMachine.getMemory()),
+				DEFAULT_NUMBER_OF_INSTANCES,
+				Integer.parseInt(virtualMachine.getDisk().getSize()));
+		computeOrder.setActualAllocation(actualAllocation);
+	}
+
+	protected List<String> getNetworkIds(List<String> networkIds) {
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
+		List<String>  networks = new ArrayList<>();
+		networks.add(defaultNetworkId);
+		if (!networkIds.isEmpty()) {
+			networks.addAll(networkIds);
+		}
+
+		return networks;
 	}
 
 	protected HardwareRequirements findSmallestFlavor(Client client, ComputeOrder computeOrder)
