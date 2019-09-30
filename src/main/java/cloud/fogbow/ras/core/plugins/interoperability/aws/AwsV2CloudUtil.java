@@ -9,11 +9,14 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.Address;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
 import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.DeleteSecurityGroupRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
@@ -172,6 +175,31 @@ public class AwsV2CloudUtil {
             volumeIds.add(instance.blockDeviceMappings().get(i).ebs().volumeId());
         }
         return volumeIds;
+    }
+    
+    public static Address getAddressById(String allocationId, Ec2Client client) throws FogbowException {
+        DescribeAddressesRequest request = DescribeAddressesRequest.builder()
+                .allocationIds(allocationId)
+                .build();
+        
+        DescribeAddressesResponse response = doDescribeAddressesRequests(request, client);
+        return getAddressFrom(response);
+    }
+
+    private static Address getAddressFrom(DescribeAddressesResponse response) throws InstanceNotFoundException {
+        if (response != null && !response.addresses().isEmpty()) {
+            return response.addresses().listIterator().next();
+        }
+        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+    }
+
+    public static DescribeAddressesResponse doDescribeAddressesRequests(DescribeAddressesRequest request,
+            Ec2Client client) throws FogbowException {
+        try {
+            return client.describeAddresses(request);
+        } catch (SdkException e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
     }
     
     public static Subnet getSubnetById(String subnetId, Ec2Client client) throws FogbowException {
