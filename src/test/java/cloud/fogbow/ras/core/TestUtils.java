@@ -41,13 +41,17 @@ public class TestUtils {
     public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
-    public static final int RUN_TWICE = 2;
-    
+    public static final int RUN_THRICE = 3;
+
     public static final long DEFAULT_SLEEP_TIME = 500;
     
     public static final String ANY_VALUE = "anything";
+    public static final String CREATE_SECURITY_GROUP_METHOD = "createSecurityGroup";
     public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
+    public static final String DESCRIBE_INSTANCE_METHOD = "describeInstance";
+    public static final String DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD = "doAuthorizeSecurityGroupIngress";
+    public static final String DO_DELETE_SECURITY_GROUP_METHOD = "doDeleteSecurityGroup";
     public static final String DO_DESCRIBE_IMAGES_REQUEST_METHOD = "doDescribeImagesRequest";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
@@ -73,6 +77,8 @@ public class TestUtils {
     public static final String FAKE_USER_NAME = "fake-user-name";
     public static final String FAKE_VOLUME_ID = "fake-volume-id";
     public static final String FROM_JSON_METHOD = "fromJson";
+    public static final String GET_ADDRESS_BY_ID_METHOD = "getAddressById";
+    public static final String GET_GROUP_ID_FROM_METHOD = "getGroupIdFrom";
     public static final String JSON_MALFORMED = "{anything:}";
     public static final String LOCAL_MEMBER_ID = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     public static final String MAP_METHOD = "map";
