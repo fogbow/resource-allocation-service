@@ -27,7 +27,7 @@ public class CreateVolumeRequest {
         private String fileSystemType;
         private String diskType;
         private String devicePrefix;
-        private int size;
+        private long size;
 
         public Builder name(String name) {
             this.name = name;
@@ -59,7 +59,7 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder size(int size) {
+        public Builder size(long size) {
             this.size = size;
             return this;
         }
