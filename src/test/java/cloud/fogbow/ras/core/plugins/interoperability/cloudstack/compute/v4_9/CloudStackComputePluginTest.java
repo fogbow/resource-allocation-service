@@ -264,6 +264,25 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getDiskOfferings(cloudStackUser);
     }
 
+    // test case: When calling the getDiskOfferings method and a unexpected HttpResponseException
+    // occurs, it must verify if a UnexpectedException has been thrown.
+    // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
+    @Test
+    public void testGetDiskOfferingsFailUnexpected() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        HttpResponseException unexpectedHttpResponse = createUnexpectedHttpResponse();
+        Mockito.doThrow(unexpectedHttpResponse).when(this.plugin).doGet(
+                Mockito.anyString(), Mockito.any(CloudStackUser.class));
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+
+        // exercise
+        this.plugin.getDiskOfferings(cloudStackUser);
+    }
+
     // test case: calling the getDiskOfferings method, secondary methods are mocked
     // ,it must verify if it is returned the GetAllDiskOfferingsResponse correct
     // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
@@ -572,7 +591,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: When calling the requestInstance method with occcurs an exception in the
     // requestDeployVirtualMachine, it must verify if a FogbowException was threw
     @Test
-    public void testRequestInstanceFailErrorInRequest() throws FogbowException {
+    public void testRequestInstanceFailInRequest() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
@@ -825,8 +844,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the requestGetVirtualMachineFail method and it occurs a Exception,
     // it must verify if it was threw a FogbowException
     @Test
-    public void testRequestGetVirtualMachineFail()
-            throws FogbowException, HttpResponseException {
+    public void testRequestGetVirtualMachineFail() throws FogbowException, HttpResponseException {
 
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
@@ -840,6 +858,28 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.requestGetVirtualMachine(getVirtualMachineRequest, cloudStackUser);
+    }
+
+    // test case: calling the requestGetVirtualMachineFail method and it occurs an unexpected
+    // HttpResponseException, it must verify if it was threw a UnexpectedException.
+    // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
+    @Test
+    public void testRequestGetVirtualMachineFailUnexpected()throws FogbowException, HttpResponseException {
+
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
+                .build("anything");
+        URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
+
+        Mockito.doThrow(createUnexpectedHttpResponse()).when(this.plugin)
+                .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
 
         // exercise
         this.plugin.requestGetVirtualMachine(getVirtualMachineRequest, cloudStackUser);
@@ -1262,6 +1302,25 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.requestDeployVirtualMachine(deployVirtualMachineRequest, cloudStackUser);
     }
 
+    // test case: calling the requestDeployVirtualMachine method and it occurs a unexpected
+    // HttpResponseException, it must verify if it was threw a UnexpectedException.
+    // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
+    @Test
+    public void testRequestDeployVirtualMachineFailUnexpected() throws FogbowException, IOException {
+        // set up
+        DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
+                .build("anything");
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        Mockito.when(this.client.doGetRequest(
+                Mockito.any(), Mockito.eq(cloudStackUser))).thenThrow(createUnexpectedHttpResponse());
+
+        this.expectedException.expect(UnexpectedException.class);
+
+        // exercise
+        this.plugin.requestDeployVirtualMachine(deployVirtualMachineRequest, cloudStackUser);
+    }
+
     // test case: When calling the updateComputeOrder method with order and new values,
     // it must verify if It updates the compute order.
     @Test
@@ -1381,6 +1440,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
+    }
+
+    private HttpResponseException createUnexpectedHttpResponse() {
+        return new HttpResponseException(HttpStatus.SC_CONTINUE, "");
     }
 
     private void ignoringCloudStackUrl() throws InvalidParameterException {

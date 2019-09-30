@@ -276,8 +276,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
-            return null;
         }
+        throw new UnexpectedException();
     }
 
     @NotNull
@@ -401,8 +401,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             return DeployVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
-            return null;
         }
+        throw new UnexpectedException();
     }
 
     @NotNull
@@ -413,15 +413,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         URIBuilder uriRequest = request.getUriBuilder();
         String token = cloudStackUser.getToken();
-        CloudStackUrlUtil.sign(uriRequest, token)
-        ;
+        CloudStackUrlUtil.sign(uriRequest, token);
+
         try {
             String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
             return GetVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
-            return null;
         }
+        throw new UnexpectedException();
     }
 
     @NotNull
