@@ -79,6 +79,7 @@ public class TestUtils {
     public static final String FROM_JSON_METHOD = "fromJson";
     public static final String GET_ADDRESS_BY_ID_METHOD = "getAddressById";
     public static final String GET_GROUP_ID_FROM_METHOD = "getGroupIdFrom";
+    public static final String GET_SUBNET_BY_ID_METHOD = "getSubnetById";
     public static final String JSON_MALFORMED = "{anything:}";
     public static final String LOCAL_MEMBER_ID = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
     public static final String MAP_METHOD = "map";
