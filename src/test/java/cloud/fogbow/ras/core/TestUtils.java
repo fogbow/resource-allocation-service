@@ -41,6 +41,7 @@ public class TestUtils {
     public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
+    public static final int RUN_SIX_TIMES = 6;
 
     public static final long DEFAULT_SLEEP_TIME = 500;
     

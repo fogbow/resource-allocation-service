@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import java.io.File;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
@@ -9,12 +8,10 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import org.apache.commons.net.util.SubnetUtils;
-import org.h2.security.Fog;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -24,10 +21,8 @@ import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -35,7 +30,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClien
 
 import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.OpenNebulaNetworkPlugin.*;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, SecurityGroup.class, UUID.class, VirtualNetwork.class, DatabaseManager.class})
 public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
@@ -50,12 +44,14 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	private static final String FAKE_VLAN_ID = "fake-vlan-id";
 	private static final String ID_VALUE_ONE = "1";
 	private static final String ID_VALUE_ZERO = "0";
+	private static final String TEN_STRING_VALUE = "10";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_ORDER_ID = "fake-order-id";
 
 	private static final int MAXIMUM_INTEGER_VALUE = 2147483647;
 	private static final int NEGATIVE_SIZE_VALUE = -1;
 	private static final int ZERO_VALUE = 0;
+	private static final Integer ONE_VALUE = 1;
 
 	private OpenNebulaNetworkPlugin plugin;
 	private VirtualNetwork virtualNetwork;
@@ -113,41 +109,37 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetAddressRangeIndex() throws InvalidParameterException {
 		// set up
-		Integer fakeIndex = 1;
-
-	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, fakeIndex))))
+	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, ONE_VALUE))))
 				.thenReturn(FAKE_ADDRESS)
 				.thenReturn(EMPTY_STRING);
-		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, fakeIndex))))
-				.thenReturn("10");
-		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, fakeIndex))))
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, ONE_VALUE))))
+				.thenReturn(TEN_STRING_VALUE);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, ONE_VALUE))))
 				.thenReturn(ID_VALUE_ZERO);
 
 		// exercise
-		Integer index = this.plugin.getAddressRangeIndex(this.virtualNetwork, FIRST_ADDRESS, fakeIndex);
-		Integer nullIndex = this.plugin.getAddressRangeIndex(this.virtualNetwork, FIRST_ADDRESS, fakeIndex);
+		Integer index = this.plugin.getAddressRangeIndex(this.virtualNetwork, FIRST_ADDRESS, ONE_VALUE);
+		Integer nullIndex = this.plugin.getAddressRangeIndex(this.virtualNetwork, FIRST_ADDRESS, ONE_VALUE);
 
 		// verifiy
-		Mockito.verify(this.virtualNetwork, Mockito.times(6)).xpath(Mockito.anyString());
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_SIX_TIMES)).xpath(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.anyString());
-		Assert.assertEquals(fakeIndex, index);
+		Assert.assertEquals(ONE_VALUE, index);
 		Assert.assertEquals(null, nullIndex);
 	}
 
 	@Test
 	public void testGetAddressRangeId() throws NoAvailableResourcesException {
 		// set up
-		Integer fakeIndex = 1;
-
-		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, fakeIndex))))
-				.thenReturn(String.valueOf(fakeIndex));
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, ONE_VALUE))))
+				.thenReturn(String.valueOf(ONE_VALUE));
 
 		// exercise
-		String index = this.plugin.getAddressRangeId(this.virtualNetwork, fakeIndex, FAKE_CIDR_ADDRESS);
+		String index = this.plugin.getAddressRangeId(this.virtualNetwork, ONE_VALUE, FAKE_CIDR_ADDRESS);
 
 		// verify
 		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.anyString());
-		Assert.assertEquals(String.valueOf(fakeIndex), index);
+		Assert.assertEquals(String.valueOf(ONE_VALUE), index);
 	}
 
 	@Test
@@ -155,12 +147,12 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	    // set up
 		String expectedMessage = String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE, FAKE_CIDR_ADDRESS);
 
+		// exercise
 		try {
-			// exercise
-			String index = this.plugin.getAddressRangeId(this.virtualNetwork, null, FAKE_CIDR_ADDRESS);
+			this.plugin.getAddressRangeId(this.virtualNetwork, null, FAKE_CIDR_ADDRESS);
 			Assert.fail();
 		} catch (NoAvailableResourcesException e) {
-		    // verify
+			// verify
             Assert.assertEquals(expectedMessage, e.getMessage());
 		}
 	}
@@ -168,23 +160,53 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetNextAvailableAddress() throws InvalidParameterException {
 		// set up
-		Integer fakeIndex = 1;
-
-		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, fakeIndex))))
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, ONE_VALUE))))
 				.thenReturn(FAKE_ADDRESS);
-		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, fakeIndex))))
-				.thenReturn("10");
-		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, fakeIndex))))
-				.thenReturn(String.valueOf(fakeIndex))
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, ONE_VALUE))))
+				.thenReturn(TEN_STRING_VALUE);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_USED_LEASES_PATH_FORMAT, ONE_VALUE))))
+				.thenReturn(String.valueOf(ONE_VALUE))
 				.thenReturn(ID_VALUE_ZERO);
 
 		// exercise
-		this.plugin.getNextAvailableAddress(this.virtualNetwork, fakeIndex);
-		String defaultFistIp = this.plugin.getNextAvailableAddress(this.virtualNetwork, fakeIndex);
+		this.plugin.getNextAvailableAddress(this.virtualNetwork, ONE_VALUE);
+		String defaultFistIp = this.plugin.getNextAvailableAddress(this.virtualNetwork, ONE_VALUE);
 
 		// verify
-		Mockito.verify(this.virtualNetwork, Mockito.times(6)).xpath(Mockito.anyString());
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_SIX_TIMES)).xpath(Mockito.anyString());
 		Assert.assertEquals(FAKE_ADDRESS, defaultFistIp);
+	}
+
+	@Test
+	public void testDoRequestInstance() throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
+		// set up
+		String updateNetworkTemplate = this.getNetworkUpdateTemplate();
+		String instanceId = this.networkOrder.getId();
+		CreateNetworkReserveRequest request = Mockito.spy(this.getCreateNetworkReserveRequest());
+
+		Mockito.when(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.any(Client.class), Mockito.anyInt(), Mockito.anyString()))
+				.thenReturn(ID_VALUE_ZERO);
+		Mockito.when(OpenNebulaClientUtil.updateVirtualNetwork(Mockito.any(Client.class), Mockito.anyInt(), Mockito.anyString()))
+				.thenReturn(ID_VALUE_ONE);
+		Mockito.doReturn(ZERO_VALUE).when(this.plugin).convertToInteger(Mockito.anyString());
+		Mockito.doReturn(updateNetworkTemplate).when(this.plugin).getNetworkUpdateTemplate(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
+
+		// exercise
+		this.plugin.doRequestInstance(this.client, instanceId, request);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.reserveVirtualNetwork(
+				Mockito.any(Client.class), Mockito.eq(ZERO_VALUE), Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.updateVirtualNetwork(
+				Mockito.eq(this.client), Mockito.eq(ZERO_VALUE), Mockito.eq(updateNetworkTemplate));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.eq(ID_VALUE_ZERO));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkUpdateTemplate(
+				Mockito.eq(this.client), Mockito.eq(ID_VALUE_ZERO), Mockito.eq(instanceId));
+		Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).getVirtualNetworkReserved();
 	}
 
 	// test case: When you call the createSecurityGroup method with a valid client,
@@ -701,5 +723,13 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				+ "    <SECURITY_GROUPS>0,1</SECURITY_GROUPS>\n"
 				+ "</TEMPLATE>\n";
 	}
-	
+
+	private CreateNetworkReserveRequest getCreateNetworkReserveRequest() {
+		return new CreateNetworkReserveRequest.Builder()
+				.name(FAKE_NETWORK_NAME)
+				.size(Integer.parseInt(FAKE_SIZE))
+				.ip(FAKE_ADDRESS)
+				.addressRangeId(ID_VALUE_ZERO)
+				.build();
+	}
 }
