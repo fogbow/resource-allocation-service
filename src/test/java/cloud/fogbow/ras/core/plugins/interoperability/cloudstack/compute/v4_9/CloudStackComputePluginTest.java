@@ -215,6 +215,27 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         this.plugin.getServiceOfferings(cloudStackUser);
     }
 
+    // test case: When calling the getServiceOfferings method and an unexpected HttpResponseException
+    // occurs, and it must verify if a UnexpectedException has been thrown.
+    // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
+    @Test
+    public void testGetServiceOfferingsFailUnexpected() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        HttpResponseException unexpectedHttpResponse = createUnexpectedHttpResponse();
+        Mockito.when(this.client.doGetRequest(
+                Mockito.anyString(), Mockito.any(CloudStackUser.class)))
+                .thenThrow(unexpectedHttpResponse);
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+
+        // exercise
+        this.plugin.getServiceOfferings(cloudStackUser);
+    }
+
+
     // test case: calling the getServiceOfferings method, secondary methods are mocked
     // , it must verify if it is returned the instanceId correct.
     // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.

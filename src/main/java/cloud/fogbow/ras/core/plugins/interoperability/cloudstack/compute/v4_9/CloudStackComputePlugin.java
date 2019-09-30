@@ -235,8 +235,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
-            return null;
         }
+        throw new UnexpectedException();
     }
 
     @NotNull
