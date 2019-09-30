@@ -2,12 +2,15 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 
+import cloud.fogbow.common.models.CloudStackUser;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CloudstackTestUtils {
@@ -34,6 +37,9 @@ public class CloudstackTestUtils {
     private static final String CREATE_NETWORK_RESPONSE = "createnetworkresponse.json";
     private static final String CREATE_NETWORK_EMPTY_RESPONSE = "createnetworkresponse_empty.json" ;
     private static final String CREATE_NETWORK_ERROR_RESPONSE = "createnetworkresponse_error.json";
+
+    public static final CloudStackUser CLOUD_STACK_USER =
+            new CloudStackUser("", "", "", "", new HashMap<>());
 
     private static final String CLOUDSTACK_RESOURCE_PATH = "cloud" + File.separator +
             "plugins" + File.separator + "interoperability" + File.separator +

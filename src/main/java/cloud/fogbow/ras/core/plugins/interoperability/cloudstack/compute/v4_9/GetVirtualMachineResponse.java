@@ -6,6 +6,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
 import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
@@ -33,6 +34,7 @@ public class GetVirtualMachineResponse {
     @SerializedName(VIRTUAL_MACHINES_KEY_JSON)
     private ListVirtualMachinesResponse virtualMachinesResponse;
 
+    @NotNull
     public List<VirtualMachine> getVirtualMachines() {
         return virtualMachinesResponse.virtualMachines;
     }
