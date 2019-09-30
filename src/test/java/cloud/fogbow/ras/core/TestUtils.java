@@ -49,10 +49,11 @@ public class TestUtils {
     public static final String CREATE_SECURITY_GROUP_METHOD = "createSecurityGroup";
     public static final String CREATE_TAGS_REQUEST_METHOD = "createTagsRequest";
     public static final String DEFAULT_CLOUD_NAME = "default";
-    public static final String DESCRIBE_INSTANCE_METHOD = "describeInstance";
     public static final String DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD = "doAuthorizeSecurityGroupIngress";
     public static final String DO_DELETE_SECURITY_GROUP_METHOD = "doDeleteSecurityGroup";
     public static final String DO_DESCRIBE_IMAGES_REQUEST_METHOD = "doDescribeImagesRequest";
+    public static final String DO_DESCRIBE_INSTANCE_BY_ID_METHOD = "doDescribeInstanceById";
+    public static final String DO_DESCRIBE_INSTANCES_METHOD = "doDescribeInstances";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
