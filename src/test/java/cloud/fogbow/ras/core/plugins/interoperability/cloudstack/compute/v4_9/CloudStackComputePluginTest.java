@@ -499,8 +499,12 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         // verify
         Matcher<DeployVirtualMachineRequest> matcher = new RequestMatcher.DeployVirtualMachine(requestExpected);
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .requestDeployVirtualMachine(Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+                Mockito.argThat(matcher),
+                Mockito.eq(serviceOffering),
+                Mockito.eq(diskOffering),
+                Mockito.eq(order),
+                Mockito.eq(cloudStackUser));
     }
 
     // test case: When calling the requestInstance method with occcurs an exception in the
