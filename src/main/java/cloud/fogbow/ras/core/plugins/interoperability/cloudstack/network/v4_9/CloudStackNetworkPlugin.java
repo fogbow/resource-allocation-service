@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -28,22 +27,21 @@ import java.util.Properties;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
-    public static final String NETWORK_OFFERING_ID = "network_offering_id";
-    public static final String ZONE_ID = "zone_id";
-    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
+    public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
+    public static final String ZONE_ID_CONFIG = "zone_id";
 
     protected String networkOfferingId;
-    protected String zoneId;
     protected String cloudStackUrl;
-
+    protected String zoneId;
     private CloudStackHttpClient client;
     private Properties properties;
 
     public CloudStackNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-        this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
-        this.zoneId = properties.getProperty(ZONE_ID);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL_CONFIG);
+        this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID_CONFIG);
+        this.zoneId = properties.getProperty(ZONE_ID_CONFIG);
         this.client = new CloudStackHttpClient();
     }
 
@@ -58,8 +56,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(@NotNull final NetworkOrder networkOrder,
-                                  @NotNull final CloudStackUser cloudStackUser) throws FogbowException {
+    public String requestInstance(@NotNull NetworkOrder networkOrder,
+                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         String name = networkOrder.getName();
@@ -67,7 +65,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         String endingIp = subnetInfo.getHighAddress();
         String gateway = networkOrder.getGateway();
 
-        CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
+        CreateNetworkRequest request = new CreateNetworkRequest.Builder()
                 .name(name)
                 .displayText(name)
                 .networkOfferingId(this.networkOfferingId)
@@ -77,13 +75,13 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 .gateway(gateway)
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
-        CreateNetworkResponse createNetworkResponse = doRequestInstance(createNetworkRequest, cloudStackUser);
-        return createNetworkResponse.getId();
+
+        return doRequestInstance(request, cloudStackUser);
     }
 
     @Override
-    public NetworkInstance getInstance(@NotNull final NetworkOrder networkOrder,
-                                       @NotNull final CloudStackUser cloudStackUser)
+    public NetworkInstance getInstance(@NotNull NetworkOrder networkOrder,
+                                       @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         GetNetworkRequest getNetworkRequest = new GetNetworkRequest.Builder()
@@ -112,7 +110,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     GetNetworkResponse doGetInstance(@NotNull GetNetworkRequest request,
-                                     @NotNull final CloudStackUser cloudUser)
+                                     @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -130,8 +128,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    CreateNetworkResponse doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
-                                            @NotNull final CloudStackUser cloudStackUser)
+    String doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
+                             @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
@@ -140,10 +138,10 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
         try {
             String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
-            return CreateNetworkResponse.fromJson(jsonResponse);
+            CreateNetworkResponse createNetworkResponse = CreateNetworkResponse.fromJson(jsonResponse);
+            return createNetworkResponse.getId();
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-            return null;
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
