@@ -250,12 +250,10 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		// set up
 		String instanceId = this.networkOrder.getInstanceId();
 		String orderId = this.networkOrder.getId();
-	    VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
 
-	    Mockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString())).thenReturn(virtualNetwork);
 		Mockito.when(OpenNebulaClientUtil.allocateSecurityGroup(Mockito.any(Client.class), Mockito.anyString())).thenReturn(ID_VALUE_ZERO);
-	    Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
+	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
 
 		// exercise
 		this.plugin.createSecurityGroup(this.client, instanceId, orderId);
