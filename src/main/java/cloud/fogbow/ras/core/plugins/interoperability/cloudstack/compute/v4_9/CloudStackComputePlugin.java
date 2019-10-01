@@ -165,7 +165,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, instanceId, token));
         } catch (HttpResponseException e) {
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, instanceId), e);
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
@@ -234,9 +234,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
             return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-        throw new UnexpectedException();
     }
 
     @NotNull
@@ -275,9 +274,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             String jsonResponse = doGet(uriRequest.toString(), cloudUser);
             return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-        throw new UnexpectedException();
     }
 
     @NotNull
@@ -400,9 +398,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             String jsonResponse = doGet(uriRequest.toString(), cloudUser);
             return DeployVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-        throw new UnexpectedException();
     }
 
     @NotNull
@@ -419,9 +416,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
             return GetVirtualMachineResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-        throw new UnexpectedException();
     }
 
     @NotNull
