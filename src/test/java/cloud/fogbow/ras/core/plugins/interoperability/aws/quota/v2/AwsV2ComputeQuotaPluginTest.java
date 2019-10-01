@@ -256,7 +256,7 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
         // set up
         DescribeInstancesResponse response = buildDescribeInstance();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        Mockito.when(AwsV2CloudUtil.describeInstances(Mockito.eq(this.client))).thenReturn(response);
+        Mockito.when(AwsV2CloudUtil.doDescribeInstances(Mockito.eq(this.client))).thenReturn(response);
 
         List<Instance> expected = buildInstancesCollections();
         // exercise
@@ -264,7 +264,7 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.describeInstances(Mockito.eq(this.client));
+        AwsV2CloudUtil.doDescribeInstances(Mockito.eq(this.client));
         
         Assert.assertEquals(expected, instances);
     }

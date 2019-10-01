@@ -152,8 +152,8 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
     }
 	
     protected ComputeInstance doGetInstance(String instanceId, Ec2Client client) throws FogbowException {
-        DescribeInstancesResponse response = AwsV2CloudUtil.describeInstance(instanceId, client);
-        Instance instance = AwsV2CloudUtil.getInstanceReservation(response);
+        DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstanceById(instanceId, client);
+        Instance instance = AwsV2CloudUtil.getInstanceFrom(response);
         List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
         return buildComputeInstance(instance, volumes);
     }
