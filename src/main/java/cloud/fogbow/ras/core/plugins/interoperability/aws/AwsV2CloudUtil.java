@@ -21,21 +21,24 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 public class AwsV2CloudUtil {
 
-    public static final String SECURITY_GROUP_RESOURCE = "Security Groups";
     public static final String AWS_TAG_GROUP_ID = "groupId";
     public static final String AWS_TAG_NAME = "Name";
+    public static final String SECURITY_GROUP_RESOURCE = "Security Groups";
     
-    public static Image getImagesFrom(DescribeImagesResponse response) throws InstanceNotFoundException {
+    public static Image getImagesFrom(DescribeImagesResponse response) throws FogbowException {
         if (response != null && !response.images().isEmpty()) {
             return response.images().listIterator().next();
         }
@@ -51,7 +54,7 @@ public class AwsV2CloudUtil {
         }
     }
     
-    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws InstanceNotFoundException {
+    public static Volume getVolumeFrom(DescribeVolumesResponse response) throws FogbowException {
         if (response != null && !response.volumes().isEmpty()) {
             return response.volumes().listIterator().next();
         }
@@ -97,12 +100,14 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client) throws FogbowException {
+    public static String createSecurityGroup(String vpcId, String groupName, String description, Ec2Client client)
+            throws FogbowException {
+        
         CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
-            .description(description)
-            .groupName(groupName)
-            .vpcId(vpcId)
-            .build();
+                .description(description)
+                .groupName(groupName)
+                .vpcId(vpcId)
+                .build();
         try {
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
             return response.groupId();
@@ -121,7 +126,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static DescribeInstancesResponse describeInstance(String instanceId, Ec2Client client)
+    public static DescribeInstancesResponse doDescribeInstanceById(String instanceId, Ec2Client client)
             throws FogbowException {
 
         DescribeInstancesRequest describeInstancesRequest = DescribeInstancesRequest.builder()
@@ -134,7 +139,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static DescribeInstancesResponse describeInstances(Ec2Client client) throws FogbowException {
+    public static DescribeInstancesResponse doDescribeInstances(Ec2Client client) throws FogbowException {
         try {
             return client.describeInstances();
         } catch (SdkException e) {
@@ -142,7 +147,7 @@ public class AwsV2CloudUtil {
         }
     }
 
-    public static Instance getInstanceReservation(DescribeInstancesResponse response) throws InstanceNotFoundException {
+    public static Instance getInstanceFrom(DescribeInstancesResponse response) throws FogbowException {
         if (!response.reservations().isEmpty()) {
             Reservation reservation = response.reservations().listIterator().next();
             if (!reservation.instances().isEmpty()) {
@@ -183,7 +188,7 @@ public class AwsV2CloudUtil {
         return getAddressFrom(response);
     }
 
-    private static Address getAddressFrom(DescribeAddressesResponse response) throws InstanceNotFoundException {
+    public static Address getAddressFrom(DescribeAddressesResponse response) throws FogbowException {
         if (response != null && !response.addresses().isEmpty()) {
             return response.addresses().listIterator().next();
         }
@@ -194,6 +199,31 @@ public class AwsV2CloudUtil {
             Ec2Client client) throws FogbowException {
         try {
             return client.describeAddresses(request);
+        } catch (SdkException e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+    
+    public static Subnet getSubnetById(String subnetId, Ec2Client client) throws FogbowException {
+        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+                .subnetIds(subnetId)
+                .build();
+        
+        DescribeSubnetsResponse response = doDescribeSubnetsRequest(request, client);
+        return getSubnetFrom(response);
+    }
+    
+    public static Subnet getSubnetFrom(DescribeSubnetsResponse response) throws FogbowException {
+        if (response != null && !response.subnets().isEmpty()) {
+            return response.subnets().listIterator().next();
+        }
+        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+    }
+
+    public static DescribeSubnetsResponse doDescribeSubnetsRequest(DescribeSubnetsRequest request, Ec2Client client)
+            throws FogbowException {
+        try {
+            return client.describeSubnets(request);
         } catch (SdkException e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
