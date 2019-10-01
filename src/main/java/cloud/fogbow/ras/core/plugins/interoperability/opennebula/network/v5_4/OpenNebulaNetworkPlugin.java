@@ -316,7 +316,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
 	}
 	
-
 	protected String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {
 		return String.format(CIDR_FORMAT, address, this.calculateCidr(this.convertToInteger(rangeSize)));
 	}

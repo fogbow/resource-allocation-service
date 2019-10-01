@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -265,6 +266,57 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.allocateSecurityGroup(Mockito.eq(this.client), Mockito.anyString());
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateSecurityGroupName(Mockito.eq(orderId));
+	}
+
+	@Test
+	public void testGetInstance() throws FogbowException {
+		// set up
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+		NetworkInstance instance = new NetworkInstance(FAKE_INSTANCE_ID);
+		String instanceId = this.networkOrder.getInstanceId();
+
+		Mockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString())).thenReturn(virtualNetwork);
+		Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.any(VirtualNetwork.class));
+
+		// exercise
+		this.plugin.getInstance(this.networkOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(instanceId));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(virtualNetwork));
+	}
+
+	@Test
+	public void testDoGetInstance() throws InvalidParameterException {
+	    // set up
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+
+		Mockito.when(virtualNetwork.getId()).thenReturn(ID_VALUE_ZERO);
+		Mockito.when(virtualNetwork.getName()).thenReturn(FAKE_NETWORK_NAME);
+		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_TEMPLATE_VLAN_ID_PATH))).thenReturn(FAKE_VLAN_ID);
+		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
+		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
+		Mockito.doReturn(FAKE_ADDRESS).when(this.plugin).generateAddressCidr(Mockito.anyString(), Mockito.anyString());
+
+		// exercise
+		NetworkInstance instance = this.plugin.doGetInstance(virtualNetwork);
+
+		// verify
+		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).getId();
+		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).getName();
+		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_VLAN_ID_PATH));
+		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH));
+		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateAddressCidr(
+				Mockito.eq(FAKE_ADDRESS), Mockito.eq(FAKE_SIZE));
+
+		Assert.assertNotNull(instance);
+	}
+
+	@Test
+	public void testDeleteInstance() {
+
 	}
 
 	// test case: When calling the getSecurityGroupBy method, with valid security
