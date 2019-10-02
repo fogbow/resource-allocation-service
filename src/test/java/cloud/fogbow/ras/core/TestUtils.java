@@ -41,6 +41,7 @@ public class TestUtils {
     public static final int ERROR_STATUS_CODE = 500;
     public static final int MEMORY_VALUE = 1024;
     public static final int RUN_ONCE = 1;
+    public static final int RUN_TWICE = 2;
     public static final int RUN_THRICE = 3;
     public static final int RUN_SIX_TIMES = 6;
 

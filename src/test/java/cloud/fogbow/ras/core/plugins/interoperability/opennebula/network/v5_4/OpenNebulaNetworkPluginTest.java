@@ -56,6 +56,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	private OpenNebulaNetworkPlugin plugin;
 	private VirtualNetwork virtualNetwork;
 	private NetworkOrder networkOrder;
+	private String orderId;
+	private String instanceId;
 
 	@Before
 	public void setUp() throws FogbowException {
@@ -64,6 +66,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(this.openNebulaConfFilePath));
 		this.virtualNetwork = Mockito.mock(VirtualNetwork.class);
 		this.networkOrder = Mockito.spy(this.createNetworkOrder());
+		this.orderId = this.networkOrder.getId();
+		this.instanceId = this.networkOrder.getInstanceId();
 
 		Mockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString()))
 				.thenReturn(this.virtualNetwork);
@@ -197,7 +201,6 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	public void testDoRequestInstance() throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
 		// set up
 		String updateNetworkTemplate = this.getNetworkUpdateTemplate();
-		String orderId = this.networkOrder.getId();
 		CreateNetworkReserveRequest request = Mockito.spy(this.getCreateNetworkReserveRequest());
 
 		Mockito.when(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.any(Client.class), Mockito.anyInt(), Mockito.anyString()))
@@ -209,7 +212,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
 
 		// exercise
-		this.plugin.doRequestInstance(this.client, orderId, request);
+		this.plugin.doRequestInstance(this.client, this.orderId, request);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
@@ -221,7 +224,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.eq(ID_VALUE_ZERO));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkUpdateTemplate(
-				Mockito.eq(this.client), Mockito.eq(ID_VALUE_ZERO), Mockito.eq(orderId));
+				Mockito.eq(this.client), Mockito.eq(ID_VALUE_ZERO), Mockito.eq(this.orderId));
 		Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).getVirtualNetworkReserved();
 	}
 
@@ -230,17 +233,15 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetNetworkUpdateTemplate() throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 		// set up
-		String instanceId = this.networkOrder.getInstanceId();
-		String orderId = this.networkOrder.getId();
 		Mockito.doReturn(ID_VALUE_ZERO).when(this.plugin).createSecurityGroup(
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
 
 		// exercise
-		this.plugin.createSecurityGroup(this.client, instanceId, orderId);
+		this.plugin.createSecurityGroup(this.client, this.instanceId, this.orderId);
 
 		// verify
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(
-				Mockito.eq(this.client), Mockito.eq(instanceId), Mockito.eq(orderId));
+				Mockito.eq(this.client), Mockito.eq(this.instanceId), Mockito.eq(this.orderId));
 	}
 
 	// test case: When you call the createSecurityGroup method with a valid client,
@@ -249,19 +250,16 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testCreateSecurityGroup() throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		// set up
-		String instanceId = this.networkOrder.getInstanceId();
-		String orderId = this.networkOrder.getId();
-
 		Mockito.when(OpenNebulaClientUtil.allocateSecurityGroup(Mockito.any(Client.class), Mockito.anyString())).thenReturn(ID_VALUE_ZERO);
 	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
 		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
 
 		// exercise
-		this.plugin.createSecurityGroup(this.client, instanceId, orderId);
+		this.plugin.createSecurityGroup(this.client, this.instanceId, this.orderId);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(instanceId));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.allocateSecurityGroup(Mockito.eq(this.client), Mockito.anyString());
 
@@ -271,11 +269,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetInstance() throws FogbowException {
 		// set up
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
 		NetworkInstance instance = new NetworkInstance(FAKE_INSTANCE_ID);
-		String instanceId = this.networkOrder.getInstanceId();
 
-		Mockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString())).thenReturn(virtualNetwork);
 		Mockito.doReturn(instance).when(this.plugin).doGetInstance(Mockito.any(VirtualNetwork.class));
 
 		// exercise
@@ -283,31 +278,29 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(instanceId));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(virtualNetwork));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(this.virtualNetwork));
 	}
 
 	@Test
 	public void testDoGetInstance() throws InvalidParameterException {
 	    // set up
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-
-		Mockito.when(virtualNetwork.getId()).thenReturn(ID_VALUE_ZERO);
-		Mockito.when(virtualNetwork.getName()).thenReturn(FAKE_NETWORK_NAME);
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_TEMPLATE_VLAN_ID_PATH))).thenReturn(FAKE_VLAN_ID);
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
+		Mockito.when(this.virtualNetwork.getId()).thenReturn(ID_VALUE_ZERO);
+		Mockito.when(this.virtualNetwork.getName()).thenReturn(FAKE_NETWORK_NAME);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_TEMPLATE_VLAN_ID_PATH))).thenReturn(FAKE_VLAN_ID);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
 		Mockito.doReturn(FAKE_ADDRESS).when(this.plugin).generateAddressCidr(Mockito.anyString(), Mockito.anyString());
 
 		// exercise
-		NetworkInstance instance = this.plugin.doGetInstance(virtualNetwork);
+		NetworkInstance instance = this.plugin.doGetInstance(this.virtualNetwork);
 
 		// verify
-		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).getId();
-		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).getName();
-		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_VLAN_ID_PATH));
-		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH));
-		Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH));
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).getId();
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).getName();
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_VLAN_ID_PATH));
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH));
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateAddressCidr(
 				Mockito.eq(FAKE_ADDRESS), Mockito.eq(FAKE_SIZE));
 
@@ -315,8 +308,28 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	}
 
 	@Test
-	public void testDeleteInstance() {
+	public void testDeleteInstance() throws FogbowException {
+		// set up
+		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
 
+		Mockito.doReturn(securityGroup).when(this.plugin).getSecurityGroupForVirtualNetwork(
+				Mockito.any(Client.class), Mockito.any(VirtualNetwork.class), Mockito.anyString());
+		Mockito.doNothing().when(this.plugin).deleteSecurityGroup(Mockito.any(SecurityGroup.class));
+		Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(VirtualNetwork.class));
+
+		// exercise
+		this.plugin.deleteInstance(this.networkOrder, this.cloudUser);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupForVirtualNetwork(
+				Mockito.eq(this.client), Mockito.eq(this.virtualNetwork), Mockito.eq(this.orderId));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityGroup(securityGroup);
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(this.virtualNetwork);
 	}
 
 	// test case: When calling the getSecurityGroupBy method, with valid security
@@ -324,230 +337,112 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// return the ID of the security group created together with this Virtual
 	// Network.
 	@Test
-	@Ignore
-	public void testGetSecurityGroupByVirtualNetworkSuccessfully()
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-
+	public void testGetSecurityGroupForVirtualNetwork() throws UnauthorizedRequestException, InstanceNotFoundException,
+			InvalidParameterException {
 		// set up
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		PowerMockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString()))
-				.thenReturn(virtualNetwork);
+        String securityGroupIds = ID_VALUE_ZERO + SECURITY_GROUPS_SEPARATOR + ID_VALUE_ONE;
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
 
-		String securityGroups = ID_VALUE_ZERO + OpenNebulaNetworkPlugin.SECURITY_GROUPS_SEPARATOR + ID_VALUE_ONE;
-		Mockito.when(virtualNetwork.xpath(Mockito.anyString())).thenReturn(securityGroups);
+        Mockito.when(securityGroup.getName()).thenReturn(FAKE_NETWORK_NAME);
+		Mockito.when(this.virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH)).thenReturn(securityGroupIds);
+		Mockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(securityGroup);
+		Mockito.doReturn(FAKE_NETWORK_NAME).when(this.plugin).generateSecurityGroupName(Mockito.anyString());
 
-		String expected = ID_VALUE_ONE;
+		// excercise
+		SecurityGroup secGroup = this.plugin.getSecurityGroupForVirtualNetwork(this.client, this.virtualNetwork, this.networkOrder.getId());
 
-		// exercise
-		//String securityGroupId = this.plugin.getSecurityGroups(virtualNetwork)[0];
 
 		// verify
-		Mockito.verify(virtualNetwork, Mockito.times(1))
-				.xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_TEMPLATE_SECURITY_GROUPS_PATH));
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
+		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.eq(ID_VALUE_ZERO));
 
-		//Assert.assertEquals(expected, securityGroupId);
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_SECURITY_GROUPS_PATH));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateSecurityGroupName(Mockito.eq(this.orderId));
+		Mockito.verify(securityGroup, Mockito.times(TestUtils.RUN_ONCE)).getName();
+
+		Assert.assertNotNull(secGroup);
 	}
-	
+
 	// test case: When calling the getSecurityGroupBy method, with an empty security
 	// group, it must return a null security group ID associated with the virtual
 	// network passed by parameter.
 	@Test
-    @Ignore
-	public void testGetSecurityGroupByVirtualNetworkWithSecurityGroupsEmpty()
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-
+	public void testGetSecurityGroupForVirtualNetworkNull() throws UnauthorizedRequestException, InstanceNotFoundException,
+			InvalidParameterException {
 		// set up
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		PowerMockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString()))
-				.thenReturn(virtualNetwork);
+		Mockito.when(this.virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH)).thenReturn(null);
 
-		String securityGroups = EMPTY_STRING;
-		Mockito.when(virtualNetwork.xpath(Mockito.anyString())).thenReturn(securityGroups);
+		// excercise
+		SecurityGroup secGroup = this.plugin.getSecurityGroupForVirtualNetwork(this.client, this.virtualNetwork, this.networkOrder.getId());
 
-		// exercise
-		//String securityGroupId = this.plugin.getSecurityGroups(virtualNetwork)[0];
 
 		// verify
-		Mockito.verify(virtualNetwork, Mockito.times(1))
-				.xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_TEMPLATE_SECURITY_GROUPS_PATH));
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_SECURITY_GROUPS_PATH));
 
-		//Assert.assertNull(securityGroupId);
+		Assert.assertNull(secGroup);
 	}
 
-	// test case: When calling the deleteInstance method, if the removal call is not
-	// answered an error response is returned.
 	@Test
-	public void testDeleteInstanceUnsuccessfully() throws FogbowException {
+	public void testDeleteSecurityGroup() {
 		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualNetwork);
-
-		String securityGroups = ID_VALUE_ZERO + OpenNebulaNetworkPlugin.SECURITY_GROUPS_SEPARATOR + ID_VALUE_ONE;
-		Mockito.when(virtualNetwork.xpath(OpenNebulaNetworkPlugin.VNET_TEMPLATE_SECURITY_GROUPS_PATH))
-				.thenReturn(securityGroups);
-
 		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(securityGroup);
-
 		OneResponse response = Mockito.mock(OneResponse.class);
+
 		Mockito.when(securityGroup.delete()).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-
-		Mockito.when(virtualNetwork.delete()).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = ID_VALUE_ONE;
-
-		NetworkOrder networkOrder = new NetworkOrder();
-		networkOrder.setInstanceId(instanceId);
+		Mockito.when(response.isError()).thenReturn(false).thenReturn(true);
+		Mockito.when(response.getMessage()).thenReturn(ID_VALUE_ZERO);
 
 		// exercise
-		this.plugin.deleteInstance(networkOrder, cloudUser);
+		this.plugin.deleteSecurityGroup(securityGroup);
+		this.plugin.deleteSecurityGroup(securityGroup);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString());
-
-		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
-		Mockito.verify(response, Mockito.times(2)).isError();
+		Mockito.verify(securityGroup, Mockito.times(TestUtils.RUN_TWICE)).delete();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_TWICE)).isError();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
 	}
 
-	// test case: When calling the deleteInstance method, with the instance ID and
-	// token valid, the instance of virtual network will be removed.
 	@Test
-	public void testDeleteInstanceSuccessfully() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualNetwork);
-
-		String securityGroups = ID_VALUE_ZERO + OpenNebulaNetworkPlugin.SECURITY_GROUPS_SEPARATOR + ID_VALUE_ONE;
-		Mockito.when(virtualNetwork.xpath(OpenNebulaNetworkPlugin.VNET_TEMPLATE_SECURITY_GROUPS_PATH))
-				.thenReturn(securityGroups);
-
-		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(securityGroup);
-
+	public void testDoDeleteInstance() throws UnexpectedException {
+	    // set up
 		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.when(securityGroup.delete()).thenReturn(response);
+
 		Mockito.when(response.isError()).thenReturn(false);
-
-		Mockito.when(virtualNetwork.delete()).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = ID_VALUE_ONE;
-
-		NetworkOrder networkOrder = new NetworkOrder();
-		networkOrder.setInstanceId(instanceId);
+		Mockito.when(this.virtualNetwork.delete()).thenReturn(response);
 
 		// exercise
-		this.plugin.deleteInstance(networkOrder, cloudUser);
+		this.plugin.doDeleteInstance(this.virtualNetwork);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString());
-
-		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
-		Mockito.verify(response, Mockito.times(2)).isError();
-
-		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
-		Mockito.verify(response, Mockito.times(2)).isError();
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).delete();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
 	}
 
-	// test case: When calling the getInstance method, with a valid client from a
-	// token value and instance ID, it must returned a instance of a virtual
-	// network.
 	@Test
-	public void testGetInstanceSuccessfully() throws FogbowException {
+	public void testDoDeleteInstanceFail() {
 		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
+		OneResponse response = Mockito.mock(OneResponse.class);
+		String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, VIRTUAL_NETWORK_RESOURCE, ID_VALUE_ZERO);
 
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualNetwork);
-
-		Mockito.doReturn(FAKE_INSTANCE_ID).when(virtualNetwork).getId();
-		Mockito.doReturn(FAKE_NETWORK_NAME).when(virtualNetwork).getName();
-		Mockito.doReturn(FAKE_VLAN_ID).when(virtualNetwork)
-				.xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_TEMPLATE_VLAN_ID_PATH));
-
-		Mockito.doReturn(FAKE_ADDRESS).when(virtualNetwork)
-				.xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_ADDRESS_RANGE_IP_PATH));
-
-		Mockito.doReturn(FAKE_SIZE).when(virtualNetwork)
-				.xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_ADDRESS_RANGE_SIZE_PATH));
-
-		Mockito.doReturn(FAKE_CIDR_ADDRESS).when(this.plugin).generateAddressCidr(FAKE_ADDRESS, FAKE_SIZE);
-
-		CloudUser cloudUser = createCloudUser();
-		String instanceId = FAKE_INSTANCE_ID;
-
-		NetworkOrder networkOrder = new NetworkOrder();
-		networkOrder.setInstanceId(instanceId);
+		Mockito.when(response.isError()).thenReturn(true);
+		Mockito.when(response.getMessage()).thenReturn(ID_VALUE_ZERO);
+		Mockito.when(this.virtualNetwork.delete()).thenReturn(response);
 
 		// exercise
-		this.plugin.getInstance(networkOrder, cloudUser);
+		try {
+			this.plugin.doDeleteInstance(this.virtualNetwork);
+			Assert.fail();
+		} catch (UnexpectedException e) {
+		    Assert.assertEquals(message, e.getMessage());
+		}
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
-
-		Mockito.verify(virtualNetwork, Mockito.times(1)).getId();
-		Mockito.verify(virtualNetwork, Mockito.times(1)).getName();
-		Mockito.verify(virtualNetwork, Mockito.times(3)).xpath(Mockito.anyString());
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).delete();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
 	}
-	
-	// test case: When calling the getAddressRangeSize method, an invalid CIDR, it
-	// must throw an InvalidParameterException.
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testGetAddressRangeSizeThrowInvalidParameterException() throws InvalidParameterException {
-		// set up
-		String cidr = null;
 
-		// exercise
-		this.plugin.getAddressRangeSize(cidr);
-	}
-	
 	// test case: When calling the calculateCIDR method with a negative size value,
 	// this will return the maximum CIDR value of an IPV4 network mask.
 	@Test
@@ -589,24 +484,9 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 		// exercise
 		String cidr = this.plugin.generateAddressCidr(address, size);
+
 		// verify
 		Assert.assertEquals(expected, cidr);
-	}
-		
-	// test case: Successful call verification of getRandomUUID method.
-	@Test
-	public void testGetRandomUUIDSuccessfully() {
-		// set up
-		String value = EMPTY_STRING;
-		PowerMockito.mockStatic(UUID.class);
-		PowerMockito.when(UUID.randomUUID().toString()).thenReturn(value);
-
-		// exercise
-		this.plugin.getRandomUUID();
-
-		// verify
-		PowerMockito.verifyStatic(UUID.class, VerificationModeFactory.times(1));
-		UUID.randomUUID().toString();
 	}
 		
 	// test case: When calling the convertToInteger method with an invalid numeric
@@ -623,7 +503,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		String providingMember = null;
 		String cloudName = null;
 		String name = FAKE_NETWORK_NAME;
-		String gateway = "10.10.10.1";
+		String gateway = FAKE_ADDRESS;
 		String cidr = FAKE_CIDR_ADDRESS;
 		NetworkAllocationMode allocation = null;
 
@@ -638,41 +518,6 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		return networkOrder;
 	}
 
-	private CloudUser createCloudUser() {
-		String tokenValue = LOCAL_TOKEN_VALUE;
-		String userId = FAKE_USER_ID;
-
-		CloudUser cloudUser = new CloudUser(userId, null, tokenValue);
-		return cloudUser;
-	}
-
-	private String getSecurityGroupTemplate(String securityGroupName) {
-		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
-				+ "<TEMPLATE>\n"
-				+ "    <NAME>fogbow-sg-pn-fake-order-id</NAME>\n"
-				+ "    <RULE>\n"
-				+ "        <PROTOCOL>ALL</PROTOCOL>\n"
-				+ "        <RULE_TYPE>inbound</RULE_TYPE>\n"
-				+ "    </RULE>\n"
-				+ "    <RULE>\n"
-				+ "        <PROTOCOL>ALL</PROTOCOL>\n"
-				+ "        <RULE_TYPE>outbound</RULE_TYPE>\n"
-				+ "    </RULE>\n"
-				+ "</TEMPLATE>\n";
-		
-		return String.format(template, securityGroupName);
-	}
-	
-	private String getNetworkReserveTemplate(String networkName) {
-		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-				+ "<TEMPLATE>\n"
-				+ "    <NAME>%s</NAME>\n"
-				+ "    <SIZE>256</SIZE>\n"
-				+ "</TEMPLATE>\n";
-		
-		return String.format(template, networkName);
-	}
-	
 	private String getNetworkUpdateTemplate() {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
 				+ "<TEMPLATE>\n"
