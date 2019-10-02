@@ -11,11 +11,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseT
 import org.apache.commons.net.util.SubnetUtils;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
@@ -23,7 +20,6 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -40,13 +36,10 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 	private static final String FAKE_NETWORK_NAME = "fake-network-name";
 	private static final String FAKE_SIZE = "256";
-	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_VLAN_ID = "fake-vlan-id";
 	private static final String ID_VALUE_ONE = "1";
 	private static final String ID_VALUE_ZERO = "0";
 	private static final String TEN_STRING_VALUE = "10";
-	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String FAKE_ORDER_ID = "fake-order-id";
 
 	private static final int MAXIMUM_INTEGER_VALUE = 2147483647;
 	private static final int NEGATIVE_SIZE_VALUE = -1;
@@ -266,6 +259,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateSecurityGroupName(Mockito.eq(orderId));
 	}
 
+	// test case: when invoking getInstance with valid order and cloud user, the plugin should return
+	// the respective ONe virtual network as a fogbow instance
 	@Test
 	public void testGetInstance() throws FogbowException {
 		// set up
@@ -282,6 +277,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(this.virtualNetwork));
 	}
 
+	// test case: when invoking doGetInstance with a valid ONe virtual network, the plugin
+	// should return the respective fogbow instance
 	@Test
 	public void testDoGetInstance() throws InvalidParameterException {
 	    // set up
@@ -307,6 +304,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Assert.assertNotNull(instance);
 	}
 
+	// test case: when invoking deleteInstance with valid order and cloud user,
+	// the plugin should retrieve and delete the respective ONe virtual network.
 	@Test
 	public void testDeleteInstance() throws FogbowException {
 		// set up
@@ -383,6 +382,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Assert.assertNull(secGroup);
 	}
 
+	// test case: when invoking deleteSecurityGroup, the plugin should delete the respective
+	// ONe sec group; log an error otherwise
 	@Test
 	public void testDeleteSecurityGroup() {
 		// set up
@@ -403,6 +404,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
 	}
 
+	// test case: when calling doDeleteInstance with a valid ONe virtual network, the plugin
+	// should delete it
 	@Test
 	public void testDoDeleteInstance() throws UnexpectedException {
 	    // set up
@@ -419,6 +422,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
 	}
 
+	// test case: when calling doDeleteInstance with an invalid ONe virtual network, the plugin
+	// should throw an UnpectedException
 	@Test
 	public void testDoDeleteInstanceFail() {
 		// set up
