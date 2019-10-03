@@ -28,7 +28,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupTemplate;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityRuleRequest;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
@@ -192,20 +194,37 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		// The networkId and securityGroupId parameters are not used in this context.
 		String networkId = null;
 		String securityGroupId = null;
-
-		Rule inputRule = new Rule(protocol, ip, size, rangeAll, INPUT_RULE_TYPE, networkId, securityGroupId);
-		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, networkId, securityGroupId);
-
-		List<Rule> rules = new ArrayList<>();
+		
+		SecurityRuleRequest inputRule = SecurityRuleRequest.builder()
+		        .protocol(protocol)
+		        .ip(ip)
+		        .size(size)
+		        .range(rangeAll)
+		        .type(INPUT_RULE_TYPE)
+		        .networkId(networkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
+		SecurityRuleRequest outputRule = SecurityRuleRequest.builder()
+		        .protocol(protocol)
+		        .ip(ipAny)
+		        .size(sizeAny)
+		        .range(rangeAll)
+		        .type(OUTPUT_RULE_TYPE)
+		        .networkId(networkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
+		List<SecurityRuleRequest> rules = new ArrayList<>();
 		rules.add(inputRule);
 		rules.add(outputRule);
-
-		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+		
+		CreateSecurityGroupTemplate request = CreateSecurityGroupTemplate.builder()
 				.name(name)
 				.rules(rules)
 				.build();
 
-		String template = request.getSecurityGroup().marshalTemplate();
+		String template = request.marshalTemplate();
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 	
