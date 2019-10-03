@@ -79,6 +79,8 @@ public class Messages {
 
     public static class Warn {
         public static final String INCONSISTENT_DIRECTION = "The direction(%s) is inconsistent";
+        public static final String INCONSISTENT_PROTOCOL_S = "The protocol(%s) is inconsistent";
+        public static final String INCONSISTENT_RANGE_S = "The range(%s) is inconsistent";
         public static final String INSTANCE_S_ALREADY_DELETED = "Instance <%s> has already been deleted.";
         public static final String NETWORK_NOT_FOUND = "Network id %s was not found when trying to delete it.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
@@ -170,7 +172,9 @@ public class Messages {
         public static final String UNABLE_TO_GET_ATTACHMENT_INSTANCE = "Unable to get attachment instance from json.";
         public static final String UNABLE_TO_GET_NETWORK = "Unable to get network information from json %s.";
         public static final String UNABLE_TO_GET_SECURITY_GROUP = "Unable to get security group information from json %s.";
+        public static final String UNABLE_TO_MARSHALL_IN_XML = "Unable to marshall in xml.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
+        public static final String UNABLE_TO_UNMARSHALL_XML_S = "Unable to unmarshall xml: %s.";
         public static final String UNDEFINED_INSTANCE_STATE_MAPPING = "State %s was not mapped to a Fogbow state by %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
