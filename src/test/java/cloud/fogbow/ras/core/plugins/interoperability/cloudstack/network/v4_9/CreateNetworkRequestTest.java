@@ -9,9 +9,9 @@ import org.junit.Test;
 
 public class CreateNetworkRequestTest {
 
-    // test case: create CreateNetworkRequestUrl successfully
+    // test case: When calling the build method, it must verify if It generates the right URL.
     @Test
-    public void testCreateNetworkRequestUrl() throws InvalidParameterException {
+    public void testBuildSuccessfully() throws InvalidParameterException {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
@@ -75,7 +75,8 @@ public class CreateNetworkRequestTest {
         Assert.assertEquals(urlExpectedStr, createNetworkRequestUrl);
     }
 
-    // test case: trying create CreateNetworkRequest but it occur an error
+    // test case: When calling the build method with a null parameter,
+    // it must verify if It throws an InvalidParameterException.
     @Test(expected = InvalidParameterException.class)
     public void testCreateNetworkRequestWithError() throws InvalidParameterException {
         // exercise and verify

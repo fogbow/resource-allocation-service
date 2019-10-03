@@ -1,10 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
-
-import cloud.fogbow.common.models.CloudStackUser;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +38,9 @@ public class CloudstackTestUtils {
     private static final String CREATE_NETWORK_RESPONSE = "createnetworkresponse.json";
     private static final String CREATE_NETWORK_EMPTY_RESPONSE = "createnetworkresponse_empty.json" ;
     private static final String CREATE_NETWORK_ERROR_RESPONSE = "createnetworkresponse_error.json";
+    private static final String LIST_NETWORKS_RESPONSE = "listnetworksresponse.json";
+    private static final String LIST_NETWORKS_EMPTY_RESPONSE = "listnetworksresponse_empty.json";
+    private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("", "", "", "", new HashMap<>());
@@ -190,13 +192,13 @@ public class CloudstackTestUtils {
         return String.format(rawJson, idNetwork);
     }
 
-    public static String createEmptyCreateNetworkResponseJson() throws IOException {
+    public static String createCreateNetworkEmptyResponseJson() throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile() + CREATE_NETWORK_EMPTY_RESPONSE);
 
         return String.format(rawJson);
     }
 
-    public static String createCreateNetworkResponseJson(int errorCode, String errorText)
+    public static String createCreateNetworkErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -204,6 +206,33 @@ public class CloudstackTestUtils {
 
         return String.format(rawJson, errorCode, errorText);
     }
+
+    public static String createGetNetworkResponseJson(String id, String name, String gateway,
+                                                      String cird, String state)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_NETWORKS_RESPONSE);
+
+        return String.format(rawJson, id, name, gateway, cird, state);
+    }
+
+    public static String createGetNetworkEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_NETWORKS_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
+    public static String createGetNetworkErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_NETWORKS_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
 
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);

@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+// TODO(chico) - Move this contants to de common Fogbow
 public class GetNetworkRequest extends CloudStackRequest {
     public static final String LIST_NETWORKS_COMMAND = "listNetworks";
     public static final String NETWORK_ID_KEY = "id";
