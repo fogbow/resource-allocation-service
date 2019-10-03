@@ -28,9 +28,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupTemplate;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityRuleRequest;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
@@ -195,7 +193,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		String networkId = null;
 		String securityGroupId = null;
 		
-		SecurityRuleRequest inputRule = SecurityRuleRequest.builder()
+		Rule inputRule = Rule.builder()
 		        .protocol(protocol)
 		        .ip(ip)
 		        .size(size)
@@ -205,7 +203,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		        .groupId(securityGroupId)
 		        .build();
 		
-		SecurityRuleRequest outputRule = SecurityRuleRequest.builder()
+		Rule outputRule = Rule.builder()
 		        .protocol(protocol)
 		        .ip(ipAny)
 		        .size(sizeAny)
@@ -215,11 +213,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		        .groupId(securityGroupId)
 		        .build();
 		
-		List<SecurityRuleRequest> rules = new ArrayList<>();
+		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);
 		rules.add(outputRule);
 		
-		CreateSecurityGroupTemplate request = CreateSecurityGroupTemplate.builder()
+		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
 				.name(name)
 				.rules(rules)
 				.build();

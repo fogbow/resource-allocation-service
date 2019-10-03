@@ -13,16 +13,16 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarsh
 @XmlRootElement(name = TEMPLATE)
 public class GetSecurityRulesResponse extends OpenNebulaMarshaller {
 
-    private List<SecurityRuleRequest> rules;
+    private List<Rule> rules;
     
     public GetSecurityRulesResponse() {}
 
-    public List<SecurityRuleRequest> getRules() {
+    public List<Rule> getRules() {
         return rules;
     }
     
     @XmlElement(name = RULE)
-    public void setRules(List<SecurityRuleRequest> rules) {
+    public void setRules(List<Rule> rules) {
         this.rules = rules;
     }
     
@@ -32,9 +32,9 @@ public class GetSecurityRulesResponse extends OpenNebulaMarshaller {
 
     public static class Builder {
         
-        private List<SecurityRuleRequest> rules;
+        private List<Rule> rules;
         
-        public Builder rules(List<SecurityRuleRequest> rules) {
+        public Builder rules(List<Rule> rules) {
             this.rules = rules;
             return this;
         }

@@ -33,9 +33,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaState
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.CreateNetworkReserveRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.CreateNetworkUpdateRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupTemplate;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityRuleRequest;
 
 public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 
@@ -269,7 +267,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		String virtualNetworkId = null;
 		String securityGroupId = null;
 		
-		SecurityRuleRequest inputRule = SecurityRuleRequest.builder()
+		Rule inputRule = Rule.builder()
 		        .protocol(protocol)
 		        .ip(ipAny)
 		        .size(sizeAny)
@@ -279,7 +277,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		        .groupId(securityGroupId)
 		        .build();
 		
-		SecurityRuleRequest outputRule = SecurityRuleRequest.builder()
+		Rule outputRule = Rule.builder()
 		        .protocol(protocol)
 		        .ip(ipAny)
 		        .size(sizeAny)
@@ -289,11 +287,11 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		        .groupId(securityGroupId)
 		        .build();
 
-		List<SecurityRuleRequest> rules = new ArrayList<>();
+		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);
 		rules.add(outputRule);
 		
-		CreateSecurityGroupTemplate request = CreateSecurityGroupTemplate.builder()
+		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
 				.name(name)
 				.rules(rules)
 				.build();

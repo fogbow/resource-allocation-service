@@ -91,7 +91,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         SecurityGroup securityGroup = getSecurityGroup(client, majorOrder);
-        SecurityRuleRequest rule = doCreateSecurityRuleRequest(securityRule, securityGroup);
+        Rule rule = doCreateSecurityRuleRequest(securityRule, securityGroup);
         return doRequestSecurityRule(securityGroup, rule);
     }
     
@@ -105,18 +105,18 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     @Override
     public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-        SecurityRuleRequest rule = doUnpakingSecurityRuleId(securityRuleId);
+        Rule rule = doUnpakingSecurityRuleId(securityRuleId);
         String securityGroupId = rule.getGroupId();
         doDeleteSecurityRule(client, rule, securityGroupId);
     }
 
-    private void doDeleteSecurityRule(Client client, SecurityRuleRequest rule, String securityGroupId)
+    private void doDeleteSecurityRule(Client client, Rule rule, String securityGroupId)
             throws FogbowException {
 
         SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
         GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
 
-        List<SecurityRuleRequest> rules = group.getTemplate().getRules();
+        List<Rule> rules = group.getTemplate().getRules();
         if (rules != null && rules.contains(rule))
             rules.remove(rule);
 
@@ -124,7 +124,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         updateSecurityGroup(securityGroup, template);
     }
 
-    private SecurityRuleRequest doUnpakingSecurityRuleId(String securityRuleId) throws FogbowException {
+    private Rule doUnpakingSecurityRuleId(String securityRuleId) throws FogbowException {
         String[] fields = securityRuleId.split(ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
             String protocol = getValueFrom(fields[PROTOCOL_INDEX]);
@@ -135,7 +135,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
             String networkId = getValueFrom(fields[NETWORK_ID_INDEX]);
             String groupId = getValueFrom(fields[SECURITY_GROUP_INDEX]);
 
-            SecurityRuleRequest rule = SecurityRuleRequest.builder().protocol(protocol).ip(ip).size(size).range(range)
+            Rule rule = Rule.builder().protocol(protocol).ip(ip).size(size).range(range)
                     .type(type).networkId(networkId).groupId(groupId).build();
 
             return rule;
@@ -150,15 +150,15 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     private List<SecurityRuleInstance> doGetSecurityRules(SecurityGroup securityGroup) {
         List<SecurityRuleInstance> instances = new ArrayList();
         GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
-        List<SecurityRuleRequest> rules = group.getTemplate().getRules();
-        for (SecurityRuleRequest rule : rules) {
+        List<Rule> rules = group.getTemplate().getRules();
+        for (Rule rule : rules) {
             SecurityRuleInstance instance = buildSecurityRule(rule);
             instances.add(instance);
         }
         return instances;
     }
 
-    private SecurityRuleInstance buildSecurityRule(SecurityRuleRequest rule) {
+    private SecurityRuleInstance buildSecurityRule(Rule rule) {
         Direction direction = getDirectionFrom(rule.getType());
         EtherType etherType = getEtherTypeFrom(rule.getIp());
         Protocol protocol = getProtocolFrom(rule.getProtocol());
@@ -169,7 +169,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
-    private String buildAddressCidr(SecurityRuleRequest rule) {
+    private String buildAddressCidr(Rule rule) {
         String size = rule.getSize();
         String ipAddress = rule.getIp();
         EtherType etherType = getEtherTypeFrom(ipAddress);
@@ -270,10 +270,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         return null;
     }
     
-    private String doRequestSecurityRule(SecurityGroup securityGroup, SecurityRuleRequest rule) throws FogbowException {
+    private String doRequestSecurityRule(SecurityGroup securityGroup, Rule rule) throws FogbowException {
 
         GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
-        List<SecurityRuleRequest> rules = group.getTemplate().getRules();
+        List<Rule> rules = group.getTemplate().getRules();
         rules.add(rule);
 
         String template = doCreateSecurityGroupTemplate(group, rules);
@@ -290,7 +290,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         }
     }
 
-    private String doPackingSecurityRuleId(SecurityRuleRequest rule) {
+    private String doPackingSecurityRuleId(Rule rule) {
         String[] attributes = new String[7];
         attributes[PROTOCOL_INDEX] = rule.getProtocol();
         attributes[IP_INDEX] = rule.getGroupId();
@@ -304,11 +304,11 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         return instanceId;
     }
 
-    private String doCreateSecurityGroupTemplate(GetSecurityGroupResponse group, List<SecurityRuleRequest> rules) {
+    private String doCreateSecurityGroupTemplate(GetSecurityGroupResponse group, List<Rule> rules) {
         String id = group.getId();
         String name = group.getName();
 
-        CreateSecurityGroupTemplate template = CreateSecurityGroupTemplate.builder()
+        CreateSecurityGroupRequest template = CreateSecurityGroupRequest.builder()
                 .id(id)
                 .name(name)
                 .rules(rules)
@@ -322,7 +322,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         return GetSecurityGroupResponse.unmarshal(xml);
     }
 
-    private SecurityRuleRequest doCreateSecurityRuleRequest(SecurityRule securityRule, SecurityGroup securityGroup) {
+    private Rule doCreateSecurityRuleRequest(SecurityRule securityRule, SecurityGroup securityGroup) {
         int portFrom = securityRule.getPortFrom();
         int portTo = securityRule.getPortTo();
 
@@ -334,7 +334,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         String groupId = securityGroup.getId();
         String range = portFrom == portTo ? String.valueOf(portFrom) : portFrom + RANGE_SEPARATOR + portTo;
 
-        SecurityRuleRequest request = SecurityRuleRequest.builder()
+        Rule request = Rule.builder()
                 .protocol(protocol)
                 .ip(ip)
                 .size(size)
