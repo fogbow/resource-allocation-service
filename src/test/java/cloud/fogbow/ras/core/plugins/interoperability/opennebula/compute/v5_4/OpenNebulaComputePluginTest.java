@@ -161,7 +161,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(MEMORY_STRING_VALUE);
 		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(ONE_STRING_VALUE);
 
-		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
 		int cpu = CPU_VALUE_1;
 		int memory = MEMORY_VALUE_1024;
@@ -172,10 +172,10 @@ public class OpenNebulaComputePluginTest {
 		TreeSet<HardwareRequirements> expected = new TreeSet<HardwareRequirements>();
 		expected.add(flavor);
 
-		CloudUser cloudUser = createCloudUser();
+		Client client = Mockito.mock(Client.class);
 
 		// exercise
-		this.plugin.updateHardwareRequirements(cloudUser);
+		this.plugin.updateHardwareRequirements(client);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -188,7 +188,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(template, Mockito.times(1)).getId();
 		Mockito.verify(template, Mockito.times(1)).getName();
 		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
 		Assert.assertEquals(expected, this.plugin.getFlavors());
 	}
@@ -234,12 +234,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(MEMORY_STRING_VALUE);
 		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(ONE_STRING_VALUE);
 
-		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.doReturn(DISK_VALUE_8GB).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
-		CloudUser cloudUser = createCloudUser();
+		Client client = Mockito.mock(Client.class);
 
 		// exercise
-		this.plugin.updateHardwareRequirements(cloudUser);
+		this.plugin.updateHardwareRequirements(client);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -252,7 +252,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(template, Mockito.times(1)).getId();
 		Mockito.verify(template, Mockito.times(1)).getName();
 		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
 		Assert.assertEquals(expected, this.plugin.getFlavors().size());
 	}
@@ -286,14 +286,14 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(DECIMAL_STRING_VALUE);
 		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(DECIMAL_STRING_VALUE);
 
-		Mockito.doReturn(0).when(this.plugin).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.doReturn(0).when(this.plugin).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
 		TreeSet<HardwareRequirements> expected = new TreeSet<HardwareRequirements>();
 
-		CloudUser cloudUser = createCloudUser();
+		Client client = Mockito.mock(Client.class);
 
 		// exercise
-		this.plugin.updateHardwareRequirements(cloudUser);
+		this.plugin.updateHardwareRequirements(client);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -304,7 +304,7 @@ public class OpenNebulaComputePluginTest {
 
 		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.anyString());
 		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 
 		Assert.assertEquals(expected, this.plugin.getFlavors());
 	}
@@ -335,10 +335,10 @@ public class OpenNebulaComputePluginTest {
 		Mockito.when(templateIterator.next()).thenReturn(template);
 		Mockito.when(templatePool.iterator()).thenReturn(templateIterator);
 
-		CloudUser cloudUser = createCloudUser();
+		Client client = Mockito.mock(Client.class);
 
 		// exercise
-		this.plugin.updateHardwareRequirements(cloudUser);
+		this.plugin.updateHardwareRequirements(client);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -351,7 +351,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(template, Mockito.times(1)).getId();
 		Mockito.verify(template, Mockito.times(1)).getName();
 		Mockito.verify(template, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImages(Mockito.anyMap(), Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(1)).getDiskSizeFromImageSizeMap(Mockito.anyMap(), Mockito.anyString());
 	}
     
 	// test case: When calling the getComputeInstance method passing a valid virtual
@@ -387,7 +387,7 @@ public class OpenNebulaComputePluginTest {
 		ComputeInstance expected = new ComputeInstance(id, OpenNebulaStateMapper.COMPUTE_RUNNING_STATE, name, cpu, memory, disk, ipAddresses);
 
 		// exercise
-		ComputeInstance computeInstance = this.plugin.getComputeInstance(virtualMachine);
+		ComputeInstance computeInstance = this.plugin.doComputeInstance(virtualMachine);
 
 		// verify
 		Mockito.verify(virtualMachine, Mockito.times(1)).info();
@@ -413,7 +413,7 @@ public class OpenNebulaComputePluginTest {
 		int expected = Integer.parseInt(imageSize);
 
 		// exercise
-		int value = this.plugin.getDiskSizeFromImages(imageSizeMap, imageId);
+		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
 
 		// verify
 		Assert.assertEquals(expected, value);
@@ -430,7 +430,7 @@ public class OpenNebulaComputePluginTest {
 		int expected = ZERO_VALUE;
 
 		// exercise
-		int value = this.plugin.getDiskSizeFromImages(imageSizeMap, imageId);
+		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
 
 		// verify
 		Assert.assertEquals(expected, value);
@@ -447,7 +447,7 @@ public class OpenNebulaComputePluginTest {
 		int expected = ZERO_VALUE;
 
 		// exercise
-		int value = this.plugin.getDiskSizeFromImages(imageSizeMap, imageId);
+		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
 
 		// verify
 		Assert.assertEquals(expected, value);
@@ -463,7 +463,7 @@ public class OpenNebulaComputePluginTest {
 		int expected = ZERO_VALUE;
 
 		// exercise
-		int value = this.plugin.getDiskSizeFromImages(imageSizeMap, imageId);
+		int value = this.plugin.getDiskSizeFromImageSizeMap(imageSizeMap, imageId);
 
 		// verify
 		Assert.assertEquals(expected, value);
@@ -514,7 +514,7 @@ public class OpenNebulaComputePluginTest {
 		flavors.add(flavor);
 
 		// exercise
-		boolean condition = this.plugin.containsFlavor(flavor, flavors);
+		boolean condition = this.plugin.containsFlavor(flavor);
 
 		// verify
 		Assert.assertTrue(condition);
@@ -537,7 +537,7 @@ public class OpenNebulaComputePluginTest {
 		flavors.add(flavor);
 
 		// exercise
-		boolean condition = this.plugin.containsFlavor(anotherFlavor, flavors);
+		boolean condition = this.plugin.containsFlavor(anotherFlavor);
 
 		// verify
 		Assert.assertFalse(condition);
@@ -572,7 +572,7 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		this.flavors.add(flavor);
 		this.plugin.setFlavors(this.flavors);
-		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor), Mockito.eq(this.flavors));
+		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor));
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
@@ -602,7 +602,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
 
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class), Mockito.any(CloudUser.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
@@ -627,7 +627,7 @@ public class OpenNebulaComputePluginTest {
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_1, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
@@ -648,8 +648,8 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(CloudUser.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(Client.class),
+				Mockito.any(ComputeOrder.class));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(template));
@@ -683,7 +683,7 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		this.flavors.add(flavor);
 		this.plugin.setFlavors(this.flavors);
-		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor), Mockito.eq(this.flavors));
+		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.eq(flavor));
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
@@ -711,8 +711,8 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getImagePool(Mockito.eq(client));
 
-		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-				Mockito.any(CloudUser.class));
+		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(Client.class),
+				Mockito.any(ComputeOrder.class));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.eq(virtualMachineTemplate));
@@ -756,7 +756,8 @@ public class OpenNebulaComputePluginTest {
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
+		Client client = Mockito.mock(Client.class);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
 
 		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
@@ -790,7 +791,8 @@ public class OpenNebulaComputePluginTest {
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
+		Client client = Mockito.mock(Client.class);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
 
 		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
@@ -823,7 +825,8 @@ public class OpenNebulaComputePluginTest {
 		List<String> networkIds = null;
 		ComputeOrder computeOrder = createComputeOrder(networkIds, CPU_VALUE_4, MEMORY_VALUE_2048, DISK_VALUE_8GB);
 		HardwareRequirements flavor = createHardwareRequirements();
-		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, cloudUser);
+		Client client = Mockito.mock(Client.class);
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(client, computeOrder);
 
 		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
 		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
@@ -867,7 +870,7 @@ public class OpenNebulaComputePluginTest {
 				.willReturn(virtualMachine);
 
 		ComputeInstance computeInstance = CreateComputeInstance();
-		Mockito.doReturn(computeInstance).when(this.plugin).getComputeInstance(virtualMachine);
+		Mockito.doReturn(computeInstance).when(this.plugin).doComputeInstance(virtualMachine);
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
@@ -885,7 +888,7 @@ public class OpenNebulaComputePluginTest {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(1)).getComputeInstance(virtualMachine);
+		Mockito.verify(this.plugin, Mockito.times(1)).doComputeInstance(virtualMachine);
 	}
 	
 	// Test case: When calling the deleteInstance method, with the instance ID and
