@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 
 import cloud.fogbow.common.models.CloudStackUser;
@@ -41,9 +43,13 @@ public class CloudstackTestUtils {
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("", "", "", "", new HashMap<>());
 
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String CLOUDSTACK_RESOURCE_PATH = "cloud" + File.separator +
             "plugins" + File.separator + "interoperability" + File.separator +
             "cloudstack" + File.separator;
+    public static String CLOUDSTACK_CONF_FILE_PATH = HomeDir.getPath() +
+            SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator +
+            CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
     public static final String AND_OPERATION_URL_PARAMETER = "&";
     public static final String CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR = ",";
