@@ -13,6 +13,7 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
@@ -78,9 +79,9 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.networkOfferingId = this.properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID_CONFIG);
-        this.zoneId = this.properties.getProperty(CloudStackNetworkPlugin.ZONE_ID_CONFIG);
-        this.cloudStackUrl = this.properties.getProperty(CloudStackNetworkPlugin.CLOUDSTACK_URL_CONFIG);
+        this.networkOfferingId = this.properties.getProperty(CloudStackCloudUtils.NETWORK_OFFERING_ID_CONFIG);
+        this.zoneId = this.properties.getProperty(CloudStackCloudUtils.ZONE_ID_CONFIG);
+        this.cloudStackUrl = this.properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
         this.plugin = Mockito.spy(new CloudStackNetworkPlugin(cloudStackConfFilePath));
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);

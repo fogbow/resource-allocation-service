@@ -15,6 +15,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.net.util.SubnetUtils;
@@ -27,10 +28,6 @@ import java.util.Properties;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
-    public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
-    public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
-    public static final String ZONE_ID_CONFIG = "zone_id";
-
     protected String networkOfferingId;
     protected String cloudStackUrl;
     protected String zoneId;
@@ -39,9 +36,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
     public CloudStackNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL_CONFIG);
-        this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID_CONFIG);
-        this.zoneId = properties.getProperty(ZONE_ID_CONFIG);
+        this.cloudStackUrl = this.properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.networkOfferingId = properties.getProperty(CloudStackCloudUtils.NETWORK_OFFERING_ID_CONFIG);
+        this.zoneId = properties.getProperty(CloudStackCloudUtils.ZONE_ID_CONFIG);
         this.client = new CloudStackHttpClient();
     }
 
@@ -137,7 +134,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(uriRequest, token);
 
         try {
-            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            String jsonResponse = CloudStackCloudUtils.doGet(
+                    this.client, uriRequest.toString(), cloudStackUser);
             CreateNetworkResponse createNetworkResponse = CreateNetworkResponse.fromJson(jsonResponse);
             return createNetworkResponse.getId();
         } catch (HttpResponseException e) {
