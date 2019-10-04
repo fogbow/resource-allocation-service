@@ -156,10 +156,10 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    NetworkInstance getNetworkInstance(@NotNull GetNetworkResponse getNetworkResponse)
+    NetworkInstance getNetworkInstance(@NotNull GetNetworkResponse response)
             throws InstanceNotFoundException {
 
-        List<GetNetworkResponse.Network> networks = getNetworkResponse.getNetworks();
+        List<GetNetworkResponse.Network> networks = response.getNetworks();
         if (networks.size() <= 0) {
             throw new InstanceNotFoundException();
         }
