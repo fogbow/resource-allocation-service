@@ -1,13 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import java.io.File;
-import java.util.HashMap;
 import java.util.UUID;
 
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.CreateNetworkReserveRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -18,7 +20,6 @@ import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -26,21 +27,13 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({SharedOrderHolders.class, OpenNebulaClientUtil.class, SecurityGroup.class, Thread.class, VirtualNetwork.class})
-public class OpenNebulaPublicIpPluginTest {
+@PrepareForTest({DatabaseManager.class, OpenNebulaClientUtil.class, SecurityGroup.class, Thread.class, VirtualNetwork.class})
+public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 	private static final String ACTIVE_STATE = "ACTIVE";
 	private static final String DEFAULT_CLOUD = "default";
@@ -54,34 +47,25 @@ public class OpenNebulaPublicIpPluginTest {
 	private static final String FAKE_PROVIDER = "fake-provider";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
 	private static final String STRING_ID_ONE = "1";
 	private static final String STRING_SECURITY_GROUPS = "0,1";
 
 	private static final int FAKE_PUBLIC_NETWORK_ID = 100;
 	private static final int ID_VALUE_ONE = 1;
+	private static final int FAKE_SIZE = 1;
 
 	private OpenNebulaPuplicIpPlugin plugin;
-	private SharedOrderHolders sharedOrderHolders;
 	private PublicIpOrder publicIpOrder;
+	private String instanceId;
 
 	@Before
-	public void setUp() {
-		String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-		
-		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin(opennebulaConfFilePath));
-		this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
+	public void setUp() throws FogbowException {
+	    super.setUp();
 
-		PowerMockito.mockStatic(SharedOrderHolders.class);
-		BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
+		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin(this.openNebulaConfFilePath));
 
-		Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
-				.thenReturn(new SynchronizedDoublyLinkedList<>());
-		Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
-
-		this.publicIpOrder = createPublicIpOrder();
+		this.publicIpOrder = this.createPublicIpOrder();
+		this.instanceId = this.publicIpOrder.getInstanceId();
 	}
 	
 	// test case: When calling the isReady method, if the state of public IP is
@@ -139,72 +123,156 @@ public class OpenNebulaPublicIpPluginTest {
 		// verify
 		Assert.assertFalse(status);
 	}
-	
+
 	// test case: When calling the requestInstance method, with a client and an
 	// order valid, templates must be generated for each resource with the
 	// associated data, to reserve a public network, create a specific security
 	// group e attached the NIC of this network, returning its instance ID.
 	@Test
-	public void testRequestInstanceSuccessfully() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		Mockito.doReturn(FAKE_INSTANCE_NAME).when(this.plugin).getRandomUUID();
-
-		String publicNetworkReserveTemplate = getPublicNetworkReserveTemplate();
-		BDDMockito
-				.given(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client),
-						Mockito.eq(FAKE_PUBLIC_NETWORK_ID), Mockito.eq(publicNetworkReserveTemplate)))
-				.willReturn(STRING_ID_ONE);
-
-		Mockito.doReturn(STRING_ID_ONE).when(this.plugin).createSecurityGroup(Mockito.eq(client),
-				Mockito.eq(publicIpOrder));
-
-		String publicNetworkUpdateTemplate = getPlublicNetworkUpdateTemplate();
-		BDDMockito.given(OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(ID_VALUE_ONE),
-				Mockito.eq(publicNetworkUpdateTemplate))).willReturn(STRING_ID_ONE);
-
-		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(STRING_ID_ONE)))
-				.willReturn(virtualMachine);
-
-		String nicTemplate = getNicTemplate();
-		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.when(virtualMachine.nicAttach(nicTemplate)).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
-
-		CloudUser cloudUser = createCloudUser();
-		String expected = STRING_ID_ONE;
+	public void testRequestInstance() throws FogbowException {
+	    // set up
+		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).convertToInteger(Mockito.anyString());
+		Mockito.doReturn(this.publicIpOrder.getInstanceId()).when(this.plugin).doRequestInstance(
+				Mockito.any(Client.class), Mockito.anyInt(), Mockito.any(CreateNetworkReserveRequest.class));
+		Mockito.doReturn(STRING_ID_ONE).when(this.plugin).createSecurityGroup(
+				Mockito.any(Client.class), Mockito.any(PublicIpOrder.class));
+		Mockito.doNothing().when(this.plugin).addSecurityGroupToPublicIp(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
+		Mockito.doNothing().when(this.plugin).attachPublicIpToCompute(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
 
 		// exercise
-		String instanceId = this.plugin.requestInstance(publicIpOrder, cloudUser);
+		this.plugin.requestInstance(this.publicIpOrder, this.cloudUser);
 
 		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(client), Mockito.eq(FAKE_PUBLIC_NETWORK_ID),
-				Mockito.eq(publicNetworkReserveTemplate));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.eq(this.client), Mockito.eq(ID_VALUE_ONE), Mockito.any(CreateNetworkReserveRequest.class ));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(
+				Mockito.eq(this.client), Mockito.eq(this.publicIpOrder));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).addSecurityGroupToPublicIp(
+				Mockito.eq(this.client), Mockito.eq(this.instanceId), Mockito.eq(STRING_ID_ONE));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).attachPublicIpToCompute(
+				Mockito.eq(this.client), Mockito.eq(this.instanceId), Mockito.eq(this.publicIpOrder.getComputeOrderId()));
+	}
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(ID_VALUE_ONE),
-				Mockito.eq(publicNetworkUpdateTemplate));
+	// test case: when invoking doRequest instance with valid client, default network id and
+	// create network reserve request, create a new ONe network reserve relative to the new order
+	@Test
+	public void testDoRequestInstance() throws InvalidParameterException {
+		// set up
+        CreateNetworkReserveRequest request = Mockito.spy(this.createNetworkReserveRequest());
 
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(STRING_ID_ONE));
+		Mockito.when(OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.any(Client.class), Mockito.anyInt(), Mockito.anyString()))
+				.thenReturn(STRING_ID_ONE);
 
-		Mockito.verify(this.plugin, Mockito.times(2)).convertToInteger(Mockito.anyString());
-		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.eq(client),
-				Mockito.eq(publicIpOrder));
+		// exercise
+		this.plugin.doRequestInstance(this.client, ID_VALUE_ONE, request);
 
-		Mockito.verify(virtualMachine, Mockito.times(1)).nicAttach(Mockito.eq(nicTemplate));
-		Mockito.verify(response, Mockito.times(1)).isError();
+		// verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.reserveVirtualNetwork(Mockito.eq(this.client), Mockito.eq(ID_VALUE_ONE), Mockito.anyString());
 
-		Assert.assertEquals(expected, instanceId);
+		Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).getVirtualNetworkReserved();
+	}
+
+	// test case: when invoking createSecurityGroup with valid client and public ip order,
+	// the plugin should allocate the default fogbow security group in ONe and return its id
+	@Test
+	public void testCreateSecurityGroup() throws InvalidParameterException {
+		// set up
+		Mockito.when(OpenNebulaClientUtil.allocateSecurityGroup(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(STRING_ID_ONE);
+
+		// exercise
+		this.plugin.createSecurityGroup(this.client, this.publicIpOrder);
+
+		// verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.allocateSecurityGroup(Mockito.eq(this.client), Mockito.anyString());
+	}
+
+	// test case: when invoking addSecurityGroupToPublicIp with valid client, instance id and security group id,
+	// the plugin should update the respective network reserve with the newly created ONe secgroup
+	@Test
+	public void testAddSecurityGroupToPublicIp() throws InvalidParameterException {
+		// set up
+		Mockito.when(OpenNebulaClientUtil.updateVirtualNetwork(Mockito.any(Client.class), Mockito.anyInt(), Mockito.anyString()))
+				.thenReturn(STRING_ID_ONE);
+		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).convertToInteger(Mockito.anyString());
+
+		// exercise
+		this.plugin.addSecurityGroupToPublicIp(this.client, this.instanceId, STRING_ID_ONE);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(this.client), Mockito.eq(ID_VALUE_ONE), Mockito.anyString());
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.eq(this.instanceId));
+	}
+
+	// test case: when invoking attachPublicIpToCompute with valid client, public ip id and compute id,
+	// the plugin should attach the respective ONe network reserve nic to the virtual machine
+	@Test
+	public void testAttachPublicIpToCompute() throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+		// set up
+		String template = this.getNicTemplate();
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		OneResponse response = Mockito.mock(OneResponse.class);
+
+		Mockito.doReturn(template).when(this.plugin).createNicTemplate(Mockito.anyString());
+		Mockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(virtualMachine);
+		Mockito.when(virtualMachine.nicAttach(Mockito.anyString())).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+
+		// exercise
+		this.plugin.attachPublicIpToCompute(this.client, this.instanceId, STRING_ID_ONE);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(this.client), Mockito.eq(STRING_ID_ONE));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createNicTemplate(Mockito.eq(this.instanceId));
+		Mockito.verify(virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).nicAttach(Mockito.eq(template));
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
+	}
+
+	// test case: when invoking attachPublicIpToCompute with invalid parameters, the plugin
+	// should throw an InvalidParameterException
+	@Test
+	public void testAttachPublicIpToComputeFail() throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+		// set up
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		OneResponse response = Mockito.mock(OneResponse.class);
+		String template = this.getNicTemplate();
+		String message = String.format(Messages.Error.ERROR_WHILE_CREATING_NIC, template) + " " +
+				String.format(Messages.Error.ERROR_MESSAGE, response.getMessage());
+
+		Mockito.doReturn(template).when(this.plugin).createNicTemplate(Mockito.anyString());
+		Mockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
+				.thenReturn(virtualMachine);
+		Mockito.when(virtualMachine.nicAttach(Mockito.anyString())).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(true);
+
+		// exercise
+		try {
+			this.plugin.attachPublicIpToCompute(this.client, this.instanceId, STRING_ID_ONE);
+			Assert.fail();
+		} catch (InvalidParameterException e) {
+			Assert.assertEquals(message, e.getMessage());
+		}
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(this.client), Mockito.eq(STRING_ID_ONE));
+
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createNicTemplate(Mockito.eq(this.instanceId));
+		Mockito.verify(virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).nicAttach(Mockito.eq(template));
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
 	}
 
 	// test case: When calling the getInstance method, with an instance ID and cloud
@@ -461,60 +529,6 @@ public class OpenNebulaPublicIpPluginTest {
 		Assert.assertTrue(powerOff);
 	}
 	
-	// test case: When calling the attachNetworkInterfaceConnected method with a
-	// template or a compute instance ID invalid, it must throw an
-	// InvalidParameterException.
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testAttachNetworkInterfaceConnectedThrowInvalidParameterException() throws UnexpectedException,
-			UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		String computeInstanceId = STRING_ID_ONE;
-		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(client), Mockito.eq(computeInstanceId)))
-				.willReturn(virtualMachine);
-
-		String template = EMPTY_STRING;
-		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.when(virtualMachine.nicAttach(Mockito.eq(template))).thenReturn(response);
-		Mockito.when(response.isError()).thenReturn(true);
-
-		// exercise
-		this.plugin.attachPublicIpToCompute(client, computeInstanceId, template);
-	}
-	
-	// test case: When calling the createSecurityGroup method with a valid client
-	// and a public IP order, it must create a security group for that public
-	// network, returning its ID.
-	@Test
-	public void testCreateSecurityGroupSuccessfully() throws UnexpectedException, InvalidParameterException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		String instanceId = STRING_ID_ONE;
-		String template = getSecurityGroupTemplate();
-		BDDMockito.given(OpenNebulaClientUtil.allocateSecurityGroup(Mockito.eq(client), Mockito.eq(template)))
-				.willReturn(instanceId);
-
-		PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
-		Mockito.when(publicIpOrder.getId()).thenReturn(FAKE_ORDER_ID);
-
-		// exercise
-		this.plugin.createSecurityGroup(client, publicIpOrder);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.allocateSecurityGroup(Mockito.eq(client), Mockito.eq(template));
-	}
-
 	// test case: Successful call verification of getRandomUUID method.
 	@Test
 	public void testGetRandomUUIDSuccessfully() {
@@ -601,18 +615,25 @@ public class OpenNebulaPublicIpPluginTest {
 	}
 	
 	private PublicIpOrder createPublicIpOrder() {
-		String instanceId = STRING_ID_ONE;
-		SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
-		ComputeOrder computeOrder = new ComputeOrder();
-		computeOrder.setSystemUser(requester);
-		computeOrder.setProvider(FAKE_PROVIDER);
-		computeOrder.setCloudName(DEFAULT_CLOUD);
-		computeOrder.setInstanceId(STRING_ID_ONE);
-		computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-		this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-		PublicIpOrder publicIpOrder = new PublicIpOrder(computeOrder.getId());
-		publicIpOrder.setInstanceId(instanceId);
-		this.sharedOrderHolders.getActiveOrdersMap().put(publicIpOrder.getId(), publicIpOrder);
-		return publicIpOrder;
+		//String instanceId = STRING_ID_ONE;
+		//SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
+		//ComputeOrder computeOrder = new ComputeOrder();
+		//computeOrder.setSystemUser(requester);
+		//computeOrder.setProvider(FAKE_PROVIDER);
+		//computeOrder.setCloudName(DEFAULT_CLOUD);
+		//computeOrder.setInstanceId(STRING_ID_ONE);
+		//computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+		//this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
+		//PublicIpOrder publicIpOrder = new PublicIpOrder(computeOrder.getId());
+		//publicIpOrder.setInstanceId(instanceId);
+		//this.sharedOrderHolders.getActiveOrdersMap().put(publicIpOrder.getId(), publicIpOrder);
+		return this.testUtils.createLocalPublicIpOrder(STRING_ID_ONE);
+	}
+
+	private CreateNetworkReserveRequest createNetworkReserveRequest() {
+		return new CreateNetworkReserveRequest.Builder()
+				.name(FAKE_NAME)
+				.size(FAKE_SIZE)
+				.build();
 	}
 }

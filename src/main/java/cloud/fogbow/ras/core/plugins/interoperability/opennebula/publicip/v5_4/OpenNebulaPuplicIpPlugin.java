@@ -82,9 +82,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		int defaultPublicNetworkId = convertToInteger(this.defaultPublicNetwork);
+		int defaultPublicNetworkId = this.convertToInteger(this.defaultPublicNetwork);
 		int size = SIZE_ADDRESS_PUBLIC_IP;
-		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
+		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + this.getRandomUUID();
 
 		CreateNetworkReserveRequest reserveRequest = new CreateNetworkReserveRequest.Builder()
 				.name(name)
@@ -216,10 +216,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		OneResponse response = virtualMachine.nicAttach(template);
 
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NIC, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
+			String message = String.format(Messages.Error.ERROR_WHILE_CREATING_NIC, template) + " " +
+					String.format(Messages.Error.ERROR_MESSAGE, response.getMessage());
+			throw new InvalidParameterException(message);
 		}
 	}
 
