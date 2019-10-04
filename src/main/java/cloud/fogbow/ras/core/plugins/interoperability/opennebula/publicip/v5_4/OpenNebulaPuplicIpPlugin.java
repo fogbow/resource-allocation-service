@@ -45,7 +45,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String SECURITY_GROUP_SEPARATOR = ",";
-	private static final String PUBLIC_IP_RESOURCE = "Public IP";
+	protected static final String PUBLIC_IP_RESOURCE = "Public IP";
 
 	private static final int SIZE_ADDRESS_PUBLIC_IP = 1;
 	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
@@ -57,7 +57,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	protected static final String POWEROFF_STATE = "POWEROFF";
 	
 	protected static final long ONE_POINT_TWO_SECONDS = 1200;
-	protected static final boolean TERMINATE_HARD = true;
+	protected static final boolean SHUT_OFF = true;
 
 	private String endpoint;
 	private String defaultPublicNetwork;
@@ -108,7 +108,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		// NOTE(pauloewerton): ONe does not allow deleting a resource associated to a VM, so we're using a workaround
 		// by shutting down the VM, releasing network and secgroup resources, and then resuming it afterwards.
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, publicIpOrder.getComputeId());
-		virtualMachine.poweroff(TERMINATE_HARD);
+		virtualMachine.poweroff(SHUT_OFF);
 
 		if (this.isPowerOff(virtualMachine)) {
 			this.detachPublicIpFromCompute(virtualMachine, publicIpInstanceId);
@@ -254,15 +254,15 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 
 	protected void detachPublicIpFromCompute(VirtualMachine virtualMachine, String publicIpInstanceId)
-			throws InvalidParameterException {
+			throws InvalidParameterException, UnexpectedException {
 
 		String nicId = virtualMachine.xpath(String.format(EXPRESSION_NIC_ID_FROM_NETWORK, publicIpInstanceId));
-		int id = convertToInteger(nicId);
+		int id = this.convertToInteger(nicId);
 
 		OneResponse response = virtualMachine.nicDetach(id);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			String message = String.format(Messages.Error.ERROR_MESSAGE, response.getErrorMessage());
+			throw new UnexpectedException(message);
 		}
 	}
 
@@ -276,8 +276,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 		OneResponse response = securityGroup.delete();
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			String message = String.format(Messages.Error.ERROR_MESSAGE, response.getErrorMessage());
+			throw new UnexpectedException(message);
 		}
 	}
 
