@@ -11,11 +11,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
 
 @XmlRootElement(name = TEMPLATE)
-public class GetSecurityRulesResponse extends OpenNebulaMarshaller {
+public class GetSecurityRulesTemplate extends OpenNebulaMarshaller {
 
     private List<Rule> rules;
     
-    public GetSecurityRulesResponse() {}
+    public GetSecurityRulesTemplate() {}
 
     public List<Rule> getRules() {
         return rules;
@@ -27,7 +27,7 @@ public class GetSecurityRulesResponse extends OpenNebulaMarshaller {
     }
     
     public static Builder builder() {
-        return new GetSecurityRulesResponse.Builder();
+        return new GetSecurityRulesTemplate.Builder();
     }
 
     public static class Builder {
@@ -39,12 +39,12 @@ public class GetSecurityRulesResponse extends OpenNebulaMarshaller {
             return this;
         }
         
-        public GetSecurityRulesResponse build() {
-            return new GetSecurityRulesResponse(this);
+        public GetSecurityRulesTemplate build() {
+            return new GetSecurityRulesTemplate(this);
         }
     }
     
-    private GetSecurityRulesResponse(Builder builder) {
+    private GetSecurityRulesTemplate(Builder builder) {
         this.rules = builder.rules;
     }
     

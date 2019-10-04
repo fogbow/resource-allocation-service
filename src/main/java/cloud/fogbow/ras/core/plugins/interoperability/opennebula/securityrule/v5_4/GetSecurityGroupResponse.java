@@ -26,7 +26,7 @@ public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
     
     private String id;
     private String name;
-    private GetSecurityRulesResponse template;
+    private GetSecurityRulesTemplate template;
     
     public GetSecurityGroupResponse() {}
     
@@ -48,12 +48,12 @@ public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
         this.name = name;
     }
 
-    public GetSecurityRulesResponse getTemplate() {
+    public GetSecurityRulesTemplate getTemplate() {
         return template;
     }
     
     @XmlElement(name = TEMPLATE)
-    public void setTemplate(GetSecurityRulesResponse template) {
+    public void setTemplate(GetSecurityRulesTemplate template) {
         this.template = template;
     }
     
@@ -65,7 +65,7 @@ public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
         
         private String id;
         private String name;
-        private GetSecurityRulesResponse template;
+        private GetSecurityRulesTemplate template;
         
         public Builder id(String id) {
             this.id = id;
@@ -77,7 +77,7 @@ public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
             return this;
         }
         
-        public Builder template(GetSecurityRulesResponse template) {
+        public Builder template(GetSecurityRulesTemplate template) {
             this.template = template;
             return this;
         }

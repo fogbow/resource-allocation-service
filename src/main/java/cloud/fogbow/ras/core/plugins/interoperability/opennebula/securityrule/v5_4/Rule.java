@@ -155,4 +155,46 @@ public final class Rule extends OpenNebulaMarshaller {
         this.groupId = builder.groupId;
     }
     
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Rule other = (Rule) obj;
+        if (ip == null) {
+            if (other.ip != null)
+                return false;
+        } else if (!ip.equals(other.ip))
+            return false;
+        if (networkId == null) {
+            if (other.networkId != null)
+                return false;
+        } else if (!networkId.equals(other.networkId))
+            return false;
+        if (protocol == null) {
+            if (other.protocol != null)
+                return false;
+        } else if (!protocol.equals(other.protocol))
+            return false;
+        if (range == null) {
+            if (other.range != null)
+                return false;
+        } else if (!range.equals(other.range))
+            return false;
+        if (size == null) {
+            if (other.size != null)
+                return false;
+        } else if (!size.equals(other.size))
+            return false;
+        if (type == null) {
+            if (other.type != null)
+                return false;
+        } else if (!type.equals(other.type))
+            return false;
+        return true;
+    }
+    
 }
