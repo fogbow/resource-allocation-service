@@ -21,17 +21,18 @@ public class CloudStackCloudUtils {
     public static final String ZONE_ID_CONFIG = "zone_id";
 
     /**
-     * Request HTTP operations to Cloudstack and treat a possible
-     * FogbowException when It is thrown by the cloudStackHttpClient.
+     * Request HTTP operations to Cloudstack and treat a possible FogbowException when
+     * It is thrown by the cloudStackHttpClient.
+     * @throws HttpResponseException
      **/
     // TODO(chico) - It must be used in the ComputePlugin too
     @NotNull
     public static String doGet(@NotNull CloudStackHttpClient cloudStackHttpClient,
                                String url,
-                               @NotNull CloudStackUser cloudUser) throws HttpResponseException {
+                               @NotNull CloudStackUser cloudStackUser) throws HttpResponseException {
 
         try {
-            return cloudStackHttpClient.doGetRequest(url, cloudUser);
+            return cloudStackHttpClient.doGetRequest(url, cloudStackUser);
         } catch (FogbowException e) {
             // TODO(chico) - use a constant
             LOGGER.error("Error while requisting to the cloud.", e);
