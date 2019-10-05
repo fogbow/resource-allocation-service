@@ -89,17 +89,29 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteInstance(@NotNull NetworkOrder networkOrder,
+                               @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        doDeleteInstance(request, cloudStackUser);
+    }
+
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull DeleteNetworkRequest request,
+                          @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            CloudStackCloudUtils.doGet(this.client, uriRequest.toString(), cloudStackUser);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
@@ -110,8 +122,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
-        String token = cloudStackUser.getToken();
-        CloudStackUrlUtil.sign(uriRequest, token);
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
             String jsonResponse = CloudStackCloudUtils.doGet(
@@ -131,8 +142,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             throws FogbowException {
 
         URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
-        String token = cloudStackUser.getToken();
-        CloudStackUrlUtil.sign(uriRequest, token);
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
             String jsonResponse = CloudStackCloudUtils.doGet(
@@ -144,6 +154,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         }
     }
 
+    @NotNull
     @VisibleForTesting
     SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) throws InvalidParameterException {
         try {
@@ -160,7 +171,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             throws InstanceNotFoundException {
 
         List<GetNetworkResponse.Network> networks = response.getNetworks();
-        if (networks.size() <= 0) {
+        if (networks.isEmpty()) {
             throw new InstanceNotFoundException();
         }
         // since an id was specified, there should be no more than one network in the getNetworkResponse
@@ -177,7 +188,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 null, null, null);
     }
 
-    protected void setClient(CloudStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

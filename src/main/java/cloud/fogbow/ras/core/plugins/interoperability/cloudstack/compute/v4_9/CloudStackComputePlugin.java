@@ -116,6 +116,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(order.getInstanceId())
                 .build(this.cloudStackUrl);
+
         return doGetInstance(request, cloudUser);
     }
 
@@ -127,9 +128,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .id(order.getInstanceId())
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
+
         doDeleteInstance(request, cloudUser, order.getInstanceId());
     }
 
+    @NotNull
     @VisibleForTesting
     ComputeInstance doGetInstance(@NotNull GetVirtualMachineRequest request,
                                   @NotNull CloudStackUser cloudStackUser) throws FogbowException {
