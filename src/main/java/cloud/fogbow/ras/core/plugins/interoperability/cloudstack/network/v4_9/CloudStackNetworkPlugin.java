@@ -15,12 +15,14 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.network.v2.AwsV2NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -28,9 +30,11 @@ import java.util.Properties;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
 
-    protected String networkOfferingId;
-    protected String cloudStackUrl;
-    protected String zoneId;
+    private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
+
+    private String networkOfferingId;
+    private String cloudStackUrl;
+    private String zoneId;
     private CloudStackHttpClient client;
     private Properties properties;
 
@@ -56,6 +60,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     public String requestInstance(@NotNull NetworkOrder networkOrder,
                                   @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         String name = networkOrder.getName();
         String startingIp = subnetInfo.getLowAddress();
@@ -81,6 +86,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                                        @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
         GetNetworkRequest getNetworkRequest = new GetNetworkRequest.Builder()
                 .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
@@ -93,6 +99,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                                @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
