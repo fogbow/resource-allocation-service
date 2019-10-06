@@ -49,7 +49,7 @@ public class CloudstackTestUtils {
     private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
-            new CloudStackUser("", "", "", "", new HashMap<>());
+            new CloudStackUser("id", "", "", "", new HashMap<>());
 
     public static final String BAD_REQUEST_MSG = "Bad Request";
     private static final String CLOUD_NAME = "cloudstack";
