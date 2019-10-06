@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
@@ -15,12 +16,12 @@ public class DeleteNetworkRequestTest {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
-                DeleteNetworkRequest.DELETE_NETWORK_COMMAND);
+                CloudStackConstants.Network.DELETE_NETWORK_COMMAND);
         String urlBaseExpected = uriBuilder.toString();
         String networkId = "networkId";
 
         String networkIdStructureUrl =
-                String.format("%s=%s", DeleteNetworkRequest.NETWORK_ID_KEY, networkId);
+                String.format("%s=%s", CloudStackConstants.Network.ID_KEY_JSON, networkId);
 
         String[] urlStructure = new String[] {
                 urlBaseExpected,

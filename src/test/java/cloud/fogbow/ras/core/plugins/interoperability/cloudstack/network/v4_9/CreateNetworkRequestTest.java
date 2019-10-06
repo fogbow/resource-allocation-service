@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
@@ -15,7 +16,7 @@ public class CreateNetworkRequestTest {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
-                CreateNetworkRequest.CREATE_NETWORK_COMMAND);
+                CloudStackConstants.Network.CREATE_NETWORK_COMMAND);
         String urlBaseExpected = uriBuilder.toString();
 
         String nameExpexted = "nameExpexted";
@@ -27,22 +28,22 @@ public class CreateNetworkRequestTest {
         String gatewayExpected = "...1";
         String netmaskException = "...255";
 
-        String virtualMachineIdStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.NAME_KEY, nameExpexted);
-        String displayNameStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.DISPLAY_TEXT_KEY, displayTextExpected);
-        String networkOfferingStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.NETWORK_OFFERING_ID_KEY, networkOfferingIdExpected);
-        String zoneIdStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.ZONE_ID_KEY, zoneIdExpected);
-        String startingIpStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.STARTING_IP_KEY, startingIpExpected);
-        String endingIpStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.ENDING_IP_KEY, endingIpExpected);
-        String gatewayStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.GATEWAY_KEY, gatewayExpected);
-        String netmaskStructureUrl =
-                String.format("%s=%s", CreateNetworkRequest.NETMASK_KEY, netmaskException);
+        String virtualMachineIdStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.NAME_KEY_JSON, nameExpexted);
+        String displayNameStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.DISPLAY_TEXT_KEY_JSON, displayTextExpected);
+        String networkOfferingStructureUrl = String.format("%s=%s",
+                CloudStackConstants.Network.NETWORK_OFFERING_ID_KEY_JSON, networkOfferingIdExpected);
+        String zoneIdStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.ZONE_ID_KEY_JSON, zoneIdExpected);
+        String startingIpStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.STARTING_IP_KEY_JSON, startingIpExpected);
+        String endingIpStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.ENDING_IP_KEY_JSON, endingIpExpected);
+        String gatewayStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.GATEWAY_KEY_JSON, gatewayExpected);
+        String netmaskStructureUrl = String.format(
+                "%s=%s", CloudStackConstants.Network.NETMASK_KEY_JSON, netmaskException);
 
         String[] urlStructure = new String[] {
                 urlBaseExpected,
