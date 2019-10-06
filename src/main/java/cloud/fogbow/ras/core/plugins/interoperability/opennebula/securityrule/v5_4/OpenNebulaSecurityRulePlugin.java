@@ -29,7 +29,6 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 
@@ -37,48 +36,31 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
     public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 
-    protected static final String ALL_ADDRESSES_REMOTE_PREFIX = "0.0.0.0/0";
-    
     private static final String CIDR_SEPARATOR = "/";
     private static final String CONTENT_SEPARATOR = ",";
     private static final String EMPTY_STRING = "";
     private static final String ID_SEPARATOR = "@";
     private static final String RANGE_SEPARATOR = ":";
     private static final String SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
-
-    // directions template values
-    private static final String INBOUND_TEMPLATE_VALUE = "inbound";
-    private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
-
-    // fields indexes for instance id
-    private static final int PROTOCOL_INDEX = 0;
-    private static final int IP_INDEX = 1;
-    private static final int SIZE_INDEX = 2;
-    private static final int RANGE_INDEX = 3;
-    private static final int TYPE_INDEX = 4;
-    private static final int NETWORK_ID_INDEX = 5;
-    private static final int SECURITY_GROUP_INDEX = 6;
-
-    // protocols template values
-    private static final String ALL_TEMPLATE_VALUE = "ALL";
-    private static final String IPSEC_TEMPLATE_VALUE = "IPSEC";
-    private static final String ICMP_TEMPLATE_VALUE = "ICMP";
-    private static final String ICMPV6_TEMPLATE_VALUE = "ICMPV6";
-    private static final String TCP_TEMPLATE_VALUE = "TCP";
-    private static final String UDP_TEMPLATE_VALUE = "UDP";
-
-    // range ports
+    
+    protected static final String ALL_ADDRESSES_REMOTE_PREFIX = "0.0.0.0/0";
     protected static final int MINIMUM_RANGE_PORT = 1;
     protected static final int MAXIMUM_RANGE_PORT = 65536;
-
-    private static final int BASE_VALUE = 2;
-    private static final int IPV4_AMOUNT_BITS = 32;
-    private static final int IPV6_AMOUNT_BITS = 128;
-    private static final int INT_ERROR_CODE = -1;
-    private static final int PORT_FROM_INDEX = 0;
-    private static final int PORT_TO_INDEX = 1;
+    
+    // fields indexes for instance id
+    private static final int GROUP_ID_INDEX = 0;
+    private static final int NETWORK_ID_INDEX = 1;
+    private static final int TYPE_INDEX = 2;
+    private static final int PROTOCOL_INDEX = 3;
+    private static final int IP_INDEX = 4;
+    private static final int SIZE_INDEX = 5;
+    private static final int RANGE_INDEX = 6;
     private static final int SECURITY_RULE_ID_FIELDS_NUMBER = 7;
 
+    // range ports index
+    private static final int PORT_FROM_INDEX = 0;
+    private static final int PORT_TO_INDEX = 1;
+    
     private String endpoint;
 
     public OpenNebulaSecurityRulePlugin(String confFilePath) throws FatalErrorException {
@@ -122,7 +104,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
             String template = generateUpdateRequest(group, rules);
             updateSecurityGroup(securityGroup, template);
         } else {
-            throw new InstanceNotFoundException("Rule not available for deletion."); // FIXME add message...
+            throw new InstanceNotFoundException(Messages.Exception.RULE_NOT_AVAILABLE);
         }
     }
 
@@ -153,22 +135,22 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected Rule doUnpakingSecurityRuleId(String securityRuleId) throws FogbowException {
         String[] fields = securityRuleId.split(ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
+            String groupId = getValueFrom(fields[GROUP_ID_INDEX]);
             String protocol = getValueFrom(fields[PROTOCOL_INDEX]);
             String ip = getValueFrom(fields[IP_INDEX]);
             String size = getValueFrom(fields[SIZE_INDEX]);
             String range = getValueFrom(fields[RANGE_INDEX]);
             String type = getValueFrom(fields[TYPE_INDEX]);
             String networkId = getValueFrom(fields[NETWORK_ID_INDEX]);
-            String groupId = getValueFrom(fields[SECURITY_GROUP_INDEX]);
 
             Rule rule = Rule.builder()
+                    .groupId(groupId)
                     .protocol(protocol)
                     .ip(ip)
                     .size(size)
                     .range(range)
                     .type(type)
                     .networkId(networkId)
-                    .groupId(groupId)
                     .build();
 
             return rule;
@@ -181,7 +163,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     }
     
     protected List<SecurityRuleInstance> doGetSecurityRules(SecurityGroup securityGroup) {
-        List<SecurityRuleInstance> instances = new ArrayList();
+        List<SecurityRuleInstance> instances = new ArrayList<>();
         GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
         List<Rule> rules = group.getTemplate().getRules();
         for (Rule rule : rules) {
@@ -192,119 +174,19 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     }
 
     protected SecurityRuleInstance buildSecurityRule(Rule rule) {
-        Direction direction = getDirectionFrom(rule);
-        EtherType etherType = getEtherTypeFrom(rule);
-        Protocol protocol = getProtocolFrom(rule);
-        int portFrom = getPortInRange(PORT_FROM_INDEX, rule);
-        int portTo = getPortInRange(PORT_TO_INDEX, rule);
-        String cidr = buildAddressCidr(rule);
         String id = doPackingSecurityRuleId(rule);
-        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
-    }
-
-    protected String buildAddressCidr(Rule rule) {
-        String size = rule.getSize();
-        String ipAddress = rule.getIp();
-        EtherType etherType = getEtherTypeFrom(rule);
-        if (etherType != null && (size != null && !size.isEmpty())) {
-            int range = Integer.parseInt(size);
-            int cidr = calculateCidr(range, etherType);
-            return ipAddress + CIDR_SEPARATOR + String.valueOf(cidr);
-        }
-        return ALL_TEMPLATE_VALUE;
-    }
-
-    protected int calculateCidr(int range, EtherType etherType) {
-        int amountBits = etherType.equals(EtherType.IPv4) ? IPV4_AMOUNT_BITS : IPV6_AMOUNT_BITS;
-        int exponent = 1;
-        int value = 0;
-        for (int i = 0; i < amountBits; i++) {
-            if (exponent >= range) {
-                value = amountBits - i;
-                return value;
-            } else {
-                exponent *= BASE_VALUE;
-            }
-        }
-        return value;
-    }
-
-    protected int getPortInRange(int index, Rule rule) {
+        String cidr = SecurityRuleUtil.getAddressCidr(rule);
         String range = rule.getRange();
-        if (range == null || range.isEmpty()) {
-            switch (index) {
-            case PORT_FROM_INDEX:
-                return MINIMUM_RANGE_PORT;
-            case PORT_TO_INDEX:
-                return MAXIMUM_RANGE_PORT;
-            }
-        }
-        try {
-            String[] splitPorts = range.split(RANGE_SEPARATOR);
-            if (splitPorts.length == 1) {
-                return Integer.parseInt(range);
-            } else if (splitPorts.length == 2) {
-                return Integer.parseInt(splitPorts[index]);
-            } else {
-                LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_RANGE_S, range));
-            }
-        } catch (Exception e) {
-            LOGGER.warn(String.format(Messages.Exception.INVALID_PARAMETER_S, range), e);
-        }
-        return INT_ERROR_CODE;
-    }
-
-    protected Protocol getProtocolFrom(Rule rule) {
-        String protocol = rule.getProtocol();
-        if (protocol != null && !protocol.isEmpty()) {
-            switch (protocol) {
-            case TCP_TEMPLATE_VALUE:
-                return Protocol.TCP;
-            case UDP_TEMPLATE_VALUE:
-                return Protocol.UDP;
-            case ICMP_TEMPLATE_VALUE:
-            case ICMPV6_TEMPLATE_VALUE:
-                return Protocol.ICMP;
-            case ALL_TEMPLATE_VALUE:
-                return Protocol.ANY;
-            case IPSEC_TEMPLATE_VALUE:
-            default:
-                LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_PROTOCOL_S, protocol));
-                return null;
-            }
-        }
-        LOGGER.warn(String.format(Messages.Exception.INVALID_PARAMETER_S, protocol));
-        return null;
-    }
-
-    protected EtherType getEtherTypeFrom(Rule rule) {
-        String ipAddress = rule.getIp();
-        if (ipAddress != null && !ipAddress.isEmpty()) {
-            if (CidrUtils.isIpv4(ipAddress)) {
-                return SecurityRule.EtherType.IPv4;
-            } else if (CidrUtils.isIpv6(ipAddress)) {
-                return SecurityRule.EtherType.IPv6;
-            }
-        }
-        LOGGER.warn(String.format(Messages.Exception.INVALID_PARAMETER_S, ipAddress));
-        return null;
-    }
-
-    protected Direction getDirectionFrom(Rule rule) {
-        String type = rule.getType();
-        if (type != null && !type.isEmpty()) {
-            switch (type) {
-            case INBOUND_TEMPLATE_VALUE:
-                return Direction.IN;
-            case OUTBOUND_TEMPLATE_VALUE:
-                return Direction.OUT;
-            default:
-                LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_DIRECTION, type));
-                return null;
-            }
-        }
-        LOGGER.warn(String.format(Messages.Exception.INVALID_PARAMETER_S, type));
-        return null;
+        int portFrom = (range == null || range.isEmpty())
+                ? MINIMUM_RANGE_PORT
+                : SecurityRuleUtil.getPortInRange(rule, PORT_FROM_INDEX);
+        int portTo = (range == null || range.isEmpty())
+                ? MAXIMUM_RANGE_PORT
+                : SecurityRuleUtil.getPortInRange(rule, PORT_TO_INDEX);
+        Direction direction = SecurityRuleUtil.getDirectionFrom(rule);
+        EtherType etherType = SecurityRuleUtil.getEtherTypeFrom(rule);
+        Protocol protocol = SecurityRuleUtil.getProtocolFrom(rule);
+        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
     }
     
     protected String doRequestSecurityRule(SecurityGroup securityGroup, Rule rule) throws FogbowException {
@@ -336,13 +218,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
     protected String doPackingSecurityRuleId(Rule rule) {
         String[] attributes = new String[7];
+        attributes[GROUP_ID_INDEX] = rule.getGroupId();
         attributes[PROTOCOL_INDEX] = rule.getProtocol();
-        attributes[IP_INDEX] = rule.getGroupId();
+        attributes[IP_INDEX] = rule.getIp();
         attributes[SIZE_INDEX] = rule.getSize();
         attributes[RANGE_INDEX] = rule.getRange();
         attributes[TYPE_INDEX] = rule.getType();
         attributes[NETWORK_ID_INDEX] = rule.getNetworkId() != null ? String.valueOf(rule.getNetworkId()) : EMPTY_STRING;
-        attributes[SECURITY_GROUP_INDEX] = rule.getGroupId();
 
         String instanceId = StringUtils.join(attributes, ID_SEPARATOR);
         return instanceId;
@@ -350,7 +232,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
     protected GetSecurityGroupResponse doGetSecurityGroupResponse(SecurityGroup securityGroup) {
         String xml = securityGroup.info().getMessage();
-        return GetSecurityGroupResponse.unmarshal(xml);
+        
+        GetSecurityGroupResponse response = GetSecurityGroupResponse.unmarshaller()
+        		.response(xml)
+        		.unmarshal();
+        
+        return response;
     }
 
     protected Rule createSecurityRuleRequest(SecurityRule securityRule, SecurityGroup securityGroup) {
@@ -366,12 +253,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         String range = portFrom == portTo ? String.valueOf(portFrom) : portFrom + RANGE_SEPARATOR + portTo;
 
         Rule rule = Rule.builder()
+                .groupId(groupId)
                 .protocol(protocol)
                 .ip(ip)
                 .size(size)
                 .range(range)
                 .type(type)
-                .groupId(groupId)
                 .build();
 
         return rule;
@@ -381,24 +268,26 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         String type = null;
         switch (direction) {
         case IN:
-            type = INBOUND_TEMPLATE_VALUE;
+            type = SecurityRuleUtil.INBOUND_TEMPLATE_VALUE;
         case OUT:
-            type = OUTBOUND_TEMPLATE_VALUE;
+            type = SecurityRuleUtil.OUTBOUND_TEMPLATE_VALUE;
         }
         return type;
     }
 
     // TODO check this method better
-    protected String[] getCidrFrom(SecurityRule rule) {
-        SubnetUtils subnetUtils = new SubnetUtils(rule.getCidr());
+    protected String[] getCidrFrom(SecurityRule securityRule) {
+        SubnetUtils subnetUtils = new SubnetUtils(securityRule.getCidr());
         SubnetInfo subnetInfo = subnetUtils.getInfo();
 
-        String[] cidrAddress = new String[2];
         if (!subnetInfo.getCidrSignature().equals(ALL_ADDRESSES_REMOTE_PREFIX)) {
-            cidrAddress[0] = subnetInfo.getLowAddress();
-            cidrAddress[1] = String.valueOf(subnetInfo.getAddressCountLong());
+            String[] cidrAddress = { 
+                    subnetInfo.getLowAddress(),
+                    String.valueOf(subnetInfo.getAddressCountLong())
+            };
+            return cidrAddress;
         }
-        return cidrAddress;
+        return ALL_ADDRESSES_REMOTE_PREFIX.split(CIDR_SEPARATOR);
     }
 
     protected SecurityGroup getSecurityGroup(Client client, Order majorOrder) throws FogbowException {

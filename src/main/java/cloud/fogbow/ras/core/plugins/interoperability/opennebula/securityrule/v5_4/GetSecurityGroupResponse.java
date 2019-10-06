@@ -5,25 +5,16 @@ import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.SECURITY_GROUP;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.TEMPLATE;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.log4j.Logger;
-
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshaller;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshaller.UnmarshallerResponse;
 
 @XmlRootElement(name = SECURITY_GROUP)
-public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
+public class GetSecurityGroupResponse extends OpenNebulaMarshaller implements UnmarshallerResponse {
 
-    private static final Logger LOGGER = Logger.getLogger(GetSecurityGroupResponse.class);
-    
     private String id;
     private String name;
     private GetSecurityRulesTemplate template;
@@ -93,17 +84,22 @@ public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
         this.template = builder.template;
     }
     
-    public static GetSecurityGroupResponse unmarshal(String xml) {
-        GetSecurityGroupResponse securityGroup = null;
-        try {
-            InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
-            JAXBContext jaxbContext = JAXBContext.newInstance(GetSecurityGroupResponse.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            securityGroup = (GetSecurityGroupResponse) unmarshaller.unmarshal(inputStream);
-        } catch (JAXBException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_UNMARSHALL_XML_S, xml), e);
+    public static Unmarshaller unmarshaller() {
+        return new GetSecurityGroupResponse.Unmarshaller();
+    }
+    
+    public static class Unmarshaller {
+
+        private String response;
+
+        public Unmarshaller response(String response) {
+            this.response = response;
+            return this;
         }
-        return securityGroup;
+
+        public GetSecurityGroupResponse unmarshal() {
+            return (GetSecurityGroupResponse) OpenNebulaUnmarshaller.unmarshal(this.response);
+        }
     }
     
 }
