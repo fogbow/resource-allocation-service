@@ -49,6 +49,7 @@ public class Messages {
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
+        public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER = "Signalling provider %s is not the provider %s.";
         public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
