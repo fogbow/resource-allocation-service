@@ -28,14 +28,13 @@ import java.util.List;
 import java.util.Properties;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
-
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
+    private CloudStackHttpClient client;
+    private Properties properties;
     private String networkOfferingId;
     private String cloudStackUrl;
     private String zoneId;
-    private CloudStackHttpClient client;
-    private Properties properties;
 
     public CloudStackNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);

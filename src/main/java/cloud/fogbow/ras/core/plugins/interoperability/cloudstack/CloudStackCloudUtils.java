@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 public class CloudStackCloudUtils {
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
 
-    // TODO(chico) - Refactor the CloudstackComputePlugin, because there are duplicate constants
     public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
     public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
     public static final String ZONE_ID_CONFIG = "zone_id";
@@ -23,7 +22,6 @@ public class CloudStackCloudUtils {
      * It is thrown by the cloudStackHttpClient.
      * @throws HttpResponseException
      **/
-    // TODO(chico) - It must be used in the ComputePlugin too
     @NotNull
     public static String doGet(@NotNull CloudStackHttpClient cloudStackHttpClient,
                                String url,

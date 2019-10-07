@@ -98,7 +98,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     // test case: When calling the doRequestInstance method with secondary methods mocked,
     // it must verify if It returns the right instanceId.
     @Test
-    public void testDoRequestInstanceSuccefully() throws FogbowException, HttpResponseException {
+    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
@@ -280,6 +280,35 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doGetInstance(request, cloudStackUser);
+    }
+
+    // test case: When calling the doGetInstance method with secondary methods mocked and
+    // it occurs an InstanceNotFoundException in the getNetworkInstance method,
+    // it must verify if It returns a FogbowException.
+    @Test
+    public void testDoGetInstanceFailWhenOccursInstanceNotFoundException()
+            throws FogbowException, HttpResponseException {
+
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        GetNetworkRequest request = new GetNetworkRequest.Builder().build("");
+        String uriRequestExpected = request.getUriBuilder().toString();
+
+        String responseStr = "anything";
+        Mockito.when(this.client.doGetRequest(Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser)))
+                .thenReturn(responseStr);
+
+        GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
+        PowerMockito.mockStatic(GetNetworkResponse.class);
+        PowerMockito.when(GetNetworkResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
+
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.plugin).getNetworkInstance(response);
+
+        // verify
+        this.expectedException.expect(InstanceNotFoundException.class);
 
         // exercise
         this.plugin.doGetInstance(request, cloudStackUser);
