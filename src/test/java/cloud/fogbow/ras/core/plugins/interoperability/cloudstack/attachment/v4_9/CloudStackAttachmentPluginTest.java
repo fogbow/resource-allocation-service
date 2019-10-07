@@ -7,11 +7,11 @@ import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -33,6 +33,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
+
+import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.ATTACH_VOLUME_COMMAND;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DetachVolumeResponse.class})
@@ -114,7 +116,7 @@ public class CloudStackAttachmentPluginTest {
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD + VM_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = AttachVolumeRequest.ATTACH_VOLUME_COMMAND;
+        String command = ATTACH_VOLUME_COMMAND;
         String id = FAKE_VOLUME_ID;
         String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
         String jsonFormat = JSON_FORMAT;
@@ -279,7 +281,7 @@ public class CloudStackAttachmentPluginTest {
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD + VM_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = AttachVolumeRequest.ATTACH_VOLUME_COMMAND;
+        String command = ATTACH_VOLUME_COMMAND;
         String id = FAKE_VOLUME_ID;
         String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
         String jsonFormat = JSON_FORMAT;

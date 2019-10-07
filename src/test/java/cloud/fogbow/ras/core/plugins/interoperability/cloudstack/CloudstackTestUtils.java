@@ -47,6 +47,8 @@ public class CloudstackTestUtils {
     private static final String LIST_NETWORKS_RESPONSE = "listnetworksresponse.json";
     private static final String LIST_NETWORKS_EMPTY_RESPONSE = "listnetworksresponse_empty.json";
     private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
+    private static final String ATTACH_VOLUME_RESPONSE = "attachvolumeresponse.json";
+    private static final String ATTACH_VOLUME_ERROR_RESPONSE = "attachvolumeresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -240,6 +242,21 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
+    public static String attachVolumeResponseJson(String jobId) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ATTACH_VOLUME_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String attachVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ATTACH_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
 
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);
@@ -264,6 +281,5 @@ public class CloudstackTestUtils {
     public static HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
     }
-
 
 }

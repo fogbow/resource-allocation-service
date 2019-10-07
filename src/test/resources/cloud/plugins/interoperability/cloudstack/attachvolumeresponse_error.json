@@ -1,0 +1,6 @@
+{
+  "attachvolumeresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

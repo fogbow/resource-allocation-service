@@ -3,16 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
-public class AttachVolumeRequest extends CloudStackRequest {
+import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
 
-    protected static final String ATTACH_VOLUME_COMMAND = "attachVolume";
-    protected static final String ATTACH_VOLUME_ID = "id";
-    protected static final String VIRTUAL_MACHINE_ID = "virtualmachineid";
+public class AttachVolumeRequest extends CloudStackRequest {
     
     protected AttachVolumeRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(ATTACH_VOLUME_ID, builder.id);
-        addParameter(VIRTUAL_MACHINE_ID, builder.virtualMachineId);
+        addParameter(ID_KEY_JSON, builder.id);
+        addParameter(VIRTUAL_MACHINE_ID_KEY_JSON, builder.virtualMachineId);
     }
     
     @Override

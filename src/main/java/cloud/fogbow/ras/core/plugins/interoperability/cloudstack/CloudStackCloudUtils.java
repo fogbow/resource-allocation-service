@@ -17,6 +17,12 @@ public class CloudStackCloudUtils {
     public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
     public static final String ZONE_ID_CONFIG = "zone_id";
 
+    public static final int JOB_STATUS_COMPLETE = 1;
+    public static final int JOB_STATUS_PENDING = 0;
+    public static final int JOB_STATUS_FAILURE = 2;
+    public static final String PENDING_STATE = "pending";
+    public static final String FAILURE_STATE = "failure";
+
     /**
      * Request HTTP operations to Cloudstack and treat a possible FogbowException when
      * It is thrown by the cloudStackHttpClient.

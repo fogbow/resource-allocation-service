@@ -1,7 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
+
+import javax.validation.constraints.NotNull;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.ATTACH_VOLUME_KEY_JSON;
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.JOB_ID_KEY_JSON;
@@ -23,15 +27,19 @@ public class AttachVolumeResponse {
     @SerializedName(ATTACH_VOLUME_KEY_JSON)
     private AttachResponse response;
     
-    public class AttachResponse {
-        
+    public class AttachResponse extends CloudStackErrorResponse {
+
         @SerializedName(JOB_ID_KEY_JSON)
         private String jobId;
         
     }
 
-    public static AttachVolumeResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, AttachVolumeResponse.class);
+    @NotNull
+    public static AttachVolumeResponse fromJson(String json) throws HttpResponseException {
+        AttachVolumeResponse attachVolumeResponse =
+                GsonHolder.getInstance().fromJson(json, AttachVolumeResponse.class);
+        attachVolumeResponse.response.checkErrorExistence();
+        return attachVolumeResponse;
     }
 
     public String getJobId() {
