@@ -24,9 +24,10 @@ import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
 import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -52,7 +53,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
     @Test
     public void testRequestSecurityRule() throws FogbowException {
         // set up
-        Order majorOrder = createMajorOrder();
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
         SecurityRule securityRule = createSecurityRule(Direction.IN);
         
         SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
@@ -83,7 +84,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
     @Test
     public void testGetSecurityRules() throws FogbowException {
         // set up
-        Order majorOrder = createMajorOrder();
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
         SecurityGroup securityGroup = getSecurityGroupMocked(majorOrder);
 
         List<SecurityRuleInstance> instances = createSecurityRuleInstancesCollection();
@@ -331,13 +332,13 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         Rule rule = buildRule();
         List<Rule> rules = buildRulesCollection(rule);
         
-        String xml = generateRequestTemplate(rules);
+        String xml = generateTemplateResponse(rules);
         Mockito.when(securityGroup.info()).thenReturn(oneResponse);
         Mockito.when(oneResponse.getMessage()).thenReturn(xml);
         
         GetSecurityGroupResponse expected = GetSecurityGroupResponse.unmarshaller()
-        		.response(xml)
-        		.unmarshal();
+                .response(xml)
+                .unmarshal();
         
         // exercise
         GetSecurityGroupResponse response = this.plugin.doGetSecurityGroupResponse(securityGroup);
@@ -346,67 +347,186 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         Mockito.verify(securityGroup, Mockito.times(TestUtils.RUN_ONCE)).info();
         Mockito.verify(oneResponse, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
         
-        Assert.assertEquals(expected, response);
+        Assert.assertEquals(expected.getId(), response.getId());
+        Assert.assertEquals(expected.getName(), response.getName());
+        Assert.assertEquals(expected.getTemplate().getRules(), response.getTemplate().getRules());
     }
-    
+
     // test case: ...
     @Test
-    public void testGetSecurityGroup() {
+    public void testGetSecurityGroup() throws FogbowException {
         // set up
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        Mockito.doReturn(securityGroupName).when(this.plugin).retrieveSecurityGroupName(Mockito.eq(majorOrder));
+
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        PowerMockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), 
+                Mockito.eq(majorOrder.getInstanceId()))).thenReturn(virtualNetwork);
+
+        String content = String.format("%s,%s", securityGroupId, "another-security-group-id");
+        Mockito.doReturn(content).when(this.plugin).getSecurityGroupContentFrom(Mockito.eq(virtualNetwork));
+
+        SecurityGroup securityGroup = mockSecurityGroupFromNetwork(securityGroupId, securityGroupName);
+        Mockito.doReturn(securityGroup).when(this.plugin).findSecurityGroupByName(Mockito.eq(this.client),
+                Mockito.eq(content), Mockito.eq(securityGroupName));
 
         // exercise
+        this.plugin.getSecurityGroup(client, majorOrder);
 
         // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .retrieveSecurityGroupName(Mockito.eq(majorOrder));
+
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(majorOrder.getInstanceId()));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getSecurityGroupContentFrom(Mockito.eq(virtualNetwork));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSecurityGroupByName(Mockito.eq(this.client),
+                Mockito.eq(content), Mockito.eq(securityGroupName));
     }
-    
+
 	// test case: ...
     @Test
-    public void testFindSecurityGroupByName() {
+    public void testFindSecurityGroupByName() throws FogbowException {
         // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        String content = String.format("%s,%s", securityGroupId, "another-security-group-id");
+        
+        SecurityGroup securityGroup = mockSecurityGroupFromNetwork(securityGroupId, securityGroupName);
+        PowerMockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), 
+                Mockito.eq(securityGroupId))).thenReturn(securityGroup);
 
         // exercise
+        this.plugin.findSecurityGroupByName(this.client, content, securityGroupName);
 
         // verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.eq(securityGroupId));
     }
     
     // test case: ...
     @Test
-    public void testFindSecurityGroupByNameFail() {
+    public void testFindSecurityGroupByNameFail() throws FogbowException {
         // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        SecurityGroup securityGroup = mockSecurityGroupFromNetwork(securityGroupId, securityGroupName);
+        PowerMockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), 
+                Mockito.eq(securityGroupId))).thenReturn(securityGroup);
+        
+        String anotherSecurityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        String content = securityGroupId;
+        
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
-        // exercise
-
-        // verify
+        try {
+            // exercise
+            this.plugin.findSecurityGroupByName(this.client, content, anotherSecurityGroupName);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
     // test case: ...
     @Test
-    public void testGetSecurityGroupContentFromVirtualNetwork() {
+    public void testGetSecurityGroupContentFromVirtualNetwork() throws FogbowException {
         // set up
+        String content = TestUtils.FAKE_SECURITY_GROUP_ID;
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
 
         // exercise
+        this.plugin.getSecurityGroupContentFrom(virtualNetwork);
 
         // verify
+        Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE))
+                .xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH);
     }
     
     // test case: ...
     @Test
-    public void testGetSecurityGroupContentFromVirtualNetworkFail() {
+    public void testGetSecurityGroupContentFromVirtualNetworkFail() throws FogbowException {
         // set up
+        String content = null;
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
+        
+        String expected = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
 
-        // exercise
-
-        // verify
+        try {
+            // exercise
+            this.plugin.getSecurityGroupContentFrom(virtualNetwork);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
     // test case: ...
     @Test
-    public void testRetrieveSecurityGroupName() {
+    public void testRetrieveSecurityGroupNameFromNetworkOrder() throws FogbowException {
         // set up
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
+        String expected = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getId();
 
         // exercise
+        String securityGroupName = this.plugin.retrieveSecurityGroupName(majorOrder);
 
         // verify
+        Assert.assertEquals(expected, securityGroupName);
+    }
+    
+    // test case: ...
+    @Test
+    public void testRetrieveSecurityGroupNameFromPublicIpOrder() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder(ResourceType.PUBLIC_IP);
+        String expected = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getId();
+
+        // exercise
+        String securityGroupName = this.plugin.retrieveSecurityGroupName(majorOrder);
+
+        // verify
+        Assert.assertEquals(expected, securityGroupName);
+    }
+    
+    // test case: ...
+    @Test
+    public void testRetrieveSecurityGroupNameFail() throws FogbowException {
+        // set up
+        Order majorOrder = this.testUtils.createLocalComputeOrder();
+        String expected = Messages.Exception.INVALID_RESOURCE;
+
+        try {
+            // exercise
+            this.plugin.retrieveSecurityGroupName(majorOrder);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    private String generateTemplateResponse(List<Rule> rules) {
+        GetSecurityGroupResponse template = buildSecurityGroupResponse(rules);
+        return template.marshalTemplate();
+    }
+    
+    private SecurityGroup mockSecurityGroupFromNetwork(String securityGroupId, String securityGroupName) {
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
+        Mockito.when(securityGroup.getName())
+                .thenReturn(securityGroupName);
+        
+        return securityGroup;
     }
     
     private String generateRequestTemplate(List<Rule> rules) {
@@ -444,10 +564,10 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
                 TestUtils.FAKE_SECURITY_GROUP_ID, 
                 "",
                 direction.equals(Direction.IN) ? "inbound" : "outbound",
-                Protocol.ANY, 
                 "0.0.0.0", 
-                "0", 
-                "1:65536");
+                "0",
+                "1:65536",
+                Protocol.ANY);
 
         return securityRuleId;
     }
@@ -494,9 +614,19 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         return securityGroup;
     }
     
-    private Order createMajorOrder() {
-        NetworkOrder majorOrder = this.testUtils.createLocalNetworkOrder();
-        majorOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+    private Order createMajorOrder(ResourceType resourceType) {
+        Order majorOrder = null;
+        switch (resourceType) {
+        case NETWORK:
+            majorOrder = this.testUtils.createLocalNetworkOrder();
+            majorOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+            break;
+        case PUBLIC_IP:
+            majorOrder = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+            majorOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        default:
+            break;
+        }
         return majorOrder;
     }
     

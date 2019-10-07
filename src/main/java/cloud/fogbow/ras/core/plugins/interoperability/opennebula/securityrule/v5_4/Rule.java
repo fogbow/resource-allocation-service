@@ -6,7 +6,7 @@ import static cloud.fogbow.common.constants.OpenNebulaConstants.PROTOCOL;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.RANGE;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
-import static cloud.fogbow.common.constants.OpenNebulaConstants.TYPE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE_TYPE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -27,6 +27,16 @@ public final class Rule extends OpenNebulaMarshaller {
 
     public Rule() {}
     
+    public Rule(String protocol, String ip, String size, String range, String type, String networkId, String groupId) {
+        this.protocol = protocol;
+        this.ip = ip;
+        this.size = size;
+        this.range = range;
+        this.type = type;
+        this.networkId = networkId;
+        this.groupId = groupId;
+    }
+
     @XmlElement(name = PROTOCOL)
     public String getProtocol() {
         return protocol;
@@ -63,7 +73,7 @@ public final class Rule extends OpenNebulaMarshaller {
         this.range = range;
     }
 
-    @XmlElement(name = TYPE)
+    @XmlElement(name = RULE_TYPE)
     public String getType() {
         return type;
     }

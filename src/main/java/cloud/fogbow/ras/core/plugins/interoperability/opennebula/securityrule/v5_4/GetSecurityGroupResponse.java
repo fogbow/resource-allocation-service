@@ -10,10 +10,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshaller;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshaller.UnmarshallerResponse;
 
 @XmlRootElement(name = SECURITY_GROUP)
-public class GetSecurityGroupResponse extends OpenNebulaMarshaller implements UnmarshallerResponse {
+public class GetSecurityGroupResponse extends OpenNebulaMarshaller {
 
     private String id;
     private String name;
@@ -98,7 +97,8 @@ public class GetSecurityGroupResponse extends OpenNebulaMarshaller implements Un
         }
 
         public GetSecurityGroupResponse unmarshal() {
-            return (GetSecurityGroupResponse) OpenNebulaUnmarshaller.unmarshal(this.response);
+            return (GetSecurityGroupResponse) OpenNebulaUnmarshaller
+                    .unmarshal(this.response, GetSecurityGroupResponse.class);
         }
     }
     

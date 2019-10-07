@@ -36,14 +36,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
 
     public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 
-    private static final String CIDR_SEPARATOR = "/";
     private static final String CONTENT_SEPARATOR = ",";
     private static final String EMPTY_STRING = "";
     private static final String ID_SEPARATOR = "@";
     private static final String RANGE_SEPARATOR = ":";
-    private static final String SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
     
     protected static final String ALL_ADDRESSES_REMOTE_PREFIX = "0.0.0.0/0";
+    protected static final String SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
     protected static final int MINIMUM_RANGE_PORT = 1;
     protected static final int MAXIMUM_RANGE_PORT = 65536;
     
@@ -51,10 +50,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     private static final int GROUP_ID_INDEX = 0;
     private static final int NETWORK_ID_INDEX = 1;
     private static final int TYPE_INDEX = 2;
-    private static final int PROTOCOL_INDEX = 3;
-    private static final int IP_INDEX = 4;
-    private static final int SIZE_INDEX = 5;
-    private static final int RANGE_INDEX = 6;
+    private static final int IP_INDEX = 3;
+    private static final int SIZE_INDEX = 4;
+    private static final int RANGE_INDEX = 5;
+    private static final int PROTOCOL_INDEX = 6;
     private static final int SECURITY_RULE_ID_FIELDS_NUMBER = 7;
 
     // range ports index
@@ -99,7 +98,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
         GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
 
-        List<Rule> rules = group.getTemplate().getRules();
+        List<Rule> rules = getRulesFrom(group);
         if (removeRule(rules, rule)) {
             String template = generateUpdateRequest(group, rules);
             updateSecurityGroup(securityGroup, template);
@@ -136,21 +135,21 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         String[] fields = securityRuleId.split(ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
             String groupId = getValueFrom(fields[GROUP_ID_INDEX]);
-            String protocol = getValueFrom(fields[PROTOCOL_INDEX]);
+            String networkId = getValueFrom(fields[NETWORK_ID_INDEX]);
+            String type = getValueFrom(fields[TYPE_INDEX]);
             String ip = getValueFrom(fields[IP_INDEX]);
             String size = getValueFrom(fields[SIZE_INDEX]);
             String range = getValueFrom(fields[RANGE_INDEX]);
-            String type = getValueFrom(fields[TYPE_INDEX]);
-            String networkId = getValueFrom(fields[NETWORK_ID_INDEX]);
+            String protocol = getValueFrom(fields[PROTOCOL_INDEX]);
 
             Rule rule = Rule.builder()
                     .groupId(groupId)
-                    .protocol(protocol)
+                    .networkId(networkId)
+                    .type(type)
                     .ip(ip)
                     .size(size)
                     .range(range)
-                    .type(type)
-                    .networkId(networkId)
+                    .protocol(protocol)
                     .build();
 
             return rule;
@@ -165,8 +164,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected List<SecurityRuleInstance> doGetSecurityRules(SecurityGroup securityGroup) {
         List<SecurityRuleInstance> instances = new ArrayList<>();
         GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
-        List<Rule> rules = group.getTemplate().getRules();
+        List<Rule> rules = getRulesFrom(group);
         for (Rule rule : rules) {
+            rule.setGroupId(group.getId());
             SecurityRuleInstance instance = buildSecurityRule(rule);
             instances.add(instance);
         }
@@ -193,7 +193,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         GetSecurityGroupResponse securityGroupResponse = doGetSecurityGroupResponse(securityGroup);
         String id = securityGroupResponse.getId();
         String name = securityGroupResponse.getName();
-        List<Rule> rules = securityGroupResponse.getTemplate().getRules();
+        List<Rule> rules = getRulesFrom(securityGroupResponse);
         rules.add(rule);
         
         CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
@@ -205,6 +205,14 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         String template = request.marshalTemplate();
         updateSecurityGroup(securityGroup, template);
         return doPackingSecurityRuleId(rule);
+    }
+    
+    protected List<Rule> getRulesFrom(GetSecurityGroupResponse response) {
+        List<Rule> rules = new ArrayList<>();
+        if (response.getTemplate().getRules() != null) {
+            rules = response.getTemplate().getRules();
+        }
+        return rules;
     }
 
     protected void updateSecurityGroup(SecurityGroup securityGroup, String template) throws FogbowException {
@@ -219,12 +227,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected String doPackingSecurityRuleId(Rule rule) {
         String[] attributes = new String[7];
         attributes[GROUP_ID_INDEX] = rule.getGroupId();
-        attributes[PROTOCOL_INDEX] = rule.getProtocol();
+        attributes[NETWORK_ID_INDEX] = rule.getNetworkId() != null ? String.valueOf(rule.getNetworkId()) : EMPTY_STRING;
+        attributes[TYPE_INDEX] = rule.getType();
         attributes[IP_INDEX] = rule.getIp();
         attributes[SIZE_INDEX] = rule.getSize();
         attributes[RANGE_INDEX] = rule.getRange();
-        attributes[TYPE_INDEX] = rule.getType();
-        attributes[NETWORK_ID_INDEX] = rule.getNetworkId() != null ? String.valueOf(rule.getNetworkId()) : EMPTY_STRING;
+        attributes[PROTOCOL_INDEX] = rule.getProtocol();
 
         String instanceId = StringUtils.join(attributes, ID_SEPARATOR);
         return instanceId;
@@ -245,20 +253,20 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         int portTo = securityRule.getPortTo();
 
         String[] addressCidrSliced = getCidrFrom(securityRule);
-        String ip = addressCidrSliced[0];
-        String size = addressCidrSliced[1];
-        String protocol = securityRule.getProtocol().toString().toUpperCase();
-        String type = getRuleTypeBy(securityRule.getDirection());
+        String ip = addressCidrSliced != null ? addressCidrSliced[0] : null;
+        String size = addressCidrSliced != null ? addressCidrSliced[1] : null;
         String groupId = securityGroup.getId();
+        String type = getRuleTypeBy(securityRule.getDirection());
+        String protocol = securityRule.getProtocol().toString().toUpperCase();
         String range = portFrom == portTo ? String.valueOf(portFrom) : portFrom + RANGE_SEPARATOR + portTo;
 
         Rule rule = Rule.builder()
                 .groupId(groupId)
+                .type(type)
                 .protocol(protocol)
                 .ip(ip)
                 .size(size)
                 .range(range)
-                .type(type)
                 .build();
 
         return rule;
@@ -268,14 +276,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         String type = null;
         switch (direction) {
         case IN:
-            type = SecurityRuleUtil.INBOUND_TEMPLATE_VALUE;
+            type = SecurityRuleUtil.INBOUND_TEMPLATE_VALUE; break;
         case OUT:
             type = SecurityRuleUtil.OUTBOUND_TEMPLATE_VALUE;
         }
         return type;
     }
 
-    // TODO check this method better
     protected String[] getCidrFrom(SecurityRule securityRule) {
         SubnetUtils subnetUtils = new SubnetUtils(securityRule.getCidr());
         SubnetInfo subnetInfo = subnetUtils.getInfo();
@@ -287,7 +294,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
             };
             return cidrAddress;
         }
-        return ALL_ADDRESSES_REMOTE_PREFIX.split(CIDR_SEPARATOR);
+        return null;
     }
 
     protected SecurityGroup getSecurityGroup(Client client, Order majorOrder) throws FogbowException {
@@ -323,9 +330,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected String retrieveSecurityGroupName(Order majorOrder) throws FogbowException {
         switch (majorOrder.getType()) {
         case NETWORK:
-            return SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+            return SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getId();
         case PUBLIC_IP:
-            return SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+            return SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getId();
         default:
             throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }

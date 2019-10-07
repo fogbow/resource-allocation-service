@@ -226,8 +226,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 	
-	protected String generateSecurityGroupName(String instanceId) {
-		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
+	protected String generateSecurityGroupName(String orderId) {
+		return SystemConstants.PN_SECURITY_GROUP_PREFIX + orderId;
 	}
 	
 	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) throws InvalidParameterException {
