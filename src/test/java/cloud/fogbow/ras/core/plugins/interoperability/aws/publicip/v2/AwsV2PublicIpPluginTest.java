@@ -640,7 +640,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DESCRIBE_INSTANCE_METHOD, Mockito.eq(instanceId),
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_INSTANCE_BY_ID_METHOD, Mockito.eq(instanceId),
                 Mockito.eq(this.client));
 
         Instance instance = Instance.builder().instanceId(instanceId).build();
@@ -654,7 +654,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class);
-        AwsV2CloudUtil.describeInstance(Mockito.eq(instanceId), Mockito.eq(this.client));
+        AwsV2CloudUtil.doDescribeInstanceById(Mockito.eq(instanceId), Mockito.eq(this.client));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getInstanceReservation(Mockito.eq(response));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).selectNetworkInterfaceFrom(Mockito.eq(instance));

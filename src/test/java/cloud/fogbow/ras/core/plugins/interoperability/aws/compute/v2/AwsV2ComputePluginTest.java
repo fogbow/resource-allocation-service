@@ -298,11 +298,11 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         DescribeInstancesResponse response = buildInstanceResponse();
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        Mockito.when(AwsV2CloudUtil.describeInstance(Mockito.eq(instanceId), Mockito.eq(this.client)))
+        Mockito.when(AwsV2CloudUtil.doDescribeInstanceById(Mockito.eq(instanceId), Mockito.eq(this.client)))
                 .thenReturn(response);
 
         Instance instance = buildInstance();
-        Mockito.when(AwsV2CloudUtil.getInstanceReservation(Mockito.eq(response))).thenReturn(instance);
+        Mockito.when(AwsV2CloudUtil.getInstanceFrom(Mockito.eq(response))).thenReturn(instance);
 
         List volumes = createVolumesCollection();
         Mockito.when(AwsV2CloudUtil.getInstanceVolumes(Mockito.eq(instance), Mockito.eq(this.client)))
@@ -317,10 +317,10 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.describeInstance(Mockito.eq(instanceId), Mockito.eq(this.client));
+        AwsV2CloudUtil.doDescribeInstanceById(Mockito.eq(instanceId), Mockito.eq(this.client));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.getInstanceReservation(Mockito.eq(response));
+        AwsV2CloudUtil.getInstanceFrom(Mockito.eq(response));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.getInstanceVolumes(Mockito.eq(instance), Mockito.eq(this.client));

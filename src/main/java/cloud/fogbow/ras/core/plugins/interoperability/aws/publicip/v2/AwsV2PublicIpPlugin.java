@@ -212,7 +212,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     }
 
     protected String getInstanceNetworkInterfaceId(String instanceId, Ec2Client client) throws FogbowException {
-        DescribeInstancesResponse response = AwsV2CloudUtil.describeInstance(instanceId, client);
+        DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstanceById(instanceId, client);
         Instance instance = getInstanceReservation(response);
         InstanceNetworkInterface networkInterface = selectNetworkInterfaceFrom(instance);
         return networkInterface.networkInterfaceId();
@@ -261,7 +261,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
-
+    
     protected String doAllocateAddresses(Ec2Client client) throws FogbowException {
         AllocateAddressRequest request = AllocateAddressRequest.builder()
                 .domain(DomainType.VPC)
