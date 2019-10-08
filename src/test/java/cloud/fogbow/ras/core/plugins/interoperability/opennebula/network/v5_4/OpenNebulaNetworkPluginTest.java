@@ -29,7 +29,6 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 @RunWith(PowerMockRunner.class)
@@ -93,7 +92,7 @@ public class OpenNebulaNetworkPluginTest {
 				.willReturn(securityGroupID);
 
 		// exercise
-		this.plugin.createSecurityGroup(client, virtualNetworkId, networkOrder);
+		this.plugin.createSecurityGroup(client, FAKE_ORDER_ID, networkOrder.getId());
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
@@ -196,7 +195,7 @@ public class OpenNebulaNetworkPluginTest {
 				.willReturn(virtualNetwork);
 
 		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.any(Client.class),
-				Mockito.anyString(), Mockito.eq(networkOrder));
+				Mockito.anyString(), Mockito.eq(networkOrder.getId()));
 
 		int virtualNetworkID = Integer.parseInt(ID_VALUE_ONE);
 		String networkUpdateTemplate = getNetworkUpdateTemplate();
@@ -217,7 +216,7 @@ public class OpenNebulaNetworkPluginTest {
 				Mockito.eq(networkReserveTemplate));
 
 		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.any(Client.class),
-				Mockito.anyString(), Mockito.eq(networkOrder));
+				Mockito.anyString(), Mockito.eq(networkOrder.getId()));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkID),
@@ -248,7 +247,7 @@ public class OpenNebulaNetworkPluginTest {
 				.willReturn(virtualNetwork);
 
 		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).createSecurityGroup(Mockito.any(Client.class),
-				Mockito.anyString(), Mockito.eq(networkOrder));
+				Mockito.anyString(), Mockito.eq(networkOrder.getId()));
 
 		int virtualNetworkID = Integer.parseInt(ID_VALUE_ONE);
 		String networkUpdateTemplate = getNetworkUpdateTemplate();
@@ -269,7 +268,7 @@ public class OpenNebulaNetworkPluginTest {
 				Mockito.eq(networkReserveTemplate));
 
 		Mockito.verify(this.plugin, Mockito.times(1)).createSecurityGroup(Mockito.any(Client.class),
-				Mockito.anyString(), Mockito.eq(networkOrder));
+				Mockito.anyString(), Mockito.eq(networkOrder.getId()));
 
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
 		OpenNebulaClientUtil.updateVirtualNetwork(Mockito.eq(client), Mockito.eq(virtualNetworkID),
@@ -414,7 +413,7 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.doReturn(FAKE_SIZE).when(virtualNetwork)
 				.xpath(Mockito.eq(OpenNebulaNetworkPlugin.VNET_ADDRESS_RANGE_SIZE_PATH));
 
-		Mockito.doReturn(FAKE_CIDR_ADDRESS).when(this.plugin).generateAddressCIDR(FAKE_ADDRESS, FAKE_SIZE);
+		Mockito.doReturn(FAKE_CIDR_ADDRESS).when(this.plugin).generateAddressCidr(FAKE_ADDRESS, FAKE_SIZE);
 
 		CloudUser cloudUser = createCloudUser();
 		String instanceId = FAKE_INSTANCE_ID;
@@ -457,7 +456,7 @@ public class OpenNebulaNetworkPluginTest {
 		int expected = OpenNebulaNetworkPlugin.IPV4_AMOUNT_BITS;
 
 		// exercise
-		int value = this.plugin.calculateCIDR(size);
+		int value = this.plugin.calculateCidr(size);
 
 		// verify
 		Assert.assertEquals(expected, value);
@@ -472,7 +471,7 @@ public class OpenNebulaNetworkPluginTest {
 		int expected = ZERO_VALUE;
 
 		// exercise
-		int value = this.plugin.calculateCIDR(size);
+		int value = this.plugin.calculateCidr(size);
 
 		// verify
 		Assert.assertEquals(expected, value);
@@ -488,7 +487,7 @@ public class OpenNebulaNetworkPluginTest {
 		String expected = FAKE_CIDR_ADDRESS;
 
 		// exercise
-		String cidr = this.plugin.generateAddressCIDR(address, size);
+		String cidr = this.plugin.generateAddressCidr(address, size);
 		// verify
 		Assert.assertEquals(expected, cidr);
 	}
