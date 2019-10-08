@@ -59,6 +59,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     // range ports index
     private static final int PORT_FROM_INDEX = 0;
     private static final int PORT_TO_INDEX = 1;
+
+    // sliced address positions
+    private static final int IP_POSITION = 0;
+    private static final int SIZE_POSITION = 1;
     
     private String endpoint;
 
@@ -120,7 +124,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         return request.marshalTemplate();
     }
 
-    private boolean removeRule(List<Rule> rules, Rule ruleToRemove) {
+    protected boolean removeRule(List<Rule> rules, Rule ruleToRemove) {
         if (rules != null) {
             for (Rule rule : rules) {
                 if (rule.equals(ruleToRemove)) {
@@ -225,9 +229,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     }
 
     protected String doPackingSecurityRuleId(Rule rule) {
-        String[] attributes = new String[7];
+        String[] attributes = new String[SECURITY_RULE_ID_FIELDS_NUMBER];
         attributes[GROUP_ID_INDEX] = rule.getGroupId();
-        attributes[NETWORK_ID_INDEX] = rule.getNetworkId() != null ? String.valueOf(rule.getNetworkId()) : EMPTY_STRING;
+        attributes[NETWORK_ID_INDEX] = getNetworkIdFrom(rule);
         attributes[TYPE_INDEX] = rule.getType();
         attributes[IP_INDEX] = rule.getIp();
         attributes[SIZE_INDEX] = rule.getSize();
@@ -238,6 +242,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         return instanceId;
     }
 
+    protected String getNetworkIdFrom(Rule rule) {
+        return rule.getNetworkId() != null 
+                ? String.valueOf(rule.getNetworkId()) 
+                : EMPTY_STRING;
+    }
+    
     protected GetSecurityGroupResponse doGetSecurityGroupResponse(SecurityGroup securityGroup) {
         String xml = securityGroup.info().getMessage();
         
@@ -252,13 +262,14 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
         int portFrom = securityRule.getPortFrom();
         int portTo = securityRule.getPortTo();
 
-        String[] addressCidrSliced = getCidrFrom(securityRule);
-        String ip = addressCidrSliced != null ? addressCidrSliced[0] : null;
-        String size = addressCidrSliced != null ? addressCidrSliced[1] : null;
+        String ip = getIpAddress(securityRule);
+        String size = getAddressSize(securityRule);
         String groupId = securityGroup.getId();
         String type = getRuleTypeBy(securityRule.getDirection());
-        String protocol = securityRule.getProtocol().toString().toUpperCase();
-        String range = portFrom == portTo ? String.valueOf(portFrom) : portFrom + RANGE_SEPARATOR + portTo;
+        String protocol = securityRule.getProtocol().name();
+        String range = portFrom == portTo 
+                ? String.valueOf(portFrom) 
+                : portFrom + RANGE_SEPARATOR + portTo;
 
         Rule rule = Rule.builder()
                 .groupId(groupId)
@@ -281,6 +292,16 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
             type = SecurityRuleUtil.OUTBOUND_TEMPLATE_VALUE;
         }
         return type;
+    }
+    
+    protected String getIpAddress(SecurityRule securityRule) {
+        String[] cidrSliced = getCidrFrom(securityRule);
+        return cidrSliced != null ? cidrSliced[IP_POSITION] : null;
+    }
+    
+    protected String getAddressSize(SecurityRule securityRule) {
+        String[] cidrSliced = getCidrFrom(securityRule);
+        return cidrSliced != null ? cidrSliced[SIZE_POSITION] : null;
     }
 
     protected String[] getCidrFrom(SecurityRule securityRule) {
