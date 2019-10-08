@@ -54,7 +54,7 @@ public class CloudstackTestUtils {
             new CloudStackUser("id", "", "", "", new HashMap<>());
 
     public static final String BAD_REQUEST_MSG = "Bad Request";
-    private static final String CLOUD_NAME = "cloudstack";
+    public static final String CLOUD_NAME = "cloudstack";
     private static final String CLOUDSTACK_RESOURCE_PATH = "cloud" + File.separator +
             "plugins" + File.separator + "interoperability" + File.separator +
             "cloudstack" + File.separator;

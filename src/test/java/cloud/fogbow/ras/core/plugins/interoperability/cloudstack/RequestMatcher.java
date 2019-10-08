@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachVolumeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DeployVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DestroyVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
@@ -66,4 +67,9 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
         }
     }
 
+    public static class AttachVolume extends RequestMatcher<AttachVolumeRequest> {
+        public AttachVolume(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
 }

@@ -68,29 +68,6 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         return doRequestInstance(request, cloudStackUser);
     }
 
-    @VisibleForTesting
-    String doRequestInstance(@NotNull AttachVolumeRequest request,
-                             @NotNull CloudStackUser cloudStackUser)
-            throws FogbowException {
-
-        URIBuilder uriRequest = request.getUriBuilder();
-        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
-
-        try {
-            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
-            AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
-
-            String jobId = jobId = response.getJobId();
-            if (jobId != null) {
-                return jobId;
-            } else {
-                throw new UnexpectedException();
-            }
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
-    }
-
     @Override
     public void deleteInstance(AttachmentOrder order, CloudStackUser cloudUser) throws FogbowException {
         if (order == null) {
@@ -141,6 +118,25 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
         
         return loadInstanceByJobStatus(order.getInstanceId(), response);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    String doRequestInstance(@NotNull AttachVolumeRequest request,
+                             @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = CloudStackCloudUtils.doGet(
+                    this.client, uriRequest.toString(), cloudStackUser);
+            AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
+            return response.getJobId();
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
     private AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,

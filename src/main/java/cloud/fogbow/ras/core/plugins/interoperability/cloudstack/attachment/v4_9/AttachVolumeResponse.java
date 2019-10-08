@@ -29,6 +29,7 @@ public class AttachVolumeResponse {
     
     public class AttachResponse extends CloudStackErrorResponse {
 
+        @NotNull
         @SerializedName(JOB_ID_KEY_JSON)
         private String jobId;
         

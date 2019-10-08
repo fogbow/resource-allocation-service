@@ -20,6 +20,7 @@ public class CloudStackCloudUtils {
     public static final int JOB_STATUS_COMPLETE = 1;
     public static final int JOB_STATUS_PENDING = 0;
     public static final int JOB_STATUS_FAILURE = 2;
+    public static final int JOB_STATUS_INCONSISTENT = 3;
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
 
