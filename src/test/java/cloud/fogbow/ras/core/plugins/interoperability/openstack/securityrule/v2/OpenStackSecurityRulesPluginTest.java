@@ -74,10 +74,10 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
     private NetworkOrder majorOrder;
 
     @Before
-    public void setUp() throws InvalidParameterException, UnexpectedException {
+    public void setUp() throws UnexpectedException {
         this.testUtils.mockReadOrdersFromDataBase();
         String confFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
-                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+                + TestUtils.DEFAULT_CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         this.properties = Mockito.mock(Properties.class);
         Mockito.when(this.properties.get(NETWORK_NEUTRONV2_URL_KEY)).thenReturn(DEFAULT_NETWORK_URL);
@@ -94,7 +94,8 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         this.majorOrder = testUtils.createNetworkOrder(testUtils.getLocalMemberId(), testUtils.FAKE_REMOTE_MEMBER_ID);
     }
 
-    // test case: The http client must make only 1 request
+    // test case: When requesting an security rule instance it should perform only one http request and
+    // should use the auxiliary methods without throwing any exceptions.
     @Test
     public void testRequestSecurityRule() throws Exception {
         // set up
@@ -133,7 +134,8 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         CreateSecurityRuleResponse.fromJson(Mockito.eq(ANY_STRING));
     }
 
-    // test case: Check if the method makes the expected calls
+    // test case: Check if the getInstance method will perform only one call and and return the user
+    // the appropriate information
     @Test
     public void testGetSecurityRules() throws FogbowException {
         // set up
@@ -328,10 +330,9 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         Assert.assertEquals(expectedGroupName, actualGroupName);
     }
 
-    // test case: given a non-supported Order it should throw InvalidParameterException
+    // test case: given a unsupported Order it should throw InvalidParameterException
     @Test(expected = InvalidParameterException.class)
-    public void testRetrieveSecurityGroupNameWithInvalidOrder()
-            throws InvalidParameterException {
+    public void testRetrieveSecurityGroupNameWithInvalidOrder() throws InvalidParameterException {
         // setup
         ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
@@ -473,7 +474,10 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
     }
 
     private SecurityRule createEmptySecurityRule() {
-        return new SecurityRule(SecurityRule.Direction.OUT, 0, 0, "0.0.0.0/0 ", SecurityRule.EtherType.IPv4, SecurityRule.Protocol.TCP);
+        String CIDR = "0.0.0.0/0";
+        int portFrom = 0;
+        int portTo = 0;
+        return new SecurityRule(SecurityRule.Direction.OUT, portFrom, portTo, CIDR, SecurityRule.EtherType.IPv4, SecurityRule.Protocol.TCP);
     }
 
     private GetSecurityRulesResponse createSecurityRulesResponseMock() {
