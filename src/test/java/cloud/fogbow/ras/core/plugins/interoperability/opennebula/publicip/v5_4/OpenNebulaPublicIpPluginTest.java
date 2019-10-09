@@ -376,7 +376,7 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(response.isError()).thenReturn(true);
 
 		// exercise
-		this.plugin.doDeleteInstance(client, virtualNetworkId);
+		this.plugin.doDeleteInstance(client, this.publicIpOrder);
 
 		// verify
 		Mockito.verify(response, Mockito.times(1)).getErrorMessage();
