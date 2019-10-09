@@ -1,0 +1,13 @@
+{
+  "listvirtualmachinesresponse": {
+    "count": 1,
+    "virtualmachine": [{
+      "id": "%s",
+      "name": "%s",
+      "state": "%s",
+      "cpunumber": %s,
+      "memory": %s,
+      "nic": [%s]
+    }]
+  }
+}

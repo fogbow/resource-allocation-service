@@ -1,8 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
@@ -30,13 +34,21 @@ public class GetVirtualMachineResponse {
     @SerializedName(VIRTUAL_MACHINES_KEY_JSON)
     private ListVirtualMachinesResponse virtualMachinesResponse;
 
-    public class ListVirtualMachinesResponse {
-        @SerializedName(VIRTUAL_MACHINE_KEY_JSON)
-        private List<VirtualMachine> virtualMachines;
-    }
-
+    @NotNull
     public List<VirtualMachine> getVirtualMachines() {
         return virtualMachinesResponse.virtualMachines;
+    }
+
+    public static GetVirtualMachineResponse fromJson(String json) throws HttpResponseException {
+        GetVirtualMachineResponse getVirtualMachineResponse =
+                GsonHolder.getInstance().fromJson(json, GetVirtualMachineResponse.class);
+        getVirtualMachineResponse.virtualMachinesResponse.checkErrorExistence();
+        return getVirtualMachineResponse;
+    }
+
+    public class ListVirtualMachinesResponse extends CloudStackErrorResponse {
+        @SerializedName(VIRTUAL_MACHINE_KEY_JSON)
+        private List<VirtualMachine> virtualMachines;
     }
 
     public class VirtualMachine {
@@ -79,6 +91,12 @@ public class GetVirtualMachineResponse {
     }
 
     public class Nic {
+
+        @VisibleForTesting
+        Nic (String ipAddress) {
+            this.ipAddress = ipAddress;
+        }
+
         @SerializedName(IP_ADDRESS_KEY_JSON)
         private String ipAddress;
 
@@ -87,7 +105,4 @@ public class GetVirtualMachineResponse {
         }
     }
 
-    public static GetVirtualMachineResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetVirtualMachineResponse.class);
-    }
 }
