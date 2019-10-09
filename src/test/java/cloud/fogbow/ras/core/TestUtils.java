@@ -45,6 +45,7 @@ public class TestUtils {
     public static final int RUN_TWICE = 2;
     public static final int RUN_THRICE = 3;
     public static final int RUN_FOUR_TIMES = 4;
+    public static final int RUN_SIX_TIMES = 6;
 
     public static final long DEFAULT_SLEEP_TIME = 500;
     
