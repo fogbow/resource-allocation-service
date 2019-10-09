@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -26,7 +25,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerato
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -37,13 +35,11 @@ import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.OpenNebulaComputePlugin.*;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({OpenNebulaClientUtil.class, VirtualMachine.class, DatabaseManager.class})
 public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	private static final String FAKE_NAME = "fake-name";
@@ -51,12 +47,14 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 			ConfigurationPropertyKeys.SSH_COMMON_USER_KEY, ConfigurationPropertyDefaults.SSH_COMMON_USER);
 	private static final String FAKE_BASE64_SCRIPT = "fake-base64-script";
 
+	private static final String ZERO_STRING_VALUE = "0";
 	private static final String EMPTY_STRING = "";
 	private static final String FAKE_ID = "fake-id";
 	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_PRIVATE_NETWORK_ID = "fake-private-network-id";
 	private static final String FLAVOR_KIND_NAME = "smallest-flavor";
 	private static final String IMAGE_SIZE_PATH = OpenNebulaComputePlugin.IMAGE_SIZE_PATH;
+	private static final String NO_AVAILABLE_RESOURCES_MSG = "No available resources.";
 	private static final String TEMPLATE_CPU_PATH = OpenNebulaComputePlugin.TEMPLATE_CPU_PATH;
 	private static final String TEMPLATE_MEMORY_PATH = OpenNebulaComputePlugin.TEMPLATE_MEMORY_PATH;
 	private static final String TEMPLATE_IMAGE_ID_PATH = OpenNebulaComputePlugin.TEMPLATE_IMAGE_ID_PATH;
@@ -67,6 +65,9 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	private static final int MEMORY_VALUE_2048 = 2048;
 	private static final int DISK_VALUE_6GB = 6144;
 	private static final int DISK_VALUE_30GB = 30720;
+	private static final int ZERO_VALUE = 0;
+	private static final int ONE_VALUE = 1;
+	private static final int TWO_VALUE = 2;
 
 	private OpenNebulaComputePlugin plugin;
 	private ComputeOrder computeOrder;
@@ -122,11 +123,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.doReturn(this.networkIds).when(this.plugin).getNetworkIds(Mockito.anyList());
 		Mockito.doReturn(this.hardwareRequirements).when(this.plugin).findSmallestFlavor(
 				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
-		Mockito.doReturn(this.getCreateComputeRequest()).when(this.plugin).createComputeRequest(
-				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyList(),
-				Mockito.anyString());
 
 		// exercise
 		this.plugin.getCreateComputeRequest(this.client, this.computeOrder);
@@ -135,14 +131,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkIds(Mockito.eq(this.computeOrder.getNetworkIds()));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createComputeRequest(
-				Mockito.eq(this.computeOrder.getName()), Mockito.eq(NETWORK_CONFIRMATION_CONTEXT),
-				Mockito.eq(this.computeOrder.getPublicKey()), Mockito.eq(USER_NAME), Mockito.eq(FAKE_BASE64_SCRIPT),
-				Mockito.eq(String.valueOf(this.hardwareRequirements.getCpu())), Mockito.eq(DEFAULT_GRAPHIC_ADDRESS),
-				Mockito.eq(DEFAULT_GRAPHIC_TYPE), Mockito.eq(this.computeOrder.getImageId()),
-				Mockito.eq(String.valueOf(this.hardwareRequirements.getDisk())),
-				Mockito.eq(String.valueOf(this.hardwareRequirements.getMemory())), Mockito.eq(this.networkIds),
-				Mockito.eq(DEFAULT_ARCHITECTURE));
 	}
 
 	// test case: when invoking the doRequestInstance method with valid client and create compute
@@ -170,16 +158,15 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testListNetworkIds() {
 		// set up
-		String defaultNetworkId = "0";
 		this.networkIds.add(FAKE_PRIVATE_NETWORK_ID);
 
 		// exercise
 		List<String> networkIds = this.plugin.getNetworkIds(this.networkIds);
 
 		// verify
-		Assert.assertEquals(2, networkIds.size());
-		Assert.assertEquals(defaultNetworkId, networkIds.get(0));
-		Assert.assertEquals(FAKE_PRIVATE_NETWORK_ID, networkIds.get(1));
+		Assert.assertEquals(TWO_VALUE, networkIds.size());
+		Assert.assertEquals(ZERO_STRING_VALUE, networkIds.get(ZERO_VALUE));
+		Assert.assertEquals(FAKE_PRIVATE_NETWORK_ID, networkIds.get(ONE_VALUE));
 	}
 
 	// test case: when invoking listNetworkIds with an empty list of network ids,
@@ -193,8 +180,8 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		List<String> networkIds = this.plugin.getNetworkIds(this.networkIds);
 
 		// verify
-		Assert.assertEquals(1, networkIds.size());
-		Assert.assertEquals(defaultNetworkId, networkIds.get(0));
+		Assert.assertEquals(ONE_VALUE, networkIds.size());
+		Assert.assertEquals(ZERO_STRING_VALUE, networkIds.get(ZERO_VALUE));
 	}
 
 	// test case: when invoking findSmallestFlavor with valid client and compute order, the plugin
@@ -227,7 +214,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 			this.plugin.findSmallestFlavor(this.client, this.computeOrder);
 			Assert.fail();
 		} catch (NoAvailableResourcesException e) {
-		    Assert.assertEquals("No available resources.", e.getMessage());
+		    Assert.assertEquals(NO_AVAILABLE_RESOURCES_MSG, e.getMessage());
 		}
 
 		// verify
@@ -335,7 +322,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.when(template.getName()).thenReturn(this.hardwareRequirements.getName());
 		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getCpu()));
 		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getMemory()));
-		Mockito.when(template.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn("0");
+		Mockito.when(template.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(ZERO_STRING_VALUE);
 		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(flavorId);
 
 		// exercise
@@ -349,7 +336,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_THRICE)).convertToInteger(Mockito.anyString());
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getId();
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getName();
-		Mockito.verify(template, Mockito.times(4)).xpath(Mockito.anyString());
+		Mockito.verify(template, Mockito.times(TestUtils.RUN_FOUR_TIMES)).xpath(Mockito.anyString());
 
 		Assert.assertTrue(this.plugin.getFlavors().isEmpty());
 	}
@@ -378,7 +365,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
         PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         OpenNebulaClientUtil.getImagePool(Mockito.eq(this.client));
 
-        Assert.assertEquals(1, imagesSizes.size());
+        Assert.assertEquals(ONE_VALUE, imagesSizes.size());
         Assert.assertEquals(fakeImageSize, imagesSizes.get(this.computeOrder.getImageId()));
 	}
 
@@ -504,22 +491,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setComputeInstanceNetworks(Mockito.any(ComputeInstance.class));
 
 		Assert.assertEquals(this.computeOrder.getDisk() / MB_CONVERT, computeInstance.getDisk());
-	}
-
-	// test case: when invoking setComputeInstanceNetworks with a valid compute instance,
-	// the plugin should initialize the instance networks list with the default network.
-	@Test
-	public void testSetComputeInstanceNetworks() {
-	    // set up
-        ComputeInstance computeInstance = new ComputeInstance(this.computeOrder.getInstanceId());
-        NetworkSummary expected = new NetworkSummary("0", "default");
-
-        // exercise
-		this.plugin.setComputeInstanceNetworks(computeInstance);
-
-		// verify
-        Assert.assertEquals(expected.getId(), computeInstance.getNetworks().get(0).getId());
-		Assert.assertEquals(expected.getName(), computeInstance.getNetworks().get(0).getName());
 	}
 
 	// test case: when invoking deleteInstance with a valid compute order and cloud user,
