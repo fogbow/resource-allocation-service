@@ -376,7 +376,7 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(response.isError()).thenReturn(true);
 
 		// exercise
-		this.plugin.deletePublicNetwork(client, virtualNetworkId);
+		this.plugin.doDeleteInstance(client, this.publicIpOrder);
 
 		// verify
 		Mockito.verify(response, Mockito.times(1)).getErrorMessage();
@@ -423,7 +423,7 @@ public class OpenNebulaPublicIpPluginTest {
 		String nicId = STRING_ID_ONE;
 
 		// exercise
-		this.plugin.detachNetworkInterfaceConnected(virtualMachine, nicId);
+		this.plugin.detachPublicIpFromCompute(virtualMachine, nicId);
 
 		// verify
 		Mockito.verify(response, Mockito.times(1)).getErrorMessage();
@@ -485,7 +485,7 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(response.isError()).thenReturn(true);
 
 		// exercise
-		this.plugin.attachNetworkInterfaceConnected(client, computeInstanceId, template);
+		this.plugin.attachPublicIpToCompute(client, computeInstanceId, template);
 	}
 	
 	// test case: When calling the createSecurityGroup method with a valid client
