@@ -34,6 +34,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     public CloudStackAttachmentPlugin(String confFilePath) {
+        super();
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
     }
@@ -103,7 +104,6 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
         try {
             String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
-            LOGGER.info("@@ jsonresponse:" + jsonResponse);
             AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
             return loadInstanceByJobStatus(attachmentOrder.getInstanceId(), response);
         } catch (HttpResponseException e) {
