@@ -29,12 +29,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     private CloudStackHttpClient client;
     private String cloudStackUrl;
 
-    public CloudStackAttachmentPlugin() {
-        this.client = new CloudStackHttpClient();
-    }
-
     public CloudStackAttachmentPlugin(String confFilePath) {
-        super();
+        this.client = new CloudStackHttpClient();
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
     }
