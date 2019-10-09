@@ -41,10 +41,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String SECURITY_GROUP_RESOURCE = "SecurityGroup";
-	private static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 
 	private static final int BASE_VALUE = 2;
 
+	protected static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 	protected static final String SECURITY_GROUPS_SEPARATOR = ",";
 	protected static final String VNET_ADDRESS_RANGE_IP_PATH = "/VNET/AR_POOL/AR/IP";
 	protected static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
@@ -306,7 +306,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		for (String securityGroupId : securityGroupIds) {
 			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
 			if (securityGroup.getName().equals(securityGroupName)) {
-				break;
+				return securityGroup;
 			}
 		}
 
@@ -317,7 +317,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
 	}
 	
-
 	protected String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {
 		return String.format(CIDR_FORMAT, address, this.calculateCidr(this.convertToInteger(rangeSize)));
 	}
@@ -344,9 +343,5 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
 			throw new InvalidParameterException();
 		}
-	}
-
-	protected String getRandomUUID() {
-		return UUID.randomUUID().toString();
 	}
 }
