@@ -18,13 +18,13 @@ public class SecurityRuleUtil {
     private static final String RANGE_SEPARATOR = ":";
 
     // protocols template values
-    protected static final String ALL_TEMPLATE_VALUE = "ALL";
-    protected static final String IPSEC_TEMPLATE_VALUE = "IPSEC";
-    protected static final String ICMP_TEMPLATE_VALUE = "ICMP";
-    protected static final String ICMPV6_TEMPLATE_VALUE = "ICMPV6";
-    protected static final String TCP_TEMPLATE_VALUE = "TCP";
-    protected static final String UDP_TEMPLATE_VALUE = "UDP";
-    
+    public static final String ALL_TEMPLATE_VALUE = "ALL";
+    public static final String IPSEC_TEMPLATE_VALUE = "IPSEC";
+    public static final String ICMP_TEMPLATE_VALUE = "ICMP";
+    public static final String ICMPV6_TEMPLATE_VALUE = "ICMPV6";
+    public static final String TCP_TEMPLATE_VALUE = "TCP";
+    public static final String UDP_TEMPLATE_VALUE = "UDP";
+
     // directions template values
     public static final String INBOUND_TEMPLATE_VALUE = "INBOUND";
     public static final String OUTBOUND_TEMPLATE_VALUE = "OUTBOUND";
@@ -43,7 +43,7 @@ public class SecurityRuleUtil {
             int cidr = calculateCidr(range, etherType);
             return ipAddress + CIDR_SEPARATOR + cidr;
         }
-        return ALL_TEMPLATE_VALUE;
+        return null;
     }
 
     public static int getPortInRange(Rule rule, int index) {
