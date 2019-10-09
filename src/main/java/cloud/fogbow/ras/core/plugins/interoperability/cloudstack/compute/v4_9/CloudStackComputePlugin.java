@@ -53,23 +53,19 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private CloudStackHttpClient client;
     private String expungeOnDestroy;
     private String defaultNetworkId;
-    private Properties properties;
     private String cloudStackUrl;
     private String zoneId;
 
     public CloudStackComputePlugin(String confFilePath) throws FatalErrorException {
-        this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL_CONF);
-        this.zoneId = this.properties.getProperty(ZONE_ID_KEY_CONF);
-        this.expungeOnDestroy = this.properties.getProperty(
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL_CONF);
+        this.zoneId = properties.getProperty(ZONE_ID_KEY_CONF);
+        this.expungeOnDestroy = properties.getProperty(
                 EXPUNGE_ON_DESTROY_KEY_CONF, DEFAULT_EXPUNGE_ON_DEPLOY_VALUE);
-        this.defaultNetworkId = this.properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
+        this.defaultNetworkId = properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
         this.client = new CloudStackHttpClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
-
-    @VisibleForTesting
-    CloudStackComputePlugin() {}
 
     @Override
     public boolean isReady(String cloudState) {
@@ -90,8 +86,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String networksId = normalizeNetworksID(computeOrder);
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
                 getServiceOffering(computeOrder, cloudUser);
-        int disk = computeOrder.getDisk();
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(disk, cloudUser);
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(computeOrder, cloudUser);
         String instanceName = normalizeInstanceName(computeOrder.getName());
 
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
@@ -240,13 +235,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(int diskSize,
+    GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(@NotNull ComputeOrder computeOrder,
                                                              @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
         List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
 
+        int diskSize = computeOrder.getDisk();
         if (!diskOfferings.isEmpty()) {
             for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
                 if (diskOffering.getDiskSize() >= diskSize) {

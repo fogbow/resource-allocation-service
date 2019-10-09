@@ -57,7 +57,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private CloudStackComputePlugin plugin;
     private CloudStackHttpClient client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
-    private Properties properties;
     private String defaultNetworkId;
     private String expungeOnDestroy;
     private String cloudstackUrl;
@@ -72,14 +71,14 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + CLOUDSTACK_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.defaultNetworkId = this.properties.getProperty(
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+        this.defaultNetworkId = properties.getProperty(
                 CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
-        this.zoneId = this.properties.getProperty(
+        this.zoneId = properties.getProperty(
                 CloudStackComputePlugin.ZONE_ID_KEY_CONF);
-        this.cloudstackUrl = this.properties.getProperty(
+        this.cloudstackUrl = properties.getProperty(
                 CloudStackComputePlugin.CLOUDSTACK_URL_CONF);
-        this.expungeOnDestroy = this.properties.getProperty(
+        this.expungeOnDestroy = properties.getProperty(
                 CloudStackComputePlugin.EXPUNGE_ON_DESTROY_KEY_CONF);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.plugin = Mockito.spy(new CloudStackComputePlugin(cloudStackConfFilePath));
@@ -334,9 +333,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
                 Mockito.mock(GetAllServiceOfferingsResponse.class);
 
-        String idServiceOfferingExpected = "idServiceOfferingExpected";
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
-                createServicesOfferingObjects(this.testUtils.MEMORY_VALUE , this.testUtils.CPU_VALUE);
+                createServicesOfferingObjects(TestUtils.MEMORY_VALUE , TestUtils.CPU_VALUE);
         Mockito.when(getAllServiceOfferingsResponse.getServiceOfferings())
                 .thenReturn(servicesOfferingExpected);
         Mockito.doReturn(getAllServiceOfferingsResponse)
@@ -357,8 +355,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
-        ComputeOrder computeOrder = createComputeOrder(
-                new ArrayList<UserData>(), "fake-image-id");
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList(), "fake-image-id");
 
         GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
                 Mockito.mock(GetAllServiceOfferingsResponse.class);
@@ -386,12 +383,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
-        ComputeOrder computeOrder = createComputeOrder(
-                new ArrayList<UserData>(), "fake-image-id");
+        ComputeOrder computeOrder = createComputeOrder(new ArrayList(), "fake-image-id");
 
         final int EXCEEDED_VALUE = 1;
-        int overMemory = this.testUtils.CPU_VALUE + EXCEEDED_VALUE;
-        int overCpu = this.testUtils.MEMORY_VALUE + EXCEEDED_VALUE;
+        int overMemory = TestUtils.CPU_VALUE + EXCEEDED_VALUE;
+        int overCpu = TestUtils.MEMORY_VALUE + EXCEEDED_VALUE;
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOfferingExpected =
                 createServicesOfferingObjects(overMemory, overCpu);
         servicesOfferingExpected.add(new GetAllServiceOfferingsResponse().new ServiceOffering(
@@ -467,9 +463,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         GetAllDiskOfferingsResponse.DiskOffering diskOffering =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
-                Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
+                Mockito.eq(order), Mockito.any(CloudStackUser.class));
 
         String fakeUserDataString = "anystring";
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class)))
@@ -529,7 +524,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         } catch (NoAvailableResourcesException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
-                    .getDiskOffering(Mockito.anyInt(), Mockito.eq(cloudStackUser));
+                    .getDiskOffering(Mockito.any(ComputeOrder.class), Mockito.eq(cloudStackUser));
         }
 
     }
@@ -552,9 +547,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
-        int orderDisk = order.getDisk();
         Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getDiskOffering(
-                Mockito.eq(orderDisk), Mockito.eq(cloudStackUser));
+                Mockito.eq(order), Mockito.eq(cloudStackUser));
 
         // exercise
         try {
@@ -586,9 +580,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         GetAllDiskOfferingsResponse.DiskOffering diskOffering =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        int orderDisk = order.getDisk();
         Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
-                Mockito.eq(orderDisk), Mockito.any(CloudStackUser.class));
+                Mockito.eq(order), Mockito.any(CloudStackUser.class));
 
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(
                 Mockito.any(ComputeOrder.class))).thenReturn("anystring");
@@ -948,10 +941,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Mockito.anyString(), Mockito.eq(cloudStackUser))).thenReturn("");
 
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
+        computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
         Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(),
-                Mockito.eq(cloudStackUser), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+                Mockito.eq(cloudStackUser), Mockito.endsWith(TestUtils.FAKE_INSTANCE_ID));
 
         CloudStackRequest requestExpected = new DestroyVirtualMachineRequest.Builder()
                 .id(computeOrder.getInstanceId())
@@ -964,7 +957,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         Matcher<DestroyVirtualMachineRequest> matcher = new RequestMatcher.DestroyVirtualMachine(requestExpected);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.argThat(matcher),
-                        Mockito.eq(cloudStackUser), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+                        Mockito.eq(cloudStackUser), Mockito.endsWith(TestUtils.FAKE_INSTANCE_ID));
     }
 
     // test case: calling the deleteInstance method and it occurs a Exception,
@@ -977,10 +970,10 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .thenThrow(createBadRequestHttpResponse());
 
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
+        computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
         Mockito.doThrow(new FogbowException()).when(this.plugin).doDeleteInstance(Mockito.any(),
-                Mockito.eq(cloudStackUser), Mockito.endsWith(this.testUtils.FAKE_INSTANCE_ID));
+                Mockito.eq(cloudStackUser), Mockito.endsWith(TestUtils.FAKE_INSTANCE_ID));
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -1074,7 +1067,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "");
 
         List<GetAllServiceOfferingsResponse.ServiceOffering> servicesOffering =
-                createServicesOfferingObjects(this.testUtils.MEMORY_VALUE, this.testUtils.CPU_VALUE);
+                createServicesOfferingObjects(TestUtils.MEMORY_VALUE, TestUtils.CPU_VALUE);
 
         // exercise
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted =
@@ -1091,6 +1084,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         int diskExpected = 1;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getDisk()).thenReturn(diskExpected);
 
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
         Mockito.doReturn(getAllDiskOfferingsResponse)
@@ -1111,7 +1106,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
         // exercise
         GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                this.plugin.getDiskOffering(diskExpected, cloudStackUser);
+                this.plugin.getDiskOffering(computeOrder, cloudStackUser);
 
         // verify
         Assert.assertEquals(diskOfferingMatch.getDiskSize(), diskOffering.getDiskSize());
@@ -1123,6 +1118,8 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testGetDiskOfferingFailWhenNotMatch() throws FogbowException {
         // set up
         int diskExpected = 1;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getDisk()).thenReturn(diskExpected);
         int diskNotMatch = diskExpected - 1;
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
@@ -1149,7 +1146,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 
         // exercise
-        this.plugin.getDiskOffering(diskExpected, cloudStackUser);
+        this.plugin.getDiskOffering(computeOrder, cloudStackUser);
     }
 
     // test case: When calling the getDiskOffering method with secondary methods mocked,
@@ -1158,6 +1155,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     public void testGetDiskOfferingFailWhenThereAreNotDisck() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        ComputeOrder anyComputeOrder = this.testUtils.createLocalComputeOrder();
 
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
                 Mockito.mock(GetAllDiskOfferingsResponse.class);
@@ -1172,8 +1170,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 
         // exercise
-        int anyThing = 10;
-        this.plugin.getDiskOffering(anyThing, cloudStackUser);
+        this.plugin.getDiskOffering(anyComputeOrder, cloudStackUser);
     }
 
     // test case: When calling the doGet method with secondary methods mocked,
@@ -1349,11 +1346,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         List<String> networkOrderIds = Mockito.spy(new ArrayList<>());
         networkOrderIds.add(networkOrder.getId());
 
-        ComputeOrder computeOrder = new ComputeOrder(requester, this.testUtils.FAKE_REMOTE_MEMBER_ID,
-                this.testUtils.FAKE_REMOTE_MEMBER_ID, this.testUtils.DEFAULT_CLOUD_NAME,
+        ComputeOrder computeOrder = new ComputeOrder(requester, TestUtils.FAKE_REMOTE_MEMBER_ID,
+                TestUtils.FAKE_REMOTE_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME,
                 "", TestUtils.CPU_VALUE, TestUtils.MEMORY_VALUE,
-                this.testUtils.DISK_VALUE, fakeImageId, fakeUserData, "", networkOrderIds);
-        computeOrder.setInstanceId(this.testUtils.FAKE_INSTANCE_ID);
+                TestUtils.DISK_VALUE, fakeImageId, fakeUserData, "", networkOrderIds);
+        computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
         ComputeOrder computeOrderMock = Mockito.spy(computeOrder);
         Mockito.when(networkOrderIds.isEmpty()).thenReturn(false);
@@ -1379,10 +1376,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     private HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
-    }
-
-    private HttpResponseException createUnexpectedHttpResponse() {
-        return new HttpResponseException(HttpStatus.SC_CONTINUE, "");
     }
 
     private void ignoringCloudStackUrl() throws InvalidParameterException {
