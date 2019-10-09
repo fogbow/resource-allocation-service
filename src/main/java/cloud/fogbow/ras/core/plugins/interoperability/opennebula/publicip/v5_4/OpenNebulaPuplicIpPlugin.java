@@ -82,7 +82,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 	public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		int defaultPublicNetworkId = this.convertToInteger(this.defaultPublicNetwork);
 		int size = SIZE_ADDRESS_PUBLIC_IP;
 		String name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + this.getRandomUUID();
 
@@ -91,34 +90,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 				.size(size)
 				.build();
 
-		String publicIpInstanceId = this.doRequestInstance(client, defaultPublicNetworkId, reserveRequest);
-		String securityGroupInstanceId = this.createSecurityGroup(client, publicIpOrder);
-
-		this.addSecurityGroupToPublicIp(client, publicIpInstanceId, securityGroupInstanceId);
-		this.attachPublicIpToCompute(client, publicIpInstanceId, publicIpOrder.getComputeOrderId());
-
-		return publicIpInstanceId;
+		return this.doRequestInstance(client, publicIpOrder, reserveRequest);
 	}
 
 	@Override
 	public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String publicIpInstanceId = publicIpOrder.getInstanceId();
-
-		// NOTE(pauloewerton): ONe does not allow deleting a resource associated to a VM, so we're using a workaround
-		// by shutting down the VM, releasing network and secgroup resources, and then resuming it afterwards.
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, publicIpOrder.getComputeId());
-		virtualMachine.poweroff(SHUT_OFF);
-
-		if (this.isPowerOff(virtualMachine)) {
-			this.detachPublicIpFromCompute(virtualMachine, publicIpInstanceId);
-			this.deleteSecurityGroup(client, publicIpInstanceId);
-			this.doDeleteInstance(client, publicIpInstanceId);
-			virtualMachine.resume();
-		} else {
-			String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, PUBLIC_IP_RESOURCE, publicIpInstanceId);
-			throw new UnexpectedException(message);
-		}
+		this.doDeleteInstance(client, publicIpOrder);
 	}
 
 	@Override
@@ -126,22 +104,44 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		String publicIpInstanceId = publicIpOrder.getInstanceId();
 
-		String publicIp = this.doGetInstance(client, publicIpInstanceId, publicIpOrder.getComputeId());
-
-		PublicIpInstance publicIpInstance = new PublicIpInstance(
-				publicIpInstanceId, OpenNebulaStateMapper.DEFAULT_READY_STATE, publicIp);
-
-		return publicIpInstance;
+		return this.doGetInstance(client, publicIpInstanceId, publicIpOrder.getComputeId());
 	}
 
-	protected String doRequestInstance(Client client, int defaultPublicNetworkId, CreateNetworkReserveRequest reserveRequest)
-			throws InvalidParameterException {
+	protected String doRequestInstance(Client client, PublicIpOrder publicIpOrder, CreateNetworkReserveRequest reserveRequest)
+			throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
 
+		int defaultPublicNetworkId = this.convertToInteger(this.defaultPublicNetwork);
 		String publicNetworkReserveTemplate = reserveRequest.getVirtualNetworkReserved().marshalTemplate();
-		return OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultPublicNetworkId, publicNetworkReserveTemplate);
+		String instanceId = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultPublicNetworkId, publicNetworkReserveTemplate);
+
+		String securityGroupInstanceId = this.createSecurityGroup(client, publicIpOrder);
+
+		this.addSecurityGroupToPublicIp(client, instanceId, securityGroupInstanceId);
+		this.attachPublicIpToCompute(client, instanceId, publicIpOrder.getComputeOrderId());
+
+		return instanceId;
 	}
 
-	protected void doDeleteInstance(Client client, String virtualNetworkId)
+	protected void doDeleteInstance(Client client, PublicIpOrder order)
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException, UnexpectedException {
+		// NOTE(pauloewerton): ONe does not allow deleting a resource associated to a VM, so we're using a workaround
+		// by shutting down the VM, releasing network and secgroup resources, and then resuming it afterwards.
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, order.getComputeId());
+		virtualMachine.poweroff(SHUT_OFF);
+		String publicIpInstanceId = order.getInstanceId();
+
+		if (this.isPowerOff(virtualMachine)) {
+			this.detachPublicIpFromCompute(virtualMachine, publicIpInstanceId);
+			this.deleteSecurityGroup(client, publicIpInstanceId);
+			this.deletePublicIp(client, publicIpInstanceId);
+			virtualMachine.resume();
+		} else {
+			String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, PUBLIC_IP_RESOURCE, publicIpInstanceId);
+			throw new UnexpectedException(message);
+		}
+	}
+
+	protected void deletePublicIp(Client client, String virtualNetworkId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException, UnexpectedException {
 
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
@@ -152,11 +152,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected String doGetInstance(Client client, String publicIpInstanceId, String computeId)
+	protected PublicIpInstance doGetInstance(Client client, String publicIpInstanceId, String computeId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
-		return virtualMachine.xpath(String.format(EXPRESSION_IP_FROM_NETWORK, publicIpInstanceId));
+		String publicIp =  virtualMachine.xpath(String.format(EXPRESSION_IP_FROM_NETWORK, publicIpInstanceId));
+
+		return new PublicIpInstance(publicIpInstanceId, OpenNebulaStateMapper.DEFAULT_READY_STATE, publicIp);
 	}
 
 	protected String createSecurityGroup(Client client, PublicIpOrder publicIpOrder) throws InvalidParameterException {
