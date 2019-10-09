@@ -75,16 +75,10 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testRequestInstance() throws FogbowException {
 	    // set up
-		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_CIDR_ADDRESS).getInfo();
-		String firstAddress = subnetInfo.getLowAddress();
-		int size = subnetInfo.getAddressCount();
+		CreateNetworkReserveRequest request = Mockito.mock(CreateNetworkReserveRequest.class);
 
-		Mockito.doReturn(ZERO_VALUE).when(this.plugin).getAddressRangeIndex(
-				Mockito.any(VirtualNetwork.class), Mockito.anyString(), Mockito.anyInt());
-		Mockito.doReturn(ID_VALUE_ZERO).when(this.plugin).getAddressRangeId(
-				Mockito.any(VirtualNetwork.class), Mockito.anyInt(), Mockito.anyString());
-		Mockito.doReturn(FAKE_ADDRESS).when(this.plugin).getNextAvailableAddress(
-				Mockito.any(VirtualNetwork.class), Mockito.anyInt());
+		Mockito.doReturn(request).when(this.plugin).getCreateNetworkReserveRequest(
+				Mockito.any(NetworkOrder.class), Mockito.any(VirtualNetwork.class));
 		Mockito.doReturn(this.networkOrder.getInstanceId()).when(this.plugin).doRequestInstance(
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
 
@@ -97,6 +91,30 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
 		OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString());
 
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
+	}
+
+	// test case: when invoking getCreateNetworkReserveRequest with valid network order and virtual network,
+	// the plugin should create and return the respective CreateNetworkReserveRequest
+	@Test
+	public void testGetCreateNetworkReserveRequest() throws InvalidParameterException, NoAvailableResourcesException {
+	    // set up
+		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_CIDR_ADDRESS).getInfo();
+		String firstAddress = subnetInfo.getLowAddress();
+		int size = subnetInfo.getAddressCount();
+
+		Mockito.doReturn(ZERO_VALUE).when(this.plugin).getAddressRangeIndex(
+				Mockito.any(VirtualNetwork.class), Mockito.anyString(), Mockito.anyInt());
+		Mockito.doReturn(ID_VALUE_ZERO).when(this.plugin).getAddressRangeId(
+				Mockito.any(VirtualNetwork.class), Mockito.anyInt(), Mockito.anyString());
+		Mockito.doReturn(FAKE_ADDRESS).when(this.plugin).getNextAvailableAddress(
+				Mockito.any(VirtualNetwork.class), Mockito.anyInt());
+
+		// exercise
+		this.plugin.getCreateNetworkReserveRequest(this.networkOrder, this.virtualNetwork);
+
+		// verify
 		Mockito.verify(this.networkOrder, Mockito.times(TestUtils.RUN_ONCE)).getCidr();
 		Mockito.verify(this.networkOrder, Mockito.times(TestUtils.RUN_ONCE)).getName();
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAddressRangeIndex(
@@ -105,8 +123,6 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.virtualNetwork), Mockito.eq(ZERO_VALUE), Mockito.eq(FAKE_CIDR_ADDRESS));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNextAvailableAddress(
 				Mockito.eq(this.virtualNetwork), Mockito.eq(ZERO_VALUE));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
-				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
 	}
 
 	// test case: when invoking getAddressRangeIndex with valid virtual network, the plugin
@@ -483,17 +499,6 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getId();
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getName();
 		Mockito.verify(virtualNetwork, Mockito.times(3)).xpath(Mockito.anyString());
-	}
-	
-	// test case: When calling the getAddressRangeSize method, an invalid CIDR, it
-	// must throw an InvalidParameterException.
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testGetAddressRangeSizeThrowInvalidParameterException() throws InvalidParameterException {
-		// set up
-		String cidr = null;
-
-		// exercise
-		this.plugin.getAddressRangeSize(cidr);
 	}
 	
 	// test case: When calling the calculateCIDR method with a negative size value,
