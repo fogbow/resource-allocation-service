@@ -28,6 +28,7 @@ public class Rule {
 	protected static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
 	protected static final String CIRD_SEPARATOR = "/";
 	protected static final String OPENNEBULA_RANGE_SEPARATOR = ":";
+	protected static final String CIDR_FORMAT = "%s/%s";
 	protected static final int MINIMUM_RANGE_PORT_NETWORK = 1;
 	protected static final int MAXIMUM_RANGE_PORT_NETWORK = 65536;
 	
@@ -47,6 +48,7 @@ public class Rule {
 	private static final int TYPE_INDEX = 4;
 	private static final int NETWORK_ID_INDEX = 5;
 	private static final int SECURITY_GROUP_INDEX = 6;
+	private static final int BASE_VALUE = 2;
 
 	private String protocol;
 	private String ip;
@@ -152,10 +154,13 @@ public class Rule {
 				}
 			}
 			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARATOR);
-			if (rangeSplited.length != 2) {
-				throw new Exception("The range is with wrong format");
+			if (rangeSplited.length == 1) {
+			    return Integer.parseInt(this.range);
+			} else if (rangeSplited.length == 2) {
+				return Integer.parseInt(rangeSplited[portType]);
+			} else {
+				throw new Exception("The security rule range is in the wrong format, or was not created through Fogbow.");
 			}
-			return Integer.parseInt(rangeSplited[portType]);
 		} catch (Exception e) {
 			LOGGER.warn("There is a problem when it is trying to get port.", e);
 			return INT_ERROR_CODE;
@@ -215,46 +220,34 @@ public class Rule {
 	}
 	
 	public String getCIDR() {
-		if (this.ip == null) {
-			return ALL_XML_TEMPLATE_VALUE;
-		}
-		return this.ip + CIRD_SEPARATOR + calculateSubnetMask();
-	}
-
-	protected String calculateSubnetMask() {
-		try {
-			if (CidrUtils.isIpv4(this.ip)) {
-				return getSubnetIPV4(this.size);
-			} else if (CidrUtils.isIpv6(this.ip)) {
-				return getSubnetIPV6(this.size);
-			} else {
-				LOGGER.warn(String.format(Messages.Error.INCONSISTENT_IP_S, this.ip));
-				return null;
+	    String cidr = ALL_XML_TEMPLATE_VALUE;
+		if (this.ip != null) {
+			try {
+				cidr = this.generateAddressCidr(this.ip, this.size);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			LOGGER.warn(Messages.Error.UNABLE_TO_CALCULATE_SUBNET_MASK, e);
-			return String.valueOf(INT_ERROR_CODE);
 		}
+		return cidr;
 	}
 
-	protected static String getSubnetIPV4(String arg) {
-		try {
-			int size = Integer.parseInt(arg);
-			return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
-		} catch (Exception e) {
-			LOGGER.warn(String.format("The parameter is inconsistent"), e);
-			return null;
-		}		
+	protected String generateAddressCidr(String address, String rangeSize) throws NumberFormatException {
+		return String.format(CIDR_FORMAT, address, this.calculateCidr(Integer.parseInt(rangeSize), CidrUtils.isIpv4(this.ip)));
 	}
 
-	protected static String getSubnetIPV6(String arg) {
-		try {
-			int size = Integer.parseInt(arg);
-			return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
-		} catch (Exception e) {
-			LOGGER.warn(String.format("The parameter is inconsistent"), e);
-			return null;
+	protected int calculateCidr(int size, boolean isIpv4) {
+		int amountBits = isIpv4 ? IPV4_AMOUNT_BITS : IPV6_AMOUNT_BITS;
+		int exponent = 1;
+		int value = 0;
+		for (int i = 0; i < amountBits; i++) {
+			if (exponent >= size) {
+				value = amountBits - i;
+				return value;
+			} else {
+				exponent *= BASE_VALUE;
+			}
 		}
+		return value;
 	}
 	
 	public String serialize() {

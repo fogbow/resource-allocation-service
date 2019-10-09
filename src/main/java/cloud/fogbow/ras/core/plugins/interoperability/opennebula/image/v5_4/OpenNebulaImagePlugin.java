@@ -10,7 +10,6 @@ import org.opennebula.client.image.ImagePool;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -25,8 +24,6 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 
-	private static final String RESOURCE_NAME = "images";
-
 	protected static final String FORMAT_IMAGE_TYPE_PATH = "//IMAGE[%s]/TYPE";
 	protected static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
 	protected static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
@@ -40,7 +37,6 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	
 	@Override
 	public List<ImageSummary> getAllImages(CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, RESOURCE_NAME));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		return getImageSummaryList(imagePool);
@@ -48,7 +44,6 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	@Override
 	public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		org.opennebula.client.image.Image image = OpenNebulaClientUtil.getImage(client, imageId);
 		return mount(image);
@@ -69,7 +64,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return images;
 	}
 	
-	protected ImageInstance mount(org.opennebula.client.image.Image image) throws InvalidParameterException {
+	protected ImageInstance mount(org.opennebula.client.image.Image image) {
 		String id = image.getId();
 		String name = image.getName();
 		String imageSize = image.xpath(IMAGE_SIZE_PATH);
@@ -82,13 +77,14 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return new ImageInstance(id, name, size, minDisk, minRam, status);
 	}
 	
-	protected int convertToInteger(String number) throws InvalidParameterException {
+	protected int convertToInteger(String number) {
+	    int size = 0;
 		try {
-			return Integer.parseInt(number);
+			size =  Integer.parseInt(number);
 		} catch (NumberFormatException e) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
-			throw new InvalidParameterException();
 		}
+		return size;
 	}
 
 }

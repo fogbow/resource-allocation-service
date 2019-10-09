@@ -206,8 +206,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
 
     private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder, String diskOfferingId) throws InvalidParameterException {
 
-        String instanceName = volumeOrder.getName();
-        String name = instanceName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : instanceName;
+        String name = volumeOrder.getName();
         String size = String.valueOf(volumeOrder.getVolumeSize());
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)

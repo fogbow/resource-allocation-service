@@ -1,41 +1,36 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2;
 
 import java.util.Properties;
-import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.CreateVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.CreateVolumeResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
-import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
-	private static final String AWS_TAG_NAME = "Name";
 	private static final String RESOURCE_NAME = "Volume";
-	private static final int FIRST_POSITION = 0;
 	
 	private String region;
 	private String zone;
@@ -58,90 +53,75 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
-		
-		CreateVolumeRequest volumeRequest = CreateVolumeRequest.builder()
-				.size(volumeOrder.getVolumeSize())
-				.availabilityZone(this.zone)
-				.build();
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
 		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		CreateVolumeResponse volumeResponse = client.createVolume(volumeRequest);
-		String volumeId = volumeResponse.volumeId();
+		String instanceName = volumeOrder.getName();
 		
-		CreateTagsRequest tagRequest = createVolumeTagName(volumeOrder, volumeId);
-		client.createTags(tagRequest);
+		CreateVolumeRequest request = CreateVolumeRequest.builder()
+			.size(volumeOrder.getVolumeSize())
+			.availabilityZone(this.zone)
+			.build();
 
-		return volumeId;
+		return doRequestInstance(request, instanceName, client);
 	}
 
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
-
-		String volumeId = volumeOrder.getInstanceId();
-		DescribeVolumesRequest volumeRequest = DescribeVolumesRequest.builder()
-				.volumeIds(volumeId)
-				.build();
-
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		DescribeVolumesResponse volumeResponse = client.describeVolumes(volumeRequest);
-		VolumeInstance volumeInstance = mountVolumeInstance(volumeResponse);
-		return volumeInstance;
+		String volumeId = volumeOrder.getInstanceId();
+		return doGetInstance(volumeId, client);
 	}
 
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, volumeOrder.getInstanceId(), cloudUser.getToken()));
-		
-		String volumeId = volumeOrder.getInstanceId();
-		DeleteVolumeRequest volumeRequest = DeleteVolumeRequest.builder()
-				.volumeId(volumeId)
-				.build();
-		
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		try {
-			client.deleteVolume(volumeRequest);
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId), e);
-			throw new UnexpectedException();
+		String volumeId = volumeOrder.getInstanceId();
+		doDeleteInstance(volumeId, client);
+	}
+
+	protected void doDeleteInstance(String volumeId, Ec2Client client) throws UnexpectedException {
+	    DeleteVolumeRequest request = DeleteVolumeRequest.builder()
+	            .volumeId(volumeId)
+	            .build();
+	    try {
+			client.deleteVolume(request);
+		} catch (SdkException e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, request.volumeId()), e);
+			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
 		}
 	}
-
-	protected VolumeInstance mountVolumeInstance(DescribeVolumesResponse response) throws InstanceNotFoundException {
-		if (!response.volumes().isEmpty()) {
-			Volume volume = response.volumes().get(FIRST_POSITION);
-			String id = volume.volumeId();
-			String cloudState = volume.stateAsString();
-			String name = volume.tags().get(FIRST_POSITION).value();
-			Integer size = volume.size();
-			return new VolumeInstance(id, cloudState, name, size);
-		}
-		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-	}
-
-	protected CreateTagsRequest createVolumeTagName(VolumeOrder volumeOrder, String volumeId) {
-		String name = defineVolumeName(volumeOrder.getName());
-
-		Tag tagName = Tag.builder()
-				.key(AWS_TAG_NAME)
-				.value(name)
-				.build();
-
-		CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-				.resources(volumeId)
-				.tags(tagName)
-				.build();
-
-		return tagRequest;
-	}
 	
-	protected String defineVolumeName(String volumeName) {
-		return volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() : volumeName;
-	}
+    protected VolumeInstance doGetInstance(String volumeId, Ec2Client client) throws FogbowException {
+        DescribeVolumesRequest request = DescribeVolumesRequest.builder()
+                .volumeIds(volumeId)
+                .build();
+        
+        DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
+        return buildVolumeInstance(response);
+    }
+
+    protected VolumeInstance buildVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
+        Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
+        String id = volume.volumeId();
+        String cloudState = volume.stateAsString();
+        String name = volume.tags().listIterator().next().value();
+        Integer size = volume.size();
+        return new VolumeInstance(id, cloudState, name, size);
+    }
 	
-	// This method is used to aid in the tests
-	protected String getRandomUUID() {
-		return UUID.randomUUID().toString();
-	}
+    protected String doRequestInstance(CreateVolumeRequest request, String name, Ec2Client client) throws FogbowException {
+        String volumeId;
+        try {
+            CreateVolumeResponse response = client.createVolume(request);
+            volumeId = response.volumeId();
+            AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
+        } catch (Exception e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+        return volumeId;
+    }
+    
 }

@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.constants;
 
-import java.util.Locale;
-
 public class Messages {
 
     public static class Exception {
@@ -9,6 +7,7 @@ public class Messages {
         public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FAILED_TO_GENERATE_METHOD_S = "Failed to generate method: %s.";
+        public static final String FAILED_TO_GET_QUOTA = "Failer to get quota.";
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
@@ -26,7 +25,6 @@ public class Messages {
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
-        public static final String INVALID_RESOURCE_S = "Invalid resource: <%s>.";
         public static final String INVALID_RESOURCE_ID_S = "Invalid resourceId: %s.";
         public static final String INVALID_URL_S = "Invalid url: %s.";
         public static final String INVALID_CIDR_FORMAT = "The cidr %s does not follow the expected format";
@@ -61,10 +59,13 @@ public class Messages {
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
+        public static final String UNABLE_TO_RETRIEVE_SECURITY_GROUP_ID = "Unable to retrieve security group id from json %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
+        public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +
+                " This address range is likely in use.";
     }
 
     public static class Fatal {
@@ -74,7 +75,6 @@ public class Messages {
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String NEUTRON_ENDPOINT_NOT_FOUND = "Neutron endpoint not found.";
         public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in ras.conf file";
-        public static final String UNABLE_TO_FIND_CLASS_S = "Unable to find class %s.";
     }
 
     public static class Warn {
@@ -92,8 +92,11 @@ public class Messages {
     public static class Info {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
+        public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
+        public static final String GETTING_INSTANCE_S = "Getting instance %s.";
+        public static final String GETTING_QUOTA = "Getting quota.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MAPPED_USER = "User mapped to: %s.";
@@ -111,13 +114,11 @@ public class Messages {
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request: %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
-        public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
+        public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String RESPONSE_RECEIVED = "Received response: %s.";
         public static final String SENDING_MSG = "Sending remote request for request: %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
-        public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
-        public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }
 
     public static class Error {
@@ -134,12 +135,14 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
         public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
+        public static final String ERROR_WHILE_CREATING_RESOURCE_S = "Error while creating %s.";
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting disk size.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
+        public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = "Error while getting %s from the cloud.";
         public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
@@ -153,13 +156,11 @@ public class Messages {
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";
-        public static final String INCONSISTENT_IP_S = "Inconsistent IP value: <%s>.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
         public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
-        public static final String UNABLE_TO_CALCULATE_SUBNET_MASK = "Unable to calculate subnet mask.";
         public static final String UNABLE_TO_COMPLETE_REQUEST = "Unable to complete request; template, zone and default network IDs are required parameters.";
         public static final String UNABLE_TO_CREATE_ATTACHMENT = "Unable to create an attachment from json.";
         public static final String UNABLE_TO_DELETE_INSTANCE = "Unable to delete instance %s.";

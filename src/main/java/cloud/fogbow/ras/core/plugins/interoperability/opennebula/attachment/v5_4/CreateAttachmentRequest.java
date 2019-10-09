@@ -6,7 +6,9 @@ public class CreateAttachmentRequest {
 
 	public CreateAttachmentRequest(Builder builder) {
 		String imageId = builder.imageId;
-		this.attachDisk = new AttachmentDisk(imageId);
+		String target = builder.target;
+
+		this.attachDisk = new AttachmentDisk(imageId, target);
 	}
 
 	public AttachmentDisk getAttachDisk() {
@@ -16,12 +18,18 @@ public class CreateAttachmentRequest {
 	public static class Builder {
 		
 		private String imageId;
-		
+		private String target;
+
 		public Builder imageId(String imageId) {
 			this.imageId = imageId;
 			return this;
 		}
-		
+
+		public Builder target(String target) {
+			this.target = target;
+			return this;
+		}
+
 		public CreateAttachmentRequest build(){
             return new CreateAttachmentRequest(this);
         }

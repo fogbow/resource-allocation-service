@@ -1,16 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -20,10 +19,6 @@ import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -33,27 +28,24 @@ import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
-import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import org.opennebula.client.vnet.VirtualNetwork;
+
+import javax.annotation.Nullable;
 
 public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
-	
-	private static final String DEFAULT_ARCHITECTURE = "x86_64";
-	private static final String DEFAULT_DISK_FORMAT = "ext3";
-	private static final String DEFAULT_DISK_TYPE = "fs";
-	private static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
-	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
-	protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
-	private static final String NIC_IP_EXPRESSION = "//NIC/IP";
-	private static final String USERDATA_ENCODING_CONTEXT = "base64";
-	
+
+	private static final int MB_CONVERT = 1024;
+	protected static final int DEFAULT_NUMBER_OF_INSTANCES = 1;
+
+	protected static final String DEFAULT_ARCHITECTURE = "x86_64";
+	protected static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
+	protected static final String DEFAULT_GRAPHIC_TYPE = "vnc";
+	protected static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
+	protected static final String NIC_IP_EXPRESSION = "//NIC/IP";
+
 	protected static final boolean SHUTS_DOWN_HARD = true;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
@@ -70,8 +62,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	public OpenNebulaComputePlugin(String confFilePath) throws FatalErrorException {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-		this.flavors = new TreeSet<HardwareRequirements>();
-		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
+		this.flavors = new TreeSet<>();
+		this.launchCommandGenerator = new OpenNebulaLaunchCommandGenerator();
 	}
 
 	@Override
@@ -86,135 +78,173 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+		CreateComputeRequest request = this.getCreateComputeRequest(client, computeOrder);
+		VirtualMachineTemplate virtualMachine = request.getVirtualMachine();
 
-		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-		String encoding = USERDATA_ENCODING_CONTEXT;
-		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
-		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
-		String graphicsType = DEFAULT_GRAPHIC_TYPE;
-		String architecture = DEFAULT_ARCHITECTURE;
+		String instanceId = this.doRequestInstance(client, request);
+		this.setOrderAllocation(computeOrder, virtualMachine);
 
-		List<String> networks = new ArrayList<>();
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-		networks.add(defaultNetworkId);
-		List<String> userDefinedNetworks = computeOrder.getNetworkIds();
-		if (!userDefinedNetworks.isEmpty()) {
-			networks.addAll(userDefinedNetworks);
-		}
-
-		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, cloudUser);
-		String cpu = String.valueOf(foundFlavor.getCpu());
-		String memory = String.valueOf(foundFlavor.getMemory());
-		
-		int disk = foundFlavor.getDisk();
-		String diskSize = null;
-		String diskType = null;
-		String diskFormat = null;
-		String diskImageId = null;
-		if (computeOrder.getDisk() > 0 && computeOrder.getDisk() < disk) {
-			diskSize = String.valueOf(computeOrder.getDisk());
-			diskType = DEFAULT_DISK_TYPE;
-			diskFormat = DEFAULT_DISK_FORMAT;
-		} else {
-			diskImageId = computeOrder.getImageId();
-		}
-
-		// ToDo: check if there is a way to define a name for the VM
-		CreateComputeRequest request = new CreateComputeRequest.Builder()
-				.contextEncoding(encoding)
-				.contextUserdata(userData)
-				.contextNetwork(hasNetwork)
-				.cpu(cpu)
-				.graphicsAddress(graphicsAddress)
-				.graphicsType(graphicsType)
-				.diskImageId(diskImageId)
-				.diskType(diskType)
-				.diskSize(diskSize)
-				.diskFormat(diskFormat)
-				.memory(memory)
-				.networks(networks)
-				.architecture(architecture)
-				.build();
-
-		// NOTE(pauloewerton): defaulting disk size value to the flavor size in case no size is explicitly assigned.
-		// not sure how the diskImageId replaces all of the other values though.
-		if (diskSize == null) diskSize = String.valueOf(disk);
-
-		synchronized (computeOrder) {
-			ComputeAllocation actualAllocation = new ComputeAllocation(
-					Integer.parseInt(cpu), Integer.parseInt(memory), 1, Integer.parseInt(diskSize));
-			computeOrder.setActualAllocation(actualAllocation);
-		}
-		
-		String template = request.getVirtualMachine().marshalTemplate();
-		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
 		return instanceId;
 	}
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
-		return getComputeInstance(virtualMachine);
+		return this.doGetInstance(virtualMachine);
 	}
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeOrder.getInstanceId(), cloudUser.getToken()));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
-					response.getMessage()));
+		    String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
+					response.getMessage());
+		    throw new UnexpectedException(message);
 		}
 	}
 
-	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, CloudUser token)
+	protected String doRequestInstance(Client client, CreateComputeRequest request)
+			throws InvalidParameterException, NoAvailableResourcesException, QuotaExceededException {
+
+		String template = request.getVirtualMachine().marshalTemplate();
+		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
+
+		return instanceId;
+	}
+
+	protected ComputeInstance doGetInstance(VirtualMachine virtualMachine) {
+		OneResponse response = virtualMachine.info();
+
+		String id = virtualMachine.getId();
+		String name = virtualMachine.getName();
+		String state = virtualMachine.lcmStateStr();
+
+		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
+		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
+		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)) / MB_CONVERT;
+
+		String xml = response.getMessage();
+		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
+		List<String> ipAddresses = xmlUnmarshaller.getContextListOf(NIC_IP_EXPRESSION);
+
+		ComputeInstance computeInstance = new ComputeInstance(id, state, name, cpu, memory, disk, ipAddresses);
+		this.setComputeInstanceNetworks(computeInstance);
+
+		return computeInstance;
+	}
+
+	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
+			throws UnexpectedException, NoAvailableResourcesException {
+		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
+				ConfigurationPropertyDefaults.SSH_COMMON_USER);
+
+		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
+		String graphicsAddress = DEFAULT_GRAPHIC_ADDRESS;
+		String graphicsType = DEFAULT_GRAPHIC_TYPE;
+		String architecture = DEFAULT_ARCHITECTURE;
+
+		String name = computeOrder.getName();
+		String publicKey = computeOrder.getPublicKey();
+		String imageId = computeOrder.getImageId();
+
+		List<String> networks = this.getNetworkIds(computeOrder.getNetworkIds());
+		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+
+		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
+		String cpu = String.valueOf(foundFlavor.getCpu());
+		String memory = String.valueOf(foundFlavor.getMemory());
+		String disk = String.valueOf(foundFlavor.getDisk());
+
+		CreateComputeRequest request = new CreateComputeRequest.Builder()
+				.name(name)
+				.contextNetwork(hasNetwork)
+				.publicKey(publicKey)
+				.userName(userName)
+				.startScriptBase64(startScriptBase64)
+				.cpu(cpu)
+				.graphicsAddress(graphicsAddress)
+				.graphicsType(graphicsType)
+				.imageId(imageId)
+				.diskSize(disk)
+				.memory(memory)
+				.networks(networks)
+				.architecture(architecture)
+				.build();
+
+		return request;
+	}
+
+	protected synchronized void setOrderAllocation(ComputeOrder computeOrder, VirtualMachineTemplate virtualMachine) {
+		ComputeAllocation actualAllocation = new ComputeAllocation(
+				Integer.parseInt(virtualMachine.getCpu()),
+				Integer.parseInt(virtualMachine.getMemory()),
+				DEFAULT_NUMBER_OF_INSTANCES,
+				Integer.parseInt(virtualMachine.getDisk().getSize()));
+		computeOrder.setActualAllocation(actualAllocation);
+	}
+
+	protected List<String> getNetworkIds(List<String> networkIds) {
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
+		List<String>  networks = new ArrayList<>();
+		networks.add(defaultNetworkId);
+		if (!networkIds.isEmpty()) {
+			networks.addAll(networkIds);
+		}
+
+		return networks;
+	}
+
+	protected HardwareRequirements findSmallestFlavor(Client client, ComputeOrder computeOrder)
 			throws NoAvailableResourcesException, UnexpectedException {
 
-		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, token);
+		HardwareRequirements bestFlavor = this.getBestFlavor(client, computeOrder);
 		if (bestFlavor == null) {
 			throw new NoAvailableResourcesException();
 		}
 		return bestFlavor;
 	}
-	
-	protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, CloudUser cloudUser)
-			throws UnexpectedException {
 
-		updateHardwareRequirements(cloudUser);
-		for (HardwareRequirements hardwareRequirements : getFlavors()) {
+	@Nullable
+	protected HardwareRequirements getBestFlavor(Client client, ComputeOrder computeOrder) throws UnexpectedException {
+		this.updateHardwareRequirements(client);
+
+		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
-					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {
 				return hardwareRequirements;
 			}
 		}
 		return null;
 	}
 
-	protected void updateHardwareRequirements(CloudUser cloudUser) throws UnexpectedException {
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		Map<String, String> imagesSizeMap = getImagesSize(client);
+	protected void updateHardwareRequirements(Client client) throws UnexpectedException {
+		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
+		TemplatePool templatePool = OpenNebulaClientUtil.getTemplatePool(client);
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
 
-		TemplatePool templatePool = OpenNebulaClientUtil.getTemplatePool(client);
 		if (templatePool != null) {
 			HardwareRequirements flavor;
 			for (Template template : templatePool) {
 				String id = template.getId();
 				String name = template.getName();
-				int cpu = convertToInteger(template.xpath(TEMPLATE_CPU_PATH));
-				int memory = convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
-				String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
-				int disk = getDiskSizeFromImages(imagesSizeMap, imageId);
+				int cpu = this.convertToInteger(template.xpath(TEMPLATE_CPU_PATH));
+				int memory = this.convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
+
+				int disk = this.convertToInteger(template.xpath(TEMPLATE_DISK_SIZE_PATH));
+				// NOTE(pauloewerton): template disk size is not set, so fallback to image disk size
+				if (disk == 0) {
+					String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
+					disk = this.getDiskSizeFromImageSizeMap(imagesSizeMap, imageId);
+				}
+
 				if (cpu != 0 && memory != 0 && disk != 0) {
 					flavor = new HardwareRequirements(name, id, cpu, memory, disk);
-					if (!containsFlavor(flavor, getFlavors())) {
+					if (!this.containsFlavor(flavor)) {
 						flavorsTemplate.add(flavor);
 					}
 				}
@@ -225,15 +255,25 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			this.flavors.addAll(flavorsTemplate);
 		}
 	}
-	
-	protected int getDiskSizeFromImages(Map<String, String> imageSizeMap, String imageId) {
-		if (imageSizeMap != null && imageId != null) {
-			String diskSize = imageSizeMap.get(imageId);
-			return convertToInteger(diskSize);
-		} else {
-			LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE);
-			return 0;
+
+	protected TreeSet<HardwareRequirements> getFlavors() {
+		synchronized (this.flavors) {
+			return this.flavors;
 		}
+	}
+
+	protected long convertDiskSizeToMb(int diskSizeInGb) {
+		return diskSizeInGb * MB_CONVERT;
+	}
+
+	protected Map<String, String> getImagesSizes(Client client) throws UnexpectedException {
+		Map<String, String> imagesSizeMap = new HashMap<>();
+		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
+		for (Image image : imagePool) {
+			String imageSize = image.xpath(IMAGE_SIZE_PATH);
+			imagesSizeMap.put(image.getId(), imageSize);
+		}
+		return imagesSizeMap;
 	}
 
 	protected int convertToInteger(String number) {
@@ -245,18 +285,18 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		}
 	}
 
-	protected Map<String, String> getImagesSize(Client client) throws UnexpectedException {
-		Map<String, String> imagesSizeMap = new HashMap<String, String>();
-		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		for (Image image : imagePool) {
-			String imageSize = image.xpath(IMAGE_SIZE_PATH);
-			imagesSizeMap.put(image.getId(), imageSize);
+	protected int getDiskSizeFromImageSizeMap(Map<String, String> imageSizeMap, String imageId) {
+		if (imageSizeMap != null && !imageSizeMap.isEmpty() && imageId != null) {
+			String diskSize = imageSizeMap.get(imageId);
+			return this.convertToInteger(diskSize);
+		} else {
+			LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE);
+			return 0;
 		}
-		return imagesSizeMap;
 	}
 
-	protected boolean containsFlavor(HardwareRequirements flavor, Collection<HardwareRequirements> flavors) {
-		List<HardwareRequirements> list = new ArrayList<>(flavors);
+	protected boolean containsFlavor(HardwareRequirements flavor) {
+		List<HardwareRequirements> list = new ArrayList<>(this.getFlavors());
 		for (HardwareRequirements item : list) {
 			if (item.getName().equals(flavor.getName())) {
 				return true;
@@ -265,45 +305,23 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return false;
 	}
 
-	protected ComputeInstance getComputeInstance(VirtualMachine virtualMachine) {
-		OneResponse response = virtualMachine.info();
-		String xml = response.getMessage();
-		String id = virtualMachine.getId();
-		String name = virtualMachine.getName();
-		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
-		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
-		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
-
-		String state = virtualMachine.lcmStateStr();
-		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
-		List<String> ipAddresses = xmlUnmarshaller.getContextListOf(NIC_IP_EXPRESSION);
-
-		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
-		ComputeInstance computeInstance = new ComputeInstance(id, state, name, cpu, memory, disk, ipAddresses);
+	protected void setComputeInstanceNetworks(ComputeInstance computeInstance) {
 		// The default network is always included in the order by the OpenNebula plugin, thus it should be added
 		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
 		// are appended by the LocalCloudConnector.
-		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 		List<NetworkSummary> computeNetworks = new ArrayList<>();
 		computeNetworks.add(new NetworkSummary(defaultNetworkId, SystemConstants.DEFAULT_NETWORK_NAME));
 		computeInstance.setNetworks(computeNetworks);
-		return computeInstance;
 	}
 
-	protected TreeSet<HardwareRequirements> getFlavors() {
-        synchronized (this.flavors) {
-            return this.flavors;
-        }
-    }
+	protected void setFlavors(TreeSet<HardwareRequirements> flavors) {
+		synchronized (this.flavors) {
+			this.flavors = flavors;
+		}
+	}
 
-    protected void setFlavors(TreeSet<HardwareRequirements> flavors) {
-        synchronized (this.flavors) {
-            this.flavors = flavors;
-        }
-    }
-	
-	public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+	protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
 		this.launchCommandGenerator = launchCommandGenerator;
 	}
-	
 }

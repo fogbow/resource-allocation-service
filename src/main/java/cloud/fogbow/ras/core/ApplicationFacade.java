@@ -3,11 +3,9 @@ package cloud.fogbow.ras.core;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
+import cloud.fogbow.ras.api.parameters.Volume;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.as.core.util.AuthenticationUtil;
@@ -115,7 +113,7 @@ public class ApplicationFacade {
     }
 
     public List<String> getCloudNames(String providerId, String userToken) throws FogbowException {
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         if (providerId.equals(this.providerId)) {
@@ -217,7 +215,7 @@ public class ApplicationFacade {
     public List<InstanceStatus> getAllInstancesStatus(String userToken, ResourceType resourceType)
             throws FogbowException {
         
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         RasOperation rasOperation = new RasOperation(Operation.GET_ALL, resourceType);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         return this.orderController.getInstancesStatus(requester, resourceType);
@@ -226,7 +224,7 @@ public class ApplicationFacade {
     public List<ImageSummary> getAllImages(String providerId, String cloudName, String userToken)
             throws FogbowException {
 
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         if (cloudName == null || cloudName.isEmpty()) {
             cloudName = this.cloudListController.getDefaultCloudName();
         }
@@ -242,7 +240,7 @@ public class ApplicationFacade {
     public ImageInstance getImage(String providerId, String cloudName, String imageId, String userToken)
             throws FogbowException {
 
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         if (cloudName == null || cloudName.isEmpty()) {
             cloudName = this.cloudListController.getDefaultCloudName();
         }
@@ -263,7 +261,7 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException(
                     String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceTypeFromEndpoint));
         }
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         String cloudName = order.getCloudName();
         RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, cloudName, order);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
@@ -278,7 +276,7 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException(
                     String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceTypeFromEndpoint));
         }
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         String cloudName = order.getCloudName();
         RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, cloudName, order);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
@@ -293,7 +291,7 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException(
                     String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceTypeFromEndpoint));
         }
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         String cloudName = order.getCloudName();
         RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName, order);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
@@ -303,7 +301,7 @@ public class ApplicationFacade {
     public FogbowGenericResponse genericRequest(String cloudName, String providerId, String genericRequest,
             String userToken) throws FogbowException {
 
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         RasOperation rasOperation = new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE,
                 cloudName, genericRequest);
 
@@ -319,59 +317,35 @@ public class ApplicationFacade {
         return remoteGetCloudNames;
     }
     
-    protected SystemUser getRequesterFromToken(String userToken) throws FogbowException {
+    protected SystemUser authenticate(String userToken) throws FogbowException {
         RSAPublicKey keyRSA = getAsPublicKey();
         return AuthenticationUtil.authenticate(keyRSA, userToken);
     }
     
     protected String activateOrder(Order order, String userToken) throws FogbowException {
-        Order embeddedOrder = null;
-        // Set order fields that have not been provided by the requester in the body of the HTTP request
-        order.setRequester(this.providerId);
-        // Set provider and cloud Ids
-        switch (order.getType()) {
-            // Attachment and PublicIp orders do not carry provider and cloud Ids; these are inferred from
-            // embedded orders.
-            case ATTACHMENT:
-                AttachmentOrder attachOrder = (AttachmentOrder) order;
-                embeddedOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachOrder.getComputeOrderId());
-                order.setProvider(embeddedOrder.getProvider());
-                order.setCloudName(embeddedOrder.getCloudName());
-                break;
-            case PUBLIC_IP:
-                PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-                embeddedOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(publicIpOrder.getComputeOrderId());
-                order.setProvider(embeddedOrder.getProvider());
-                order.setCloudName(embeddedOrder.getCloudName());
-                break;
-            default:
-                if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.providerId);
-                if (order.getCloudName() == null || order.getCloudName().isEmpty())
-                    order.setCloudName(this.cloudListController.getDefaultCloudName());
-                break;
-        }
         // Check if the user is authentic
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
+        // Set requester field in the order
         order.setSystemUser(requester);
-        // Check if the authenticated user is authorized to perform the requested operation
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
-                order.getType(), order.getCloudName(), order));
         // Check consistency of orders that have other orders embedded (eg. an AttachmentOrder embeds
         // both a ComputeOrder and a VolumeOrder).
         checkEmbeddedOrdersConsistency(order);
+        // Check if the authenticated user is authorized to perform the requested operation
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
+                order.getType(), order.getCloudName(), order));
         // Add order to the poll of active orders and to the OPEN linked list
         return this.orderController.activateOrder(order);
     }
 
     protected Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(order);
     }
 
     protected void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
         authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(order);
@@ -380,7 +354,7 @@ public class ApplicationFacade {
     protected Allocation getUserAllocation(String providerId, String cloudName, String userToken,
             ResourceType resourceType) throws FogbowException {
 
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         if (cloudName == null || cloudName.isEmpty())
             cloudName = this.cloudListController.getDefaultCloudName();
         RasOperation rasOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, cloudName);
@@ -391,7 +365,7 @@ public class ApplicationFacade {
     protected Quota getUserQuota(String providerId, String cloudName, String userToken, ResourceType resourceType)
             throws FogbowException {
         
-        SystemUser requester = getRequesterFromToken(userToken);
+        SystemUser requester = authenticate(userToken);
         if (cloudName == null || cloudName.isEmpty())
             cloudName = this.cloudListController.getDefaultCloudName();
         RasOperation rasOperation = new RasOperation(Operation.GET_USER_QUOTA, resourceType, cloudName);
@@ -494,7 +468,11 @@ public class ApplicationFacade {
         }
         return networkOrders;
     }
-    
+
+    private String getRandomUUID() {
+        return UUID.randomUUID().toString();
+    }
+
     // used for testing only
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);

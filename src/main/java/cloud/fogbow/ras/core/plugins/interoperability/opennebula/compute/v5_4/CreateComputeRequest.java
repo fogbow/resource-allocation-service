@@ -5,6 +5,22 @@ import java.util.List;
 
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Disk;
 
+/**
+ * http://docs.opennebula.org/5.4/operation/references/template.html#template
+ *
+ * <TEMPLATE>
+ *   <NAME>test_vm</NAME>
+ *   <CPU>2</CPU>
+ *   <MEMORY>1024</MEMORY>
+ *   <DISK>
+ *     <IMAGE_ID>2</IMAGE_ID>
+ *   </DISK>
+ *   <DISK>
+ *     <IMAGE>Data</IMAGE>
+ *     <IMAGE_UNAME>oneadmin</IMAGE_UNAME>
+ *   </DISK>
+ * </TEMPLATE>
+ */
 public class CreateComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;
@@ -16,6 +32,7 @@ public class CreateComputeRequest {
 	public CreateComputeRequest(Builder builder) {
 		String cpu = builder.cpu;
 		String memory = builder.memory;
+		String name = builder.name;
 		VirtualMachineTemplate.Context context = buildContext(builder);
 		VirtualMachineTemplate.Graphics graphics = buildGraphics(builder);
 		VirtualMachineTemplate.Disk disk = buildDisk(builder);
@@ -23,6 +40,7 @@ public class CreateComputeRequest {
 		VirtualMachineTemplate.OperationalSystem os = buildOs(builder);
 		
 		this.virtualMachine = new VirtualMachineTemplate();
+		this.virtualMachine.setName(name);
 		this.virtualMachine.setContext(context);
 		this.virtualMachine.setCpu(cpu);
 		this.virtualMachine.setGraphics(graphics);
@@ -34,10 +52,8 @@ public class CreateComputeRequest {
 
 	private Disk buildDisk(Builder builder) {
 		VirtualMachineTemplate.Disk disk = new VirtualMachineTemplate.Disk();
-		disk.setImageId(builder.diskImageId);
-		disk.setType(builder.diskType);
+		disk.setImageId(builder.imageId);
 		disk.setSize(builder.diskSize);
-		disk.setFormat(builder.diskFormat);
 		return disk;
 	}
 
@@ -66,34 +82,30 @@ public class CreateComputeRequest {
 
 	private VirtualMachineTemplate.Context buildContext(Builder builder) {
 		VirtualMachineTemplate.Context context = new VirtualMachineTemplate.Context();
-		context.setEncoding(builder.contextEncoding);
-		context.setUserdata(builder.contextUserdata);
+		context.setPublicKey(builder.publicKey);
+		context.setUserName(builder.userName);
+		context.setStartScriptBase64(builder.startScriptBase64);
 		context.setNetwork(builder.contextNetwork);
 		return context;
 	}
 
 	public static class Builder {
-		private String contextEncoding;
-		private String contextUserdata;
+		private String name;
 		private String contextNetwork;
 		private String cpu;
 		private String graphicsAddress;
 		private String graphicsType;
-		private String diskImageId;
-		private String diskType;
+		private String imageId;
 		private String diskSize;
-		private String diskFormat;
 		private String memory;
 		private List<String> networks;
+		private String publicKey;
+		private String userName;
+		private String startScriptBase64;
 		private String architecture;
-		
-		public Builder contextEncoding(String contextEncoding) {
-			this.contextEncoding = contextEncoding;
-			return this;
-		}
 
-		public Builder contextUserdata(String contextUserdata) {
-			this.contextUserdata = contextUserdata;
+		public Builder name(String name) {
+			this.name = name;
 			return this;
 		}
 
@@ -117,13 +129,8 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder diskImageId(String diskImageId) {
-			this.diskImageId = diskImageId;
-			return this;
-		}
-		
-		public Builder diskType(String diskType) {
-			this.diskType = diskType;
+		public Builder imageId(String imageId) {
+			this.imageId = imageId;
 			return this;
 		}
 		
@@ -132,11 +139,6 @@ public class CreateComputeRequest {
 			return this;
 		}
 		
-		public Builder diskFormat(String diskFormat) {
-			this.diskFormat = diskFormat;
-			return this;
-		}
-
 		public Builder memory(String memory) {
 			this.memory = memory;
 			return this;
@@ -146,7 +148,22 @@ public class CreateComputeRequest {
 			this.networks = networks;
 			return this;
 		}
-		
+
+		public Builder publicKey(String publicKey) {
+			this.publicKey = publicKey;
+			return this;
+		}
+
+		public Builder userName(String userName) {
+			this.userName = userName;
+			return this;
+		}
+
+		public Builder startScriptBase64(String startScriptBase64) {
+			this.startScriptBase64 = startScriptBase64;
+			return this;
+		}
+
 		public Builder architecture(String architecture) {
 			this.architecture = architecture;
 			return this;
