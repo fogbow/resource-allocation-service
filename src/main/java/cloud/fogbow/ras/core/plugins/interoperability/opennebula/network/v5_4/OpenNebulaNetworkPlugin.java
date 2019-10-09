@@ -81,17 +81,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
-		String cidr = networkOrder.getCidr();
-		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
-
-		String name = networkOrder.getName();
-		int size = subnetInfo.getAddressCount();
-
-		Integer addressRangeIndex = this.getAddressRangeIndex(virtualNetwork, subnetInfo.getLowAddress(), size);
-		String addressRangeId = this.getAddressRangeId(virtualNetwork, addressRangeIndex, cidr);
-		String ip = this.getNextAvailableAddress(virtualNetwork, addressRangeIndex);
-
-		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(name, size, ip, addressRangeId);
+		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(networkOrder, virtualNetwork);
 
 		return this.doRequestInstance(client, networkOrder.getId(), request);
 	}
@@ -222,7 +212,18 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return addressRangeFirstIp;
 	}
 
-	private CreateNetworkReserveRequest getCreateNetworkReserveRequest(String name, int size, String ip, String addressRangeId) {
+	protected CreateNetworkReserveRequest getCreateNetworkReserveRequest(NetworkOrder networkOrder, VirtualNetwork virtualNetwork)
+			throws InvalidParameterException, NoAvailableResourcesException {
+		String cidr = networkOrder.getCidr();
+		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
+
+		String name = networkOrder.getName();
+		int size = subnetInfo.getAddressCount();
+
+		Integer addressRangeIndex = this.getAddressRangeIndex(virtualNetwork, subnetInfo.getLowAddress(), size);
+		String addressRangeId = this.getAddressRangeId(virtualNetwork, addressRangeIndex, cidr);
+		String ip = this.getNextAvailableAddress(virtualNetwork, addressRangeIndex);
+
 		return new CreateNetworkReserveRequest.Builder()
 				.name(name)
 				.size(size)
