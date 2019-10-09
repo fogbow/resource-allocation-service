@@ -127,6 +127,7 @@ public class Messages {
         public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
+        public static final String IRREGULAR_VALUE_NULL_EXCEPTION_MSG = "This value must not be null: %s";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_CONVERTING_TO_INTEGER = "Error while converting the input string to an integer.";
@@ -161,7 +162,9 @@ public class Messages {
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
         public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
-        public static final String UNABLE_TO_COMPLETE_REQUEST = "Unable to complete request; template, zone and default network IDs are required parameters.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request; template ID is required parameter.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK = "Service Offering no available.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK = "Disk Offering no available.";
         public static final String UNABLE_TO_CREATE_ATTACHMENT = "Unable to create an attachment from json.";
         public static final String UNABLE_TO_DELETE_INSTANCE = "Unable to delete instance %s.";
         public static final String UNABLE_TO_DELETE_NETWORK = "Unable to delete network with id %s.";

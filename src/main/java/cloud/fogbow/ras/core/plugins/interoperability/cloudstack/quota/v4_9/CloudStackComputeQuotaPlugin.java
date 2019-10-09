@@ -58,13 +58,14 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String listMachinesResponse = null;
+        GetVirtualMachineResponse computeResponse = null;
         try {
             listMachinesResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            computeResponse = GetVirtualMachineResponse.fromJson(listMachinesResponse);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowExceptionMapper.map(e);
         }
 
-        GetVirtualMachineResponse computeResponse = GetVirtualMachineResponse.fromJson(listMachinesResponse);
         List<GetVirtualMachineResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
 
         ComputeAllocation totalAllocation = getTotalAllocation(resourceLimits, cloudUser);
