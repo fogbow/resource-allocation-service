@@ -58,7 +58,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 	@Before
 	public void setUp() throws FogbowException {
-	    super.setUp();
+		super.setUp();
 
 		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(this.openNebulaConfFilePath));
 		this.virtualNetwork = Mockito.mock(VirtualNetwork.class);
@@ -74,7 +74,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// its instance ID.
 	@Test
 	public void testRequestInstance() throws FogbowException {
-	    // set up
+		// set up
 		CreateNetworkReserveRequest request = Mockito.mock(CreateNetworkReserveRequest.class);
 
 		Mockito.doReturn(request).when(this.plugin).getCreateNetworkReserveRequest(
@@ -99,7 +99,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// the plugin should create and return the respective CreateNetworkReserveRequest
 	@Test
 	public void testGetCreateNetworkReserveRequest() throws InvalidParameterException, NoAvailableResourcesException {
-	    // set up
+		// set up
 		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_CIDR_ADDRESS).getInfo();
 		String firstAddress = subnetInfo.getLowAddress();
 		int size = subnetInfo.getAddressCount();
@@ -131,7 +131,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetAddressRangeIndex() throws InvalidParameterException {
 		// set up
-	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, ONE_VALUE))))
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, ONE_VALUE))))
 				.thenReturn(FAKE_ADDRESS)
 				.thenReturn(EMPTY_STRING);
 		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_SIZE_PATH_FORMAT, ONE_VALUE))))
@@ -171,7 +171,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// the order) the plugin should throw a NoAvailableResourcesException.
 	@Test
 	public void testGetAddressRangeIdFail() {
-	    // set up
+		// set up
 		String expectedMessage = String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE, FAKE_CIDR_ADDRESS);
 
 		// exercise
@@ -180,7 +180,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 			Assert.fail();
 		} catch (NoAvailableResourcesException e) {
 			// verify
-            Assert.assertEquals(expectedMessage, e.getMessage());
+			Assert.assertEquals(expectedMessage, e.getMessage());
 		}
 	}
 
@@ -268,7 +268,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		String orderId = this.networkOrder.getId();
 
 		Mockito.when(OpenNebulaClientUtil.allocateSecurityGroup(Mockito.any(Client.class), Mockito.anyString())).thenReturn(ID_VALUE_ZERO);
-	    Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
+		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_IP_PATH))).thenReturn(FAKE_ADDRESS);
 		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
 
 		// exercise
@@ -312,12 +312,12 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 		//Assert.assertEquals(expected, securityGroupId);
 	}
-	
+
 	// test case: When calling the getSecurityGroupBy method, with an empty security
 	// group, it must return a null security group ID associated with the virtual
 	// network passed by parameter.
 	@Test
-    @Ignore
+	@Ignore
 	public void testGetSecurityGroupByVirtualNetworkWithSecurityGroupsEmpty()
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -500,7 +500,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getName();
 		Mockito.verify(virtualNetwork, Mockito.times(3)).xpath(Mockito.anyString());
 	}
-	
+
 	// test case: When calling the calculateCIDR method with a negative size value,
 	// this will return the maximum CIDR value of an IPV4 network mask.
 	@Test
@@ -515,7 +515,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		// verify
 		Assert.assertEquals(expected, value);
 	}
-		
+
 	// test case: When calling the calculateCIDR method with a size max of an
 	// integer value, this will return a value zero.
 	@Test
@@ -530,7 +530,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		// verify
 		Assert.assertEquals(expected, value);
 	}
-		
+
 	// test case: When calling the generateAddressCIDR method with a valid address
 	// and size, it must return an address in CIDR format.
 	@Test
@@ -545,7 +545,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		// verify
 		Assert.assertEquals(expected, cidr);
 	}
-		
+
 	// test case: Successful call verification of getRandomUUID method.
 	@Test
 	public void testGetRandomUUIDSuccessfully() {
@@ -561,7 +561,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(UUID.class, VerificationModeFactory.times(1));
 		UUID.randomUUID().toString();
 	}
-		
+
 	// test case: When calling the convertToInteger method with an invalid numeric
 	// string, it must throw an InvalidParameterException.
 	@Test(expected = InvalidParameterException.class)
@@ -600,7 +600,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	}
 
 	private String getSecurityGroupTemplate(String securityGroupName) {
-		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" 
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
 				+ "<TEMPLATE>\n"
 				+ "    <NAME>fogbow-sg-pn-fake-order-id</NAME>\n"
 				+ "    <RULE>\n"
@@ -612,20 +612,20 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				+ "        <RULE_TYPE>outbound</RULE_TYPE>\n"
 				+ "    </RULE>\n"
 				+ "</TEMPLATE>\n";
-		
+
 		return String.format(template, securityGroupName);
 	}
-	
+
 	private String getNetworkReserveTemplate(String networkName) {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
 				+ "<TEMPLATE>\n"
 				+ "    <NAME>%s</NAME>\n"
 				+ "    <SIZE>256</SIZE>\n"
 				+ "</TEMPLATE>\n";
-		
+
 		return String.format(template, networkName);
 	}
-	
+
 	private String getNetworkUpdateTemplate() {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
 				+ "<TEMPLATE>\n"
