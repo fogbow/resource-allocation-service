@@ -5,8 +5,8 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class DestroyVirtualMachineRequest extends CloudStackRequest {
     protected static final String DESTROY_VIRTUAL_MACHINE_COMMAND = "destroyVirtualMachine";
-    private static final String VIRTUAL_MACHINE_ID_KEY = "id";
-    private static final String EXPUNGE_KEY = "expunge";
+    protected static final String VIRTUAL_MACHINE_ID_KEY = "id";
+    protected static final String EXPUNGE_KEY = "expunge";
 
     protected DestroyVirtualMachineRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
