@@ -615,18 +615,6 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 	
 	private PublicIpOrder createPublicIpOrder() {
-		//String instanceId = STRING_ID_ONE;
-		//SystemUser requester = new SystemUser(FAKE_USER_ID, FAKE_NAME, FAKE_ID_PROVIDER);
-		//ComputeOrder computeOrder = new ComputeOrder();
-		//computeOrder.setSystemUser(requester);
-		//computeOrder.setProvider(FAKE_PROVIDER);
-		//computeOrder.setCloudName(DEFAULT_CLOUD);
-		//computeOrder.setInstanceId(STRING_ID_ONE);
-		//computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-		//this.sharedOrderHolders.getActiveOrdersMap().put(computeOrder.getId(), computeOrder);
-		//PublicIpOrder publicIpOrder = new PublicIpOrder(computeOrder.getId());
-		//publicIpOrder.setInstanceId(instanceId);
-		//this.sharedOrderHolders.getActiveOrdersMap().put(publicIpOrder.getId(), publicIpOrder);
 		return this.testUtils.createLocalPublicIpOrder(STRING_ID_ONE);
 	}
 
