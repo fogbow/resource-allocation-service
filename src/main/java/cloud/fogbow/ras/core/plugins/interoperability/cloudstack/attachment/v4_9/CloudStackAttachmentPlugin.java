@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -28,17 +27,15 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     private static final Logger LOGGER = Logger.getLogger(CloudStackAttachmentPlugin.class);
 
     private CloudStackHttpClient client;
-    private Properties properties;
     private String cloudStackUrl;
-    
+
     public CloudStackAttachmentPlugin() {
         this.client = new CloudStackHttpClient();
     }
 
     public CloudStackAttachmentPlugin(String confFilePath) {
-        this();
-        this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = this.properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
     }
 
     @Override
@@ -59,7 +56,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         String virtualMachineId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
-        
+
         AttachVolumeRequest request = new AttachVolumeRequest.Builder()
                 .id(volumeId)
                 .virtualMachineId(virtualMachineId)
@@ -69,55 +66,70 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public void deleteInstance(AttachmentOrder order, CloudStackUser cloudUser) throws FogbowException {
-        if (order == null) {
-            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-        }
-        String volumeId = order.getVolumeId();
+    public void deleteInstance(@NotNull AttachmentOrder attachmentOrder,
+                               @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        String volumeId = attachmentOrder.getVolumeId();
         DetachVolumeRequest request = new DetachVolumeRequest.Builder()
                 .id(volumeId)
                 .build(this.cloudStackUrl);
-        
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
-        
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-        
-        DetachVolumeResponse response = DetachVolumeResponse.fromJson(jsonResponse);
-        
-        if (response.getJobId() == null) {
-            throw new UnexpectedException();
-        }
+
+        doDeleteInstance(request, cloudStackUser);
     }
 
     @Override
-    public AttachmentInstance getInstance(AttachmentOrder order, CloudStackUser cloudUser) throws FogbowException {
-        if (order == null) {
-            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-        }
-        String jobId = order.getInstanceId();
+    public AttachmentInstance getInstance(@NotNull AttachmentOrder attachmentOrder,
+                                          @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        String jobId = attachmentOrder.getInstanceId();
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
                 .jobId(jobId)
                 .build(this.cloudStackUrl);
-        
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
-        String jsonResponse = null;
+        return doGetInstance(attachmentOrder, request, cloudStackUser);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    AttachmentInstance doGetInstance(@NotNull AttachmentOrder attachmentOrder,
+                                     @NotNull AttachmentJobStatusRequest request,
+                                     @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            LOGGER.info("@@ jsonresponse:" + jsonResponse);
+            AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
+            return loadInstanceByJobStatus(attachmentOrder.getInstanceId(), response);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-        
-        AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
-        
-        return loadInstanceByJobStatus(order.getInstanceId(), response);
+    }
+
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull DetachVolumeRequest request ,
+                          @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = CloudStackCloudUtils.doGet(
+                    this.client, uriRequest.toString(), cloudStackUser);
+            DetachVolumeResponse response = DetachVolumeResponse.fromJson(jsonResponse);
+
+            if (response.getJobId() == null) {
+                throw new UnexpectedException();
+            }
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
     @NotNull
@@ -169,7 +181,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         return attachmentInstance;
     }
 
-    protected void setClient(CloudStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 }

@@ -46,10 +46,6 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
     private static final String JSON_FORMAT = "json";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USERNAME = "fake-username";
-    private static final String FAKE_DOMAIN = "fake-domain";
-    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String ID_FIELD = "&id=%s";
@@ -89,22 +85,18 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = Mockito.spy(new CloudStackAttachmentPlugin(cloudStackConfFilePath));
         this.plugin.setClient(this.client);
-        this.cloudStackUser =  new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+        this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
 
         this.sharedOrderHolders = Mockito.mock(SharedOrderHolders.class);
-
         PowerMockito.mockStatic(SharedOrderHolders.class);
         BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(this.sharedOrderHolders);
-
         Mockito.when(this.sharedOrderHolders.getOrdersList(Mockito.any(OrderState.class)))
                 .thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(this.sharedOrderHolders.getActiveOrdersMap()).thenReturn(new HashMap<>());
 
-        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
-        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
         this.basicAttachmentOrder = Mockito.spy(
-                this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder));
+                this.testUtils.createLocalAttachmentOrder(new ComputeOrder(), new VolumeOrder()));
         Mockito.doReturn(DEFAULT_VOLUME_ID).when(this.basicAttachmentOrder).getVolumeId();
         Mockito.doReturn(DEFAULT_COMPUTE_ID).when(this.basicAttachmentOrder).getComputeId();
         this.attachmentOrder = createAttachmentOrder();
