@@ -278,11 +278,6 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testDeleteInstance() throws FogbowException {
 	    // set up
-		Mockito.doReturn(this.response).when(this.virtualMachine).poweroff(Mockito.anyBoolean());
-		Mockito.doReturn(this.response).when(this.virtualMachine).resume();
-		Mockito.doReturn(true).when(this.plugin).isPowerOff(Mockito.any(VirtualMachine.class));
-		Mockito.doNothing().when(this.plugin).detachPublicIpFromCompute(Mockito.any(VirtualMachine.class), Mockito.anyString());
-		Mockito.doNothing().when(this.plugin).deleteSecurityGroup(Mockito.any(Client.class), Mockito.anyString());
 		Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(Client.class), Mockito.any(PublicIpOrder.class));
 
 		// exercise
@@ -291,6 +286,23 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
+	}
+
+	@Test
+	public void testDoDeleteInstance() throws UnauthorizedRequestException, InstanceNotFoundException,
+			InvalidParameterException, UnexpectedException {
+		// set up
+		Mockito.doReturn(this.response).when(this.virtualMachine).poweroff(Mockito.anyBoolean());
+		Mockito.doReturn(this.response).when(this.virtualMachine).resume();
+		Mockito.doReturn(true).when(this.plugin).isPowerOff(Mockito.any(VirtualMachine.class));
+		Mockito.doNothing().when(this.plugin).detachPublicIpFromCompute(Mockito.any(VirtualMachine.class), Mockito.anyString());
+		Mockito.doNothing().when(this.plugin).deleteSecurityGroup(Mockito.any(Client.class), Mockito.anyString());
+		Mockito.doNothing().when(this.plugin).deletePublicIp(Mockito.any(Client.class), Mockito.anyString());
+
+		// exercise
+		this.plugin.doDeleteInstance(this.client, this.publicIpOrder);
+
+		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getVirtualMachine(Mockito.eq(this.client), Mockito.eq(this.publicIpOrder.getComputeId()));
 
@@ -305,10 +317,10 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.client), Mockito.eq(this.publicIpOrder));
 	}
 
-	// test case: when invoking deleteInstance with invalid parameters, the plugin should
+	// test case: when invoking doDeleteInstance with invalid parameters, the plugin should
 	// throw an UnexpectedException
 	@Test
-	public void testDeleteInstanceFail() throws FogbowException {
+	public void testDoDeleteInstanceFail() throws FogbowException {
 		// set up
 		String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, PUBLIC_IP_RESOURCE, this.instanceId);
 
@@ -331,6 +343,53 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).poweroff(Mockito.eq(SHUT_OFF));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).isPowerOff(Mockito.eq(this.virtualMachine));
+	}
+
+	// test case: when invoking deletePublicIp the plugin should retrieve the respective ONe
+	// virtual network and delete it
+	@Test
+	public void testDeletePublicIp() throws UnexpectedException, InstanceNotFoundException, InvalidParameterException,
+			UnauthorizedRequestException {
+		// set up
+		Mockito.when(this.virtualNetwork.delete()).thenReturn(this.response);
+		Mockito.when(this.response.isError()).thenReturn(false);
+
+		// exercise
+		this.plugin.deletePublicIp(this.client, this.instanceId);
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
+
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).delete();
+		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
+	}
+
+	// test case: when invoking deletePublicIp with invalid parameters the plugin should
+	// throw an UnexpectedException
+	@Test
+	public void testDeletePublicIpFail() throws InstanceNotFoundException, InvalidParameterException,
+			UnauthorizedRequestException {
+		// set up
+		Mockito.when(this.virtualNetwork.delete()).thenReturn(this.response);
+		Mockito.when(this.response.isError()).thenReturn(true);
+		Mockito.when(this.response.getErrorMessage()).thenReturn(STRING_ID_ONE);
+
+		// exercise
+		try {
+			this.plugin.deletePublicIp(this.client, this.instanceId);
+			Assert.fail();
+		} catch (UnexpectedException e) {
+			Assert.assertEquals(STRING_ID_ONE, e.getMessage());
+		}
+
+		// verify
+		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
+
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).delete();
+		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
+		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).getErrorMessage();
 	}
 
 	// test case: when invoking detachPublicIpFromCompute with valid ONe virtual machine and
@@ -499,63 +558,18 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		Assert.assertNull(secGroup);
 	}
 
-	// test case: when invoking doDeleteInstance the plugin should retrieve the respective ONe
-	// virtual network and delete it
-	@Test
-	public void testDoDeleteInstance() throws UnexpectedException, InstanceNotFoundException, InvalidParameterException,
-			UnauthorizedRequestException {
-		// set up
-		Mockito.when(this.virtualNetwork.delete()).thenReturn(this.response);
-		Mockito.when(this.response.isError()).thenReturn(false);
-
-		// exercise
-		this.plugin.doDeleteInstance(client, this.publicIpOrder);
-
-        // verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
-
-		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).delete();
-		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
-	}
-
-	// test case: when invoking doDeleteInstance with invalid parameters the plugin should
-	// throw an UnexpectedException
-	@Test
-	public void testDoDeleteInstanceFail() throws InstanceNotFoundException, InvalidParameterException,
-			UnauthorizedRequestException {
-		// set up
-		Mockito.when(this.virtualNetwork.delete()).thenReturn(this.response);
-		Mockito.when(this.response.isError()).thenReturn(true);
-		Mockito.when(this.response.getErrorMessage()).thenReturn(STRING_ID_ONE);
-
-		// exercise
-        try {
-			this.plugin.doDeleteInstance(this.client, this.publicIpOrder);
-			Assert.fail();
-		} catch (UnexpectedException e) {
-        	Assert.assertEquals(STRING_ID_ONE, e.getMessage());
-		}
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
-
-		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).delete();
-		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
-		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).getErrorMessage();
-	}
-
 	// test case: when invoking getInstance with valid public ip order and cloud user, the plugin
 	// should instantiate the respective fogbow public ip instance and return it
 	@Test
 	public void testGetInstance() throws FogbowException {
 		// set up
-		Mockito.doReturn(FAKE_IP_ADDRESS).when(this.plugin).doGetInstance(
+        PublicIpInstance instance = Mockito.mock(PublicIpInstance.class);
+
+		Mockito.doReturn(instance).when(this.plugin).doGetInstance(
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
 
 		// exercise
-		PublicIpInstance publicIpInstance = this.plugin.getInstance(this.publicIpOrder, this.cloudUser);
+		this.plugin.getInstance(this.publicIpOrder, this.cloudUser);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -563,7 +577,6 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(
 				Mockito.eq(this.client), Mockito.eq(this.instanceId), Mockito.eq(this.publicIpOrder.getComputeId()));
-		Assert.assertEquals(FAKE_IP_ADDRESS, publicIpInstance.getIp());
 	}
 
 	// test case: when invoking doGetInstance with valid client, public ip instance, and compute id
