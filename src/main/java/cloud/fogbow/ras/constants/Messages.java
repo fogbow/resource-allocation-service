@@ -7,6 +7,7 @@ public class Messages {
         public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FAILED_TO_GENERATE_METHOD_S = "Failed to generate method: %s.";
+        public static final String FAILED_TO_GET_QUOTA = "Failer to get quota.";
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
@@ -58,6 +59,7 @@ public class Messages {
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
+        public static final String UNABLE_TO_RETRIEVE_SECURITY_GROUP_ID = "Unable to retrieve security group id from json %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -94,6 +96,7 @@ public class Messages {
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
+        public static final String GETTING_QUOTA = "Getting quota.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MAPPED_USER = "User mapped to: %s.";
@@ -124,6 +127,7 @@ public class Messages {
         public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
+        public static final String IRREGULAR_VALUE_NULL_EXCEPTION_MSG = "This value must not be null: %s";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_CONVERTING_TO_INTEGER = "Error while converting the input string to an integer.";
@@ -132,12 +136,14 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
         public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
+        public static final String ERROR_WHILE_CREATING_RESOURCE_S = "Error while creating %s.";
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting disk size.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
+        public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = "Error while getting %s from the cloud.";
         public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
@@ -156,7 +162,9 @@ public class Messages {
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
         public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
-        public static final String UNABLE_TO_COMPLETE_REQUEST = "Unable to complete request; template, zone and default network IDs are required parameters.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request; template ID is required parameter.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK = "Service Offering no available.";
+        public static final String UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK = "Disk Offering no available.";
         public static final String UNABLE_TO_CREATE_ATTACHMENT = "Unable to create an attachment from json.";
         public static final String UNABLE_TO_DELETE_INSTANCE = "Unable to delete instance %s.";
         public static final String UNABLE_TO_DELETE_NETWORK = "Unable to delete network with id %s.";

@@ -7,6 +7,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
@@ -34,13 +35,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin<OpenStack
 
         String jsonResponse = null;
 
-        try {
-            LOGGER.debug("Calling quota plugin");
-            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            LOGGER.debug("Exception raised: " + e.getMessage(), e);
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        jsonResponse = doGetQuota(endpoint, cloudUser);
 
         GetQuotaResponse getQuotaResponse = GetQuotaResponse.fromJson(jsonResponse);
 
@@ -55,5 +50,23 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin<OpenStack
         ComputeAllocation usedQuota = new ComputeAllocation(totalCoresUsed, totalRamUsed, totalInstancesUsed);
 
         return new ComputeQuota(totalQuota, usedQuota);
+    }
+
+    protected String doGetQuota(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        String jsonResponse = null;
+        try {
+            LOGGER.debug(Messages.Info.GETTING_QUOTA);
+            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
+        } catch (HttpResponseException e) {
+            LOGGER.debug(Messages.Exception.FAILED_TO_GET_QUOTA);
+            OpenStackHttpToFogbowExceptionMapper.map(e);
+        }
+
+        return jsonResponse;
+    }
+
+    // For testing
+    protected void setClient(OpenStackHttpClient client) {
+        this.client = client;
     }
 }

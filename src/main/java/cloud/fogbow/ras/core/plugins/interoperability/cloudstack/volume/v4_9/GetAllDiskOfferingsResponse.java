@@ -1,8 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
@@ -25,20 +29,25 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetAllDiskOfferingsResponse {
-    @SerializedName(DISK_OFFERINGS_KEY_JSON)
-    private ListDiskOfferingsResponse response;
 
-    public class ListDiskOfferingsResponse {
+    @SerializedName(DISK_OFFERINGS_KEY_JSON)
+    private ListDiskOfferingsResponse listDiskOfferingsResponse;
+
+    @NotNull
+    public List<DiskOffering> getDiskOfferings() {
+        return this.listDiskOfferingsResponse.diskOfferings;
+    }
+
+    public static GetAllDiskOfferingsResponse fromJson(String json) throws HttpResponseException {
+        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = GsonHolder.getInstance().
+                fromJson(json, GetAllDiskOfferingsResponse.class);
+        getAllDiskOfferingsResponse.listDiskOfferingsResponse.checkErrorExistence();
+        return getAllDiskOfferingsResponse;
+    }
+
+    public class ListDiskOfferingsResponse extends CloudStackErrorResponse {
         @SerializedName(DISK_OFFERING_KEY_JSON)
         private List<DiskOffering> diskOfferings;
-    }
-
-    public List<DiskOffering> getDiskOfferings() {
-        return this.response.diskOfferings;
-    }
-
-    public static GetAllDiskOfferingsResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetAllDiskOfferingsResponse.class);
     }
 
     public class DiskOffering {
