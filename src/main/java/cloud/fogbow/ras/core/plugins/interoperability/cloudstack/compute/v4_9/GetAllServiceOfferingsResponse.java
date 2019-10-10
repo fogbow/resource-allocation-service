@@ -1,12 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
-
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listServiceOfferings.html
@@ -26,24 +29,39 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Compute.*;
  * }
  */
 public class GetAllServiceOfferingsResponse {
+
     @SerializedName(LIST_SERVICE_OFFERINGS_KEY_JSON)
-    private ListServiceOfferingsResponse response;
+    private ListServiceOfferingsResponse listServiceOfferingsResponse;
 
+    @NotNull
     public List<ServiceOffering> getServiceOfferings() {
-        return response.serviceOfferings;
+        return listServiceOfferingsResponse.serviceOfferings;
     }
 
-    public static GetAllServiceOfferingsResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetAllServiceOfferingsResponse.class);
+    public static GetAllServiceOfferingsResponse fromJson(String json) throws HttpResponseException {
+        GetAllServiceOfferingsResponse getAllServiceOfferingsResponse =
+                GsonHolder.getInstance().fromJson(json, GetAllServiceOfferingsResponse.class);
+        getAllServiceOfferingsResponse.listServiceOfferingsResponse.checkErrorExistence();
+        return getAllServiceOfferingsResponse;
     }
 
-    public class ListServiceOfferingsResponse {
+    public class ListServiceOfferingsResponse extends CloudStackErrorResponse {
+
         @SerializedName(SERVICE_OFFERING_KEY_JSON)
         private List<ServiceOffering> serviceOfferings;
 
     }
 
     public class ServiceOffering {
+
+        @VisibleForTesting
+        ServiceOffering(String id, int cpuNumber, int memory, String tags) {
+            this.id = id;
+            this.cpuNumber = cpuNumber;
+            this.memory = memory;
+            this.tags = tags;
+        }
+
         @SerializedName(ID_KEY_JSON)
         private String id;
         @SerializedName(NAME_KEY_JSON)

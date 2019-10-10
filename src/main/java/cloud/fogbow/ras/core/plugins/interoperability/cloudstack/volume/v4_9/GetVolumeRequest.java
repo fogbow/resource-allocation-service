@@ -5,9 +5,9 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class GetVolumeRequest extends CloudStackRequest {
     public static final String LIST_VOLUMES_COMMAND = "listVolumes";
-    private static final String VOLUME_ID_KEY = "id";
-    private static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
-    private static final String TYPE_KEY = "type";
+    public static final String VOLUME_ID_KEY = "id";
+    public static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
+    public static final String TYPE_KEY = "type";
 
     protected GetVolumeRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
