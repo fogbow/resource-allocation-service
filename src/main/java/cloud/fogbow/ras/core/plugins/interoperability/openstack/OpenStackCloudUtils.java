@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.GetSecurityGroupsResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,10 +43,8 @@ public class OpenStackCloudUtils {
     public static String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {
         String securityGroupId = null;
         try {
-            JSONObject response = new JSONObject(json);
-            JSONArray securityGroupJSONArray = response.getJSONArray(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON);
-            JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
-            securityGroupId = securityGroup.getString(OpenStackConstants.Network.ID_KEY_JSON);
+            GetSecurityGroupsResponse.SecurityGroup securityGroup = GetSecurityGroupsResponse.fromJson(json).getSecurityGroups().iterator().next();
+            securityGroupId = securityGroup.getId();
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message, e);
