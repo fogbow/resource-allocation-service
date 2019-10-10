@@ -179,10 +179,25 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		String virtualNetworkId = null;
 		String securityGroupId = null;
 
-		Rule inputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, INPUT_RULE_TYPE, virtualNetworkId,
-				securityGroupId);
-		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, virtualNetworkId,
-				securityGroupId);
+		Rule inputRule = Rule.builder()
+		        .protocol(protocol)
+		        .ip(ipAny)
+		        .size(sizeAny)
+		        .range(rangeAll)
+		        .type(INPUT_RULE_TYPE)
+		        .networkId(virtualNetworkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
+		Rule outputRule = Rule.builder()
+		        .protocol(protocol)
+		        .ip(ipAny)
+		        .size(sizeAny)
+		        .range(rangeAll)
+		        .type(OUTPUT_RULE_TYPE)
+		        .networkId(virtualNetworkId)
+		        .groupId(securityGroupId)
+		        .build();
 
 		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);
@@ -193,7 +208,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 				.rules(rules)
 				.build();
 
-		String template = request.getSecurityGroup().marshalTemplate();
+		String template = request.marshalTemplate();
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 

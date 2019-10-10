@@ -265,21 +265,37 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		// The networkId and securityGroupId parameters are not used in this context.
 		String networkId = null;
 		String securityGroupId = null;
-
-		Rule inputRule = new Rule(protocol, ip, size, rangeAll, INPUT_RULE_TYPE, networkId, securityGroupId);
-		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, networkId, securityGroupId);
-
+		
+		Rule inputRule = Rule.builder()
+		        .protocol(protocol)
+		        .ip(ip)
+		        .size(size)
+		        .range(rangeAll)
+		        .type(INPUT_RULE_TYPE)
+		        .networkId(networkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
+		Rule outputRule = Rule.builder()
+		        .protocol(protocol)
+		        .ip(ipAny)
+		        .size(sizeAny)
+		        .range(rangeAll)
+		        .type(OUTPUT_RULE_TYPE)
+		        .networkId(networkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
 		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);
 		rules.add(outputRule);
-
-		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+		
+		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
 				.name(name)
 				.rules(rules)
 				.build();
 
-		String template = request.getSecurityGroup().marshalTemplate();
-
+		String template = request.marshalTemplate();
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 
@@ -313,8 +329,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return securityGroup;
 	}
 
-	protected String generateSecurityGroupName(String instanceId) {
-		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
+	protected String generateSecurityGroupName(String orderId) {
+		return SystemConstants.PN_SECURITY_GROUP_PREFIX + orderId;
 	}
 	
 	protected String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {

@@ -4,301 +4,359 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.ras.api.parameters.SecurityRule;
-import cloud.fogbow.ras.constants.SystemConstants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
-import org.opennebula.client.secgroup.SecurityGroupPool;
 import org.opennebula.client.vnet.VirtualNetwork;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
+import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
 
 public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUser> {
 
-	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
-	
-	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
-	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
-	private static final String ALL_ADDRESSES_REMOTE_PREFIX = "0.0.0.0/0";
-	private static final String RANGE_PORT_SEPARATOR = ":";
+    public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 
-	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
+    private static final String CONTENT_SEPARATOR = ",";
+    private static final String EMPTY_STRING = "";
+    private static final String ID_SEPARATOR = "@";
+    private static final String RANGE_SEPARATOR = ":";
+    
+    protected static final String ALL_ADDRESSES_REMOTE_PREFIX = "0.0.0.0/0";
+    protected static final String SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+    protected static final int MINIMUM_RANGE_PORT = 1;
+    protected static final int MAXIMUM_RANGE_PORT = 65536;
+    
+    // fields indexes for instance id
+    private static final int GROUP_ID_INDEX = 0;
+    private static final int NETWORK_ID_INDEX = 1;
+    private static final int TYPE_INDEX = 2;
+    private static final int IP_INDEX = 3;
+    private static final int SIZE_INDEX = 4;
+    private static final int RANGE_INDEX = 5;
+    private static final int PROTOCOL_INDEX = 6;
+    private static final int SECURITY_RULE_ID_FIELDS_NUMBER = 7;
 
-	protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
-	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+    // range ports index
+    private static final int PORT_FROM_INDEX = 0;
+    private static final int PORT_TO_INDEX = 1;
 
-	private String endpoint;
+    // sliced address positions
+    private static final int IP_POSITION = 0;
+    private static final int SIZE_POSITION = 1;
+    
+    private String endpoint;
 
-	public OpenNebulaSecurityRulePlugin(String confFilePath) throws FatalErrorException {
-		Properties properties = PropertiesUtil.readProperties(confFilePath);
-		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-	}
-	
+    public OpenNebulaSecurityRulePlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+    }
+
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudUser cloudUser)
             throws FogbowException {
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
-		// NOTE(pauloewerton): in ONe, the secgroup is always associated to a VNET.
-    	String virtualNetworkId = majorOrder.getInstanceId();
-    	VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
-
-		String securityGroupId = null;
-		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, majorOrder);
-		if (securityGroup != null) securityGroupId = securityGroup.getId();
-		else throw new UnexpectedException();
-		
-		String xml = securityGroup.info().getMessage();
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
-		
-		Rule rule = createRuleBy(securityRule);
-		rule.setSecurityGroupId(securityGroupId);
-		
-		String template = createSecurityGroupTemplate(securityGroupInfo, rule);
-		OneResponse response = securityGroup.update(template);
-		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template));
-			throw new InvalidParameterException();
-		}
-
-		String instanceId = rule.serialize();
-		return instanceId;
+        Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+        SecurityGroup securityGroup = getSecurityGroup(client, majorOrder);
+        Rule rule = createSecurityRuleRequest(securityRule, securityGroup);
+        return doRequestSecurityRule(securityGroup, rule);
     }
-
-	@Override
+    
+    @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
-    	Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String virtualNetworkId = majorOrder.getInstanceId();
-		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
-		
-		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, majorOrder);
-		if (securityGroup != null) return this.getSecurityRules(securityGroup);
-		else throw new UnexpectedException();
-	}
+        Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+        SecurityGroup securityGroup = getSecurityGroup(client, majorOrder);
+        return doGetSecurityRules(securityGroup);
+    }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-
-		Rule ruleToRemove = createRule(securityRuleId);
-		String securityGroupId = ruleToRemove.getSecurityGroupId();
-		SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
-		SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
-
-		List<Rule> rules = getRules(securityGroupInfo);
-		removeRule(ruleToRemove, rules);
-
-		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupInfo, rules);
-		String xml = securityGroupTemplate.marshalTemplate();
-		OneResponse response = securityGroup.update(xml);
-		if (response.isError()) {
-			String errorMsg = String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId,
-					response.getMessage());
-			LOGGER.error(errorMsg);
-			throw new FogbowException(errorMsg);
-		}
-	}
-
-	protected Rule createRuleBy(SecurityRule securityRule) {
-		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(securityRule.getCidr()).getInfo();
-		String ip = null;
-		String size = null;
-
-		if (!subnetInfo.getCidrSignature().equals(ALL_ADDRESSES_REMOTE_PREFIX)) {
-			ip = subnetInfo.getLowAddress();
-			size = String.valueOf(subnetInfo.getAddressCountLong());
-		}
-
-		int portFrom = securityRule.getPortFrom();
-		String range = portFrom == securityRule.getPortTo() ? String.valueOf(portFrom) :
-				securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
-		String protocol = securityRule.getProtocol().toString().toUpperCase();
-		String type = mapRuleType(securityRule.getDirection());
-
-		Rule rule = new Rule();
-		rule.setProtocol(protocol);
-		rule.setIp(ip);
-		rule.setSize(size);
-		rule.setRange(range);
-		rule.setType(type);
-
-		return rule;
-	}
-
-	private String createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, Rule rule) {
-		String id = securityGroupInfo.getId();
-		String name = securityGroupInfo.getName();
-		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
-		rules.add(rule);
-
-		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
-				.id(id)
-				.name(name)
-				.rules(rules)
-				.build();
-
-		String template = request.getSecurityGroup().marshalTemplate();
-		return template;
-	}
-
-	private String mapRuleType(SecurityRule.Direction direction) {
-		String type = null;
-		switch (direction) {
-		case IN:
-			type = INBOUND_TEMPLATE_VALUE;
-			break;
-		case OUT:
-			type = OUTBOUND_TEMPLATE_VALUE;
-			break;
-		default:
-			LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_DIRECTION, direction));
-			break;
-		}
-		return type;
-	}    
-    
-	protected List<SecurityRuleInstance> getSecurityRules(SecurityGroup securityGroup) throws FogbowException {
-		List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
-		try {
-			SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
-			List<Rule> rules = getRules(securityGroupInfo);
-			for (Rule rule : rules) {
-				SecurityRule.Direction direction = rule.getDirection();
-				int portFrom = rule.getPortFrom();
-				int portTo = rule.getPortTo();
-				String cidr = rule.getCIDR();
-				SecurityRule.EtherType etherType = rule.getEtherType();
-				SecurityRule.Protocol protocol = rule.getSRProtocol();
-				rule.setSecurityGroupId(securityGroup.getId());
-				SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(rule.serialize(), direction, portFrom, portTo, cidr, etherType, protocol);
-				securityRuleInstances.add(securityRuleInstance);
-			}
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE), e);
-			throw new FogbowException(e.getMessage(), e);
-		}
-		return securityRuleInstances;
-	}
-
-	protected List<Rule> getRules(SecurityGroupInfo securityGroupInfo) throws FogbowException {
-    	try {
-			Template template = securityGroupInfo.getTemplate();
-			return template.getRules();
-		} catch (Exception e) {
-			throw new FogbowException(e.getMessage(), e);
-		}
-	}    
-    
-    /**
-     * Note: In the Fogbow context, everytime the Virtual Network(VN) will have 
-     * two security groups; The first is the default contained in every VN and
-     * the second is the security group used by Fogbow because is created by own
-     * 
-     * @param  virtualNetwork : Opennebula client object regarding to Virtual Network
-     * @return the correct security group associated with the Virtual Network
-     */
-    protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
-    	String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
-    	if (securityGroupXMLContent == null || securityGroupXMLContent.isEmpty()) {
-    		LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
-    		return null;
-    	}
-    	String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
-    	if (securityGroupXMLContentSlices.length < 2) {
-    		LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_WRONG_FORMAT);
-    		return null;
-    	}
-    	return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
+        Rule rule = doUnpakingSecurityRuleId(securityRuleId);
+        String securityGroupId = rule.getGroupId();
+        doDeleteSecurityRule(client, rule, securityGroupId);
     }
 
-	private String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
-		String securityGroupName;
-		switch (majorOrder.getType()) {
-			case NETWORK:
-				securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
-				break;
-			case PUBLIC_IP:
-				securityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
-				break;
-			default:
-				throw new InvalidParameterException();
-		}
-		return securityGroupName;
-	}
+    protected void doDeleteSecurityRule(Client client, Rule rule, String securityGroupId)
+            throws FogbowException {
 
-	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, Order order)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-		String securityGroupIdsStr = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
-		if (securityGroupIdsStr == null || securityGroupIdsStr.isEmpty()) {
-			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
-			return null;
-		}
+        SecurityGroup securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
+        GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
 
-		String[] securityGroupIds =  securityGroupIdsStr.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
-		String securityGroupName = this.retrieveSecurityGroupName(order);
-		SecurityGroup securityGroup = null;
-		for (String securityGroupId : securityGroupIds) {
-			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
-			if (securityGroup.getName().equals(securityGroupName)) break;
-		}
+        List<Rule> rules = getRulesFrom(group);
+        if (removeRule(rules, rule)) {
+            String template = generateUpdateRequest(group, rules);
+            updateSecurityGroup(securityGroup, template);
+        } else {
+            throw new InstanceNotFoundException(Messages.Exception.RULE_NOT_AVAILABLE);
+        }
+    }
 
-		return securityGroup;
-	}
+    protected String generateUpdateRequest(GetSecurityGroupResponse group, List<Rule> rules) {
+        String id = group.getId();
+        String name = group.getName();
 
-	protected Rule createRule(String securityRuleId) throws FogbowException {
-		try {
-			return Rule.deserialize(securityRuleId);
-		} catch (Exception e) {
-			String errorMessage = String.format(Messages.Error.CONTENT_DESERIALIZATION_FAILURE, securityRuleId);
-			throw new FogbowException(
-					String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityRuleId, errorMessage));
-		}
-	}
+        CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
+                .id(id)
+                .name(name)
+                .rules(rules)
+                .build();
 
-	protected SecurityGroupTemplate createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, List<Rule> rules)
-			throws FogbowException {
-		
-		try {
-			SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
-			securityGroupTemplate.setId(securityGroupInfo.getId());
-			securityGroupTemplate.setName(securityGroupInfo.getName());
-			securityGroupTemplate.setRules(rules);
-			return securityGroupTemplate;
-		} catch (Exception e) {
-			throw new FogbowException(e.getMessage(), e);
-		}
-	}
+        return request.marshalTemplate();
+    }
 
-	protected SecurityGroupInfo getSecurityGroupInfo(SecurityGroup securityGroup) throws InstanceNotFoundException {
-		String securityGroupXml = securityGroup.info().getMessage();
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
-		if (securityGroupInfo == null) {
-			String errorMsg = Messages.Exception.INSTANCE_NOT_FOUND;
-			throw new InstanceNotFoundException(errorMsg);
-		}
-		return securityGroupInfo;
-	}
+    protected boolean removeRule(List<Rule> rules, Rule ruleToRemove) {
+        if (rules != null) {
+            for (Rule rule : rules) {
+                if (rule.equals(ruleToRemove)) {
+                    return rules.remove(rule);
+                }
+            }
+        }
+        return false;
+    }
 
-	protected void removeRule(Rule ruleToRemove, List<Rule> rules) {
-		if (rules == null) {
-			return;
-		}
-		for (Rule rule: new ArrayList<>(rules)) {
-			if (rule.equals(ruleToRemove)) {
-				rules.remove(ruleToRemove); 
-			}
-		}
-	}
+    protected Rule doUnpakingSecurityRuleId(String securityRuleId) throws FogbowException {
+        String[] fields = securityRuleId.split(ID_SEPARATOR);
+        if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
+            String groupId = getValueFrom(fields[GROUP_ID_INDEX]);
+            String networkId = getValueFrom(fields[NETWORK_ID_INDEX]);
+            String type = getValueFrom(fields[TYPE_INDEX]);
+            String ip = getValueFrom(fields[IP_INDEX]);
+            String size = getValueFrom(fields[SIZE_INDEX]);
+            String range = getValueFrom(fields[RANGE_INDEX]);
+            String protocol = getValueFrom(fields[PROTOCOL_INDEX]);
+
+            Rule rule = Rule.builder()
+                    .groupId(groupId)
+                    .networkId(networkId)
+                    .type(type)
+                    .ip(ip)
+                    .size(size)
+                    .range(range)
+                    .protocol(protocol)
+                    .build();
+
+            return rule;
+        }
+        throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, securityRuleId));
+    }
+
+    private String getValueFrom(String value) {
+        return !value.isEmpty() ? value : null;
+    }
+    
+    protected List<SecurityRuleInstance> doGetSecurityRules(SecurityGroup securityGroup) {
+        List<SecurityRuleInstance> instances = new ArrayList<>();
+        GetSecurityGroupResponse group = doGetSecurityGroupResponse(securityGroup);
+        List<Rule> rules = getRulesFrom(group);
+        for (Rule rule : rules) {
+            rule.setGroupId(group.getId());
+            SecurityRuleInstance instance = buildSecurityRule(rule);
+            instances.add(instance);
+        }
+        return instances;
+    }
+
+    protected SecurityRuleInstance buildSecurityRule(Rule rule) {
+        String id = doPackingSecurityRuleId(rule);
+        String cidr = SecurityRuleUtil.getAddressCidr(rule);
+        String range = rule.getRange();
+        int portFrom = (range == null || range.isEmpty())
+                ? MINIMUM_RANGE_PORT
+                : SecurityRuleUtil.getPortInRange(rule, PORT_FROM_INDEX);
+        int portTo = (range == null || range.isEmpty())
+                ? MAXIMUM_RANGE_PORT
+                : SecurityRuleUtil.getPortInRange(rule, PORT_TO_INDEX);
+        Direction direction = SecurityRuleUtil.getDirectionFrom(rule);
+        EtherType etherType = SecurityRuleUtil.getEtherTypeFrom(rule);
+        Protocol protocol = SecurityRuleUtil.getProtocolFrom(rule);
+        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+    
+    protected String doRequestSecurityRule(SecurityGroup securityGroup, Rule rule) throws FogbowException {
+        GetSecurityGroupResponse securityGroupResponse = doGetSecurityGroupResponse(securityGroup);
+        String id = securityGroupResponse.getId();
+        String name = securityGroupResponse.getName();
+        List<Rule> rules = getRulesFrom(securityGroupResponse);
+        rules.add(rule);
+        
+        CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
+                .id(id)
+                .name(name)
+                .rules(rules)
+                .build();
+        
+        String template = request.marshalTemplate();
+        updateSecurityGroup(securityGroup, template);
+        return doPackingSecurityRuleId(rule);
+    }
+    
+    protected List<Rule> getRulesFrom(GetSecurityGroupResponse response) {
+        List<Rule> rules = new ArrayList<>();
+        if (response.getTemplate().getRules() != null) {
+            rules = response.getTemplate().getRules();
+        }
+        return rules;
+    }
+
+    protected void updateSecurityGroup(SecurityGroup securityGroup, String template) throws FogbowException {
+        OneResponse response = securityGroup.update(template);
+        if (response.isError()) {
+            String message = String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template);
+            LOGGER.error(message);
+            throw new UnexpectedException(message);
+        }
+    }
+
+    protected String doPackingSecurityRuleId(Rule rule) {
+        String[] attributes = new String[SECURITY_RULE_ID_FIELDS_NUMBER];
+        attributes[GROUP_ID_INDEX] = rule.getGroupId();
+        attributes[NETWORK_ID_INDEX] = getNetworkIdFrom(rule);
+        attributes[TYPE_INDEX] = rule.getType();
+        attributes[IP_INDEX] = rule.getIp();
+        attributes[SIZE_INDEX] = rule.getSize();
+        attributes[RANGE_INDEX] = rule.getRange();
+        attributes[PROTOCOL_INDEX] = rule.getProtocol();
+
+        String instanceId = StringUtils.join(attributes, ID_SEPARATOR);
+        return instanceId;
+    }
+
+    protected String getNetworkIdFrom(Rule rule) {
+        return rule.getNetworkId() != null 
+                ? String.valueOf(rule.getNetworkId()) 
+                : EMPTY_STRING;
+    }
+    
+    protected GetSecurityGroupResponse doGetSecurityGroupResponse(SecurityGroup securityGroup) {
+        String xml = securityGroup.info().getMessage();
+        
+        GetSecurityGroupResponse response = GetSecurityGroupResponse.unmarshaller()
+        		.response(xml)
+        		.unmarshal();
+        
+        return response;
+    }
+
+    protected Rule createSecurityRuleRequest(SecurityRule securityRule, SecurityGroup securityGroup) {
+        int portFrom = securityRule.getPortFrom();
+        int portTo = securityRule.getPortTo();
+
+        String ip = getIpAddress(securityRule);
+        String size = getAddressSize(securityRule);
+        String groupId = securityGroup.getId();
+        String type = getRuleTypeBy(securityRule.getDirection());
+        String protocol = securityRule.getProtocol().name();
+        String range = portFrom == portTo 
+                ? String.valueOf(portFrom) 
+                : portFrom + RANGE_SEPARATOR + portTo;
+
+        Rule rule = Rule.builder()
+                .groupId(groupId)
+                .type(type)
+                .protocol(protocol)
+                .ip(ip)
+                .size(size)
+                .range(range)
+                .build();
+
+        return rule;
+    }
+
+    protected String getRuleTypeBy(Direction direction) {
+        String type = null;
+        switch (direction) {
+        case IN:
+            type = SecurityRuleUtil.INBOUND_TEMPLATE_VALUE; break;
+        case OUT:
+            type = SecurityRuleUtil.OUTBOUND_TEMPLATE_VALUE;
+        }
+        return type;
+    }
+    
+    protected String getIpAddress(SecurityRule securityRule) {
+        String[] cidrSliced = getCidrFrom(securityRule);
+        return cidrSliced != null ? cidrSliced[IP_POSITION] : null;
+    }
+    
+    protected String getAddressSize(SecurityRule securityRule) {
+        String[] cidrSliced = getCidrFrom(securityRule);
+        return cidrSliced != null ? cidrSliced[SIZE_POSITION] : null;
+    }
+
+    protected String[] getCidrFrom(SecurityRule securityRule) {
+        SubnetUtils subnetUtils = new SubnetUtils(securityRule.getCidr());
+        SubnetInfo subnetInfo = subnetUtils.getInfo();
+
+        if (!subnetInfo.getCidrSignature().equals(ALL_ADDRESSES_REMOTE_PREFIX)) {
+            String[] cidrAddress = { 
+                    subnetInfo.getLowAddress(),
+                    String.valueOf(subnetInfo.getAddressCountLong())
+            };
+            return cidrAddress;
+        }
+        return null;
+    }
+
+    protected SecurityGroup getSecurityGroup(Client client, Order majorOrder) throws FogbowException {
+        String securityGroupName = retrieveSecurityGroupName(majorOrder);
+        String virtualNetworkId = majorOrder.getInstanceId();
+        VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
+        String content = getSecurityGroupContentFrom(virtualNetwork);
+        SecurityGroup securityGroup = findSecurityGroupByName(client, content, securityGroupName);
+        return securityGroup;
+    }
+
+    protected SecurityGroup findSecurityGroupByName(Client client, String content, String name) throws FogbowException {
+        String[] securityGroupIds = content.split(CONTENT_SEPARATOR);
+        SecurityGroup securityGroup = null;
+        for (String securityGroupId : securityGroupIds) {
+            securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
+            if (securityGroup.getName().equals(name)) {
+                return securityGroup;
+            }
+        }
+        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+    }
+
+    protected String getSecurityGroupContentFrom(VirtualNetwork virtualNetwork) throws FogbowException {
+        String content = virtualNetwork.xpath(SECURITY_GROUPS_PATH);
+        if (content == null || content.isEmpty()) {
+            String message = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
+            throw new UnexpectedException(message);
+        }
+        return content;
+    }
+
+    protected String retrieveSecurityGroupName(Order majorOrder) throws FogbowException {
+        switch (majorOrder.getType()) {
+        case NETWORK:
+            return SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getId();
+        case PUBLIC_IP:
+            return SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getId();
+        default:
+            throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
+        }
+    }
+
 }

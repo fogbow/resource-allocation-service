@@ -1,326 +1,210 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import cloud.fogbow.ras.api.parameters.SecurityRule;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.IP;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.PROTOCOL;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RANGE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;
+import static cloud.fogbow.common.constants.OpenNebulaConstants.RULE_TYPE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.rmi.UnexpectedException;
 
-import static cloud.fogbow.common.constants.OpenNebulaConstants.*;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshaller;
 
 @XmlRootElement(name = RULE)
-public class Rule {
+public final class Rule extends OpenNebulaMarshaller {
+    
+    private String protocol;
+    private String ip;
+    private String size;
+    private String range;
+    private String type;
+    private String networkId;
+    private String groupId;
 
-	public static final Logger LOGGER = Logger.getLogger(Rule.class);
+    public Rule() {}
+    
+    public Rule(String protocol, String ip, String size, String range, String type, String networkId, String groupId) {
+        this.protocol = protocol;
+        this.ip = ip;
+        this.size = size;
+        this.range = range;
+        this.type = type;
+        this.networkId = networkId;
+        this.groupId = groupId;
+    }
 
-	protected static final String IPSEC_XML_TEMPLATE_VALUE = "IPSEC";
-	protected static final String ALL_XML_TEMPLATE_VALUE = "ALL";
-	protected static final String ICMPV6_XML_TEMPLATE_VALUE = "ICMPV6";
-	protected static final String ICMP_XML_TEMPLATE_VALUE = "ICMP";
-	protected static final String UDP_XML_TEMPLATE_VALUE = "UDP";
-	protected static final String TCP_XML_TEMPLATE_VALUE = "TCP";
-	protected static final String INBOUND_XML_TEMPLATE_VALUE = "inbound";
-	protected static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
-	protected static final String CIRD_SEPARATOR = "/";
-	protected static final String OPENNEBULA_RANGE_SEPARATOR = ":";
-	protected static final String CIDR_FORMAT = "%s/%s";
-	protected static final int MINIMUM_RANGE_PORT_NETWORK = 1;
-	protected static final int MAXIMUM_RANGE_PORT_NETWORK = 65536;
-	
-	protected static final int POSITION_PORT_FROM_IN_RANGE = 0;
-	protected static final int POSITION_PORT_TO_IN_RANGE = 1;
-	protected static final int INT_ERROR_CODE = -1;
-	protected static final int LOG_BASE_2 = 2;
-	protected static final int IPV4_AMOUNT_BITS = 32;
-	protected static final String INSTANCE_ID_SEPARATOR = "@@";
-	protected static final int IPV6_AMOUNT_BITS = 128;
+    @XmlElement(name = PROTOCOL)
+    public String getProtocol() {
+        return protocol;
+    }
+    
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
-	// instance id indexes
-	private static final int PROTOCOL_INDEX = 0;
-	private static final int IP_INDEX = 1;
-	private static final int SIZE_INDEX = 2;
-	private static final int RANGE_INDEX = 3;
-	private static final int TYPE_INDEX = 4;
-	private static final int NETWORK_ID_INDEX = 5;
-	private static final int SECURITY_GROUP_INDEX = 6;
-	private static final int BASE_VALUE = 2;
+    @XmlElement(name = IP)
+    public String getIp() {
+        return ip;
+    }
+    
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 
-	private String protocol;
-	private String ip;
-	private String size;
-	private String range;
-	private String type;
-	private String networkId;
-	private String securityGroupId;
+    @XmlElement(name = SIZE)
+    public String getSize() {
+        return size;
+    }
+    
+    public void setSize(String size) {
+        this.size = size;
+    }
 
-	public Rule() {};
+    @XmlElement(name = RANGE)
+    public String getRange() {
+        return range;
+    }
+    
+    public void setRange(String range) {
+        this.range = range;
+    }
 
-	public Rule(String protocol, String ip, String size, String range, String type, String networkId, String securityGroupId) {
-		this.protocol = protocol;
-		this.ip = ip;
-		this.size = size;
-		this.range = range;
-		this.type = type;
-		this.networkId = networkId;
-		this.securityGroupId = securityGroupId;
-	}
+    @XmlElement(name = RULE_TYPE)
+    public String getType() {
+        return type;
+    }
+    
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getProtocol() {
-		return protocol;
-	}
+    @XmlElement(name = NETWORK_ID)
+    public String getNetworkId() {
+        return networkId;
+    }
+    
+    public void setNetworkId(String networkId) {
+        this.networkId = networkId;
+    }
 
-	@XmlElement(name = PROTOCOL)
-	public void setProtocol(String protocol) {
-		this.protocol = protocol;
-	}
-
-	public String getIp() {
-		return ip;
-	}
-
-	@XmlElement(name = IP)
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-
-	public String getSize() {
-		return size;
-	}
-
-	@XmlElement(name = SIZE)
-	public void setSize(String size) {
-		this.size = size;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	@XmlElement(name = RULE_TYPE)
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public String getRange() {
-		return range;
-	}
-
-	@XmlElement(name = RANGE)
-	public void setRange(String range) {
-		this.range = range;
-	}
-
-	public String getNetworkId() {
-		return networkId;
-	}
-
-	@XmlElement(name = NETWORK_ID)
-	public void setNetworkId(String networkId) {
-		this.networkId = networkId;
-	}
-	
-	public String getSecurityGroupId() {
-		return securityGroupId;
-	}
-
-	@XmlTransient
-	public void setSecurityGroupId(String securityGroupId) {
-		this.securityGroupId = securityGroupId;
-	}
-	
-	public int getPortFrom() {
-		return getPortInRange(POSITION_PORT_FROM_IN_RANGE);
-	}
-
-	public int getPortTo() {
-		return getPortInRange(POSITION_PORT_TO_IN_RANGE);
-	}	
-	
-	protected int getPortInRange(int portType) {
-		try {
-			if (this.range == null || this.range.isEmpty()) {
-				switch (portType) {
-				case POSITION_PORT_FROM_IN_RANGE:
-					return MINIMUM_RANGE_PORT_NETWORK;
-				case POSITION_PORT_TO_IN_RANGE:
-					return MAXIMUM_RANGE_PORT_NETWORK;					
-				default:
-		            throw new UnexpectedException(Messages.Exception.FATAL_ERROR);
-				}
-			}
-			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARATOR);
-			if (rangeSplited.length == 1) {
-			    return Integer.parseInt(this.range);
-			} else if (rangeSplited.length == 2) {
-				return Integer.parseInt(rangeSplited[portType]);
-			} else {
-				throw new Exception("The security rule range is in the wrong format, or was not created through Fogbow.");
-			}
-		} catch (Exception e) {
-			LOGGER.warn("There is a problem when it is trying to get port.", e);
-			return INT_ERROR_CODE;
-		}
-	}
-
-	public SecurityRule.Direction getDirection() {
-		if (this.type == null || this.type.isEmpty()) {
-			LOGGER.warn("The type is null");
-			return null;
-		}
-		switch (this.type) {
-		case INBOUND_XML_TEMPLATE_VALUE:
-			return SecurityRule.Direction.IN;
-		case OUTBOUND_XML_TEMPLATE_VALUE:
-			return SecurityRule.Direction.OUT;
-		default:
-			LOGGER.warn(String.format("The type(%s) is inconsistent", this.type));
-			return null;
-		}
-	}
-	
-	public SecurityRule.Protocol getSRProtocol() {
-		if (this.protocol == null || this.protocol.isEmpty()) {
-			LOGGER.warn("The protocol is null");
-		}
-		switch (this.protocol) {
-			case TCP_XML_TEMPLATE_VALUE:
-				return SecurityRule.Protocol.TCP;
-			case UDP_XML_TEMPLATE_VALUE:
-				return SecurityRule.Protocol.UDP;
-			case ICMP_XML_TEMPLATE_VALUE:
-			case ICMPV6_XML_TEMPLATE_VALUE:
-				return SecurityRule.Protocol.ICMP;
-			case ALL_XML_TEMPLATE_VALUE:
-			case IPSEC_XML_TEMPLATE_VALUE: // TODO think more about this ipsec value.
-				return SecurityRule.Protocol.ANY;
-			default:
-				LOGGER.warn(String.format("The protocol(%s) is inconsistent", this.protocol));
-				return null;
-		}		
-	}
-	
-	public SecurityRule.EtherType getEtherType() {
-		if (this.ip == null) {
-			LOGGER.warn("The etherType is null");
-			return null;
-		}
-		if (CidrUtils.isIpv4(this.ip)) {
-			return SecurityRule.EtherType.IPv4;
-		} else if (CidrUtils.isIpv6(this.ip)) {
-			return SecurityRule.EtherType.IPv6;
-		} else {
-			LOGGER.warn(String.format("The etherType is inconsistent"));
-			return null;
-		}		
-	}
-	
-	public String getCIDR() {
-	    String cidr = ALL_XML_TEMPLATE_VALUE;
-		if (this.ip != null) {
-			try {
-				cidr = this.generateAddressCidr(this.ip, this.size);
-			} catch (NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
-		return cidr;
-	}
-
-	protected String generateAddressCidr(String address, String rangeSize) throws NumberFormatException {
-		return String.format(CIDR_FORMAT, address, this.calculateCidr(Integer.parseInt(rangeSize), CidrUtils.isIpv4(this.ip)));
-	}
-
-	protected int calculateCidr(int size, boolean isIpv4) {
-		int amountBits = isIpv4 ? IPV4_AMOUNT_BITS : IPV6_AMOUNT_BITS;
-		int exponent = 1;
-		int value = 0;
-		for (int i = 0; i < amountBits; i++) {
-			if (exponent >= size) {
-				value = amountBits - i;
-				return value;
-			} else {
-				exponent *= BASE_VALUE;
-			}
-		}
-		return value;
-	}
-	
-	public String serialize() {
-		String[] attributes = new String[7];
-		attributes[PROTOCOL_INDEX] = this.protocol;
-		attributes[IP_INDEX] = this.ip;
-		attributes[SIZE_INDEX] = this.size;
-		attributes[RANGE_INDEX] = this.range;
-		attributes[TYPE_INDEX] = this.type;
-		attributes[NETWORK_ID_INDEX] = this.networkId != null ? String.valueOf(this.networkId): "";
-		attributes[SECURITY_GROUP_INDEX] = this.securityGroupId;
-		
-		String instanceId = StringUtils.join(attributes, INSTANCE_ID_SEPARATOR);
-		return instanceId;
-	}
-	
-	public static Rule deserialize(String instanceId) {
-		Rule rule = new Rule();
-		String[] instanceIdSplit = instanceId.split(INSTANCE_ID_SEPARATOR);
-		rule.setProtocol(getValueInInstanceId(instanceIdSplit[PROTOCOL_INDEX]));
-		rule.setIp(getValueInInstanceId(instanceIdSplit[IP_INDEX]));
-		rule.setSize(getValueInInstanceId(instanceIdSplit[SIZE_INDEX]));
-		rule.setRange(getValueInInstanceId(instanceIdSplit[RANGE_INDEX]));
-		rule.setType(getValueInInstanceId(instanceIdSplit[TYPE_INDEX]));
-		rule.setNetworkId(getValueInInstanceId(instanceIdSplit[NETWORK_ID_INDEX]));
-		rule.setSecurityGroupId(getValueInInstanceId(instanceIdSplit[SECURITY_GROUP_INDEX]));
-		return rule;
-	}
-	
-	protected static String getValueInInstanceId(String value) {
-		return !value.isEmpty() ? value : null;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Rule other = (Rule) obj;
-		if (ip == null) {
-			if (other.ip != null)
-				return false;
-		} else if (!ip.equals(other.ip))
-			return false;
-		if (networkId == null) {
-			if (other.networkId != null)
-				return false;
-		} else if (!networkId.equals(other.networkId))
-			return false;
-		if (protocol == null) {
-			if (other.protocol != null)
-				return false;
-		} else if (!protocol.equals(other.protocol))
-			return false;
-		if (range == null) {
-			if (other.range != null)
-				return false;
-		} else if (!range.equals(other.range))
-			return false;
-		if (size == null) {
-			if (other.size != null)
-				return false;
-		} else if (!size.equals(other.size))
-			return false;
-		if (type == null) {
-			if (other.type != null)
-				return false;
-		} else if (!type.equals(other.type))
-			return false;
-		return true;
-	}
-
+    @XmlTransient
+    public String getGroupId() {
+        return groupId;
+    }
+    
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+    
+    public static Builder builder() {
+        return new Rule.Builder();
+    }
+    
+    public static class Builder {
+        
+        private String protocol;
+        private String ip;
+        private String size;
+        private String range;
+        private String type;
+        private String networkId;
+        private String groupId;
+        
+        public Builder protocol(String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+        
+        public Builder ip(String ip) {
+            this.ip = ip;
+            return this;
+        }
+        
+        public Builder size(String size) {
+            this.size = size;
+            return this;
+        }
+        
+        public Builder range(String range) {
+            this.range = range;
+            return this;
+        }
+        
+        public Builder type(String type) {
+            this.type = type;
+            return this;
+        }
+        
+        public Builder networkId(String networkId) {
+            this.networkId = networkId;
+            return this;
+        }
+        
+        public Builder groupId(String groupId) {
+            this.groupId = groupId;
+            return this;
+        }
+        
+        public Rule build() {
+            return new Rule(this);
+        }
+        
+    }
+    
+    private Rule(Builder builder) {
+        this.protocol = builder.protocol;
+        this.ip = builder.ip;
+        this.size = builder.size;
+        this.range = builder.range;
+        this.type = builder.type;
+        this.networkId = builder.networkId;
+        this.groupId = builder.groupId;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Rule other = (Rule) obj;
+        if (ip == null) {
+            if (other.ip != null)
+                return false;
+        } else if (!ip.equals(other.ip))
+            return false;
+        if (networkId == null) {
+            if (other.networkId != null)
+                return false;
+        } else if (!networkId.equals(other.networkId))
+            return false;
+        if (protocol == null) {
+            if (other.protocol != null)
+                return false;
+        } else if (!protocol.equals(other.protocol))
+            return false;
+        if (range == null) {
+            if (other.range != null)
+                return false;
+        } else if (!range.equals(other.range))
+            return false;
+        if (size == null) {
+            if (other.size != null)
+                return false;
+        } else if (!size.equals(other.size))
+            return false;
+        if (type == null) {
+            if (other.type != null)
+                return false;
+        } else if (!type.equals(other.type))
+            return false;
+        return true;
+    }
+    
 }
