@@ -44,7 +44,7 @@ public class SecurityRuleUtilTest extends OpenNebulaBaseTests {
     }
 
     // test case: when invoking getAddressCidr with an invalid size, the utility
-    // should return a default cidr
+    // should return null
     @Test
     public void testGetAddressCidrNull() {
         // set up
@@ -54,7 +54,7 @@ public class SecurityRuleUtilTest extends OpenNebulaBaseTests {
         String cidr = SecurityRuleUtil.getAddressCidr(this.rule);
 
         // verify
-        Assert.assertEquals(ALL_TEMPLATE_VALUE, cidr);
+        Assert.assertEquals(null, cidr);
     }
 
     // test cases: when calling getPortInRange
