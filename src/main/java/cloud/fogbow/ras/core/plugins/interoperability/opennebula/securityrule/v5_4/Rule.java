@@ -16,7 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaMarsh
 
 @XmlRootElement(name = RULE)
 public final class Rule extends OpenNebulaMarshaller {
-    
+
     private String protocol;
     private String ip;
     private String size;
