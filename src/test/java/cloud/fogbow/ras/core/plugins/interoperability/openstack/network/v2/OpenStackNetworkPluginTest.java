@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -43,7 +44,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
 
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
 
-    private static final String UTF_8 = "UTF-8";
     private static final String DEFAULT_GATEWAY_INFO = "000000-gateway_info";
     private static final String DEFAULT_PROJECT_ID = "PROJECT_ID";
     private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
@@ -56,14 +56,16 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_TENANT_ID = "tenant-id";
     private static final String FAKE_SUBNET_ID = "subnet-id";
-
+    private static final String FAKE_REQUESTING_MEMBER = "fake-requesting-member";
+    private static final String FAKE_PROVIDING_MEMBER = "fake_providing-member";
     private OpenStackNetworkPlugin openStackNetworkPlugin;
     private OpenStackV3User openStackV3User;
     private Properties properties;
     private OpenStackHttpClient openStackHttpClient;
+    private static int INTERNAL_SERVER_ERROR_HTTP_CODE = 500;
 
     @Before
-    public void setUp() throws InvalidParameterException, UnexpectedException {
+    public void setUp() throws Exception {
         testUtils.mockReadOrdersFromDataBase();
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
@@ -76,6 +78,9 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         this.openStackHttpClient = Mockito.spy(new OpenStackHttpClient());
         this.openStackNetworkPlugin.setClient(this.openStackHttpClient);
         this.openStackV3User = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
+
+        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
+        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, "map", Mockito.any());
     }
 
     //test case: Check if the method makes the expected calls.
@@ -83,7 +88,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     public void testRequestInstance() throws FogbowException{
         //setup
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        NetworkOrder order = createNetworkOrder(NETWORK_ID, TestUtils.DEFAULT_CIDR, DEFAULT_GATEWAY_INFO, NetworkAllocationMode.DYNAMIC);
+        NetworkOrder order = testUtils.createNetworkOrder(FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER);
         CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
         Mockito.doReturn(createNetworkResponse).when(openStackNetworkPlugin).createNetwork(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.doReturn(new CreateSecurityGroupResponse(new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID))).when(openStackNetworkPlugin)
@@ -98,7 +103,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
         OpenStackCloudUtils.getProjectIdFrom(openStackV3User);
         PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getSGNameForPrivateNetwork(NETWORK_ID);
+        OpenStackCloudUtils.getNetworkSecurityGroupName(NETWORK_ID);
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).createNetwork(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).createSubNet(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -133,7 +138,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         openStackNetworkPlugin.deleteInstance(order, openStackV3User);
         //verify
         PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getSGNameForPrivateNetwork(order.getInstanceId());
+        OpenStackCloudUtils.getNetworkSecurityGroupName(order.getInstanceId());
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).retrieveSecurityGroupId(Mockito.any(), Mockito.any());
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -143,11 +148,11 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     public void testDoGetInstance() throws FogbowException{
         //setup
         NetworkOrder order = createNetworkOrder(NETWORK_ID, TestUtils.DEFAULT_CIDR, DEFAULT_GATEWAY_INFO, NetworkAllocationMode.DYNAMIC);
-        Mockito.doReturn(order.getId()).when(openStackNetworkPlugin).doGetRequest(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(order.getId()).when(openStackNetworkPlugin).doGetRequest(Mockito.any(), Mockito.any());
         //exercise
-        openStackNetworkPlugin.doGetInstance(order, openStackV3User);
+        openStackNetworkPlugin.doGetInstance(NETWORK_NEUTRONV2_URL_KEY, openStackV3User);
         //verify
-        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).doGetRequest(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).doGetRequest(Mockito.any(), Mockito.any());
     }
 
     //test case: test if the method make the expected call
@@ -156,22 +161,22 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         //setup
         Mockito.doReturn(TestUtils.EMPTY_STRING).when(openStackHttpClient).doGetRequest(Mockito.any(), Mockito.any());
         //exercise
-        openStackNetworkPlugin.doGetRequest(openStackV3User, NETWORK_NEUTRONV2_URL_KEY, TestUtils.EMPTY_STRING);
+        openStackNetworkPlugin.doGetRequest(openStackV3User, NETWORK_NEUTRONV2_URL_KEY);
         //verify
         Mockito.verify(openStackHttpClient, Mockito.times(TestUtils.RUN_ONCE)).doGetRequest(Mockito.any(), Mockito.any());
     }
 
     //test case: test if the method calls the ExceptionMapper when doGetRequest throws an Http exception.
     @Test
-    public void testDoGetRequestInExceptionCase() throws FogbowException, HttpResponseException{
+    public void testDoGetRequestInExceptionCase() throws Exception{
         //setup
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        HttpResponseException exception = new HttpResponseException(500, TestUtils.EMPTY_STRING);
+        HttpResponseException exception = new HttpResponseException(INTERNAL_SERVER_ERROR_HTTP_CODE, TestUtils.EMPTY_STRING);
         Mockito.doThrow(exception).when(openStackHttpClient).doGetRequest(Mockito.any(), Mockito.any());
 
         try {
             //exercise
-            openStackNetworkPlugin.doGetRequest(openStackV3User, NETWORK_NEUTRONV2_URL_KEY, TestUtils.EMPTY_STRING);
+            openStackNetworkPlugin.doGetRequest(openStackV3User, NETWORK_NEUTRONV2_URL_KEY);
+            Assert.fail();
         } catch (FogbowException ex) {
             //verify
             PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class);
@@ -237,6 +242,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         try {
             //exercise
             openStackNetworkPlugin.doDeleteSecurityGroup(SECURITY_GROUP_ID, openStackV3User);
+            Assert.fail();
         } catch (FogbowException ex) {
             //verify
             Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).removeSecurityGroup(Mockito.any(), Mockito.any());
@@ -290,18 +296,18 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     public void testCreateNetworkWhenHttpException() throws FogbowException, HttpResponseException{
         //setup
         PowerMockito.mockStatic(CreateNetworkResponse.class);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        HttpResponseException httpResponseException = new HttpResponseException(500, TestUtils.EMPTY_STRING);
+        HttpResponseException httpResponseException = new HttpResponseException(INTERNAL_SERVER_ERROR_HTTP_CODE, TestUtils.EMPTY_STRING);
         Mockito.doThrow(httpResponseException).when(openStackHttpClient).doPostRequest(Mockito.any(), Mockito.any(), Mockito.any());
 
         try {
             //exercise
             openStackNetworkPlugin.createNetwork(FAKE_NAME, openStackV3User, FAKE_TENANT_ID);
+            Assert.fail();
         } catch(FogbowException ex) {
             //verify
             PowerMockito.verifyStatic(CreateNetworkResponse.class, Mockito.times(0));
             CreateNetworkResponse.fromJson(TestUtils.EMPTY_STRING);
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(0));
+            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
             OpenStackHttpToFogbowExceptionMapper.map(httpResponseException);
         }
     }
@@ -328,7 +334,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         HttpResponseException httpResponseException = new HttpResponseException(500, TestUtils.EMPTY_STRING);
         Mockito.doThrow(httpResponseException).when(openStackHttpClient).doPostRequest(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.doNothing().when(openStackNetworkPlugin).removeNetwork(Mockito.any(), Mockito.any());
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
         NetworkOrder order = createNetworkOrder(NETWORK_ID, TestUtils.DEFAULT_CIDR, DEFAULT_GATEWAY_INFO, NetworkAllocationMode.DYNAMIC);
 
         try {
@@ -366,7 +371,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         HttpResponseException httpResponseException = new HttpResponseException(500, TestUtils.EMPTY_STRING);
         Mockito.doThrow(httpResponseException).when(openStackHttpClient).doPostRequest(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.doNothing().when(openStackNetworkPlugin).removeNetwork(Mockito.any(), Mockito.any());
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
 
         try {
             //exercise
@@ -422,7 +426,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         Mockito.doThrow(httpResponseException).when(openStackHttpClient).doPostRequest(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.doNothing().when(openStackNetworkPlugin).removeNetwork(Mockito.any(), Mockito.any());
         Mockito.doNothing().when(openStackNetworkPlugin).removeSecurityGroup(Mockito.any(), Mockito.any());
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
         NetworkOrder order = createNetworkOrder(NETWORK_ID, TestUtils.DEFAULT_CIDR, DEFAULT_GATEWAY_INFO, NetworkAllocationMode.DYNAMIC);
 
         try {
@@ -445,11 +448,11 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     public void testRetrieveSecurityGroupId() throws FogbowException{
         //setup
         PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        Mockito.doReturn(TestUtils.EMPTY_STRING).when(openStackNetworkPlugin).doGetRequest(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(TestUtils.EMPTY_STRING).when(openStackNetworkPlugin).doGetRequest(Mockito.any(), Mockito.any());
         //exercise
         openStackNetworkPlugin.retrieveSecurityGroupId(SECURITY_GROUP_ID, openStackV3User);
         //verify
-        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).doGetRequest(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).doGetRequest(Mockito.any(), Mockito.any());
         PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
         OpenStackCloudUtils.getSecurityGroupIdFromGetResponse(TestUtils.EMPTY_STRING);
     }
@@ -540,8 +543,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         String subnetJson = generateJsonEntityToCreateSubnet;
         JSONObject subnetJsonObject = new JSONObject(subnetJson).optJSONObject(OpenStackConstants.Network.SUBNET_KEY_JSON);
         Assert.assertEquals(DEFAULT_PROJECT_ID, subnetJsonObject.optString(OpenStackConstants.Network.PROJECT_ID_KEY_JSON));
-        // ToDo: check if this assertion is needed
-        //Assert.assertTrue(subnetJsonObject.optString(OpenStackConstants.Network.NAME_KEY_JSON).contains(SystemConstants.DEFAULT_NETWORK_NAME));
         Assert.assertEquals(order.getId(), subnetJsonObject.optString(OpenStackConstants.Network.NETWORK_ID_KEY_JSON));
         Assert.assertEquals(order.getCidr(), subnetJsonObject.optString(OpenStackConstants.Network.CIDR_KEY_JSON));
         Assert.assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackConstants.Network.GATEWAY_IP_KEY_JSON));
@@ -575,8 +576,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     @Test
     public void testGenerateJsonEntityToCreateSubnetDefaultDns() throws JSONException {
         //set up
-        String networkId = "networkId";
-        NetworkOrder order = createNetworkOrder(networkId, null, null, null);
+        NetworkOrder order = testUtils.createNetworkOrder(FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER);
 
         //exercise
         String entityToCreateSubnet = this.openStackNetworkPlugin

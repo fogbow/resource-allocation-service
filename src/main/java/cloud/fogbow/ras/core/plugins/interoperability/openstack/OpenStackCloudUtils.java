@@ -54,7 +54,7 @@ public class OpenStackCloudUtils {
         return securityGroupId;
     }
 
-    public static String getSGNameForPrivateNetwork(String networkId) {
+    public static String getNetworkSecurityGroupName(String networkId) {
         return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkId;
     }
 

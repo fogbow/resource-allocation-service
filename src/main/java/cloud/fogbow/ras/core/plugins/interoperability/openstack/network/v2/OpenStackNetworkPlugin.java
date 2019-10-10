@@ -7,7 +7,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -19,7 +18,6 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import com.google.gson.JsonSyntaxException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -77,7 +75,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         CreateNetworkResponse createNetworkResponse = createNetwork(order.getName(), cloudUser, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
         createSubNet(cloudUser, order, createdNetworkId, tenantId);
-        String securityGroupName = OpenStackCloudUtils.getSGNameForPrivateNetwork(createdNetworkId);
+        String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(createdNetworkId);
         CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(cloudUser, securityGroupName,
                 tenantId, createdNetworkId);
         createSecurityGroupRules(order, cloudUser, createdNetworkId, securityGroupResponse.getId());
@@ -86,25 +84,26 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @Override
     public NetworkInstance getInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String responseStr = doGetInstance(order, cloudUser);
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + order.getInstanceId();
+        String responseStr = doGetInstance(endpoint, cloudUser);
         return buildInstance(responseStr, cloudUser);
     }
 
     @Override
     public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
-        String securityGroupId = retrieveSecurityGroupId(OpenStackCloudUtils.getSGNameForPrivateNetwork(instanceId), cloudUser);
+        String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(instanceId);
+        String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
         doDeleteInstance(instanceId, securityGroupId, cloudUser);
     }
 
-    protected String doGetInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + order.getInstanceId();
-        String responseStr = null;
-        responseStr = doGetRequest(cloudUser, endpoint, responseStr);
+    protected String doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        String responseStr = doGetRequest(cloudUser, endpoint);
         return responseStr;
     }
 
-    protected String doGetRequest(OpenStackV3User cloudUser, String endpoint, String responseStr) throws FogbowException {
+    protected String doGetRequest(OpenStackV3User cloudUser, String endpoint) throws FogbowException {
+        String responseStr = null;
         try {
             responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -242,8 +241,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
-        String responseStr = null;
-        responseStr = doGetRequest(cloudUser, endpoint, responseStr);
+        String responseStr = doGetRequest(cloudUser, endpoint);
         return OpenStackCloudUtils.getSecurityGroupIdFromGetResponse(responseStr);
     }
 
