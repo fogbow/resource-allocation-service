@@ -3,14 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.DETACH_VOLUME_COMMAND;
+import static cloud.fogbow.common.constants.OpenStackConstants.Attachment.ID_KEY_JSON;
+
 public class DetachVolumeRequest extends CloudStackRequest {
 
-    protected static final String DETACH_VOLUME_COMMAND = "detachVolume";
-    protected static final String ATTACH_VOLUME_ID = "id";
-    
     protected DetachVolumeRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(ATTACH_VOLUME_ID, builder.id);
+        addParameter(ID_KEY_JSON, builder.id);
     }
 
     @Override

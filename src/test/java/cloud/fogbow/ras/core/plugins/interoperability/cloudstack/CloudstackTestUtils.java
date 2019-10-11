@@ -49,6 +49,8 @@ public class CloudstackTestUtils {
     private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
     private static final String ATTACH_VOLUME_RESPONSE = "attachvolumeresponse.json";
     private static final String ATTACH_VOLUME_ERROR_RESPONSE = "attachvolumeresponse_error.json";
+    private static final String DETACH_VOLUME_RESPONSE = "detachvolumeresponse.json";
+    private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -258,6 +260,22 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
+    public static String detachVolumeResponseJson(String jobId) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DETACH_VOLUME_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String detachVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DETACH_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);
         byte[] bytes = Files.readAllBytes(path);
@@ -270,14 +288,12 @@ public class CloudstackTestUtils {
         return rootPath + CLOUDSTACK_RESOURCE_PATH;
     }
 
-    // TODO(chico) use in the cloudstack compute
     public static void ignoringCloudStackUrl() throws InvalidParameterException {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
                 Mockito.anyString())).thenCallRealMethod();
     }
 
-    // TODO(chico) use in the cloudstack compute
     public static HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
     }

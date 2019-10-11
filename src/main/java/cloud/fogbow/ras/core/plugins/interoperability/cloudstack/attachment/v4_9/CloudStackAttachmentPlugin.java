@@ -118,11 +118,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         try {
             String jsonResponse = CloudStackCloudUtils.doGet(
                     this.client, uriRequest.toString(), cloudStackUser);
-            DetachVolumeResponse response = DetachVolumeResponse.fromJson(jsonResponse);
-
-            if (response.getJobId() == null) {
-                throw new UnexpectedException();
-            }
+            DetachVolumeResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
