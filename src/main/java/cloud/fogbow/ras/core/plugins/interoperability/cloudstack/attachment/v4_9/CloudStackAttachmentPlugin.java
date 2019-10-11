@@ -99,7 +99,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            String jsonResponse = CloudStackCloudUtils.doGet(
+                    this.client, uriRequest.toString(), cloudStackUser);
             AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
             return loadInstanceByJobStatus(attachmentOrder.getInstanceId(), response);
         } catch (HttpResponseException e) {
@@ -143,34 +144,36 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         }
     }
 
-    private AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
+    @VisibleForTesting
+    AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
                                        AttachmentJobStatusResponse response) throws UnexpectedException {
         
         int status = response.getJobStatus();
         switch (status) {
             case CloudStackCloudUtils.JOB_STATUS_PENDING:
-                return new AttachmentInstance(attachmentInstanceId, CloudStackCloudUtils.PENDING_STATE,
-                        null, null, null);
+                return mountInstance(attachmentInstanceId, CloudStackCloudUtils.PENDING_STATE);
             case CloudStackCloudUtils.JOB_STATUS_COMPLETE:
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
-                return mountInstance(volume);
+                return mountCompleteInstance(volume);
             case CloudStackCloudUtils.JOB_STATUS_FAILURE:
-                return new AttachmentInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE,
-                        null, null, null);
+                return mountInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE);
             default:
                 throw new UnexpectedException();
         }
     }
 
-    private AttachmentInstance mountInstance(AttachmentJobStatusResponse.Volume volume) {
+    private AttachmentInstance mountCompleteInstance(AttachmentJobStatusResponse.Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
         String device = String.valueOf(volume.getDeviceId());
         String state = volume.getState();
 
-        AttachmentInstance attachmentInstance = new AttachmentInstance(jobId, state, source, target, device);
-        return attachmentInstance;
+        return new AttachmentInstance(jobId, state, source, target, device);
+    }
+
+    private AttachmentInstance mountInstance(String attachmentInstanceId, String state) {
+        return new AttachmentInstance(attachmentInstanceId, state,null, null, null);
     }
 
     @VisibleForTesting

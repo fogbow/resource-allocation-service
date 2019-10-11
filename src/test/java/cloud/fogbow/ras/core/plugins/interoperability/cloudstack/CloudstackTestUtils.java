@@ -51,6 +51,8 @@ public class CloudstackTestUtils {
     private static final String ATTACH_VOLUME_ERROR_RESPONSE = "attachvolumeresponse_error.json";
     private static final String DETACH_VOLUME_RESPONSE = "detachvolumeresponse.json";
     private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
+    private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
+    private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -276,6 +278,26 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
+    public static String attachmentJobStatusResponseJson(int jobStatus, String volumeId,
+                                                         int deviceId, String virtualMachineId,
+                                                         String state, String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ATTACH_VOLUME_RESPONSE);
+
+        return String.format(rawJson, jobStatus, volumeId, deviceId, virtualMachineId, state, jobId);
+    }
+
+    public static String asyncErrorResponseJson(int jobStatus, int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ERROR_RESPONSE);
+
+        return String.format(rawJson, jobStatus, errorCode, errorText);
+    }
+
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);
         byte[] bytes = Files.readAllBytes(path);
@@ -297,5 +319,4 @@ public class CloudstackTestUtils {
     public static HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
     }
-
 }

@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
 
@@ -47,11 +49,14 @@ public class AttachmentJobStatusResponse {
         return this.response.jobResult.volume;
     }
     
-    public static AttachmentJobStatusResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, AttachmentJobStatusResponse.class);
+    public static AttachmentJobStatusResponse fromJson(String json) throws HttpResponseException {
+        AttachmentJobStatusResponse attachmentJobStatusResponse =
+                GsonHolder.getInstance().fromJson(json, AttachmentJobStatusResponse.class);
+        attachmentJobStatusResponse.response.jobResult.checkErrorExistence();
+        return attachmentJobStatusResponse;
     }
     
-    public class JobResult {
+    public class JobResult extends CloudStackErrorResponse {
         
         @SerializedName(VOLUME_KEY_JSON)
         private Volume volume;

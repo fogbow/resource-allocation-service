@@ -3,14 +3,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
+
 public class AttachmentJobStatusRequest extends CloudStackRequest {
 
-    protected static final String QUERY_ASYNC_JOB_RESULT_COMMAND = "queryAsyncJobResult";
-    protected static final String JOB_ID = "jobid";
-    
     protected AttachmentJobStatusRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(JOB_ID, builder.jobId);
+        addParameter(JOB_ID_KEY_JSON, builder.jobId);
     }
     
     @Override
