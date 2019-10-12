@@ -246,14 +246,14 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    public static String attachVolumeResponseJson(String jobId) throws IOException {
+    public static String createAttachVolumeResponseJson(String jobId) throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + ATTACH_VOLUME_RESPONSE);
 
         return String.format(rawJson, jobId);
     }
 
-    public static String attachVolumeErrorResponseJson(int errorCode, String errorText)
+    public static String createAttachVolumeErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -262,14 +262,14 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    public static String detachVolumeResponseJson(String jobId) throws IOException {
+    public static String createDetachVolumeResponseJson(String jobId) throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + DETACH_VOLUME_RESPONSE);
 
         return String.format(rawJson, jobId);
     }
 
-    public static String detachVolumeErrorResponseJson(int errorCode, String errorText)
+    public static String createDetachVolumeErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -278,9 +278,9 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    public static String attachmentJobStatusResponseJson(int jobStatus, String volumeId,
-                                                         int deviceId, String virtualMachineId,
-                                                         String state, String jobId)
+    public static String createAttachmentJobStatusResponseJson(int jobStatus, String volumeId,
+                                                               int deviceId, String virtualMachineId,
+                                                               String state, String jobId)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -289,7 +289,7 @@ public class CloudstackTestUtils {
         return String.format(rawJson, jobStatus, volumeId, deviceId, virtualMachineId, state, jobId);
     }
 
-    public static String asyncErrorResponseJson(int jobStatus, int errorCode, String errorText)
+    public static String createAsyncErrorResponseJson(int jobStatus, int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()

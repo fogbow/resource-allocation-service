@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class AttachmentJobStatusResponseTest {
         int deviceId = 2;
         String state = "state";
         String virtualMachineId = "virtualMachineId";
-        String attachmentJobStatusResponseJson = CloudstackTestUtils.attachmentJobStatusResponseJson(
+        String attachmentJobStatusResponseJson = CloudstackTestUtils.createAttachmentJobStatusResponseJson(
                 jobStatus, volumeId, deviceId, virtualMachineId, state, jobId);
 
         // execute
@@ -45,22 +45,24 @@ public class AttachmentJobStatusResponseTest {
     }
 
     // test case: When calling the fromJson method with error json response,
-    // it must verify if It throws a HttpResponseException.
+    // it must verify if It returns the rigth CloudStackErrorResponse.
     @Test
     public void testFromJsonFail() throws IOException {
         // set up
         String errorText = "anyString";
         int jobStatus = CloudStackCloudUtils.JOB_STATUS_FAILURE;
-        int errorCode = HttpStatus.SC_BAD_REQUEST;
+        Integer errorCode = HttpStatus.SC_BAD_REQUEST;
         String volumesErrorResponseJson = CloudstackTestUtils
-                .asyncErrorResponseJson(jobStatus, errorCode, errorText);
-
-        // verify
-        this.expectedException.expect(HttpResponseException.class);
-        this.expectedException.expectMessage(errorText);
+                .createAsyncErrorResponseJson(jobStatus, errorCode, errorText);
 
         // execute
-        AttachmentJobStatusResponse.fromJson(volumesErrorResponseJson);
+        AttachmentJobStatusResponse attachmentJobStatusResponse =
+                AttachmentJobStatusResponse.fromJson(volumesErrorResponseJson);
+
+        // verify
+        CloudStackErrorResponse errorResponse = attachmentJobStatusResponse.getErrorResponse();
+        Assert.assertEquals(errorCode, errorResponse.getErrorCode());
+        Assert.assertEquals(errorText, errorResponse.getErrorText());
     }
 
 }

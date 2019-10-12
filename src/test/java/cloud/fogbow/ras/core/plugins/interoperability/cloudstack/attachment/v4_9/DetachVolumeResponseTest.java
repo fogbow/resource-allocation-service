@@ -21,7 +21,7 @@ public class DetachVolumeResponseTest {
     public void testFromJsonSuccessfully() throws IOException {
         // set up
         String jobId = "1";
-        String getDetachVolumeResponseJson = CloudstackTestUtils.detachVolumeResponseJson(jobId);
+        String getDetachVolumeResponseJson = CloudstackTestUtils.createDetachVolumeResponseJson(jobId);
 
         // execute
         DetachVolumeResponse detachVolumeResponse =
@@ -39,7 +39,7 @@ public class DetachVolumeResponseTest {
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
         String volumesErrorResponseJson = CloudstackTestUtils
-                .detachVolumeErrorResponseJson(errorCode, errorText);
+                .createDetachVolumeErrorResponseJson(errorCode, errorText);
 
         // verify
         this.expectedException.expect(HttpResponseException.class);

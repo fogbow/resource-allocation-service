@@ -14,6 +14,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.HttpResponseException;
@@ -25,6 +26,8 @@ import java.util.Properties;
 
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackAttachmentPlugin.class);
+
+    protected static final String FAILED_ATTACH_ERROR_MESSAGE = "code: %s, description: %s.";
 
     private CloudStackHttpClient client;
     private String cloudStackUrl;
@@ -144,9 +147,11 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         }
     }
 
+    @NotNull
     @VisibleForTesting
     AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
-                                       AttachmentJobStatusResponse response) throws UnexpectedException {
+                                               @NotNull AttachmentJobStatusResponse response)
+            throws UnexpectedException {
         
         int status = response.getJobStatus();
         switch (status) {
@@ -156,13 +161,23 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
                 return mountCompleteInstance(volume);
             case CloudStackCloudUtils.JOB_STATUS_FAILURE:
+                logFailure(response);
                 return mountInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE);
             default:
-                throw new UnexpectedException();
+                throw new UnexpectedException(Messages.Error.UNEXPECTED_JOB_STATUS);
         }
     }
 
-    private AttachmentInstance mountCompleteInstance(AttachmentJobStatusResponse.Volume volume) {
+    @VisibleForTesting
+    void logFailure(@NotNull AttachmentJobStatusResponse response) {
+        CloudStackErrorResponse errorResponse = response.getErrorResponse();
+        String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
+                errorResponse.getErrorCode(), errorResponse.getErrorText());
+        LOGGER.error(String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, errorText));
+    }
+
+    @NotNull
+    private AttachmentInstance mountCompleteInstance(@NotNull AttachmentJobStatusResponse.Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
@@ -172,6 +187,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         return new AttachmentInstance(jobId, state, source, target, device);
     }
 
+    @NotNull
     private AttachmentInstance mountInstance(String attachmentInstanceId, String state) {
         return new AttachmentInstance(attachmentInstanceId, state,null, null, null);
     }

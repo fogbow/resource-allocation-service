@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
@@ -17,7 +18,6 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.commons.httpclient.HttpStatus;
@@ -33,6 +33,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -220,95 +221,125 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
                 Mockito.eq(this.basicAttachmentOrder), Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
-    // TODO(chico)
+    // test case: When calling the loadInstanceByJobStatus method with status complete,
+    // it must verify if It returns a complete AttachmentInstance.
+    @Test
+    public void testLoadInstanceByJobStatusWithCompleteInstance() throws UnexpectedException {
+        // set up
+        String attachmentInstanceId = "id";
+        Integer deviceIdExpected = 1;
+        String jobIdExpected = "jobId";
+        String stateExpected= "state";
+        String virtualMachineIdExpected = "vmId";
+        String volumeIdExpected = "volumeId";
+
+        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
+        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_COMPLETE;
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+        AttachmentJobStatusResponse.Volume volume = Mockito.mock(AttachmentJobStatusResponse.Volume.class);
+        Mockito.when(volume.getId()).thenReturn(volumeIdExpected);
+        Mockito.when(volume.getDeviceId()).thenReturn(deviceIdExpected);
+        Mockito.when(volume.getJobId()).thenReturn(jobIdExpected);
+        Mockito.when(volume.getState()).thenReturn(stateExpected);
+        Mockito.when(volume.getVirtualMachineId()).thenReturn(virtualMachineIdExpected);
+        Mockito.when(response.getVolume()).thenReturn(volume);
+
+        // exercise
+        AttachmentInstance attachmentInstance = this.plugin.loadInstanceByJobStatus(
+                attachmentInstanceId, response);
+
+        // verify
+        Assert.assertEquals(jobIdExpected, attachmentInstance.getId());
+        Assert.assertEquals(virtualMachineIdExpected, attachmentInstance.getComputeId());
+        Assert.assertEquals(String.valueOf(deviceIdExpected), attachmentInstance.getDevice());
+        Assert.assertEquals(volumeIdExpected, attachmentInstance.getVolumeId());
+        Assert.assertEquals(stateExpected, attachmentInstance.getCloudState());
+    }
+
+    // test case: When calling the loadInstanceByJobStatus method with status pending,
+    // it must verify if It returns a pending AttachmentInstance.
+    @Test
+    public void testLoadInstanceByJobStatusWithPendingInstance() throws UnexpectedException {
+        // set up
+        String attachmentInstanceId = "id";
+
+        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
+        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_PENDING;
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+
+        // exercise
+        AttachmentInstance attachmentInstance = this.plugin.loadInstanceByJobStatus(
+                attachmentInstanceId, response);
+
+        // verify
+        Assert.assertEquals(attachmentInstanceId, attachmentInstance.getId());
+        Assert.assertEquals(CloudStackCloudUtils.PENDING_STATE, attachmentInstance.getCloudState());
+    }
+
+    // test case: When calling the loadInstanceByJobStatus method with status failed,
+    // it must verify if It returns a failed AttachmentInstance.
+    @Test
+    public void testLoadInstanceByJobStatusWithFailedInstance() throws UnexpectedException {
+        // set up
+        String attachmentInstanceId = "id";
+
+        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
+        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_FAILURE;
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+
+        Mockito.doNothing().when(this.plugin).logFailure(Mockito.eq(response));
+
+        // exercise
+        AttachmentInstance attachmentInstance = this.plugin.loadInstanceByJobStatus(
+                attachmentInstanceId, response);
+
+        // verify
+        Assert.assertEquals(attachmentInstanceId, attachmentInstance.getId());
+        Assert.assertEquals(CloudStackCloudUtils.FAILURE_STATE, attachmentInstance.getCloudState());
+    }
+
+    // test case: When calling the loadInstanceByJobStatus method with unknown status code,
+    // it must verify if It returns an
+    @Test
+    public void testLoadInstanceByJobStatusFail() throws UnexpectedException {
+        // set up
+        String attachmentInstanceId = "id";
+
+        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
+        Integer jobStatusUnknown = -1;
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatusUnknown);
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expectMessage(Messages.Error.UNEXPECTED_JOB_STATUS);
+
+        // exercise
+        this.plugin.loadInstanceByJobStatus(attachmentInstanceId, response);
+    }
+
     @Ignore
     @Test
-    public void testLoadInstanceByJobStatus() { Assert.fail(); }
-
-    // test case: When calling the getInstance method to a resource in creating, a HTTP GET request
-    // must be done with a signed cloudUser, which returns a response in the JSON format for the
-    // retrieval of the complete AttachmentInstance object with status 'attaching'.
-    @Test
-    public void testGetInstanceRequestWithJobStatusPending()
-            throws HttpResponseException, FogbowException {
-
+    public void testLogFailureSuccessfully() throws IOException {
         // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito
-                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
-                .thenCallRealMethod();
+        int errorCode = 0;
+        String errorText = "anything";
+        String responseStr = CloudstackTestUtils.createAsyncErrorResponseJson(
+                CloudStackCloudUtils.JOB_STATUS_FAILURE, errorCode, errorText);
+        AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(responseStr);
 
-        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
-        String baseEndpoint = this.cloudStackUrl;
-        String command = QUERY_ASYNC_JOB_RESULT_COMMAND;
-        String jobId = FAKE_INSTANCE_ID;
-        String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
+        String msg = String.format(CloudStackAttachmentPlugin.FAILED_ATTACH_ERROR_MESSAGE, errorCode, errorText);
 
-        int status = CloudStackCloudUtils.JOB_STATUS_PENDING;
-        String volume = EMPTY_INSTANCE;
-        String response = getAttachmentJobStatusResponse(status, volume);
-
-        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(response);
-
-        // exercise
-        AttachmentInstance recoveredInstance = this.plugin.getInstance(attachmentOrder, this.cloudStackUser);
+        PowerMockito.mockStatic(String.class);
 
         // verify
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
-
-        Assert.assertEquals(CloudStackStateMapper.PENDING_STATUS, recoveredInstance.getCloudState());
-        Assert.assertEquals(FAKE_INSTANCE_ID, recoveredInstance.getId());
-        Assert.assertNull(recoveredInstance.getDevice());
-        Assert.assertNull(recoveredInstance.getComputeId());
-        Assert.assertNull(recoveredInstance.getVolumeId());
-
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudStackUser);
-    }
-
-    // test case: When calling the getInstance method for a resource that is not working, an HTTP
-    // GET request must be made with a signed cloudUser, which returns a response in the JSON format for
-    // retrieving the complete AttachmentInstance object with status 'failed'.
-    @Test
-    public void testGetInstanceRequestWithJobStatusFailure()
-            throws HttpResponseException, FogbowException {
-
-        // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito
-                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
-                .thenCallRealMethod();
-
-        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
-        String baseEndpoint = this.cloudStackUrl;
-        String command = QUERY_ASYNC_JOB_RESULT_COMMAND;
-        String jobId = FAKE_INSTANCE_ID;
-        String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
-
-        int status = CloudStackCloudUtils.JOB_STATUS_FAILURE;
-        String volume = EMPTY_INSTANCE;
-        String response = getAttachmentJobStatusResponse(status, volume);
-
-        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(response);
+        this.plugin.logFailure(response);
 
         // exercise
-        AttachmentInstance recoveredInstance = this.plugin.getInstance(attachmentOrder, this.cloudStackUser);
-
-        // verify
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
-
-        Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, recoveredInstance.getCloudState());
-        Assert.assertEquals(FAKE_INSTANCE_ID, recoveredInstance.getId());
-        Assert.assertNull(recoveredInstance.getDevice());
-        Assert.assertNull(recoveredInstance.getComputeId());
-        Assert.assertNull(recoveredInstance.getVolumeId());
-
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudStackUser);
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class,
+                VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, "");
     }
-    
+
     // test case: When calling the getInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)

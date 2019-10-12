@@ -5,6 +5,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackError
 import com.google.gson.annotations.SerializedName;
 import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
+
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
 
 /**
@@ -23,7 +25,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
  *          }
  *      }
  *   }
- * } 
+ * }
  * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
@@ -44,16 +46,20 @@ public class AttachmentJobStatusResponse {
     public int getJobStatus() {
         return response.jobStatus;
     }
-    
+
+    @NotNull
+    public CloudStackErrorResponse getErrorResponse() {
+        return response.jobResult;
+    }
+
+    @NotNull
     public Volume getVolume() {
         return this.response.jobResult.volume;
     }
-    
-    public static AttachmentJobStatusResponse fromJson(String json) throws HttpResponseException {
-        AttachmentJobStatusResponse attachmentJobStatusResponse =
-                GsonHolder.getInstance().fromJson(json, AttachmentJobStatusResponse.class);
-        attachmentJobStatusResponse.response.jobResult.checkErrorExistence();
-        return attachmentJobStatusResponse;
+
+    @NotNull
+    public static AttachmentJobStatusResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, AttachmentJobStatusResponse.class);
     }
     
     public class JobResult extends CloudStackErrorResponse {

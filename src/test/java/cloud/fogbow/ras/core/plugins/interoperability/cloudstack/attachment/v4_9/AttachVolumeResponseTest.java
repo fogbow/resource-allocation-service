@@ -21,7 +21,7 @@ public class AttachVolumeResponseTest {
     public void testFromJsonSuccessfully() throws Exception {
         // set up
         String jobId = "1";
-        String getAttachVolumeResponseJson = CloudstackTestUtils.attachVolumeResponseJson(jobId);
+        String getAttachVolumeResponseJson = CloudstackTestUtils.createAttachVolumeResponseJson(jobId);
 
         // execute
         AttachVolumeResponse attachVolumeResponse =
@@ -39,7 +39,7 @@ public class AttachVolumeResponseTest {
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
         String volumesErrorResponseJson = CloudstackTestUtils
-                .attachVolumeErrorResponseJson(errorCode, errorText);
+                .createAttachVolumeErrorResponseJson(errorCode, errorText);
 
         // verify
         this.expectedException.expect(HttpResponseException.class);

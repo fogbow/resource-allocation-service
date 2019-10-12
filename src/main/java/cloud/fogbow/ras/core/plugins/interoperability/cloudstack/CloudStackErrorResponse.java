@@ -20,4 +20,11 @@ public class CloudStackErrorResponse {
         }
     }
 
+    public String getErrorText() {
+        return errorText;
+    }
+
+    public Integer getErrorCode() {
+        return errorCode;
+    }
 }
