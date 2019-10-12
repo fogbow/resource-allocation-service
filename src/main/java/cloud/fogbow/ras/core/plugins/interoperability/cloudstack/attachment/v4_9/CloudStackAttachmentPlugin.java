@@ -170,10 +170,14 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
     @VisibleForTesting
     void logFailure(@NotNull AttachmentJobStatusResponse response) {
-        CloudStackErrorResponse errorResponse = response.getErrorResponse();
-        String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
-                errorResponse.getErrorCode(), errorResponse.getErrorText());
-        LOGGER.error(String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, errorText));
+        try {
+            CloudStackErrorResponse errorResponse = response.getErrorResponse();
+            String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
+                    errorResponse.getErrorCode(), errorResponse.getErrorText());
+            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, errorText));
+        } catch (Exception e) {
+            LOGGER.warn("", e);
+        }
     }
 
     @NotNull

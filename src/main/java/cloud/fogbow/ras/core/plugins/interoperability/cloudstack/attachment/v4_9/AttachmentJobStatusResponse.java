@@ -1,9 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 
@@ -31,6 +33,8 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
  */
 public class AttachmentJobStatusResponse {
 
+    protected static final String NO_FAILURE_EXCEPTION_MESSAGE = "There isn't failure";
+
     @SerializedName(QUERY_ASYNC_JOB_RESULT_KEY_JSON)
     private JobResultResponse response;
     
@@ -48,8 +52,12 @@ public class AttachmentJobStatusResponse {
     }
 
     @NotNull
-    public CloudStackErrorResponse getErrorResponse() {
-        return response.jobResult;
+    public CloudStackErrorResponse getErrorResponse() throws UnexpectedException {
+        if (response.jobStatus == CloudStackCloudUtils.JOB_STATUS_FAILURE) {
+            return response.jobResult;
+        }
+        throw new UnexpectedException(
+                String.format(Messages.Exception.UNEXPECTED_OPERATION_S, NO_FAILURE_EXCEPTION_MESSAGE));
     }
 
     @NotNull

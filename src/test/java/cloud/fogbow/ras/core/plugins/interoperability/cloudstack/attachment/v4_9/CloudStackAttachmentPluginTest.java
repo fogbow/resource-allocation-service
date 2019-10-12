@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
+import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -10,6 +11,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -20,7 +22,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.http.client.HttpResponseException;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -38,17 +43,14 @@ import java.util.Properties;
         DetachVolumeResponse.class, AttachmentJobStatusResponse.class})
 public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
-    private static final String DEFAULT_COMPUTE_ID = "1";
-    private static final String DEFAULT_VOLUME_ID = "2";
-    private static final String DEFAULT_INSTANCE_ID = "3";
-
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
+    private LoggerAssert loggerTestChecking = new LoggerAssert(CloudStackAttachmentPlugin.class);
 
     private CloudStackAttachmentPlugin plugin;
     private CloudStackHttpClient client;
     private CloudStackUser cloudStackUser;
-    private AttachmentOrder basicAttachmentOrder;
+    private AttachmentOrder attachmentOrder;
     private String cloudStackUrl;
 
     @Before
@@ -62,11 +64,11 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
 
-        this.basicAttachmentOrder = Mockito.spy(
+        this.attachmentOrder = Mockito.spy(
                 this.testUtils.createLocalAttachmentOrder(new ComputeOrder(), new VolumeOrder()));
-        Mockito.doReturn(DEFAULT_VOLUME_ID).when(this.basicAttachmentOrder).getVolumeId();
-        Mockito.doReturn(DEFAULT_COMPUTE_ID).when(this.basicAttachmentOrder).getComputeId();
-        Mockito.doReturn(DEFAULT_INSTANCE_ID).when(this.basicAttachmentOrder).getInstanceId();
+        Mockito.doReturn("1").when(this.attachmentOrder).getVolumeId();
+        Mockito.doReturn("2").when(this.attachmentOrder).getComputeId();
+        Mockito.doReturn("3").when(this.attachmentOrder).getInstanceId();
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
@@ -78,8 +80,8 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testRequestInstanceSuccessfully() throws FogbowException {
         // set up
-        String volumeIdExpected = this.basicAttachmentOrder.getVolumeId();
-        String virtualMachineIdExpected = this.basicAttachmentOrder.getComputeId();
+        String volumeIdExpected = this.attachmentOrder.getVolumeId();
+        String virtualMachineIdExpected = this.attachmentOrder.getComputeId();
 
         String attachmentIdExpeted = "attachmentIdExpected";
         Mockito.doReturn(attachmentIdExpeted).when(this.plugin).doRequestInstance(
@@ -92,7 +94,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         // exercise
         String attachmentId = this.plugin.requestInstance(
-                this.basicAttachmentOrder, this.cloudStackUser);
+                this.attachmentOrder, this.cloudStackUser);
 
         // verify
         Assert.assertEquals(attachmentIdExpeted, attachmentId);
@@ -109,7 +111,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         Mockito.doThrow(new FogbowException()).when(this.plugin)
                 .doRequestInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
-        this.plugin.requestInstance(this.basicAttachmentOrder, this.cloudStackUser);
+        this.plugin.requestInstance(this.attachmentOrder, this.cloudStackUser);
     }
 
     // test case: When calling the doRequestInstance method with secondary methods mocked,
@@ -166,11 +168,11 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testGetInstanceSuccessfully() throws  FogbowException {
         // set up
-        String jobId = this.basicAttachmentOrder.getInstanceId();
+        String jobId = this.attachmentOrder.getInstanceId();
 
         AttachmentInstance attachmentInstanceExpected = Mockito.mock(AttachmentInstance.class);
         Mockito.doReturn(attachmentInstanceExpected).when(this.plugin).doGetInstance(
-                Mockito.eq(this.basicAttachmentOrder), Mockito.any(AttachmentJobStatusRequest.class),
+                Mockito.eq(this.attachmentOrder), Mockito.any(AttachmentJobStatusRequest.class),
                 Mockito.eq(this.cloudStackUser));
 
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
@@ -179,13 +181,13 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         
         // exercise
         AttachmentInstance attachmentInstance = this.plugin.getInstance(
-                this.basicAttachmentOrder, this.cloudStackUser);
+                this.attachmentOrder, this.cloudStackUser);
 
         // verify
         Assert.assertEquals(attachmentInstanceExpected, attachmentInstance);
         RequestMatcher<AttachmentJobStatusRequest> matcher = new RequestMatcher.AttachmentJobStatus(request);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(
-                Mockito.eq(this.basicAttachmentOrder), Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+                Mockito.eq(this.attachmentOrder), Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the getInstance method and occurs an FogbowException,
@@ -194,9 +196,9 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     public void testGetInstanceFail() throws FogbowException {
         // set up
         Mockito.doThrow(new FogbowException()).when(this.plugin).doGetInstance(
-                Mockito.eq(this.basicAttachmentOrder), Mockito.any(), Mockito.eq(this.cloudStackUser));
+                Mockito.eq(this.attachmentOrder), Mockito.any(), Mockito.eq(this.cloudStackUser));
 
-        this.plugin.getInstance(this.basicAttachmentOrder, this.cloudStackUser);
+        this.plugin.getInstance(this.attachmentOrder, this.cloudStackUser);
     }
 
     // test case: When calling the doGetInstance method with secondary methods mocked,
@@ -218,13 +220,13 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         PowerMockito.when(AttachmentJobStatusResponse.fromJson(Mockito.eq(resposeStr))).thenReturn(response);
 
         AttachmentInstance attachmentInstanceExpected = Mockito.mock(AttachmentInstance.class);
-        String instanceId = this.basicAttachmentOrder.getInstanceId();
+        String instanceId = this.attachmentOrder.getInstanceId();
         Mockito.doReturn(attachmentInstanceExpected).when(this.plugin).loadInstanceByJobStatus(
                 Mockito.eq(instanceId), Mockito.eq(response));
 
         // exercise
         AttachmentInstance attachmentInstance = this.plugin.doGetInstance(
-                this.basicAttachmentOrder, request, this.cloudStackUser);
+                this.attachmentOrder, request, this.cloudStackUser);
 
         // verify
         Assert.assertEquals(attachmentInstanceExpected, attachmentInstance);
@@ -249,7 +251,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         // exercise
         try {
-            this.plugin.doGetInstance(this.basicAttachmentOrder, request, this.cloudStackUser);
+            this.plugin.doGetInstance(this.attachmentOrder, request, this.cloudStackUser);
         } catch (Exception e) {
             throw e;
         } finally {
@@ -355,7 +357,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         this.plugin.loadInstanceByJobStatus(attachmentInstanceId, response);
     }
 
-    @Ignore
+    // test case: When calling the logFailure method, it must verify if It shows the error log expected.
     @Test
     public void testLogFailureSuccessfully() throws IOException {
         // set up
@@ -365,17 +367,30 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
                 CloudStackCloudUtils.JOB_STATUS_FAILURE, errorCode, errorText);
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(responseStr);
 
-        String msg = String.format(CloudStackAttachmentPlugin.FAILED_ATTACH_ERROR_MESSAGE, errorCode, errorText);
-
-        PowerMockito.mockStatic(String.class);
+        String msgFailed = String.format(CloudStackAttachmentPlugin.FAILED_ATTACH_ERROR_MESSAGE,
+                errorCode, errorText);
+        String msgError = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, msgFailed);
 
         // verify
         this.plugin.logFailure(response);
 
         // exercise
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class,
-                VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, "");
+        this.loggerTestChecking.assertEquals(1, Level.ERROR, msgError);
+    }
+
+    // test case: When calling the logFailure method and occurs an UnexpectedException,
+    // it must verify if It shows the warn log expected;
+    @Test
+    public void testLogFailureFail() throws UnexpectedException {
+        // set up
+        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
+        Mockito.when(response.getErrorResponse()).thenThrow(new UnexpectedException());
+
+        // verify
+        this.plugin.logFailure(response);
+
+        // exercise
+        this.loggerTestChecking.assertEquals(1, Level.WARN, "");
     }
 
     // test case: When calling the deleteInstance method with secondary methods mocked,
@@ -384,7 +399,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testDeleteInstanceSuccessfully() throws FogbowException {
         // set up
-        String volumeId = this.basicAttachmentOrder.getVolumeId();
+        String volumeId = this.attachmentOrder.getVolumeId();
 
         Mockito.doNothing().when(this.plugin).doDeleteInstance(
                 Mockito.any(), Mockito.eq(this.cloudStackUser));
@@ -394,7 +409,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
                 .build(this.cloudStackUrl);
 
         // exercise
-        this.plugin.deleteInstance(this.basicAttachmentOrder, this.cloudStackUser);
+        this.plugin.deleteInstance(this.attachmentOrder, this.cloudStackUser);
 
         // verify
         RequestMatcher<DetachVolumeRequest> matcher = new RequestMatcher.DetachVolume(request);
@@ -411,7 +426,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         Mockito.doThrow(new FogbowException()).when(this.plugin)
                 .doDeleteInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
-        this.plugin.deleteInstance(this.basicAttachmentOrder, this.cloudStackUser);
+        this.plugin.deleteInstance(this.attachmentOrder, this.cloudStackUser);
     }
     // test case: When calling the doDeleteInstance method with secondary methods mocked,
     // it must verify if It returns the instanceId(jobId).
