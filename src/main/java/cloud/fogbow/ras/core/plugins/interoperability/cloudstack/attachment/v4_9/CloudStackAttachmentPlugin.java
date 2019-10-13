@@ -53,10 +53,10 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                                   @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+
         String virtualMachineId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
-
         AttachVolumeRequest request = new AttachVolumeRequest.Builder()
                 .id(volumeId)
                 .virtualMachineId(virtualMachineId)
@@ -70,6 +70,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                                @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+
         String volumeId = attachmentOrder.getVolumeId();
         DetachVolumeRequest request = new DetachVolumeRequest.Builder()
                 .id(volumeId)
@@ -84,6 +85,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
+
         String jobId = attachmentOrder.getInstanceId();
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
                 .jobId(jobId)
@@ -169,15 +171,11 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @VisibleForTesting
-    void logFailure(@NotNull AttachmentJobStatusResponse response) {
-        try {
-            CloudStackErrorResponse errorResponse = response.getErrorResponse();
-            String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
-                    errorResponse.getErrorCode(), errorResponse.getErrorText());
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, errorText));
-        } catch (Exception e) {
-            LOGGER.warn("", e);
-        }
+    void logFailure(@NotNull AttachmentJobStatusResponse response) throws UnexpectedException {
+        CloudStackErrorResponse errorResponse = response.getErrorResponse();
+        String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
+                errorResponse.getErrorCode(), errorResponse.getErrorText());
+        LOGGER.error(String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, errorText));
     }
 
     @NotNull

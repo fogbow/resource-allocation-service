@@ -16,12 +16,12 @@ public class AttachmentJobStatusRequestTest {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
-                CloudStackConstants.Attachment.ATTACH_VOLUME_COMMAND);
+                CloudStackConstants.Attachment.QUERY_ASYNC_JOB_RESULT_COMMAND);
         String urlBaseExpected = uriBuilder.toString();
         String jobId = "jobId";
 
         String volumeIdStructureUrl = String.format(
-                "%s=%s", CloudStackConstants.Attachment.ID_KEY_JSON, jobId);
+                "%s=%s", CloudStackConstants.Attachment.JOB_ID_KEY_JSON, jobId);
 
         String[] urlStructure = new String[] {
                 urlBaseExpected,
