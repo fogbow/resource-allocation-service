@@ -359,7 +359,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
     // test case: When calling the logFailure method, it must verify if It shows the error log expected.
     @Test
-    public void testLogFailureSuccessfully() throws IOException {
+    public void testLogFailureSuccessfully() throws IOException, UnexpectedException {
         // set up
         int errorCode = 0;
         String errorText = "anything";
@@ -387,10 +387,10 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         Mockito.when(response.getErrorResponse()).thenThrow(new UnexpectedException());
 
         // verify
-        this.plugin.logFailure(response);
+        this.expectedException.expect(UnexpectedException.class);
 
-        // exercise
-        this.loggerTestChecking.assertEquals(1, Level.WARN, "");
+        // verify
+        this.plugin.logFailure(response);
     }
 
     // test case: When calling the deleteInstance method with secondary methods mocked,
