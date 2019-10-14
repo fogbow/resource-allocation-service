@@ -41,10 +41,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String SECURITY_GROUP_RESOURCE = "SecurityGroup";
-	private static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 
 	private static final int BASE_VALUE = 2;
 
+	protected static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 	protected static final String SECURITY_GROUPS_SEPARATOR = ",";
 	protected static final String VNET_ADDRESS_RANGE_IP_PATH = "/VNET/AR_POOL/AR/IP";
 	protected static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
@@ -81,17 +81,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
-		String cidr = networkOrder.getCidr();
-		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
-
-		String name = networkOrder.getName();
-		int size = subnetInfo.getAddressCount();
-
-		Integer addressRangeIndex = this.getAddressRangeIndex(virtualNetwork, subnetInfo.getLowAddress(), size);
-		String addressRangeId = this.getAddressRangeId(virtualNetwork, addressRangeIndex, cidr);
-		String ip = this.getNextAvailableAddress(virtualNetwork, addressRangeIndex);
-
-		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(name, size, ip, addressRangeId);
+		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(networkOrder, virtualNetwork);
 
 		return this.doRequestInstance(client, networkOrder.getId(), request);
 	}
@@ -222,7 +212,18 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return addressRangeFirstIp;
 	}
 
-	private CreateNetworkReserveRequest getCreateNetworkReserveRequest(String name, int size, String ip, String addressRangeId) {
+	protected CreateNetworkReserveRequest getCreateNetworkReserveRequest(NetworkOrder networkOrder, VirtualNetwork virtualNetwork)
+			throws InvalidParameterException, NoAvailableResourcesException {
+		String cidr = networkOrder.getCidr();
+		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
+
+		String name = networkOrder.getName();
+		int size = subnetInfo.getAddressCount();
+
+		Integer addressRangeIndex = this.getAddressRangeIndex(virtualNetwork, subnetInfo.getLowAddress(), size);
+		String addressRangeId = this.getAddressRangeId(virtualNetwork, addressRangeIndex, cidr);
+		String ip = this.getNextAvailableAddress(virtualNetwork, addressRangeIndex);
+
 		return new CreateNetworkReserveRequest.Builder()
 				.name(name)
 				.size(size)
@@ -264,21 +265,37 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		// The networkId and securityGroupId parameters are not used in this context.
 		String networkId = null;
 		String securityGroupId = null;
-
-		Rule inputRule = new Rule(protocol, ip, size, rangeAll, INPUT_RULE_TYPE, networkId, securityGroupId);
-		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, networkId, securityGroupId);
-
+		
+		Rule inputRule = Rule.builder()
+		        .protocol(protocol)
+		        .ip(ip)
+		        .size(size)
+		        .range(rangeAll)
+		        .type(INPUT_RULE_TYPE)
+		        .networkId(networkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
+		Rule outputRule = Rule.builder()
+		        .protocol(protocol)
+		        .ip(ipAny)
+		        .size(sizeAny)
+		        .range(rangeAll)
+		        .type(OUTPUT_RULE_TYPE)
+		        .networkId(networkId)
+		        .groupId(securityGroupId)
+		        .build();
+		
 		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);
 		rules.add(outputRule);
-
-		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+		
+		CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
 				.name(name)
 				.rules(rules)
 				.build();
 
-		String template = request.getSecurityGroup().marshalTemplate();
-
+		String template = request.marshalTemplate();
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 
@@ -305,18 +322,17 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		for (String securityGroupId : securityGroupIds) {
 			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
 			if (securityGroup.getName().equals(securityGroupName)) {
-				break;
+				return securityGroup;
 			}
 		}
 
 		return securityGroup;
 	}
 
-	protected String generateSecurityGroupName(String instanceId) {
-		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
+	protected String generateSecurityGroupName(String orderId) {
+		return SystemConstants.PN_SECURITY_GROUP_PREFIX + orderId;
 	}
 	
-
 	protected String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {
 		return String.format(CIDR_FORMAT, address, this.calculateCidr(this.convertToInteger(rangeSize)));
 	}
@@ -336,11 +352,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return value;
 	}
 
-	protected int getAddressRangeSize(String cidr) {
-        SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
-        return subnetInfo.getAddressCount();
-	}
-	
 	protected int convertToInteger(String number) throws InvalidParameterException {
 		try {
 			return Integer.parseInt(number);
@@ -348,9 +359,5 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
 			throw new InvalidParameterException();
 		}
-	}
-
-	protected String getRandomUUID() {
-		return UUID.randomUUID().toString();
 	}
 }
