@@ -16,7 +16,6 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.client.HttpResponseException;
@@ -225,7 +224,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
             String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
             if (!networkId.equals(defaultNetworkId)) {
-                String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
+                String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(networkId);
                 securityGroups.add(new CreateComputeRequest.SecurityGroup(securityGroupName));
             }
         }

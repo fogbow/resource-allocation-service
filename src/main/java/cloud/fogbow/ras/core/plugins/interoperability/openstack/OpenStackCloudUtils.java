@@ -1,9 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.GetSecurityGroupsResponse;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class OpenStackCloudUtils {
 
@@ -32,4 +39,22 @@ public class OpenStackCloudUtils {
         }
         return projectId;
     }
+
+    public static String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {
+        String securityGroupId = null;
+        try {
+            GetSecurityGroupsResponse.SecurityGroup securityGroup = GetSecurityGroupsResponse.fromJson(json).getSecurityGroups().iterator().next();
+            securityGroupId = securityGroup.getId();
+        } catch (JSONException e) {
+            String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
+        return securityGroupId;
+    }
+
+    public static String getNetworkSecurityGroupName(String networkId) {
+        return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkId;
+    }
+
 }

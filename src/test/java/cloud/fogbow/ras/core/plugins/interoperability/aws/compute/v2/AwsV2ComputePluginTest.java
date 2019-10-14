@@ -68,7 +68,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     private static final String AWS_TAG_NAME = "Name";
     private static final String BANDWIDTH_REQUIREMENT_VALUE = "not-defined";
     private static final String CLOUD_NAME = "amazon";
-    private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-default-security-group-id";
+    private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-security-group-id";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
     private static final String FLAVOR_LINE_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s";

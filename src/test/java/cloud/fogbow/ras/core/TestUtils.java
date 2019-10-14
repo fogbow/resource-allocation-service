@@ -45,6 +45,7 @@ public class TestUtils {
     public static final int RUN_TWICE = 2;
     public static final int RUN_THRICE = 3;
     public static final int RUN_FOUR_TIMES = 4;
+    public static final int RUN_SIX_TIMES = 6;
 
     public static final long DEFAULT_SLEEP_TIME = 500;
     
@@ -59,6 +60,7 @@ public class TestUtils {
     public static final String DO_DESCRIBE_INSTANCES_METHOD = "doDescribeInstances";
     public static final String EMPTY_STRING = "";
     public static final String FAKE_ADDRESS = "fake-address";
+    public static final String FAKE_CIDR = "10.0.0.19/8";
     public static final String FAKE_COMPUTE_ID = "fake-compute-id";
     public static final String FAKE_DEVICE = "fake-device";
     public static final String FAKE_FLAVOR_ID = "fake-flavor-id";
@@ -83,6 +85,10 @@ public class TestUtils {
     public static final String FROM_JSON_METHOD = "fromJson";
     public static final String GET_ADDRESS_BY_ID_METHOD = "getAddressById";
     public static final String GET_GROUP_ID_FROM_METHOD = "getGroupIdFrom";
+    public static final String DEFAULT_CIDR = "0.0.0.0/0";
+    public static final String TCP_PROTOCOL = "tcp";
+    public static final String UDP_PROTOCOL = "udp";
+    public static final String ICMP_PROTOCOL = "icmp";
     public static final String GET_SUBNET_BY_ID_METHOD = "getSubnetById";
     public static final String JSON_MALFORMED = "{anything:}";
     public static final String LOCAL_MEMBER_ID = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
