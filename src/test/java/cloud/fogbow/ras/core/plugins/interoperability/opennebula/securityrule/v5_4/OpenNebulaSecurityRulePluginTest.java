@@ -39,7 +39,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
     private static final String CIDR_FULL_ADDRESS = "192.168.0.1/28";
     private static final String CIDR_IP_ADDRESS = "192.168.0.1";
     private static final String CIDR_SIZE_VALUE = "14";
-    private static final String FAKE_SECURITY_RULE_INSTANCE_ID = "fake-security-group-id@@inbound@192.168.0.1@14@@ALL";
+    private static final String FAKE_SECURITY_RULE_INSTANCE_ID = "fake-security-group-id@@INBOUND@192.168.0.1@14@@ALL";
     private static final String OPENNEBULA_ENDPOINT = "http://localhost:2633/RPC2";
     private static final String RANGE_PORTS_VALUE = "8080:8081";
     private static final String SECURITY_GROUP_CONTENT_FORMAT = "%s,%s";
@@ -669,7 +669,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
                 .build();
 
         SecurityRuleInstance expected = new SecurityRuleInstance(FAKE_SECURITY_RULE_INSTANCE_ID,
-                Direction.IN, 
+                Direction.IN,
                 OpenNebulaSecurityRulePlugin.MINIMUM_RANGE_PORT, 
                 OpenNebulaSecurityRulePlugin.MAXIMUM_RANGE_PORT, 
                 CIDR_FULL_ADDRESS, 
