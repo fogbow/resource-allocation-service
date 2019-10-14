@@ -7,7 +7,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -16,9 +15,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import com.google.gson.JsonSyntaxException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -76,7 +75,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         CreateNetworkResponse createNetworkResponse = createNetwork(order.getName(), cloudUser, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
         createSubNet(cloudUser, order, createdNetworkId, tenantId);
-        String securityGroupName = getSGNameForPrivateNetwork(createdNetworkId);
+        String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(createdNetworkId);
         CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(cloudUser, securityGroupName,
                 tenantId, createdNetworkId);
         createSecurityGroupRules(order, cloudUser, createdNetworkId, securityGroupResponse.getId());
@@ -86,29 +85,48 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     @Override
     public NetworkInstance getInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + order.getInstanceId();
+        String responseStr = doGetInstance(endpoint, cloudUser);
+        return buildInstance(responseStr, cloudUser);
+    }
+
+    @Override
+    public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(instanceId);
+        String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
+        doDeleteInstance(instanceId, securityGroupId, cloudUser);
+    }
+
+    protected String doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+        String responseStr = doGetRequest(cloudUser, endpoint);
+        return responseStr;
+    }
+
+    protected String doGetRequest(OpenStackV3User cloudUser, String endpoint) throws FogbowException {
         String responseStr = null;
         try {
             responseStr = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
         }
-        return getInstanceFromJson(responseStr, cloudUser);
+        return responseStr;
     }
 
-    @Override
-    public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+    protected void doDeleteInstance(String instanceId, String securityGroupId, OpenStackV3User cloudUser) throws FogbowException{
         try {
-            removeNetwork(cloudUser, order.getInstanceId());
+            removeNetwork(cloudUser, instanceId);
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, order.getInstanceId()), e);
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, instanceId), e);
         } catch (FogbowException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, order.getInstanceId()), e);
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, instanceId), e);
             throw e;
         }
 
-        String securityGroupId = retrieveSecurityGroupId(getSGNameForPrivateNetwork(order.getInstanceId()), cloudUser);
+        doDeleteSecurityGroup(securityGroupId, cloudUser);
+    }
 
+    protected void doDeleteSecurityGroup(String securityGroupId, OpenStackV3User cloudUser) throws FogbowException{
         try {
             removeSecurityGroup(cloudUser, securityGroupId);
         } catch (FogbowException e) {
@@ -124,18 +142,20 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         }
     }
 
-    private CreateNetworkResponse createNetwork(String networkName, OpenStackV3User cloudUser, String tenantId) throws FogbowException {
+    protected CreateNetworkResponse createNetwork(String networkName, OpenStackV3User cloudUser, String tenantId) throws FogbowException {
         CreateNetworkResponse createNetworkResponse = null;
-        try {
-            CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
-                    .name(networkName)
-                    .projectId(tenantId)
-                    .build();
 
-            String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
+        CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
+                .name(networkName)
+                .projectId(tenantId)
+                .build();
+
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
+
+        try {
             String response = this.client.doPostRequest(endpoint, createNetworkRequest.toJson(), cloudUser);
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
-        } catch (JSONException e) {
+        } catch (JsonSyntaxException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
@@ -146,7 +166,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return createNetworkResponse;
     }
 
-    private void createSubNet(OpenStackV3User cloudUser, NetworkOrder order, String networkId, String tenantId)
+    protected void createSubNet(OpenStackV3User cloudUser, NetworkOrder order, String networkId, String tenantId)
             throws FogbowException {
         try {
             String jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
@@ -158,7 +178,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         }
     }
 
-    private CreateSecurityGroupResponse createSecurityGroup(OpenStackV3User cloudUser, String name,
+    protected CreateSecurityGroupResponse createSecurityGroup(OpenStackV3User cloudUser, String name,
                                                             String tenantId, String networkId) throws FogbowException {
         CreateSecurityGroupResponse creationResponse = null;
         try {
@@ -178,7 +198,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return creationResponse;
     }
 
-    private CreateSecurityGroupRuleRequest createIcmpRuleRequest(String remoteIpPrefix, String securityGroupId) {
+    protected CreateSecurityGroupRuleRequest createIcmpRuleRequest(String remoteIpPrefix, String securityGroupId) {
         return new CreateSecurityGroupRuleRequest.Builder()
                 .direction(INGRESS_DIRECTION)
                 .securityGroupId(securityGroupId)
@@ -187,7 +207,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
                 .build();
     }
 
-    private CreateSecurityGroupRuleRequest createAllTcpRuleRequest(String remoteIpPrefix, String securityGroupId,
+    protected CreateSecurityGroupRuleRequest createAllTcpRuleRequest(String remoteIpPrefix, String securityGroupId,
                                                                    String protocol) {
         return new CreateSecurityGroupRuleRequest.Builder()
                 .direction(INGRESS_DIRECTION)
@@ -197,7 +217,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
                 .build();
     }
 
-    private void createSecurityGroupRules(NetworkOrder order, OpenStackV3User cloudUser, String networkId, String securityGroupId)
+    protected void createSecurityGroupRules(NetworkOrder order, OpenStackV3User cloudUser, String networkId, String securityGroupId)
             throws FogbowException {
         try {
             CreateSecurityGroupRuleRequest allTcp = createAllTcpRuleRequest(order.getCidr(), securityGroupId, TCP_PROTOCOL);
@@ -219,44 +239,22 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return UUID.randomUUID().toString();
     }
 
-    protected String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {
-        String securityGroupId = null;
-        try {
-            JSONObject response = new JSONObject(json);
-            JSONArray securityGroupJSONArray = response.getJSONArray(OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON);
-            JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
-            securityGroupId = securityGroup.getString(OpenStackConstants.Network.ID_KEY_JSON);
-        } catch (JSONException e) {
-            String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
-        }
-        return securityGroupId;
-    }
-
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
-        String responseStr = null;
-        try {
-            responseStr = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
-        return getSecurityGroupIdFromGetResponse(responseStr);
+        String responseStr = doGetRequest(cloudUser, endpoint);
+        return OpenStackCloudUtils.getSecurityGroupIdFromGetResponse(responseStr);
     }
 
-    protected boolean removeSecurityGroup(OpenStackV3User cloudUser, String securityGroupId) throws FogbowException {
+    protected void removeSecurityGroup(OpenStackV3User cloudUser, String securityGroupId) throws FogbowException {
         try {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + securityGroupId;
             this.client.doDeleteRequest(endpoint, cloudUser);
-            return true;
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
-            return false;
         }
     }
 
-    protected NetworkInstance getInstanceFromJson(String json, OpenStackV3User cloudUser) throws FogbowException {
+    protected NetworkInstance buildInstance(String json, OpenStackV3User cloudUser) throws FogbowException {
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
         String networkId = getNetworkResponse.getId();
         String name = getNetworkResponse.getName();
@@ -291,7 +289,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return instance;
     }
 
-    private GetSubnetResponse getSubnetInformation(OpenStackV3User cloudUser, String subnetId) throws FogbowException {
+    protected GetSubnetResponse getSubnetInformation(OpenStackV3User cloudUser, String subnetId) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET + "/" + subnetId;
         GetSubnetResponse getSubnetResponse = null;
         try {
@@ -344,14 +342,12 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return createSubnetRequest.toJson();
     }
 
-    protected boolean removeNetwork(OpenStackV3User cloudUser, String networkId) throws UnexpectedException, FogbowException {
+    protected void removeNetwork(OpenStackV3User cloudUser, String networkId) throws UnexpectedException, FogbowException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
         try {
             this.client.doDeleteRequest(endpoint, cloudUser);
-            return true;
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowExceptionMapper.map(e);
-            return false;
         }
     }
 
@@ -365,9 +361,5 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     protected String[] getDnsList() {
         return dnsList;
-    }
-
-    public static String getSGNameForPrivateNetwork(String networkId) {
-        return SystemConstants.PN_SECURITY_GROUP_PREFIX + networkId;
     }
 }

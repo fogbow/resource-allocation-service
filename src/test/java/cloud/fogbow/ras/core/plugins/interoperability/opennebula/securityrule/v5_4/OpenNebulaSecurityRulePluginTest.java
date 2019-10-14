@@ -1,565 +1,1042 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import cloud.fogbow.ras.api.parameters.SecurityRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.mockito.internal.verification.VerificationModeFactory;
-import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
+import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({OpenNebulaClientUtil.class, SecurityGroupInfo.class, VirtualNetwork.class})
-public class OpenNebulaSecurityRulePluginTest {
-	
-	private static final String DEFAULT_SECURITY_GROUP_ID = "0";
-    private static final String FAKE_CIDR = "10.10.10.0/24";
-    private static final String FAKE_ID_VALUE = "100";
-    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    private static final String FAKE_IP_RANGE_SIZE = "256";
-    private static final String FAKE_IPV4_VALUE = "10.10.0.1";
-    private static final String FAKE_SECURITY_GROUP_NAME = "fake-security-group-name";
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_USER_NAME = "fakeuser-name";
-	private static final String FAKE_TOKEN_VALUE = "fake-token-value";
-    private static final String FORMAT_CONTENT = "%s%s%s";
-	private static final String IP_ONE = "10.10.0.0";
-	private static final String IP_TWO = "20.20.0.0";
-	private static final String IP_TREE = "30.30.0.0";
-	private static final String SEPARATOR = ",";
-	private static final String OPENNEBULA_CLOUD_NAME_DIRECTORY = "opennebula";
+@PrepareForTest({ DatabaseManager.class, GetSecurityGroupResponse.class, OpenNebulaClientUtil.class, VirtualNetwork.class })
+public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
 
+    private static final String ANOTHER_SECURITY_GROUP_ID = "another-security-group-id";
+    private static final String CIDR_FULL_ADDRESS = "192.168.0.1/28";
+    private static final String CIDR_IP_ADDRESS = "192.168.0.1";
+    private static final String CIDR_SIZE_VALUE = "14";
+    private static final String FAKE_SECURITY_RULE_INSTANCE_ID = "fake-security-group-id@@INBOUND@192.168.0.1@14@@ALL";
+    private static final String OPENNEBULA_ENDPOINT = "http://localhost:2633/RPC2";
+    private static final String RANGE_PORTS_VALUE = "8080:8081";
+    private static final String SECURITY_GROUP_CONTENT_FORMAT = "%s,%s";
+    private static final String SECURITY_RULE_IDENTIFIER_FORMAT = "%s@%s@%s@%s@%s@%s@%s";
+    
+    private static final int DEFAULT_SSH_PORT = 22;
+    
     private OpenNebulaSecurityRulePlugin plugin;
+    private String endpoint;
 
     @Before
-    public void setUp() {
-    	String opennebulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-				+ File.separator + OPENNEBULA_CLOUD_NAME_DIRECTORY + File.separator
-				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-    	
-        this.plugin = Mockito.spy(new OpenNebulaSecurityRulePlugin(opennebulaConfFilePath));
+    public void setUp() throws FogbowException {
+        super.setUp();
+        this.plugin = Mockito.spy(new OpenNebulaSecurityRulePlugin(this.openNebulaConfFilePath));
+        this.endpoint = OPENNEBULA_ENDPOINT;
     }
-
-    // test case: success case when call the deleteSecurityRule method.
+    
+    // test case: When calling the requestSecurityRule method, it must verify
+    // that is call was successful.
     @Test
-	public void testDeleteSecurityRule() throws FogbowException {
-		// setup
-		String securityGroupId = DEFAULT_SECURITY_GROUP_ID;
-		String securityGroupName = FAKE_SECURITY_GROUP_NAME;
-
-		List<Rule> rules = new ArrayList<>();
-		Rule ruleOneToRemove = createSecurityRuleId(IP_ONE, securityGroupId);
-		rules.add(ruleOneToRemove);
-		rules.add(createSecurityRuleId(IP_TWO, securityGroupId));
-		rules.add(createSecurityRuleId(IP_TREE, securityGroupId));
-
-		List<Rule> rulesExpected = new ArrayList<>(rules);
-		rulesExpected.remove(ruleOneToRemove);
-		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupId, securityGroupName,
-				rulesExpected);
-		String securityGroupTemplateXml = securityGroupTemplate.marshalTemplate();
-
-		OneResponse oneResponseExpected = Mockito.mock(OneResponse.class);
-		Mockito.when(oneResponseExpected.isError()).thenReturn(false);
-
-		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		Mockito.when(securityGroup.update(Mockito.anyString())).thenReturn(oneResponseExpected);
-
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.any(Client.class), Mockito.eq(securityGroupId)))
-				.willReturn(securityGroup);
-
-		SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
-		Mockito.when(securityGroupInfo.getId()).thenReturn(securityGroupId);
-		Mockito.when(securityGroupInfo.getName()).thenReturn(securityGroupName);
-
-		Mockito.doReturn(securityGroupInfo).when(this.plugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
-		Mockito.doReturn(rules).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
-
-		CloudUser cloudUser = createCloudUser();
-		String securityRuleId = ruleOneToRemove.serialize();
-
-		// exercise
-		this.plugin.deleteSecurityRule(securityRuleId, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getSecurityGroup(Mockito.any(Client.class), Mockito.eq(securityGroupId));
-
-		Mockito.verify(oneResponseExpected, Mockito.times(1)).isError();
-		Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(securityGroupTemplateXml));
-		Mockito.verify(securityGroupInfo, Mockito.times(1)).getId();
-		Mockito.verify(securityGroupInfo, Mockito.times(1)).getName();
-		Mockito.verify(this.plugin, Mockito.times(1)).getSecurityGroupInfo(Mockito.eq(securityGroup));
-		Mockito.verify(this.plugin, Mockito.times(1)).getRules(Mockito.eq(securityGroupInfo));
-	}
-
-    // test case: Occur an error when updating the security group in the cloud.
-    @Test(expected = FogbowException.class)
-	public void testDeleteSecurityRuleErrorWhileUpdatingSecurity() throws FogbowException {
-		// setup
-		String ipOne = IP_ONE;
-		String securityGroupId = DEFAULT_SECURITY_GROUP_ID;
-		String securityGroupName = FAKE_SECURITY_GROUP_NAME;
-
-		List<Rule> rules = new ArrayList<>();
-		Rule ruleOneToRemove = createSecurityRuleId(ipOne, securityGroupId);
-		rules.add(ruleOneToRemove);
-
-		List<Rule> rulesExpected = new ArrayList<>(rules);
-		rulesExpected.remove(ruleOneToRemove);
-		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupId, securityGroupName,
-				rulesExpected);
-		String securityGroupTemplateXml = securityGroupTemplate.marshalTemplate();
-
-		OneResponse oneResponseExpected = Mockito.mock(OneResponse.class);
-		Mockito.when(oneResponseExpected.isError()).thenReturn(true);
-
-		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		Mockito.when(securityGroup.update(Mockito.anyString())).thenReturn(oneResponseExpected);
-
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.any(Client.class), Mockito.eq(securityGroupId)))
-				.willReturn(securityGroup);
-
-		SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
-		Mockito.when(securityGroupInfo.getId()).thenReturn(securityGroupId);
-		Mockito.when(securityGroupInfo.getName()).thenReturn(securityGroupName);
-
-		Mockito.doReturn(securityGroupInfo).when(this.plugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
-
-		Mockito.doReturn(rules).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
-
-		CloudUser cloudUser = createCloudUser();
-		String securityRuleId = ruleOneToRemove.serialize();
-
-		// exercise
-		this.plugin.deleteSecurityRule(securityRuleId, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getSecurityGroup(Mockito.any(Client.class), Mockito.eq(securityGroupId));
-
-		Mockito.verify(oneResponseExpected, Mockito.times(1)).isError();
-		Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(securityGroupTemplateXml));
-		Mockito.verify(securityGroupInfo, Mockito.times(1)).getId();
-		Mockito.verify(securityGroupInfo, Mockito.times(1)).getName();
-		Mockito.verify(this.plugin, Mockito.times(1)).getSecurityGroupInfo(Mockito.eq(securityGroup));
-		Mockito.verify(this.plugin, Mockito.times(1)).getRules(Mockito.eq(securityGroupInfo));
-	}
-
-    // test case: the security rule id came in a unknown format.
-    @Test(expected = FogbowException.class)
-    public void testCreateRuleException() throws FogbowException {
-        // setup
-        String securityRuleId = "wrong";
+    public void testRequestSecurityRule() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+        
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.doReturn(securityGroup).when(this.plugin).getSecurityGroup(Mockito.eq(this.client),
+                Mockito.eq(majorOrder));
+        
+        String securiryRuleId = defineSecurityRuleId(Direction.IN);
+        Mockito.doReturn(securiryRuleId).when(this.plugin).doRequestSecurityRule(Mockito.any(SecurityGroup.class),
+                Mockito.any(Rule.class));
+        
         // exercise
-        this.plugin.createRule(securityRuleId);
+        this.plugin.requestSecurityRule(securityRule, majorOrder, this.cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.createClient(Mockito.eq(this.endpoint), Mockito.eq(this.cloudUser.getToken()));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroup(Mockito.eq(this.client),
+                Mockito.eq(majorOrder));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .createSecurityRuleRequest(Mockito.eq(securityRule), Mockito.eq(securityGroup));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestSecurityRule(Mockito.eq(securityGroup),
+                Mockito.any(Rule.class));
     }
 
-    // test case: trying to remove a rule that there is not in the rules.
+    // test case: When calling the getSecurityRules method, it must verify
+    // that is call was successful.
     @Test
-    public void testRemoveUnknownRule() {
-        // setup
-        List<Rule> rules = new ArrayList<>();
-        Rule ruleToRemove = new Rule();
-        ruleToRemove.setIp(IP_ONE);
-        rules.add(new Rule());
-        rules.add(new Rule());
-        rules.add(new Rule());
-        int ruleSizeExpected = 3 ;
+    public void testGetSecurityRules() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
+        SecurityGroup securityGroup = getSecurityGroupMocked(majorOrder);
 
-        // verify before
-        Assert.assertEquals(ruleSizeExpected, rules.size());
+        List<SecurityRuleInstance> instances = createSecurityRuleInstancesCollection();
+        Mockito.doReturn(instances).when(this.plugin).doGetSecurityRules(Mockito.eq(securityGroup));
 
         // exercise
-        this.plugin.removeRule(ruleToRemove, rules);
+        this.plugin.getSecurityRules(majorOrder, this.cloudUser);
 
-        // verify after
-        Assert.assertEquals(ruleSizeExpected, rules.size());
+        // verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.createClient(Mockito.eq(this.endpoint), Mockito.eq(this.cloudUser.getToken()));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroup(Mockito.eq(this.client),
+                Mockito.eq(majorOrder));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetSecurityRules(Mockito.eq(securityGroup));
     }
 
-    // test case: the rules is null and this will not throw exception.
+    // test case: When calling the deleteSecurityRule method, it must verify
+    // that is call was successful.
     @Test
-    public void testRemoveRuleNullRules() {
-        // exercise and verify
+    public void testDeleteSecurityRule() throws FogbowException {
+        // set up
+        String securityRuleId = defineSecurityRuleId(Direction.IN);
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        Rule rule = buildRule();
+        Mockito.doReturn(rule).when(this.plugin).doUnpakingSecurityRuleId(Mockito.eq(securityRuleId));
+        Mockito.doNothing().when(this.plugin).doDeleteSecurityRule(Mockito.eq(this.client), Mockito.eq(rule),
+                Mockito.eq(securityGroupId));
+
+        // exercise
+        this.plugin.deleteSecurityRule(securityRuleId, this.cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.createClient(Mockito.eq(this.endpoint), Mockito.eq(this.cloudUser.getToken()));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doUnpakingSecurityRuleId(Mockito.eq(securityRuleId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSecurityRule(Mockito.eq(this.client),
+                Mockito.eq(rule), Mockito.eq(securityGroupId));
+    }
+    
+    // test case: When calling the doDeleteSecurityRule method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoDeleteSecurityRule() throws FogbowException {
+        // set up
+        Rule rule = buildRule();
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.eq(securityGroupId)))
+                .thenReturn(securityGroup);
+
+        List<Rule> rules = buildRulesCollection(rule);
+        GetSecurityGroupResponse response = buildSecurityGroupResponse(rules);
+        Mockito.doReturn(response).when(this.plugin).doGetSecurityGroupResponse(Mockito.eq(securityGroup));
+
+        Mockito.doNothing().when(this.plugin).updateSecurityGroup(Mockito.eq(securityGroup), Mockito.anyString());
+
+        // exercise
+        this.plugin.doDeleteSecurityRule(this.client, rule, securityGroupId);
+
+        // verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.eq(securityGroupId));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetSecurityGroupResponse(Mockito.eq(securityGroup));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .generateUpdateRequest(Mockito.eq(response), Mockito.anyList());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateSecurityGroup(Mockito.eq(securityGroup),
+                Mockito.anyString());
+    }
+
+    // test case: When calling the doDeleteSecurityRule method with a rule other
+    // than the rules contained in the response, it must verify that an
+    // InvalidParameterException has been thrown.
+    @Test
+    public void testDoDeleteSecurityRuleFail() throws FogbowException {
+        // set up
+        Rule anotherRule = Rule.builder().build();
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.eq(securityGroupId)))
+                .thenReturn(securityGroup);
+
+        Rule rule = buildRule();
+        List<Rule> rules = buildRulesCollection(rule);
+        GetSecurityGroupResponse response = buildSecurityGroupResponse(rules);
+        Mockito.doReturn(response).when(this.plugin).doGetSecurityGroupResponse(Mockito.eq(securityGroup));
+
+        String expected = Messages.Exception.RULE_NOT_AVAILABLE;
+
         try {
-            this.plugin.removeRule(null, null);
-        } catch (Exception e) {
+            // exercise
+            this.plugin.doDeleteSecurityRule(this.client, anotherRule, securityGroupId);
             Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
         }
     }
+    
+    // test case: When calling the doUnpakingSecurityRuleId method with a valid
+    // security rule ID, it must return an expected rule.
+    @Test
+    public void testDoUnpakingSecurityRuleId() throws FogbowException {
+        // set up
+        String securityRuleId = defineSecurityRuleId(Direction.IN);
+        
+        Rule expected = buildRule();
+        
+        // exercise
+        Rule rule = this.plugin.doUnpakingSecurityRuleId(securityRuleId);
+        
+        // verify
+        Assert.assertEquals(expected, rule);
+    }
+    
+    // test case: When calling the doUnpakingSecurityRuleId method with an
+    // invalid security rule ID, it must verify that an
+    // InvalidParameterException has been thrown.
+    @Test
+    public void testDoUnpakingSecurityRuleIdFail() throws FogbowException {
+     // set up
+        String securityRuleId = TestUtils.ANY_VALUE;
+        
+        String expected = String.format(Messages.Exception.INVALID_PARAMETER_S, securityRuleId);
+        
+        try {
+            // exercise
+            this.plugin.doUnpakingSecurityRuleId(securityRuleId);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doGetSecurityRules method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoGetSecurityRules() {
+        // set up
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Rule rule = buildRule();
+        List<Rule> rules = buildRulesCollection(rule);
 
-    // test case: throw exception when security group is null.
-    @Test(expected = FogbowException.class)
-    public void testCreateSecurityGroupTemplate() throws FogbowException {
+        GetSecurityGroupResponse response = buildSecurityGroupResponse(rules);
+        Mockito.doReturn(response).when(this.plugin).doGetSecurityGroupResponse(securityGroup);
+        
+        // exercise
+        this.plugin.doGetSecurityRules(securityGroup);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetSecurityGroupResponse(Mockito.eq(securityGroup));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildSecurityRule(Mockito.eq(rule));
+    }
+    
+    // test case: When calling the doRequestSecurityRule method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoRequestSecurityRule() throws FogbowException {
+        // set up
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Rule rule = buildRule();
+
+        GetSecurityGroupResponse response = buildSecurityGroupResponse(new ArrayList<Rule>());
+        Mockito.doReturn(response).when(this.plugin).doGetSecurityGroupResponse(Mockito.eq(securityGroup));
+
+        List<Rule> rules = buildRulesCollection(rule);
+        String template = generateRequestTemplate(rules);
+        Mockito.doNothing().when(this.plugin).updateSecurityGroup(Mockito.any(SecurityGroup.class),
+                Mockito.anyString());
+
+        // exercise
+        this.plugin.doRequestSecurityRule(securityGroup, rule);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetSecurityGroupResponse(Mockito.eq(securityGroup));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateSecurityGroup(Mockito.eq(securityGroup),
+                Mockito.eq(template));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doPackingSecurityRuleId(Mockito.eq(rule));
+    }
+
+    // test case: When calling the updateSecurityGroup method, it must verify
+    // that is call was successful.
+    @Test
+    public void testUpdateSecurityGroup() throws FogbowException {
+        // set up
+        Rule rule = buildRule();
+        List<Rule> rules = buildRulesCollection(rule);
+        String template = generateRequestTemplate(rules);
+        
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        OneResponse response = Mockito.mock(OneResponse.class);
+        Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(response);
+        Mockito.when(response.isError()).thenReturn(false);
+
+        // exercise
+        this.plugin.updateSecurityGroup(securityGroup, template);
+
+        // verify
+        Mockito.verify(securityGroup, Mockito.times(TestUtils.RUN_ONCE)).update(Mockito.eq(template));
+        Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
+    }
+    
+    // test case: When calling the updateSecurityGroup method with a invalid
+    // template, it must verify that an UnexpectedException has been thrown.
+    @Test
+    public void testUpdateSecurityGroupFail() throws FogbowException {
+        // set up
+        String template = TestUtils.ANY_VALUE;
+
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        OneResponse response = Mockito.mock(OneResponse.class);
+        Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(response);
+        Mockito.when(response.isError()).thenReturn(true);
+
+        String expected = String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template);
+
+        try {
+            // exercise
+            this.plugin.updateSecurityGroup(securityGroup, template);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doGetSecurityGroupResponse method, it must
+    // verify that is call was successful and return the expected response.
+    @Test
+    public void testDoGetSecurityGroupResponse() {
+        // set up
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        OneResponse oneResponse = Mockito.mock(OneResponse.class);
+        
+        Rule rule = buildRule();
+        List<Rule> rules = buildRulesCollection(rule);
+        
+        String xml = generateTemplateResponse(rules);
+        Mockito.when(securityGroup.info()).thenReturn(oneResponse);
+        Mockito.when(oneResponse.getMessage()).thenReturn(xml);
+        
+        GetSecurityGroupResponse expected = GetSecurityGroupResponse.unmarshaller()
+                .response(xml)
+                .unmarshal();
+        
+        // exercise
+        GetSecurityGroupResponse response = this.plugin.doGetSecurityGroupResponse(securityGroup);
+
+        // verify
+        Mockito.verify(securityGroup, Mockito.times(TestUtils.RUN_ONCE)).info();
+        Mockito.verify(oneResponse, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
+        
+        Assert.assertEquals(expected.getId(), response.getId());
+        Assert.assertEquals(expected.getName(), response.getName());
+        Assert.assertEquals(expected.getTemplate().getRules(), response.getTemplate().getRules());
+    }
+
+    // test case: When calling the getSecurityGroup method, it must
+    // verify that is call was successful.
+    @Test
+    public void testGetSecurityGroup() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        Mockito.doReturn(securityGroupName).when(this.plugin).retrieveSecurityGroupName(Mockito.eq(majorOrder));
+
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        PowerMockito.when(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), 
+                Mockito.eq(majorOrder.getInstanceId()))).thenReturn(virtualNetwork);
+
+        String content = String.format(SECURITY_GROUP_CONTENT_FORMAT, securityGroupId, ANOTHER_SECURITY_GROUP_ID);
+        Mockito.doReturn(content).when(this.plugin).getSecurityGroupContentFrom(Mockito.eq(virtualNetwork));
+
+        SecurityGroup securityGroup = mockSecurityGroupFromNetwork(securityGroupId, securityGroupName);
+        Mockito.doReturn(securityGroup).when(this.plugin).findSecurityGroupByName(Mockito.eq(this.client),
+                Mockito.eq(content), Mockito.eq(securityGroupName));
+
+        // exercise
+        this.plugin.getSecurityGroup(client, majorOrder);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .retrieveSecurityGroupName(Mockito.eq(majorOrder));
+
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(majorOrder.getInstanceId()));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getSecurityGroupContentFrom(Mockito.eq(virtualNetwork));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSecurityGroupByName(Mockito.eq(this.client),
+                Mockito.eq(content), Mockito.eq(securityGroupName));
+    }
+
+    // test case: When calling the findSecurityGroupByName method, it must
+    // verify that is call was successful.
+    @Test
+    public void testFindSecurityGroupByName() throws FogbowException {
+        // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        String content = String.format(SECURITY_GROUP_CONTENT_FORMAT, securityGroupId, ANOTHER_SECURITY_GROUP_ID);
+        
+        SecurityGroup securityGroup = mockSecurityGroupFromNetwork(securityGroupId, securityGroupName);
+        PowerMockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), 
+                Mockito.eq(securityGroupId))).thenReturn(securityGroup);
+
+        // exercise
+        this.plugin.findSecurityGroupByName(this.client, content, securityGroupName);
+
+        // verify
+        PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.eq(securityGroupId));
+    }
+    
+    // test case: When calling the findSecurityGroupByName method with a security
+    // group name incompatible, it must verify that an InstanceNotFoundException has
+    // been thrown.
+    @Test
+    public void testFindSecurityGroupByNameFail() throws FogbowException {
+        // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String securityGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        SecurityGroup securityGroup = mockSecurityGroupFromNetwork(securityGroupId, securityGroupName);
+        PowerMockito.when(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), 
+                Mockito.eq(securityGroupId))).thenReturn(securityGroup);
+        
+        String anotherSecurityGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + TestUtils.FAKE_INSTANCE_ID;
+        String content = securityGroupId;
+        
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.findSecurityGroupByName(this.client, content, anotherSecurityGroupName);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getSecurityGroupContentFrom method with a virtual
+    // network containing valid security group content, it must verify that is call
+    // was successful.
+    @Test
+    public void testGetSecurityGroupContentFromVirtualNetwork() throws FogbowException {
+        // set up
+        String content = TestUtils.FAKE_SECURITY_GROUP_ID;
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
+
+        // exercise
+        this.plugin.getSecurityGroupContentFrom(virtualNetwork);
+
+        // verify
+        Mockito.verify(virtualNetwork, Mockito.times(TestUtils.RUN_ONCE))
+                .xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH);
+    }
+    
+    // test case: When calling the getSecurityGroupContentFrom method with a virtual
+    // network containing a null security group content, it must verify that an
+    // InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetSecurityGroupContentFromVirtualNetworkWithNullContent() throws FogbowException {
+        // set up
+        String content = null;
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
+        
+        String expected = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
+
+        try {
+            // exercise
+            this.plugin.getSecurityGroupContentFrom(virtualNetwork);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the getSecurityGroupContentFrom method with a virtual
+    // network containing a empty security group content, it must verify that an
+    // InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetSecurityGroupContentFromVirtualNetworkWithEmptyContent() throws FogbowException {
+        // set up
+        String content = TestUtils.EMPTY_STRING;
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
+        
+        String expected = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
+
+        try {
+            // exercise
+            this.plugin.getSecurityGroupContentFrom(virtualNetwork);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the retrieveSecurityGroupName method with a NETWORk
+    // resource type, it must return an expected security group name.
+    @Test
+    public void testRetrieveSecurityGroupNameFromNetworkOrder() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder(ResourceType.NETWORK);
+        String expected = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getId();
+
+        // exercise
+        String securityGroupName = this.plugin.retrieveSecurityGroupName(majorOrder);
+
+        // verify
+        Assert.assertEquals(expected, securityGroupName);
+    }
+    
+    // test case: When calling the retrieveSecurityGroupName method with a PUBLIC_IP
+    // resource type, it must return an expected security group name.
+    @Test
+    public void testRetrieveSecurityGroupNameFromPublicIpOrder() throws FogbowException {
+        // set up
+        Order majorOrder = createMajorOrder(ResourceType.PUBLIC_IP);
+        String expected = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getId();
+
+        // exercise
+        String securityGroupName = this.plugin.retrieveSecurityGroupName(majorOrder);
+
+        // verify
+        Assert.assertEquals(expected, securityGroupName);
+    }
+    
+    // test case: When calling the retrieveSecurityGroupName method with a different
+    // resource type from NETWORK or PUBLIC_IP, it must verify that an
+    // InvalidParameterException has been thrown.
+    @Test
+    public void testRetrieveSecurityGroupNameFail() throws FogbowException {
+        // set up
+        Order majorOrder = this.testUtils.createLocalComputeOrder();
+        String expected = Messages.Exception.INVALID_RESOURCE;
+
+        try {
+            // exercise
+            this.plugin.retrieveSecurityGroupName(majorOrder);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the removeRule method with a
+    // compatible rule, it must returned a true result.
+    @Test
+    public void testRemoveRule() {
+        // set up
+        Rule rule = buildRule();
+        List<Rule> rules = buildRulesCollection(rule);
+
+        // exercise
+        boolean result = this.plugin.removeRule(rules, rule);
+
+        // verify
+        Assert.assertTrue(result);
+    }
+    
+    // test case: When calling the removeRule method with a
+    // null rule, it must returned a false result.
+    @Test
+    public void testRemoveRuleWithNullList() {
+        // set up
+        List<Rule> rules = null;
+        Rule ruleToRemove = new Rule();
+
+        // exercise
+        boolean result = this.plugin.removeRule(rules, ruleToRemove);
+
+        // verify
+        Assert.assertFalse(result);
+    }
+    
+    // test case: When calling the removeRule method with a
+    // empty rule, it must returned a false result.
+    @Test
+    public void testRemoveRuleWithEmptyList() {
         // set up
         List<Rule> rules = new ArrayList<>();
-        SecurityGroupInfo securityGroupInfo = null;
+        Rule ruleToRemove = new Rule();
+
         // exercise
-        this.plugin.createSecurityGroupTemplate(securityGroupInfo, rules);
+        boolean result = this.plugin.removeRule(rules, ruleToRemove);
+
+        // verify
+        Assert.assertFalse(result);
+    }
+    
+    // test case: When calling the removeRule method with a
+    // incompatible rule, it must returned a false result.
+    @Test
+    public void testRemoveRuleWithIncompatibleRule() {
+        // set up
+        Rule rule = buildRule();
+        List<Rule> rules = buildRulesCollection(rule);
+        Rule ruleToRemove = new Rule();
+
+        // exercise
+        boolean result = this.plugin.removeRule(rules, ruleToRemove);
+
+        // verify
+        Assert.assertFalse(result);
+    }
+    
+    // test case: When calling the buildSecurityRule method with a rule containing
+    // an null range, it must returned a expected security rule instance.
+    @Test
+    public void testBuildSecurityRuleWithNullRange() {
+        // set up
+        Rule rule = Rule.builder()
+                .protocol(SecurityRuleUtil.ALL_TEMPLATE_VALUE)
+                .ip(CIDR_IP_ADDRESS)
+                .size(CIDR_SIZE_VALUE)
+                .range(null)
+                .type(SecurityRuleUtil.INBOUND_TEMPLATE_VALUE)
+                .groupId(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .build();
+
+        SecurityRuleInstance expected = new SecurityRuleInstance(FAKE_SECURITY_RULE_INSTANCE_ID,
+                Direction.IN, 
+                OpenNebulaSecurityRulePlugin.MINIMUM_RANGE_PORT, 
+                OpenNebulaSecurityRulePlugin.MAXIMUM_RANGE_PORT, 
+                CIDR_FULL_ADDRESS, 
+                EtherType.IPv4, 
+                Protocol.ANY);
+
+        // exercise
+        SecurityRuleInstance instance = this.plugin.buildSecurityRule(rule);
+
+        // verify
+        Assert.assertEquals(expected.getId(), instance.getId());
+        Assert.assertEquals(expected.getDirection(), instance.getDirection());
+        Assert.assertEquals(expected.getPortFrom(), instance.getPortFrom());
+        Assert.assertEquals(expected.getPortTo(), instance.getPortTo());
+        Assert.assertEquals(expected.getCidr(), instance.getCidr());
+        Assert.assertEquals(expected.getEtherType(), instance.getEtherType());
+        Assert.assertEquals(expected.getProtocol(), instance.getProtocol());
+    }
+    
+    // test case: When calling the buildSecurityRule method with a rule containing
+    // an empty range, it must returned a expected security rule instance.
+    @Test
+    public void testBuildSecurityRuleWithemptyRange() {
+        // set up
+        Rule rule = Rule.builder()
+                .protocol(SecurityRuleUtil.ALL_TEMPLATE_VALUE)
+                .ip(CIDR_IP_ADDRESS)
+                .size(CIDR_SIZE_VALUE)
+                .range(TestUtils.EMPTY_STRING)
+                .type(SecurityRuleUtil.INBOUND_TEMPLATE_VALUE)
+                .groupId(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .build();
+
+        SecurityRuleInstance expected = new SecurityRuleInstance(FAKE_SECURITY_RULE_INSTANCE_ID,
+                Direction.IN,
+                OpenNebulaSecurityRulePlugin.MINIMUM_RANGE_PORT, 
+                OpenNebulaSecurityRulePlugin.MAXIMUM_RANGE_PORT, 
+                CIDR_FULL_ADDRESS, 
+                EtherType.IPv4, 
+                Protocol.ANY);
+
+        // exercise
+        SecurityRuleInstance instance = this.plugin.buildSecurityRule(rule);
+
+        // verify
+        Assert.assertEquals(expected.getId(), instance.getId());
+        Assert.assertEquals(expected.getDirection(), instance.getDirection());
+        Assert.assertEquals(expected.getPortFrom(), instance.getPortFrom());
+        Assert.assertEquals(expected.getPortTo(), instance.getPortTo());
+        Assert.assertEquals(expected.getCidr(), instance.getCidr());
+        Assert.assertEquals(expected.getEtherType(), instance.getEtherType());
+        Assert.assertEquals(expected.getProtocol(), instance.getProtocol());
+    }
+    
+    // test case: When calling the getRuleTypeBy method with an IN direction, it
+    // must returned an inbound rule type.
+    @Test
+    public void testGetRuleTypeByInDirection() {
+        // set up
+        String expected = SecurityRuleUtil.INBOUND_TEMPLATE_VALUE;
+
+        // exercise
+        String type = this.plugin.getRuleTypeBy(Direction.IN);
+
+        // verify
+        Assert.assertEquals(expected, type);
+    }
+    
+    // test case: When calling the getRuleTypeBy method with an OUT direction, it
+    // must returned an outbound rule type.
+    @Test
+    public void testGetRuleTypeByOutDirection() {
+        // set up
+        String expected = SecurityRuleUtil.OUTBOUND_TEMPLATE_VALUE;
+
+        // exercise
+        String type = this.plugin.getRuleTypeBy(Direction.OUT);
+
+        // verify
+        Assert.assertEquals(expected, type);
+    }
+    
+    // test case: When calling the getCidrFrom method with a valid CIDR, it must
+    // return a expected address sliced. 
+    @Test
+    public void testGetCidrFromSecurityRuleWithValidCidr() {
+        // set up
+        SecurityRule securityRule = new SecurityRule();
+        securityRule.setCidr(CIDR_FULL_ADDRESS);
+        
+        String[] expected = { CIDR_IP_ADDRESS, CIDR_SIZE_VALUE };
+
+        // exercise
+        String[] result = this.plugin.getCidrFrom(securityRule);
+
+        // verify
+        Assert.assertArrayEquals(expected, result);
+    }
+    
+    // test case: When calling the getCidrFrom method with an invalid CIDR, it must
+    // return a null result.
+    @Test
+    public void testGetCidrFromSecurityRuleWithInvalidCidr() {
+        // set up
+        SecurityRule securityRule = new SecurityRule();
+        securityRule.setCidr(OpenNebulaSecurityRulePlugin.ALL_ADDRESSES_REMOTE_PREFIX);
+
+        String[] expected = null;
+
+        // exercise
+        String[] result = this.plugin.getCidrFrom(securityRule);
+
+        // verify
+        Assert.assertArrayEquals(expected, result);
+    }
+    
+    // test case: When calling the getRulesFrom method with a valid response, it
+    // must return an expected rules list.
+    @Test
+    public void testGetRulesFromResponse() {
+        // set up
+        Rule rule = buildRule();
+        List<Rule> expected = buildRulesCollection(rule);
+        GetSecurityGroupResponse response = buildSecurityGroupResponse(expected);
+
+        // exercise
+        List<Rule> rules = this.plugin.getRulesFrom(response);
+
+        // verify
+        Assert.assertEquals(expected, rules);
+    }
+    
+    // test case: When calling the getRulesFrom method with a null response, it must
+    // return an empty rules list.
+    @Test
+    public void testGetRulesFromNullResponse() {
+        // set up
+        List<Rule> rules = null;
+        GetSecurityGroupResponse response = buildSecurityGroupResponse(rules);
+
+        // exercise
+        rules = this.plugin.getRulesFrom(response);
+
+        // verify
+        Assert.assertTrue(rules.isEmpty());
+    }
+    
+    // test case: When calling the getNetworkIdFrom method with rule containing a
+    // valid network ID, it must returned this network ID.
+    @Test
+    public void testGetNetworkIdFromRule() {
+        // set up
+        String expected = TestUtils.FAKE_NETWORK_ID;
+        Rule rule = Rule.builder()
+                .networkId(expected)
+                .build();
+
+        // exercise
+        String networkId = this.plugin.getNetworkIdFrom(rule);
+
+        // verify
+        Assert.assertEquals(expected, networkId);
+    }
+    
+    // test case: When calling the getNetworkIdFrom method with rule containing a
+    // null network ID, it must returned an empty string.
+    @Test
+    public void testGetNetworkIdFromRuleWithNullID() {
+        // set up
+        Rule rule = Rule.builder()
+                .networkId(null)
+                .build();
+
+        String expected = TestUtils.EMPTY_STRING;
+        
+        // exercise
+        String networkId = this.plugin.getNetworkIdFrom(rule);
+
+        // verify
+        Assert.assertEquals(expected, networkId);
+    }
+    
+    // test case: When calling the getIpAddress method with a security rule
+    // containing a valid CIDR, it must returned an expected IP address. 
+    @Test
+    public void testGetIpAddress() {
+        // set up
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+        
+        String expected = CIDR_IP_ADDRESS;
+
+        // exercise
+        String ipAddress = this.plugin.getIpAddress(securityRule);
+
+        // verify
+        Assert.assertEquals(expected, ipAddress);
+    }
+    
+    // test case: When calling the getIpAddress method with a security rule
+    // containing an invalid CIDR, it must returned a null IP address.
+    @Test
+    public void testGetIpAddressReturnedNullIpAddress() {
+        // set up
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+        securityRule.setCidr(OpenNebulaSecurityRulePlugin.ALL_ADDRESSES_REMOTE_PREFIX);
+
+        String expected = null;
+
+        // exercise
+        String ipAddress = this.plugin.getIpAddress(securityRule);
+
+        // verify
+        Assert.assertEquals(expected, ipAddress);
     }
 
-    // test case: success case when call the getSecurityRules method.
+    // test case: When calling the getAddressSize method with a security rule
+    // containing a valid CIDR, it must returned an expected address size value.
     @Test
-	public void testGetSecurityRules() throws FogbowException {
-		// setup
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString()))
-				.willReturn(virtualNetwork);
+    public void testGetAddressSize() {
+     // set up
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+        
+        String expected = CIDR_SIZE_VALUE;
 
-		// created by opennebula deploy
-		String defaultSecurityGroupId = DEFAULT_SECURITY_GROUP_ID;
-		
-		// created by Fogbow (RAS)
-		String securityGroupId = FAKE_ID_VALUE;
-		String securityGroupXMLContent = String.format(FORMAT_CONTENT, defaultSecurityGroupId,
-				OpenNebulaSecurityRulePlugin.OPENNEBULA_XML_ARRAY_SEPARATOR, securityGroupId);
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
-				.thenReturn(securityGroupXMLContent);
+        // exercise
+        String addressSize = this.plugin.getAddressSize(securityRule);
 
-		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.any(Client.class), Mockito.eq(securityGroupId)))
-				.willReturn(securityGroup);
+        // verify
+        Assert.assertEquals(expected, addressSize);
+    }
+    
+    // test case: When calling the getAddressSize method with a security rule
+    // containing an invalid CIDR, it must returned a null address size value.
+    @Test
+    public void testGetAddressReturnedNullAddressSize() {
+     // set up
+        SecurityRule securityRule = createSecurityRule(Direction.IN);
+        securityRule.setCidr(OpenNebulaSecurityRulePlugin.ALL_ADDRESSES_REMOTE_PREFIX);
 
-		List<Rule> rules = new ArrayList<Rule>();
-		int portFrom = 22;
-		int portTo = 3000;
-		String ipv4 = FAKE_IPV4_VALUE;
-		String sizeRangeIp = FAKE_IP_RANGE_SIZE; // subnet is 24
+        String expected = null;
 
-		Rule rule = new Rule(Rule.TCP_XML_TEMPLATE_VALUE, ipv4, sizeRangeIp,
-				String.format(FORMAT_CONTENT, portFrom, Rule.OPENNEBULA_RANGE_SEPARATOR, portTo),
-				Rule.INBOUND_XML_TEMPLATE_VALUE, null, securityGroupId);
+        // exercise
+        String addressSize = this.plugin.getAddressSize(securityRule);
 
-		rules.add(rule);
-
-		SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
-		Mockito.doReturn(securityGroupInfo).when(this.plugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
-		Mockito.doReturn(rules).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
-
-		CloudUser cloudUser = createCloudUser();
-		Order majorOrder = new NetworkOrder();
-		String networkId = FAKE_INSTANCE_ID;
-		majorOrder.setInstanceId(networkId);
-
-		// exercise
-		List<SecurityRuleInstance> securityRuleInstances = this.plugin.getSecurityRules(majorOrder, cloudUser);
-
-		// verify
-		SecurityRuleInstance securityRuleInstance = securityRuleInstances.iterator().next();
-		Assert.assertEquals(SecurityRule.Protocol.TCP, securityRuleInstance.getProtocol());
-		Assert.assertEquals(portFrom, securityRuleInstance.getPortFrom());
-		Assert.assertEquals(portTo, securityRuleInstance.getPortTo());
-		Assert.assertEquals(String.format(FORMAT_CONTENT, ipv4, Rule.CIRD_SEPARATOR, 24), securityRuleInstance.getCidr());
-		Assert.assertEquals(SecurityRule.Direction.IN, securityRuleInstance.getDirection());
-		Assert.assertEquals(SecurityRule.EtherType.IPv4, securityRuleInstance.getEtherType());
-		Assert.assertEquals(rule.serialize(), securityRuleInstance.getId());
-	}
-
-    // test case: error while trying to get rules.
-    @Test(expected = FogbowException.class)
-    public void testGetSecurityRulesErrorWhileGetRules() throws FogbowException {
-        // setup
+        // verify
+        Assert.assertEquals(expected, addressSize);
+    }
+    
+    // test case: When calling the createSecurityRuleRequest method with security
+    // rule containing the same value from ports, it must verify that is call was
+    // successful and returned an expected rule with specific range port.
+    @Test
+    public void testCreateSecurityRuleRequestWithSameValueFromPorts() {
+        // set up
+        Direction direction = Direction.IN;
         SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-        SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
-        Mockito.doReturn(securityGroupInfo).when(this.plugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
-        Mockito.doThrow(Exception.class).when(this.plugin).getRules(Mockito.eq(securityGroupInfo));
-
+        SecurityRule securityRule = createSecurityRule(direction);
+        securityRule.setPortFrom(DEFAULT_SSH_PORT);
+        securityRule.setPortTo(DEFAULT_SSH_PORT);
+        
+        Rule expected = Rule.builder()
+                .protocol(SecurityRuleUtil.TCP_TEMPLATE_VALUE)
+                .ip(CIDR_IP_ADDRESS)
+                .size(CIDR_SIZE_VALUE)
+                .range(String.valueOf(DEFAULT_SSH_PORT))
+                .type(SecurityRuleUtil.INBOUND_TEMPLATE_VALUE)
+                .groupId(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .build();
+        
         // exercise
-        this.plugin.getSecurityRules(securityGroup);
-    }
-
-    // test case: there is not security group in the opennebula response(xml).
-    @Test
-    public void testGetSecurityGroupByEmptyContent() {
-        // setup
-        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-        Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
-                .thenReturn(null);
-
-        // exercise
-        String securityGroupXMLContent = this.plugin.getSecurityGroupBy(virtualNetwork);
+        Rule rule = this.plugin.createSecurityRuleRequest(securityRule, securityGroup);
 
         // verify
-        Assert.assertNull(securityGroupXMLContent);
-    }
-
-    // test case: there is security group with unknown format in the opennebula response(xml).
-    @Test
-    public void testGetSecurityGroupBy() {
-        // setup
-        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-        String securityGroupXMLContent = "unknown";
-        Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
-                .thenReturn(securityGroupXMLContent);
-
-        // exercise
-        String securityGroupContent = this.plugin.getSecurityGroupBy(virtualNetwork);
-
-        // verify
-        Assert.assertNull(securityGroupContent);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getIpAddress(Mockito.eq(securityRule));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAddressSize(Mockito.eq(securityRule));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getRuleTypeBy(direction);
+        
+        Assert.assertEquals(expected.getRange(), rule.getRange());
     }
     
-	// test case: When calling the requestInstance method with a valid client, a
-	// virtual network instance will be loaded to obtain a security group through
-	// its ID, a new rule will be created and added to the template so that it can
-	// update the instance of the security group.
-	@Test
-	public void testRequestSecurityRuleSuccessful() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualNetwork);
-
-		String securityGroupContent = DEFAULT_SECURITY_GROUP_ID + SEPARATOR + FAKE_ID_VALUE;
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
-				.thenReturn(securityGroupContent);
-
-		String securityGroupId = FAKE_ID_VALUE;
-		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId)))
-				.willReturn(securityGroup);
-
-		String xml = getSecurityGroupInfo();
-
-		OneResponse sgiResponse = Mockito.mock(OneResponse.class);
-		Mockito.when(sgiResponse.getMessage()).thenReturn(xml);
-		Mockito.when(securityGroup.info()).thenReturn(sgiResponse);
-
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
-		PowerMockito.mockStatic(SecurityGroupInfo.class);
-		BDDMockito.given(SecurityGroupInfo.unmarshal(Mockito.eq(xml))).willReturn(securityGroupInfo);
-
-		String template = generateSecurityGroupTemplate();
-		OneResponse sgtResponse = Mockito.mock(OneResponse.class);
-		Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(sgtResponse);
-		Mockito.when(sgtResponse.isError()).thenReturn(false);
-
-		CloudUser cloudUser = createCloudUser();
-		Order majorOrder = new NetworkOrder();
-		String instanceId = FAKE_INSTANCE_ID;
-		majorOrder.setInstanceId(instanceId);
-		SecurityRule securityRule = createSecurityRule();
-
-		// exercise
-		this.plugin.requestSecurityRule(securityRule, majorOrder, cloudUser);
-
-		// verify
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString());
-
-		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, VerificationModeFactory.times(1));
-		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.anyString());
-
-		Mockito.verify(virtualNetwork, Mockito.times(1))
-				.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH));
-
-		Mockito.verify(sgiResponse, Mockito.times(1)).getMessage();
-		Mockito.verify(securityGroup, Mockito.times(1)).info();
-		Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(template));
-		Mockito.verify(sgtResponse, Mockito.times(1)).isError();
-
-		PowerMockito.verifyStatic(SecurityGroupInfo.class, VerificationModeFactory.times(1));
-		SecurityGroupInfo.unmarshal(Mockito.eq(xml));
-	}
+    private String generateTemplateResponse(List<Rule> rules) {
+        GetSecurityGroupResponse template = buildSecurityGroupResponse(rules);
+        return template.marshalTemplate();
+    }
     
-	// test case: When calling the requestInstance method with a valid client, and a malformed
-	// security rule template, its must be throw an InvalidParameterException.
-	@Test(expected = InvalidParameterException.class) // verify
-	public void testRequestSecurityRuleThrowInvalidParameterException() throws FogbowException {
-		// set up
-		Client client = Mockito.mock(Client.class);
-		PowerMockito.mockStatic(OpenNebulaClientUtil.class);
-		BDDMockito.given(OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.anyString()))
-				.willReturn(client);
-
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(client), Mockito.anyString()))
-				.willReturn(virtualNetwork);
-
-		String securityGroupContent = DEFAULT_SECURITY_GROUP_ID + SEPARATOR + FAKE_ID_VALUE;
-		Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
-				.thenReturn(securityGroupContent);
-
-		String securityGroupId = FAKE_ID_VALUE;
-		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-		BDDMockito.given(OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId)))
-				.willReturn(securityGroup);
-
-		String xml = getSecurityGroupInfo();
-
-		OneResponse sgiResponse = Mockito.mock(OneResponse.class);
-		Mockito.when(sgiResponse.getMessage()).thenReturn(xml);
-		Mockito.when(securityGroup.info()).thenReturn(sgiResponse);
-
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
-		PowerMockito.mockStatic(SecurityGroupInfo.class);
-		BDDMockito.given(SecurityGroupInfo.unmarshal(Mockito.eq(xml))).willReturn(securityGroupInfo);
-
-		String template = generateSecurityGroupTemplate();
-		OneResponse sgtResponse = Mockito.mock(OneResponse.class);
-		Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(sgtResponse);
-		Mockito.when(sgtResponse.isError()).thenReturn(true);
-
-		CloudUser cloudUser = createCloudUser();
-		Order majorOrder = new NetworkOrder();
-		String instanceId = FAKE_INSTANCE_ID;
-		majorOrder.setInstanceId(instanceId);
-		SecurityRule securityRule = createSecurityRule();
-
-		// exercise
-		this.plugin.requestSecurityRule(securityRule, majorOrder, cloudUser);
-	}
+    private SecurityGroup mockSecurityGroupFromNetwork(String securityGroupId, String securityGroupName) {
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
+        Mockito.when(securityGroup.getName())
+                .thenReturn(securityGroupName);
+        
+        return securityGroup;
+    }
     
-    private String generateSecurityGroupTemplate() {
-    	String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-    			"<TEMPLATE>\n" + 
-    			"    <ID>100</ID>\n" + 
-    			"    <NAME>TestSecurityRule</NAME>\n" + 
-    			"    <RULE>\n" + 
-    			"        <IP>10.10.10.0</IP>\n" + 
-    			"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-    			"        <RANGE>1:65536</RANGE>\n" + 
-    			"        <SIZE>256</SIZE>\n" + 
-    			"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
-    			"    </RULE>\n" + 
-    			"    <RULE>\n" + 
-    			"        <NETWORK_ID>4</NETWORK_ID>\n" + 
-    			"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-    			"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
-    			"    </RULE>\n" + 
-    			"    <RULE>\n" + 
-    			"        <IP>10.10.10.0</IP>\n" + 
-    			"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-    			"        <RANGE>1:65536</RANGE>\n" + 
-    			"        <SIZE>256</SIZE>\n" + 
-    			"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
-    			"    </RULE>\n" + 
-    			"</TEMPLATE>\n";
-    	
-    	return template;
+    private String generateRequestTemplate(List<Rule> rules) {
+        CreateSecurityGroupRequest request = CreateSecurityGroupRequest.builder()
+                .id(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .name(SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_ORDER_ID)
+                .rules(rules)
+                .build();
+        
+        return request.marshalTemplate();
+    }
+    
+    private GetSecurityGroupResponse buildSecurityGroupResponse(List<Rule> rules) {
+        GetSecurityGroupResponse response = GetSecurityGroupResponse.builder()
+                .id(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .name(SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_ORDER_ID)
+                .template(GetSecurityRulesTemplate.builder()
+                        .rules(rules)
+                        .build())
+                .build();
+        
+        return response;
+    }
+    
+    private List<Rule> buildRulesCollection(Rule...rules) {
+        List<Rule> rulesList = new ArrayList<>();
+        for (Rule rule : rules) {
+            rulesList.add(rule);
+        }
+        return rulesList;
+    }
+    
+    private String defineSecurityRuleId(Direction direction) {
+        String securityRuleId = String.format(SECURITY_RULE_IDENTIFIER_FORMAT,
+                TestUtils.FAKE_SECURITY_GROUP_ID, 
+                TestUtils.EMPTY_STRING,
+                direction.equals(Direction.IN) ? SecurityRuleUtil.INBOUND_TEMPLATE_VALUE : SecurityRuleUtil.OUTBOUND_TEMPLATE_VALUE,
+                CIDR_IP_ADDRESS, 
+                CIDR_SIZE_VALUE,
+                RANGE_PORTS_VALUE,
+                Protocol.TCP.name());
+
+        return securityRuleId;
+    }
+    
+    private List<SecurityRuleInstance> createSecurityRuleInstancesCollection() {
+        SecurityRuleInstance[] instances = { 
+                createSeurityRuleInstance(Direction.IN),
+                createSeurityRuleInstance(Direction.OUT) 
+        };
+        return Arrays.asList(instances);
     }
 
-	private String getSecurityGroupInfo() {
-		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
-				"<SECURITY_GROUP>\n" + 
-				"   <ID>100</ID>\n" + 
-				"   <UID>0</UID>\n" + 
-				"   <GID>0</GID>\n" + 
-				"   <UNAME>oneadmin</UNAME>\n" + 
-				"   <GNAME>oneadmin</GNAME>\n" + 
-				"   <NAME>TestSecurityRule</NAME>\n" + 
-				"   <PERMISSIONS>\n" + 
-				"      <OWNER_U>1</OWNER_U>\n" + 
-				"      <OWNER_M>1</OWNER_M>\n" + 
-				"      <OWNER_A>0</OWNER_A>\n" + 
-				"      <GROUP_U>0</GROUP_U>\n" + 
-				"      <GROUP_M>0</GROUP_M>\n" + 
-				"      <GROUP_A>0</GROUP_A>\n" + 
-				"      <OTHER_U>0</OTHER_U>\n" + 
-				"      <OTHER_M>0</OTHER_M>\n" + 
-				"      <OTHER_A>0</OTHER_A>\n" + 
-				"   </PERMISSIONS>\n" + 
-				"   <UPDATED_VMS />\n" + 
-				"   <OUTDATED_VMS />\n" + 
-				"   <UPDATING_VMS />\n" + 
-				"   <ERROR_VMS />\n" + 
-				"   <TEMPLATE>\n" + 
-				"      <DESCRIPTION />\n" + 
-				"      <RULE>\n" + 
-				"         <IP><![CDATA[10.10.10.0]]></IP>\n" + 
-				"         <PROTOCOL><![CDATA[TCP]]></PROTOCOL>\n" + 
-				"         <RANGE><![CDATA[1:65536]]></RANGE>\n" + 
-				"         <RULE_TYPE><![CDATA[inbound]]></RULE_TYPE>\n" + 
-				"         <SIZE><![CDATA[256]]></SIZE>\n" + 
-				"      </RULE>\n" + 
-				"      <RULE>\n" + 
-				"         <NETWORK_ID><![CDATA[4]]></NETWORK_ID>\n" + 
-				"         <PROTOCOL><![CDATA[TCP]]></PROTOCOL>\n" + 
-				"         <RULE_TYPE><![CDATA[inbound]]></RULE_TYPE>\n" + 
-				"      </RULE>\n" + 
-				"   </TEMPLATE>\n" + 
-				"</SECURITY_GROUP>";
-		
-		return xml;
-	}
-    
-	private SecurityGroupTemplate createSecurityGroupTemplate(String id, String name, List<Rule> rules) {
-        SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
-        securityGroupTemplate.setId(id);
-        securityGroupTemplate.setName(name);
-        securityGroupTemplate.setRules(rules);
-        return  securityGroupTemplate;
+    private SecurityRuleInstance createSeurityRuleInstance(Direction direction) {
+        String id = defineSecurityRuleId(direction);
+        int portFrom = OpenNebulaSecurityRulePlugin.MINIMUM_RANGE_PORT;
+        int portTo = OpenNebulaSecurityRulePlugin.MAXIMUM_RANGE_PORT;
+        String cidr = CIDR_FULL_ADDRESS;
+        EtherType etherType = EtherType.IPv4;
+        Protocol protocol = Protocol.ANY;
+        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
-    private Rule createSecurityRuleId(String ip, String securityGruopId) {
-        Rule rule = new Rule();
-        rule.setIp(ip);
-        rule.setSecurityGroupId(securityGruopId);
-        rule.setType(null);
-        rule.setRange(null);
-        rule.setNetworkId(null);
-        rule.setProtocol(null);
-        rule.setSize(null);
+    private Rule buildRule() {
+        Rule rule = Rule.builder()
+                .protocol(SecurityRuleUtil.TCP_TEMPLATE_VALUE)
+                .ip(CIDR_IP_ADDRESS)
+                .size(CIDR_SIZE_VALUE)
+                .range(RANGE_PORTS_VALUE)
+                .type(SecurityRuleUtil.INBOUND_TEMPLATE_VALUE)
+                .groupId(TestUtils.FAKE_SECURITY_GROUP_ID)
+                .build();
+        
         return rule;
     }
-	
-	private SecurityRule createSecurityRule() {
-		SecurityRule securityRule = new SecurityRule();
-		securityRule.setCidr(FAKE_CIDR);
-		securityRule.setDirection(SecurityRule.Direction.IN);
-		securityRule.setEtherType(SecurityRule.EtherType.IPv4);
-		securityRule.setPortFrom(1);
-		securityRule.setPortTo(65536);
-		securityRule.setProtocol(SecurityRule.Protocol.TCP);
-		return securityRule;
-	}
-
-    private CloudUser createCloudUser() {
-		String userId = FAKE_USER_ID;
-		String userName = FAKE_USER_NAME;
-		String tokenValue = FAKE_TOKEN_VALUE;
-
-		return new CloudUser(userId, userName, tokenValue);
-	}
+    
+    private SecurityGroup getSecurityGroupMocked(Order majorOrder) throws FogbowException {
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.doReturn(securityGroup).when(this.plugin).getSecurityGroup(Mockito.eq(this.client),
+                Mockito.eq(majorOrder));
+        
+        Mockito.when(securityGroup.getId()).thenReturn(TestUtils.FAKE_SECURITY_GROUP_ID);
+        Mockito.when(securityGroup.getName()).thenReturn(SystemConstants.PN_SECURITY_GROUP_PREFIX + TestUtils.FAKE_ORDER_ID);
+        
+        return securityGroup;
+    }
+    
+    private Order createMajorOrder(ResourceType resourceType) {
+        Order majorOrder = null;
+        switch (resourceType) {
+        case NETWORK:
+            majorOrder = this.testUtils.createLocalNetworkOrder();
+            majorOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+            break;
+        case PUBLIC_IP:
+            majorOrder = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
+            majorOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        default:
+            break;
+        }
+        return majorOrder;
+    }
+    
+    private SecurityRule createSecurityRule(Direction direction) {
+        Protocol protocol = Protocol.ANY;
+        EtherType etherType = EtherType.IPv4;
+        int portFrom = OpenNebulaSecurityRulePlugin.MINIMUM_RANGE_PORT;
+        int portTo = OpenNebulaSecurityRulePlugin.MAXIMUM_RANGE_PORT;
+        String cidr = CIDR_FULL_ADDRESS;
+        return new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+    
 }

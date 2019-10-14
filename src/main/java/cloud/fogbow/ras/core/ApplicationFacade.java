@@ -5,7 +5,6 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
-import cloud.fogbow.ras.api.parameters.Volume;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.as.core.util.AuthenticationUtil;
@@ -467,10 +466,6 @@ public class ApplicationFacade {
             networkOrders.add((NetworkOrder) networkOrder);
         }
         return networkOrders;
-    }
-
-    private String getRandomUUID() {
-        return UUID.randomUUID().toString();
     }
 
     // used for testing only

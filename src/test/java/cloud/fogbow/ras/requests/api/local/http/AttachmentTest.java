@@ -156,7 +156,7 @@ public class AttachmentTest extends BaseUnitTests {
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         // verify
-        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        int expectedStatus = HttpStatus.BAD_REQUEST.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1))
                 .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
