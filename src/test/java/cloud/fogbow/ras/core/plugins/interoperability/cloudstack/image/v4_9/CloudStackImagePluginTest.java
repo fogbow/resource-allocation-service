@@ -1,15 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -26,10 +27,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.*;
-
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest.EXECUTABLE_TEMPLATES_VALUE;
-import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest.TEMPLATE_FILTER_KEY;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackUrlUtil.class})
@@ -72,10 +73,10 @@ public class CloudStackImagePluginTest {
     public void testGettingAllTemplates() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
-        String command = GetAllImagesRequest.LIST_TEMPLATES_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command,
-                RESPONSE_KEY, JSON,
-                TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE);
+        String command = CloudStackConstants.Image.LIST_TEMPLATES_COMMAND;
+        String expectedRequestUrl = generateExpectedUrl(endpoint, command, RESPONSE_KEY, JSON,
+                CloudStackConstants.Image.TEMPLATE_FILTER_KEY_JSON,
+                CloudStackConstants.Image.EXECUTABLE_TEMPLATES_VALUE);
 
         List<TemplateResponse> responses = new ArrayList<TemplateResponse>();
         responses.add(new TemplateResponse().id(FAKE_ID).name(FAKE_NAME).size(FAKE_SIZE));
@@ -105,11 +106,12 @@ public class CloudStackImagePluginTest {
     public void testGettingExistingTemplate() throws FogbowException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
-        String command = GetAllImagesRequest.LIST_TEMPLATES_COMMAND;
+        String command = CloudStackConstants.Image.LIST_TEMPLATES_COMMAND;
         String expectedRequestUrl = generateExpectedUrl(endpoint, command,
                 RESPONSE_KEY, JSON,
-                TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE,
-                GetAllImagesRequest.ID_KEY, FAKE_ID);
+                CloudStackConstants.Image.TEMPLATE_FILTER_KEY_JSON,
+                CloudStackConstants.Image.EXECUTABLE_TEMPLATES_VALUE,
+                CloudStackConstants.Image.ID_KEY_JSON, FAKE_ID);
 
         List<TemplateResponse> responses = new ArrayList<>();
         responses.add(new TemplateResponse().id(FAKE_ID).name(FAKE_NAME).size(FAKE_SIZE));
