@@ -16,10 +16,10 @@ public class CloudStackCloudUtilsTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-    // test case: When calling the doGet method with a right parameter,
+    // test case: When calling the doRequest method with a right parameter,
     // it must verify if It returns the subnetInfo expected.
     @Test
-    public void testDoGetSuccessfully() throws FogbowException, HttpResponseException {
+    public void testDoRequestSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         String responseExpected = "responseExpected";
         String url = "";
@@ -30,7 +30,7 @@ public class CloudStackCloudUtilsTest {
                 thenReturn(responseExpected);
 
         // exercise
-        String response = CloudStackCloudUtils.doGet(client, url, cloudStackUser);
+        String response = CloudStackCloudUtils.doRequest(client, url, cloudStackUser);
 
         // verify
         Assert.assertEquals(responseExpected, response);
@@ -41,7 +41,7 @@ public class CloudStackCloudUtilsTest {
     // test case: When calling the doRequest method and
     // it occurs an HttpResponseException, it must verify if It returns a HttpResponseException.
     @Test
-    public void testDoGetFail() throws FogbowException, HttpResponseException {
+    public void testDoRequestFail() throws FogbowException, HttpResponseException {
         // set up
         String url = "";
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
@@ -49,17 +49,18 @@ public class CloudStackCloudUtilsTest {
         Mockito.when(client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser))).
                 thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
+        // verify
         this.expectedException.expect(HttpResponseException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
         // exercise
-        CloudStackCloudUtils.doGet(client, url, cloudStackUser);
+        CloudStackCloudUtils.doRequest(client, url, cloudStackUser);
     }
 
     // test case: When calling the doRequest method and
     // it occurs an FogbowException, it must verify if It returns a HttpResponseException.
     @Test
-    public void testDoGetFailWhenThrowFogbowException() throws FogbowException, HttpResponseException {
+    public void testDoRequestFailWhenThrowFogbowException() throws FogbowException, HttpResponseException {
         // set up
         String url = "";
         String errorMessage = "error";
@@ -68,11 +69,12 @@ public class CloudStackCloudUtilsTest {
         Mockito.when(client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser))).
                 thenThrow(new FogbowException(errorMessage));
 
+        // verify
         this.expectedException.expect(HttpResponseException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise
-        CloudStackCloudUtils.doGet(client, url, cloudStackUser);
+        CloudStackCloudUtils.doRequest(client, url, cloudStackUser);
     }
 
 }
