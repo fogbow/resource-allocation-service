@@ -114,7 +114,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            CloudStackCloudUtils.doGet(this.client, uriRequest.toString(), cloudStackUser);
+            CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
@@ -130,7 +130,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = CloudStackCloudUtils.doGet(
+            String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
 
             GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
@@ -150,7 +150,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = CloudStackCloudUtils.doGet(
+            String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
             return response.getId();
