@@ -210,7 +210,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         String resposeStr = "anything";
-        PowerMockito.when(CloudStackCloudUtils.doGet(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
                 thenReturn(resposeStr);
@@ -240,7 +240,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder().build("");
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
                 thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
@@ -437,7 +437,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         String resposenStr = "anyString";
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.any(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(
                 CloudStackHttpClient.class), Mockito.anyString(), Mockito.eq(this.cloudStackUser)))
                 .thenReturn(resposenStr);
 
@@ -463,7 +463,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         DetachVolumeRequest request = new DetachVolumeRequest.Builder().build("");
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.any(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(
                 CloudStackHttpClient.class), Mockito.anyString(), Mockito.eq(this.cloudStackUser)))
                 .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
@@ -485,7 +485,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         String responseStr = "anyString";
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.any(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(
                 CloudStackHttpClient.class), Mockito.anyString(), Mockito.eq(this.cloudStackUser)))
                 .thenReturn(responseStr);
 
