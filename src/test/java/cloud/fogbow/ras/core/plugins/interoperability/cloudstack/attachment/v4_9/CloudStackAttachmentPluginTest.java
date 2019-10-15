@@ -154,7 +154,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         String resposeStr = "anything";
-        PowerMockito.when(CloudStackCloudUtils.doGet(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
                 thenReturn(resposeStr);
@@ -180,7 +180,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         AttachVolumeRequest request = new AttachVolumeRequest.Builder().build("");
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
                 thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());

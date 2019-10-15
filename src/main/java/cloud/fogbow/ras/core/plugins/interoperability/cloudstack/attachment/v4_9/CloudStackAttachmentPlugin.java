@@ -116,7 +116,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = CloudStackCloudUtils.doGet(
+            String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             DetachVolumeResponse response = DetachVolumeResponse.fromJson(jsonResponse);
 
@@ -138,7 +138,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = CloudStackCloudUtils.doGet(
+            String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
             return response.getJobId();
