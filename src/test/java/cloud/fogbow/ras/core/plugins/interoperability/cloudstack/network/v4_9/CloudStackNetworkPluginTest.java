@@ -107,7 +107,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         String responseStr = "anyString";
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
         PowerMockito.mockStatic(CreateNetworkResponse.class);
         CreateNetworkResponse createNetworkResponseExpected = Mockito.mock(CreateNetworkResponse.class);
@@ -136,7 +136,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client), Mockito.eq(uriRequestExpected),
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(uriRequestExpected),
                 Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
         // exercise
@@ -252,7 +252,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         String responseStr = "anyString";
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
 
         GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
@@ -279,7 +279,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String uriRequestExpected = request.getUriBuilder().toString();
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),Mockito.eq(uriRequestExpected),
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),Mockito.eq(uriRequestExpected),
                 Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
         // verify
@@ -304,7 +304,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         String responseStr = "anything";
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
 
         GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
@@ -389,7 +389,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String urlRequest = request.getUriBuilder().toString();
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client), Mockito.eq(urlRequest),
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(urlRequest),
                 Mockito.eq(cloudStackUser))).thenReturn("");
 
         // exercise
@@ -397,7 +397,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         // verify
         PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        CloudStackCloudUtils.doGet(Mockito.eq(this.client), Mockito.eq(urlRequest), Mockito.eq(cloudStackUser));
+        CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(urlRequest), Mockito.eq(cloudStackUser));
     }
 
     // test case: When calling the doDeleteInstance method with secondary methods mocked and
@@ -409,7 +409,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder().build("");
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doGet(
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
                 thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());

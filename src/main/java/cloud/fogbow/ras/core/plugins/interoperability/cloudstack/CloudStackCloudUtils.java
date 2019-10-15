@@ -23,9 +23,9 @@ public class CloudStackCloudUtils {
      * @throws HttpResponseException
      **/
     @NotNull
-    public static String doGet(@NotNull CloudStackHttpClient cloudStackHttpClient,
-                               String url,
-                               @NotNull CloudStackUser cloudStackUser) throws HttpResponseException {
+    public static String doRequest(@NotNull CloudStackHttpClient cloudStackHttpClient,
+                                   String url,
+                                   @NotNull CloudStackUser cloudStackUser) throws HttpResponseException {
 
         try {
             LOGGER.debug(String.format(
