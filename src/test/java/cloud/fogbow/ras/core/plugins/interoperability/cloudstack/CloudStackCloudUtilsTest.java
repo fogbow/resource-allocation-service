@@ -49,6 +49,7 @@ public class CloudStackCloudUtilsTest {
         Mockito.when(client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser))).
                 thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
+        // verify
         this.expectedException.expect(HttpResponseException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
@@ -68,6 +69,7 @@ public class CloudStackCloudUtilsTest {
         Mockito.when(client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser))).
                 thenThrow(new FogbowException(errorMessage));
 
+        // verify
         this.expectedException.expect(HttpResponseException.class);
         this.expectedException.expectMessage(errorMessage);
 
