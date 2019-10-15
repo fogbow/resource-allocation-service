@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -105,8 +106,9 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String uriRequestExpected = createNetworkRequest.getUriBuilder().toString();
 
         String responseStr = "anyString";
-        Mockito.when(this.client.doGetRequest(Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser)))
-                .thenReturn(responseStr);
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),
+                Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
         PowerMockito.mockStatic(CreateNetworkResponse.class);
         CreateNetworkResponse createNetworkResponseExpected = Mockito.mock(CreateNetworkResponse.class);
         String instanceIdExpected = "instanceID";
@@ -133,8 +135,9 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
-        Mockito.when(this.client.doGetRequest(Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser)))
-                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client), Mockito.eq(uriRequestExpected),
+                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
         // exercise
         this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
@@ -248,8 +251,9 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String uriRequestExpected = request.getUriBuilder().toString();
 
         String responseStr = "anyString";
-        Mockito.when(this.client.doGetRequest(Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser)))
-                .thenReturn(responseStr);
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),
+                Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
 
         GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
         PowerMockito.mockStatic(GetNetworkResponse.class);
@@ -274,8 +278,9 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         GetNetworkRequest request = new GetNetworkRequest.Builder().build("");
         String uriRequestExpected = request.getUriBuilder().toString();
 
-        Mockito.when(this.client.doGetRequest(Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser)))
-                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),Mockito.eq(uriRequestExpected),
+                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -287,8 +292,8 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
     // test case: When calling the doGetInstance method with secondary methods mocked and
     // it occurs an InstanceNotFoundException in the getNetworkInstance method,
-    // it must verify if It returns a FogbowException.
-    @Test
+    // it must verify if It returns a InstanceNotFoundException.
+    @Test(expected = InstanceNotFoundException.class)
     public void testDoGetInstanceFailWhenOccursInstanceNotFoundException()
             throws FogbowException, HttpResponseException {
 
@@ -298,17 +303,15 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String uriRequestExpected = request.getUriBuilder().toString();
 
         String responseStr = "anything";
-        Mockito.when(this.client.doGetRequest(Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser)))
-                .thenReturn(responseStr);
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client),
+                Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
 
         GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
         PowerMockito.mockStatic(GetNetworkResponse.class);
         PowerMockito.when(GetNetworkResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
 
         Mockito.doThrow(new InstanceNotFoundException()).when(this.plugin).getNetworkInstance(response);
-
-        // verify
-        this.expectedException.expect(InstanceNotFoundException.class);
 
         // exercise
         this.plugin.doGetInstance(request, cloudStackUser);
@@ -377,7 +380,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doDeleteInstance method with right parameter,
-    // it must verify if It doesn't throw a exeception.
+    // it must verify if It doesn't throw a exception.
     @Test
     public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
@@ -385,16 +388,16 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder().build("");
         String urlRequest = request.getUriBuilder().toString();
 
-        Mockito.when(this.client.doGetRequest(
-                Mockito.eq(urlRequest), Mockito.eq(cloudStackUser))).
-                thenReturn("");
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doGet(Mockito.eq(this.client), Mockito.eq(urlRequest),
+                Mockito.eq(cloudStackUser))).thenReturn("");
 
         // exercise
         this.plugin.doDeleteInstance(request, cloudStackUser);
 
         // verify
-        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).
-                doGetRequest(Mockito.eq(urlRequest), Mockito.eq(cloudStackUser));
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.doGet(Mockito.eq(this.client), Mockito.eq(urlRequest), Mockito.eq(cloudStackUser));
     }
 
     // test case: When calling the doDeleteInstance method with secondary methods mocked and
