@@ -39,7 +39,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.HashMap;
 import java.util.Properties;
 
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DetachVolumeResponse.class,
         DatabaseManager.class, AttachVolumeResponse.class, CloudStackCloudUtils.class})
 public class CloudStackAttachmentPluginTest extends BaseUnitTests {
