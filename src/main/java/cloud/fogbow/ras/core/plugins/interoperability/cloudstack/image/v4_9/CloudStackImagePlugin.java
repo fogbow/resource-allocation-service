@@ -24,6 +24,10 @@ import java.util.Properties;
 public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackImagePlugin.class);
 
+    protected static final int DEFAULT_MIN_DISK_VALUE = -1;
+    protected static final int DEFAULT_MIN_RAM_VALUE = -1;
+    protected static final String DEFAULT_STATUS_VALUE = null;
+
     private String cloudStackUrl;
     private CloudStackHttpClient client;
 
@@ -34,7 +38,9 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     }
 
     @Override
-    public List<ImageSummary> getAllImages(CloudStackUser cloudStackUser) throws FogbowException {
+    public List<ImageSummary> getAllImages(@NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
         LOGGER.info("");
 
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
@@ -56,6 +62,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         return buildImageInstance(request, cloudStackUser);
     }
 
+    @NotNull
     @VisibleForTesting
     ImageInstance buildImageInstance(@NotNull GetAllImagesRequest request,
                                      @NotNull CloudStackUser cloudStackUser) throws FogbowException {
@@ -63,14 +70,16 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         GetAllImagesResponse response = doDescribeImagesRequest(request, cloudStackUser);
         List<GetAllImagesResponse.Image> images = response.getImages();
 
-        if (images != null && images.size() > 0) {
-            GetAllImagesResponse.Image image = images.get(0);
-            return new ImageInstance(image.getId(), image.getName(), image.getSize(), -1, -1, null);
-        } else {
+        // since an id was specified, there should be no more than one network in the getNetworkResponse
+        GetAllImagesResponse.Image image = images.listIterator().next();
+        if (image == null) {
             throw new InstanceNotFoundException();
         }
+        return new ImageInstance(image.getId(), image.getName(), image.getSize(),
+                DEFAULT_MIN_DISK_VALUE, DEFAULT_MIN_RAM_VALUE, DEFAULT_STATUS_VALUE);
     }
 
+    @NotNull
     @VisibleForTesting
     List<ImageSummary> buildImagesSummary(@NotNull GetAllImagesRequest request,
                                           @NotNull CloudStackUser cloudStackUser)
@@ -94,11 +103,12 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
                                                  @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        URIBuilder uriBuilder = request.getUriBuilder();
-        CloudStackUrlUtil.sign(uriBuilder, cloudStackUser.getToken());
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = this.client.doGetRequest(uriBuilder.toString(), cloudStackUser);
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
             return GetAllImagesResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
