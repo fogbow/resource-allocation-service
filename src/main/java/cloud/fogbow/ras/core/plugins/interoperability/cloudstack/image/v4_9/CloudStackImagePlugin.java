@@ -9,6 +9,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFo
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,7 +42,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     public List<ImageSummary> getAllImages(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info("");
+        LOGGER.info(Messages.Info.REQUESTING_GET_ALL_FROM_PROVIDER);
 
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .build(this.cloudStackUrl);
@@ -53,7 +54,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     public ImageInstance getImage(String imageId, @VisibleForTesting CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info("");
+        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
 
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
