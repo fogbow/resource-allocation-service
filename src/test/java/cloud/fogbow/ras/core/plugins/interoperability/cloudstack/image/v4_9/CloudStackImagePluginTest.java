@@ -3,14 +3,20 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
-import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -18,23 +24,22 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class})
-public class CloudStackImagePluginTest {
+@PrepareForTest({CloudStackUrlUtil.class, DatabaseManager.class,
+        GetAllImagesResponse.class, CloudStackCloudUtils.class})
+public class CloudStackImagePluginTest extends BaseUnitTests {
 
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
@@ -52,52 +57,159 @@ public class CloudStackImagePluginTest {
     public static final String FAKE_NAME = "fake-name";
     public static final long FAKE_SIZE = 1000L;
 
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
+
     private CloudStackImagePlugin plugin;
     private CloudStackHttpClient client;
-    private Properties properties;
+    private CloudStackUser cloudStackUser;
+    private String cloudStackUrl;
 
     @Before
-    public void setUp() {
-        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+    public void setUp() throws UnexpectedException, InvalidParameterException {
+        String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
-        this.plugin = new CloudStackImagePlugin(cloudStackConfFilePath);
-
+        this.plugin = Mockito.spy(new CloudStackImagePlugin(cloudStackConfFilePath));
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
+
+        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
+        this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        this.testUtils.mockReadOrdersFromDataBase();
+        CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    // test case: When calling the getAllImages method with secondary methods mocked,
+    // it must verify if the buildImagesSummary is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
     @Test
-    // test case: when getting all templaes, the token should be signed and an HTTP GET request should be made
-    public void testGettingAllTemplates() throws FogbowException, HttpResponseException {
+    public void testGetAllImagesSuccessfully() throws FogbowException {
         // set up
-        String endpoint = getBaseEndpointFromCloudStackConf();
-        String command = CloudStackConstants.Image.LIST_TEMPLATES_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command, RESPONSE_KEY, JSON,
-                CloudStackConstants.Image.TEMPLATE_FILTER_KEY_JSON,
-                CloudStackConstants.Image.EXECUTABLE_TEMPLATES_VALUE);
+        List<ImageSummary> allImagesExpected = new ArrayList<>();
+        Mockito.doReturn(allImagesExpected).when(this.plugin)
+                .buildImagesSummary(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
-        List<TemplateResponse> responses = new ArrayList<TemplateResponse>();
-        responses.add(new TemplateResponse().id(FAKE_ID).name(FAKE_NAME).size(FAKE_SIZE));
-        String successfulResponse = generateSuccessfulListTemplatesResponse(responses);
-
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        Mockito.when(this.client.doGetRequest(expectedRequestUrl, FAKE_TOKEN)).thenReturn(successfulResponse);
+        GetAllImagesRequest request = new GetAllImagesRequest.Builder()
+                .build(this.cloudStackUrl);
 
         // exercise
-        List<ImageSummary> retrievedImages = this.plugin.getAllImages(FAKE_TOKEN);
-
-        Assert.assertTrue(retrievedImages.get(0).getName().equals(FAKE_NAME));
-        Assert.assertTrue(retrievedImages.get(0).getId().equals(FAKE_ID));
+        List<ImageSummary> allImages = this.plugin.getAllImages(this.cloudStackUser);
 
         // verify
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+        Assert.assertEquals(allImagesExpected, allImages);
+        RequestMatcher<GetAllImagesRequest> matcher = new RequestMatcher.GetAllImages(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .buildImagesSummary(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+    }
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
+    // test case: When calling the getAllImages method and occurs an FogbowException,
+    // it must verify if It returns an FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testGetAllImagesFail() throws FogbowException {
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .buildImagesSummary(Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.getAllImages(this.cloudStackUser);
+    }
+
+    // test case: When calling the buildImagesSummary method with secondary methods mocked,
+    // it must verify if It returns the list of image summaries.
+    @Test
+    public void testBuildImagesSummarySuccessfully() throws FogbowException {
+        // set up
+        GetAllImagesRequest request = Mockito.mock(GetAllImagesRequest.class);
+        String idOneExpected = "one";
+        String nameOneExpected = "nameOne";
+        String idTwoExpected = "two";
+        String nameTwoExpected = "nametwo";
+
+        GetAllImagesResponse.Image imageMockedOne = Mockito.mock(GetAllImagesResponse.Image.class);
+        Mockito.when(imageMockedOne.getId()).thenReturn(idOneExpected);
+        Mockito.when(imageMockedOne.getName()).thenReturn(nameOneExpected);
+
+        GetAllImagesResponse.Image imageMockedTwo = Mockito.mock(GetAllImagesResponse.Image.class);
+        Mockito.when(imageMockedTwo.getId()).thenReturn(idTwoExpected);
+        Mockito.when(imageMockedTwo.getName()).thenReturn(nameTwoExpected);
+
+        GetAllImagesResponse response = Mockito.mock(GetAllImagesResponse.class);
+        List<GetAllImagesResponse.Image> imagesSummaryExpected = new ArrayList<>();
+        imagesSummaryExpected.add(imageMockedOne);
+        imagesSummaryExpected.add(imageMockedTwo);
+        Mockito.when(response.getImages()).thenReturn(imagesSummaryExpected);
+        Mockito.doReturn(response).when(this.plugin).doDescribeImagesRequest(
+                Mockito.eq(request), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        List<ImageSummary> imagesSummary = this.plugin.buildImagesSummary(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(imagesSummaryExpected.size(), imagesSummary.size());
+        ImageSummary firstImageSummary = imagesSummary.get(0);
+        Assert.assertEquals(idOneExpected, firstImageSummary.getId());
+        Assert.assertEquals(nameOneExpected, firstImageSummary.getName());
+        ImageSummary secondImageSummary = imagesSummary.get(1);
+        Assert.assertEquals(idTwoExpected, secondImageSummary.getId());
+        Assert.assertEquals(nameTwoExpected, secondImageSummary.getName());
+    }
+
+    // test case: When calling the buildImagesSummary method and occurs an FogbowException,
+    // it must verify if It returns an FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testBuildImagesSummaryFail() throws FogbowException {
+        // set up
+        GetAllImagesRequest request = Mockito.mock(GetAllImagesRequest.class);
+        Mockito.doThrow(new FogbowException()).when(this.plugin).doDescribeImagesRequest(
+                Mockito.eq(request), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.buildImagesSummary(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the doDescribeImagesRequest method with secondary methods mocked,
+    // it must verify if It returns the right GetAllImagesResponse.
+    @Test
+    public void testDoDescribeImagesRequestSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        GetAllImagesRequest request = new GetAllImagesRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        String responseStr = "anything";
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenReturn(responseStr);
+
+        PowerMockito.mockStatic(GetAllImagesResponse.class);
+        GetAllImagesResponse responseExpected = Mockito.mock(GetAllImagesResponse.class);
+        PowerMockito.when(GetAllImagesResponse.fromJson(responseStr)).thenReturn(responseExpected);
+
+        // exercise
+        GetAllImagesResponse response = this.plugin.doDescribeImagesRequest(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(responseExpected, response);
+    }
+
+    // test case: When calling the doDescribeImagesRequest method with secondary methods mocked and
+    // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
+    @Test
+    public void testDoDescribeImagesRequestFail() throws FogbowException, HttpResponseException {
+        // set up
+        GetAllImagesRequest request = new GetAllImagesRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doDescribeImagesRequest(request, this.cloudStackUser);
     }
 
     @Test
@@ -105,7 +217,7 @@ public class CloudStackImagePluginTest {
     // the returned image attributes should match with the ones provided by the cloud
     public void testGettingExistingTemplate() throws FogbowException, HttpResponseException {
         // set up
-        String endpoint = getBaseEndpointFromCloudStackConf();
+        String endpoint = this.cloudStackUrl;
         String command = CloudStackConstants.Image.LIST_TEMPLATES_COMMAND;
         String expectedRequestUrl = generateExpectedUrl(endpoint, command,
                 RESPONSE_KEY, JSON,
@@ -191,10 +303,6 @@ public class CloudStackImagePluginTest {
         root.put("listtemplatesresponse", listTemplatesResponse);
 
         return root.toString(4);
-    }
-
-    private String getBaseEndpointFromCloudStackConf() {
-        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
     private static class TemplateResponse {
