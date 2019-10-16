@@ -69,12 +69,12 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
 
         GetAllImagesResponse response = doDescribeImagesRequest(request, cloudStackUser);
         List<GetAllImagesResponse.Image> images = response.getImages();
+        if (images.isEmpty()) {
+            throw new InstanceNotFoundException();
+        }
 
         // since an id was specified, there should be no more than one network in the getNetworkResponse
         GetAllImagesResponse.Image image = images.listIterator().next();
-        if (image == null) {
-            throw new InstanceNotFoundException();
-        }
         return new ImageInstance(image.getId(), image.getName(), image.getSize(),
                 DEFAULT_MIN_DISK_VALUE, DEFAULT_MIN_RAM_VALUE, DEFAULT_STATUS_VALUE);
     }
