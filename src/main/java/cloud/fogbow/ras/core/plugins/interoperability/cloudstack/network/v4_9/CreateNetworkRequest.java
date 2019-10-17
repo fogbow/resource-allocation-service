@@ -3,28 +3,21 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.*;
+
 public class CreateNetworkRequest extends CloudStackRequest {
-    public static final String CREATE_NETWORK_COMMAND = "createNetwork";
-    public static final String NAME_KEY = "name";
-    public static final String NETWORK_OFFERING_ID_KEY = "networkofferingid";
-    public static final String ZONE_ID_KEY = "zoneid";
-    public static final String STARTING_IP_KEY = "startip";
-    public static final String ENDING_IP_KEY = "endip";
-    public static final String GATEWAY_KEY = "gateway";
-    public static final String NETMASK_KEY = "netmask";
-    public static final String DISPLAY_TEXT_KEY = "displaytext";
 
     private CreateNetworkRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
 
-        addParameter(NAME_KEY, builder.name);
-        addParameter(DISPLAY_TEXT_KEY, builder.displayText);
-        addParameter(NETWORK_OFFERING_ID_KEY, builder.networkOfferingId);
-        addParameter(ZONE_ID_KEY, builder.zoneId);
-        addParameter(STARTING_IP_KEY, builder.startIp);
-        addParameter(ENDING_IP_KEY, builder.endingIp);
-        addParameter(GATEWAY_KEY, builder.gateway);
-        addParameter(NETMASK_KEY, builder.netmask);
+        addParameter(NAME_KEY_JSON, builder.name);
+        addParameter(DISPLAY_TEXT_KEY_JSON, builder.displayText);
+        addParameter(NETWORK_OFFERING_ID_KEY_JSON, builder.networkOfferingId);
+        addParameter(ZONE_ID_KEY_JSON, builder.zoneId);
+        addParameter(STARTING_IP_KEY_JSON, builder.startIp);
+        addParameter(ENDING_IP_KEY_JSON, builder.endingIp);
+        addParameter(GATEWAY_KEY_JSON, builder.gateway);
+        addParameter(NETMASK_KEY_JSON, builder.netmask);
     }
 
     @Override

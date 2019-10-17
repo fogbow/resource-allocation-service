@@ -8,42 +8,39 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
-    public static final String NETWORK_OFFERING_ID = "network_offering_id";
-    public static final String ZONE_ID = "zone_id";
-    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
-
-    protected String networkOfferingId = null;
-    protected String zoneId = null;
-    protected String cloudStackUrl;
-
     private CloudStackHttpClient client;
     private Properties properties;
+    private String networkOfferingId;
+    private String cloudStackUrl;
+    private String zoneId;
 
     public CloudStackNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
-
-        this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
-        this.zoneId = properties.getProperty(ZONE_ID);
+        this.cloudStackUrl = this.properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.networkOfferingId = properties.getProperty(CloudStackCloudUtils.NETWORK_OFFERING_ID_CONFIG);
+        this.zoneId = properties.getProperty(CloudStackCloudUtils.ZONE_ID_CONFIG);
         this.client = new CloudStackHttpClient();
     }
 
@@ -58,12 +55,11 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
-        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
-        if (subnetInfo == null) {
-            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, networkOrder.getCidr()));
-        }
+    public String requestInstance(@NotNull NetworkOrder networkOrder,
+                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         String name = networkOrder.getName();
         String startingIp = subnetInfo.getLowAddress();
         String endingIp = subnetInfo.getHighAddress();
@@ -80,73 +76,112 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
-        return response.getId();
+        return doRequestInstance(request, cloudStackUser);
     }
 
     @Override
-    public NetworkInstance getInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
-        GetNetworkRequest request = new GetNetworkRequest.Builder()
+    public NetworkInstance getInstance(@NotNull NetworkOrder networkOrder,
+                                       @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
+        GetNetworkRequest getNetworkRequest = new GetNetworkRequest.Builder()
                 .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
-        List<GetNetworkResponse.Network> networks = response.getNetworks();
-
-        if (networks != null && networks.size() > 0) {
-            // since an id was specified, there should be no more than one network in the response
-            return getNetworkInstance(networks.get(0));
-        } else {
-            throw new InstanceNotFoundException();
-        }
+        return doGetInstance(getNetworkRequest, cloudStackUser);
     }
 
     @Override
-    public void deleteInstance(NetworkOrder networkOrder, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteInstance(@NotNull NetworkOrder networkOrder,
+                               @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkOrder.getInstanceId())
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        doDeleteInstance(request, cloudStackUser);
+    }
+
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull DeleteNetworkRequest request,
+                          @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
-    private String generateRandomNetworkName() {
-        return "fogbow_network_" + UUID.randomUUID();
+    @NotNull
+    @VisibleForTesting
+    NetworkInstance doGetInstance(@NotNull GetNetworkRequest request,
+                                  @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
+
+            GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
+            return getNetworkInstance(response);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
-    private SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) {
+    @NotNull
+    @VisibleForTesting
+    String doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
+                             @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
+            CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
+            return response.getId();
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+    }
+
+    @NotNull
+    @VisibleForTesting
+    SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) throws InvalidParameterException {
         try {
             return new SubnetUtils(cidrNotation).getInfo();
         } catch (IllegalArgumentException e) {
-            return null;
+            throw new InvalidParameterException(
+                    String.format(Messages.Exception.INVALID_CIDR, cidrNotation));
         }
     }
 
-    private NetworkInstance getNetworkInstance(GetNetworkResponse.Network network) {
+    @NotNull
+    @VisibleForTesting
+    NetworkInstance getNetworkInstance(@NotNull GetNetworkResponse response)
+            throws InstanceNotFoundException {
+
+        List<GetNetworkResponse.Network> networks = response.getNetworks();
+        if (networks.isEmpty()) {
+            throw new InstanceNotFoundException();
+        }
+        // since an id was specified, there should be no more than one network in the getNetworkResponse
+        GetNetworkResponse.Network network = response.getNetworks().listIterator().next();
+
         String state = network.getState();
         String networkId = network.getId();
         String label = network.getName();
@@ -158,7 +193,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 null, null, null);
     }
 
-    protected void setClient(CloudStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 

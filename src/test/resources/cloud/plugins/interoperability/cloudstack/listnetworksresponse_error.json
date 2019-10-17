@@ -1,0 +1,6 @@
+{
+  "listnetworksresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

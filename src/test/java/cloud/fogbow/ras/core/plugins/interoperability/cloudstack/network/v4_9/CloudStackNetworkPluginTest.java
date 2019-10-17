@@ -2,30 +2,29 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.NetworkAllocationMode;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CloudStackNetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.commons.net.util.SubnetUtils;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -33,268 +32,394 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 import java.util.Properties;
 
-
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class})
-public class CloudStackNetworkPluginTest {
+@PrepareForTest({CloudStackUrlUtil.class, CreateNetworkResponse.class, CloudStackCloudUtils.class,
+        DatabaseManager.class, GetNetworkResponse.class})
+public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
-    public static final String FAKE_ID = "fake-id";
-    public static final String FAKE_NAME = "fake-name";
-    public static final String FAKE_DOMAIN = "fake-domain";
-    public static final String FAKE_GATEWAY = "10.0.0.1";
-    public static final String FAKE_ADDRESS = "10.0.0.0/24";
-    public static final String FAKE_STATE = "ready";
-    public static final String FAKE_MEMBER = "fake-member";
-
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
-    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
-
-    public static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
-    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
-    public static final String CLOUD_NAME = "cloudstack";
-
-    public static final String JSON = "json";
-    public static final String RESPONSE_KEY = "response";
-    public static final String ID_KEY = "id";
-    public static final String NAME_KEY = "name";
-    public static final String DISPLAY_TEXT_KEY = "displaytext";
-    public static final String NETWORK_OFFERING_ID_KEY = "networkofferingid";
-    public static final String ZONE_ID_KEY = "zoneid";
-    public static final String START_IP_KEY = "startip";
-    public static final String END_IP_KEY = "endip";
-    public static final String GATEWAY_KEY = "gateway";
-    public static final String NETMASK_KEY = "netmask";
-    public static final String COMMAND_KEY = "command";
-
-    private String fakeOfferingId;
-    private String fakeZoneId;
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
 
     private CloudStackNetworkPlugin plugin;
     private CloudStackHttpClient client;
-    private Properties properties;
+    private String networkOfferingId;
+    private String zoneId;
+    private String cloudStackUrl;
 
     @Before
-    public void setUp() {
-        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-
-        this.fakeOfferingId = this.properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID);
-        this.fakeZoneId = this.properties.getProperty(CloudStackNetworkPlugin.ZONE_ID);
-        this.plugin = new CloudStackNetworkPlugin(cloudStackConfFilePath);
+    public void setUp() throws InvalidParameterException, UnexpectedException {
+        String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+        this.networkOfferingId = properties.getProperty(CloudStackCloudUtils.NETWORK_OFFERING_ID_CONFIG);
+        this.zoneId = properties.getProperty(CloudStackCloudUtils.ZONE_ID_CONFIG);
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.plugin = Mockito.spy(new CloudStackNetworkPlugin(cloudStackConfFilePath));
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
+        this.testUtils.mockReadOrdersFromDataBase();
+        CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
-    // test case: when creating a network with the required fields must return the network resource id
-    // that was created by the cloudstack cloud orchestrator
+    // test case: When calling the getSubnetInfo method with a right parameter,
+    // it must verify if It returns the subnetInfo expected.
     @Test
-    public void testSuccessfulNetworkCreation() throws FogbowException, HttpResponseException {
+    public void testGetSubnetInfoSuccessfully() throws InvalidParameterException {
         // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_ADDRESS).getInfo();
-        Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(COMMAND_KEY, CreateNetworkRequest.CREATE_NETWORK_COMMAND);
-        expectedParams.put(RESPONSE_KEY, JSON);
-        expectedParams.put(ZONE_ID_KEY, fakeZoneId);
-        expectedParams.put(NETWORK_OFFERING_ID_KEY, fakeOfferingId);
-        expectedParams.put(NAME_KEY, FAKE_NAME);
-        expectedParams.put(START_IP_KEY, subnetInfo.getLowAddress());
-        expectedParams.put(END_IP_KEY, subnetInfo.getHighAddress());
-        expectedParams.put(NETMASK_KEY, subnetInfo.getNetmask());
-        expectedParams.put(GATEWAY_KEY, FAKE_GATEWAY);
-        expectedParams.put(DISPLAY_TEXT_KEY, FAKE_NAME);
-        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, NAME_KEY, DISPLAY_TEXT_KEY);
-
-        String successfulResponse = generateSuccessfulCreateNetworkResponse(FAKE_ID);
-        Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_CLOUD_USER))).thenReturn(successfulResponse);
+        String cidrNotation = "10.10.10.0/24";
+        String lowAddressExpected = "10.10.10.1";
+        String highAddressExpected = "10.10.10.254";
 
         // exercise
-        NetworkOrder order = new NetworkOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                "default", FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
-        String createdNetworkId = this.plugin.requestInstance(order, FAKE_CLOUD_USER);
+        SubnetUtils.SubnetInfo subnetInfo = this.plugin.getSubnetInfo(cidrNotation);
 
         // verify
-        Assert.assertEquals(FAKE_ID, createdNetworkId);
-
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
-
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_CLOUD_USER));
+        Assert.assertEquals(lowAddressExpected, subnetInfo.getLowAddress());
+        Assert.assertEquals(highAddressExpected, subnetInfo.getHighAddress());
     }
 
+    // test case: When calling the getSubnetInfo method with a wrong parameter,
+    // it must verify if It returns an InvalidParameterException.
     @Test
-    // test case: when getting a network, the token should be signed and an HTTP GET request should be made
-    public void testGettingAValidNetwork() throws FogbowException, HttpResponseException {
+    public void testGetSubnetInfoFail() throws InvalidParameterException {
         // set up
-        String endpoint = getBaseEndpointFromCloudStackConf();
-        String command = GetNetworkRequest.LIST_NETWORKS_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command, RESPONSE_KEY, JSON, ID_KEY, FAKE_ID);
+        String cidrNotation = "wrong";
 
-        String successfulResponse = generateSuccessfulGetNetworkResponse(FAKE_ID, FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, FAKE_STATE);
-
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        Mockito.when(this.client.doGetRequest(expectedRequestUrl, FAKE_CLOUD_USER)).thenReturn(successfulResponse);
-
-        NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setInstanceId(FAKE_ID);
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(
+                String.format(Messages.Exception.INVALID_CIDR, cidrNotation));
 
         // exercise
-        NetworkInstance retrievedInstance = this.plugin.getInstance(networkOrder, FAKE_CLOUD_USER);
-
-        // verify
-        Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getCidr());
-        Assert.assertEquals(FAKE_GATEWAY, retrievedInstance.getGateway());
-        Assert.assertEquals(FAKE_NAME, retrievedInstance.getName());
-        Assert.assertEquals(CloudStackStateMapper.READY_STATUS, retrievedInstance.getCloudState());
-
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
-
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_CLOUD_USER);
+        this.plugin.getSubnetInfo(cidrNotation);
     }
 
-    // test case: getting a non-existing network should throw an InstanceNotFoundException
+    // test case: When calling the doRequestInstance method with secondary methods mocked,
+    // it must verify if It returns the right instanceId.
+    @Test
+    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
+        String uriRequestExpected = createNetworkRequest.getUriBuilder().toString();
+
+        String responseStr = "anyString";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
+        PowerMockito.mockStatic(CreateNetworkResponse.class);
+        CreateNetworkResponse createNetworkResponseExpected = Mockito.mock(CreateNetworkResponse.class);
+        String instanceIdExpected = "instanceID";
+        Mockito.when(createNetworkResponseExpected.getId()).thenReturn(instanceIdExpected);
+        PowerMockito.when(CreateNetworkResponse.fromJson(responseStr)).thenReturn(createNetworkResponseExpected);
+
+        // exercise
+        String instanceId = this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceIdExpected, instanceId);
+    }
+
+    // test case: When calling the doRequestInstance method with secondary methods mocked and
+    // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
+    @Test
+    public void testDoRequestInstanceFail() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
+        String uriRequestExpected = createNetworkRequest.getUriBuilder().toString();
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(uriRequestExpected),
+                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // exercise
+        this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
+    }
+
+    // test case: When calling the requestInstance method with secondary methods mocked,
+    // it must verify if the doRequestInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testRequestInstanceSuccessfully() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        String cirdExpected = "10.10.10.0/24";
+        String nameExpected = "nameExpected";
+        String gatewayExpected = "10.10.10.1";
+        Mockito.when(networkOrder.getCidr()).thenReturn(cirdExpected);
+        Mockito.when(networkOrder.getName()).thenReturn(nameExpected);
+        Mockito.when(networkOrder.getGateway()).thenReturn(gatewayExpected);
+
+        SubnetUtils.SubnetInfo subnetInfoExpected = new SubnetUtils(cirdExpected).getInfo();
+        String startingIpExpected = subnetInfoExpected.getLowAddress();
+        String endingIpExpected = subnetInfoExpected.getHighAddress();
+        String netmarkExpected = subnetInfoExpected.getNetmask();
+        Mockito.doReturn(subnetInfoExpected).when(this.plugin).getSubnetInfo(Mockito.eq(cirdExpected));
+
+        String instanceIdExpected = "instanceId";
+        Mockito.doReturn(instanceIdExpected).when(this.plugin)
+                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
+
+        CreateNetworkRequest request = new CreateNetworkRequest.Builder()
+                .name(nameExpected)
+                .displayText(nameExpected)
+                .networkOfferingId(this.networkOfferingId)
+                .zoneId(this.zoneId)
+                .startIp(startingIpExpected)
+                .endingIp(endingIpExpected)
+                .gateway(gatewayExpected)
+                .netmask(netmarkExpected)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        String instanceId = this.plugin.requestInstance(networkOrder, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceIdExpected, instanceId);
+        RequestMatcher<CreateNetworkRequest> matcher = new RequestMatcher.CreateNetwork(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+                Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
+    }
+
+    // test case: When calling the requestInstance method and occurs an InvalidParameterException
+    // in the getSubnetInfo method, it must verify if It has been ended.
+    @Test
+    public void testRequestInstanceFailWhenThrowExceptionOnGetSubnetInfo() throws FogbowException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        Mockito.doThrow(new InvalidParameterException()).when(this.plugin)
+                .getSubnetInfo(Mockito.anyString());
+
+        // verify
+        this.expectedException.expect(InvalidParameterException.class);
+
+        // exercise
+        try {
+            this.plugin.requestInstance(networkOrder, cloudStackUser);
+            Assert.fail();
+        } finally {
+            // verify
+            Mockito.verify(networkOrder, Mockito.times(TestUtils.NEVER_RUN)).getName();
+        }
+    }
+
+    // test case: When calling the getInstance method with secondary methods mocked,
+    // it must verify if the doGetInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testGetInstanceSuccessfully() throws FogbowException {
+        // set up
+        String instanceIdExpected = "instanceId";
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceIdExpected);
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        NetworkInstance networkInstanceExpected = Mockito.mock(NetworkInstance.class);
+        Mockito.doReturn(networkInstanceExpected).when(this.plugin).doGetInstance(
+                Mockito.any(GetNetworkRequest.class), Mockito.eq(cloudStackUser));
+
+        GetNetworkRequest request = new GetNetworkRequest.Builder()
+                .id(instanceIdExpected)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        NetworkInstance networkInstance = this.plugin.getInstance(networkOrder, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(networkInstanceExpected, networkInstance);
+        RequestMatcher<GetNetworkRequest> matcher = new RequestMatcher.GetNetwork(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(
+                Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
+    }
+
+    // test case: When calling the doGetInstance method with secondary methods mocked,
+    // it must verify if It returns the right NetworkInstance.
+    @Test
+    public void testDoGetInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        GetNetworkRequest request = new GetNetworkRequest.Builder().build("");
+        String uriRequestExpected = request.getUriBuilder().toString();
+
+        String responseStr = "anyString";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
+
+        GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
+        PowerMockito.mockStatic(GetNetworkResponse.class);
+        PowerMockito.when(GetNetworkResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
+
+        NetworkInstance networkInstaceExpexted = Mockito.mock(NetworkInstance.class);
+        Mockito.doReturn(networkInstaceExpexted).when(this.plugin).getNetworkInstance(Mockito.eq(response));
+
+        // exercise
+        NetworkInstance networkInstance = this.plugin.doGetInstance(request, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(networkInstaceExpexted, networkInstance);
+    }
+
+    // test case: When calling the doGetInstance method with secondary methods mocked and
+    // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
+    @Test
+    public void testDoGetInstanceFail() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        GetNetworkRequest request = new GetNetworkRequest.Builder().build("");
+        String uriRequestExpected = request.getUriBuilder().toString();
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),Mockito.eq(uriRequestExpected),
+                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doGetInstance(request, cloudStackUser);
+    }
+
+    // test case: When calling the doGetInstance method with secondary methods mocked and
+    // it occurs an InstanceNotFoundException in the getNetworkInstance method,
+    // it must verify if It returns a InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetNonExistingNetwork() throws FogbowException, HttpResponseException {
+    public void testDoGetInstanceFailWhenOccursInstanceNotFoundException()
+            throws FogbowException, HttpResponseException {
+
         // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        GetNetworkRequest request = new GetNetworkRequest.Builder().build("");
+        String uriRequestExpected = request.getUriBuilder().toString();
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(uriRequestExpected), Mockito.eq(cloudStackUser))).thenReturn(responseStr);
 
-        NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setInstanceId(FAKE_ID);
+        GetNetworkResponse response = Mockito.mock(GetNetworkResponse.class);
+        PowerMockito.mockStatic(GetNetworkResponse.class);
+        PowerMockito.when(GetNetworkResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
 
-        try {
-            // exercise
-            this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
-        } finally {
-            // verify
-            Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class));
-        }
-    }
-
-    // test case: when deleting a network, the token should be signed and an HTTP GET request should be made
-    @Test
-    public void testDeleteNetworkSignsTokenBeforeMakingRequest() throws FogbowException, HttpResponseException {
-        // set up
-        String endpoint = getBaseEndpointFromCloudStackConf();
-        String command = DeleteNetworkRequest.DELETE_NETWORK_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command, RESPONSE_KEY, JSON, ID_KEY, FAKE_ID);
-
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setInstanceId(FAKE_ID);
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.plugin).getNetworkInstance(response);
 
         // exercise
-        this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
+        this.plugin.doGetInstance(request, cloudStackUser);
+    }
+
+    // test case: When calling the getNetworkInstance method with right parameter,
+    // it must verify if It returns the right NetworkInstance.
+    @Test
+    public void testGetNetworkInstanceSuccessfully() throws IOException, InstanceNotFoundException {
+        // set up
+        String idExpected = "idExpected";
+        String nameExpected = "nameExpected";
+        String gatewayExpected = "gatewayExpected";
+        String cirdExpected = "cirdExpected";
+        String stateExpected = "stateExpected";
+        String jsonResponse = CloudstackTestUtils.createGetNetworkResponseJson(
+                idExpected, nameExpected, gatewayExpected, cirdExpected, stateExpected);
+        GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
+
+        // exercise
+        NetworkInstance networkInstance = this.plugin.getNetworkInstance(response);
 
         // verify
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
-
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_CLOUD_USER);
+        Assert.assertEquals(idExpected, networkInstance.getId());
+        Assert.assertEquals(cirdExpected, networkInstance.getCidr());
+        Assert.assertEquals(gatewayExpected, networkInstance.getGateway());
+        Assert.assertEquals(NetworkAllocationMode.DYNAMIC, networkInstance.getAllocationMode());
+        Assert.assertEquals(stateExpected, networkInstance.getCloudState());
+        Assert.assertNull(networkInstance.getvLAN());
+        Assert.assertNull(networkInstance.getMACInterface());
+        Assert.assertNull(networkInstance.getInterfaceState());
     }
 
-    // test case: an UnauthorizedRequestException should be thrown when the user tries to delete
-    // a network and was not allowed to do that
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testUnauthorizedExceptionIsThrownWhenOrchestratorForbids() throws FogbowException, HttpResponseException {
-        // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
-
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
-
-        NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setInstanceId(FAKE_ID);
-
-        try {
-            // exercise
-            this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
-        } finally {
-            // verify
-            Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class));
-        }
-    }
-
-    // test case: deleting a non-existing network should throw an InstanceNotFoundException
+    // test case: When calling the getNetworkInstance method with empty GetNetworkResponse,
+    // it must verify if It throws an InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
-    public void testDeleteNonExistingNetwork() throws FogbowException, HttpResponseException {
+    public void testGetNetworkInstanceFail() throws IOException, InstanceNotFoundException {
         // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        String jsonResponse = CloudstackTestUtils.createGetNetworkEmptyResponseJson();
+        GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class)))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
-
-        NetworkOrder networkOrder = new NetworkOrder();
-        networkOrder.setInstanceId(FAKE_ID);
-
-        try {
-            // exercise
-            this.plugin.deleteInstance(networkOrder, FAKE_CLOUD_USER);
-        } finally {
-            // verify
-            Mockito.verify(this.client, Mockito.times(1))
-                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackUser.class));
-        }
+        // exercise
+        this.plugin.getNetworkInstance(response);
     }
 
-    private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
-        if (keysAndValues.length % 2 != 0) {
-            // there should be one value for each key
-            return null;
-        }
+    // test case: When calling the deleteInstance method with secondary methods mocked,
+    // it must verify if the doDeleteInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        NetworkOrder networkOrder = this.testUtils.createLocalNetworkOrder();
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
-        String url = String.format("%s?command=%s", endpoint, command);
-        for (int i = 0; i < keysAndValues.length; i += 2) {
-            String key = keysAndValues[i];
-            String value = keysAndValues[i + 1];
-            url += String.format("&%s=%s", key, value);
-        }
+        DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
+                .id(networkOrder.getInstanceId())
+                .build(this.cloudStackUrl);
 
-        return url;
+        // exercise
+        this.plugin.deleteInstance(networkOrder, cloudStackUser);
+
+        // verify
+        RequestMatcher<DeleteNetworkRequest> matcher = new RequestMatcher.DeleteNetwork(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(
+                Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
     }
 
-    private String generateSuccessfulCreateNetworkResponse(String id) {
-        String format = "{\"createnetworkresponse\":{\"network\":{\"id\":\"%s\"}}}";
-        return String.format(format, id);
+    // test case: When calling the doDeleteInstance method with right parameter,
+    // it must verify if It doesn't throw a exception.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        DeleteNetworkRequest request = new DeleteNetworkRequest.Builder().build("");
+        String urlRequest = request.getUriBuilder().toString();
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(urlRequest),
+                Mockito.eq(cloudStackUser))).thenReturn("");
+
+        // exercise
+        this.plugin.doDeleteInstance(request, cloudStackUser);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(urlRequest), Mockito.eq(cloudStackUser));
     }
 
-    private String generateSuccessfulGetNetworkResponse(String id, String name, String gateway, String cidr, String state) {
-        String format = "{\"listnetworksresponse\":{\"count\":1" +
-                ",\"network\":[" +
-                "{\"id\":\"%s\"" +
-                ",\"name\":\"%s\"" +
-                ",\"gateway\":\"%s\"" +
-                ",\"cidr\":\"%s\"" +
-                ",\"state\":\"%s\"" +
-                "}]}}";
+    // test case: When calling the doDeleteInstance method with secondary methods mocked and
+    // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
+    @Test
+    public void testDoDeleteInstanceFail() throws FogbowException, HttpResponseException {
+        // set up
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        DeleteNetworkRequest request = new DeleteNetworkRequest.Builder().build("");
 
-        return String.format(format, id, name, gateway, cidr, state);
-    }
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
+                Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
-    private String getBaseEndpointFromCloudStackConf() {
-        return this.properties.getProperty(CLOUDSTACK_URL);
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, cloudStackUser);
     }
 
 }

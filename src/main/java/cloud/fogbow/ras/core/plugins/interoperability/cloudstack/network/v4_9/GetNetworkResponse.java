@@ -1,8 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Network.NETWORKS_KEY_JSON;
@@ -29,15 +32,20 @@ public class GetNetworkResponse {
     @SerializedName(NETWORKS_KEY_JSON)
     private ListNetworksResponse listNetworksResponse;
 
+    @NotNull
     public List<Network> getNetworks() {
         return listNetworksResponse.networks;
     }
 
-    public static GetNetworkResponse fromJson(String jsonResponse) {
-        return GsonHolder.getInstance().fromJson(jsonResponse, GetNetworkResponse.class);
+    @NotNull
+    public static GetNetworkResponse fromJson(String jsonResponse) throws HttpResponseException {
+        GetNetworkResponse getNetworkResponse =
+                GsonHolder.getInstance().fromJson(jsonResponse, GetNetworkResponse.class);
+        getNetworkResponse.listNetworksResponse.checkErrorExistence();
+        return getNetworkResponse;
     }
 
-    public class ListNetworksResponse {
+    public class ListNetworksResponse extends CloudStackErrorResponse {
         @SerializedName(NETWORK_KEY_JSON)
         private List<Network> networks;
     }

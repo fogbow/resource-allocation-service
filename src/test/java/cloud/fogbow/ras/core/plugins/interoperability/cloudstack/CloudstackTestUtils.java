@@ -1,6 +1,15 @@
-package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
+package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,20 +41,31 @@ public class CloudstackTestUtils {
     private static final String LIST_VOLUMES_RESPONSE = "listvolumesresponse.json";
     private static final String LIST_VOLUMES_EMPTY_RESPONSE = "listvolumesresponse_empty.json";
     private static final String LIST_VOLUMES_ERROR_RESPONSE = "listvolumesresponse_error.json";
+    private static final String CREATE_NETWORK_RESPONSE = "createnetworkresponse.json";
+    private static final String CREATE_NETWORK_EMPTY_RESPONSE = "createnetworkresponse_empty.json" ;
+    private static final String CREATE_NETWORK_ERROR_RESPONSE = "createnetworkresponse_error.json";
+    private static final String LIST_NETWORKS_RESPONSE = "listnetworksresponse.json";
+    private static final String LIST_NETWORKS_EMPTY_RESPONSE = "listnetworksresponse_empty.json";
+    private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
-            new CloudStackUser("", "", "", "", new HashMap<>());
+            new CloudStackUser("id", "", "", "", new HashMap<>());
 
+    public static final String BAD_REQUEST_MSG = "Bad Request";
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String CLOUDSTACK_RESOURCE_PATH = "cloud" + File.separator +
             "plugins" + File.separator + "interoperability" + File.separator +
             "cloudstack" + File.separator;
+    public static String CLOUDSTACK_CONF_FILE_PATH = HomeDir.getPath() +
+            SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator +
+            CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-    protected static final String AND_OPERATION_URL_PARAMETER = "&";
-    protected static final String CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR = ",";
+    public static final String AND_OPERATION_URL_PARAMETER = "&";
+    public static final String CLOUDSTACK_MULTIPLE_TAGS_SEPARATOR = ",";
 
-    protected static final String CLOUDSTACK_URL_DEFAULT = "http://localhost";
+    public static final String CLOUDSTACK_URL_DEFAULT = "http://localhost";
 
-    static String createGetAllServiceOfferingsResponseJson(
+    public static String createGetAllServiceOfferingsResponseJson(
             String id, String name, int cpuNumber, int memory, String tags) throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile() + LIST_SERVICE_OFFERINGS_RESPONSE);
@@ -53,7 +73,7 @@ public class CloudstackTestUtils {
         return String.format(rawJson, id, name, cpuNumber, memory, tags);
     }
 
-    static String createGetAllServiceOfferingsErrotResponseJson(int errorCode, String errorText)
+    public static String createGetAllServiceOfferingsErrotResponseJson(int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(
@@ -62,14 +82,14 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    static String createGetAllServiceOfferingsEmptyResponseJson() throws IOException {
+    public static String createGetAllServiceOfferingsEmptyResponseJson() throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + LIST_SERVICE_OFFERINGS_EMPTY_RESPONSE);
 
         return String.format(rawJson);
     }
 
-    static String createGetAllDiskOfferingsResponseJson(
+    public static String createGetAllDiskOfferingsResponseJson(
             String id, int disk, boolean customized, String tags) throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -78,7 +98,7 @@ public class CloudstackTestUtils {
         return String.format(rawJson, id, disk, customized, tags);
     }
 
-    static String createGetAllDiskOfferingsErrorResponseJson(int errorCode, String errorText)
+    public static String createGetAllDiskOfferingsErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -87,20 +107,20 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    static String createGetAllDiskOfferingsEmptyResponseJson() throws IOException {
+    public static String createGetAllDiskOfferingsEmptyResponseJson() throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + LIST_DISK_OFFERINGS_EMPTY_RESPONSE);
 
         return String.format(rawJson);
     }
 
-    static String createDeployVirtualMachineResponseJson(String id) throws IOException {
+    public static String createDeployVirtualMachineResponseJson(String id) throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile() + DEPLOY_VIRTUAL_MACHINE_RESPONSE);
 
         return String.format(rawJson, id);
     }
 
-    static String createDeployVirtualMachineErrorResponseJson(
+    public static String createDeployVirtualMachineErrorResponseJson(
             int errorCode, String errorText) throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -109,13 +129,13 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    static String createEmptyGetVolumesResponseJson() throws IOException {
+    public static String createEmptyGetVolumesResponseJson() throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_EMPTY_RESPONSE);
 
         return String.format(rawJson);
     }
 
-    static String createGetVolumesResponseJson(
+    public static String createGetVolumesResponseJson(
             String id, String name, double size, String state) throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_RESPONSE);
@@ -123,14 +143,14 @@ public class CloudstackTestUtils {
         return String.format(rawJson, id, name, size, state);
     }
 
-    static String createGetVolumesErrorResponseJson(int errorCode, String errorText) throws IOException {
+    public static String createGetVolumesErrorResponseJson(int errorCode, String errorText) throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
     }
 
-    static String createGetVirtualMachineResponseJson(
+    public static String createGetVirtualMachineResponseJson(
             String id, String name, String state, int memory,
             int cpuNumber, List<GetVirtualMachineResponse.Nic> nics) throws IOException {
 
@@ -151,14 +171,14 @@ public class CloudstackTestUtils {
         return String.format(rawJson, id, name, state, memory, cpuNumber, nicsFullStr);
     }
 
-    static String createGetVirtualMachineEmptyResponseJson() throws IOException {
+    public static String createGetVirtualMachineEmptyResponseJson() throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE);
 
         return String.format(rawJson);
     }
 
-    static String createGetVirtualMachineErrorResponseJson(
+    public static String createGetVirtualMachineErrorResponseJson(
             int errorCode, String errorText) throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
@@ -173,6 +193,54 @@ public class CloudstackTestUtils {
         return String.format(rawJson, idAddress);
     }
 
+    public static String createNetworkResponseJson(String idNetwork) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile() + CREATE_NETWORK_RESPONSE);
+
+        return String.format(rawJson, idNetwork);
+    }
+
+    public static String createCreateNetworkEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile() + CREATE_NETWORK_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
+    public static String createCreateNetworkErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_NETWORK_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createGetNetworkResponseJson(String id, String name, String gateway,
+                                                      String cird, String state)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_NETWORKS_RESPONSE);
+
+        return String.format(rawJson, id, name, gateway, cird, state);
+    }
+
+    public static String createGetNetworkEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_NETWORKS_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
+    public static String createGetNetworkErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_NETWORKS_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);
         byte[] bytes = Files.readAllBytes(path);
@@ -184,4 +252,18 @@ public class CloudstackTestUtils {
         String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
         return rootPath + CLOUDSTACK_RESOURCE_PATH;
     }
+
+    // TODO(chico) use in the cloudstack compute
+    public static void ignoringCloudStackUrl() throws InvalidParameterException {
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
+                Mockito.anyString())).thenCallRealMethod();
+    }
+
+    // TODO(chico) use in the cloudstack compute
+    public static HttpResponseException createBadRequestHttpResponse() {
+        return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
+    }
+
+
 }

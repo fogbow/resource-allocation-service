@@ -3,13 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.DELETE_NETWORK_COMMAND;
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.ID_KEY_JSON;
+
 public class DeleteNetworkRequest extends CloudStackRequest {
-    public static final String DELETE_NETWORK_COMMAND = "deleteNetwork";
-    public static final String NETWORK_ID_KEY = "id";
 
     protected DeleteNetworkRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(NETWORK_ID_KEY, builder.id);
+        addParameter(ID_KEY_JSON, builder.id);
     }
 
     @Override

@@ -1,0 +1,7 @@
+{
+  "createnetworkresponse": {
+    "network": {
+      "id": "%s"
+    }
+  }
+}

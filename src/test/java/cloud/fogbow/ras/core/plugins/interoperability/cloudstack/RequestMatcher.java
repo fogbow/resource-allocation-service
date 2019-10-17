@@ -4,6 +4,9 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DeployVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DestroyVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
 import org.mockito.ArgumentMatcher;
 
 public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher<T> {
@@ -41,6 +44,24 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
 
     public static class DestroyVirtualMachine extends RequestMatcher<DestroyVirtualMachineRequest> {
         public DestroyVirtualMachine(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class CreateNetwork extends RequestMatcher<CreateNetworkRequest> {
+        public CreateNetwork(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class DeleteNetwork extends RequestMatcher<DeleteNetworkRequest> {
+        public DeleteNetwork(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class GetNetwork extends RequestMatcher<GetNetworkRequest> {
+        public GetNetwork(CloudStackRequest cloudStackRequest) {
             super(cloudStackRequest);
         }
     }

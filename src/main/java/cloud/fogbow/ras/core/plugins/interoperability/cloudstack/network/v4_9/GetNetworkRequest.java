@@ -3,13 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.ID_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.LIST_NETWORKS_COMMAND;
+
 public class GetNetworkRequest extends CloudStackRequest {
-    public static final String LIST_NETWORKS_COMMAND = "listNetworks";
-    public static final String NETWORK_ID_KEY = "id";
 
     private GetNetworkRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(NETWORK_ID_KEY, builder.id);
+        addParameter(ID_KEY_JSON, builder.id);
     }
 
     @Override
