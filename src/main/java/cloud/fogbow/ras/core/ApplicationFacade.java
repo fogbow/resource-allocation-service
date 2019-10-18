@@ -68,7 +68,7 @@ public class ApplicationFacade {
     private String buildNumber;
 
     private ApplicationFacade() {
-        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.BUILD_NUMBER_KEY,
                 ConfigurationPropertyDefaults.BUILD_NUMBER);
     }

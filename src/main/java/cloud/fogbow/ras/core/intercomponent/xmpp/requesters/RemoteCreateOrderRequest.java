@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -33,7 +34,7 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
 
     public static IQ marshal(Order order) {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(order.getProvider());
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider());
         iq.setID(order.getId());
 
         //marshalling the order parcel of the IQ. It seems ok to not have another method to do so

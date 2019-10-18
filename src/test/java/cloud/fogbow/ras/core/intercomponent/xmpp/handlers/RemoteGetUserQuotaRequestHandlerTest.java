@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
@@ -79,7 +80,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
         // verify
-        String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
+        String expected = String.format(EXPECTED_QUOTA, iq.getID(), SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + PROVIDING_MEMBER, REQUESTING_MEMBER);
 
         Mockito.verify(this.remoteFacade, Mockito.times(1))
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
@@ -104,7 +105,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         Mockito.verify(this.remoteFacade, Mockito.times(1))
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
-        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
+        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + PROVIDING_MEMBER, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 

@@ -27,7 +27,7 @@ public class Volume implements OrderApiParameter {
 
     @Override
     public VolumeOrder getOrder() {
-        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         String defaultCloudName = (new CloudListController()).getDefaultCloudName();
         if (this.provider == null) this.provider = localProviderId;
         if (this.cloudName == null) this.cloudName = defaultCloudName;

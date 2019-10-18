@@ -15,7 +15,6 @@ public class PacketSenderHolder {
 
     public static void init() {
         if (packetSender == null) {
-            String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_JID_KEY);
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
@@ -23,7 +22,7 @@ public class PacketSenderHolder {
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_TIMEOUT_KEY,
                             ConfigurationPropertyDefaults.XMPP_TIMEOUT));
-            XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword,
+            XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppPassword,
                     xmppServerIp, xmppServerPort, xmppTimeout);
             if (xmppServerIp != null && !xmppServerIp.isEmpty()) {
                 try {

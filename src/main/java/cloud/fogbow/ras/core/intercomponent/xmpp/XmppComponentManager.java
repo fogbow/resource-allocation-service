@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.handlers.*;
 import org.apache.log4j.Logger;
 import org.jamppa.component.XMPPComponent;
@@ -7,8 +8,8 @@ import org.jamppa.component.XMPPComponent;
 public class XmppComponentManager extends XMPPComponent {
     private static Logger LOGGER = Logger.getLogger(XmppComponentManager.class);
 
-    public XmppComponentManager(String jid, String password, String xmppServerIp, int xmppServerPort, long timeout) {
-        super(jid, password, xmppServerIp, xmppServerPort, timeout);
+    public XmppComponentManager(String password, String xmppServerIp, int xmppServerPort, long timeout) {
+        super(SystemConstants.JID_SERVICE_NAME, password, xmppServerIp, xmppServerPort, timeout);
         // instantiate set handlers here
         addSetHandler(new RemoteCreateOrderRequestHandler());
         addSetHandler(new RemoteDeleteOrderRequestHandler());

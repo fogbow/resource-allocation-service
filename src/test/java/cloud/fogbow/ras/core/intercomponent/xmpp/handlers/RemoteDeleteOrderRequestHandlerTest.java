@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteDeleteOrderRequest;
@@ -77,7 +78,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         String orderId = order.getId();
-        String orderProvidingMember = order.getProvider();
+        String orderProvidingMember = SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
         String expected = String.format(IQ_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
@@ -106,7 +107,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
                 this.order.getSystemUser(), this.order.getType());
 
         String orderId = order.getId();
-        String orderProvidingMember = order.getProvider();
+        String orderProvidingMember = SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }

@@ -33,15 +33,15 @@ public class PluginInstantiatorTest {
         this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator();
     }
 
-    // test case: Tests if the key xmpp_jid in ras.conf has its value as fake-localidentity-member.
+    // test case: Tests if the key member_id in ras.conf has its value as fake-localidentity-member.
     @Test
     public void testSetUpProperties() {
         // set up
-        String expected_xmpp_jid_value = "fake-localidentity-provider";
+        String expected_provider_id_value = "fake-localidentity-provider";
 
         // verify
-        Assert.assertEquals(expected_xmpp_jid_value,
-                PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_JID_KEY));
+        Assert.assertEquals(expected_provider_id_value,
+                PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
     }
 
     // test case: Tests if getFederationToLocalMapperPlugin() returns StubSystemToCloudMapperPlugin

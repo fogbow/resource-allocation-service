@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -44,7 +45,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
     public static IQ marshal(String provider, String cloudName, SystemUser systemUser, ResourceType resourceType) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(provider);
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());

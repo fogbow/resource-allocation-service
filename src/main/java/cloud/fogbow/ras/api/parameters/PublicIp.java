@@ -14,7 +14,7 @@ public class PublicIp implements OrderApiParameter{
 
     @Override
     public PublicIpOrder getOrder() {
-        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         PublicIpOrder order = new PublicIpOrder(computeId);
         order.setRequester(localProviderId);
         return order;
