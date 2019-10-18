@@ -59,7 +59,7 @@ public class RemoteDeleteOrderRequestTest {
         IQ iq = this.iqArgumentCaptor.getValue();
 
         Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
-        Assert.assertEquals(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getProvider().toString(), iq.getTo().toString());
+        Assert.assertEquals(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getProvider().toString(), iq.getTo().toString());
         Assert.assertEquals(this.order.getId(), iq.getID().toString());
 
         Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());

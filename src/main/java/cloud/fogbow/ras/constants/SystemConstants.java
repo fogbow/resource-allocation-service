@@ -20,6 +20,7 @@ public class SystemConstants {
     public static final String DEFAULT_NETWORK_NAME = "default";
 
     // SERVICE XMPP NAME
-    public static final String JID_SERVICE_NAME = "ras";
-    public static final String XMPP_SERVER_NAME_PREFIX = "xmpp-";
+    public static final String JID_SERVICE_NAME = "";
+    public static final String XMPP_SERVER_NAME_PREFIX = "ras-";
+    public static final String JID_CONNECTOR = "";
 }

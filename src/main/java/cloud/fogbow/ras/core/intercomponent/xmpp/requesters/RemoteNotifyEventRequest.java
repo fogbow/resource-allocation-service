@@ -34,7 +34,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     public static IQ marshall(Order order, OrderState newState) {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getRequester());
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getRequester());
         iq.setID(order.getId());
 
         //marshall order parcel

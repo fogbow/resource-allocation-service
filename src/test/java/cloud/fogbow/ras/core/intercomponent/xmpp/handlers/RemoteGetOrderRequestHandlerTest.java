@@ -89,7 +89,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
         String iqId = iq.getID();
         String providingMember = order.getProvider();
-        String expected = String.format(IQ_RESULT, iqId, SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + providingMember, REQUESTING_MEMBER);
+        String expected = String.format(IQ_RESULT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
 
@@ -120,7 +120,7 @@ public class RemoteGetOrderRequestHandlerTest {
                 Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
-        String providingMember = SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
+        String providingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT, iqId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

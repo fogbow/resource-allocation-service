@@ -39,7 +39,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
     public static IQ marshal(Order order) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider());
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider());
 
         //user
         Element userElement = iq.getElement().addElement(IqElement.SYSTEM_USER.toString());

@@ -34,7 +34,7 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
 
     public static IQ marshal(Order order) {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider());
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider());
         iq.setID(order.getId());
 
         //marshalling the order parcel of the IQ. It seems ok to not have another method to do so

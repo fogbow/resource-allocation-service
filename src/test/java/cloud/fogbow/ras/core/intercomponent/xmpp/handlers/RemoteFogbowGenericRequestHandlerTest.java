@@ -88,7 +88,7 @@ public class RemoteFogbowGenericRequestHandlerTest {
         // verify
         String iqId = iq.getID();
         String genericRequestResponseAsJson = GsonHolder.getInstance().toJson(fogbowGenericResponse);
-        String expected = String.format(IQ_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER, genericRequestResponseAsJson);
+        String expected = String.format(IQ_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER, genericRequestResponseAsJson);
         Assert.assertEquals(expected, result.toString());
     }
 }

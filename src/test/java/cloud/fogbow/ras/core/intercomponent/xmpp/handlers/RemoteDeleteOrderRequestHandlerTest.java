@@ -78,7 +78,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         String orderId = order.getId();
-        String orderProvidingMember = SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
+        String orderProvidingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
         String expected = String.format(IQ_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
@@ -107,7 +107,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
                 this.order.getSystemUser(), this.order.getType());
 
         String orderId = order.getId();
-        String orderProvidingMember = SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
+        String orderProvidingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }

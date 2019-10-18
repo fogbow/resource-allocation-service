@@ -89,7 +89,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
 
         // verify
         String iqId = iq.getID();
-        String expected = String.format(IQ_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER,
+        String expected = String.format(IQ_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER,
                 IMAGE_NAME.concat("1"), IMAGE_NAME.concat("2"));
         Assert.assertEquals(expected, result.toString());
     }
@@ -113,7 +113,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
                 getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.any(SystemUser.class));
 
         String iqId = iq.getID();
-        String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER);
+        String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 }

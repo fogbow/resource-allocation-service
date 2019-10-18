@@ -40,7 +40,7 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
 
     public static IQ marshal(String provider, SystemUser systemUser) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_CLOUD_NAMES.toString());

@@ -45,7 +45,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
     public static IQ marshal(String provider, String cloudName, SystemUser systemUser, ResourceType resourceType) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());

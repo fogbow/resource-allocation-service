@@ -44,7 +44,7 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
 
     private IQ marshal() {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(SystemConstants.JID_SERVICE_NAME + "@" + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_CREATE_SECURITY_RULE.toString());
