@@ -114,7 +114,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 		Order order = spyComputeOrder(systemUser, cloudName, requester);
 
 		RasOperation operation = new RasOperation(
@@ -161,7 +161,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 		Order order = spyComputeOrder(systemUser, cloudName, requester);
 		this.orderController.activateOrder(order);
 
@@ -215,7 +215,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	@Test
 	public void testRemoteDeleteOrderSuccessfully() throws Exception {
 		// set up
-		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
@@ -431,7 +431,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 		Order order = spyComputeOrder(systemUser, cloudName, requester);
 		this.orderController.activateOrder(order);
 
@@ -470,7 +470,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 		Order order = spyComputeOrder(systemUser, cloudName, requester);
 		this.orderController.activateOrder(order);
 
@@ -688,7 +688,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private Order spyComputeOrder(SystemUser systemUser, String cloudName, String provider) {
-    	String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+    	String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 		Order order = Mockito.spy(new ComputeOrder());
 		order.setSystemUser(systemUser);
 		order.setRequester(localMemberId);

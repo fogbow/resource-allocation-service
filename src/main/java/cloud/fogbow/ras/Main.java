@@ -40,7 +40,7 @@ public class Main implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         try {
             // Getting the name of the local provider
-            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);

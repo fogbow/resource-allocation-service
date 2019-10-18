@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -38,7 +39,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
     public static IQ marshal(Order order) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(order.getProvider());
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider());
 
         //user
         Element userElement = iq.getElement().addElement(IqElement.SYSTEM_USER.toString());

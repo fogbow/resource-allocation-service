@@ -30,7 +30,7 @@ public class OrderController {
     public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
         this.orderDependencies = new ConcurrentHashMap<>();
-        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {

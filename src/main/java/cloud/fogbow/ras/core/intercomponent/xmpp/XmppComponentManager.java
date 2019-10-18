@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.handlers.*;
 import org.apache.log4j.Logger;
 import org.jamppa.component.XMPPComponent;

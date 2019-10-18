@@ -91,7 +91,7 @@ public class TestUtils {
     public static final String ICMP_PROTOCOL = "icmp";
     public static final String GET_SUBNET_BY_ID_METHOD = "getSubnetById";
     public static final String JSON_MALFORMED = "{anything:}";
-    public static final String LOCAL_MEMBER_ID = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+    public static final String LOCAL_MEMBER_ID = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
     public static final String MAP_METHOD = "map";
     public static final String MESSAGE_STATUS_CODE = "Internal server error.";
 

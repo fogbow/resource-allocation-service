@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetOrderRequest;
@@ -88,7 +89,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
         String iqId = iq.getID();
         String providingMember = order.getProvider();
-        String expected = String.format(IQ_RESULT, iqId, providingMember, REQUESTING_MEMBER);
+        String expected = String.format(IQ_RESULT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
 
@@ -119,7 +120,7 @@ public class RemoteGetOrderRequestHandlerTest {
                 Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
-        String providingMember = order.getProvider();
+        String providingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT, iqId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

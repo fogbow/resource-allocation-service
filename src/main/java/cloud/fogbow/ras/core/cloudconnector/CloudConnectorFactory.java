@@ -9,7 +9,7 @@ public class CloudConnectorFactory {
     private String localProviderId;
 
     private CloudConnectorFactory() {
-        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
     }
 
     public static synchronized CloudConnectorFactory getInstance() {
