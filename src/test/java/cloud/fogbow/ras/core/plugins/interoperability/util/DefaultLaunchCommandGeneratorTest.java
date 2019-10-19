@@ -31,7 +31,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
-        this.properties.setProperty(ConfigurationPropertyKeys.XMPP_JID_KEY, "localidentity-member");
+        this.properties.setProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY, "localidentity-member");
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 
     }
@@ -166,9 +166,9 @@ public class DefaultLaunchCommandGeneratorTest {
         SystemUser systemUser = Mockito.mock(SystemUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
         String publicKey = "fake-public-key";
         String instanceName = "fake-instance-name";
 
@@ -192,9 +192,9 @@ public class DefaultLaunchCommandGeneratorTest {
         SystemUser systemUser = Mockito.mock(SystemUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
         String publicKey = "fake-public-key";
         String instanceName = "fake-instance-name";
 
@@ -218,9 +218,9 @@ public class DefaultLaunchCommandGeneratorTest {
         SystemUser systemUser = Mockito.mock(SystemUser.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationPropertyKeys.XMPP_JID_KEY));
+                String.valueOf(this.properties.get(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
         String instanceName = "fake-instance-name";
 
         ComputeOrder localOrder =

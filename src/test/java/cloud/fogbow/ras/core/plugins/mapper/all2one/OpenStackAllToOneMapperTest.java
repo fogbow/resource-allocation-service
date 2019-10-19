@@ -39,7 +39,7 @@ public class OpenStackAllToOneMapperTest {
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
-        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         this.openStackIdentityProviderPlugin = Mockito.spy(OpenStackIdentityProviderPlugin.class);
         this.mapper = new OpenStackAllToOneMapper(mapperConfPath);
         this.mapper.setIdentityProviderPlugin(this.openStackIdentityProviderPlugin);

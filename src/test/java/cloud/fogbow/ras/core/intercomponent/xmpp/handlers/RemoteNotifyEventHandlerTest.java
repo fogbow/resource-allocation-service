@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
@@ -77,7 +78,7 @@ public class RemoteNotifyEventHandlerTest {
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
 
-        String requestingMember = this.order.getRequester();
+        String requestingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester();
         String expected = String.format(IQ_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
@@ -102,7 +103,7 @@ public class RemoteNotifyEventHandlerTest {
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
 
-        String requestingMember = this.order.getRequester();
+        String requestingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester();
         String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

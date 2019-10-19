@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.*;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -33,7 +34,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     public static IQ marshall(Order order, OrderState newState) {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(order.getRequester());
+        iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + order.getRequester());
         iq.setID(order.getId());
 
         //marshall order parcel

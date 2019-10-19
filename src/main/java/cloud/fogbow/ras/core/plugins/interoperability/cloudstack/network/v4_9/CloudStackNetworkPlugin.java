@@ -180,7 +180,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             throw new InstanceNotFoundException();
         }
         // since an id was specified, there should be no more than one network in the getNetworkResponse
-        GetNetworkResponse.Network network = networks.get(0);
+        GetNetworkResponse.Network network = response.getNetworks().listIterator().next();
 
         String state = network.getState();
         String networkId = network.getId();

@@ -15,7 +15,7 @@ public class CloudListController {
     private List<String> cloudNames;
 
     public CloudListController() {
-        String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 
         this.cloudNames = new ArrayList<>();
         String cloudNamesList = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);

@@ -50,7 +50,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
-        this.properties.put(ConfigurationPropertyKeys.XMPP_JID_KEY, TestUtils.LOCAL_MEMBER_ID);
+        this.properties.put(ConfigurationPropertyKeys.PROVIDER_ID_KEY, TestUtils.LOCAL_MEMBER_ID);
         
 
         this.cloudConnector = CloudConnectorFactory.getInstance()

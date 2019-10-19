@@ -119,6 +119,7 @@ public class Messages {
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
+        public static final String REQUESTING_TO_CLOUD = "Requesting to the cloud by the user %s. URL: %s";
         public static final String RESPONSE_RECEIVED = "Received response: %s.";
         public static final String SENDING_MSG = "Sending remote request for request: %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";

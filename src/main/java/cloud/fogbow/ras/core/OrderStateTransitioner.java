@@ -14,7 +14,7 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
-        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         synchronized (order) {
             if (order.isRequesterRemote(localProviderId) && !newState.equals(OrderState.CLOSED)) {
                 try {
