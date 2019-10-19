@@ -44,7 +44,7 @@ public class CloudStackAllToOneMapperTest {
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "cloudstack" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
 
-        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         this.cloudStackIdentityProviderPlugin = Mockito.spy(new CloudStackIdentityProviderPlugin(FAKE_CLOUDSTACK_URL));
         this.mapper = new CloudStackAllToOneMapper(mapperConfPath);
         this.mapper.setIdentityProviderPlugin(this.cloudStackIdentityProviderPlugin);

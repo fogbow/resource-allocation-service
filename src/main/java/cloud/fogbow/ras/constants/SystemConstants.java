@@ -18,4 +18,9 @@ public class SystemConstants {
     public static final String PN_SECURITY_GROUP_PREFIX = FOGBOW_INSTANCE_NAME_PREFIX + "sg-pn-";
     public static final String PIP_SECURITY_GROUP_PREFIX = FOGBOW_INSTANCE_NAME_PREFIX + "sg-pip-";
     public static final String DEFAULT_NETWORK_NAME = "default";
+
+    // SERVICE XMPP NAME
+    public static final String JID_SERVICE_NAME = "";
+    public static final String XMPP_SERVER_NAME_PREFIX = "ras-";
+    public static final String JID_CONNECTOR = "";
 }

@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.constants.Messages;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -35,8 +36,7 @@ public class CloudStackCloudUtils {
                                    @NotNull CloudStackUser cloudStackUser) throws HttpResponseException {
 
         try {
-            LOGGER.debug(String.format(
-                    "The user %s is requesting to Cloudstack: %s", cloudStackUser.getId(), url));
+            LOGGER.debug(String.format(Messages.Info.REQUESTING_TO_CLOUD, cloudStackUser.getId(), url));
             return cloudStackHttpClient.doGetRequest(url, cloudStackUser);
         } catch (FogbowException e) {
             throw new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());

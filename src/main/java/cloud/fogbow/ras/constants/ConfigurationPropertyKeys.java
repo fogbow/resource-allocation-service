@@ -3,14 +3,13 @@ package cloud.fogbow.ras.constants;
 public class ConfigurationPropertyKeys {
     // INTERCOMPONENT configuration
     public static final String XMPP_ENABLED_KEY = "xmpp_enabled";
-    public static final String XMPP_JID_KEY = "xmpp_jid";
     public static final String XMPP_PASSWORD_KEY = "xmpp_password";
     public static final String XMPP_SERVER_IP_KEY = "xmpp_server_ip";
     public static final String XMPP_C2C_PORT_KEY = "xmpp_c2c_port";
     public static final String XMPP_TIMEOUT_KEY = "xmpp_timeout";
 
     // RAS configuration
-    public static final String LOCAL_PROVIDER_ID_KEY = XMPP_JID_KEY;
+    public static final String PROVIDER_ID_KEY = "provider_id";
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
     public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";

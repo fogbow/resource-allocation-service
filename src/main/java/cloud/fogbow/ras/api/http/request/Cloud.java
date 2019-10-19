@@ -39,7 +39,7 @@ public class Cloud {
         throws FogbowException {
         try {
             LOGGER.debug(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+            String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(providerId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {

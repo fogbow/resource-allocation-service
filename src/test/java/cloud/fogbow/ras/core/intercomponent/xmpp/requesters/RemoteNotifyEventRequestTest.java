@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -55,7 +56,7 @@ public class RemoteNotifyEventRequestTest {
         //verify
         IQ iq = argIQ.getValue();
         Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
-        Assert.assertEquals(this.order.getRequester().toString(), iq.getTo().toString());
+        Assert.assertEquals(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester().toString(), iq.getTo().toString());
         Assert.assertEquals(this.order.getId(), iq.getID().toString());
 
         Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
