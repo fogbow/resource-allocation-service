@@ -158,13 +158,13 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         int status = response.getJobStatus();
         switch (status) {
             case CloudStackCloudUtils.JOB_STATUS_PENDING:
-                return mountInstance(attachmentInstanceId, CloudStackCloudUtils.PENDING_STATE);
+                return buildInstance(attachmentInstanceId, CloudStackCloudUtils.PENDING_STATE);
             case CloudStackCloudUtils.JOB_STATUS_COMPLETE:
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
-                return mountCompleteInstance(volume);
+                return buildCompleteInstance(volume);
             case CloudStackCloudUtils.JOB_STATUS_FAILURE:
                 logFailure(response);
-                return mountInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE);
+                return buildInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE);
             default:
                 throw new UnexpectedException(Messages.Error.UNEXPECTED_JOB_STATUS);
         }
@@ -179,7 +179,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @NotNull
-    private AttachmentInstance mountCompleteInstance(@NotNull AttachmentJobStatusResponse.Volume volume) {
+    private AttachmentInstance buildCompleteInstance(@NotNull AttachmentJobStatusResponse.Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
@@ -190,7 +190,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @NotNull
-    private AttachmentInstance mountInstance(String attachmentInstanceId, String state) {
+    private AttachmentInstance buildInstance(String attachmentInstanceId, String state) {
         return new AttachmentInstance(attachmentInstanceId, state,null, null, null);
     }
 
