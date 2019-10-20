@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFo
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
@@ -23,11 +24,6 @@ import java.util.Properties;
 
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputeQuotaPlugin.class);
-
-    private static final String LIMIT_INSTANCES_TYPE = "0";
-    private static final String LIMIT_MEMORY_TYPE = "9";
-    private static final String LIMIT_CPU_TYPE = "8";
-    private static final int UNLIMITED_ACCOUNT_QUOTA = -1;
 
     private CloudStackHttpClient client;
     private String cloudStackUrl;
@@ -54,7 +50,8 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String responseStr = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            String responseStr = CloudStackCloudUtils.doRequest(this.client,
+                    uriRequest.toString(), cloudStackUser);
             ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(responseStr);
             return response.getResourceLimits();
         } catch (HttpResponseException e) {
@@ -82,6 +79,22 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         return new ComputeAllocation(vCpu, ram, instances);
     }
 
+    /**
+     * Returns the Account Resource Limit whether the max is not unlimited(-1) otherwise
+     * returns Domain Resource Limit.
+     */
+    @VisibleForTesting
+    ListResourceLimitsResponse.ResourceLimit normalizeResourceLimit(
+            @NotNull ListResourceLimitsResponse.ResourceLimit accountResourceLimit,
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        if (accountResourceLimit.getMax() == CloudStackCloudUtils.UNLIMITED_ACCOUNT_QUOTA) {
+            return requestDomainResourceLimit(accountResourceLimit.getResourceType(),
+                    accountResourceLimit.getDomainId(), cloudStackUser);
+        }
+        return accountResourceLimit;
+    }
+
     @VisibleForTesting
     ComputeAllocation buildTotalComputeAllocation(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
@@ -94,28 +107,23 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         int vCpu = Integer.MAX_VALUE;
         int ram = Integer.MAX_VALUE;
         int instances = Integer.MAX_VALUE;
-        for (ListResourceLimitsResponse.ResourceLimit limit : resourceLimits) {
-            // NOTE(pauloewerton): a -1 resource value means the account has unlimited quota. retrieve the domain
-            // limit for this resource instead.
-            if (limit.getMax() == UNLIMITED_ACCOUNT_QUOTA) {
-                try {
-                    limit = getDomainResourceLimit(limit.getResourceType(), limit.getDomainId(), cloudStackUser);
-                } catch (Exception ex) {
-                    LOGGER.error(ex.getMessage(), ex);
-                    continue;
-                }
-            }
+        for (ListResourceLimitsResponse.ResourceLimit resourceLimit : resourceLimits) {
+            try {
+                resourceLimit = normalizeResourceLimit(resourceLimit, cloudStackUser);
 
-            switch (limit.getResourceType()) {
-                case LIMIT_INSTANCES_TYPE:
-                    instances = Integer.valueOf(limit.getMax());
-                    break;
-                case LIMIT_CPU_TYPE:
-                    vCpu = Integer.valueOf(limit.getMax());
-                    break;
-                case LIMIT_MEMORY_TYPE:
-                    ram = Integer.valueOf(limit.getMax());
-                    break;
+                switch (resourceLimit.getResourceType()) {
+                    case CloudStackCloudUtils.INSTANCES_LIMIT_TYPE:
+                        instances = Integer.valueOf(resourceLimit.getMax());
+                        break;
+                    case CloudStackCloudUtils.CPU_LIMIT_TYPE:
+                        vCpu = Integer.valueOf(resourceLimit.getMax());
+                        break;
+                    case CloudStackCloudUtils.MEMORY_LIMIT_TYPE:
+                        ram = Integer.valueOf(resourceLimit.getMax());
+                        break;
+                }
+            } catch (FogbowException e) {
+                LOGGER.warn(Messages.Warn.UNABLE_TO_RETRIEVE_RESOURCE_LIMIT, e);
             }
         }
 
@@ -123,33 +131,23 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
     }
 
     @NotNull
-    ListResourceLimitsResponse.ResourceLimit getDomainResourceLimit(String resourceType,
-                                                                    String domainId,
-                                                                    @NotNull CloudStackUser cloudUser)
+    ListResourceLimitsResponse.ResourceLimit requestDomainResourceLimit(String resourceType,
+                                                                        String domainId,
+                                                                        @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        ListResourceLimitsRequest limitsRequest = new ListResourceLimitsRequest.Builder()
+        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
                 .domainId(domainId)
                 .resourceType(resourceType)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(limitsRequest.getUriBuilder(), cloudUser.getToken());
-
-        String limitsResponse = null;
-        try {
-            limitsResponse = this.client.doGetRequest(limitsRequest.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(limitsResponse);
-        // NOTE(pauloewerton): we're limiting result count by resource type, so request should only return one value
-        ListResourceLimitsResponse.ResourceLimit resourceLimit = response.getResourceLimits().get(0);
-
-        return resourceLimit;
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = requestResourcesLimits(
+                request, cloudStackUser);
+        // since an domainId was specified, there should be no more than one ResouceLimit.
+        return resourceLimits.listIterator().next();
     }
 
-    @NotNull
+    @VisibleForTesting
     void setClient(CloudStackHttpClient client) {
         this.client = client;
     }

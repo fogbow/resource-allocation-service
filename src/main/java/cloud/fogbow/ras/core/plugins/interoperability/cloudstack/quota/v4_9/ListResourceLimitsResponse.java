@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -35,11 +37,14 @@ public class ListResourceLimitsResponse {
     }
 
     @NotNull
-    public static ListResourceLimitsResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, ListResourceLimitsResponse.class);
+    public static ListResourceLimitsResponse fromJson(String json) throws HttpResponseException {
+        ListResourceLimitsResponse listResourceLimitsResponse = GsonHolder.getInstance().fromJson(
+                json, ListResourceLimitsResponse.class);
+        listResourceLimitsResponse.response.checkErrorExistence();
+        return listResourceLimitsResponse;
     }
 
-    public class ResourceLimitsResponse {
+    public class ResourceLimitsResponse extends CloudStackErrorResponse {
 
         @SerializedName(RESOURCE_LIMIT_KEY_JSON)
         private List<ResourceLimit> resourceLimits;

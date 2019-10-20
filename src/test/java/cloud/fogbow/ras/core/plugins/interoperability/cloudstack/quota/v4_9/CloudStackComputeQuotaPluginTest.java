@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
@@ -8,12 +9,9 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.CloudStackComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListResourceLimitsRequest;
+import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -109,7 +107,7 @@ public class CloudStackComputeQuotaPluginTest {
         Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.cloudUser)).thenReturn(resourceLimitResponse);
 
         urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
+        command = CloudStackConstants.Compute.LIST_VIRTUAL_MACHINES_COMMAND;
         String vmRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
         String id = FAKE_VIRTUAL_MACHINE_ID;
@@ -180,7 +178,7 @@ public class CloudStackComputeQuotaPluginTest {
         Mockito.when(this.client.doGetRequest(domainResourceLimitRequest, this.cloudUser)).thenReturn(domainResourceLimitResponse);
 
         urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
+        command = CloudStackConstants.Compute.LIST_VIRTUAL_MACHINES_COMMAND;
         String vmRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
         String id = FAKE_VIRTUAL_MACHINE_ID;
@@ -297,7 +295,7 @@ public class CloudStackComputeQuotaPluginTest {
         Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.cloudUser)).thenReturn(resourceLimitResponse);
 
         urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
+        command = CloudStackConstants.Compute.LIST_VIRTUAL_MACHINES_COMMAND;
         String vmRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
         Mockito.when(this.client.doGetRequest(vmRequest, this.cloudUser))

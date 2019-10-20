@@ -29,6 +29,11 @@ public class CloudStackCloudUtils {
     public static final int JOB_STATUS_INCONSISTENT = 3;
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
+    public static final int UNLIMITED_ACCOUNT_QUOTA = -1;
+
+    public static final String INSTANCES_LIMIT_TYPE = "0";
+    public static final String MEMORY_LIMIT_TYPE = "9";
+    public static final String CPU_LIMIT_TYPE = "8";
 
     /**
      * Request HTTP operations to Cloudstack and treat a possible FogbowException when

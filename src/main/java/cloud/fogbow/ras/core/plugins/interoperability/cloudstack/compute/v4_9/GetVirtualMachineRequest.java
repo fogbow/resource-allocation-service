@@ -3,13 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Compute.ID_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.Compute.LIST_VIRTUAL_MACHINES_COMMAND;
+
 public class GetVirtualMachineRequest extends CloudStackRequest {
-    public static final String LIST_VMS_COMMAND = "listVirtualMachines";
-    public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
     private GetVirtualMachineRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
+        addParameter(ID_KEY_JSON, builder.id);
     }
 
     @Override
@@ -19,7 +20,7 @@ public class GetVirtualMachineRequest extends CloudStackRequest {
 
     @Override
     public String getCommand() {
-        return LIST_VMS_COMMAND;
+        return LIST_VIRTUAL_MACHINES_COMMAND;
     }
 
     public static class Builder {
