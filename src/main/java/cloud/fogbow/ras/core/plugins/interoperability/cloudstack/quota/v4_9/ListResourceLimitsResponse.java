@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Quota.*;
@@ -33,6 +34,7 @@ public class ListResourceLimitsResponse {
         return response.resourceLimits;
     }
 
+    @NotNull
     public static ListResourceLimitsResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, ListResourceLimitsResponse.class);
     }

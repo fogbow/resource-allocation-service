@@ -3,10 +3,15 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
@@ -40,6 +45,26 @@ public class CloudStackCloudUtils {
             return cloudStackHttpClient.doGetRequest(url, cloudStackUser);
         } catch (FogbowException e) {
             throw new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    // TODO(chico) - Implement tests
+    @NotNull
+    @VisibleForTesting
+    public static GetVirtualMachineResponse requestGetVirtualMachine(
+            @NotNull CloudStackHttpClient cloudStackHttpClient,
+            @NotNull GetVirtualMachineRequest request,
+            @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = doRequest(cloudStackHttpClient, uriRequest.toString(), cloudStackUser);
+            return GetVirtualMachineResponse.fromJson(jsonResponse);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
