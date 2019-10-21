@@ -36,6 +36,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
 
     @Override
     public ComputeQuota getUserQuota(@NotNull CloudStackUser cloudStackUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.GETTING_QUOTAFROM_PROVIDER));
         ComputeAllocation totalQuota = buildTotalComputeAllocation(cloudStackUser);
         ComputeAllocation usedQuota = buildUsedComputeAllocation(cloudStackUser);
         return new ComputeQuota(totalQuota, usedQuota);

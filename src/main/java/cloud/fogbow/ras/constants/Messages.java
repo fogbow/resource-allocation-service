@@ -101,6 +101,7 @@ public class Messages {
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
+        public static final String GETTING_QUOTAFROM_PROVIDER = "Getting quota from provider.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MAPPED_USER = "User mapped to: %s.";

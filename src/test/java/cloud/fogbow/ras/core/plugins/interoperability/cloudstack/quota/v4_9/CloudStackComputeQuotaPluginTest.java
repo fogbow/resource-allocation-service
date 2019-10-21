@@ -7,9 +7,10 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -60,18 +61,85 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws UnexpectedException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
-
-        this.client = Mockito.mock(CloudStackHttpClient.class);
-        this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
-        this.plugin.setClient(this.client);
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
+        this.client = Mockito.mock(CloudStackHttpClient.class);
+        this.plugin = Mockito.spy(new CloudStackComputeQuotaPlugin(cloudStackConfFilePath));
+        this.plugin.setClient(this.client);
+
         this.testUtils.mockReadOrdersFromDataBase();
+        CloudstackTestUtils.ignoringCloudStackUrl();
     }
+
+    // test case: When calling the getUserQuota method with secondary methods mocked,
+    // it must verify if It returns the right computeQuota.
+    @Test
+    public void testGetUserQuotaSuccessfully() throws FogbowException {
+        // set up
+        ComputeAllocation totalComputeAllocationExpected = Mockito.mock(ComputeAllocation.class);
+        Mockito.doReturn(totalComputeAllocationExpected)
+                .when(this.plugin).buildTotalComputeAllocation(Mockito.eq(this.cloudStackUser));
+
+        ComputeAllocation userComputeAllocationExpected = Mockito.mock(ComputeAllocation.class);
+        Mockito.doReturn(userComputeAllocationExpected)
+                .when(this.plugin).buildUsedComputeAllocation(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ComputeQuota computeQuota = this.plugin.getUserQuota(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(totalComputeAllocationExpected, computeQuota.getTotalQuota());
+        Assert.assertEquals(userComputeAllocationExpected, computeQuota.getUsedQuota());
+    }
+
+    // test case: When calling the getUserQuota method with secondary methods mocked and
+    // it occurs a FogbowException on getting used quota, it must verify if
+    // It returns a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testGetUserQuotaFailWhenGettingUsedQuota() throws FogbowException {
+        // set up
+        ComputeAllocation totalComputeAllocationExpected = Mockito.mock(ComputeAllocation.class);
+        Mockito.doReturn(totalComputeAllocationExpected)
+                .when(this.plugin).buildTotalComputeAllocation(Mockito.eq(this.cloudStackUser));
+
+        Mockito.doThrow(new FogbowException())
+                .when(this.plugin).buildUsedComputeAllocation(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        try {
+            this.plugin.getUserQuota(this.cloudStackUser);
+            Assert.fail();
+        } finally {
+            // verify
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .buildUsedComputeAllocation(Mockito.eq(this.cloudStackUser));
+        }
+    }
+
+    // test case: When calling the getUserQuota method with secondary methods mocked and
+    // it occurs a FogbowException on getting total quota, it must verify if
+    // It returns a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testGetUserQuotaFailWhenGettingTotalQuota() throws FogbowException {
+        // set up
+        Mockito.doThrow(new FogbowException())
+                .when(this.plugin).buildTotalComputeAllocation(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        try {
+            this.plugin.getUserQuota(this.cloudStackUser);
+        } finally {
+            // verify
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
+                    .buildUsedComputeAllocation(Mockito.any());
+        }
+    }
+
+    // ---------------------- Old code --------------------------
 
     // test case: When calling the getUserQuota method, HTTP GET requests must be
     // made with a signed cloudUser, one to get the total resource limit, and another to
