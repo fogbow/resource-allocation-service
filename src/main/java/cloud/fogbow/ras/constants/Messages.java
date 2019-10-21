@@ -9,7 +9,6 @@ public class Messages {
         public static final String FAILED_TO_GENERATE_METHOD_S = "Failed to generate method: %s.";
         public static final String FAILED_TO_GET_QUOTA = "Failer to get quota.";
         public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
-        public static final String FATAL_ERROR = "Fatal error.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String IMAGE_NOT_FOUND = "Image not found";
         public static final String INCORRECT_PROVIDER = "Incorrect provider.";
@@ -22,7 +21,6 @@ public class Messages {
         public static final String INVALID_ONE_METHOD_S = "Invalid oneMethod: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PARAMETER_S = "Invalid parameter: %s.";
-        public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
         public static final String INVALID_RESOURCE_ID_S = "Invalid resourceId: %s.";
@@ -35,7 +33,6 @@ public class Messages {
         public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
-        public static final String NO_PROTOCOL_SPECIFIED = "The protocol must be specified";
         public static final String NO_SECURITY_GROUP_FOUND = "There is no security group with the id %s";
         public static final String NON_EXISTENT_REQUEST = "Request does not exist.";
         public static final String NOT_FOUND_ORDER_ID_S = "Order ID %s not found.";
@@ -60,7 +57,6 @@ public class Messages {
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
-        public static final String UNABLE_TO_RETRIEVE_SECURITY_GROUP_ID = "Unable to retrieve security group id from json %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -104,7 +100,6 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: <%s>.";
         public static final String MAPPED_USER = "User mapped to: %s.";
         public static final String MAPPING_USER_OP = "Mapping user for operation %s on order/systemUser %s.";
-        public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for provider %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
@@ -126,12 +121,9 @@ public class Messages {
     }
 
     public static class Error {
-    	public static final String CONTENT_DESERIALIZATION_FAILURE = "Is not possible deserialize the Security Rule ID: %s.";
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
-        public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
-        public static final String IRREGULAR_VALUE_NULL_EXCEPTION_MSG = "This value must not be null: %s";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_CONVERTING_TO_INTEGER = "Error while converting the input string to an integer.";
@@ -139,7 +131,6 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
-        public static final String ERROR_WHILE_CREATING_REQUEST_BODY = "Error while creating request body.";
         public static final String ERROR_WHILE_CREATING_RESOURCE_S = "Error while creating %s.";
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
@@ -148,7 +139,6 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = "Error while getting %s from the cloud.";
-        public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
         public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
@@ -160,7 +150,6 @@ public class Messages {
         public static final String ERROR_WHILE_UPDATING_NETWORK = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
-        public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";

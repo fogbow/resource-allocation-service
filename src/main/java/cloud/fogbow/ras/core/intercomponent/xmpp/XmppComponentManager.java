@@ -16,7 +16,6 @@ public class XmppComponentManager extends XMPPComponent {
         addSetHandler(new RemoteNotifyEventHandler());
         addSetHandler(new RemoteCreateSecurityRuleRequestHandler());
         addSetHandler(new RemoteDeleteSecurityRuleRequestHandler());
-        addSetHandler(new RemoteGenericRequestHandler());
         // instantiate get handlers here
         addGetHandler(new RemoteGetAllImagesRequestHandler());
         addGetHandler(new RemoteGetImageRequestHandler());
