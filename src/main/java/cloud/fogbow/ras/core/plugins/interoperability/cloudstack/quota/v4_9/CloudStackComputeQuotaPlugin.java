@@ -36,9 +36,9 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
 
     @Override
     public ComputeQuota getUserQuota(@NotNull CloudStackUser cloudStackUser) throws FogbowException {
-        ComputeAllocation totalAllocation = buildTotalComputeAllocation(cloudStackUser);
+        ComputeAllocation totalQuota = buildTotalComputeAllocation(cloudStackUser);
         ComputeAllocation usedQuota = buildUsedComputeAllocation(cloudStackUser);
-        return new ComputeQuota(totalAllocation, usedQuota);
+        return new ComputeQuota(totalQuota, usedQuota);
     }
 
     @VisibleForTesting
@@ -130,6 +130,10 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         return new ComputeAllocation(vCpu, ram, instances);
     }
 
+    /**
+     * Returns an unique Resource Limit when It's specified the domainId and the resourceType
+     * in the CloudStack request.
+     */
     @NotNull
     ListResourceLimitsResponse.ResourceLimit requestDomainResourceLimit(String resourceType,
                                                                         String domainId,
@@ -143,7 +147,6 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
 
         List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = requestResourcesLimits(
                 request, cloudStackUser);
-        // since an domainId was specified, there should be no more than one ResouceLimit.
         return resourceLimits.listIterator().next();
     }
 
