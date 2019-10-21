@@ -2,17 +2,16 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
+import com.google.common.annotations.VisibleForTesting;
+
+import static cloud.fogbow.common.constants.CloudStackConstants.Quota.*;
 
 public class ListResourceLimitsRequest extends CloudStackRequest {
 
-    public static final String LIST_RESOURCE_LIMITS_COMMAND = "listResourceLimits";
-    public static final String DOMAIN_ID_KEY = "domainid";
-    public static final String RESOURCE_TYPE_KEY = "resourcetype";
-
     private ListResourceLimitsRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(DOMAIN_ID_KEY, builder.domainId);
-        addParameter(RESOURCE_TYPE_KEY, builder.resourceType);
+        addParameter(DOMAIN_ID_KEY_JSON, builder.domainId);
+        addParameter(RESOURCE_TYPE_KEY_JSON, builder.resourceType);
     }
 
     @Override

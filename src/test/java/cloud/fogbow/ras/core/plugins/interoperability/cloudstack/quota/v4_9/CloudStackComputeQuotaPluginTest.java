@@ -29,6 +29,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Quota.LIST_RESOURCE_LIMITS_COMMAND;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackUrlUtil.class})
 public class CloudStackComputeQuotaPluginTest {
@@ -94,7 +96,7 @@ public class CloudStackComputeQuotaPluginTest {
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = ListResourceLimitsRequest.LIST_RESOURCE_LIMITS_COMMAND;
+        String command = LIST_RESOURCE_LIMITS_COMMAND;
         String jsonFormat = JSON_FORMAT;
         String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
@@ -157,7 +159,7 @@ public class CloudStackComputeQuotaPluginTest {
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         String domainUrlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + DOMAIN_ID_PARAM_FORMAT + RESOURCE_TYPE_PARAM_FORMAT;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = ListResourceLimitsRequest.LIST_RESOURCE_LIMITS_COMMAND;
+        String command = LIST_RESOURCE_LIMITS_COMMAND;
         String jsonFormat = JSON_FORMAT;
         String domainId = FAKE_DOMAIN_ID;
         String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
@@ -282,7 +284,7 @@ public class CloudStackComputeQuotaPluginTest {
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = ListResourceLimitsRequest.LIST_RESOURCE_LIMITS_COMMAND;
+        String command = LIST_RESOURCE_LIMITS_COMMAND;
         String jsonFormat = JSON_FORMAT;
         String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
