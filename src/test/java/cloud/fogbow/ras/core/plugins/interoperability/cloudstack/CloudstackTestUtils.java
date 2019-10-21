@@ -81,17 +81,11 @@ public class CloudstackTestUtils {
     public static String createGetAllServiceOfferingsErrotResponseJson(int errorCode, String errorText)
             throws IOException {
 
-        String rawJson = readFileAsString(
-                getPathCloudstackFile() + LIST_SERVICE_OFFERINGS_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(LIST_SERVICE_OFFERINGS_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String createGetAllServiceOfferingsEmptyResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_SERVICE_OFFERINGS_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(LIST_SERVICE_OFFERINGS_EMPTY_RESPONSE);
     }
 
     public static String createGetAllDiskOfferingsResponseJson(
@@ -106,17 +100,11 @@ public class CloudstackTestUtils {
     public static String createGetAllDiskOfferingsErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_DISK_OFFERINGS_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(LIST_DISK_OFFERINGS_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String createGetAllDiskOfferingsEmptyResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_DISK_OFFERINGS_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(LIST_DISK_OFFERINGS_EMPTY_RESPONSE);
     }
 
     public static String createDeployVirtualMachineResponseJson(String id) throws IOException {
@@ -128,16 +116,11 @@ public class CloudstackTestUtils {
     public static String createDeployVirtualMachineErrorResponseJson(
             int errorCode, String errorText) throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + DEPLOY_VIRTUAL_MACHINE_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(DEPLOY_VIRTUAL_MACHINE_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String createEmptyGetVolumesResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(LIST_VOLUMES_EMPTY_RESPONSE);
     }
 
     public static String createGetVolumesResponseJson(
@@ -149,10 +132,7 @@ public class CloudstackTestUtils {
     }
 
     public static String createGetVolumesErrorResponseJson(int errorCode, String errorText) throws IOException {
-
-        String rawJson = readFileAsString(getPathCloudstackFile() + LIST_VOLUMES_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(LIST_VOLUMES_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String createGetVirtualMachineResponseJson(
@@ -177,22 +157,16 @@ public class CloudstackTestUtils {
     }
 
     public static String createGetVirtualMachineEmptyResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(LIST_VIRTUAL_MACHINE_EMPTY_RESPONSE);
     }
 
     public static String createGetVirtualMachineErrorResponseJson(
             int errorCode, String errorText) throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_VIRTUAL_MACHINE_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(LIST_VIRTUAL_MACHINE_ERROR_RESPONSE, errorCode, errorText);
     }
 
-    static String createNicJson(String idAddress) throws IOException {
+    private static String createNicJson(String idAddress) throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile() + NIC_VIRTUAL_MACHINE_RESPONSE);
 
         return String.format(rawJson, idAddress);
@@ -205,18 +179,13 @@ public class CloudstackTestUtils {
     }
 
     public static String createCreateNetworkEmptyResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile() + CREATE_NETWORK_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(CREATE_NETWORK_EMPTY_RESPONSE);
     }
 
     public static String createCreateNetworkErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + CREATE_NETWORK_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(CREATE_NETWORK_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String createGetNetworkResponseJson(String id, String name, String gateway,
@@ -230,19 +199,13 @@ public class CloudstackTestUtils {
     }
 
     public static String createGetNetworkEmptyResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_NETWORKS_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(LIST_NETWORKS_EMPTY_RESPONSE);
     }
 
     public static String createGetNetworkErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_NETWORKS_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(LIST_NETWORKS_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String attachVolumeResponseJson(String jobId) throws IOException {
@@ -255,10 +218,7 @@ public class CloudstackTestUtils {
     public static String attachVolumeErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + ATTACH_VOLUME_ERROR_RESPONSE);
-
-        return String.format(rawJson, errorCode, errorText);
+        return createGenericErrorResponse(ATTACH_VOLUME_ERROR_RESPONSE, errorCode, errorText);
     }
 
     public static String createListResourceLimitsResponseJson(String domainId, String resourceType, int max)
@@ -271,24 +231,29 @@ public class CloudstackTestUtils {
     }
 
     public static String createListResourceLimitsEmptyResponseJson() throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_RESOUCE_LIMITS_EMPTY_RESPONSE);
-
-        return String.format(rawJson);
+        return createGenericEmptyResponse(LIST_RESOUCE_LIMITS_EMPTY_RESPONSE);
     }
 
     public static String createListResourceLimitsErrorResponseJson(int errorCode, String errorText) throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + LIST_RESOUCE_LIMITS_ERROR_RESPONSE);
+        return createGenericErrorResponse(LIST_RESOUCE_LIMITS_ERROR_RESPONSE, errorCode, errorText);
+    }
 
+    private static String createGenericEmptyResponse(String fileName) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile() + fileName);
+        return String.format(rawJson);
+    }
+
+    private static String createGenericErrorResponse(String fileName, int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile() + fileName);
         return String.format(rawJson, errorCode, errorText);
     }
 
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);
         byte[] bytes = Files.readAllBytes(path);
-        String data = new String(bytes);
-        return data;
+        return new String(bytes);
     }
 
     private static String getPathCloudstackFile() {
