@@ -1,0 +1,11 @@
+{
+  "listresourcelimitsresponse": {
+    "resourcelimit": [
+      {
+        "domainid": "%s",
+        "resourcetype": "%s",
+        "max": %s
+      }
+    ]
+  }
+}

@@ -49,6 +49,9 @@ public class CloudstackTestUtils {
     private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
     private static final String ATTACH_VOLUME_RESPONSE = "attachvolumeresponse.json";
     private static final String ATTACH_VOLUME_ERROR_RESPONSE = "attachvolumeresponse_error.json";
+    private static final String LIST_RESOUCE_LIMITS_RESPONSE = "listresourcelimitsresponse.json";
+    private static final String LIST_RESOUCE_LIMITS_EMPTY_RESPONSE = "listresourcelimitsresponse_empty.json";
+    private static final String LIST_RESOUCE_LIMITS_ERROR_RESPONSE = "listresourcelimitsresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -254,6 +257,29 @@ public class CloudstackTestUtils {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + ATTACH_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createListResourceLimitsResponseJson(String domainId, String resourceType, int max)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_RESOUCE_LIMITS_RESPONSE);
+
+        return String.format(rawJson, domainId, resourceType, max);
+    }
+
+    public static String createListResourceLimitsEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_RESOUCE_LIMITS_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
+    public static String createListResourceLimitsErrorResponseJson(int errorCode, String errorText) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_RESOUCE_LIMITS_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
     }
