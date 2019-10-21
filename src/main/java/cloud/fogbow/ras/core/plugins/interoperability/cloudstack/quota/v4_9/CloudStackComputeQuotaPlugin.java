@@ -42,8 +42,9 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         return new ComputeQuota(totalQuota, usedQuota);
     }
 
+    @NotNull
     @VisibleForTesting
-    List<ListResourceLimitsResponse.ResourceLimit> requestResourcesLimits(
+    ListResourceLimitsResponse requestResourcesLimits(
             @NotNull ListResourceLimitsRequest request,
             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
@@ -53,8 +54,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         try {
             String responseStr = CloudStackCloudUtils.doRequest(this.client,
                     uriRequest.toString(), cloudStackUser);
-            ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(responseStr);
-            return response.getResourceLimits();
+            return ListResourceLimitsResponse.fromJson(responseStr);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
@@ -90,24 +90,31 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         if (accountResourceLimit.getMax() == CloudStackCloudUtils.UNLIMITED_ACCOUNT_QUOTA) {
-            return requestDomainResourceLimit(accountResourceLimit.getResourceType(),
+            return getDomainResourceLimit(accountResourceLimit.getResourceType(),
                     accountResourceLimit.getDomainId(), cloudStackUser);
         }
         return accountResourceLimit;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    List<ListResourceLimitsResponse.ResourceLimit> getResourcesLimits(
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
+                .build(this.cloudStackUrl);
+        ListResourceLimitsResponse response = requestResourcesLimits(request, cloudStackUser);
+        return response.getResourceLimits();
     }
 
     @VisibleForTesting
     ComputeAllocation buildTotalComputeAllocation(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
-                .build(this.cloudStackUrl);
-        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = requestResourcesLimits(
-                request, cloudStackUser);
-
         int vCpu = Integer.MAX_VALUE;
         int ram = Integer.MAX_VALUE;
         int instances = Integer.MAX_VALUE;
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = getResourcesLimits(cloudStackUser);
         for (ListResourceLimitsResponse.ResourceLimit resourceLimit : resourceLimits) {
             try {
                 resourceLimit = normalizeResourceLimit(resourceLimit, cloudStackUser);
@@ -136,9 +143,9 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
      * in the CloudStack request.
      */
     @NotNull
-    ListResourceLimitsResponse.ResourceLimit requestDomainResourceLimit(String resourceType,
-                                                                        String domainId,
-                                                                        @NotNull CloudStackUser cloudStackUser)
+    ListResourceLimitsResponse.ResourceLimit getDomainResourceLimit(String resourceType,
+                                                                    String domainId,
+                                                                    @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
@@ -146,8 +153,10 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
                 .resourceType(resourceType)
                 .build(this.cloudStackUrl);
 
-        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = requestResourcesLimits(
+        ListResourceLimitsResponse listResourceLimitsResponse = requestResourcesLimits(
                 request, cloudStackUser);
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = listResourceLimitsResponse.
+                getResourceLimits();
         return resourceLimits.listIterator().next();
     }
 

@@ -148,7 +148,7 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the requestResourcesLimits method with secondary methods mocked,
-    // it must verify if It returns the right computeQuota.
+    // it must verify if It returns the right ListResourceLimitsResponse.
     @Test
     public void testRequestResourcesLimitsSuccessfully() throws FogbowException, HttpResponseException {
         // set up
@@ -159,19 +159,16 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).thenReturn(responseStr);
 
-        ListResourceLimitsResponse response = Mockito.mock(ListResourceLimitsResponse.class);
-        List<ListResourceLimitsResponse.ResourceLimit> resourceLimitsExpected = new ArrayList<>();
-        Mockito.when(response.getResourceLimits()).thenReturn(resourceLimitsExpected);
+        ListResourceLimitsResponse responseExpected = Mockito.mock(ListResourceLimitsResponse.class);
         PowerMockito.mockStatic(ListResourceLimitsResponse.class);
         PowerMockito.when(ListResourceLimitsResponse.fromJson(Mockito.eq(responseStr)))
-                .thenReturn(response);
+                .thenReturn(responseExpected);
 
         // exercise
-        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits =
-                this.plugin.requestResourcesLimits(request, this.cloudStackUser);
+        ListResourceLimitsResponse response = this.plugin.requestResourcesLimits(request, this.cloudStackUser);
 
         // verify
-        Assert.assertEquals(resourceLimitsExpected, resourceLimits);
+        Assert.assertEquals(responseExpected, response);
     }
 
     // test case: When calling the requestResourcesLimits method with secondary methods mocked and
@@ -181,7 +178,6 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         // set up
         ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder().build("");
 
-        String responseStr = "anything";
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
@@ -193,6 +189,118 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.requestResourcesLimits(request, this.cloudStackUser);
+    }
+
+    private ListResourceLimitsResponse.ResourceLimit buildResourceLimitMock(String type, int maxValue) {
+        ListResourceLimitsResponse.ResourceLimit resourceLimitMocked = Mockito.mock(
+                ListResourceLimitsResponse.ResourceLimit.class);
+        Mockito.when(resourceLimitMocked.getResourceType()).thenReturn(type);
+        Mockito.when(resourceLimitMocked.getMax()).thenReturn(maxValue);
+        return resourceLimitMocked;
+    }
+
+    // test case: When calling the buildTotalComputeAllocation method with secondary methods mocked,
+    // it must verify if It returns the right computeAllocation.
+    @Test
+    public void testBuildTotalComputeAllocationSuccessfully() throws FogbowException {
+        // set up
+        int instanceMaxExpected = 1;
+        ListResourceLimitsResponse.ResourceLimit resourceLimitInstance = buildResourceLimitMock(
+                CloudStackCloudUtils.INSTANCES_LIMIT_TYPE, instanceMaxExpected);
+        int cpuMaxExpected = 2;
+        ListResourceLimitsResponse.ResourceLimit resourceLimitCpu = buildResourceLimitMock(
+                CloudStackCloudUtils.CPU_LIMIT_TYPE, cpuMaxExpected);
+        int memoryMaxExpected = 3;
+        ListResourceLimitsResponse.ResourceLimit resourceLimitMemory = buildResourceLimitMock(
+                CloudStackCloudUtils.MEMORY_LIMIT_TYPE, memoryMaxExpected);
+
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = new ArrayList<>();
+        resourceLimits.add(resourceLimitInstance);
+        resourceLimits.add(resourceLimitCpu);
+        resourceLimits.add(resourceLimitMemory);
+
+        Mockito.doReturn(resourceLimits).when(this.plugin).getResourcesLimits(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ComputeAllocation computeAllocation = this.plugin.buildTotalComputeAllocation(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceMaxExpected, computeAllocation.getInstances());
+        Assert.assertEquals(cpuMaxExpected, computeAllocation.getvCPU());
+        Assert.assertEquals(memoryMaxExpected, computeAllocation.getRam());
+    }
+
+    // test case: When calling the buildTotalComputeAllocation method with secondary methods mocked
+    // and some resource limit type does not match with types expected, it must verify if
+    // It returns a computeAllocation with values default.
+    @Test
+    public void testBuildTotalComputeAllocationWhenTypeNoMatch() throws FogbowException {
+        // set up
+        int instanceMax = 1;
+        String unknownResourceLimitType = "anytype";
+        ListResourceLimitsResponse.ResourceLimit resourceLimitInstance = buildResourceLimitMock(
+                unknownResourceLimitType, instanceMax);
+
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = new ArrayList<>();
+        resourceLimits.add(resourceLimitInstance);
+
+        Mockito.doReturn(resourceLimits).when(this.plugin).getResourcesLimits(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ComputeAllocation computeAllocation = this.plugin.buildTotalComputeAllocation(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(Integer.MAX_VALUE, computeAllocation.getInstances());
+        Assert.assertEquals(Integer.MAX_VALUE, computeAllocation.getvCPU());
+        Assert.assertEquals(Integer.MAX_VALUE, computeAllocation.getRam());
+    }
+
+    // test case: When calling the buildTotalComputeAllocation method with secondary methods mocked
+    // and a resource limit fail in the normalization, it must verify if
+    // It returns a computeAllocation value default value related to the Resource limit failed.
+    @Test
+    public void testBuildTotalComputeAllocationWhenResourceLimitFail() throws FogbowException {
+        // set up
+        int instanceMaxExpected = 1;
+        ListResourceLimitsResponse.ResourceLimit resourceLimitInstance = buildResourceLimitMock(
+                CloudStackCloudUtils.INSTANCES_LIMIT_TYPE, instanceMaxExpected);
+        int cpuMaxExpected = 2;
+        ListResourceLimitsResponse.ResourceLimit resourceLimitCpu = buildResourceLimitMock(
+                CloudStackCloudUtils.CPU_LIMIT_TYPE, cpuMaxExpected);
+        int memoryMaxExpected = CloudStackCloudUtils.UNLIMITED_ACCOUNT_QUOTA;
+        ListResourceLimitsResponse.ResourceLimit resourceLimitMemoryFail = buildResourceLimitMock(
+                CloudStackCloudUtils.MEMORY_LIMIT_TYPE, memoryMaxExpected);
+
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = new ArrayList<>();
+        resourceLimits.add(resourceLimitInstance);
+        resourceLimits.add(resourceLimitCpu);
+        resourceLimits.add(resourceLimitMemoryFail);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).normalizeResourceLimit(
+                Mockito.eq(resourceLimitMemoryFail), Mockito.eq(this.cloudStackUser));
+
+        Mockito.doReturn(resourceLimits).when(this.plugin).getResourcesLimits(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ComputeAllocation computeAllocation = this.plugin.buildTotalComputeAllocation(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceMaxExpected, computeAllocation.getInstances());
+        Assert.assertEquals(cpuMaxExpected, computeAllocation.getvCPU());
+        Assert.assertEquals(Integer.MAX_VALUE, computeAllocation.getRam());
+        // TODO(chico) - Check Log
+    }
+
+    // test case: When calling the buildTotalComputeAllocation method with occurs a FogbowException
+    // , it must verify if It returns a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testBuildTotalComputeAllocationFail() throws FogbowException {
+        // set up
+        Mockito.doThrow(new FogbowException()).when(this.plugin).
+                getResourcesLimits(Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.buildTotalComputeAllocation(this.cloudStackUser);
     }
 
     // ---------------------- Old code --------------------------
