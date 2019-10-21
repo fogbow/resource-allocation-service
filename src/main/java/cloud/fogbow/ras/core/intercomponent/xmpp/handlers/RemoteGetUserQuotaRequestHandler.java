@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -33,8 +35,8 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(iq.getFrom().toBareJID(),
-                    cloudName, systemUser, resourceType);
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(senderId, cloudName, systemUser, resourceType);
             updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);

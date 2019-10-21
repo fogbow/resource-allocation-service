@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -32,8 +34,8 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            Instance instance = RemoteFacade.getInstance().getResourceInstance(iq.getFrom().toBareJID(), orderId,
-                    systemUser, resourceType);
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            Instance instance = RemoteFacade.getInstance().getResourceInstance(senderId, orderId, systemUser, resourceType);
             //on success, update response with instance data
             updateResponse(response, instance);
         } catch (Exception e) {

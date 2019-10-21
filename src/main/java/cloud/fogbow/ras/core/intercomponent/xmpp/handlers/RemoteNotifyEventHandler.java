@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -34,7 +36,8 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
             order = unmarshalOrder(iq, gson);
             orderState = unmarshalEvent(iq, gson);
 
-            RemoteFacade.getInstance().handleRemoteEvent(iq.getFrom().toBareJID(), orderState, order);
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            RemoteFacade.getInstance().handleRemoteEvent(senderId, orderState, order);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

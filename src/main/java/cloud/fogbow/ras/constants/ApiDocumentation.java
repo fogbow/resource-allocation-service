@@ -43,18 +43,6 @@ public class ApiDocumentation {
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
     }
 
-    public static class GenericRequest {
-        public static final String API = "Allows generic requests to be sent to a target cloud.";
-        public static final String POST_OPERATION = "This operation sends a request to a target cloud at the specified provider.";
-        public static final String REQUEST_BODY = "This parameter is a string in the JSON format, whose content " +
-                "depends on the API of the target cloud. For instance, if the cloud provides a RESTful API, then " +
-                "the JSON will have the fields of a REST request, namely: method, URL, headers, and body. For example: " +
-                "\"{\n" +
-                "    \"method\" : \"GET\",\n" +
-                "    \"url\" : \"https://myOpenStackCloud.mydomain:9292/v2/images?status=active\"\n" +
-                "}\".";
-    }
-
     public static class Image {
         public static final String API = "Queries images.";
         public static final String GET_OPERATION = "Lists all images available to the user at the indicated provider and cloud.";
