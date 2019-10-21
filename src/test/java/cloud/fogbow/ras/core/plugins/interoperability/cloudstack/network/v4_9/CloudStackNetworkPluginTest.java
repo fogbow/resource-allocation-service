@@ -269,8 +269,8 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         Assert.assertEquals(networkInstaceExpexted, networkInstance);
     }
 
-    // test case: When calling the doGetInstance method with secondary methods mocked and
-    // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
+        // test case: When calling the doGetInstance method with secondary methods mocked and
+        // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
     @Test
     public void testDoGetInstanceFail() throws FogbowException, HttpResponseException {
         // set up

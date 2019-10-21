@@ -11,26 +11,31 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Quota.LIST_RESOURCE_LIMITS_COMMAND;
 
-@PrepareForTest({CloudStackUrlUtil.class, DatabaseManager.class})
+@PrepareForTest({CloudStackUrlUtil.class, DatabaseManager.class, ListResourceLimitsResponse.class,
+            CloudStackCloudUtils.class})
 public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
 
-    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String FAKE_DOMAIN_ID = "fake-domain-id";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
@@ -60,11 +65,14 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
     private CloudStackUser cloudStackUser;
     private String cloudStackUrl;
 
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
+
     @Before
     public void setUp() throws UnexpectedException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         this.client = Mockito.mock(CloudStackHttpClient.class);
@@ -137,6 +145,54 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
             Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
                     .buildUsedComputeAllocation(Mockito.any());
         }
+    }
+
+    // test case: When calling the requestResourcesLimits method with secondary methods mocked,
+    // it must verify if It returns the right computeQuota.
+    @Test
+    public void testRequestResourcesLimitsSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).thenReturn(responseStr);
+
+        ListResourceLimitsResponse response = Mockito.mock(ListResourceLimitsResponse.class);
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimitsExpected = new ArrayList<>();
+        Mockito.when(response.getResourceLimits()).thenReturn(resourceLimitsExpected);
+        PowerMockito.mockStatic(ListResourceLimitsResponse.class);
+        PowerMockito.when(ListResourceLimitsResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(response);
+
+        // exercise
+        List<ListResourceLimitsResponse.ResourceLimit> resourceLimits =
+                this.plugin.requestResourcesLimits(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(resourceLimitsExpected, resourceLimits);
+    }
+
+    // test case: When calling the requestResourcesLimits method with secondary methods mocked and
+    // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
+    @Test
+    public void testRequestResourcesLimitsFail() throws FogbowException, HttpResponseException {
+        // set up
+        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.requestResourcesLimits(request, this.cloudStackUser);
     }
 
     // ---------------------- Old code --------------------------
