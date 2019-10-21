@@ -13,6 +13,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -191,14 +192,6 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         this.plugin.requestResourcesLimits(request, this.cloudStackUser);
     }
 
-    private ListResourceLimitsResponse.ResourceLimit buildResourceLimitMock(String type, int maxValue) {
-        ListResourceLimitsResponse.ResourceLimit resourceLimitMocked = Mockito.mock(
-                ListResourceLimitsResponse.ResourceLimit.class);
-        Mockito.when(resourceLimitMocked.getResourceType()).thenReturn(type);
-        Mockito.when(resourceLimitMocked.getMax()).thenReturn(maxValue);
-        return resourceLimitMocked;
-    }
-
     // test case: When calling the buildTotalComputeAllocation method with secondary methods mocked,
     // it must verify if It returns the right computeAllocation.
     @Test
@@ -291,8 +284,8 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         // TODO(chico) - Check Log
     }
 
-    // test case: When calling the buildTotalComputeAllocation method with occurs a FogbowException
-    // , it must verify if It returns a FogbowException.
+    // test case: When calling the buildTotalComputeAllocation method with occurs a FogbowException,
+    // it must verify if It returns a FogbowException.
     @Test(expected = FogbowException.class)
     public void testBuildTotalComputeAllocationFail() throws FogbowException {
         // set up
@@ -303,8 +296,78 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         this.plugin.buildTotalComputeAllocation(this.cloudStackUser);
     }
 
-    // ---------------------- Old code --------------------------
+    // test case: When calling the buildUsedComputeAllocation method with secondary methods mocked,
+    // it must verify if It returns the right computeAllocation.
+    @Test
+    public void testBuildUsedComputeAllocationSuccessfully() throws FogbowException {
+        // set up
+        int cpuOne = 1;
+        int memoryOne = 1000;
+        GetVirtualMachineResponse.VirtualMachine virtualMachineOne = buildVirtualMachineMock(
+                memoryOne, cpuOne);
 
+        int cpuTwo = 1;
+        int memoryTwo = 1000;
+        GetVirtualMachineResponse.VirtualMachine virtualMachineTwo = buildVirtualMachineMock(
+                memoryTwo, cpuTwo);
+
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
+        virtualMachines.add(virtualMachineOne);
+        virtualMachines.add(virtualMachineTwo);
+
+        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(
+                Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ComputeAllocation computeAllocation = this.plugin.buildUsedComputeAllocation(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(cpuOne + cpuTwo, computeAllocation.getvCPU());
+        Assert.assertEquals(memoryOne + memoryTwo, computeAllocation.getRam());
+        Assert.assertEquals(virtualMachines.size(), computeAllocation.getInstances());
+    }
+
+    // test case: When calling the buildUsedComputeAllocation method with secondary methods mocked
+    // and there is no virtual machine, it must verify if It returns the right computeAllocation
+    // with initial values.
+    @Test
+    public void testBuildUsedComputeAllocationWhenNoVirtualMachine() throws FogbowException {
+        // set up
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = new ArrayList<>();
+
+        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(
+                Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ComputeAllocation computeAllocation = this.plugin.buildUsedComputeAllocation(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(0, computeAllocation.getvCPU());
+        Assert.assertEquals(0, computeAllocation.getRam());
+        Assert.assertEquals(virtualMachines.size(), computeAllocation.getInstances());
+    }
+
+    // test case: When calling the buildUsedComputeAllocation method with occurs a FogbowException,
+    // it must verify if It returns a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testBuildUsedComputeAllocationFail() throws FogbowException {
+        // set up
+        Mockito.doThrow(new FogbowException()).when(this.plugin).getVirtualMachines(
+                Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.buildUsedComputeAllocation(this.cloudStackUser);
+    }
+
+    // TODO(chico) - implement
+    @Test
+    public void  testGetResourcesLimitsSuccessfully() { }
+
+    // TODO(chico) - implement
+    @Test
+    public void  testGetVirtualMachinesSuccessfully() { }
+
+    // ---------------------- Old code --------------------------
     // test case: When calling the getUserQuota method, HTTP GET requests must be
     // made with a signed cloudUser, one to get the total resource limit, and another to
     // list the virtual machines in use, comparing them to calculate the number of
@@ -566,7 +629,6 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-
     private String getNicResponse(String ipAddress) {
         String responseFormat = "{\"ipaddress\": \"%s\"}";
         return String.format(responseFormat, ipAddress);
@@ -605,6 +667,22 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
     private String getListResourceLimitsResponse(String instanceLimit, String cpuLimit, String ramLimit) {
         String responseFormat = "{\"listresourcelimitsresponse\": {" + "\"resourcelimit\": [%s, %s, %s]}}";
         return String.format(responseFormat, instanceLimit, cpuLimit, ramLimit);
+    }
+
+    private ListResourceLimitsResponse.ResourceLimit buildResourceLimitMock(String type, int maxValue) {
+        ListResourceLimitsResponse.ResourceLimit resourceLimitMocked = Mockito.mock(
+                ListResourceLimitsResponse.ResourceLimit.class);
+        Mockito.when(resourceLimitMocked.getResourceType()).thenReturn(type);
+        Mockito.when(resourceLimitMocked.getMax()).thenReturn(maxValue);
+        return resourceLimitMocked;
+    }
+
+    private GetVirtualMachineResponse.VirtualMachine buildVirtualMachineMock(int memory, int cpu) {
+        GetVirtualMachineResponse.VirtualMachine virtualMachineMocked = Mockito.mock(
+                GetVirtualMachineResponse.VirtualMachine.class);
+        Mockito.when(virtualMachineMocked.getMemory()).thenReturn(memory);
+        Mockito.when(virtualMachineMocked.getCpuNumber()).thenReturn(cpu);
+        return virtualMachineMocked;
     }
 
 }

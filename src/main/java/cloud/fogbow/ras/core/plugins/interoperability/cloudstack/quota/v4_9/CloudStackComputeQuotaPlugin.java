@@ -61,17 +61,24 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
     }
 
     @VisibleForTesting
-    ComputeAllocation buildUsedComputeAllocation(@NotNull CloudStackUser cloudStackUser)
-            throws FogbowException {
+    List<GetVirtualMachineResponse.VirtualMachine> getVirtualMachines(
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .build(this.cloudStackUrl);
         GetVirtualMachineResponse response = CloudStackCloudUtils.requestGetVirtualMachine(
                 this.client, request, cloudStackUser);
-        List<GetVirtualMachineResponse.VirtualMachine> vms = response.getVirtualMachines();
+        return response.getVirtualMachines();
+    }
+
+    @NotNull
+    @VisibleForTesting
+    ComputeAllocation buildUsedComputeAllocation(@NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
 
         Integer vCpu = 0;
         Integer ram = 0;
+        List<GetVirtualMachineResponse.VirtualMachine> vms = getVirtualMachines(cloudStackUser);
         Integer instances = vms.size();
         for (GetVirtualMachineResponse.VirtualMachine vm : vms) {
             vCpu += vm.getCpuNumber();
