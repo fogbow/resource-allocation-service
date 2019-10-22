@@ -8,6 +8,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.Ge
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListResourceLimitsRequest;
 import org.mockito.ArgumentMatcher;
 
 public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher<T> {
@@ -69,6 +70,12 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
 
     public static class AttachVolume extends RequestMatcher<AttachVolumeRequest> {
         public AttachVolume(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class ListResourceLimits extends RequestMatcher<ListResourceLimitsRequest> {
+        public ListResourceLimits(CloudStackRequest cloudStackRequest) {
             super(cloudStackRequest);
         }
     }

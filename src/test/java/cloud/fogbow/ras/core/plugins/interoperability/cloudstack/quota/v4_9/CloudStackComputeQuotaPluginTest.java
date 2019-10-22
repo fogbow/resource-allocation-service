@@ -14,6 +14,8 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -22,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -331,13 +334,60 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         this.plugin.buildUsedComputeAllocation(this.cloudStackUser);
     }
 
-    // TODO(chico) - implement
+    // test case: When calling the getResourcesLimits method with secondary methods mocked,
+    // it must verify if the requestResourcesLimits is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
     @Test
-    public void  testGetResourcesLimitsSuccessfully() { }
+    public void  testGetResourcesLimitsSuccessfully() throws FogbowException {
+        // set up
+        ListResourceLimitsResponse response = Mockito.mock(ListResourceLimitsResponse.class);
+        ArrayList<ListResourceLimitsResponse.ResourceLimit> resourceLimitsExpected = new ArrayList<>();
+        Mockito.when(response.getResourceLimits()).thenReturn(resourceLimitsExpected);
+        Mockito.doReturn(response).when(this.plugin).requestResourcesLimits(
+                Mockito.any(), Mockito.eq(this.cloudStackUser));
 
-    // TODO(chico) - implement
+        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
+                .build(this.cloudStackUrl);
+
+        // exercise
+        List<ListResourceLimitsResponse.ResourceLimit> resourcesLimits =
+                this.plugin.getResourcesLimits(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(resourceLimitsExpected, resourcesLimits);
+        RequestMatcher<ListResourceLimitsRequest> matcher = new RequestMatcher.ListResourceLimits(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).requestResourcesLimits(
+                Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the getVirtualMachines method with secondary methods mocked,
+    // it must verify if the CloudStackCloudUtils.requestGetVirtualMachine is called with the
+    // right parameters; this includes the checking of the Cloudstack request.
     @Test
-    public void  testGetVirtualMachinesSuccessfully() { }
+    public void  testGetVirtualMachinesSuccessfully() throws FogbowException {
+        // set up
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        GetVirtualMachineResponse response = Mockito.mock(GetVirtualMachineResponse.class);
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachinesExpected = new ArrayList<>();
+        Mockito.when(response.getVirtualMachines()).thenReturn(virtualMachinesExpected);
+        PowerMockito.when(CloudStackCloudUtils.requestGetVirtualMachine(
+                Mockito.eq(this.client), Mockito.any(), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(response);
+
+        GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
+                .build(this.cloudStackUrl);
+
+        // exercise
+        List<GetVirtualMachineResponse.VirtualMachine> virtualMachines =
+                this.plugin.getVirtualMachines(this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(virtualMachinesExpected, virtualMachines);
+        RequestMatcher<GetVirtualMachineRequest> matcher = new RequestMatcher.GetVirtualMachine(request);
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.requestGetVirtualMachine(
+                Mockito.eq(this.client), Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+    }
 
     private ListResourceLimitsResponse.ResourceLimit buildResourceLimitMock(String type, int maxValue) {
         ListResourceLimitsResponse.ResourceLimit resourceLimitMocked = Mockito.mock(

@@ -53,7 +53,6 @@ public class CloudStackCloudUtils {
         }
     }
 
-    // TODO(chico) - Implement tests
     @NotNull
     @VisibleForTesting
     public static GetVirtualMachineResponse requestGetVirtualMachine(
