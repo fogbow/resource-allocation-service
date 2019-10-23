@@ -36,7 +36,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
 
     @Override
     public ComputeQuota getUserQuota(@NotNull CloudStackUser cloudStackUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_QUOTAFROM_PROVIDER));
+        LOGGER.info(Messages.Info.GETTING_QUOTAFROM_PROVIDER);
         ComputeAllocation totalQuota = buildTotalComputeAllocation(cloudStackUser);
         ComputeAllocation usedQuota = buildUsedComputeAllocation(cloudStackUser);
         return new ComputeQuota(totalQuota, usedQuota);
@@ -60,6 +60,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         }
     }
 
+    @NotNull
     @VisibleForTesting
     List<GetVirtualMachineResponse.VirtualMachine> getVirtualMachines(
             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
@@ -76,10 +77,10 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
     ComputeAllocation buildUsedComputeAllocation(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        Integer vCpu = 0;
-        Integer ram = 0;
+        int vCpu = 0;
+        int ram = 0;
         List<GetVirtualMachineResponse.VirtualMachine> vms = getVirtualMachines(cloudStackUser);
-        Integer instances = vms.size();
+        int instances = vms.size();
         for (GetVirtualMachineResponse.VirtualMachine vm : vms) {
             vCpu += vm.getCpuNumber();
             ram += vm.getMemory();
@@ -91,6 +92,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
      * Returns the Account Resource Limit whether the max is not unlimited(-1) otherwise
      * returns Domain Resource Limit.
      */
+    @NotNull
     @VisibleForTesting
     ListResourceLimitsResponse.ResourceLimit normalizeResourceLimit(
             @NotNull ListResourceLimitsResponse.ResourceLimit accountResourceLimit,
@@ -114,6 +116,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
         return response.getResourceLimits();
     }
 
+    @NotNull
     @VisibleForTesting
     ComputeAllocation buildTotalComputeAllocation(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
@@ -128,13 +131,13 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
 
                 switch (resourceLimit.getResourceType()) {
                     case CloudStackCloudUtils.INSTANCES_LIMIT_TYPE:
-                        instances = Integer.valueOf(resourceLimit.getMax());
+                        instances = resourceLimit.getMax();
                         break;
                     case CloudStackCloudUtils.CPU_LIMIT_TYPE:
-                        vCpu = Integer.valueOf(resourceLimit.getMax());
+                        vCpu = resourceLimit.getMax();
                         break;
                     case CloudStackCloudUtils.MEMORY_LIMIT_TYPE:
-                        ram = Integer.valueOf(resourceLimit.getMax());
+                        ram = resourceLimit.getMax();
                         break;
                 }
             } catch (FogbowException e) {

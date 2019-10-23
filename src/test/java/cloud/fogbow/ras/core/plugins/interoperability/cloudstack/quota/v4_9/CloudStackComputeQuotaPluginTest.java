@@ -256,7 +256,6 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(instanceMaxExpected, computeAllocation.getInstances());
         Assert.assertEquals(cpuMaxExpected, computeAllocation.getvCPU());
         Assert.assertEquals(Integer.MAX_VALUE, computeAllocation.getRam());
-        // TODO(chico) - Check Log
     }
 
     // test case: When calling the buildTotalComputeAllocation method with occurs a FogbowException,
