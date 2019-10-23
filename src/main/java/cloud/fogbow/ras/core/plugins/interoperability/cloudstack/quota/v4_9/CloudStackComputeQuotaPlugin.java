@@ -150,6 +150,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
      * in the CloudStack request.
      */
     @NotNull
+    @VisibleForTesting
     ListResourceLimitsResponse.ResourceLimit getDomainResourceLimit(String resourceType,
                                                                     String domainId,
                                                                     @NotNull CloudStackUser cloudStackUser)

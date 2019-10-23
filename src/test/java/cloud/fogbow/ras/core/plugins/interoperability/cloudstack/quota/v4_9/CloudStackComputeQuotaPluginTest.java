@@ -389,6 +389,123 @@ public class CloudStackComputeQuotaPluginTest extends BaseUnitTests {
                 Mockito.eq(this.client), Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
+    // test case: When calling the getDomainResourceLimit method with secondary methods mocked,
+    // it must verify if the requestResourcesLimits is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testGetDomainResourceLimitSuccessfully() throws FogbowException {
+        // set up
+        String resourceType = "resourceType";
+        String domainId = "doaminId";
+
+        ListResourceLimitsResponse response = Mockito.mock(ListResourceLimitsResponse.class);
+        ListResourceLimitsResponse.ResourceLimit resourceLimitExpected = Mockito.mock(
+                ListResourceLimitsResponse.ResourceLimit.class);
+        List<ListResourceLimitsResponse.ResourceLimit> resourcesLimit = new ArrayList<>();
+        resourcesLimit.add(resourceLimitExpected);
+        Mockito.when(response.getResourceLimits()).thenReturn(resourcesLimit);
+        Mockito.doReturn(response).when(this.plugin).requestResourcesLimits(
+                Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
+                .domainId(domainId)
+                .resourceType(resourceType)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        ListResourceLimitsResponse.ResourceLimit domainResourceLimit =
+                this.plugin.getDomainResourceLimit(resourceType, domainId, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(resourceLimitExpected, domainResourceLimit);
+        RequestMatcher<ListResourceLimitsRequest> matcher = new RequestMatcher.ListResourceLimits(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).requestResourcesLimits(
+                Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the getDomainResourceLimit method with secondary methods mocked and
+    // it occurs an FogbowException, it must verify if It returns a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testGetDomainResourceLimitFail() throws FogbowException {
+        // set up
+        Mockito.doThrow(new FogbowException()).when(this.plugin).requestResourcesLimits(
+                Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.getDomainResourceLimit("resourceType", "domainId", this.cloudStackUser);
+    }
+
+    // test case: When calling the normalizeResourceLimit method with secondary methods mocked and
+    // the unlimited value in the Max parameter, it must verify if it returns the domain resource limit.
+    @Test
+    public void testNormalizeResourceLimitWhenMaxIsUnlimited() throws FogbowException {
+        // set up
+        Integer unlimited = CloudStackCloudUtils.UNLIMITED_ACCOUNT_QUOTA;
+        String resourceType = "resourceType";
+        String domainId = "domainId";
+
+        ListResourceLimitsResponse.ResourceLimit resourceLimit =
+                Mockito.mock(ListResourceLimitsResponse.ResourceLimit.class);
+        Mockito.when(resourceLimit.getMax()).thenReturn(unlimited);
+        Mockito.when(resourceLimit.getResourceType()).thenReturn(resourceType);
+        Mockito.when(resourceLimit.getDomainId()).thenReturn(domainId);
+
+        ListResourceLimitsResponse.ResourceLimit domainResourceLimitExpected =
+                Mockito.mock(ListResourceLimitsResponse.ResourceLimit.class);
+        Mockito.doReturn(domainResourceLimitExpected).when(this.plugin).getDomainResourceLimit(
+                Mockito.eq(resourceType), Mockito.eq(domainId), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        ListResourceLimitsResponse.ResourceLimit domainResourceLimit =
+                this.plugin.normalizeResourceLimit(resourceLimit, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(domainResourceLimitExpected, domainResourceLimit);
+    }
+
+    // test case: When calling the normalizeResourceLimit method with secondary methods mocked and
+    // a common value in the Max parameter, it must verify if it returns the some resource limit
+    // passed in the method.
+    @Test
+    public void testNormalizeResourceLimitWhenMaxIslimited() throws FogbowException {
+        // set up
+        Integer limited = 0;
+
+        ListResourceLimitsResponse.ResourceLimit resourceLimit =
+                Mockito.mock(ListResourceLimitsResponse.ResourceLimit.class);
+        Mockito.when(resourceLimit.getMax()).thenReturn(limited);
+
+        // exercise
+        ListResourceLimitsResponse.ResourceLimit domainResourceLimit =
+                this.plugin.normalizeResourceLimit(resourceLimit, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(resourceLimit, domainResourceLimit);
+    }
+
+    // test case: When calling the normalizeResourceLimit method with secondary methods mocked and
+    // the method getDomainResourceLimit throws a FogbowException, it must verify if it throws
+    // a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testNormalizeResourceLimitFail() throws FogbowException {
+        // set up
+        Integer unlimited = CloudStackCloudUtils.UNLIMITED_ACCOUNT_QUOTA;
+        String resourceType = "resourceType";
+        String domainId = "domainId";
+
+        ListResourceLimitsResponse.ResourceLimit resourceLimit =
+                Mockito.mock(ListResourceLimitsResponse.ResourceLimit.class);
+        Mockito.when(resourceLimit.getMax()).thenReturn(unlimited);
+        Mockito.when(resourceLimit.getResourceType()).thenReturn(resourceType);
+        Mockito.when(resourceLimit.getDomainId()).thenReturn(domainId);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).getDomainResourceLimit(
+                Mockito.eq(resourceType), Mockito.eq(domainId), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.normalizeResourceLimit(resourceLimit, this.cloudStackUser);
+    }
+
     private ListResourceLimitsResponse.ResourceLimit buildResourceLimitMock(String type, int maxValue) {
         ListResourceLimitsResponse.ResourceLimit resourceLimitMocked = Mockito.mock(
                 ListResourceLimitsResponse.ResourceLimit.class);
