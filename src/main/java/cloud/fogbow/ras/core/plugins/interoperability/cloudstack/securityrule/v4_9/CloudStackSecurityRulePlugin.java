@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Properties;
 
 public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackUser> {
-
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
     public static final int ONE_SECOND_IN_MILIS = 1000;
@@ -83,28 +82,36 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
        
     @Override
-    public void deleteSecurityRule(String securityRuleId, CloudStackUser cloudUser) throws FogbowException {
+    public void deleteSecurityRule(String securityRuleId, @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
         DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
                 .ruleId(securityRuleId)
                 .build(this.cloudStackUrl);
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        doDeleteInstance(request, cloudStackUser);
+    }
 
-        String jsonResponse = null;
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull DeleteFirewallRuleRequest request,
+                          @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            DeleteFirewallRuleResponse response = DeleteFirewallRuleResponse.fromJson(jsonResponse);
+            waitForDeleteResult(this.client, response.getJobId(), cloudStackUser);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-
-        DeleteFirewallRuleResponse response = DeleteFirewallRuleResponse.fromJson(jsonResponse);
-
-        waitForDeleteResult(this.client, response.getJobId(), cloudUser);
     }
 
     @VisibleForTesting
     void checkRequestSecurityParameters(@NotNull SecurityRule securityRule,
-                                                @NotNull Order majorOrder) throws InvalidParameterException {
+                                        @NotNull Order majorOrder) throws InvalidParameterException {
 
         if (securityRule.getDirection() == SecurityRule.Direction.OUT) {
             // TODO(chico) - check this exception. Does it made sense ?
