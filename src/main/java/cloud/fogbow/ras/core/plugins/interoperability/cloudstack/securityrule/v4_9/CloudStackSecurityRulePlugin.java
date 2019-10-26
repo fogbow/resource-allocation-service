@@ -6,7 +6,10 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
@@ -65,15 +68,19 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, CloudStackUser cloudUser) throws FogbowException {
+    public List<SecurityRuleInstance> getSecurityRules(@NotNull Order majorOrder,
+                                                       @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
         switch (majorOrder.getType()) {
         	case PUBLIC_IP:
-        		return getFirewallRules(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()), cloudUser);
+                String publicIpId = CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId());
+                return getFirewallRules(publicIpId, cloudStackUser);
         	case NETWORK:
         		return new ArrayList<>();
         	default:
 				String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
-				LOGGER.error(errorMsg);
 				throw new UnexpectedException(errorMsg);
         }
     }
@@ -113,7 +120,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                                         @NotNull Order majorOrder) throws InvalidParameterException {
 
         if (securityRule.getDirection() == SecurityRule.Direction.OUT) {
-            // TODO(chico) - check this exception. Does it made sense ?
+            // TODO(chico) - check this exception. Does it make sense ?
             throw new UnsupportedOperationException();
         }
         if (majorOrder.getType() != ResourceType.PUBLIC_IP) {
@@ -145,26 +152,35 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-	protected List<SecurityRuleInstance> getFirewallRules(String ipAddressId, CloudStackUser cloudUser) throws FogbowException {
+    @NotNull
+    @VisibleForTesting
+	List<SecurityRuleInstance> getFirewallRules(String ipAddressId, @NotNull CloudStackUser cloudUser)
+            throws FogbowException {
+
 		ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
 				.ipAddressId(ipAddressId)
 				.build(this.cloudStackUrl);
 
-		CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudUser.getToken());
 
-		String jsonResponse = null;
 		try {
-			jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-		} catch (HttpResponseException e) {
-			CloudStackHttpToFogbowExceptionMapper.map(e);
-		}
-
-		ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
-		List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse = response.getSecurityRulesResponse();
-		return convertToFogbowSecurityRules(securityRulesResponse);
+			String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudUser);
+            ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
+            List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse =
+                    response.getSecurityRulesResponse();
+            return convertToFogbowSecurityRules(securityRulesResponse);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
 	}
 
-	protected List<SecurityRuleInstance> convertToFogbowSecurityRules(List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) throws UnexpectedException {
+	@NotNull
+    @VisibleForTesting
+	List<SecurityRuleInstance> convertToFogbowSecurityRules(
+	        @NotNull List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse)
+            throws UnexpectedException {
+
 		List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
 		for (ListFirewallRulesResponse.SecurityRuleResponse securityRuleResponse : securityRulesResponse) {
 			SecurityRule.Direction direction = securityRuleResponse.getDirection();
@@ -174,14 +190,17 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 			String ipAddress = securityRuleResponse.getIpAddress();
 			SecurityRule.EtherType etherType = inferEtherType(ipAddress);
 			SecurityRule.Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
+            String instanceId = securityRuleResponse.getInstanceId();
 
-            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(securityRuleResponse.getInstanceId(), direction, portFrom, portTo, cidr, etherType, protocol);
+            SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(instanceId, direction,
+                    portFrom, portTo, cidr, etherType, protocol);
 			securityRuleInstances.add(securityRuleInstance);
 		}
 		return securityRuleInstances;
 	}
 
-	private SecurityRule.Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
+	@VisibleForTesting
+	SecurityRule.Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
 		switch (protocol) {
 			case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.TCP;
@@ -196,7 +215,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 		}
 	}
 
-	private SecurityRule.EtherType inferEtherType(String ipAddress) {
+	@VisibleForTesting
+	SecurityRule.EtherType inferEtherType(String ipAddress) {
 		if (CidrUtils.isIpv4(ipAddress)) {
 			return SecurityRule.EtherType.IPv4;
 		} else if (CidrUtils.isIpv6(ipAddress)) {
@@ -205,28 +225,6 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 			return null;
 		}
 	}
-
-//    protected String waitForJobResult(CloudStackHttpClient client, String jobId, CloudStackUser cloudUser)
-//            throws FogbowException {
-//        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
-//
-//        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
-//            for (int i = 0; i < MAX_TRIES; i++) {
-//                queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
-//                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
-//                    return processJobResult(queryAsyncJobResult, jobId);
-//                }
-//                try {
-//                    Thread.sleep(ONE_SECOND_IN_MILIS);
-//                } catch (InterruptedException e) {
-//                    throw new FogbowException();
-//                }
-//            }
-//            deleteSecurityRule(queryAsyncJobResult.getJobInstanceId(), cloudUser);
-//            throw new FogbowException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
-//        }
-//        return processJobResult(queryAsyncJobResult, jobId);
-//    }
 
     @VisibleForTesting
     void setClient(CloudStackHttpClient client) {
