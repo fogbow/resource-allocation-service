@@ -19,6 +19,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
@@ -182,6 +183,7 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
         }
     }
 
+    @Ignore // TODO(chico) - It make no more sense
     // test case: Test waitForJobResult method, when max tries is reached.
     @Test
     public void testWaitForJobResultUntilMaxTries() throws FogbowException {
@@ -194,7 +196,8 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
 
         // exercise
         try {
-            this.plugin.waitForJobResult(this.client, FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
+            String cloudstackUrl = getBaseEndpointFromCloudStackConf();
+            CloudStackCloudUtils.waitForResult(this.client, cloudstackUrl, FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (FogbowException e) {
             // verify
@@ -218,10 +221,10 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
         // exercise
         try {
             TimerTask timerTask = getTimerTask(CloudStackQueryJobResult.FAILURE);
-
-            new Timer().schedule(timerTask, 5 * CloudStackSecurityRulePlugin.ONE_SECOND_IN_MILIS);
-            this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                    Mockito.mock(CloudStackUser.class));
+            new Timer().schedule(timerTask, 5 * CloudStackCloudUtils.ONE_SECOND_IN_MILIS);
+            String cloudstackUrl = getBaseEndpointFromCloudStackConf();
+            CloudStackCloudUtils.waitForResult(Mockito.mock(CloudStackHttpClient.class), cloudstackUrl,
+                    FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (FogbowException e) {
             // verify
@@ -242,10 +245,10 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
 
         // exercise
         TimerTask timerTask = getTimerTask(CloudStackQueryJobResult.SUCCESS);
-
-        new Timer().schedule(timerTask, 5 * CloudStackSecurityRulePlugin.ONE_SECOND_IN_MILIS);
-        String instanceId = this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                Mockito.mock(CloudStackUser.class));
+        String cloudstackUrl = getBaseEndpointFromCloudStackConf();
+        new Timer().schedule(timerTask, 5 * CloudStackCloudUtils.ONE_SECOND_IN_MILIS);
+        String instanceId = CloudStackCloudUtils.waitForResult(Mockito.mock(CloudStackHttpClient.class),
+                cloudstackUrl, FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
 
         // verify
         Assert.assertEquals(FAKE_SECURITY_RULE_ID, instanceId);
@@ -264,8 +267,9 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
 
         // exercise
         try {
-            this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                    Mockito.mock(CloudStackUser.class));
+            String cloudstackUrl = getBaseEndpointFromCloudStackConf();
+            CloudStackCloudUtils.waitForResult(Mockito.mock(CloudStackHttpClient.class),
+                    cloudstackUrl, FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
             Assert.fail();
         } catch (FogbowException e) {
             // verify
@@ -278,14 +282,16 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
     @Test
     public void testWaitForJobResultSuccessJob() throws FogbowException {
         // set up
-        String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
+        String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
+        String successJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
                 Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
-                willReturn(processingJobResponse);
+                willReturn(processingJobResponse, successJobResponse);
 
         // exercise
-        String instanceId = this.plugin.waitForJobResult(Mockito.mock(CloudStackHttpClient.class), FAKE_JOB_ID,
-                Mockito.mock(CloudStackUser.class));
+        String cloudstackUrl = getBaseEndpointFromCloudStackConf();
+        String instanceId = CloudStackCloudUtils.waitForResult(Mockito.mock(CloudStackHttpClient.class),
+                cloudstackUrl, FAKE_JOB_ID, Mockito.mock(CloudStackUser.class));
 
         // verify
         Assert.assertEquals(FAKE_SECURITY_RULE_ID, instanceId);

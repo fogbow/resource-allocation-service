@@ -1,8 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
 import org.apache.http.HttpStatus;
@@ -25,6 +28,9 @@ public class CloudStackCloudUtils {
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
 
+    public static final int ONE_SECOND_IN_MILIS = 1000;
+    public static final int MAX_TRIES = 30;
+
     /**
      * Request HTTP operations to Cloudstack and treat a possible FogbowException when
      * It is thrown by the cloudStackHttpClient.
@@ -40,6 +46,63 @@ public class CloudStackCloudUtils {
             return cloudStackHttpClient.doGetRequest(url, cloudStackUser);
         } catch (FogbowException e) {
             throw new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    // TODO (chico) - move to the CloudstackCloudUtil
+    public static String waitForResult(@NotNull CloudStackHttpClient client,
+                                       String cloudStackUrl,
+                                       String jobId,
+                                       @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client,
+                cloudStackUrl, jobId, cloudStackUser);
+
+        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
+            for (int i = 0; i < MAX_TRIES; i++) {
+                queryAsyncJobResult = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
+                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
+                    return processJobResult(queryAsyncJobResult, jobId);
+                }
+                try {
+                    Thread.sleep(ONE_SECOND_IN_MILIS);
+                } catch (InterruptedException e) {
+                    throw new FogbowException();
+                }
+            }
+            throw new TimeoutCloudstackAsync(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
+        } else {
+            throw new UnexpectedException();
+        }
+    }
+
+    public static String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult,
+                                      String jobId)
+            throws FogbowException {
+        switch (queryAsyncJobResult.getJobStatus()){
+            case CloudStackQueryJobResult.SUCCESS:
+                return queryAsyncJobResult.getJobInstanceId();
+            case CloudStackQueryJobResult.FAILURE:
+                throw new FogbowException(String.format(Messages.Exception.JOB_HAS_FAILED, jobId));
+            default:
+                throw new UnexpectedException(Messages.Error.UNEXPECTED_JOB_STATUS);
+        }
+    }
+
+    public static CloudStackQueryAsyncJobResponse getAsyncJobResponse(CloudStackHttpClient client,
+                                                                      String cloudStackUrl,
+                                                                      String jobId,
+                                                                      CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(
+                client, cloudStackUrl, jobId, cloudStackUser);
+        return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
+    }
+
+    public static class TimeoutCloudstackAsync extends FogbowException {
+        public TimeoutCloudstackAsync(String message) {
+            super(message);
         }
     }
 

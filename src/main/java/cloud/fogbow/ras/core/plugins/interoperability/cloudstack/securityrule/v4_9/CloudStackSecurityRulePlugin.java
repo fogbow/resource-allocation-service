@@ -30,9 +30,6 @@ import java.util.Properties;
 public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackUser> {
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
-    public static final int ONE_SECOND_IN_MILIS = 1000;
-    public static final int MAX_TRIES = 30;
-
     private String cloudStackUrl;
     private CloudStackHttpClient client;
 
@@ -85,6 +82,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     public void deleteSecurityRule(String securityRuleId, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
         DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
                 .ruleId(securityRuleId)
                 .build(this.cloudStackUrl);
@@ -103,7 +101,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         try {
             String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
             DeleteFirewallRuleResponse response = DeleteFirewallRuleResponse.fromJson(jsonResponse);
-            waitForDeleteResult(this.client, response.getJobId(), cloudStackUser);
+            CloudStackCloudUtils.waitForResult(this.client, this.cloudStackUrl,
+                    response.getJobId(), cloudStackUser);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
@@ -124,7 +123,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 
     @VisibleForTesting
     String doRequestInstance(@NotNull CreateFirewallRuleRequest request,
-                                    @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+                             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
@@ -132,32 +131,17 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         try {
             String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
             CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
-            return waitForJobResult(this.client, response.getJobId(), cloudStackUser);
+            try {
+                return CloudStackCloudUtils.waitForResult(
+                        this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
+            } catch (CloudStackCloudUtils.TimeoutCloudstackAsync e) {
+                CloudStackQueryAsyncJobResponse asyncJobResponse = CloudStackCloudUtils.getAsyncJobResponse(client,
+                        cloudStackUrl, response.getJobId(), cloudStackUser);
+                deleteSecurityRule(asyncJobResponse.getJobInstanceId(), cloudStackUser);
+                throw e;
+            }
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
-    }
-
-    // TODO (chico) - move to the CloudstackCloudUtil
-    protected String waitForDeleteResult(CloudStackHttpClient client, String jobId, CloudStackUser cloudUser)
-            throws FogbowException, UnexpectedException {
-        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
-
-        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
-            for (int i = 0; i < MAX_TRIES; i++) {
-                queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
-                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
-                    return processJobResult(queryAsyncJobResult, jobId);
-                }
-                try {
-                    Thread.sleep(ONE_SECOND_IN_MILIS);
-                } catch (InterruptedException e) {
-                    throw new FogbowException();
-                }
-            }
-            throw new FogbowException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
-        } else {
-            throw new UnexpectedException();
         }
     }
 
@@ -222,48 +206,30 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 		}
 	}
 
-    protected String waitForJobResult(CloudStackHttpClient client, String jobId, CloudStackUser cloudUser)
-            throws FogbowException {
-        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
+//    protected String waitForJobResult(CloudStackHttpClient client, String jobId, CloudStackUser cloudUser)
+//            throws FogbowException {
+//        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
+//
+//        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
+//            for (int i = 0; i < MAX_TRIES; i++) {
+//                queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
+//                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
+//                    return processJobResult(queryAsyncJobResult, jobId);
+//                }
+//                try {
+//                    Thread.sleep(ONE_SECOND_IN_MILIS);
+//                } catch (InterruptedException e) {
+//                    throw new FogbowException();
+//                }
+//            }
+//            deleteSecurityRule(queryAsyncJobResult.getJobInstanceId(), cloudUser);
+//            throw new FogbowException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
+//        }
+//        return processJobResult(queryAsyncJobResult, jobId);
+//    }
 
-        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
-            for (int i = 0; i < MAX_TRIES; i++) {
-                queryAsyncJobResult = getAsyncJobResponse(client, jobId, cloudUser);
-                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
-                    return processJobResult(queryAsyncJobResult, jobId);
-                }
-                try {
-                    Thread.sleep(ONE_SECOND_IN_MILIS);
-                } catch (InterruptedException e) {
-                    throw new FogbowException();
-                }
-            }
-            deleteSecurityRule(queryAsyncJobResult.getJobInstanceId(), cloudUser);
-            throw new FogbowException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
-        }
-        return processJobResult(queryAsyncJobResult, jobId);
-    }
-
-    protected String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult,
-                                      String jobId)
-            throws FogbowException, UnexpectedException {
-        switch (queryAsyncJobResult.getJobStatus()){
-            case CloudStackQueryJobResult.SUCCESS:
-                return queryAsyncJobResult.getJobInstanceId();
-            case CloudStackQueryJobResult.FAILURE:
-                throw new FogbowException(String.format(Messages.Exception.JOB_HAS_FAILED, jobId));
-            default:
-                throw new UnexpectedException(Messages.Error.UNEXPECTED_JOB_STATUS);
-        }
-    }
-
-    protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(CloudStackHttpClient client, String jobId, CloudStackUser cloudUser)
-            throws FogbowException {
-        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, this.cloudStackUrl, jobId, cloudUser);
-        return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
-    }
-
-    protected void setClient(CloudStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 }
