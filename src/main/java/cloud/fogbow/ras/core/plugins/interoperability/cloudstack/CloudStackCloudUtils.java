@@ -49,36 +49,39 @@ public class CloudStackCloudUtils {
         }
     }
 
-    // TODO (chico) - move to the CloudstackCloudUtil
     public static String waitForResult(@NotNull CloudStackHttpClient client,
                                        String cloudStackUrl,
                                        String jobId,
                                        @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
-        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client,
-                cloudStackUrl, jobId, cloudStackUser);
 
-        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
-            for (int i = 0; i < MAX_TRIES; i++) {
-                queryAsyncJobResult = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
-                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
-                    return processJobResult(queryAsyncJobResult, jobId);
-                }
-                try {
-                    Thread.sleep(ONE_SECOND_IN_MILIS);
-                } catch (InterruptedException e) {
-                    throw new FogbowException();
-                }
+        int countTries = 0;
+        CloudStackQueryAsyncJobResponse response = getAsyncJobResponse(
+                client, cloudStackUrl, jobId, cloudStackUser);
+        while(response.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
+            if (countTries >= MAX_TRIES) {
+                throw new TimeoutCloudstackAsync(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
             }
-            throw new TimeoutCloudstackAsync(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
-        } else {
-            throw new UnexpectedException();
+            response = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
+            countTries++;
+            sleepThread();
+        }
+
+        return processJobResult(response, jobId);
+    }
+
+    private static void sleepThread() {
+        try {
+            Thread.sleep(ONE_SECOND_IN_MILIS);
+        } catch (InterruptedException e) {
+            LOGGER.warn("", e);
         }
     }
 
     public static String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult,
                                       String jobId)
             throws FogbowException {
+
         switch (queryAsyncJobResult.getJobStatus()){
             case CloudStackQueryJobResult.SUCCESS:
                 return queryAsyncJobResult.getJobInstanceId();
