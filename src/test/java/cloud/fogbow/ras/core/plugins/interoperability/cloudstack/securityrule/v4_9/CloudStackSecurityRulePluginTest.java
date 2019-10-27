@@ -42,7 +42,7 @@ import java.util.*;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
 @PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class, CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class})
-public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
+public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
     private static String FAKE_JOB_ID = "fake-job-id";
     private static String FAKE_SECURITY_RULE_ID = "fake-rule-id";
@@ -396,7 +396,7 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
             public void run() {
                 String processingJobResponse = getProcessingJobResponse(status);
                 try {
-                    BDDMockito.given(CloudStackSecurityRuleInstancePluginTest.this.queryJobResult.getQueryJobResult(
+                    BDDMockito.given(CloudStackSecurityRulePluginTest.this.queryJobResult.getQueryJobResult(
                             Mockito.any(CloudStackHttpClient.class), Mockito.anyString(), Mockito.anyString(), Mockito.any(CloudStackUser.class))).
                             willReturn(processingJobResponse);
                 } catch (FogbowException e) {
