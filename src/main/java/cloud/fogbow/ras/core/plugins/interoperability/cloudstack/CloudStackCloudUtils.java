@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsy
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -49,6 +50,9 @@ public class CloudStackCloudUtils {
         }
     }
 
+    /**
+     * Wait and process the Cloudstack async response in its life cycle.
+     */
     public static String waitForResult(@NotNull CloudStackHttpClient client,
                                        String cloudStackUrl,
                                        String jobId,
@@ -70,21 +74,27 @@ public class CloudStackCloudUtils {
         return processJobResult(response, jobId);
     }
 
-    private static void sleepThread() {
+    @VisibleForTesting
+    static void sleepThread() {
         try {
-            Thread.sleep(ONE_SECOND_IN_MILIS);
+            Thread.sleep(getTimeSleepThread());
         } catch (InterruptedException e) {
             LOGGER.warn("", e);
         }
     }
 
-    public static String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult,
-                                      String jobId)
+    @VisibleForTesting
+    static long getTimeSleepThread() {
+        return ONE_SECOND_IN_MILIS;
+    }
+
+    public static String processJobResult(@NotNull CloudStackQueryAsyncJobResponse response,
+                                          String jobId)
             throws FogbowException {
 
-        switch (queryAsyncJobResult.getJobStatus()){
+        switch (response.getJobStatus()){
             case CloudStackQueryJobResult.SUCCESS:
-                return queryAsyncJobResult.getJobInstanceId();
+                return response.getJobInstanceId();
             case CloudStackQueryJobResult.FAILURE:
                 throw new FogbowException(String.format(Messages.Exception.JOB_HAS_FAILED, jobId));
             default:
@@ -92,10 +102,11 @@ public class CloudStackCloudUtils {
         }
     }
 
-    public static CloudStackQueryAsyncJobResponse getAsyncJobResponse(CloudStackHttpClient client,
+    @VisibleForTesting
+    public static CloudStackQueryAsyncJobResponse getAsyncJobResponse(@NotNull CloudStackHttpClient client,
                                                                       String cloudStackUrl,
                                                                       String jobId,
-                                                                      CloudStackUser cloudStackUser)
+                                                                      @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(

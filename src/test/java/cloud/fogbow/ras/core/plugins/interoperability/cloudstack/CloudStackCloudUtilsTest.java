@@ -3,14 +3,24 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.ras.core.TestUtils;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({CloudStackQueryJobResult.class , CloudStackQueryAsyncJobResponse.class,
+        Thread.class, CloudStackCloudUtils.class})
 public class CloudStackCloudUtilsTest {
 
     @Rule
@@ -75,6 +85,121 @@ public class CloudStackCloudUtilsTest {
 
         // exercise
         CloudStackCloudUtils.doRequest(client, url, cloudStackUser);
+    }
+
+    // test case: When calling the waitForResult method and receives two processing status and one
+    // success status, it must verify if It returns the right jobInstanceId.
+    @Test
+    public void testWaitForResultWhenWaitTwiceAndReceiveSuccess() throws Exception {
+        // set up
+        String url = "";
+        String jobId = "jobId";
+        CloudStackHttpClient client = Mockito.mock(CloudStackHttpClient.class);
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        CloudStackQueryAsyncJobResponse response = mockGetAsyncJobResponse();
+        String jobInstanceIdExpected = "instanceId";
+        Mockito.when(response.getJobInstanceId()).thenReturn(jobInstanceIdExpected);
+        Mockito.when(response.getJobStatus())
+                .thenReturn(CloudStackQueryJobResult.PROCESSING)
+                .thenReturn(CloudStackQueryJobResult.PROCESSING)
+                .thenReturn(CloudStackQueryJobResult.SUCCESS);
+
+        mockGetTimeSleepThread();
+
+        // exercise
+        String jobInstanceId = CloudStackCloudUtils.waitForResult(client, url, jobId, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(jobInstanceIdExpected, jobInstanceId);
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_THRICE));
+        CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(client), Mockito.eq(url), Mockito.eq(jobId), Mockito.eq(cloudStackUser));
+    }
+
+    // test case: When calling the waitForResult method and receives only one
+    // success status, it must verify if It returns the right jobInstanceId.
+    @Test
+    public void testWaitForResultWhenReceiveOnlySuccess() throws Exception {
+        // set up
+        String url = "";
+        String jobId = "jobId";
+        CloudStackHttpClient client = Mockito.mock(CloudStackHttpClient.class);
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        CloudStackQueryAsyncJobResponse response = mockGetAsyncJobResponse();
+        String jobInstanceIdExpected = "instanceId";
+        Mockito.when(response.getJobInstanceId()).thenReturn(jobInstanceIdExpected);
+        Mockito.when(response.getJobStatus())
+                .thenReturn(CloudStackQueryJobResult.SUCCESS);
+
+        mockGetTimeSleepThread();
+
+        // exercise
+        String jobInstanceId = CloudStackCloudUtils.waitForResult(client, url, jobId, cloudStackUser);
+
+        // verify
+        Assert.assertEquals(jobInstanceIdExpected, jobInstanceId);
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(client), Mockito.eq(url), Mockito.eq(jobId), Mockito.eq(cloudStackUser));
+    }
+
+    // test case: When calling the waitForResult method and receives only processing status result,
+    // it must verify if It throws a TimeoutCloudstackAsync because it's exceeded the try's limit.
+    @Test
+    public void testWaitForResultFail() throws Exception {
+        // set up
+        int extraGetQueryJobResult = 1;
+        int totalTriesExpetected = CloudStackCloudUtils.MAX_TRIES + extraGetQueryJobResult;
+
+        String url = "";
+        String jobId = "jobId";
+        CloudStackHttpClient client = Mockito.mock(CloudStackHttpClient.class);
+        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        CloudStackQueryAsyncJobResponse response = mockGetAsyncJobResponse();
+        String jobInstanceIdExpected = "instanceId";
+        Mockito.when(response.getJobInstanceId()).thenReturn(jobInstanceIdExpected);
+        Mockito.when(response.getJobStatus()).thenReturn(CloudStackQueryJobResult.PROCESSING);
+
+        mockGetTimeSleepThread();
+
+        // verify
+        this.expectedException.expect(CloudStackCloudUtils.TimeoutCloudstackAsync.class);
+
+        // exercise
+        try {
+            CloudStackCloudUtils.waitForResult(client, url, jobId, cloudStackUser);
+        } finally {
+            // verify
+            PowerMockito.verifyStatic(CloudStackCloudUtils.class,
+                    VerificationModeFactory.times(totalTriesExpetected));
+            CloudStackQueryJobResult.getQueryJobResult(
+                    Mockito.eq(client), Mockito.eq(url), Mockito.eq(jobId), Mockito.eq(cloudStackUser));
+        }
+    }
+
+    private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+
+        String responseStr = "anyString";
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).
+                thenReturn(responseStr);
+
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(response);
+
+        return response;
+    }
+
+    private void mockGetTimeSleepThread() {
+        long TINY_VALUE = 1L;
+        PowerMockito.spy(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.getTimeSleepThread()).thenReturn(TINY_VALUE);
     }
 
 }
