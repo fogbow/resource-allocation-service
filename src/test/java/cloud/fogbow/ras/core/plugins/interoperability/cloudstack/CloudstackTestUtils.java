@@ -49,6 +49,10 @@ public class CloudstackTestUtils {
     private static final String LIST_NETWORKS_ERROR_RESPONSE = "listnetworksresponse_error.json";
     private static final String ATTACH_VOLUME_RESPONSE = "attachvolumeresponse.json";
     private static final String ATTACH_VOLUME_ERROR_RESPONSE = "attachvolumeresponse_error.json";
+    private static final String DETACH_VOLUME_RESPONSE = "detachvolumeresponse.json";
+    private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
+    private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
+    private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -242,20 +246,56 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
-    public static String attachVolumeResponseJson(String jobId) throws IOException {
+    public static String createAttachVolumeResponseJson(String jobId) throws IOException {
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + ATTACH_VOLUME_RESPONSE);
 
         return String.format(rawJson, jobId);
     }
 
-    public static String attachVolumeErrorResponseJson(int errorCode, String errorText)
+    public static String createAttachVolumeErrorResponseJson(int errorCode, String errorText)
             throws IOException {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + ATTACH_VOLUME_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createDetachVolumeResponseJson(String jobId) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DETACH_VOLUME_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String createDetachVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DETACH_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createAttachmentJobStatusResponseJson(int jobStatus, String volumeId,
+                                                               int deviceId, String virtualMachineId,
+                                                               String state, String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ATTACH_VOLUME_RESPONSE);
+
+        return String.format(rawJson, jobStatus, volumeId, deviceId, virtualMachineId, state, jobId);
+    }
+
+    public static String createAsyncErrorResponseJson(int jobStatus, int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ERROR_RESPONSE);
+
+        return String.format(rawJson, jobStatus, errorCode, errorText);
     }
 
     private static String readFileAsString(final String fileName) throws IOException {
@@ -270,16 +310,13 @@ public class CloudstackTestUtils {
         return rootPath + CLOUDSTACK_RESOURCE_PATH;
     }
 
-    // TODO(chico) use in the cloudstack compute
     public static void ignoringCloudStackUrl() throws InvalidParameterException {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
                 Mockito.anyString())).thenCallRealMethod();
     }
 
-    // TODO(chico) use in the cloudstack compute
     public static HttpResponseException createBadRequestHttpResponse() {
         return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
     }
-
 }

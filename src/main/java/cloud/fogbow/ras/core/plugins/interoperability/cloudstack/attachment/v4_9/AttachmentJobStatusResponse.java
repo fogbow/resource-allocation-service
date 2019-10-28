@@ -1,7 +1,14 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.log4j.Logger;
+
+import javax.validation.constraints.NotNull;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
 
@@ -21,11 +28,13 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
  *          }
  *      }
  *   }
- * } 
+ * }
  * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class AttachmentJobStatusResponse {
+    private static final Logger LOGGER = Logger.getLogger(AttachmentJobStatusResponse.class);
+    protected static final String NO_FAILURE_EXCEPTION_MESSAGE = "There isn't failure";
 
     @SerializedName(QUERY_ASYNC_JOB_RESULT_KEY_JSON)
     private JobResultResponse response;
@@ -42,16 +51,39 @@ public class AttachmentJobStatusResponse {
     public int getJobStatus() {
         return response.jobStatus;
     }
-    
+
+    /**
+     * It returns a CloudStackErrorResponse when the job status response is a failure and it throws
+     * an UnexpectedException when the job status response is not a failure due to the fact that
+     * either complete or failure response comes by the same parameters, the jobResult.
+     */
+    @NotNull
+    public CloudStackErrorResponse getErrorResponse() throws UnexpectedException {
+        if (response.jobStatus == CloudStackCloudUtils.JOB_STATUS_FAILURE) {
+            return response.jobResult;
+        }
+        LOGGER.debug(String.format(
+                "Error code: %s, jobResult: %s", response.jobStatus, response.jobResult));
+        throw new UnexpectedException(
+                String.format(Messages.Exception.UNEXPECTED_OPERATION_S, NO_FAILURE_EXCEPTION_MESSAGE));
+    }
+
+    @NotNull
     public Volume getVolume() {
         return this.response.jobResult.volume;
     }
-    
+
+    /**
+     * It returns an AttachmentJobStatusResponse.
+     * It doesn't check the error existence because is in async operation context. In this case,
+     * who will handle the error is the method that will call it.
+     */
+    @NotNull
     public static AttachmentJobStatusResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, AttachmentJobStatusResponse.class);
     }
     
-    public class JobResult {
+    public class JobResult extends CloudStackErrorResponse {
         
         @SerializedName(VOLUME_KEY_JSON)
         private Volume volume;

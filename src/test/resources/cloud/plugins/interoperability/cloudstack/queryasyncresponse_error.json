@@ -1,0 +1,10 @@
+{
+  "queryasyncjobresultresponse":{
+    "jobstatus":%s,
+    "jobresult":{
+      "errorcode": %s,
+      "errortext": "%s"
+    },
+    "jobid":"be59a77c-3c07-4c86-952f-a19a386fb3d5"
+  }
+}
