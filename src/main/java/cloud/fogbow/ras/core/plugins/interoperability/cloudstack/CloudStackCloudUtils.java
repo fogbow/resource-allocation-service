@@ -79,7 +79,7 @@ public class CloudStackCloudUtils {
         try {
             Thread.sleep(getTimeSleepThread());
         } catch (InterruptedException e) {
-            LOGGER.warn("", e);
+            LOGGER.warn("Waiting interrupeted", e);
         }
     }
 
@@ -88,8 +88,9 @@ public class CloudStackCloudUtils {
         return ONE_SECOND_IN_MILIS;
     }
 
-    public static String processJobResult(@NotNull CloudStackQueryAsyncJobResponse response,
-                                          String jobId)
+    @VisibleForTesting
+    static String processJobResult(@NotNull CloudStackQueryAsyncJobResponse response,
+                                   String jobId)
             throws FogbowException {
 
         switch (response.getJobStatus()){

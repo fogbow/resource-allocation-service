@@ -1,10 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -178,6 +180,56 @@ public class CloudStackCloudUtilsTest {
             CloudStackQueryJobResult.getQueryJobResult(
                     Mockito.eq(client), Mockito.eq(url), Mockito.eq(jobId), Mockito.eq(cloudStackUser));
         }
+    }
+
+    // test case: When calling the processJobResult method and job status is success,
+    // it must verify if It returns the right instance Id.
+    @Test
+    public void testProcessJobResultWhenSuccessStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        String instanceIdExpected = "instanceId";
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(CloudStackQueryJobResult.SUCCESS);
+        Mockito.when(response.getJobInstanceId()).thenReturn(instanceIdExpected);
+
+        // exercise
+        String instanceId = CloudStackCloudUtils.processJobResult(response, jobId);
+        // verify
+        Assert.assertEquals(instanceIdExpected, instanceId);
+    }
+
+    // test case: When calling the processJobResult method and job status is failed,
+    // it must verify if It throws a FogbowException.
+    @Test
+    public void testProcessJobResultWhenFailedStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(CloudStackQueryJobResult.FAILURE);
+
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(String.format(Messages.Exception.JOB_HAS_FAILED, jobId));
+
+        // exercise
+        CloudStackCloudUtils.processJobResult(response, jobId);
+    }
+
+    // test case: When calling the processJobResult method and job status is unknown,
+    // it must verify if It throws an UnexpectedException.
+    @Test
+    public void testProcessJobResultFail() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        int statusUnkown = -1;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(statusUnkown);
+
+        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expectMessage(Messages.Error.UNEXPECTED_JOB_STATUS);
+
+        // exercise
+        CloudStackCloudUtils.processJobResult(response, jobId);
     }
 
     private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {
