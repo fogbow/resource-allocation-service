@@ -25,7 +25,6 @@ public class CloudStackCloudUtils {
     public static final int JOB_STATUS_COMPLETE = 1;
     public static final int JOB_STATUS_PENDING = 0;
     public static final int JOB_STATUS_FAILURE = 2;
-    public static final int JOB_STATUS_INCONSISTENT = 3;
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
 
@@ -51,7 +50,8 @@ public class CloudStackCloudUtils {
     }
 
     /**
-     * Wait and process the Cloudstack async response in its life cycle.
+     * Wait and process the Cloudstack asynchronous response in its asynchronous life cycle.
+     * @throws FogbowException
      */
     public static String waitForResult(@NotNull CloudStackHttpClient client,
                                        String cloudStackUrl,
@@ -66,26 +66,12 @@ public class CloudStackCloudUtils {
             if (countTries >= MAX_TRIES) {
                 throw new TimeoutCloudstackAsync(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
             }
+            sleepThread();
             response = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
             countTries++;
-            sleepThread();
         }
 
         return processJobResult(response, jobId);
-    }
-
-    @VisibleForTesting
-    static void sleepThread() {
-        try {
-            Thread.sleep(getTimeSleepThread());
-        } catch (InterruptedException e) {
-            LOGGER.warn("Waiting interrupeted", e);
-        }
-    }
-
-    @VisibleForTesting
-    static long getTimeSleepThread() {
-        return ONE_SECOND_IN_MILIS;
     }
 
     @VisibleForTesting
@@ -115,10 +101,25 @@ public class CloudStackCloudUtils {
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
 
+    @VisibleForTesting
+    protected static long getTimeSleepThread() {
+        return ONE_SECOND_IN_MILIS;
+    }
+
+    private static void sleepThread() {
+        try {
+            Thread.sleep(getTimeSleepThread());
+        } catch (InterruptedException e) {
+            LOGGER.warn("Thread waiting was interrupeted", e);
+        }
+    }
+
     public static class TimeoutCloudstackAsync extends FogbowException {
-        public TimeoutCloudstackAsync(String message) {
+
+        private TimeoutCloudstackAsync(String message) {
             super(message);
         }
+
     }
 
 }

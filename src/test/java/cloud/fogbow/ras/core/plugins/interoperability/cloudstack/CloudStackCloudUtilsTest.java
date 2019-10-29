@@ -6,6 +6,7 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import org.apache.http.client.HttpResponseException;
@@ -22,7 +23,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackQueryJobResult.class , CloudStackQueryAsyncJobResponse.class,
-        Thread.class, CloudStackCloudUtils.class})
+        CloudStackCloudUtils.class, CloudStackQueryAsyncJobResponse.class, CloudStackUrlUtil.class,
+        CloudStackQueryJobResult.class})
 public class CloudStackCloudUtilsTest {
 
     @Rule
@@ -230,6 +232,38 @@ public class CloudStackCloudUtilsTest {
 
         // exercise
         CloudStackCloudUtils.processJobResult(response, jobId);
+    }
+
+    // test case: When calling the getAsyncJobResponse method, it must verify if
+    // It returns the right CloudStackQueryAsyncJobResponse.
+    @Test
+    public void testGetAsyncJobResponse() throws FogbowException {
+        // set up
+        CloudStackHttpClient client =  Mockito.mock(CloudStackHttpClient.class);;
+        String cloudstackUrl = "cloudstackUrl";
+        String jobId = "jobId";
+        CloudStackUser cloudstackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
+        String responseStr = "response";
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(Mockito.eq(client),
+                Mockito.eq(cloudstackUrl), Mockito.eq(jobId), Mockito.eq(cloudstackUser)))
+                .thenReturn(responseStr);
+
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        CloudStackQueryAsyncJobResponse responseExpected =
+                Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(responseExpected);
+
+        CloudstackTestUtils.ignoringCloudStackUrl();
+
+        // exercise
+        CloudStackQueryAsyncJobResponse response = CloudStackCloudUtils.getAsyncJobResponse(
+                client, cloudstackUrl, jobId, cloudstackUser);
+
+        // verify
+        Assert.assertEquals(responseExpected, response);
     }
 
     private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {
