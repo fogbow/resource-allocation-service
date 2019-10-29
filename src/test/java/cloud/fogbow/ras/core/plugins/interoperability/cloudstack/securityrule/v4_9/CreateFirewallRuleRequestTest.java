@@ -19,7 +19,7 @@ public class CreateFirewallRuleRequestTest {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
-                CloudStackConstants.Network.CREATE_FIREWALL_RULE_COMMAND);
+                CloudStackConstants.PublicIp.CREATE_FIREWALL_RULE_COMMAND);
         String urlBaseExpected = uriBuilder.toString();
         String protocol = "protocol";
         String startPort = "startPort";

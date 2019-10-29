@@ -3,13 +3,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.Network.CREATE_FIREWALL_RULE_COMMAND;
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html
- * <p>
- * Request Example:
+ *
+ * Request Example: http://cloudstack?command=createFirewallRule&response=json&protocol=protocol /
+ * &startport=startPort&endport=endPort&ipaddressid=ipAddressId&cidrlist=cird
  */
 public class CreateFirewallRuleRequest extends CloudStackRequest {
 
