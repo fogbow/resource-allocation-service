@@ -4,16 +4,15 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -21,7 +20,9 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -35,11 +36,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import java.io.File;
 import java.util.*;
 
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
-@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class, CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class})
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class,
+        CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class,
+        CloudStackPublicIpPlugin.class})
 public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
     private static String FAKE_JOB_ID = "fake-job-id";
@@ -47,7 +49,6 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     private static final String JSON = "json";
     private static final String RESPONSE_KEY = "response";
     private static final String ID_KEY = "id";
-    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
 
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -57,18 +58,18 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
     private static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 
+    private CloudStackQueryJobResult queryJobResult;
     private CloudStackSecurityRulePlugin plugin;
     private CloudStackHttpClient client;
+    private CloudStackUser cloudstackUser;
     private String cloudStackUrl;
-
-    private CloudStackQueryJobResult queryJobResult;
 
     @Before
     public void setUp() throws UnexpectedException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
-
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.cloudstackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(CloudStackHttpClient.class);
@@ -81,6 +82,55 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
     }
+
+    // test case: When calling the requestSecurityRule method with secondary methods mocked,
+    // it must verify if the doRequestInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testRequestSecurityRule() throws FogbowException {
+        // set up
+        String cidr = "10.10.10.10/20";
+        int portFromExpected = 22;
+        int portToExpected = 22;
+        SecurityRule.Protocol protocolExpected = SecurityRule.Protocol.TCP;
+        SecurityRule securityRule = new SecurityRule(
+                null, portFromExpected, portToExpected, cidr, null, protocolExpected);
+
+        String orderIdExpected = "orderId";
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getId()).thenReturn(orderIdExpected);
+
+        String publicIpExpected = "publicIp";
+        PowerMockito.mockStatic(CloudStackPublicIpPlugin.class);
+        PowerMockito.when(CloudStackPublicIpPlugin.getPublicIpId(Mockito.eq(orderIdExpected)))
+                .thenReturn(publicIpExpected);
+
+        String instanceIdExpected = "InstanceId";
+        Mockito.doReturn(instanceIdExpected).when(this.plugin).doRequestInstance(
+                Mockito.any(), Mockito.eq(this.cloudstackUser));
+
+        Mockito.doNothing().when(this.plugin).checkRequestSecurityParameters(
+                Mockito.eq(securityRule), Mockito.eq(order));
+
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
+                .protocol(protocolExpected.toString())
+                .startPort(String.valueOf(portFromExpected))
+                .endPort(String.valueOf(portToExpected))
+                .ipAddressId(publicIpExpected)
+                .cidrList(cidr)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        String instanceId = this.plugin.requestSecurityRule(securityRule, order, cloudstackUser);
+
+        // verify
+        Assert.assertEquals(instanceId, instanceIdExpected);
+        RequestMatcher<CreateFirewallRuleRequest> matcher = new RequestMatcher.CreateFirewallRule(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+                Mockito.argThat(matcher), Mockito.eq(this.cloudstackUser));
+    }
+
+    // # ------- old code --------- @
 
     // test case: success case
     @Test
