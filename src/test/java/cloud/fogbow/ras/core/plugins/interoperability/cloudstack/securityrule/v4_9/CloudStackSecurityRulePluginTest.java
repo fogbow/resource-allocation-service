@@ -87,7 +87,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     // it must verify if the doRequestInstance is called with the right parameters;
     // this includes the checking of the Cloudstack request.
     @Test
-    public void testRequestSecurityRule() throws FogbowException {
+    public void testRequestSecurityRuleSuccessfully() throws FogbowException {
         // set up
         String cidr = "10.10.10.10/20";
         int portFromExpected = 22;

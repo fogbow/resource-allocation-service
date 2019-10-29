@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Network.CREATE_FIREWALL_RULE_COMMAND;
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 
 /**
@@ -11,8 +12,6 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
  * Request Example:
  */
 public class CreateFirewallRuleRequest extends CloudStackRequest {
-
-    public static final String CREATE_FIREWALL_RULE_COMMAND = "createFirewallRule";
 
     protected CreateFirewallRuleRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
