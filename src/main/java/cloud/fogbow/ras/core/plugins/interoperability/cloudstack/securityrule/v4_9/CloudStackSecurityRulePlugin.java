@@ -120,8 +120,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                                         @NotNull Order majorOrder) throws InvalidParameterException {
 
         if (securityRule.getDirection() == SecurityRule.Direction.OUT) {
-            // TODO(chico) - check this exception. Does it make sense ?
-            throw new UnsupportedOperationException();
+            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
         }
         if (majorOrder.getType() != ResourceType.PUBLIC_IP) {
             throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);

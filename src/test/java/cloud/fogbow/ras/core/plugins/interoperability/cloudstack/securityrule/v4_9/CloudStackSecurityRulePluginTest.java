@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -26,10 +27,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.C
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.ExpectedException;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -57,6 +56,9 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     private static final String FAKE_TOKEN_VALUE = "x" + CloudStackConstants.KEY_VALUE_SEPARATOR + "y";
 
     private static final CloudStackUser FAKE_CLOUD_USER = new CloudStackUser(FAKE_USER_ID, FAKE_USERNAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
 
     private CloudStackQueryJobResult queryJobResult;
     private CloudStackSecurityRulePlugin plugin;
@@ -128,6 +130,74 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         RequestMatcher<CreateFirewallRuleRequest> matcher = new RequestMatcher.CreateFirewallRule(request);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
                 Mockito.argThat(matcher), Mockito.eq(this.cloudstackUser));
+    }
+
+    // test case: When calling the requestSecurityRule method with secondary methods mocked and
+    // throws an exception in the doRequestInstance, it must verify if It throws the same exception;
+    @Test
+    public void testRequestSecurityRuleFail() throws FogbowException {
+        // set up
+        String cidr = "10.10.10.10/20";
+        int portFromExpected = 22;
+        int portToExpected = 22;
+        SecurityRule.Protocol protocolExpected = SecurityRule.Protocol.TCP;
+        SecurityRule securityRule = new SecurityRule(
+                null, portFromExpected, portToExpected, cidr, null, protocolExpected);
+
+        String orderIdExpected = "orderId";
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getId()).thenReturn(orderIdExpected);
+
+        Mockito.doNothing().when(this.plugin).checkRequestSecurityParameters(
+                Mockito.eq(securityRule), Mockito.eq(order));
+
+        String publicIpExpected = "publicIp";
+        PowerMockito.mockStatic(CloudStackPublicIpPlugin.class);
+        PowerMockito.when(CloudStackPublicIpPlugin.getPublicIpId(Mockito.eq(orderIdExpected)))
+                .thenReturn(publicIpExpected);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .doRequestInstance(Mockito.any(), Mockito.eq(this.cloudstackUser));
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        try {
+            this.plugin.requestSecurityRule(securityRule, order, cloudstackUser);
+            Assert.fail();
+        } finally {
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
+                    Mockito.any(), Mockito.any());
+        }
+    }
+
+    // test case: When calling the requestSecurityRule method and throws an InvalidParameterException
+    // when is being checked the parameters, it must verify if It throws the same exception
+    // and stop the method.
+    @Test
+    public void testRequestSecurityRuleFailOnCheckParameters() throws FogbowException {
+        // set up
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+        Order order = Mockito.mock(Order.class);
+
+        Mockito.doThrow(new InvalidParameterException()).when(this.plugin)
+                .checkRequestSecurityParameters(Mockito.eq(securityRule), Mockito.eq(order));
+
+        this.expectedException.expect(InvalidParameterException.class);
+
+        // exercise
+        try {
+            this.plugin.requestSecurityRule(securityRule, order, cloudstackUser);
+        } finally {
+            // verify
+            Mockito.verify(securityRule, Mockito.times(TestUtils.NEVER_RUN)).getCidr();
+        }
+    }
+
+    @Test
+    public void testDoRequestInstance() {
+
     }
 
     // # ------- old code --------- @
@@ -372,6 +442,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
                 .doGetRequest(expectedDeleteRuleRequestUrl, FAKE_CLOUD_USER);
     }
 
+    @Ignore
     @Test(expected = FogbowException.class)
     public void testDeleteSecurityRuleTimeoutFail() throws FogbowException, HttpResponseException {
         // set up
