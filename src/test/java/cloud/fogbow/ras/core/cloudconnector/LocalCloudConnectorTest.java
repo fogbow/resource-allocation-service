@@ -1461,7 +1461,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(instantiator.getNetworkPlugin(Mockito.anyString())).thenReturn(this.networkPlugin);
         Mockito.when(instantiator.getPublicIpPlugin(Mockito.anyString())).thenReturn(this.publicIpPlugin);
         Mockito.when(instantiator.getVolumePlugin(Mockito.anyString())).thenReturn(this.volumePlugin);
-        Mockito.when(instantiator.getGenericRequestPlugin(Mockito.anyString())).thenReturn(this.genericRequestPlugin);
         Mockito.when(instantiator.getSecurityRulePlugin(Mockito.anyString())).thenReturn(this.securityRulePlugin);
         return instantiator;
     }
