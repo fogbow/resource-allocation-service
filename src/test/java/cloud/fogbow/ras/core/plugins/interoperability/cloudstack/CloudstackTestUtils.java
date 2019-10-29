@@ -53,6 +53,7 @@ public class CloudstackTestUtils {
     private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
     private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
     private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
+    private static final String CREATE_FIREWALL_RULE_RESPONSE = "createfirewallruleresponse.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -296,6 +297,13 @@ public class CloudstackTestUtils {
                 + ASYNC_ERROR_RESPONSE);
 
         return String.format(rawJson, jobStatus, errorCode, errorText);
+    }
+
+    public static String createFirewallRuleAsyncResponseJson(String jobId) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_FIREWALL_RULE_RESPONSE);
+
+        return String.format(rawJson, jobId);
     }
 
     private static String readFileAsString(final String fileName) throws IOException {
