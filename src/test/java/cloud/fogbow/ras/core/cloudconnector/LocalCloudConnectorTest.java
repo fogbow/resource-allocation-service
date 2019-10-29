@@ -1381,23 +1381,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(this.imagePlugin, Mockito.times(TestUtils.RUN_ONCE)).getImage(Mockito.anyString(),
                 Mockito.eq(cloudUser));
     }
-    
-    // test case: When invoking the doGenericRequest method, it must execute the
-    // redirectGenericRequest method of the generic request plug-in.
-    @Test
-    public void testDoGenericRequest() throws FogbowException {
-        // set up
-        CloudUser cloudUser = Mockito.mock(CloudUser.class);
-        Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
 
-        // exercise
-        this.localCloudConnector.doGenericRequest(ANY_VALUE, cloudUser);
-
-        // verify
-        Mockito.verify(this.genericRequestPlugin, Mockito.times(TestUtils.RUN_ONCE))
-                .redirectGenericRequest(Mockito.anyString(), Mockito.eq(cloudUser));
-    }
-    
     // test case: When invoking the doGetAllSecurityRules method, it must execute
     // the getSecurityRules method of the security rule plug-in.
     @Test
