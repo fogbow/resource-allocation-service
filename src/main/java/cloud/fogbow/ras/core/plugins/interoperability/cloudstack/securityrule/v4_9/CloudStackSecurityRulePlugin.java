@@ -135,7 +135,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
-            String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudStackUser);
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
             CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
             try {
                 return CloudStackCloudUtils.waitForResult(

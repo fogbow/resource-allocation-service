@@ -7,6 +7,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -23,6 +24,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
@@ -31,6 +33,7 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -40,7 +43,7 @@ import java.util.*;
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
 @PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class,
         CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class,
-        CloudStackPublicIpPlugin.class})
+        CloudStackPublicIpPlugin.class, CloudStackCloudUtils.class, CreateFirewallRuleAsyncResponse.class})
 public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
     private static String FAKE_JOB_ID = "fake-job-id";
@@ -63,15 +66,15 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     private CloudStackQueryJobResult queryJobResult;
     private CloudStackSecurityRulePlugin plugin;
     private CloudStackHttpClient client;
-    private CloudStackUser cloudstackUser;
+    private CloudStackUser cloudStackUser;
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws UnexpectedException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
-        this.cloudstackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(CloudStackHttpClient.class);
@@ -83,6 +86,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         this.plugin.setClient(this.client);
 
         this.testUtils.mockReadOrdersFromDataBase();
+        CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
     // test case: When calling the requestSecurityRule method with secondary methods mocked,
@@ -109,7 +113,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         String instanceIdExpected = "InstanceId";
         Mockito.doReturn(instanceIdExpected).when(this.plugin).doRequestInstance(
-                Mockito.any(), Mockito.eq(this.cloudstackUser));
+                Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         Mockito.doNothing().when(this.plugin).checkRequestSecurityParameters(
                 Mockito.eq(securityRule), Mockito.eq(order));
@@ -123,13 +127,13 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
                 .build(this.cloudStackUrl);
 
         // exercise
-        String instanceId = this.plugin.requestSecurityRule(securityRule, order, cloudstackUser);
+        String instanceId = this.plugin.requestSecurityRule(securityRule, order, cloudStackUser);
 
         // verify
         Assert.assertEquals(instanceId, instanceIdExpected);
         RequestMatcher<CreateFirewallRuleRequest> matcher = new RequestMatcher.CreateFirewallRule(request);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
-                Mockito.argThat(matcher), Mockito.eq(this.cloudstackUser));
+                Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the requestSecurityRule method with secondary methods mocked and
@@ -157,14 +161,14 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
                 .thenReturn(publicIpExpected);
 
         Mockito.doThrow(new FogbowException()).when(this.plugin)
-                .doRequestInstance(Mockito.any(), Mockito.eq(this.cloudstackUser));
+                .doRequestInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         // verify
         this.expectedException.expect(FogbowException.class);
 
         // exercise
         try {
-            this.plugin.requestSecurityRule(securityRule, order, cloudstackUser);
+            this.plugin.requestSecurityRule(securityRule, order, cloudStackUser);
             Assert.fail();
         } finally {
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
@@ -188,16 +192,130 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         // exercise
         try {
-            this.plugin.requestSecurityRule(securityRule, order, cloudstackUser);
+            this.plugin.requestSecurityRule(securityRule, order, cloudStackUser);
         } finally {
             // verify
             Mockito.verify(securityRule, Mockito.times(TestUtils.NEVER_RUN)).getCidr();
         }
     }
 
+    // test case: When calling the doRequestInstance method with secondary methods mocked,
+    // it must verify if It returns the right instance id (job id).
     @Test
-    public void testDoRequestInstance() {
+    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+        String responseStr = "anything";
+        String url = request.getUriBuilder().toString();
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
+                Mockito.eq(this.client), Mockito.eq(url), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(responseStr);
 
+        String jobId = "jobId";
+        CreateFirewallRuleAsyncResponse response = Mockito.mock(CreateFirewallRuleAsyncResponse.class);
+        Mockito.when(response.getJobId()).thenReturn(jobId);
+
+        PowerMockito.mockStatic(CreateFirewallRuleAsyncResponse.class);
+        PowerMockito.when(CreateFirewallRuleAsyncResponse.fromJson(responseStr))
+                .thenReturn(response);
+
+        String instanceIdExpected = "instanceId";
+        PowerMockito.when(CloudStackCloudUtils.waitForResult(Mockito.eq(this.client),
+                Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(instanceIdExpected);
+
+        // exercise
+        String instanceId = this.plugin.doRequestInstance(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceIdExpected, instanceId);
+    }
+
+    // test case: When calling the doRequestInstance method with secondary methods mocked and occurs
+    // an exception in the doRequest, it must verify if It throws the same exception.
+    @Test
+    public void testDoRequestInstanceFailOnDoRequest() throws FogbowException, HttpResponseException {
+        // set up
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+        String url = request.getUriBuilder().toString();
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
+                Mockito.eq(this.client), Mockito.eq(url), Mockito.eq(this.cloudStackUser)))
+                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        try {
+            this.plugin.doRequestInstance(request, this.cloudStackUser);
+            Assert.fail();
+        } finally {
+            // verify
+            PowerMockito.verifyStatic(CloudStackCloudUtils.class,
+                    VerificationModeFactory.times(TestUtils.NEVER_RUN));
+            CloudStackCloudUtils.waitForResult(
+                    Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        }
+    }
+
+    // test case: When calling the doRequestInstance method with secondary methods mocked and occurs
+    // a TimeoutCloudstackAsync, it must verify if It will delete the instance and rethorws the
+    // exception.
+    @Test
+    public void testDoRequestInstanceFailWhenTimeout() throws FogbowException, HttpResponseException {
+        // set up
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+        String responseStr = "anything";
+        String url = request.getUriBuilder().toString();
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
+                Mockito.eq(this.client), Mockito.eq(url), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(responseStr);
+
+        String jobId = "jobId";
+        CreateFirewallRuleAsyncResponse response = Mockito.mock(CreateFirewallRuleAsyncResponse.class);
+        Mockito.when(response.getJobId()).thenReturn(jobId);
+
+        PowerMockito.mockStatic(CreateFirewallRuleAsyncResponse.class);
+        PowerMockito.when(CreateFirewallRuleAsyncResponse.fromJson(responseStr))
+                .thenReturn(response);
+
+        String errorMessage = "error";
+        PowerMockito.when(CloudStackCloudUtils.waitForResult(Mockito.eq(this.client),
+                Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId), Mockito.eq(this.cloudStackUser)))
+                .thenThrow(new CloudStackCloudUtils.TimeoutCloudstackAsync(errorMessage));
+
+        CloudStackQueryAsyncJobResponse responseAsync = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        String securityGroupId = "securityId";
+        Mockito.when(responseAsync.getJobInstanceId()).thenReturn(securityGroupId);
+        PowerMockito.when(CloudStackCloudUtils.getAsyncJobResponse(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId),
+                Mockito.eq(this.cloudStackUser))).thenReturn(responseAsync);
+
+        Mockito.doNothing().when(this.plugin).deleteSecurityRule(
+                Mockito.eq(securityGroupId), Mockito.eq(this.cloudStackUser));
+
+        // verify
+        this.expectedException.expect(CloudStackCloudUtils.TimeoutCloudstackAsync.class);
+        this.expectedException.expectMessage(errorMessage);
+
+        // exercise
+        try {
+            this.plugin.doRequestInstance(request, this.cloudStackUser);
+            Assert.fail();
+        } finally {
+            // verify
+            PowerMockito.verifyStatic(CloudStackCloudUtils.class,
+                    VerificationModeFactory.times(TestUtils.RUN_ONCE));
+            CloudStackCloudUtils.waitForResult(
+                    Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityRule(
+                    Mockito.eq(securityGroupId), Mockito.eq(this.cloudStackUser));
+        }
     }
 
     // # ------- old code --------- @
@@ -284,22 +402,6 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.getSecurityRules(irregularOrder, FAKE_CLOUD_USER);
-    }
-
-    // test case: Creating a security rule with egress direction, should raise an UnsupportedOperationException.
-    @Test
-    public void testCreateEgressSecurityRule() throws FogbowException {
-        // set up
-        SecurityRule securityRule = createSecurityRule();
-        securityRule.setDirection(SecurityRule.Direction.OUT);
-
-        // exercise
-        try {
-            plugin.requestSecurityRule(securityRule, Mockito.mock(Order.class), Mockito.mock(CloudStackUser.class));
-            Assert.fail();
-        } catch (UnsupportedOperationException e) {
-            // verify
-        }
     }
 
     @Ignore // TODO(chico) - It make no more sense

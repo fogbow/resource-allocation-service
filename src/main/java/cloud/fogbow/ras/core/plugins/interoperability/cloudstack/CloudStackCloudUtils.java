@@ -116,7 +116,7 @@ public class CloudStackCloudUtils {
 
     public static class TimeoutCloudstackAsync extends FogbowException {
 
-        private TimeoutCloudstackAsync(String message) {
+        public TimeoutCloudstackAsync(String message) {
             super(message);
         }
 
