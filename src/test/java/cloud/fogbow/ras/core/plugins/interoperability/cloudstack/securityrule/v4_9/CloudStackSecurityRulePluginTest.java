@@ -340,8 +340,8 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         }
     }
 
-    // test case: When calling the checkRequestSecurityParameters method with wrong direction
-    // , it must verify if It throws the right InvalidParameterException.
+    // test case: When calling the checkRequestSecurityParameters method with wrong direction,
+    // It must verify if It throws the right InvalidParameterException.
     @Test
     public void testCheckRequestSecurityParametersWhenDirectionIsWrong()
             throws InvalidParameterException {
@@ -358,8 +358,8 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         this.plugin.checkRequestSecurityParameters(securityRule, order);
     }
 
-    // test case: When calling the checkRequestSecurityParameters method with wrong order type
-    // , it must verify if It throws the right InvalidParameterException.
+    // test case: When calling the checkRequestSecurityParameters method with wrong order type,
+    // It must verify if It throws the right InvalidParameterException.
     @Test
     public void testCheckRequestSecurityParametersWhenOrderTypeWrong()
             throws InvalidParameterException {
@@ -376,6 +376,65 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.checkRequestSecurityParameters(securityRule, order);
+    }
+
+    // test case: When calling the checkRequestSecurityParameters method with public ip order,
+    // it must verify if It returns the list of security rules.
+    @Test
+    public void testDoGetSecurityRulesWhenResourceTypePublicIp() throws FogbowException {
+        // set up
+        String orderId = "orderId";
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
+        Mockito.when(order.getId()).thenReturn(orderId);
+
+        PowerMockito.mockStatic(CloudStackPublicIpPlugin.class);
+        String publicIpId = "publicIpId";
+        PowerMockito.when(CloudStackPublicIpPlugin.getPublicIpId(Mockito.eq(orderId)))
+                .thenReturn(publicIpId);
+
+        List<SecurityRuleInstance> securityRulesExpected = new ArrayList();
+        Mockito.doReturn(securityRulesExpected).when(this.plugin).getFirewallRules(
+                Mockito.eq(publicIpId), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        List<SecurityRuleInstance> securityRules =
+                this.plugin.doGetSecurityRules(order, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(securityRulesExpected, securityRules);
+    }
+
+    // test case: When calling the checkRequestSecurityParameters method with network order,
+    // it must verify if It returns an empty list.
+    @Test
+    public void testDoGetSecurityRulesWhenResourceTypeNetwork() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
+
+        // exercise
+        List<SecurityRuleInstance> securityRules =
+                this.plugin.doGetSecurityRules(order, this.cloudStackUser);
+
+        // verify
+        Assert.assertTrue(securityRules.isEmpty());
+    }
+
+    // test case: When calling the checkRequestSecurityParameters method with not recognized order,
+    // it must verify if It throws an UnexpectedException.
+    @Test
+    public void testDoGetSecurityRulesFail() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
+
+        this.expectedException.expect(UnexpectedException.class);
+        String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, order.getType());
+        this.expectedException.expectMessage(errorMsg);
+
+        // exercise
+        this.plugin.doGetSecurityRules(order, this.cloudStackUser);
     }
 
     // # ------- old code --------- @
