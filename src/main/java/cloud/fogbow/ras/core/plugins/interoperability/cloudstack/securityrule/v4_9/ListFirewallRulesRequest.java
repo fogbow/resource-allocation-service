@@ -21,7 +21,6 @@ public class ListFirewallRulesRequest extends CloudStackRequest {
 	public String getCommand() {
 		return CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_COMMAND;
 	}
-	
 
     public static class Builder {
         private String cloudStackUrl;
