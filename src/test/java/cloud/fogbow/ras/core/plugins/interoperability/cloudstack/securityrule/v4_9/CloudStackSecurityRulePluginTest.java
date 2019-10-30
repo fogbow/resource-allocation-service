@@ -12,10 +12,12 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJob
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -316,6 +318,64 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityRule(
                     Mockito.eq(securityGroupId), Mockito.eq(this.cloudStackUser));
         }
+    }
+
+    // test case: When calling the checkRequestSecurityParameters method, it must verify if
+    // It does not throws an InvalidParameterException.
+    @Test
+    public void testCheckRequestSecurityParametersSuccessfully() {
+
+        // set up
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+        Mockito.when(securityRule.getDirection()).thenReturn(SecurityRule.Direction.IN);
+
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
+
+        // exercise and verify
+        try {
+            this.plugin.checkRequestSecurityParameters(securityRule, order);
+        } catch (InvalidParameterException e) {
+            Assert.fail();
+        }
+    }
+
+    // test case: When calling the checkRequestSecurityParameters method with wrong direction
+    // , it must verify if It throws the right InvalidParameterException.
+    @Test
+    public void testCheckRequestSecurityParametersWhenDirectionIsWrong()
+            throws InvalidParameterException {
+
+        // set up
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+        Mockito.when(securityRule.getDirection()).thenReturn(SecurityRule.Direction.OUT);
+        Order order = Mockito.mock(Order.class);
+
+        this.expectedException.expect(InvalidParameterException.class);
+        this.expectedException.expectMessage(Messages.Exception.INVALID_PARAMETER);
+
+        // exercise
+        this.plugin.checkRequestSecurityParameters(securityRule, order);
+    }
+
+    // test case: When calling the checkRequestSecurityParameters method with wrong order type
+    // , it must verify if It throws the right InvalidParameterException.
+    @Test
+    public void testCheckRequestSecurityParametersWhenOrderTypeWrong()
+            throws InvalidParameterException {
+
+        // set up
+        SecurityRule securityRule = Mockito.mock(SecurityRule.class);
+        Mockito.when(securityRule.getDirection()).thenReturn(SecurityRule.Direction.IN);
+
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
+
+        this.expectedException.expect(InvalidParameterException.class);
+        this.expectedException.expectMessage(Messages.Exception.INVALID_RESOURCE);
+
+        // exercise
+        this.plugin.checkRequestSecurityParameters(securityRule, order);
     }
 
     // # ------- old code --------- @
