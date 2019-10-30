@@ -189,8 +189,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 	@NotNull
     @VisibleForTesting
 	List<SecurityRuleInstance> convertToFogbowSecurityRules(
-	        @NotNull List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse)
-            throws UnexpectedException {
+	        @NotNull List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) {
 
 		List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
 		for (ListFirewallRulesResponse.SecurityRuleResponse securityRuleResponse : securityRulesResponse) {
@@ -211,7 +210,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 	}
 
 	@VisibleForTesting
-	SecurityRule.Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
+	SecurityRule.Protocol getFogbowProtocol(String protocol) {
 		switch (protocol) {
 			case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.TCP;
@@ -222,7 +221,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 			case CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.ANY;
 			default:
-				throw new UnexpectedException(Messages.Exception.INVALID_CLOUDSTACK_PROTOCOL);
+				return null;
 		}
 	}
 

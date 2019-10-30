@@ -40,7 +40,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
@@ -476,41 +475,6 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the getFirewallRules method with secondary methods mocked and occurs
-    // an exception in the convertToFogbowSecurityRules, it must verify if It throws an UnexpectedException.
-    @Test
-    public void testGetFirewallRulesFailOnConvertToFogbowSecurityRules()
-            throws FogbowException, HttpResponseException {
-
-        // set up
-        String ipAddessId = "ipAddressId";
-
-        ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
-                .ipAddressId(ipAddessId)
-                .build(this.cloudStackUrl);
-
-        String responseStr = "anything";
-        PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
-                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
-                .thenReturn(responseStr);
-
-        List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesExpected = new ArrayList<>();
-        ListFirewallRulesResponse response = Mockito.mock(ListFirewallRulesResponse.class);
-        Mockito.when(response.getSecurityRulesResponse()).thenReturn(securityRulesExpected);
-        PowerMockito.mockStatic(ListFirewallRulesResponse.class);
-        PowerMockito.when(ListFirewallRulesResponse.fromJson(Mockito.eq(responseStr)))
-                .thenReturn(response);
-
-        Mockito.doThrow(new UnexpectedException()).when(this.plugin).convertToFogbowSecurityRules(
-                Mockito.eq(securityRulesExpected));
-
-        this.expectedException.expect(UnexpectedException.class);
-
-        // exercise
-        this.plugin.getFirewallRules(ipAddessId, this.cloudStackUser);
-    }
-
-    // test case: When calling the getFirewallRules method with secondary methods mocked and occurs
     // an exception in the doRequest, it must verify if It throws a FogbowException.
     @Test
     public void testGetFirewallRulesFailDoRequest() throws FogbowException, HttpResponseException {
@@ -533,6 +497,62 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         this.plugin.getFirewallRules(ipAddessId, this.cloudStackUser);
     }
 
+    // test case: When calling the convertToFogbowSecurityRules method,
+    // it must verify if It return right security rules.
+    @Test
+    public void testConvertToFogbowSecurityRulesSuccessfully() {
+        // set up
+        String instanceId = "1";
+        String protocol = SecurityRule.Protocol.TCP.toString();
+        int startPort = 1;
+        int endPort = 2;
+        String ipaddress = "10.10.10.1";
+        SecurityRule.EtherType etherType = this.plugin.inferEtherType(ipaddress);
+        String cird = "10.10.10.0/20";
+        SecurityRule.Direction direction = SecurityRule.Direction.IN;
+
+        ListFirewallRulesResponse.SecurityRuleResponse securityRuleOne =
+                Mockito.mock(ListFirewallRulesResponse.SecurityRuleResponse.class);
+        Mockito.when(securityRuleOne.getCidr()).thenReturn(cird);
+        Mockito.when(securityRuleOne.getProtocol()).thenReturn(protocol);
+        Mockito.when(securityRuleOne.getInstanceId()).thenReturn(instanceId);
+        Mockito.when(securityRuleOne.getPortFrom()).thenReturn(startPort);
+        Mockito.when(securityRuleOne.getPortTo()).thenReturn(endPort);
+        Mockito.when(securityRuleOne.getIpAddress()).thenReturn(ipaddress);
+        Mockito.when(securityRuleOne.getDirection()).thenReturn(direction);
+
+        List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse = new ArrayList<>();
+        securityRulesResponse.add(securityRuleOne);
+
+        // exercise
+        List<SecurityRuleInstance> securityRuleInstances =
+                this.plugin.convertToFogbowSecurityRules(securityRulesResponse);
+
+        // verify
+        Assert.assertEquals(securityRulesResponse.size(), securityRuleInstances.size());
+        SecurityRuleInstance firstSecurityRule = securityRuleInstances.listIterator().next();
+        Assert.assertEquals(startPort, firstSecurityRule.getPortFrom());
+        Assert.assertEquals(endPort, firstSecurityRule.getPortTo());
+        Assert.assertEquals(protocol, firstSecurityRule.getProtocol().toString());
+        Assert.assertEquals(direction, firstSecurityRule.getDirection());
+        Assert.assertEquals(instanceId, firstSecurityRule.getId());
+        Assert.assertEquals(etherType, firstSecurityRule.getEtherType());
+    }
+
+    // test case: When calling the convertToFogbowSecurityRules method and there is no firewall rules,
+    // it must verify if It return an empty list.
+    @Test
+    public void testConvertToFogbowSecurityRulesWhenEmptyList() {
+        // set up
+        List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse = new ArrayList<>();
+
+        // exercise
+        List<SecurityRuleInstance> securityRuleInstances =
+                this.plugin.convertToFogbowSecurityRules(securityRulesResponse);
+
+        // verify
+        Assert.assertTrue(securityRuleInstances.isEmpty());
+    }
 
     // # ------- old code --------- @
 
