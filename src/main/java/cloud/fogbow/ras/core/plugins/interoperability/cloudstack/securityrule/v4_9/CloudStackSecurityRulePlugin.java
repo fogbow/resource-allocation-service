@@ -73,16 +73,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
-        switch (majorOrder.getType()) {
-        	case PUBLIC_IP:
-                String publicIpId = CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId());
-                return getFirewallRules(publicIpId, cloudStackUser);
-        	case NETWORK:
-        		return new ArrayList<>();
-        	default:
-				String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
-				throw new UnexpectedException(errorMsg);
-        }
+        return doGetSecurityRules(majorOrder, cloudStackUser);
     }
        
     @Override
@@ -95,6 +86,24 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                 .build(this.cloudStackUrl);
 
         doDeleteInstance(request, cloudStackUser);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    List<SecurityRuleInstance> doGetSecurityRules(@NotNull Order majorOrder,
+                                                  @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        switch (majorOrder.getType()) {
+            case PUBLIC_IP:
+                String publicIpId = CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId());
+                return getFirewallRules(publicIpId, cloudStackUser);
+            case NETWORK:
+                return new ArrayList<>();
+            default:
+                String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
+                throw new UnexpectedException(errorMsg);
+        }
     }
 
     @VisibleForTesting
