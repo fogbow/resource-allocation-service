@@ -40,12 +40,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
 @PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class,
         CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class,
-        CloudStackPublicIpPlugin.class, CloudStackCloudUtils.class, CreateFirewallRuleAsyncResponse.class})
+        CloudStackPublicIpPlugin.class, CloudStackCloudUtils.class, CreateFirewallRuleAsyncResponse.class,
+        ListFirewallRulesResponse.class})
 public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
     private static String FAKE_JOB_ID = "fake-job-id";
@@ -378,7 +380,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         this.plugin.checkRequestSecurityParameters(securityRule, order);
     }
 
-    // test case: When calling the checkRequestSecurityParameters method with public ip order,
+    // test case: When calling the doGetSecurityRules method with public ip order,
     // it must verify if It returns the list of security rules.
     @Test
     public void testDoGetSecurityRulesWhenResourceTypePublicIp() throws FogbowException {
@@ -405,7 +407,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         Assert.assertEquals(securityRulesExpected, securityRules);
     }
 
-    // test case: When calling the checkRequestSecurityParameters method with network order,
+    // test case: When calling the doGetSecurityRules method with network order,
     // it must verify if It returns an empty list.
     @Test
     public void testDoGetSecurityRulesWhenResourceTypeNetwork() throws FogbowException {
@@ -421,7 +423,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         Assert.assertTrue(securityRules.isEmpty());
     }
 
-    // test case: When calling the checkRequestSecurityParameters method with not recognized order,
+    // test case: When calling the doGetSecurityRules method with not recognized order,
     // it must verify if It throws an UnexpectedException.
     @Test
     public void testDoGetSecurityRulesFail() throws FogbowException {
@@ -436,6 +438,101 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         // exercise
         this.plugin.doGetSecurityRules(order, this.cloudStackUser);
     }
+
+    // test case: When calling the getFirewallRules method with secondary methods mocked and occurs,
+    // it must verify if It returns right firewall rules.
+    @Test
+    public void testGetFirewallRulesSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        String ipAddessId = "ipAddressId";
+
+        ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
+                .ipAddressId(ipAddessId)
+                .build(this.cloudStackUrl);
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(responseStr);
+
+        List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesExpected = new ArrayList<>();
+        ListFirewallRulesResponse response = Mockito.mock(ListFirewallRulesResponse.class);
+        Mockito.when(response.getSecurityRulesResponse()).thenReturn(securityRulesExpected);
+        PowerMockito.mockStatic(ListFirewallRulesResponse.class);
+        PowerMockito.when(ListFirewallRulesResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(response);
+
+        List<SecurityRuleInstance> firewallRulesExpected = new ArrayList<>();
+        Mockito.doReturn(firewallRulesExpected).when(this.plugin).convertToFogbowSecurityRules(
+                Mockito.eq(securityRulesExpected));
+
+        // exercise
+        List<SecurityRuleInstance> firewallRules = this.plugin.getFirewallRules(
+                ipAddessId, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(firewallRulesExpected, firewallRules);
+    }
+
+    // test case: When calling the getFirewallRules method with secondary methods mocked and occurs
+    // an exception in the convertToFogbowSecurityRules, it must verify if It throws an UnexpectedException.
+    @Test
+    public void testGetFirewallRulesFailOnConvertToFogbowSecurityRules()
+            throws FogbowException, HttpResponseException {
+
+        // set up
+        String ipAddessId = "ipAddressId";
+
+        ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
+                .ipAddressId(ipAddessId)
+                .build(this.cloudStackUrl);
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(responseStr);
+
+        List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesExpected = new ArrayList<>();
+        ListFirewallRulesResponse response = Mockito.mock(ListFirewallRulesResponse.class);
+        Mockito.when(response.getSecurityRulesResponse()).thenReturn(securityRulesExpected);
+        PowerMockito.mockStatic(ListFirewallRulesResponse.class);
+        PowerMockito.when(ListFirewallRulesResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(response);
+
+        Mockito.doThrow(new UnexpectedException()).when(this.plugin).convertToFogbowSecurityRules(
+                Mockito.eq(securityRulesExpected));
+
+        this.expectedException.expect(UnexpectedException.class);
+
+        // exercise
+        this.plugin.getFirewallRules(ipAddessId, this.cloudStackUser);
+    }
+
+    // test case: When calling the getFirewallRules method with secondary methods mocked and occurs
+    // an exception in the doRequest, it must verify if It throws a FogbowException.
+    @Test
+    public void testGetFirewallRulesFailDoRequest() throws FogbowException, HttpResponseException {
+        // set up
+        String ipAddessId = "ipAddressId";
+
+        ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
+                .ipAddressId(ipAddessId)
+                .build(this.cloudStackUrl);
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.getFirewallRules(ipAddessId, this.cloudStackUser);
+    }
+
 
     // # ------- old code --------- @
 

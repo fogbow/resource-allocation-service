@@ -164,7 +164,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 
     @NotNull
     @VisibleForTesting
-	List<SecurityRuleInstance> getFirewallRules(String ipAddressId, @NotNull CloudStackUser cloudUser)
+	List<SecurityRuleInstance> getFirewallRules(String ipAddressId, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
 		ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
@@ -172,10 +172,11 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 				.build(this.cloudStackUrl);
 
         URIBuilder uriRequest = request.getUriBuilder();
-        CloudStackUrlUtil.sign(uriRequest, cloudUser.getToken());
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
 		try {
-			String jsonResponse = this.client.doGetRequest(uriRequest.toString(), cloudUser);
+			String jsonResponse = CloudStackCloudUtils.doRequest(
+			        this.client, uriRequest.toString(), cloudStackUser);
             ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
             List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse =
                     response.getSecurityRulesResponse();
