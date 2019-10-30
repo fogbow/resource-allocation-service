@@ -110,6 +110,7 @@ public class CloudStackCloudUtils {
         try {
             Thread.sleep(getTimeSleepThread());
         } catch (InterruptedException e) {
+            // TODO(chico) - use constants
             LOGGER.warn("Thread waiting was interrupeted", e);
         }
     }

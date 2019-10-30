@@ -127,6 +127,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
+    @NotNull
     @VisibleForTesting
     String doRequestInstance(@NotNull CreateFirewallRuleRequest request,
                              @NotNull CloudStackUser cloudStackUser) throws FogbowException {
