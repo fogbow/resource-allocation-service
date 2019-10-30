@@ -554,6 +554,76 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         Assert.assertTrue(securityRuleInstances.isEmpty());
     }
 
+    // test case: When calling the getFogbowProtocol method and the protocol is TCP,
+    // it must verify if It return a TPC FogbowProtocol.
+    @Test
+    public void testGetFogbowProtocolWheIsTcp() {
+        // set up
+        String protocol = CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL;
+
+        // exercise
+        SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
+
+        // verify
+        Assert.assertEquals(SecurityRule.Protocol.TCP, fogbowProtocol);
+    }
+
+    // test case: When calling the getFogbowProtocol method and the protocol is UDP,
+    // it must verify if It return a UDP FogbowProtocol.
+    @Test
+    public void testGetFogbowProtocolWhenIsUdp() {
+        // set up
+        String protocol = CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL;
+
+        // exercise
+        SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
+
+        // verify
+        Assert.assertEquals(SecurityRule.Protocol.UDP, fogbowProtocol);
+    }
+
+    // test case: When calling the getFogbowProtocol method and the protocol is IMCP,
+    // it must verify if It return a IMCP FogbowProtocol.
+    @Test
+    public void testGetFogbowProtocolWhenIsImcp() {
+        // set up
+        String protocol = CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL;
+
+        // exercise
+        SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
+
+        // verify
+        Assert.assertEquals(SecurityRule.Protocol.ICMP, fogbowProtocol);
+    }
+
+    // test case: When calling the getFogbowProtocol method and the protocol is any,
+    // it must verify if It return a ANY FogbowProtocol.
+    @Test
+    public void testGetFogbowProtocolWhenIsAny() {
+        // set up
+        String protocol = CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL;
+
+        // exercise
+        SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
+
+        // verify
+        Assert.assertEquals(SecurityRule.Protocol.ANY, fogbowProtocol);
+    }
+
+    // test case: When calling the getFogbowProtocol method and the protocol is unknown,
+    // it must verify if It return null.
+    @Test
+    public void testGetFogbowProtocolFail() {
+        // set up
+        String protocol = "unknown";
+
+        // exercise
+        SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
+
+        // verify
+        Assert.assertNull(fogbowProtocol);
+    }
+
     // # ------- old code --------- @
 
     // test case: success case
