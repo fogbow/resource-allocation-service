@@ -8,8 +8,8 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html
  *
- * Request Example: http://cloudstack?command=createFirewallRule&response=json&protocol=protocol /
- * &startport=startPort&endport=endPort&ipaddressid=ipAddressId&cidrlist=cird
+ * Request Example: {url_cloudstack}?command=createFirewallRule&response=json&protocol={protocol} /
+ * &startport={startPort}&endport={endPort}&ipaddressid={ipAddressId}&cidrlist={cird}
  */
 public class CreateFirewallRuleRequest extends CloudStackRequest {
 
