@@ -26,10 +26,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.C
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -644,5 +641,9 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         // verify
         Assert.assertNull(etherType);
     }
+
+    @Ignore
+    @Test
+    public void testDeleteSecurityRule() {}
 
 }
