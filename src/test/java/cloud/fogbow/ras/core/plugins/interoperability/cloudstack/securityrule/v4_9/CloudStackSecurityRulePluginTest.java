@@ -548,7 +548,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the getFogbowProtocol method and the protocol is UDP,
-    // it must verify if It return a UDP FogbowProtocol.
+    // it must verify if It return an UDP FogbowProtocol.
     @Test
     public void testGetFogbowProtocolWhenIsUdp() {
         // set up
@@ -562,7 +562,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the getFogbowProtocol method and the protocol is IMCP,
-    // it must verify if It return a IMCP FogbowProtocol.
+    // it must verify if It return an IMCP FogbowProtocol.
     @Test
     public void testGetFogbowProtocolWhenIsImcp() {
         // set up
@@ -576,7 +576,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the getFogbowProtocol method and the protocol is any,
-    // it must verify if It return a ANY FogbowProtocol.
+    // it must verify if It return an ANY FogbowProtocol.
     @Test
     public void testGetFogbowProtocolWhenIsAny() {
         // set up
@@ -601,6 +601,48 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertNull(fogbowProtocol);
+    }
+
+    // test case: When calling the inferEtherType method with an IP Ipv4,
+    // it must verify if It returns an EtherType.IPv4.
+    @Test
+    public void testInferEtherTypeWhenIpv4() {
+        // set up
+        String ipAddress = "10.10.10.10";
+
+        // exercise
+        SecurityRule.EtherType etherType = this.plugin.inferEtherType(ipAddress);
+
+        // verify
+        Assert.assertEquals(SecurityRule.EtherType.IPv4, etherType);
+    }
+
+    // test case: When calling the inferEtherType method with an IP Ipv6,
+    // it must verify if It returns an EtherType.IPv6.
+    @Test
+    public void testInferEtherTypeWhenIpv6() {
+        // set up
+        String ipAddress = "2001:db8:85a3:8d3:1319:8a2e:370:7348";
+
+        // exercise
+        SecurityRule.EtherType etherType = this.plugin.inferEtherType(ipAddress);
+
+        // verify
+        Assert.assertEquals(SecurityRule.EtherType.IPv6, etherType);
+    }
+
+    // test case: When calling the inferEtherType method with an unknown value,
+    // it must verify if It returns null.
+    @Test
+    public void testInferEtherTypeFail() {
+        // set up
+        String ipAddress = "wrong";
+
+        // exercise
+        SecurityRule.EtherType etherType = this.plugin.inferEtherType(ipAddress);
+
+        // verify
+        Assert.assertNull(etherType);
     }
 
 }
