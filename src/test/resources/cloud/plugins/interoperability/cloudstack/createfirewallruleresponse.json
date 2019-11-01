@@ -1,5 +1,5 @@
 {
   "createfirewallruleresponse": {
-    "jobid": 1
+    "jobid": %s
   }
 }

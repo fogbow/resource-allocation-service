@@ -59,6 +59,7 @@ public class CloudstackTestUtils {
             "listfirewallrulesresponse_error.json";
     private static final String LIST_FIREWALL_RULES_EMPTY_RESPONSE =
             "listfirewallrulesresponse_empty.json";
+    private static final String DELETE_FIREWALL_RULE_RESPONSE = "deletefirewallruleresponse.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -342,6 +343,13 @@ public class CloudstackTestUtils {
                 + LIST_FIREWALL_RULES_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String deleteFirewallRuleAsyncResponseJson(String jobId) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_FIREWALL_RULE_RESPONSE);
+
+        return String.format(rawJson, jobId);
     }
 
     private static String getPathCloudstackFile() {

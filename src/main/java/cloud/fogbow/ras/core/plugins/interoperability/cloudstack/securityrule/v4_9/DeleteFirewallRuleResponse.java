@@ -7,16 +7,19 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/deleteFirewallRule.html
  *
- * Example repsonse:
- *
- * <p> {"deletefirewallruleresponse":{"jobid":"bcf3e901-a4a0-4b1c-bcb2-5d8972e30a88"}} </p>
+ * Example response:
+ * {
+ * "deletefirewallruleresponse": {
+ *     "jobid":"bcf3e901-a4a0-4b1c-bcb2-5d8972e30a88"
+ *   }
+ * }
  *
  * Considering this as a async call, will be needed
  * more requests to check the result of this operation
  */
 
 public class DeleteFirewallRuleResponse {
-    @SerializedName(CloudStackConstants.PublicIp.DELETE_FIREWALL_RULE_RESPOSNE)
+    @SerializedName(CloudStackConstants.SecurityGroupPlugin.DELETE_FIREWALL_RULE_RESPONSE)
     private FirewallRuleResponse response;
 
     public static class FirewallRuleResponse {
