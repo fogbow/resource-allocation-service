@@ -4,12 +4,11 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.IP_ADDRESS_ID_KEY_JSON;
 
 public class ListFirewallRulesRequestTest {
 

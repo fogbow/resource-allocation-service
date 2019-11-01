@@ -18,7 +18,7 @@ public class DeleteFirewallRuleRequestTest {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
-                CloudStackConstants.PublicIp.DELETE_FIREWALL_RULE_COMMAND);
+                CloudStackConstants.SecurityGroupPlugin.DELETE_FIREWALL_RULE_COMMAND);
         String urlBaseExpected = uriBuilder.toString();
         String ruleId = "ruleId";
 
