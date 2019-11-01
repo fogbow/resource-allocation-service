@@ -26,7 +26,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.C
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.apache.http.client.HttpResponseException;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -642,8 +645,44 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         Assert.assertNull(etherType);
     }
 
-    @Ignore
+    // test case: When calling the deleteSecurityRule method with secondary methods mocked,
+    // it must verify if the doDeleteInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
     @Test
-    public void testDeleteSecurityRule() {}
+    public void testDeleteSecurityRuleSuccessfully() throws FogbowException {
+        // set up
+        String securityRuleId = "securityRuleId";
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(
+                Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
+                .ruleId(securityRuleId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        this.plugin.deleteSecurityRule(securityRuleId, this.cloudStackUser);
+
+        // verify
+        RequestMatcher<DeleteFirewallRuleRequest> matcher = new RequestMatcher.DeleteFirewallRule(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(
+                Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the deleteSecurityRule method with secondary methods mocked and
+    // throws an exception in the doDeleteInstance, it must verify if It throws the same exception;
+    @Test
+    public void testDeleteSecurityRuleFail() throws FogbowException {
+        // set up
+        String securityRuleId = "securityRuleId";
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).doDeleteInstance(
+                Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.deleteSecurityRule(securityRuleId, this.cloudStackUser);
+    }
 
 }
