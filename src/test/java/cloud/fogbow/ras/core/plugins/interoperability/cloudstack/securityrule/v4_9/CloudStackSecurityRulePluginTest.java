@@ -34,18 +34,16 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-@PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
 @PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, CloudStackUrlUtil.class,
         CloudStackHttpClient.class, CloudStackQueryJobResult.class, CloudStackSecurityRulePlugin.class,
         CloudStackPublicIpPlugin.class, CloudStackCloudUtils.class, CreateFirewallRuleAsyncResponse.class,
-        ListFirewallRulesResponse.class})
+        ListFirewallRulesResponse.class, DeleteFirewallRuleResponse.class})
 public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
     @Rule
@@ -683,6 +681,95 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.deleteSecurityRule(securityRuleId, this.cloudStackUser);
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked,
+    // it must verify if It reachs waitForResult method.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(responseStr);
+
+        String jobId = "jobId";
+        DeleteFirewallRuleResponse response = Mockito.mock(DeleteFirewallRuleResponse.class);
+        Mockito.when(response.getJobId()).thenReturn(jobId);
+
+        PowerMockito.mockStatic(DeleteFirewallRuleResponse.class);
+        PowerMockito.when(DeleteFirewallRuleResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(response);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, this.cloudStackUser);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class,
+                VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.waitForResult(Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked and occurs
+    // an exception in the doRequest, it must verify if It throws an FogbowException.
+    @Test
+    public void testDoDeleteInstanceFailOnDoRequest() throws FogbowException, HttpResponseException {
+        // set up
+        DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, this.cloudStackUser);
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class,
+                VerificationModeFactory.times(TestUtils.NEVER_RUN));
+        CloudStackCloudUtils.waitForResult(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any());
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked and occurs
+    // an exception in the waitForResult, it must verify if It throws the same exception.
+    @Test
+    public void testDoDeleteInstanceFailOnWaitForResult() throws FogbowException, HttpResponseException {
+        // set up
+        DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
+                .thenReturn(responseStr);
+
+        String jobId = "jobId";
+        DeleteFirewallRuleResponse response = Mockito.mock(DeleteFirewallRuleResponse.class);
+        Mockito.when(response.getJobId()).thenReturn(jobId);
+
+        PowerMockito.mockStatic(DeleteFirewallRuleResponse.class);
+        PowerMockito.when(DeleteFirewallRuleResponse.fromJson(Mockito.eq(responseStr)))
+                .thenReturn(response);
+
+        PowerMockito.when(CloudStackCloudUtils.waitForResult(Mockito.eq(this.client),
+                Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId), Mockito.eq(this.cloudStackUser)))
+                .thenThrow(new FogbowException());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, this.cloudStackUser);
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.waitForResult(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
 }
