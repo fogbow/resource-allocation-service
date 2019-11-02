@@ -86,6 +86,7 @@ public class Messages {
         public static final String UNABLE_TO_LOCATE_ORDER_S_S = "Unable to locate order <%s> notified by <%s>.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_PROVIDER = "Unable to notify requesting provider %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
+        public static final String THREAD_INTERRUPTED = "Thread waiting was interrupted";
     }
 
     public static class Info {

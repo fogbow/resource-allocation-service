@@ -28,8 +28,8 @@ public class CloudStackCloudUtils {
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
 
-    public static final int ONE_SECOND_IN_MILIS = 1000;
-    public static final int MAX_TRIES = 30;
+    private static final int ONE_SECOND_IN_MILIS = 1000;
+    private static final int MAX_TRIES = 30;
 
     /**
      * Request HTTP operations to Cloudstack and treat a possible FogbowException when
@@ -53,6 +53,7 @@ public class CloudStackCloudUtils {
      * Wait and process the Cloudstack asynchronous response in its asynchronous life cycle.
      * @throws FogbowException
      */
+    @NotNull
     public static String waitForResult(@NotNull CloudStackHttpClient client,
                                        String cloudStackUrl,
                                        String jobId,
@@ -74,6 +75,7 @@ public class CloudStackCloudUtils {
         return processJobResult(response, jobId);
     }
 
+    @NotNull
     @VisibleForTesting
     static String processJobResult(@NotNull CloudStackQueryAsyncJobResponse response,
                                    String jobId)
@@ -89,6 +91,7 @@ public class CloudStackCloudUtils {
         }
     }
 
+    @NotNull
     @VisibleForTesting
     public static CloudStackQueryAsyncJobResponse getAsyncJobResponse(@NotNull CloudStackHttpClient client,
                                                                       String cloudStackUrl,
@@ -110,8 +113,7 @@ public class CloudStackCloudUtils {
         try {
             Thread.sleep(getTimeSleepThread());
         } catch (InterruptedException e) {
-            // TODO(chico) - use constants
-            LOGGER.warn("Thread waiting was interrupeted", e);
+            LOGGER.warn(Messages.Warn.THREAD_INTERRUPTED, e);
         }
     }
 
