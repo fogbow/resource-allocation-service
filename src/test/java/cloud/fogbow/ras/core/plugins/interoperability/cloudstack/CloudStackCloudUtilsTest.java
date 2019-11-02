@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -8,6 +9,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsy
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -24,11 +26,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackQueryJobResult.class , CloudStackQueryAsyncJobResponse.class,
         CloudStackCloudUtils.class, CloudStackQueryAsyncJobResponse.class, CloudStackUrlUtil.class,
-        CloudStackQueryJobResult.class})
+        CloudStackQueryJobResult.class, Thread.class})
 public class CloudStackCloudUtilsTest {
 
     @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    private ExpectedException expectedException = ExpectedException.none();
+    private LoggerAssert loggerTestChecking = new LoggerAssert(CloudStackCloudUtils.class);
 
     // test case: When calling the doRequest method with a right parameter,
     // it must verify if It returns the subnetInfo expected.
@@ -264,6 +267,22 @@ public class CloudStackCloudUtilsTest {
 
         // verify
         Assert.assertEquals(responseExpected, response);
+    }
+
+    // test case: When calling the sleepThread method and occurs an InterruptedException,
+    // it must verify if It shows the log related.
+    @Test
+    public void testSleepThreadFail() throws Exception {
+        // set up
+        PowerMockito.mockStatic(Thread.class);
+        PowerMockito.doThrow(new InterruptedException()).when(Thread.class);
+        Thread.sleep(Mockito.anyLong());
+
+        // exercise
+        CloudStackCloudUtils.sleepThread();
+
+        // verify
+        this.loggerTestChecking.assertEquals(1, Level.WARN, Messages.Warn.THREAD_INTERRUPTED);
     }
 
     private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {

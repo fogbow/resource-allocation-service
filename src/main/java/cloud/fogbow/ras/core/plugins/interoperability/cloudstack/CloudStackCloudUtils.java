@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import javax.validation.constraints.NotNull;
 
 public class CloudStackCloudUtils {
-    private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
+    private static final Logger LOGGER = Logger.getLogger(CloudStackCloudUtils.class);
 
     public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
     public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
@@ -28,8 +28,8 @@ public class CloudStackCloudUtils {
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
 
-    private static final int ONE_SECOND_IN_MILIS = 1000;
-    private static final int MAX_TRIES = 30;
+    protected static final int ONE_SECOND_IN_MILIS = 1000;
+    protected static final int MAX_TRIES = 30;
 
     /**
      * Request HTTP operations to Cloudstack and treat a possible FogbowException when
@@ -105,11 +105,12 @@ public class CloudStackCloudUtils {
     }
 
     @VisibleForTesting
-    protected static long getTimeSleepThread() {
+    static long getTimeSleepThread() {
         return ONE_SECOND_IN_MILIS;
     }
 
-    private static void sleepThread() {
+    @VisibleForTesting
+    static void sleepThread() {
         try {
             Thread.sleep(getTimeSleepThread());
         } catch (InterruptedException e) {
