@@ -112,7 +112,7 @@ public class CloudStackCloudUtilsTest {
                 .thenReturn(CloudStackQueryJobResult.PROCESSING)
                 .thenReturn(CloudStackQueryJobResult.SUCCESS);
 
-        mockGetTimeSleepThread();
+        mockSleepThread();
 
         // exercise
         String jobInstanceId = CloudStackCloudUtils.waitForResult(client, url, jobId, cloudStackUser);
@@ -140,7 +140,7 @@ public class CloudStackCloudUtilsTest {
         Mockito.when(response.getJobStatus())
                 .thenReturn(CloudStackQueryJobResult.SUCCESS);
 
-        mockGetTimeSleepThread();
+        mockSleepThread();
 
         // exercise
         String jobInstanceId = CloudStackCloudUtils.waitForResult(client, url, jobId, cloudStackUser);
@@ -170,7 +170,7 @@ public class CloudStackCloudUtilsTest {
         Mockito.when(response.getJobInstanceId()).thenReturn(jobInstanceIdExpected);
         Mockito.when(response.getJobStatus()).thenReturn(CloudStackQueryJobResult.PROCESSING);
 
-        mockGetTimeSleepThread();
+        mockSleepThread();
 
         // verify
         this.expectedException.expect(CloudStackCloudUtils.TimeoutCloudstackAsync.class);
@@ -242,7 +242,7 @@ public class CloudStackCloudUtilsTest {
     @Test
     public void testGetAsyncJobResponse() throws FogbowException {
         // set up
-        CloudStackHttpClient client =  Mockito.mock(CloudStackHttpClient.class);;
+        CloudStackHttpClient client =  Mockito.mock(CloudStackHttpClient.class);
         String cloudstackUrl = "cloudstackUrl";
         String jobId = "jobId";
         CloudStackUser cloudstackUser = CloudstackTestUtils.CLOUD_STACK_USER;
@@ -301,10 +301,10 @@ public class CloudStackCloudUtilsTest {
         return response;
     }
 
-    private void mockGetTimeSleepThread() {
-        long TINY_VALUE = 1L;
-        PowerMockito.spy(CloudStackCloudUtils.class);
-        PowerMockito.when(CloudStackCloudUtils.getTimeSleepThread()).thenReturn(TINY_VALUE);
+    private void mockSleepThread() throws InterruptedException {
+        PowerMockito.mockStatic(Thread.class);
+        PowerMockito.doNothing().when(Thread.class);
+        Thread.sleep(Mockito.anyLong());
     }
 
 }

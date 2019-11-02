@@ -6,7 +6,6 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.HttpStatus;
@@ -105,14 +104,9 @@ public class CloudStackCloudUtils {
     }
 
     @VisibleForTesting
-    static long getTimeSleepThread() {
-        return ONE_SECOND_IN_MILIS;
-    }
-
-    @VisibleForTesting
     static void sleepThread() {
         try {
-            Thread.sleep(getTimeSleepThread());
+            Thread.sleep(ONE_SECOND_IN_MILIS);
         } catch (InterruptedException e) {
             LOGGER.warn(Messages.Warn.THREAD_INTERRUPTED, e);
         }
