@@ -9,12 +9,13 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -24,20 +25,18 @@ import java.util.*;
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
-    private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_TAG_SEPARATOR = ":";
-    private CloudStackHttpClient client;
     private boolean diskOfferingCompatible;
+
+    private CloudStackHttpClient client;
     private String zoneId;
-    private Properties properties;
     private String cloudStackUrl;
 
     public CloudStackVolumePlugin(String confFilePath) {
-        this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
-        this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.zoneId = properties.getProperty(CloudStackCloudUtils.ZONE_ID_CONFIG);
         this.client = new CloudStackHttpClient();
     }
 
