@@ -34,8 +34,6 @@ import java.util.stream.Collectors;
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    private static final int FIRST_ELEMENT_POSITION = 0;
-
     private CloudStackHttpClient client;
     private String zoneId;
     private String cloudStackUrl;
@@ -66,27 +64,37 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
-    public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudStackUser cloudUser) throws FogbowException {
+    public VolumeInstance getInstance(@NotNull VolumeOrder volumeOrder, @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeOrder.getInstanceId())
                 .build(this.cloudStackUrl);
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackUser.getToken());
 
-        String jsonResponse = null;
-        GetVolumeResponse response = null;
+        return doGetInstance(request, cloudStackUser);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    VolumeInstance doGetInstance(@NotNull GetVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-            response = GetVolumeResponse.fromJson(jsonResponse);
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, request.getUriBuilder().toString(), cloudStackUser);
+            GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
+            List<GetVolumeResponse.Volume> volumes = response.getVolumes();
+            if (volumes != null && volumes.size() > 0) {
+                // since an id were specified, there should be no more than one volume in the response
+                GetVolumeResponse.Volume volume = volumes.listIterator().next();
+                return buildVolumeInstance(volume);
+            } else {
+                throw new UnexpectedException();
+            }
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        List<GetVolumeResponse.Volume> volumes = response.getVolumes();
-        if (volumes != null && volumes.size() > 0) {
-            // since an id were specified, there should be no more than one volume in the response
-            return loadInstance(volumes.get(FIRST_ELEMENT_POSITION));
-        } else {
-            throw new UnexpectedException();
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
@@ -266,15 +274,17 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                 .build(this.cloudStackUrl);
     }
 
-    private VolumeInstance loadInstance(GetVolumeResponse.Volume volume) {
+    @NotNull
+    @VisibleForTesting
+    VolumeInstance buildVolumeInstance(GetVolumeResponse.Volume volume) {
         String id = volume.getId();
         String state = volume.getState();
         String name = volume.getName();
         long sizeInBytes = volume.getSize();
+        // TODO(chico) - Use contants or Utils class
         int sizeInGigabytes = (int) (sizeInBytes / Math.pow(1024, 3));
 
-        VolumeInstance volumeInstance = new VolumeInstance(id, state, name, sizeInGigabytes);
-        return volumeInstance;
+        return new VolumeInstance(id, state, name, sizeInGigabytes);
     }
 
     protected void setClient(CloudStackHttpClient client) {
