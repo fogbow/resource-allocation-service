@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import javax.validation.constraints.NotNull;
 
 public class CloudStackCloudUtils {
+    public static final String FOGBOW_TAG_SEPARATOR = ":";
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
 
     public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
