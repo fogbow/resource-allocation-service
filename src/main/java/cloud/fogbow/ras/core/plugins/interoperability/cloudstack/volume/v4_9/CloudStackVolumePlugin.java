@@ -71,9 +71,41 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeOrder.getInstanceId())
                 .build(this.cloudStackUrl);
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackUser.getToken());
 
         return doGetInstance(request, cloudStackUser);
+    }
+
+    @Override
+    public void deleteInstance(@NotNull VolumeOrder volumeOrder, @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
+                .id(volumeOrder.getInstanceId())
+                .build(this.cloudStackUrl);
+
+        doDeleteInstance(request, cloudStackUser);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull DeleteVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
+        throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
+            DeleteVolumeResponse volumeResponse = DeleteVolumeResponse.fromJson(jsonResponse);
+            boolean success = volumeResponse.isSuccess();
+            if (!success) {
+                String message = volumeResponse.getDisplayText();
+                throw new UnexpectedException(message);
+            }
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
     @NotNull
@@ -81,9 +113,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     VolumeInstance doGetInstance(@NotNull GetVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
         try {
             String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, request.getUriBuilder().toString(), cloudStackUser);
+                    this.client, uriRequest.toString(), cloudStackUser);
             GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
             List<GetVolumeResponse.Volume> volumes = response.getVolumes();
             if (volumes != null && volumes.size() > 0) {
@@ -95,31 +130,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             }
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
-    }
-
-    @Override
-    public void deleteInstance(VolumeOrder volumeOrder, CloudStackUser cloudUser) throws FogbowException {
-
-        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
-                .id(volumeOrder.getInstanceId())
-                .build(this.cloudStackUrl);
-
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        DeleteVolumeResponse volumeResponse = DeleteVolumeResponse.fromJson(jsonResponse);
-        boolean success = volumeResponse.isSuccess();
-
-        if (!success) {
-            String message = volumeResponse.getDisplayText();
-            throw new UnexpectedException(message);
         }
     }
 
