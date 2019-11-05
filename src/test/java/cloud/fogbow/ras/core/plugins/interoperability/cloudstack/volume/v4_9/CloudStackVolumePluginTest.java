@@ -7,23 +7,23 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClie
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,11 +53,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     private static final String FAKE_ID = "fake-id";
     private static final String FAKE_JOB_ID = "fake-job-id";
     private static final String FAKE_NAME = "fake-name";
-    private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_TAGS = "tag1:value1,tag2:value2";
-    private static final HashMap<String, String> FAKE_COOKIE_HEADER = new HashMap<>();
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_MEMBER = "fake-member";
     private static final String FAKE_CLOUD_NAME = "cloud-name";
 
@@ -79,17 +75,62 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws UnexpectedException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         this.client = Mockito.mock(CloudStackHttpClient.class);
-        this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
+        this.plugin = Mockito.spy(new CloudStackVolumePlugin(cloudStackConfFilePath));
         this.plugin.setClient(this.client);
-        this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+
         this.testUtils.mockReadOrdersFromDataBase();
+        CloudstackTestUtils.ignoringCloudStackUrl();
     }
+
+    // test case: When calling the deleteInstance method with secondary methods mocked,
+    // it must verify if the doDeleteInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getInstanceId()).thenReturn(instanceId);
+
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
+                .id(instanceId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        this.plugin.deleteInstance(volumeOrder, this.cloudStackUser);
+
+        // verify
+        RequestMatcher<DeleteVolumeRequest> matcher = new RequestMatcher.DeleteVolume(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the deleteInstance method and occurs an FogbowException,
+    // it must verify if It returns a FogbowException.
+    @Test(expected = FogbowException.class)
+    public void testDeleteInstanceFail() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getInstanceId()).thenReturn(instanceId);
+
+        Mockito.doThrow(new FogbowException())
+                .when(this.plugin).doDeleteInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        // exercise
+        this.plugin.deleteInstance(volumeOrder, this.cloudStackUser);
+    }
+
+    // # ------------ old code ------------ #
 
     // test case: When calling the requestInstance method with a size compatible with the
     // orchestrator's disk offering, HTTP GET requests must be made with a signed cloudUser, one to get
