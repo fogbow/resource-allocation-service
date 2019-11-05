@@ -12,13 +12,14 @@ import org.apache.log4j.Logger;
 import javax.validation.constraints.NotNull;
 
 public class CloudStackCloudUtils {
-    public static final String FOGBOW_TAG_SEPARATOR = ":";
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
 
     public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
     public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
     public static final String ZONE_ID_CONFIG = "zone_id";
 
+    public static final String FOGBOW_TAG_SEPARATOR = ":";
+    public static final double ONE_GB_IN_BYTES = Math.pow(1024, 3);
     public static final int JOB_STATUS_COMPLETE = 1;
     public static final int JOB_STATUS_PENDING = 0;
     public static final int JOB_STATUS_FAILURE = 2;
