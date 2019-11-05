@@ -2,14 +2,16 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.api.http.response.VolumeInstance;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -23,19 +25,16 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.DELETE_VOLUME_COMMAND;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, GetVolumeResponse.class})
-public class CloudStackVolumePluginTest {
+@PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class,
+        GetVolumeResponse.class, DatabaseManager.class})
+public class CloudStackVolumePluginTest extends BaseUnitTests {
 
-    private static final String CLOUD_NAME = "cloudstack";
-    private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String ID_FIELD = "&id=%s";
@@ -76,18 +75,20 @@ public class CloudStackVolumePluginTest {
 
     private CloudStackVolumePlugin plugin;
     private CloudStackHttpClient client;
-    private CloudStackUser cloudUser;
-    private Properties properties;
+    private CloudStackUser cloudStackUser;
+    private String cloudStackUrl;
 
     @Before
-    public void setUp() {
-        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+    public void setUp() throws UnexpectedException {
+        String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
-        this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
+        this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        this.testUtils.mockReadOrdersFromDataBase();
     }
 
     // test case: When calling the requestInstance method with a size compatible with the
@@ -104,17 +105,16 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat);
 
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = COMPATIBLE_SIZE;
         boolean customized = false;
         String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -128,23 +128,23 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudStackUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, COMPATIBLE_SIZE);
-        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
+        String volumeId = this.plugin.requestInstance(order, this.cloudStackUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
@@ -164,17 +164,16 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat);
 
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = STANDARD_SIZE;
         boolean customized = true;
         String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -188,23 +187,23 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudStackUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
+        String volumeId = this.plugin.requestInstance(order, this.cloudStackUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
@@ -219,10 +218,9 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat);
 
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = COMPATIBLE_SIZE;
@@ -231,7 +229,7 @@ public class CloudStackVolumePluginTest {
         Map<String, String> fakeRequirements = new HashMap<>();
         fakeRequirements.put("tag1", "value1");
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -245,24 +243,24 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudStackUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
         order.setRequirements(fakeRequirements);
-        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
+        String volumeId = this.plugin.requestInstance(order, this.cloudStackUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
@@ -277,10 +275,9 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat);
 
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = COMPATIBLE_SIZE;
@@ -289,7 +286,7 @@ public class CloudStackVolumePluginTest {
         Map<String, String> fakeRequirements = new HashMap<>();
         fakeRequirements.put("tag3", "value3");
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(diskOfferings);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
@@ -303,21 +300,21 @@ public class CloudStackVolumePluginTest {
 
         String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
         Mockito.when(
-                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudUser)))
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.cloudStackUser)))
                 .thenReturn(response);
 
         // exercise
         VolumeOrder order =
                 new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
         order.setRequirements(fakeRequirements);
-        String volumeId = this.plugin.requestInstance(order, this.cloudUser);
+        String volumeId = this.plugin.requestInstance(order, this.cloudStackUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
-                Mockito.eq(this.cloudUser));
+                Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the requestInstance method with a user without permission, an
@@ -340,7 +337,7 @@ public class CloudStackVolumePluginTest {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.cloudUser);
+            this.plugin.requestInstance(order, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -370,7 +367,7 @@ public class CloudStackVolumePluginTest {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.cloudUser);
+            this.plugin.requestInstance(order, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -400,7 +397,7 @@ public class CloudStackVolumePluginTest {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.cloudUser);
+            this.plugin.requestInstance(order, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -431,7 +428,7 @@ public class CloudStackVolumePluginTest {
             // exercise
             VolumeOrder order =
                     new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
-            this.plugin.requestInstance(order, this.cloudUser);
+            this.plugin.requestInstance(order, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -456,11 +453,10 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String id = FAKE_ID;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat, id);
 
         String name = FAKE_NAME;
         String size = new Long(COMPATIBLE_SIZE * GIGABYTE).toString();
@@ -468,13 +464,13 @@ public class CloudStackVolumePluginTest {
         String volume = getVolumeResponse(id, name, size, state);
         String response = getListVolumesResponse(volume);
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(response);
 
         VolumeOrder volumeOrder = new VolumeOrder();
         volumeOrder.setInstanceId(FAKE_ID);
 
         // exercise
-        VolumeInstance recoveredInstance = this.plugin.getInstance(volumeOrder, this.cloudUser);
+        VolumeInstance recoveredInstance = this.plugin.getInstance(volumeOrder, this.cloudStackUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -484,7 +480,7 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(name, recoveredInstance.getName());
         Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getSize());
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudUser);
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.cloudStackUser);
     }
 
     // test case: When calling the getInstance method with a user without permission, an
@@ -508,7 +504,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -539,7 +535,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -571,7 +567,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -603,7 +599,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -626,16 +622,15 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String id = FAKE_ID;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat, id);
 
         String volume = EMPTY_INSTANCE;
         String response = getListVolumesResponse(volume);
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(response);
 
         PowerMockito.mockStatic(GetVolumeResponse.class);
         PowerMockito.when(GetVolumeResponse.fromJson(response)).thenCallRealMethod();
@@ -645,7 +640,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -672,16 +667,15 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = DELETE_VOLUME_COMMAND;
         String id = FAKE_ID;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat, id);
 
         boolean success = true;
         String response = getDeleteVolumeResponse(success);
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(response);
 
         PowerMockito.mockStatic(DeleteVolumeResponse.class);
         PowerMockito.when(DeleteVolumeResponse.fromJson(response)).thenCallRealMethod();
@@ -690,13 +684,13 @@ public class CloudStackVolumePluginTest {
         volumeOrder.setInstanceId(FAKE_ID);
 
         // exercise
-        this.plugin.deleteInstance(volumeOrder, this.cloudUser);
+        this.plugin.deleteInstance(volumeOrder, this.cloudStackUser);
 
         // verify
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, cloudUser);
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, cloudStackUser);
 
         PowerMockito.verifyStatic(DeleteVolumeResponse.class, VerificationModeFactory.times(1));
         DeleteVolumeResponse.fromJson(Mockito.eq(response));
@@ -723,7 +717,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -754,7 +748,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -786,7 +780,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -818,7 +812,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.getInstance(volumeOrder, this.cloudUser);
+            this.plugin.getInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -840,16 +834,15 @@ public class CloudStackVolumePluginTest {
                 .thenCallRealMethod();
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
-        String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = DELETE_VOLUME_COMMAND;
         String id = FAKE_ID;
         String jsonFormat = JSON_FORMAT;
-        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
+        String request = String.format(urlFormat, this.cloudStackUrl, command, jsonFormat, id);
 
         boolean success = false;
         String response = getDeleteVolumeResponse(success);
 
-        Mockito.when(this.client.doGetRequest(request, this.cloudUser)).thenReturn(response);
+        Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(response);
 
         PowerMockito.mockStatic(DeleteVolumeResponse.class);
         PowerMockito.when(DeleteVolumeResponse.fromJson(response)).thenCallRealMethod();
@@ -859,7 +852,7 @@ public class CloudStackVolumePluginTest {
 
         try {
             // exercise
-            this.plugin.deleteInstance(volumeOrder, this.cloudUser);
+            this.plugin.deleteInstance(volumeOrder, this.cloudStackUser);
         } finally {
             // verify
             PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
@@ -873,10 +866,6 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    private String getBaseEndpointFromCloudStackConf() {
-        return this.properties.getProperty(BASE_ENDPOINT_KEY);
-    }
-
     private String getListDiskOfferrings(String id, int diskSize, boolean customized, String tags) {
         String response = "{\"listdiskofferingsresponse\":{" + "\"diskoffering\":[{"
                 + "\"id\": \"%s\","
