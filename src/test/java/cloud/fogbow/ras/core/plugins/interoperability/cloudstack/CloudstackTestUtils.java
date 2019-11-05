@@ -53,6 +53,8 @@ public class CloudstackTestUtils {
     private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
     private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
     private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
+    private static final String DELETE_VOLUME_RESPONSE = "deletevolumeresponse.json";
+    private static final String DELETE_VOLUME_ERROR_RESPONSE = "deletevolumeresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -303,6 +305,22 @@ public class CloudstackTestUtils {
         byte[] bytes = Files.readAllBytes(path);
         String data = new String(bytes);
         return data;
+    }
+
+    public static String createDeleteVolumeResponseJson(boolean status, String displaytext) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_VOLUME_RESPONSE);
+
+        return String.format(rawJson, status, displaytext);
+    }
+
+    public static String createDeleteVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
     }
 
     private static String getPathCloudstackFile() {
