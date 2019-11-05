@@ -90,6 +90,7 @@ public class Messages {
 
     public static class Info {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
+        public static final String CONNECTING_UP_PACKET_SENDER = "Connecting XMPP packet sender.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
@@ -101,6 +102,7 @@ public class Messages {
         public static final String MAPPED_USER = "User mapped to: %s.";
         public static final String MAPPING_USER_OP = "Mapping user for operation %s on order/systemUser %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
+        public static final String PACKET_SENDER_INITIALIZED = "XMPP packet sender initialized.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for provider %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
         public static final String RECEIVING_DELETE_REQUEST = "Delete request for %s %s received.";
@@ -116,8 +118,10 @@ public class Messages {
         public static final String REQUESTING_TO_CLOUD = "Requesting to the cloud by the user %s. URL: %s";
         public static final String RESPONSE_RECEIVED = "Received response: %s.";
         public static final String SENDING_MSG = "Sending remote request for request: %s.";
+        public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
+        public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
     }
 
     public static class Error {
