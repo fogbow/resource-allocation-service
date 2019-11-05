@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Volume.DELETE_VOLUME_COMMAND;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, GetVolumeResponse.class})
 public class CloudStackVolumePluginTest {
@@ -671,7 +673,7 @@ public class CloudStackVolumePluginTest {
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = DeleteVolumeRequest.DELETE_VOLUME_COMMAND;
+        String command = DELETE_VOLUME_COMMAND;
         String id = FAKE_ID;
         String jsonFormat = JSON_FORMAT;
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
@@ -839,7 +841,7 @@ public class CloudStackVolumePluginTest {
 
         String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
-        String command = DeleteVolumeRequest.DELETE_VOLUME_COMMAND;
+        String command = DELETE_VOLUME_COMMAND;
         String id = FAKE_ID;
         String jsonFormat = JSON_FORMAT;
         String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
