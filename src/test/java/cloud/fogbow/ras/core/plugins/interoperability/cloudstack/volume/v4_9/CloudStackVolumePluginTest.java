@@ -19,7 +19,9 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -31,8 +33,8 @@ import java.util.Properties;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.DELETE_VOLUME_COMMAND;
 
-@PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class,
-        GetVolumeResponse.class, DatabaseManager.class})
+@PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
+        GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class})
 public class CloudStackVolumePluginTest extends BaseUnitTests {
 
     private static final String REQUEST_FORMAT = "%s?command=%s";
@@ -68,6 +70,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     private static final int COMPATIBLE_SIZE = 1;
     private static final int CUSTOMIZED_SIZE = 2;
     private static final int STANDARD_SIZE = 0;
+
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
 
     private CloudStackVolumePlugin plugin;
     private CloudStackHttpClient client;
@@ -128,6 +133,82 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.deleteInstance(volumeOrder, this.cloudStackUser);
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked,
+    // it must verify if It reachs the right method without problems.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenReturn(responseStr);
+
+        boolean isSuccess = true;
+        DeleteVolumeResponse response = Mockito.mock(DeleteVolumeResponse.class);
+        Mockito.when(response.isSuccess()).thenReturn(isSuccess);
+        PowerMockito.mockStatic(DeleteVolumeResponse.class);
+        PowerMockito.when(DeleteVolumeResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, this.cloudStackUser);
+
+        // verify
+        Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isSuccess();
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked and receive
+    // a response successless by the cloud, it must verify if It throws an UnexpectedException.
+    @Test
+    public void testDoDeleteInstanceFailWhenReturnSuccessless() throws FogbowException, HttpResponseException {
+        // set up
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenReturn(responseStr);
+
+        boolean isSuccessless = false;
+        String displayTextSuccessless = "successless";
+        DeleteVolumeResponse response = Mockito.mock(DeleteVolumeResponse.class);
+        Mockito.when(response.isSuccess()).thenReturn(isSuccessless);
+        Mockito.when(response.getDisplayText()).thenReturn(displayTextSuccessless);
+
+        PowerMockito.mockStatic(DeleteVolumeResponse.class);
+        PowerMockito.when(DeleteVolumeResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expectMessage(displayTextSuccessless);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked and occurs
+    // an exception in the doRequest, it must verify if It throws a FogbowException.
+    @Test
+    public void testDoDeleteInstanceFail() throws FogbowException, HttpResponseException {
+        // set up
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doDeleteInstance(request, this.cloudStackUser);
     }
 
     // # ------------ old code ------------ #
