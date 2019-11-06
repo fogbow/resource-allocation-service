@@ -27,9 +27,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
@@ -93,6 +91,99 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
+    // the disk offering found is compatible with the size, it must verify if It builds
+    // the CreateVolumeRequest in the buildVolumeCompatible.
+    @Test
+    public void testBuildCreateVolumeRequestWhenFindCompatible() throws FogbowException {
+        // set up
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+
+        List disksOffering = new ArrayList();
+        Mockito.doReturn(disksOffering).when(this.plugin).getDisksOffering(Mockito.eq(this.cloudStackUser));
+
+        List disksOfferingFilted = new ArrayList();
+        Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
+                Mockito.eq(disksOffering), Mockito.eq(volumeOrder));
+
+        String diskOfferingIdCompatible = "id";
+        Mockito.doReturn(diskOfferingIdCompatible).when(this.plugin).getDiskOfferingIdCompatible(
+                Mockito.eq(volumeOrder), Mockito.eq(disksOfferingFilted));
+
+        CreateVolumeRequest requestExpected = Mockito.mock(CreateVolumeRequest.class);
+        Mockito.doReturn(requestExpected).when(this.plugin).buildVolumeCompatible(
+                Mockito.eq(volumeOrder), Mockito.eq(diskOfferingIdCompatible));
+
+        // exercise
+        CreateVolumeRequest request = this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(requestExpected, request);
+    }
+
+    // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
+    // the disk offering found the customized, it must verify if It builds the CreateVolumeRequest
+    // in the buildVolumeCustomized.
+    @Test
+    public void testBuildCreateVolumeRequestWhenFindCustomized() throws FogbowException {
+        // set up
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+
+        List disksOffering = new ArrayList();
+        Mockito.doReturn(disksOffering).when(this.plugin).getDisksOffering(Mockito.eq(this.cloudStackUser));
+
+        List disksOfferingFilted = new ArrayList();
+        Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
+                Mockito.eq(disksOffering), Mockito.eq(volumeOrder));
+
+        String diskOfferingIdCompatibleNotFound = null;
+        Mockito.doReturn(diskOfferingIdCompatibleNotFound).when(this.plugin).getDiskOfferingIdCompatible(
+                Mockito.eq(volumeOrder), Mockito.eq(disksOfferingFilted));
+
+        String diskOfferingIdCustomized = "id";
+        Mockito.doReturn(diskOfferingIdCustomized).when(this.plugin).getDiskOfferingIdCustomized(
+                 Mockito.eq(disksOfferingFilted));
+
+        CreateVolumeRequest requestExpected = Mockito.mock(CreateVolumeRequest.class);
+        Mockito.doReturn(requestExpected).when(this.plugin).buildVolumeCustomized(
+                Mockito.eq(volumeOrder), Mockito.eq(diskOfferingIdCustomized));
+
+        // exercise
+        CreateVolumeRequest request = this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(requestExpected, request);
+    }
+
+    // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
+    // there is no disk offering found, it must verify if It throws a NoAvailableResourcesException.
+    @Test
+    public void testBuildCreateVolumeRequestFail() throws FogbowException {
+        // set up
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+
+        List disksOffering = new ArrayList();
+        Mockito.doReturn(disksOffering).when(this.plugin).getDisksOffering(Mockito.eq(this.cloudStackUser));
+
+        List disksOfferingFilted = new ArrayList();
+        Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
+                Mockito.eq(disksOffering), Mockito.eq(volumeOrder));
+
+        String diskOfferingIdCompatibleNotFound = null;
+        Mockito.doReturn(diskOfferingIdCompatibleNotFound).when(this.plugin).getDiskOfferingIdCompatible(
+                Mockito.eq(volumeOrder), Mockito.eq(disksOfferingFilted));
+
+        String diskOfferingIdCustomizedNotFound = null;
+        Mockito.doReturn(diskOfferingIdCustomizedNotFound).when(this.plugin).getDiskOfferingIdCustomized(
+                Mockito.eq(disksOfferingFilted));
+
+        // verify
+        this.expectedException.expect(NoAvailableResourcesException.class);
+
+        // exercise
+        this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);
     }
 
     // test case: When calling the doRequestInstance method with secondary methods mocked ,

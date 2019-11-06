@@ -146,16 +146,16 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                                                  @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        List<GetAllDiskOfferingsResponse.DiskOffering> diskOffering = getDisksOffering(cloudStackUser);
-        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferingFiltered =
-                filterDisksOfferingByRequirements(diskOffering, volumeOrder);
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = getDisksOffering(cloudStackUser);
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOfferingFiltered =
+                filterDisksOfferingByRequirements(disksOffering, volumeOrder);
 
-        String diskOfferingCompatibleId = getDiskOfferingIdCompatible(volumeOrder, diskOfferingFiltered);
+        String diskOfferingCompatibleId = getDiskOfferingIdCompatible(volumeOrder, disksOfferingFiltered);
         if (diskOfferingCompatibleId != null) {
             return buildVolumeCompatible(volumeOrder, diskOfferingCompatibleId);
         }
 
-        String diskOfferingCustomizedId = getDiskOfferingIdCustomized(diskOfferingFiltered);
+        String diskOfferingCustomizedId = getDiskOfferingIdCustomized(disksOfferingFiltered);
         if (diskOfferingCustomizedId != null) {
             return buildVolumeCustomized(volumeOrder, diskOfferingCustomizedId);
         }
