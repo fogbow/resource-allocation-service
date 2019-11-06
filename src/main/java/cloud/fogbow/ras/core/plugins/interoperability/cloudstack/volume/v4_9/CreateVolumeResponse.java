@@ -1,7 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
+
+import javax.validation.constraints.NotNull;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
@@ -21,13 +25,16 @@ public class CreateVolumeResponse {
     @SerializedName(CREATE_VOLUME_KEY_JSON)
     private VolumeResponse response;
 
-    public class VolumeResponse {
+    public class VolumeResponse extends CloudStackErrorResponse {
         @SerializedName(ID_KEY_JSON)
         private String id;
     }
 
-    public static CreateVolumeResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, CreateVolumeResponse.class);
+    public static CreateVolumeResponse fromJson(String json) throws HttpResponseException {
+        CreateVolumeResponse createVolumeResponse =
+                GsonHolder.getInstance().fromJson(json, CreateVolumeResponse.class);
+        createVolumeResponse.response.checkErrorExistence();
+        return createVolumeResponse;
     }
 
     public String getId() {
