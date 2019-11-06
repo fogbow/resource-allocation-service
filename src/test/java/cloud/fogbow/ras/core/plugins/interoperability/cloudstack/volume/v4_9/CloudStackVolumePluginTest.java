@@ -34,7 +34,8 @@ import java.util.Properties;
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.DELETE_VOLUME_COMMAND;
 
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
-        GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class})
+        GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class,
+        CreateVolumeResponse.class})
 public class CloudStackVolumePluginTest extends BaseUnitTests {
 
     private static final String REQUEST_FORMAT = "%s?command=%s";
@@ -92,6 +93,52 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the doRequestInstance method with secondary methods mocked ,
+    // it must verify if It returns a right instanceId.
+    @Test
+    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        CreateVolumeRequest request = new CreateVolumeRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenReturn(responseStr);
+
+        String instanceIdExpected = "instanceId";
+        CreateVolumeResponse response = Mockito.mock(CreateVolumeResponse.class);
+        Mockito.when(response.getId()).thenReturn(instanceIdExpected);
+        PowerMockito.mockStatic(CreateVolumeResponse.class);
+        PowerMockito.when(CreateVolumeResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
+
+        // exercise
+        String instanceId = this.plugin.doRequestInstance(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceIdExpected, instanceId);
+    }
+
+    // test case: When calling the doRequestInstance method with secondary methods mocked and occurs
+    // an exception in the doRequest, it must verify if It throws a FogbowException.
+    @Test
+    public void testDoRequestInstanceFail() throws FogbowException, HttpResponseException {
+        // set up
+        CreateVolumeRequest request = new CreateVolumeRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        String instanceId = this.plugin.doRequestInstance(request, this.cloudStackUser);
     }
 
     // test case: When calling the deleteInstance method with secondary methods mocked,
@@ -469,7 +516,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When try to request instance with an ID of the volume that do not exist, an
     // InstanceNotFoundException must be thrown.
     @Test(expected = InstanceNotFoundException.class)
@@ -499,7 +546,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the requestInstance method passing some invalid argument, an
     // FogbowException must be thrown.
     @Test(expected = FogbowException.class)
@@ -529,7 +576,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the requestInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
@@ -560,7 +607,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the getInstance method, an HTTP GET request must be made with a
     // signed cloudUser, which returns a response in the JSON format for the retrieval of the
     // VolumeInstance object.
@@ -667,7 +714,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the getInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
@@ -699,7 +746,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the getInstance method passing some invalid argument, an
     // FogbowException must be thrown.
     @Test(expected = FogbowException.class)
@@ -731,7 +778,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the getInstance method and an HTTP GET request returns a failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
@@ -912,7 +959,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the deleteInstance method passing some invalid argument, an
     // FogbowException must be thrown.
     @Test(expected = FogbowException.class)
@@ -944,7 +991,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                     Mockito.any(CloudStackUser.class));
         }
     }
-    
+
     // test case: When calling the deleteInstance method and an HTTP GET request returns a failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
@@ -987,7 +1034,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
             DeleteVolumeResponse.fromJson(Mockito.eq(response));
         }
     }
-    
+
     private String getListDiskOfferrings(String id, int diskSize, boolean customized, String tags) {
         String response = "{\"listdiskofferingsresponse\":{" + "\"diskoffering\":[{"
                 + "\"id\": \"%s\","

@@ -61,7 +61,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     public String requestInstance(@NotNull VolumeOrder volumeOrder, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         CreateVolumeRequest request = buildCreateVolumeRequest(volumeOrder, cloudStackUser);
         return doRequestInstance(request, cloudStackUser);
     }
