@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.Volume.DELETE_VOLUME_COMMAND;
+import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
         GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class,
@@ -63,10 +63,10 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     private static final String JSON_FORMAT = "json";
     private static final String RESPONSE_KEY = "response";
     private static final String COMMAND_KEY = "command";
-    private static final String DISK_OFFERING_ID_KEY = CreateVolumeRequest.DISK_OFFERING_ID;
-    private static final String NAME_KEY = CreateVolumeRequest.VOLUME_NAME;
-    private static final String SIZE_KEY = CreateVolumeRequest.VOLUME_SIZE;
-    private static final String ZONE_ID_KEY = CreateVolumeRequest.ZONE_ID;
+    private static final String DISK_OFFERING_ID_KEY = DISK_OFFERING_ID_KEY_JSON;
+    private static final String NAME_KEY = NAME_KEY_JSON;
+    private static final String SIZE_KEY = SIZE_KEY_JSON;
+    private static final String ZONE_ID_KEY = ZONE_ID_KEY_JSON;
 
     private static final int COMPATIBLE_SIZE = 1;
     private static final int CUSTOMIZED_SIZE = 2;
@@ -286,7 +286,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(COMMAND_KEY, CREATE_VOLUME_COMMAND);
         expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
@@ -345,7 +345,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(COMMAND_KEY, CREATE_VOLUME_COMMAND);
         expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
@@ -401,7 +401,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(COMMAND_KEY, CREATE_VOLUME_COMMAND);
         expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
@@ -458,7 +458,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Mockito.when(this.client.doGetRequest(request, this.cloudStackUser)).thenReturn(diskOfferings);
 
         Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(COMMAND_KEY, CREATE_VOLUME_COMMAND);
         expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);

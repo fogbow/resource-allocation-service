@@ -137,6 +137,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         }
     }
 
+    /**
+     * TODO(chico) - Add explanation about compatible and customized
+     */
     @NotNull
     @VisibleForTesting
     CreateVolumeRequest buildCreateVolumeRequest(@NotNull VolumeOrder volumeOrder,
