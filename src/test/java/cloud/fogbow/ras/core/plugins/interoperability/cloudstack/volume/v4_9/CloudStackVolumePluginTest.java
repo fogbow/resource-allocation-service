@@ -31,7 +31,6 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
@@ -102,10 +101,75 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     }
 
     @Test
-    public void testGetDiskOfferingIdCustomized() {
+    public void testBuildVolumeCustomized() {
         // set up
         // exercise
         // verify
+    }
+
+    // test case: When calling the getDiskOfferingIdCustomized method and the is no disk offering
+    // customized with the size required, it must verify if It returns a null.
+    @Test
+    public void testGetDiskOfferingIdCustomizedWhenNotFoundDiskOffering() {
+        // set up
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+        int diskSizeOne = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
+        String diskOfferingIdOne = "idOne";
+        boolean isNotCustomized = false;
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
+        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
+        Mockito.when(diskOfferingOne.isCustomized()).thenReturn(isNotCustomized);
+        int diskSizeTwo = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
+        String diskOfferingIdTwo = "idTwo";
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
+        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
+        Mockito.when(diskOfferingTwo.isCustomized()).thenReturn(isNotCustomized);
+
+        disksOffering.add(diskOfferingOne);
+        disksOffering.add(diskOfferingTwo);
+
+        // exercise
+        String diskOfferingIdCustomized = this.plugin.getDiskOfferingIdCustomized(disksOffering);
+
+        // verify
+        Assert.assertNull(diskOfferingIdCustomized);
+    }
+
+    // test case: When calling the getDiskOfferingIdCustomized method, it must verify if It
+    // returns the right disk offering id.
+    @Test
+    public void testGetDiskOfferingIdCustomizedWhenFoundDiskOffering() {
+        // set up
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+        int diskSizeOne = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
+        String diskOfferingIdOne = "idOne";
+        boolean isNotCustomized = false;
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
+        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
+        Mockito.when(diskOfferingOne.isCustomized()).thenReturn(isNotCustomized);
+        int diskSizeTwo = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
+        String diskOfferingIdTwo = "idTwo";
+        boolean isCustomized = true;
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
+        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
+        Mockito.when(diskOfferingTwo.isCustomized()).thenReturn(isCustomized);
+
+        disksOffering.add(diskOfferingOne);
+        disksOffering.add(diskOfferingTwo);
+
+        // exercise
+        String diskOfferingIdCustomized = this.plugin.getDiskOfferingIdCustomized(disksOffering);
+
+        // verify
+        Assert.assertEquals(diskOfferingIdTwo, diskOfferingIdCustomized);
     }
 
     // test case: When calling the buildVolumeCompatible method, it must verify if
