@@ -137,9 +137,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         }
     }
 
-    /**
-     * TODO(chico) - Add explanation about compatible and customized
-     */
     @NotNull
     @VisibleForTesting
     CreateVolumeRequest buildCreateVolumeRequest(@NotNull VolumeOrder volumeOrder,
@@ -153,11 +150,15 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         String diskOfferingCompatibleId = getDiskOfferingIdCompatible(volumeOrder, disksOfferingFiltered);
         if (diskOfferingCompatibleId != null) {
             return buildVolumeCompatible(volumeOrder, diskOfferingCompatibleId);
+        } else {
+            LOGGER.warn(Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
         }
 
         String diskOfferingCustomizedId = getDiskOfferingIdCustomized(disksOfferingFiltered);
         if (diskOfferingCustomizedId != null) {
             return buildVolumeCustomized(volumeOrder, diskOfferingCustomizedId);
+        } else {
+            LOGGER.warn(Messages.Warn.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
         }
 
         throw new NoAvailableResourcesException();

@@ -1,12 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -72,6 +75,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
+    private LoggerAssert loggerTestChecking = new LoggerAssert(CloudStackVolumePlugin.class);
 
     private CloudStackVolumePlugin plugin;
     private CloudStackHttpClient client;
@@ -155,6 +159,8 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(requestExpected, request);
+        this.loggerTestChecking.assertEquals(LoggerAssert.FIRST_POSITION, Level.WARN,
+                Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
     }
 
     // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
@@ -184,6 +190,11 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);
+        this.loggerTestChecking.assertEquals(LoggerAssert.FIRST_POSITION, Level.WARN,
+                Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
+        this.loggerTestChecking.assertEquals(LoggerAssert.SECOND_POSITION, Level.WARN,
+                Messages.Warn.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
+
     }
 
     // test case: When calling the doRequestInstance method with secondary methods mocked ,
@@ -229,7 +240,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
         // exercise
-        String instanceId = this.plugin.doRequestInstance(request, this.cloudStackUser);
+        this.plugin.doRequestInstance(request, this.cloudStackUser);
     }
 
     // test case: When calling the deleteInstance method with secondary methods mocked,
