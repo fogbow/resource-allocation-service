@@ -282,9 +282,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             throws InvalidParameterException {
 
         String instanceName = volumeOrder.getName();
-        String name = instanceName == null ?
-                SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID() :
-                instanceName;
+        String name = instanceName == null ? generateFogbowName(): instanceName;
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
                 .name(name)
@@ -304,7 +302,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         return new VolumeInstance(id, state, name, sizeInGigabytes);
     }
 
-    // TODO(chico) - Move to the Utils class
+    // TODO(chico) - Move to the Utils class and implement tests
     @VisibleForTesting
     int convertToGigaByte(long sizeInBytes) {
         return (int) (sizeInBytes / CloudStackCloudUtils.ONE_GB_IN_BYTES);
@@ -320,8 +318,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         return this.zoneId;
     }
 
+    // TODO(chico) - Move to the Utils class and implement tests
     @VisibleForTesting
-    String getRandomUUID() {
-        return UUID.randomUUID().toString();
+    String generateFogbowName() {
+        String randomSufix = UUID.randomUUID().toString();
+        return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSufix;
     }
 }

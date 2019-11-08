@@ -31,6 +31,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
@@ -82,6 +83,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     private CloudStackHttpClient client;
     private CloudStackUser cloudStackUser;
     private String cloudStackUrl;
+    private String zoneId;
 
     @Before
     public void setUp() throws UnexpectedException, InvalidParameterException {
@@ -89,6 +91,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
+        this.zoneId = properties.getProperty(CloudStackCloudUtils.ZONE_ID_CONFIG);
 
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = Mockito.spy(new CloudStackVolumePlugin(cloudStackConfFilePath));
@@ -99,10 +102,34 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     }
 
     @Test
-    public void testBuildVolumeCompatible() {
+    public void testGetDiskOfferingIdCustomized() {
         // set up
         // exercise
         // verify
+    }
+
+    // test case: When calling the buildVolumeCompatible method, it must verify if
+    // It returns a right CreateVolumeRequest.
+    @Test
+    public void testBuildVolumeCompatibleSuccessfully() throws InvalidParameterException {
+        // set up
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        String diskOfferingId = "diskOfferingId";
+
+        String nameExpexted = "fogbowname";
+        Mockito.doReturn(nameExpexted).when(this.plugin).generateFogbowName();
+
+        CreateVolumeRequest resquestRequired = new CreateVolumeRequest.Builder()
+                .zoneId(this.zoneId)
+                .name(nameExpexted)
+                .diskOfferingId(diskOfferingId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        CreateVolumeRequest request = this.plugin.buildVolumeCompatible(volumeOrder, diskOfferingId);
+
+        // verify
+        Assert.assertEquals(resquestRequired.getUriBuilder().toString(), request.getUriBuilder().toString());
     }
 
     // test case: When calling the getDiskOfferingIdCompatible method and the is no disk offering
