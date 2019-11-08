@@ -98,6 +98,96 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    @Test
+    public void testBuildVolumeCompatible() {
+        // set up
+        // exercise
+        // verify
+    }
+
+    // test case: When calling the getDiskOfferingIdCompatible method and the is no disk offering
+    // compatible with the size required, it must verify if It returns a null.
+    @Test
+    public void testGetDiskOfferingIdCompatibleWhenThereIsNoDisksOffering() {
+        // set up
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+
+        int diskSize = 3;
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getVolumeSize()).thenReturn(diskSize);
+
+        // exercise
+        String diskOfferingIdCompatible = this.plugin.getDiskOfferingIdCompatible(volumeOrder, disksOffering);
+
+        // verify
+        Assert.assertNull(diskOfferingIdCompatible);
+    }
+
+    // test case: When calling the getDiskOfferingIdCompatible method and the is no disk offering
+    // compatible with the size required, it must verify if It returns a null.
+    @Test
+    public void testGetDiskOfferingIdCompatibleWhenNotFoundDiskOffering() {
+        // set up
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+        int diskSizeOne = 1;
+        String diskOfferingIdOne = "idOne";
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
+        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
+        int diskSizeTwo = 2;
+        String diskOfferingIdTwo = "idTwo";
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
+        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
+
+        disksOffering.add(diskOfferingOne);
+        disksOffering.add(diskOfferingTwo);
+
+        int diskSizeDifferent = 3;
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getVolumeSize()).thenReturn(diskSizeDifferent);
+
+        // exercise
+        String diskOfferingIdCompatible = this.plugin.getDiskOfferingIdCompatible(volumeOrder, disksOffering);
+
+        // verify
+        Assert.assertNull(diskOfferingIdCompatible);
+    }
+
+    // test case: When calling the getDiskOfferingIdCompatible method, it must verify if It
+    // returns the right disk offering id.
+    @Test
+    public void testGetDiskOfferingIdCompatibleWhenFoundDiskOffering() {
+        // set up
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+        int diskSizeOne = 1;
+        String diskOfferingIdOne = "idOne";
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
+        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
+        int diskSizeTwo = 2;
+        String diskOfferingIdTwo = "idTwo";
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
+        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
+
+        disksOffering.add(diskOfferingOne);
+        disksOffering.add(diskOfferingTwo);
+
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getVolumeSize()).thenReturn(diskSizeTwo);
+
+        // exercise
+        String diskOfferingIdCompatible = this.plugin.getDiskOfferingIdCompatible(volumeOrder, disksOffering);
+
+        // verify
+        Assert.assertEquals(diskOfferingIdTwo, diskOfferingIdCompatible);
+    }
+
     // test case: When calling the filterDisksOfferingByRequirements method with requirements
     // empty, it must verify if It returns the same  list.
     @Test
