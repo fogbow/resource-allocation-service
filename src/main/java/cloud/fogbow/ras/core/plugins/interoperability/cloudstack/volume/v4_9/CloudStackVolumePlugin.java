@@ -203,6 +203,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         }
     }
 
+    @NotNull
     @VisibleForTesting
     List<GetAllDiskOfferingsResponse.DiskOffering> filterDisksOfferingByRequirements(
             @NotNull List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering,

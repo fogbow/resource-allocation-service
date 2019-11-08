@@ -17,6 +17,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -95,6 +96,98 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the filterDisksOfferingByRequirements method with requirements
+    // empty, it must verify if It returns the same  list.
+    @Test
+    public void testFilterDisksOfferingByRequirementsWhenRequiremetsEmpty() {
+        // set up
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Map<String, String> requirements = new HashedMap();
+        Mockito.when(volumeOrder.getRequirements()).thenReturn(requirements);
+
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+
+        // exercise
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOfferingsFilted =
+                this.plugin.filterDisksOfferingByRequirements(disksOffering, volumeOrder);
+
+        // verify
+        Assert.assertEquals(disksOffering, disksOfferingsFilted);
+    }
+
+    // test case: When calling the filterDisksOfferingByRequirements method with requirements
+    // requested, it must verify if It returns a empty list because there is no disk offering
+    // compatible.
+    @Test
+    public void testFilterDisksOfferingByRequirementsWhenNothingMatch() {
+        // set up
+        String key = "key";
+        String value = "value";
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Map<String, String> requirements = new HashedMap();
+        requirements.put(key, value);
+        Mockito.when(volumeOrder.getRequirements()).thenReturn(requirements);
+
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingIncompatibleOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingIncompatibleOne.getTags()).thenReturn("anythingone");
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingIncompatibleTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingIncompatibleTwo.getTags()).thenReturn("");
+
+        disksOffering.add(diskOfferingIncompatibleOne);
+        disksOffering.add(diskOfferingIncompatibleTwo);
+
+        // exercise
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOfferingsFilted =
+                this.plugin.filterDisksOfferingByRequirements(disksOffering, volumeOrder);
+
+        // verify
+        Assert.assertTrue(disksOfferingsFilted.isEmpty());
+    }
+
+    // test case: When calling the filterDisksOfferingByRequirements method with requirements
+    // requested, it must verify if It returns only the disks offering compatible with the requirements.
+    @Test
+    public void testFilterDisksOfferingByRequirementsWhenFilterRightly() {
+        // set up
+        String key = "key";
+        String value = "value";
+        String tagExpected = key + CloudStackCloudUtils.FOGBOW_TAG_SEPARATOR + value;
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Map<String, String> requirements = new HashedMap();
+        requirements.put(key, value);
+        Mockito.when(volumeOrder.getRequirements()).thenReturn(requirements);
+
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingCompatible =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingCompatible.getTags()).thenReturn(tagExpected);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingIncompatibleOne =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingIncompatibleOne.getTags()).thenReturn("anythingone");
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingIncompatibleTwo =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        Mockito.when(diskOfferingIncompatibleTwo.getTags()).thenReturn("");
+
+
+        disksOffering.add(diskOfferingCompatible);
+        disksOffering.add(diskOfferingIncompatibleOne);
+        disksOffering.add(diskOfferingIncompatibleTwo);
+
+        // exercise
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOfferingsFilted =
+                this.plugin.filterDisksOfferingByRequirements(disksOffering, volumeOrder);
+
+        // verify
+        int sizeExpected = 1;
+        GetAllDiskOfferingsResponse.DiskOffering firstDiskOffering =
+                disksOfferingsFilted.listIterator().next();
+        Assert.assertEquals(sizeExpected, disksOfferingsFilted.size());
+        Assert.assertEquals(diskOfferingCompatible, firstDiskOffering);
     }
 
     // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
