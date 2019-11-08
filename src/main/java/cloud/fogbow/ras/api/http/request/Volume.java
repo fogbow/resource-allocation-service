@@ -60,7 +60,6 @@ public class Volume {
             throws FogbowException {
 
         try {
-            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> volumeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.VOLUME);
             return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
