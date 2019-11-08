@@ -266,7 +266,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     CreateVolumeRequest buildVolumeCustomized(@NotNull VolumeOrder volumeOrder, String diskOfferingId)
             throws InvalidParameterException {
 
-        String name = volumeOrder.getName();
+        String name = normalizeInstanceName(volumeOrder.getName());
         String size = String.valueOf(volumeOrder.getVolumeSize());
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
@@ -281,8 +281,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     CreateVolumeRequest buildVolumeCompatible(@NotNull VolumeOrder volumeOrder, String diskOfferingId)
             throws InvalidParameterException {
 
-        String instanceName = volumeOrder.getName();
-        String name = instanceName == null ? generateFogbowName(): instanceName;
+        String name = normalizeInstanceName(volumeOrder.getName());
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
                 .name(name)
@@ -318,10 +317,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         return this.zoneId;
     }
 
-    // TODO(chico) - Move to the Utils class and implement tests
     @VisibleForTesting
-    String generateFogbowName() {
-        String randomSufix = UUID.randomUUID().toString();
-        return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSufix;
+    String normalizeInstanceName(String instanceName) {
+        if (instanceName == null) {
+            String randomSufix = UUID.randomUUID().toString();
+            return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSufix;
+        }
+        return instanceName;
     }
 }

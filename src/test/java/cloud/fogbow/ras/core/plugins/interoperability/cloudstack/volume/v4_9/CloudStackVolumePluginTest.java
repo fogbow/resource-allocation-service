@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClie
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
@@ -21,10 +22,7 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -37,7 +35,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
         GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class,
-        CreateVolumeResponse.class})
+        CreateVolumeResponse.class, UUID.class})
 public class CloudStackVolumePluginTest extends BaseUnitTests {
 
     private static final String REQUEST_FORMAT = "%s?command=%s";
@@ -100,11 +98,64 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    @Ignore
+    // test case: When calling the normalizeInstanceName method with parameter null,
+    // it must verify if It returns a name generated.
     @Test
-    public void testBuildVolumeCustomized() {
+    public void testNormalizeInstanceNameWhenParameterIsNull() {
         // set up
+        String nameParameter = null;
+
+        UUID uUID = UUID.randomUUID();
+        String nameGenaretedExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + uUID.toString();
+        PowerMockito.mockStatic(UUID.class);
+        PowerMockito.when(UUID.randomUUID()).thenReturn(uUID);
+
         // exercise
+        String name = this.plugin.normalizeInstanceName(nameParameter);
+
         // verify
+        Assert.assertEquals(nameGenaretedExpected, name);
+    }
+
+    // test case: When calling the normalizeInstanceName method, it must verify if
+    // It returns the same name of the parameter.
+    @Test
+    public void testNormalizeInstanceNameWhenParameterIsNotNull() {
+        // set up
+        String nameExpected = "nameExpected";
+
+        // exercise
+        String name = this.plugin.normalizeInstanceName(nameExpected);
+
+        // verify
+        Assert.assertEquals(nameExpected, name);
+    }
+
+    // test case: When calling the buildVolumeCustomized method, it must verify if
+    // It returns a right CreateVolumeRequest.
+    @Test
+    public void testBuildVolumeCustomizedSuccessfully() throws InvalidParameterException {
+        // set up
+    String diskOfferingId = "diskOfferingId";
+        String nameExpected = "nameExpected";
+        int volumeSizeExpected = 1;
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getName()).thenReturn(nameExpected);
+        Mockito.when(volumeOrder.getVolumeSize()).thenReturn(volumeSizeExpected);
+
+        CreateVolumeRequest requestExpected = new CreateVolumeRequest.Builder()
+                .zoneId(this.zoneId)
+                .name(nameExpected)
+                .diskOfferingId(diskOfferingId)
+                .size(String.valueOf(volumeSizeExpected))
+                .build(this.cloudStackUrl);
+
+        // exercise
+        CreateVolumeRequest request = this.plugin.buildVolumeCustomized(volumeOrder, diskOfferingId);
+
+        // verify
+        Assert.assertEquals(requestExpected.getUriBuilder().toString(), request.getUriBuilder().toString());
     }
 
     // test case: When calling the getDiskOfferingIdCustomized method and the is no disk offering
@@ -177,11 +228,11 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testBuildVolumeCompatibleSuccessfully() throws InvalidParameterException {
         // set up
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         String diskOfferingId = "diskOfferingId";
 
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         String nameExpexted = "fogbowname";
-        Mockito.doReturn(nameExpexted).when(this.plugin).generateFogbowName();
+        Mockito.when(volumeOrder.getName()).thenReturn(nameExpexted);
 
         CreateVolumeRequest resquestRequired = new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
