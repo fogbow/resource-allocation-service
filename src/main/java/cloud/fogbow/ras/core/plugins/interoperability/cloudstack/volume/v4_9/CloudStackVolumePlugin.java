@@ -123,13 +123,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                     this.client, uriRequest.toString(), cloudStackUser);
             GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
             List<GetVolumeResponse.Volume> volumes = response.getVolumes();
-            if (volumes != null && volumes.size() > 0) {
-                // since an id were specified, there should be no more than one volume in the response
-                GetVolumeResponse.Volume volume = volumes.listIterator().next();
-                return buildVolumeInstance(volume);
-            } else {
+            if (volumes.isEmpty()) {
                 throw new UnexpectedException();
             }
+            // since an id were specified, there should be no more than one volume in the response
+            GetVolumeResponse.Volume volume = volumes.listIterator().next();
+            return buildVolumeInstance(volume);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }

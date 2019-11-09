@@ -38,7 +38,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
         GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class,
-        CreateVolumeResponse.class, UUID.class})
+        CreateVolumeResponse.class, GetVolumeResponse.class})
 public class CloudStackVolumePluginTest extends BaseUnitTests {
 
     private static final String REQUEST_FORMAT = "%s?command=%s";
@@ -99,6 +99,97 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    @Test
+    public void testGetInstance() {
+        // set up
+        // exercise
+        // verify
+    }
+
+    // test case: When calling the doGetInstance method with methods mocked and occurs a HttpResponseException,
+    // it must verify if It throws a FogbowException.
+    @Test
+    public void testDoGetInstanceFailWhenThrowsException() throws FogbowException, HttpResponseException {
+        // set up
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doGetInstance(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the doGetInstance method with methods mocked and there is no volumes,
+    // it must verify if It throws an UnexpectedException.
+    @Test
+    public void testDoGetInstanceFailWhenThereIsNoVolume() throws FogbowException, HttpResponseException {
+        // set up
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenReturn(responseStr);
+
+        GetVolumeResponse response = Mockito.mock(GetVolumeResponse.class);
+        List<GetVolumeResponse.Volume> volumes = new ArrayList<>();
+        Mockito.when(response.getVolumes()).thenReturn(volumes);
+
+        PowerMockito.mockStatic(GetVolumeResponse.class);
+        PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(responseStr))).
+                thenReturn(response);
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+
+        // exercise
+        this.plugin.doGetInstance(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the doGetInstance method with methods mocked,
+    // it must verify if It returns a VolumeInstance.
+    @Test
+    public void testDoGetInstanceSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+
+        String responseStr = "anything";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
+                thenReturn(responseStr);
+
+        String instanceIdExpected = "instanceIdExpected";
+        GetVolumeResponse response = Mockito.mock(GetVolumeResponse.class);
+        GetVolumeResponse.Volume volume = Mockito.mock(GetVolumeResponse.Volume.class);
+        Mockito.when(volume.getId()).thenReturn(instanceIdExpected);
+        List<GetVolumeResponse.Volume> volumes = new ArrayList<>();
+        volumes.add(volume);
+        Mockito.when(response.getVolumes()).thenReturn(volumes);
+
+        PowerMockito.mockStatic(GetVolumeResponse.class);
+        PowerMockito.when(GetVolumeResponse.fromJson(Mockito.eq(responseStr))).
+                thenReturn(response);
+
+        VolumeInstance volumeInstanceExpected = Mockito.mock(VolumeInstance.class);
+        Mockito.doReturn(volumeInstanceExpected).when(this.plugin).
+                buildVolumeInstance(Mockito.eq(volume));
+
+        // exercise
+        VolumeInstance volumeInstance = this.plugin.doGetInstance(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(volumeInstanceExpected, volumeInstance);
     }
 
     // test case: When calling the normalizeInstanceName method with parameter null,
