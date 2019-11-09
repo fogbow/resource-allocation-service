@@ -5,11 +5,13 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
+import java.util.UUID;
 
 public class CloudStackCloudUtils {
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
@@ -43,6 +45,12 @@ public class CloudStackCloudUtils {
         } catch (FogbowException e) {
             throw new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    @NotNull
+    public static String generateInstanceName() {
+        String randomSuffix = UUID.randomUUID().toString();
+        return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSuffix;
     }
 
 }

@@ -22,7 +22,10 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -98,7 +101,6 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
-    @Ignore
     // test case: When calling the normalizeInstanceName method with parameter null,
     // it must verify if It returns a name generated.
     @Test
@@ -106,10 +108,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         // set up
         String nameParameter = null;
 
-        UUID uUID = UUID.randomUUID();
-        String nameGenaretedExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + uUID.toString();
-        PowerMockito.mockStatic(UUID.class);
-        PowerMockito.when(UUID.randomUUID()).thenReturn(uUID);
+        String nameGenaretedExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX;
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.generateInstanceName()).thenReturn(nameGenaretedExpected);
 
         // exercise
         String name = this.plugin.normalizeInstanceName(nameParameter);

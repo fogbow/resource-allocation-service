@@ -12,7 +12,6 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
@@ -28,7 +27,6 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
@@ -320,8 +318,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     @VisibleForTesting
     String normalizeInstanceName(String instanceName) {
         if (instanceName == null) {
-            String randomSufix = UUID.randomUUID().toString();
-            return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSufix;
+            return CloudStackCloudUtils.generateInstanceName();
         }
         return instanceName;
     }

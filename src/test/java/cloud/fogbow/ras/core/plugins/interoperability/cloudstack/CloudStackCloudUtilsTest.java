@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -75,6 +76,25 @@ public class CloudStackCloudUtilsTest {
 
         // exercise
         CloudStackCloudUtils.doRequest(client, url, cloudStackUser);
+    }
+
+    // test case: When calling the generateInstanceName method, it must verify if
+    // It returns a new instance name.
+    @Test
+    public void testGenerateInstanceName() {
+        // set up
+        String regexPrefix = String.format("(%s)", SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX);
+        String regexUUID =  "[0-9a-fA-F]{8}-" +
+                            "[0-9a-fA-F]{4}-" +
+                            "[1-5][0-9a-fA-F]{3}-" +
+                            "[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
+        String pattern = regexPrefix + regexUUID;
+
+        // exercise
+        String instanceName = CloudStackCloudUtils.generateInstanceName();
+
+        // verify
+        Assert.assertTrue(instanceName.matches(pattern));
     }
 
 }
