@@ -177,6 +177,36 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         this.plugin.doGetInstance(request, this.cloudStackUser);
     }
 
+    // test case: When calling the buildVolumeInstance method, it must verify if
+    // It returns right VolumeInstance.
+    @Test
+    public void testBuildVolumeInstanceSuccessfully() {
+        // set up
+        int size = 1 ;
+        long sizeInBytes = (long) (size * CloudStackCloudUtils.ONE_GB_IN_BYTES);
+        String name = "name";
+        String state = "state";
+        String id = "id";
+        GetVolumeResponse.Volume volume = Mockito.mock(GetVolumeResponse.Volume.class);
+        Mockito.when(volume.getSize()).thenReturn(sizeInBytes);
+        Mockito.when(volume.getName()).thenReturn(name);
+        Mockito.when(volume.getState()).thenReturn(state);
+        Mockito.when(volume.getId()).thenReturn(id);
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.convertToGigabyte(Mockito.eq(sizeInBytes))).
+                thenReturn(size);
+
+        // exercise
+        VolumeInstance volumeInstance = this.plugin.buildVolumeInstance(volume);
+
+        // verify
+        Assert.assertEquals(size, volumeInstance.getSize());
+        Assert.assertEquals(state, volumeInstance.getCloudState());
+        Assert.assertEquals(name, volumeInstance.getName());
+        Assert.assertEquals(id, volumeInstance.getId());
+    }
+
     // test case: When calling the doGetInstance method with methods mocked,
     // it must verify if It returns a VolumeInstance.
     @Test

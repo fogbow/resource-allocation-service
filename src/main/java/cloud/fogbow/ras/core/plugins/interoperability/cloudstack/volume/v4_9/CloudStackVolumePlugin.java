@@ -293,15 +293,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         String state = volume.getState();
         String name = volume.getName();
         long sizeInBytes = volume.getSize();
-        int sizeInGigabytes = convertToGigaByte(sizeInBytes);
+        int sizeInGigabytes = CloudStackCloudUtils.convertToGigabyte(sizeInBytes);
 
         return new VolumeInstance(id, state, name, sizeInGigabytes);
-    }
-
-    // TODO(chico) - Move to the Utils class and implement tests
-    @VisibleForTesting
-    int convertToGigaByte(long sizeInBytes) {
-        return (int) (sizeInBytes / CloudStackCloudUtils.ONE_GB_IN_BYTES);
     }
 
     @VisibleForTesting

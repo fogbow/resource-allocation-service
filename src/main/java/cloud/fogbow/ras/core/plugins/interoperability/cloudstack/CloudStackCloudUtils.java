@@ -53,4 +53,8 @@ public class CloudStackCloudUtils {
         return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSuffix;
     }
 
+    public static int convertToGigabyte(long sizeInBytes) {
+        return (int) (sizeInBytes / CloudStackCloudUtils.ONE_GB_IN_BYTES);
+    }
+
 }

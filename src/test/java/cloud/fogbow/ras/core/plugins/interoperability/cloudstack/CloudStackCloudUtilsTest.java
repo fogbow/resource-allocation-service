@@ -81,7 +81,7 @@ public class CloudStackCloudUtilsTest {
     // test case: When calling the generateInstanceName method, it must verify if
     // It returns a new instance name.
     @Test
-    public void testGenerateInstanceName() {
+    public void testGenerateInstanceNameSuccessfully() {
         // set up
         String regexPrefix = String.format("(%s)", SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX);
         String regexUUID =  "[0-9a-fA-F]{8}-" +
@@ -95,6 +95,35 @@ public class CloudStackCloudUtilsTest {
 
         // verify
         Assert.assertTrue(instanceName.matches(pattern));
+    }
+
+    // test case: When calling the convertToGigabyte method, it must verify if
+    // It returns the right amount in gigabytes.
+    @Test
+    public void testConvertToGigabyteSuccessfully() {
+        // set up
+        int gbExpected = 2;
+        long gbInBytes = (long) (gbExpected * CloudStackCloudUtils.ONE_GB_IN_BYTES);
+
+        // exercise
+        int gb = CloudStackCloudUtils.convertToGigabyte(gbInBytes);
+
+        // verify
+        Assert.assertEquals(gbExpected, gb);
+    }
+
+    // test case: When calling the convertToGigabyte method and the number is small, it must verify if
+    // It returns the right amount in gigabytes.
+    @Test
+    public void testConvertToGigabyteWhenTheNumberIsSmall() {
+        // set up
+        long amountInBytes = 1;
+
+        // exercise
+        int gb = CloudStackCloudUtils.convertToGigabyte(amountInBytes);
+
+        // verify
+        Assert.assertEquals(0, gb);
     }
 
 }
