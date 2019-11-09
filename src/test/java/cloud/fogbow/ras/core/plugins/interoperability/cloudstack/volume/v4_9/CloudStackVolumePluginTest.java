@@ -101,11 +101,32 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    // test case: When calling the getInstance method with secondary methods mocked,
+    // it must verify if the doGetInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
     @Test
-    public void testGetInstance() {
+    public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
+        String instanceId = "instanceId";
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getInstanceId()).thenReturn(instanceId);
+
+        VolumeInstance volumeInstanceExpected = Mockito.mock(VolumeInstance.class);
+        Mockito.doReturn(volumeInstanceExpected).when(this.plugin).
+                doGetInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
+
+        GetVolumeRequest request = new GetVolumeRequest.Builder()
+                .id(volumeOrder.getInstanceId())
+                .build(this.cloudStackUrl);
+
         // exercise
+        VolumeInstance volumeInstance = this.plugin.getInstance(volumeOrder, this.cloudStackUser);
+
         // verify
+        Assert.assertEquals(volumeInstanceExpected, volumeInstance);
+        RequestMatcher<GetVolumeRequest> matcher = new RequestMatcher.GetVolume(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetInstance(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the doGetInstance method with methods mocked and occurs a HttpResponseException,
