@@ -3,14 +3,19 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.UUID;
 
 public class CloudStackCloudUtils {
@@ -47,7 +52,29 @@ public class CloudStackCloudUtils {
         }
     }
 
+    // TODO(chico) - Cloudstack compute must use this methods.
     @NotNull
+    public static List<GetAllDiskOfferingsResponse.DiskOffering> getDisksOffering(
+            @NotNull CloudStackHttpClient httpClient,
+            @NotNull CloudStackUser cloudStackUser,
+            String cloudStackUrl) throws FogbowException {
+
+        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder()
+                .build(cloudStackUrl);
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    httpClient, uriRequest.toString(), cloudStackUser);
+            GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+            return response.getDiskOfferings();
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+    }
+
     public static String generateInstanceName() {
         String randomSuffix = UUID.randomUUID().toString();
         return SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + randomSuffix;

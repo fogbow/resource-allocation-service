@@ -574,7 +574,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         List disksOffering = new ArrayList();
-        Mockito.doReturn(disksOffering).when(this.plugin).getDisksOffering(Mockito.eq(this.cloudStackUser));
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.getDisksOffering(
+                this.client, this.cloudStackUser, this.cloudStackUrl)).thenReturn(disksOffering);
 
         List disksOfferingFilted = new ArrayList();
         Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
@@ -604,7 +606,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         List disksOffering = new ArrayList();
-        Mockito.doReturn(disksOffering).when(this.plugin).getDisksOffering(Mockito.eq(this.cloudStackUser));
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.getDisksOffering(
+                this.client, this.cloudStackUser, this.cloudStackUrl)).thenReturn(disksOffering);
 
         List disksOfferingFilted = new ArrayList();
         Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
@@ -639,7 +643,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         List disksOffering = new ArrayList();
-        Mockito.doReturn(disksOffering).when(this.plugin).getDisksOffering(Mockito.eq(this.cloudStackUser));
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.getDisksOffering(
+                this.client, this.cloudStackUser, this.cloudStackUrl)).thenReturn(disksOffering);
 
         List disksOfferingFilted = new ArrayList();
         Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
