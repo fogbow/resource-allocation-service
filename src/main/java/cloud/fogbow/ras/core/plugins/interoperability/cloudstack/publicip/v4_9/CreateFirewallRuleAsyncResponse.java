@@ -3,8 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.CREATE_FIREWALL_RULE_RESPONSE;
-import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_ID_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroupPlugin.CREATE_FIREWALL_RULE_RESPONSE;
+import static cloud.fogbow.common.constants.CloudStackConstants.JOB_ID_KEY_JSON;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html
