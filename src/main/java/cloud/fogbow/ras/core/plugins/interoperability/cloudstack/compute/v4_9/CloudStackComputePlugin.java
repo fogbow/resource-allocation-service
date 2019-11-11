@@ -15,8 +15,8 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
@@ -62,7 +62,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         this.zoneId = properties.getProperty(ZONE_ID_KEY_CONF);
         this.expungeOnDestroy = properties.getProperty(
                 EXPUNGE_ON_DESTROY_KEY_CONF, DEFAULT_EXPUNGE_ON_DEPLOY_VALUE);
-        this.defaultNetworkId = properties.getProperty(CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY);
+        this.defaultNetworkId = properties.getProperty(CloudStackCloudUtils.DEFAULT_NETWORK_ID_KEY);
         this.client = new CloudStackHttpClient();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
