@@ -85,7 +85,6 @@ public class LocalCloudConnector implements CloudConnector {
         this.imagePlugin = instantiator.getImagePlugin(cloudName);
         this.publicIpPlugin = instantiator.getPublicIpPlugin(cloudName);
         this.securityRulePlugin = instantiator.getSecurityRulePlugin(cloudName);
-        this.genericRequestPlugin = instantiator.getGenericRequestPlugin(cloudName);
         this.mapperPlugin = instantiator.getSystemToCloudMapperPlugin(cloudName);
     }
 

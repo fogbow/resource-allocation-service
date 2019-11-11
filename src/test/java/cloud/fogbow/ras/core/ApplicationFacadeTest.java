@@ -971,34 +971,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 Mockito.eq(systemUser));
     }
     
-    // test case: When calling the genericRequest method, it must verify that this
-    // call was successful.
-    @Test
-    public void testGenericRequest() throws FogbowException {
-        // set up
-        String userToken = SYSTEM_USER_TOKEN_VALUE;
-        SystemUser systemUser = this.testUtils.createSystemUser();
-        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
-        
-        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
-        String providerId = TestUtils.LOCAL_MEMBER_ID;
-        String genericRequest = ANY_VALUE;
-
-        RasOperation expectedOperation = new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE,
-                cloudName, genericRequest);
-
-        // exercise
-        this.facade.genericRequest(cloudName, providerId, genericRequest, userToken);
-
-        // verify
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
-                .authenticate(Mockito.eq(userToken));
-        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
-                Mockito.eq(expectedOperation));
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
-                .genericRequest(Mockito.eq(genericRequest), Mockito.eq(systemUser));
-    }
-    
     // test case: When calling the activateOrder method with an attachment order, it
     // must verify that this call was successful.
     @Test

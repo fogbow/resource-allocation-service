@@ -64,7 +64,6 @@ public class Compute {
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
-            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> computeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.COMPUTE);
             return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);

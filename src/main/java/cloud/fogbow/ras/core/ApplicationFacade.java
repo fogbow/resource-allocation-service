@@ -297,18 +297,6 @@ public class ApplicationFacade {
         this.securityRuleController.deleteSecurityRule(order.getProvider(), cloudName, securityRuleId, requester);
     }
 
-    public FogbowGenericResponse genericRequest(String cloudName, String providerId, String genericRequest,
-            String userToken) throws FogbowException {
-
-        SystemUser requester = authenticate(userToken);
-        RasOperation rasOperation = new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE,
-                cloudName, genericRequest);
-
-        this.authorizationPlugin.isAuthorized(requester, rasOperation);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
-        return cloudConnector.genericRequest(genericRequest, requester);
-    }
-
     // These methods are protected to be used in testing
     
     protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser requester) {

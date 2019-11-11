@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -30,8 +32,8 @@ public class RemoteGetCloudNamesRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            List<String> cloudNames = RemoteFacade.getInstance().getCloudNames(iq.getFrom().toBareJID(),
-                    systemUser);
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            List<String> cloudNames = RemoteFacade.getInstance().getCloudNames(senderId, systemUser);
             updateResponse(response, cloudNames);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);

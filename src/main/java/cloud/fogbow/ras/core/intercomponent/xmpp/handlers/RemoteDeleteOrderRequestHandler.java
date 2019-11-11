@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -31,7 +33,8 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            RemoteFacade.getInstance().deleteOrder(iq.getFrom().toBareJID(), orderId, systemUser, resourceType);
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            RemoteFacade.getInstance().deleteOrder(senderId, orderId, systemUser, resourceType);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

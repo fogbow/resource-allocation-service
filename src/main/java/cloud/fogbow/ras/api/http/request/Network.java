@@ -65,7 +65,6 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> networkInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.NETWORK);
             return new ResponseEntity<>(networkInstanceStatus, HttpStatus.OK);

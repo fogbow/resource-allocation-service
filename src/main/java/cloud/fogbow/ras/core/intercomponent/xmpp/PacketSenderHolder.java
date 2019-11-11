@@ -16,6 +16,7 @@ public class PacketSenderHolder {
 
     public static void init() {
         if (packetSender == null) {
+            LOGGER.info(Messages.Info.SETTING_UP_PACKET_SENDER);
             String jidServiceName = SystemConstants.JID_SERVICE_NAME;
             String jidConnector = SystemConstants.JID_CONNECTOR;
             String jidPrefix = SystemConstants.XMPP_SERVER_NAME_PREFIX;
@@ -31,6 +32,7 @@ public class PacketSenderHolder {
                     jidPrefix + providerId, xmppPassword, xmppServerIp, xmppServerPort, xmppTimeout);
             if (xmppServerIp != null && !xmppServerIp.isEmpty()) {
                 try {
+                    LOGGER.info(Messages.Info.CONNECTING_UP_PACKET_SENDER);
                     xmppComponentManager.connect();
                 } catch (ComponentException e) {
                     throw new IllegalStateException();
