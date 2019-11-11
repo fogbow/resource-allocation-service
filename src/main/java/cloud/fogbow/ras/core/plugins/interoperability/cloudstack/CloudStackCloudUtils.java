@@ -16,6 +16,7 @@ public class CloudStackCloudUtils {
 
     public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
     public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
+    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
     public static final String ZONE_ID_CONFIG = "zone_id";
 
     public static final int JOB_STATUS_COMPLETE = 1;
