@@ -1,20 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
-public class AsyncRequestInstanceStage {
+public class AsyncRequestInstanceState {
 
-    private State state;
+    private StateType state;
     private String currentJobId;
     private String ip;
     private String ipInstanceId;
     private String computeInstanceId;
 
-    public AsyncRequestInstanceStage(State state, String currentJobId, String computeInstanceId) {
+    public AsyncRequestInstanceState(StateType state, String currentJobId, String computeInstanceId) {
         this.state = state;
         this.currentJobId = currentJobId;
         this.computeInstanceId = computeInstanceId;
     }
 
-    public State getState() {
+    public StateType getState() {
         return state;
     }
 
@@ -26,7 +26,7 @@ public class AsyncRequestInstanceStage {
         return computeInstanceId;
     }
 
-    public void setState(State state) {
+    public void setState(StateType state) {
         this.state = state;
     }
 
@@ -50,7 +50,7 @@ public class AsyncRequestInstanceStage {
         this.ipInstanceId = ipInstanceId;
     }
 
-    public enum State {
+    public enum StateType {
         ASSOCIATING_IP_ADDRESS, CREATING_FIREWALL_RULE, READY
     }
 
