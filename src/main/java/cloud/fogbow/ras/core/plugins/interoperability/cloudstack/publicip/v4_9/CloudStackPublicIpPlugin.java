@@ -75,23 +75,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         return temporaryInstanceId;
     }
 
-    /**
-     * We don't have the id of the ip address yet, but since the instance id is only used
-     * by the plugin, we can return an orderId as an instanceId in the plugin
-     */
-    @NotNull
-    @VisibleForTesting
-    String getTemporaryInstanceId(@NotNull PublicIpOrder publicIpOrder) {
-        return publicIpOrder.getId();
-    }
-
-    @VisibleForTesting
-    void initAsyncRequestInstanceFlow(String jobId, String instanceId, String computeId) {
-        AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(
-                AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS, jobId, computeId);
-        this.asyncRequests.put(instanceId, asyncRequestInstanceState);
-    }
-
     @Override
     public PublicIpInstance getInstance(@NotNull PublicIpOrder publicIpOrder,
                                         @NotNull CloudStackUser cloudStackUser)
@@ -99,6 +82,34 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, publicIpOrder.getInstanceId()));
         return doGetInstance(publicIpOrder, cloudStackUser);
+    }
+
+    @Override
+    public void deleteInstance(@NotNull PublicIpOrder publicIpOrder, @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
+        doDeleteInstance(publicIpOrder, cloudStackUser);
+    }
+
+    @VisibleForTesting
+    void doDeleteInstance(@NotNull PublicIpOrder publicIpOrder, @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        String ipAddressId = this.asyncRequests.get(publicIpOrder.getId()).getIpInstanceId();
+
+        DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
+                .id(ipAddressId)
+                .build(this.cloudStackUrl);
+
+        URIBuilder uriRequest = disassociateIpAddressRequest.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        try {
+            CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
     PublicIpInstance doGetInstance(@NotNull PublicIpOrder publicIpOrder,
@@ -123,23 +134,21 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         return result;
     }
 
-    @Override
-    public void deleteInstance(@NotNull PublicIpOrder publicIpOrder, @NotNull CloudStackUser cloudUser)
-            throws FogbowException {
+    /**
+     * We don't have the id of the ip address yet, but since the instance id is only used
+     * by the plugin, we can return an orderId as an instanceId in the plugin
+     */
+    @NotNull
+    @VisibleForTesting
+    String getTemporaryInstanceId(@NotNull PublicIpOrder publicIpOrder) {
+        return publicIpOrder.getId();
+    }
 
-        String ipAddressId = this.asyncRequests.get(publicIpOrder.getId()).getIpInstanceId();
-
-        DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
-                .id(ipAddressId)
-                .build(this.cloudStackUrl);
-
-        CloudStackUrlUtil.sign(disassociateIpAddressRequest.getUriBuilder(), cloudUser.getToken());
-
-        try {
-            this.client.doGetRequest(disassociateIpAddressRequest.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
+    @VisibleForTesting
+    void initAsyncRequestInstanceFlow(String jobId, String instanceId, String computeId) {
+        AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(
+                AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS, jobId, computeId);
+        this.asyncRequests.put(instanceId, asyncRequestInstanceState);
     }
 
     @VisibleForTesting
