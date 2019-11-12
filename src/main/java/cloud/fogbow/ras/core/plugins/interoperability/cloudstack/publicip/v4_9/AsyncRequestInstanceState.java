@@ -14,6 +14,10 @@ public class AsyncRequestInstanceState {
         this.computeInstanceId = computeInstanceId;
     }
 
+    public boolean isReady() {
+        return this.state.equals(StateType.READY);
+    }
+
     public StateType getState() {
         return state;
     }
