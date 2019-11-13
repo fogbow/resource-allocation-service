@@ -348,4 +348,15 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
+
+    // TODO(chico) - This will be removed after the Cloudstack Security Rule is accepted.
+    public static String getPublicIpId(String orderId) {
+        return asyncRequestInstanceStateMap.get(orderId).getIpInstanceId();
+    }
+
+    // TODO(chico) - This will be removed after the Cloudstack Security Rule is accepted.
+    public static void setOrderidToInstanceIdMapping(String orderId, String instanceId) {
+        AsyncRequestInstanceState currentAsyncRequest = new AsyncRequestInstanceState(AsyncRequestInstanceState.StateType.READY, null, instanceId);
+        asyncRequestInstanceStateMap.put(orderId, currentAsyncRequest);
+    }
 }
