@@ -53,6 +53,9 @@ public class CloudstackTestUtils {
     private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
     private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
     private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
+    private static final String LIST_TEMPLATES_RESPONSE = "listtemplatesresponse.json";
+    private static final String LIST_TEMPLATES_ERROR_RESPONSE = "listtemplatesresponse_error.json";
+    private static final String LIST_TEMPLATES_EMPTY_RESPONSE = "listtemplatesresponse_empty.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -296,6 +299,31 @@ public class CloudstackTestUtils {
                 + ASYNC_ERROR_RESPONSE);
 
         return String.format(rawJson, jobStatus, errorCode, errorText);
+    }
+
+    public static String createGetAllImagesResponseJson(String id, String name, int size)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_TEMPLATES_RESPONSE);
+
+        return String.format(rawJson, id, name, size);
+    }
+
+    public static String createGetAllImagesEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_TEMPLATES_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
+    public static String createGetAllImagesErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_TEMPLATES_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
     }
 
     private static String readFileAsString(final String fileName) throws IOException {

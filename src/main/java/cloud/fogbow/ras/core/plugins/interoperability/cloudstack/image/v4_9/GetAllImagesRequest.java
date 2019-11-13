@@ -3,19 +3,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Image.*;
+
 public class GetAllImagesRequest extends CloudStackRequest {
-
-    public static final String LIST_TEMPLATES_COMMAND = "listTemplates";
-
-    public static final String TEMPLATE_FILTER_KEY = "templatefilter";
-    public static final String ID_KEY = "id";
-
-    public static final String EXECUTABLE_TEMPLATES_VALUE = "executable";
 
     protected GetAllImagesRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE);
-        addParameter(ID_KEY, builder.id);
+        addParameter(TEMPLATE_FILTER_KEY_JSON, EXECUTABLE_TEMPLATES_VALUE);
+        addParameter(ID_KEY_JSON, builder.id);
     }
 
     @Override
