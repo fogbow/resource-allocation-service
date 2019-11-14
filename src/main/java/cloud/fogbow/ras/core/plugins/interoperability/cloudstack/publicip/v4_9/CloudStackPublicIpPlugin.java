@@ -137,7 +137,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         if (asyncRequestInstanceState.isReady()) {
             return buildReadyPublicIpInstance(asyncRequestInstanceState);
         } else {
-            return buildNextPublicIpInstance(publicIpOrder, cloudStackUser);
+            return buildCurrentPublicIpInstance(publicIpOrder, cloudStackUser);
         }
     }
 
@@ -158,8 +158,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
      */
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildNextPublicIpInstance(@NotNull PublicIpOrder publicIpOrder,
-                                               @NotNull CloudStackUser cloudStackUser)
+    PublicIpInstance buildCurrentPublicIpInstance(@NotNull PublicIpOrder publicIpOrder,
+                                                  @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         String temporaryInstanceId = getInstanceId(publicIpOrder);
@@ -391,12 +391,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         }
     }
 
-    // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
-    public static String getPublicIpId(String orderId) {
-        return asyncRequestInstanceStateMap.get(orderId).getIpInstanceId();
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
+        this.client = client;
     }
 
     // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
+
+    public static String getPublicIpId(String orderId) {
+        return asyncRequestInstanceStateMap.get(orderId).getIpInstanceId();
+    }
+    // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
+
     public static void setOrderidToInstanceIdMapping(String orderId, String instanceId) {
         AsyncRequestInstanceState currentAsyncRequest = new AsyncRequestInstanceState(AsyncRequestInstanceState.StateType.READY, null, instanceId);
         asyncRequestInstanceStateMap.put(orderId, currentAsyncRequest);
