@@ -178,5 +178,7 @@ public class Messages {
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
+        public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
+                "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
     }
 }

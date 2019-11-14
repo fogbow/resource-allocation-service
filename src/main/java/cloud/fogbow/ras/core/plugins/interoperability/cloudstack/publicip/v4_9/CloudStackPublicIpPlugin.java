@@ -26,8 +26,8 @@ import java.util.Properties;
 public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackPublicIpPlugin.class);
 
-    public static final String DEFAULT_SSH_PORT = "22";
-    public static final String DEFAULT_PROTOCOL = "TCP";
+    static final String DEFAULT_SSH_PORT = "22";
+    static final String DEFAULT_PROTOCOL = "TCP";
 
     // Since the ip creation and association involves multiple asynchronous requests instance,
     // we need to keep track of where we are in the process in order to fulfill the operation.
@@ -131,6 +131,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             // order was still spawning, the spawning processor will start monitoring this order after the RAS
             // is restarted. Unfortunately, even if the operation succeeded, we cannot retrieve this information
             // and will have to signal that the order has failed.
+            LOGGER.error(Messages.Error.INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE);
             return buildFailedPublicIpInstance();
         }
 
@@ -394,6 +395,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     @VisibleForTesting
     void setClient(CloudStackHttpClient client) {
         this.client = client;
+    }
+
+    @VisibleForTesting
+    static void setAsyncRequestInstanceStateMap(
+            Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMap) {
+
+        CloudStackPublicIpPlugin.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
     }
 
     // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
