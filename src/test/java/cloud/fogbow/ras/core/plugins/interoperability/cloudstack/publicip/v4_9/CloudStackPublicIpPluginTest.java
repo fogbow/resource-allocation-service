@@ -64,6 +64,114 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.testUtils.mockReadOrdersFromDataBase();
     }
 
+    // test case: When calling the buildNextOperationPublicIpInstance method with secondary methods mocked
+    // and the current state is Ready, it must verify if It returns null.
+    @Test
+    public void testBuildNextOperationPublicIpInstanceFail() throws FogbowException {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        AsyncRequestInstanceState.StateType state = AsyncRequestInstanceState.StateType.READY;
+        Mockito.when(asyncRequestInstanceState.getState()).thenReturn(state);
+        String jsonResponse = "jsonResponse";
+
+        Mockito.doNothing().when(this.plugin).finishAsyncRequestInstanceSteps(
+                Mockito.eq(asyncRequestInstanceState));
+
+        PublicIpInstance publicIpInstanceExpected = Mockito.mock(PublicIpInstance.class);
+        Mockito.doReturn(publicIpInstanceExpected).when(this.plugin).buildReadyPublicIpInstance(
+                Mockito.eq(asyncRequestInstanceState));
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildNextOperationPublicIpInstance(
+                asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+
+        // verify
+        Assert.assertNull(publicIpInstance);
+    }
+
+    // test case: When calling the buildNextOperationPublicIpInstance method with secondary methods mocked
+    // and the current state is CreatingFirewall, it must verify if It returns the PublicIpInstance by the
+    // buildReadyPublicIpInstance method.
+    @Test
+    public void testBuildNextOperationPublicIpInstanceWhenCreatingFirewallState() throws FogbowException {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        AsyncRequestInstanceState.StateType state = AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE;
+        Mockito.when(asyncRequestInstanceState.getState()).thenReturn(state);
+        String jsonResponse = "jsonResponse";
+
+        Mockito.doNothing().when(this.plugin).finishAsyncRequestInstanceSteps(
+                Mockito.eq(asyncRequestInstanceState));
+
+        PublicIpInstance publicIpInstanceExpected = Mockito.mock(PublicIpInstance.class);
+        Mockito.doReturn(publicIpInstanceExpected).when(this.plugin).buildReadyPublicIpInstance(
+                Mockito.eq(asyncRequestInstanceState));
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildNextOperationPublicIpInstance(
+                asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+
+        // verify
+        Assert.assertEquals(publicIpInstanceExpected, publicIpInstance);
+    }
+
+    // test case: When calling the buildNextOperationPublicIpInstance method with secondary methods mocked
+    // and the current state is AssociateIp but occurs a FogbowException, it must verify if It throws
+    // a FogbowException.
+    @Test
+    public void testBuildNextOperationPublicIpInstanceFailWhenAssociateIpState() throws FogbowException {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        AsyncRequestInstanceState.StateType state = AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS;
+        Mockito.when(asyncRequestInstanceState.getState()).thenReturn(state);
+        String jsonResponse = "jsonResponse";
+
+        Mockito.doNothing().when(this.plugin).doCreatingFirewallOperation(
+                Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).buildCreatingFirewallPublicIpInstance(
+                Mockito.eq(asyncRequestInstanceState));
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.buildNextOperationPublicIpInstance(
+                asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+    }
+
+    // test case: When calling the buildNextOperationPublicIpInstance method with secondary methods mocked
+    // and the current state is AssociateIp, it must verify if It returns the PublicIpInstance by the
+    // buildCreatingFirewallPublicIpInstance method.
+    @Test
+    public void testBuildNextOperationPublicIpInstanceWhenAssociateIpState() throws FogbowException {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        AsyncRequestInstanceState.StateType state = AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS;
+        Mockito.when(asyncRequestInstanceState.getState()).thenReturn(state);
+        String jsonResponse = "jsonResponse";
+
+        Mockito.doNothing().when(this.plugin).doCreatingFirewallOperation(
+                Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
+
+        PublicIpInstance publicIpInstanceExpected = Mockito.mock(PublicIpInstance.class);
+        Mockito.doReturn(publicIpInstanceExpected).when(this.plugin).buildCreatingFirewallPublicIpInstance(
+                Mockito.eq(asyncRequestInstanceState));
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildNextOperationPublicIpInstance(
+                asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+
+        // verify
+        Assert.assertEquals(publicIpInstanceExpected, publicIpInstance);
+    }
+
+    // TODO(chico) - Implement
+    @Test
+    public void testBuildCurrentPublicIpInstanceFailWhenUnexpected() throws FogbowException {
+        Assert.fail();
+    }
+
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
     // and occurs an exception, it must verify if It throws a FogbowException.
     @Test
