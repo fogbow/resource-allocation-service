@@ -47,7 +47,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.testUtils.mockReadOrdersFromDataBase();
     }
 
-    // TODO(chico) - add "test case" description
+    // test case: When calling the doGetInstance method with secondary methods mocked and the
+    // asynchronous request instance is ready, it must verify if It returns the publicIpInstance ready.
     @Test
     public void testDoGetInstanceWhenIsReady() throws FogbowException {
         // set up
@@ -65,20 +66,22 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Assert.assertEquals(CloudStackStateMapper.READY_STATUS, publicIpInstance.getCloudState());
     }
 
-    // TODO(chico) - add "test case" description
+    // test case: When calling the doGetInstance method with secondary methods mocked and the
+    // asynchronous request instance is neither ready or failed, it must verify if It returns
+    // the current publicIpInstance returned by the buildCurrentPublicIpInstance.
     @Test
     public void testDoGetInstanceWhenIsNotReady() throws FogbowException {
         // set up
         PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
         String instanceId = "instanceId";
         Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
-        AsyncRequestInstanceState asyncRequestInstanceStateReady = new AsyncRequestInstanceState(
+        AsyncRequestInstanceState asyncRequestInstanceStateNotReady = new AsyncRequestInstanceState(
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE, null, null);
-        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateReady);
+        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateNotReady);
 
         PublicIpInstance publicIpInstanceExcepted = Mockito.mock(PublicIpInstance.class);
         Mockito.doReturn(publicIpInstanceExcepted).when(this.plugin).buildCurrentPublicIpInstance(
-                Mockito.eq(publicIpOrder), Mockito.eq(this.cloudStackUser));
+                Mockito.eq(asyncRequestInstanceStateNotReady), Mockito.eq(publicIpOrder), Mockito.eq(this.cloudStackUser));
 
         // exercise
         PublicIpInstance publicIpInstance = this.plugin.doGetInstance(publicIpOrder, this.cloudStackUser);
@@ -87,7 +90,9 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Assert.assertEquals(publicIpInstanceExcepted, publicIpInstance);
     }
 
-    // TODO(chico) - add "test case" description
+    // test case: When calling the doGetInstance method with secondary methods mocked and the
+    // asynchronous request instance is null because a memory lost, it must verify if It returns
+    // the current publicIpInstance failure.
     @Test
     public void testDoGetInstanceFailWhenThereMemoryLost() throws FogbowException {
         // set up

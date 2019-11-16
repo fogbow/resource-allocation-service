@@ -138,7 +138,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         if (asyncRequestInstanceState.isReady()) {
             return buildReadyPublicIpInstance(asyncRequestInstanceState);
         } else {
-            return buildCurrentPublicIpInstance(publicIpOrder, cloudStackUser);
+            return buildCurrentPublicIpInstance(asyncRequestInstanceState, publicIpOrder, cloudStackUser);
         }
     }
 
@@ -159,13 +159,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
      */
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildCurrentPublicIpInstance(@NotNull PublicIpOrder publicIpOrder,
+    PublicIpInstance buildCurrentPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+                                                  @NotNull PublicIpOrder publicIpOrder,
                                                   @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
-
-        String temporaryInstanceId = getInstanceId(publicIpOrder);
-        AsyncRequestInstanceState asyncRequestInstanceState =
-                this.asyncRequestInstanceStateMap.get(temporaryInstanceId);
 
         String currentJobId = asyncRequestInstanceState.getCurrentJobId();
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(
@@ -180,7 +177,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                         asyncRequestInstanceState, cloudStackUser, jsonResponse);
             case CloudStackQueryJobResult.FAILURE:
                 // any failure should lead to a disassociation of the ip address
-                deleteInstance(publicIpOrder, cloudStackUser);
+                doDeleteInstance(publicIpOrder, cloudStackUser);
                 return buildFailedPublicIpInstance();
             default:
                 LOGGER.error(Messages.Error.UNEXPECTED_JOB_STATUS);
@@ -398,19 +395,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     @VisibleForTesting
-    static void setAsyncRequestInstanceStateMap(
+    void setAsyncRequestInstanceStateMap(
             Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMap) {
 
         CloudStackPublicIpPlugin.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
     }
 
     // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
-
     public static String getPublicIpId(String orderId) {
         return asyncRequestInstanceStateMap.get(orderId).getIpInstanceId();
     }
-    // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
 
+    // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
     public static void setOrderidToInstanceIdMapping(String orderId, String instanceId) {
         AsyncRequestInstanceState currentAsyncRequest = new AsyncRequestInstanceState(AsyncRequestInstanceState.StateType.READY, null, instanceId);
         asyncRequestInstanceStateMap.put(orderId, currentAsyncRequest);
