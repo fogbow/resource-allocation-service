@@ -28,6 +28,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     static final String DEFAULT_SSH_PORT = "22";
     static final String DEFAULT_PROTOCOL = "TCP";
+    static final String PUBLIC_IP_RESOURCE = "Public ip";
 
     // Since the ip creation and association involves multiple asynchronous requests instance,
     // we need to keep track of where we are in the process in order to fulfill the operation.
@@ -173,11 +174,21 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             case CloudStackQueryJobResult.PROCESSING:
                 return buildProcessingPublicIpInstance();
             case CloudStackQueryJobResult.SUCCESS:
-                return buildNextOperationPublicIpInstance(
-                        asyncRequestInstanceState, cloudStackUser, jsonResponse);
+                try {
+                    return buildNextOperationPublicIpInstance(
+                            asyncRequestInstanceState, cloudStackUser, jsonResponse);
+                } catch (FogbowException e) {
+                    LOGGER.error(Messages.Error.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP, e);
+                    return buildFailedPublicIpInstance();
+                }
             case CloudStackQueryJobResult.FAILURE:
-                // any failure should lead to a disassociation of the ip address
-                doDeleteInstance(publicIpOrder, cloudStackUser);
+                try {
+                    // any failure should lead to a disassociation of the ip address
+                    doDeleteInstance(publicIpOrder, cloudStackUser);
+                } catch (FogbowException e) {
+                    LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+                                                PUBLIC_IP_RESOURCE, publicIpOrder.getInstanceId()));
+                }
                 return buildFailedPublicIpInstance();
             default:
                 LOGGER.error(Messages.Error.UNEXPECTED_JOB_STATUS);

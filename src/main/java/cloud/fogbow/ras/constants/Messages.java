@@ -150,6 +150,8 @@ public class Messages {
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
         public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
+        public static final String ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP =
+                "Error while It was trying to pass to the next step in the asynchronous request instance.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE = "Error while removing volume image: %s, with response: %s.";
         public static final String ERROR_WHILE_UPDATING_NETWORK = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";

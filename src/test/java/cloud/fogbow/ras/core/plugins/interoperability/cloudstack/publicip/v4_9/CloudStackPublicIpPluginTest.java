@@ -1,12 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
+import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.LoggerAssert;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
@@ -14,16 +20,27 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-@PrepareForTest({DatabaseManager.class})
+import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.PUBLIC_IP_RESOURCE;
+
+@PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
+
+    private final int FIRST_POSITION = 1;
+
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
+    private LoggerAssert loggerTestChecking = new LoggerAssert(CloudStackPublicIpPlugin.class);
 
     private Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMapMockEmpty = new HashMap<>();
     private CloudStackPublicIpPlugin plugin;
@@ -45,6 +62,215 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         this.testUtils.mockReadOrdersFromDataBase();
+    }
+
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and occurs an exception, it must verify if It throws a FogbowException.
+    @Test
+    public void testBuildCurrentPublicIpInstanceFail() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenThrow(new FogbowException());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+    }
+
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and the job state is ready failure but it occurs a FogbowException when try delete the instance,
+    // it must verify if It returns the publicIpInstance failure and log the error.
+    @Test
+    public void testBuildCurrentPublicIpInstanceFailWhenFailureJobStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        String instanceId = "instanceId";
+        Mockito.when(publicIpOrder.getInstanceId()).thenReturn(instanceId);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        String jsonResponse = "jsonResponse";
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenReturn(jsonResponse);
+
+        Integer jobStatus = CloudStackQueryJobResult.FAILURE;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin)
+                .doDeleteInstance(Mockito.any(), Mockito.any());
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
+        String errorExpected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+                PUBLIC_IP_RESOURCE, publicIpOrder.getInstanceId());
+        this.loggerTestChecking.assertEquals(FIRST_POSITION, Level.ERROR, errorExpected);
+    }
+
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and the job state is ready failure, it must verify if It returns the publicIpInstance failure
+    // and delete the instance.
+    @Test
+    public void testBuildCurrentPublicIpInstanceWhenFailureJobStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        String jsonResponse = "jsonResponse";
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenReturn(jsonResponse);
+
+        Integer jobStatus = CloudStackQueryJobResult.FAILURE;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.any(), Mockito.any());
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(
+                Mockito.eq(publicIpOrder), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and the job state is ready success, it must verify if It returns the publicIpInstance processing.
+    @Test
+    public void testBuildCurrentPublicIpInstanceWhenProcessingJobStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        String jsonResponse = "jsonResponse";
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenReturn(jsonResponse);
+
+        Integer jobStatus = CloudStackQueryJobResult.PROCESSING;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.PROCESSING_STATUS, publicIpInstance.getCloudState());
+    }
+
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and the job state is ready success but it occurs a FogbowException, it must verify if It
+    // returns the publicIpInstance failure.
+    @Test
+    public void testBuildCurrentPublicIpInstanceFailWhenSuccessJobStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        String jsonResponse = "jsonResponse";
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenReturn(jsonResponse);
+
+        Integer jobStatus = CloudStackQueryJobResult.SUCCESS;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).buildNextOperationPublicIpInstance(
+                Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
+        String errorExpected = Messages.Error.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP;
+        this.loggerTestChecking.assertEquals(FIRST_POSITION, Level.ERROR, errorExpected);
+    }
+
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and the job state is ready success, it must verify if It returns the publicIpInstance returned
+    // by the buildNextOperationPublicIpInstance.
+    @Test
+    public void testBuildCurrentPublicIpInstanceWhenSuccessJobStatus() throws FogbowException {
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        String jsonResponse = "jsonResponse";
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenReturn(jsonResponse);
+
+        Integer jobStatus = CloudStackQueryJobResult.SUCCESS;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        PublicIpInstance publicIpInstanceExpected = Mockito.mock(PublicIpInstance.class);
+        Mockito.doReturn(publicIpInstanceExpected).when(this.plugin).buildNextOperationPublicIpInstance (
+                Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(publicIpInstanceExpected, publicIpInstance);
     }
 
     // test case: When calling the doGetInstance method with secondary methods mocked and the
