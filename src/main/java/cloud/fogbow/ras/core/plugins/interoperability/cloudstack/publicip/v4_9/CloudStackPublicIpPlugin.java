@@ -382,7 +382,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    String requestCreateFirewallRule(CreateFirewallRuleRequest request, @NotNull CloudStackUser cloudUser)
+    String requestCreateFirewallRule(@NotNull CreateFirewallRuleRequest request,
+                                     @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();

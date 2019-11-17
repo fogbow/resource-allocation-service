@@ -39,7 +39,8 @@ import java.util.Properties;
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.PUBLIC_IP_RESOURCE;
 
 @PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class,
-        SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class, CloudStackCloudUtils.class})
+        SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class, CloudStackCloudUtils.class,
+        CreateFirewallRuleAsyncResponse.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
     private final int FIRST_POSITION = 1;
@@ -69,6 +70,54 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the requestCreateFirewallRule method and occurs a HttpResponseException,
+    // it must verify if It throws FogbowException.
+    @Test
+    public void testRequestCreateFirewallRuleFail() throws FogbowException, HttpResponseException {
+        // set up
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.requestCreateFirewallRule(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the requestCreateFirewallRule method, it must verify if It
+    // returns the right jobId.
+    @Test
+    public void testRequestCreateFirewallRuleSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+
+        String jsonResponse = "";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(jsonResponse);
+
+        String jobIdExpexted = "jobId";
+        CreateFirewallRuleAsyncResponse response = Mockito.mock(CreateFirewallRuleAsyncResponse.class);
+        Mockito.when(response.getJobId()).thenReturn(jobIdExpexted);
+        PowerMockito.mockStatic(CreateFirewallRuleAsyncResponse.class);
+        PowerMockito.when(CreateFirewallRuleAsyncResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        // exercise
+        String jobId = this.plugin.requestCreateFirewallRule(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(jobIdExpexted, jobId);
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the requestEnableStaticNat method and occurs a HttpResponseException,
@@ -108,7 +157,6 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser));
-
     }
 
     // test case: When calling the buildProcessingPublicIpInstance method, it must verify if It
