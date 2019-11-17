@@ -258,11 +258,12 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                            @NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                            String createFirewallRuleJobId) {
 
-        String ipAddressId = response.getIpAddress().getId();
-        String ipAddress = response.getIpAddress().getIpAddress();
+        SuccessfulAssociateIpAddressResponse.IpAddress ipAddress = response.getIpAddress();
+        String ipAddressId = ipAddress.getId();
+        String ip = ipAddress.getIpAddress();
 
         asyncRequestInstanceState.setIpInstanceId(ipAddressId);
-        asyncRequestInstanceState.setIp(ipAddress);
+        asyncRequestInstanceState.setIp(ip);
         asyncRequestInstanceState.setCurrentJobId(createFirewallRuleJobId);
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
     }

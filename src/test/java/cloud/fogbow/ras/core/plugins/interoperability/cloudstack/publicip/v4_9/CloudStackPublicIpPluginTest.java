@@ -72,6 +72,41 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    // test case: When calling the setAsyncRequestInstanceSecondStep method, it must verify if It
+    // set the rigth values in the AsyncRequestInstanceState.
+    @Test
+    public void testSetAsyncRequestInstanceSecondStepSuccessfully() {
+        // set up
+        String ipAddressIdExpected = "ipId";
+        String ipExpected = "ip";
+
+        SuccessfulAssociateIpAddressResponse response = Mockito.mock(SuccessfulAssociateIpAddressResponse.class);
+        SuccessfulAssociateIpAddressResponse.IpAddress ipAddress =
+                Mockito.mock(SuccessfulAssociateIpAddressResponse.IpAddress.class);
+        Mockito.when(ipAddress.getId()).thenReturn(ipAddressIdExpected);
+        Mockito.when(ipAddress.getIpAddress()).thenReturn(ipExpected);
+
+        Mockito.when(response.getIpAddress()).thenReturn(ipAddress);
+        AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
+        String createFirewallRuleJobId = "jobId";
+
+        // verify before
+        Assert.assertNull(asyncRequestInstanceState.getIpInstanceId());
+        Assert.assertNull(asyncRequestInstanceState.getIp());
+        Assert.assertNull(asyncRequestInstanceState.getState());
+        Assert.assertNull(asyncRequestInstanceState.getCurrentJobId());
+
+        // exercise
+        this.plugin.setAsyncRequestInstanceSecondStep(response, asyncRequestInstanceState, createFirewallRuleJobId);
+
+        // verify after
+        Assert.assertEquals(ipAddressIdExpected, asyncRequestInstanceState.getIpInstanceId());
+        Assert.assertEquals(ipExpected, asyncRequestInstanceState.getIp());
+        Assert.assertEquals(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE,
+                asyncRequestInstanceState.getState());
+        Assert.assertEquals(createFirewallRuleJobId, asyncRequestInstanceState.getCurrentJobId());
+    }
+
     // test case: When calling the requestCreateFirewallRule method and occurs a HttpResponseException,
     // it must verify if It throws FogbowException.
     @Test
