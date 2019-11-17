@@ -143,17 +143,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         }
     }
 
-
-    /**
-     * We don't have the id of the ip address yet, but since the instance id is only used
-     * by the plugin, we can return an orderId as an instanceId in the plugin
-     */
-    @NotNull
-    @VisibleForTesting
-    String getInstanceId(@NotNull PublicIpOrder publicIpOrder) {
-        return publicIpOrder.getId();
-    }
-
     /**
      * Retrieve the current Cloudstack asynchronous job and treat the next operation of the
      * asynchronous request instance flow.
@@ -340,6 +329,15 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             ip = asyncRequestInstanceState.getIp();
         }
         return new PublicIpInstance(id, state, ip);
+    }
+
+    /**
+     * We don't have the id of the ip address yet, but since the instance id is only used
+     * by the plugin, we can return an orderId as an instanceId in the plugin
+     */
+    @NotNull
+    private String getInstanceId(@NotNull PublicIpOrder publicIpOrder) {
+        return publicIpOrder.getId();
     }
 
     @NotNull

@@ -72,8 +72,25 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    // test case: When calling the finishAsyncRequestInstanceSteps method, it must verify if It
+    // sets the right values in the AsyncRequestInstanceState.
+    @Test
+    public void testFinishAsyncRequestInstanceStepsSuccessfully() {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
+
+        // verify before
+        Assert.assertNull(asyncRequestInstanceState.getState());
+
+        // exercise
+        this.plugin.finishAsyncRequestInstanceSteps(asyncRequestInstanceState);
+
+        // verify after
+        Assert.assertEquals(AsyncRequestInstanceState.StateType.READY, asyncRequestInstanceState.getState());
+    }
+
     // test case: When calling the setAsyncRequestInstanceSecondStep method, it must verify if It
-    // set the rigth values in the AsyncRequestInstanceState.
+    // sets the right values in the AsyncRequestInstanceState.
     @Test
     public void testSetAsyncRequestInstanceSecondStepSuccessfully() {
         // set up
@@ -475,10 +492,37 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Assert.assertEquals(publicIpInstanceExpected, publicIpInstance);
     }
 
-    // TODO(chico) - Implement
+    // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
+    // and job status is unknown, it must verify if It returns null.
     @Test
     public void testBuildCurrentPublicIpInstanceFailWhenUnexpected() throws FogbowException {
-        Assert.fail();
+        // set up
+        String jobId = "jobId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getCurrentJobId()).thenReturn(jobId);
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+
+        PowerMockito.mockStatic(CloudStackQueryJobResult.class);
+        String jsonResponse = "jsonResponse";
+        PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
+                Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
+                Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
+                thenReturn(jsonResponse);
+
+        Integer jobStatusUnknown = -1;
+        CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
+        Mockito.when(response.getJobStatus()).thenReturn(jobStatusUnknown);
+        PowerMockito.mockStatic(CloudStackQueryAsyncJobResponse.class);
+        PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildCurrentPublicIpInstance(
+                asyncRequestInstanceState, publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertNull(publicIpInstance);
+        this.loggerTestChecking.assertEquals(FIRST_POSITION, Level.ERROR, Messages.Error.UNEXPECTED_JOB_STATUS);
     }
 
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
