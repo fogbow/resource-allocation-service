@@ -69,6 +69,70 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         CloudstackTestUtils.ignoringCloudStackUrl();
     }
 
+    // test case: When calling the buildProcessingPublicIpInstance method, it must verify if It
+    // returns a right publicIpInstance.
+    @Test
+    public void testBuildProcessingPublicIpInstanceSuccessfully() {
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildProcessingPublicIpInstance();
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.PROCESSING_STATUS, publicIpInstance.getCloudState());
+    }
+
+    // test case: When calling the buildFailedPublicIpInstance method, it must verify if It
+    // returns a right publicIpInstance.
+    @Test
+    public void testBuildFailedPublicIpInstanceSuccessfully() {
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.buildFailedPublicIpInstance();
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
+    }
+
+    // test case: When calling the buildReadyPublicIpInstance method, it must verify if It
+    // returns a right publicIpInstance.
+    @Test
+    public void testBuildReadyPublicIpInstanceSuccessfully() {
+        // set up
+        String ipExpected = "ip";
+        String instanceIdExpected = "instanceId";
+        AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null, null);
+        asyncRequestInstanceState.setIp(ipExpected);
+        asyncRequestInstanceState.setIpInstanceId(instanceIdExpected);
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.
+                buildReadyPublicIpInstance(asyncRequestInstanceState);
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.READY_STATUS, publicIpInstance.getCloudState());
+        Assert.assertEquals(ipExpected, publicIpInstance.getIp());
+        Assert.assertEquals(instanceIdExpected, publicIpInstance.getId());
+    }
+
+    // test case: When calling the buildCreatingFirewallPublicIpInstance method,
+    // it must verify if It returns a right publicIpInstance.
+    @Test
+    public void testBuildCreatingFirewallPublicIpInstanceSuccessfully() {
+        // set up
+        String ipExpected = "ip";
+        String instanceIdExpected = "instanceId";
+        AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null, null);
+        asyncRequestInstanceState.setIp(ipExpected);
+        asyncRequestInstanceState.setIpInstanceId(instanceIdExpected);
+
+        // exercise
+        PublicIpInstance publicIpInstance = this.plugin.
+                buildCreatingFirewallPublicIpInstance(asyncRequestInstanceState);
+
+        // verify
+        Assert.assertEquals(CloudStackStateMapper.CREATING_FIREWALL_RULE_STATUS, publicIpInstance.getCloudState());
+        Assert.assertEquals(ipExpected, publicIpInstance.getIp());
+        Assert.assertEquals(instanceIdExpected, publicIpInstance.getId());
+    }
+
     // test case: When calling the doCreateFirewallRule method with secondary methods mocked,
     // it must verify if the requestCreateFirewallRule is called with the right parameters;
     // this includes the checking of the Cloudstack request.

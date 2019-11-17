@@ -330,8 +330,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     @NotNull
-    @VisibleForTesting
-    PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+    private PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                            String state) {
         String id = null;
         String ip = null;
