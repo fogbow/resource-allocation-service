@@ -75,7 +75,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
         return doGetSecurityRules(majorOrder, cloudStackUser);
     }
-       
+
     @Override
     public void deleteSecurityRule(String securityRuleId, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
@@ -165,19 +165,19 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 
     @NotNull
     @VisibleForTesting
-	List<SecurityRuleInstance> getFirewallRules(String ipAddressId, @NotNull CloudStackUser cloudStackUser)
+    List<SecurityRuleInstance> getFirewallRules(String ipAddressId, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-		ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
-				.ipAddressId(ipAddressId)
-				.build(this.cloudStackUrl);
+        ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
+                .ipAddressId(ipAddressId)
+                .build(this.cloudStackUrl);
 
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-		try {
-			String jsonResponse = CloudStackCloudUtils.doRequest(
-			        this.client, uriRequest.toString(), cloudStackUser);
+        try {
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
             ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
             List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse =
                     response.getSecurityRulesResponse();
@@ -185,57 +185,57 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
-	}
+    }
 
-	@NotNull
+    @NotNull
     @VisibleForTesting
-	List<SecurityRuleInstance> convertToFogbowSecurityRules(
-	        @NotNull List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) {
+    List<SecurityRuleInstance> convertToFogbowSecurityRules(
+            @NotNull List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) {
 
-		List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
-		for (ListFirewallRulesResponse.SecurityRuleResponse securityRuleResponse : securityRulesResponse) {
-			SecurityRule.Direction direction = securityRuleResponse.getDirection();
-			int portFrom = securityRuleResponse.getPortFrom();
-			int portTo = securityRuleResponse.getPortTo();
-			String cidr = securityRuleResponse.getCidr();
-			String ipAddress = securityRuleResponse.getIpAddress();
-			SecurityRule.EtherType etherType = inferEtherType(ipAddress);
-			SecurityRule.Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
+        List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
+        for (ListFirewallRulesResponse.SecurityRuleResponse securityRuleResponse : securityRulesResponse) {
+            SecurityRule.Direction direction = securityRuleResponse.getDirection();
+            int portFrom = securityRuleResponse.getPortFrom();
+            int portTo = securityRuleResponse.getPortTo();
+            String cidr = securityRuleResponse.getCidr();
+            String ipAddress = securityRuleResponse.getIpAddress();
+            SecurityRule.EtherType etherType = inferEtherType(ipAddress);
+            SecurityRule.Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
             String instanceId = securityRuleResponse.getInstanceId();
 
             SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(instanceId, direction,
                     portFrom, portTo, cidr, etherType, protocol);
-			securityRuleInstances.add(securityRuleInstance);
-		}
-		return securityRuleInstances;
-	}
+            securityRuleInstances.add(securityRuleInstance);
+        }
+        return securityRuleInstances;
+    }
 
-	@VisibleForTesting
-	SecurityRule.Protocol getFogbowProtocol(String protocol) {
-		switch (protocol) {
-			case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
-				return SecurityRule.Protocol.TCP;
-			case CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL:
-				return SecurityRule.Protocol.UDP;
-			case CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL:
-				return SecurityRule.Protocol.ICMP;
-			case CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
-				return SecurityRule.Protocol.ANY;
-			default:
-				return null;
-		}
-	}
+    @VisibleForTesting
+    SecurityRule.Protocol getFogbowProtocol(String protocol) {
+        switch (protocol) {
+            case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
+                return SecurityRule.Protocol.TCP;
+            case CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL:
+                return SecurityRule.Protocol.UDP;
+            case CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL:
+                return SecurityRule.Protocol.ICMP;
+            case CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
+                return SecurityRule.Protocol.ANY;
+            default:
+                return null;
+        }
+    }
 
-	@VisibleForTesting
-	SecurityRule.EtherType inferEtherType(String ipAddress) {
-		if (CidrUtils.isIpv4(ipAddress)) {
-			return SecurityRule.EtherType.IPv4;
-		} else if (CidrUtils.isIpv6(ipAddress)) {
-			return SecurityRule.EtherType.IPv6;
-		} else {
-			return null;
-		}
-	}
+    @VisibleForTesting
+    SecurityRule.EtherType inferEtherType(String ipAddress) {
+        if (CidrUtils.isIpv4(ipAddress)) {
+            return SecurityRule.EtherType.IPv4;
+        } else if (CidrUtils.isIpv6(ipAddress)) {
+            return SecurityRule.EtherType.IPv6;
+        } else {
+            return null;
+        }
+    }
 
     @VisibleForTesting
     void setClient(CloudStackHttpClient client) {
