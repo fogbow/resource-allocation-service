@@ -33,7 +33,8 @@ import java.util.Properties;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.PUBLIC_IP_RESOURCE;
 
-@PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class})
+@PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class,
+        SuccessfulAssociateIpAddressResponse.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
     private final int FIRST_POSITION = 1;
@@ -62,6 +63,60 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         this.testUtils.mockReadOrdersFromDataBase();
+    }
+
+    // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
+    // and It occurs a FogbowException. it must verify if It throws the same exception.
+    @Test
+    public void testDoCreatingFirewallOperationFail() throws FogbowException {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        String jsonResponse = "jsonResponse";
+
+        SuccessfulAssociateIpAddressResponse response = Mockito.mock(SuccessfulAssociateIpAddressResponse.class);
+        PowerMockito.mockStatic(SuccessfulAssociateIpAddressResponse.class);
+        PowerMockito.when(SuccessfulAssociateIpAddressResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).doEnableStaticNat(
+                Mockito.eq(response), Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser));
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.doCreatingFirewallOperation(asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+    }
+
+    // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked,
+    // it must verify if It goes through all methods.
+    @Test
+    public void testDoCreatingFirewallOperationSuccessfully() throws FogbowException {
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        String jsonResponse = "jsonResponse";
+
+        SuccessfulAssociateIpAddressResponse response = Mockito.mock(SuccessfulAssociateIpAddressResponse.class);
+        PowerMockito.mockStatic(SuccessfulAssociateIpAddressResponse.class);
+        PowerMockito.when(SuccessfulAssociateIpAddressResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        Mockito.doNothing().when(this.plugin).doEnableStaticNat(
+                Mockito.eq(response), Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser));
+
+        String jobId = "jobId";
+        Mockito.doReturn(jobId).when(this.plugin).doCreateFirewallRule(
+                Mockito.eq(response), Mockito.eq(this.cloudStackUser));
+
+        Mockito.doNothing().when(this.plugin).setAsyncRequestInstanceSecondStep(
+                Mockito.any(), Mockito.any(), Mockito.any());
+
+        // exercise
+        this.plugin.doCreatingFirewallOperation(asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setAsyncRequestInstanceSecondStep(
+                Mockito.eq(response), Mockito.eq(asyncRequestInstanceState), Mockito.eq(jobId));
     }
 
     // test case: When calling the buildNextOperationPublicIpInstance method with secondary methods mocked
@@ -126,11 +181,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(asyncRequestInstanceState.getState()).thenReturn(state);
         String jsonResponse = "jsonResponse";
 
-        Mockito.doNothing().when(this.plugin).doCreatingFirewallOperation(
+        Mockito.doThrow(new FogbowException()).when(this.plugin).doCreatingFirewallOperation(
                 Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
-
-        Mockito.doThrow(new FogbowException()).when(this.plugin).buildCreatingFirewallPublicIpInstance(
-                Mockito.eq(asyncRequestInstanceState));
 
         // verify
         this.expectedException.expect(FogbowException.class);
