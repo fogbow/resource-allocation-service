@@ -21,7 +21,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachVolumeRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,7 +30,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -69,6 +67,39 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the doCreateFirewallRule method with secondary methods mocked,
+    // it must verify if the requestCreateFirewallRule is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testDoCreateFirewallRuleSuccessfully() throws FogbowException {
+        // set up
+        SuccessfulAssociateIpAddressResponse.IpAddress ipAddress =
+                Mockito.mock(SuccessfulAssociateIpAddressResponse.IpAddress.class);
+        String ipAddressId = "ipAddressId";
+        Mockito.when(ipAddress.getId()).thenReturn(ipAddressId);
+        SuccessfulAssociateIpAddressResponse response = Mockito.mock(SuccessfulAssociateIpAddressResponse.class);
+        Mockito.when(response.getIpAddress()).thenReturn(ipAddress);
+
+        String jobIdExpected = "jobId";
+        Mockito.doReturn(jobIdExpected).when(this.plugin).requestCreateFirewallRule(Mockito.any(), Mockito.any());
+
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
+                .protocol(CloudStackPublicIpPlugin.DEFAULT_PROTOCOL)
+                .startPort(CloudStackPublicIpPlugin.DEFAULT_SSH_PORT)
+                .endPort(CloudStackPublicIpPlugin.DEFAULT_SSH_PORT)
+                .ipAddressId(ipAddressId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        String jobId = this.plugin.doCreateFirewallRule(response, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(jobIdExpected, jobId);
+        RequestMatcher<CreateFirewallRuleRequest> matcher = new RequestMatcher.CreateFirewallRule(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .requestCreateFirewallRule(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the doEnableStaticNat method with secondary methods mocked,

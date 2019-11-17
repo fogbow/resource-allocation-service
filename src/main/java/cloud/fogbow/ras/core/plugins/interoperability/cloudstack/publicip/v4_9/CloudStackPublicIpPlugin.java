@@ -278,7 +278,14 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                 @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         String ipAddressId = response.getIpAddress().getId();
-        return requestCreateFirewallRule(ipAddressId, cloudStackUser);
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
+                .protocol(DEFAULT_PROTOCOL)
+                .startPort(DEFAULT_SSH_PORT)
+                .endPort(DEFAULT_SSH_PORT)
+                .ipAddressId(ipAddressId)
+                .build(this.cloudStackUrl);
+
+        return requestCreateFirewallRule(request, cloudStackUser);
     }
 
     @VisibleForTesting
@@ -376,17 +383,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    String requestCreateFirewallRule(String ipAdressId, @NotNull CloudStackUser cloudUser)
+    String requestCreateFirewallRule(CreateFirewallRuleRequest request, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
-                .protocol(DEFAULT_PROTOCOL)
-                .startPort(DEFAULT_SSH_PORT)
-                .endPort(DEFAULT_SSH_PORT)
-                .ipAddressId(ipAdressId)
-                .build(this.cloudStackUrl);
-
-        URIBuilder uriRequest = createFirewallRuleRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudUser.getToken());
 
         try {
