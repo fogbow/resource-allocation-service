@@ -289,7 +289,12 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         String ipAddressId = response.getIpAddress().getId();
         String computeInstanceId = asyncRequestInstanceState.getComputeInstanceId();
 
-        requestEnableStaticNat(computeInstanceId, ipAddressId, cloudStackUser);
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder()
+                .ipAddressId(ipAddressId)
+                .virtualMachineId(computeInstanceId)
+                .build(this.cloudStackUrl);
+
+        requestEnableStaticNat(request, cloudStackUser);
     }
 
     @NotNull
@@ -355,17 +360,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    void requestEnableStaticNat(String computeInstanceId,
-                                String ipAdressId,
+    void requestEnableStaticNat(@NotNull EnableStaticNatRequest request,
                                 @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        EnableStaticNatRequest enableStaticNatRequest = new EnableStaticNatRequest.Builder()
-                .ipAddressId(ipAdressId)
-                .virtualMachineId(computeInstanceId)
-                .build(this.cloudStackUrl);
-
-        URIBuilder uriRequest = enableStaticNatRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {

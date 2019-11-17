@@ -2,12 +2,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
 import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
+import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -18,6 +20,8 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachVolumeRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +31,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -34,7 +39,7 @@ import java.util.Properties;
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.PUBLIC_IP_RESOURCE;
 
 @PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class,
-        SuccessfulAssociateIpAddressResponse.class})
+        SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
     private final int FIRST_POSITION = 1;
@@ -50,7 +55,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws UnexpectedException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
@@ -63,6 +68,38 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         this.testUtils.mockReadOrdersFromDataBase();
+        CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the doEnableStaticNat method with secondary methods mocked,
+    // it must verify if the doRequestInstance is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testDoEnableStaticNatSuccessfully() throws FogbowException {
+        // set up
+        SuccessfulAssociateIpAddressResponse.IpAddress ipAddress =
+                Mockito.mock(SuccessfulAssociateIpAddressResponse.IpAddress.class);
+        String ipAddressId = "ipAddressId";
+        Mockito.when(ipAddress.getId()).thenReturn(ipAddressId);
+        SuccessfulAssociateIpAddressResponse response = Mockito.mock(SuccessfulAssociateIpAddressResponse.class);
+        Mockito.when(response.getIpAddress()).thenReturn(ipAddress);
+
+        String computeInstanceId = "computeInstanceId";
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        Mockito.when(asyncRequestInstanceState.getComputeInstanceId()).thenReturn(computeInstanceId);
+
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder()
+                .ipAddressId(ipAddressId)
+                .virtualMachineId(computeInstanceId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        this.plugin.doEnableStaticNat(response, asyncRequestInstanceState, this.cloudStackUser);
+
+        // verify
+        RequestMatcher<EnableStaticNatRequest> matcher = new RequestMatcher.EnableStaticNat(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .requestEnableStaticNat(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
