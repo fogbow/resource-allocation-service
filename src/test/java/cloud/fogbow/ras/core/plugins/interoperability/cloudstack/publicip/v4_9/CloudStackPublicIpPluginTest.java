@@ -21,12 +21,14 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -37,7 +39,7 @@ import java.util.Properties;
 import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.PUBLIC_IP_RESOURCE;
 
 @PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class,
-        SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class})
+        SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class, CloudStackCloudUtils.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
     private final int FIRST_POSITION = 1;
@@ -67,6 +69,46 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the requestEnableStaticNat method and occurs a HttpResponseException,
+    // it must verify if It throws FogbowException.
+    @Test
+    public void testRequestEnableStaticNatFail() throws FogbowException, HttpResponseException {
+        // set up
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.requestEnableStaticNat(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the requestEnableStaticNat method, it must verify if It
+    // goes through the method without errors.
+    @Test
+    public void testRequestEnableStaticNatSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("");
+
+        // exercise
+        this.plugin.requestEnableStaticNat(request, this.cloudStackUser);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser));
+
     }
 
     // test case: When calling the buildProcessingPublicIpInstance method, it must verify if It
