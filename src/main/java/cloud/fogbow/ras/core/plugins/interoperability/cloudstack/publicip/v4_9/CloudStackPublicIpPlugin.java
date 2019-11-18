@@ -103,11 +103,19 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         }
         String ipAddressId = asyncRequestInstanceState.getIpInstanceId();
 
-        DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder()
                 .id(ipAddressId)
                 .build(this.cloudStackUrl);
 
-        URIBuilder uriRequest = disassociateIpAddressRequest.getUriBuilder();
+        requestDisassociateIpAddress(request, cloudStackUser);
+    }
+
+    @VisibleForTesting
+    void requestDisassociateIpAddress(@NotNull DisassociateIpAddressRequest request,
+                                      @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {

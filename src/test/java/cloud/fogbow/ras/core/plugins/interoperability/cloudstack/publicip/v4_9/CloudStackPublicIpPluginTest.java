@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
 import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -70,6 +71,119 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the requestDisassociateIpAddress method and occurs a HttpResponseException,
+    // it must verify if It throws a FogbowException.
+    @Test
+    public void testRequestDisassociateIpAddressFail() throws FogbowException, HttpResponseException {
+        // set up
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.requestDisassociateIpAddress(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the requestDisassociateIpAddress method, it must verify if It
+    // goes through the method without errors.
+    @Test
+    public void testRequestDisassociateIpAddressSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
+                thenReturn("");
+
+        // exercise
+        this.plugin.requestDisassociateIpAddress(request, this.cloudStackUser);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackCloudUtils.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser));
+    }
+
+    // test case: When calling the doDeleteInstance method and occurs a FogbowException,
+    // it must verify if It throws the same error.
+    @Test
+    public void testDoDeleteInstanceFail() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
+
+        AsyncRequestInstanceState asyncRequestInstanceStateReady = new AsyncRequestInstanceState(
+                AsyncRequestInstanceState.StateType.READY, null, null);
+        String ipAddressId = "ipAddressId";
+        asyncRequestInstanceStateReady.setIpInstanceId(ipAddressId);
+        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateReady);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).
+                requestDisassociateIpAddress(Mockito.any(), Mockito.any());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.doDeleteInstance(publicIpOrder, this.cloudStackUser);
+    }
+
+    // test case: When calling the doDeleteInstance method and is not found asynchronous request instance,
+    // it must verify if It throws an InstanceNotFoundException.
+    @Test
+    public void testDoDeleteInstanceFailWhenThereIsNoAsyncRequest() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
+
+        this.asyncRequestInstanceStateMapMockEmpty = new HashMap<>();
+
+        // verify
+        this.expectedException.expect(InstanceNotFoundException.class);
+
+        // exercise
+        this.plugin.doDeleteInstance(publicIpOrder, this.cloudStackUser);
+    }
+
+    // test case: When calling the doDeleteInstance method with secondary methods mocked,
+    // it must verify if the requestDisassociateIpAddress is called with the right parameters;
+    // this includes the checking of the Cloudstack request.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
+
+        AsyncRequestInstanceState asyncRequestInstanceStateReady = new AsyncRequestInstanceState(
+                AsyncRequestInstanceState.StateType.READY, null, null);
+        String ipAddressId = "ipAddressId";
+        asyncRequestInstanceStateReady.setIpInstanceId(ipAddressId);
+        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateReady);
+
+        Mockito.doNothing().when(this.plugin).requestDisassociateIpAddress(Mockito.any(), Mockito.any());
+
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder()
+                .id(ipAddressId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        this.plugin.doDeleteInstance(publicIpOrder, this.cloudStackUser);
+
+        // verify
+        RequestMatcher<DisassociateIpAddressRequest> matcher = new RequestMatcher.DisassociateIpAddress(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .requestDisassociateIpAddress(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the finishAsyncRequestInstanceSteps method, it must verify if It
