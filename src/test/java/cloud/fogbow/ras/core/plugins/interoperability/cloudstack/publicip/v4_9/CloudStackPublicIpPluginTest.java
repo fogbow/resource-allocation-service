@@ -84,7 +84,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(publicIpOrder.getComputeId()).thenReturn(computeIdExpected);
         String jobId = "jobId";
 
-        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 instanceIdExpected, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS);
 
         // verify before
@@ -317,7 +317,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
 
-        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.READY);
 
@@ -350,7 +350,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
         String createFirewallRuleJobId = "jobId";
 
-        String messageExpexted = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        String messageExpexted = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
 

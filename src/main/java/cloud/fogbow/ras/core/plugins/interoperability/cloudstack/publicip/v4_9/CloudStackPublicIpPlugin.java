@@ -253,7 +253,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS, jobId, computeId);
         asyncRequestInstanceState.setOrderInstanceId(instanceId);
         this.asyncRequestInstanceStateMap.put(instanceId, asyncRequestInstanceState);
-        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 instanceId, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS));
     }
 
@@ -274,7 +274,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         asyncRequestInstanceState.setIp(ip);
         asyncRequestInstanceState.setCurrentJobId(createFirewallRuleJobId);
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
-        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE));
     }
@@ -282,7 +282,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     @VisibleForTesting
     void finishAsyncRequestInstanceSteps(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.READY);
-        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(), AsyncRequestInstanceState.StateType.READY));
     }
 
