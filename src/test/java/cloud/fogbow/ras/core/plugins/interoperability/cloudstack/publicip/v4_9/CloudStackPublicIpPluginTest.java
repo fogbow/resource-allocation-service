@@ -33,6 +33,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -54,6 +55,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     private CloudStackPublicIpPlugin plugin;
     private CloudStackHttpClient client;
     private CloudStackUser cloudStackUser;
+    private String defaultNetworkId;
     private String cloudStackUrl;
 
     @Before
@@ -67,10 +69,59 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin.setAsyncRequestInstanceStateMap(this.asyncRequestInstanceStateMapMockEmpty);
 
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
+        this.defaultNetworkId = properties.getProperty(CloudStackCloudUtils.DEFAULT_NETWORK_ID_KEY);
         this.cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the doRequestInstance method and occurs any exception,
+    // it must verify if It throws the same exception.
+    @Test
+    public void testDoRequestInstanceFail() throws FogbowException {
+        // set up
+        String instanceIdExpected = "instanceId";
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        Mockito.when(publicIpOrder.getId()).thenReturn(instanceIdExpected);
+
+        Mockito.doThrow(new FogbowException()).when(this.plugin).
+                requestIpAddressAssociation(Mockito.any(), Mockito.any());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+
+        // exercise
+        this.plugin.doRequestInstance(publicIpOrder, this.cloudStackUser);
+    }
+
+    // test case: When calling the doRequestInstance method with methods mocked,
+    // it must verify if It returns the right instanceId.
+    @Test
+    public void testDoRequestInstanceSuccessfully() throws FogbowException {
+        // set up
+        String instanceIdExpected = "instanceId";
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        Mockito.when(publicIpOrder.getId()).thenReturn(instanceIdExpected);
+
+        String jobId = "jobId";
+        Mockito.doReturn(jobId).when(this.plugin).
+                requestIpAddressAssociation(Mockito.any(), Mockito.any());
+
+        Mockito.doNothing().when(this.plugin).setAsyncRequestInstanceFirstStep(Mockito.any(), Mockito.any());
+
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder()
+                .networkId(this.defaultNetworkId)
+                .build(this.cloudStackUrl);
+
+        // exercise
+        String instanceId = this.plugin.doRequestInstance(publicIpOrder, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(instanceIdExpected, instanceId);
+        RequestMatcher<AssociateIpAddressRequest> matcher = new RequestMatcher.AssociateIpAddress(request);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .requestIpAddressAssociation(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
     // test case: When calling the requestIpAddressAssociation method and occurs a HttpResponseException,

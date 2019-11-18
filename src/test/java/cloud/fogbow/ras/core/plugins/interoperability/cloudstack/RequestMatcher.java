@@ -11,6 +11,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetA
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.AssociateIpAddressRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.DisassociateIpAddressRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.EnableStaticNatRequest;
@@ -114,4 +115,11 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
             super(cloudStackRequest);
         }
     }
+
+    public static class AssociateIpAddress extends RequestMatcher<AssociateIpAddressRequest> {
+        public AssociateIpAddress(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
 }
