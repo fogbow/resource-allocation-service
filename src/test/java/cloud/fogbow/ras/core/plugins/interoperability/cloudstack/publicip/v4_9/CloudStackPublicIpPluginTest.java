@@ -41,7 +41,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip
 
 @PrepareForTest({DatabaseManager.class, CloudStackQueryJobResult.class, CloudStackQueryAsyncJobResponse.class,
         SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class, CloudStackCloudUtils.class,
-        CreateFirewallRuleAsyncResponse.class})
+        CreateFirewallRuleAsyncResponse.class, AssociateIpAddressAsyncJobIdResponse.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
     private final int FIRST_POSITION = 1;
@@ -71,6 +71,51 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the requestIpAddressAssociation method and occurs a HttpResponseException,
+    // it must verify if It throws a FogbowException.
+    @Test
+    public void testRequestIpAddressAssociationFail() throws FogbowException, HttpResponseException {
+        // set up
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.requestIpAddressAssociation(request, this.cloudStackUser);
+    }
+
+    // test case: When calling the requestIpAddressAssociation method, it must verify if It
+    //  returns the right jobId.
+    @Test
+    public void testRequestIpAddressAssociationSuccessfully() throws FogbowException, HttpResponseException {
+        // set up
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder().build("");
+
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        String jsonResponse = "anything";
+        PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
+                thenReturn(jsonResponse);
+
+        String jobIdExpected = "jobId";
+        AssociateIpAddressAsyncJobIdResponse response = Mockito.mock(AssociateIpAddressAsyncJobIdResponse.class);
+        Mockito.when(response.getJobId()).thenReturn(jobIdExpected);
+        PowerMockito.mockStatic(AssociateIpAddressAsyncJobIdResponse.class);
+        PowerMockito.when(AssociateIpAddressAsyncJobIdResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenReturn(response);
+
+        // exercise
+        String jobId = this.plugin.requestIpAddressAssociation(request, this.cloudStackUser);
+
+        // verify
+        Assert.assertEquals(jobIdExpected, jobId);
     }
 
     // test case: When calling the requestDisassociateIpAddress method and occurs a HttpResponseException,

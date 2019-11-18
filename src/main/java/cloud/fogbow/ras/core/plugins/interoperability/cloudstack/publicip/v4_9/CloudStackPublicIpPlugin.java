@@ -87,7 +87,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                     @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        String jobId = requestIpAddressAssociation(this.defaultNetworkId, cloudStackUser);
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder()
+                .networkId(this.defaultNetworkId)
+                .build(this.cloudStackUrl);
+
+        String jobId = requestIpAddressAssociation(request, cloudStackUser);
         setAsyncRequestInstanceFirstStep(jobId, publicIpOrder);
         return getInstanceId(publicIpOrder);
     }
@@ -350,12 +354,9 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    String requestIpAddressAssociation(String networkId, @NotNull CloudStackUser cloudStackUser)
+    String requestIpAddressAssociation(@NotNull AssociateIpAddressRequest request,
+                                       @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
-
-        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder()
-                .networkId(networkId)
-                .build(this.cloudStackUrl);
 
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
@@ -363,8 +364,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         try {
             String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
-            AssociateIpAddressAsyncJobIdResponse response = AssociateIpAddressAsyncJobIdResponse
-                    .fromJson(jsonResponse);
+            AssociateIpAddressAsyncJobIdResponse response =
+                    AssociateIpAddressAsyncJobIdResponse.fromJson(jsonResponse);
             return response.getJobId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
