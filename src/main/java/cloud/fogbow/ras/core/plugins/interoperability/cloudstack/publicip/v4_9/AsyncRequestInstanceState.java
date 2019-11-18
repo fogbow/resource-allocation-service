@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 public class AsyncRequestInstanceState {
 
     private StateType state;
+    private String orderInstanceId;
     private String currentJobId;
     private String ip;
     private String ipInstanceId;
@@ -52,6 +53,14 @@ public class AsyncRequestInstanceState {
 
     public void setIpInstanceId(String ipInstanceId) {
         this.ipInstanceId = ipInstanceId;
+    }
+
+    public void setOrderInstanceId(String orderInstanceId) {
+        this.orderInstanceId = orderInstanceId;
+    }
+
+    public String getOrderInstanceId() {
+        return orderInstanceId;
     }
 
     public enum StateType {

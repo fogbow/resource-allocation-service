@@ -44,7 +44,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip
         CreateFirewallRuleAsyncResponse.class, AssociateIpAddressAsyncJobIdResponse.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
-    private final int FIRST_POSITION = 1;
+    private final int FIRST_POSITION_LOG = 1;
 
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
@@ -87,6 +87,9 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(publicIpOrder.getComputeId()).thenReturn(computeIdExpected);
         String jobId = "jobId";
 
+        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+                instanceIdExpected, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS);
+
         // verify before
         AsyncRequestInstanceState asyncRequestInstanceState = this.asyncRequestInstanceStateMapMocked.get(instanceIdExpected);
         Assert.assertNull(asyncRequestInstanceState);
@@ -100,6 +103,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
                 asyncRequestInstanceState.getState());
         Assert.assertEquals(jobId, asyncRequestInstanceState.getCurrentJobId());
         Assert.assertEquals(computeIdExpected, asyncRequestInstanceState.getComputeInstanceId());
+        Assert.assertEquals(instanceIdExpected, asyncRequestInstanceState.getOrderInstanceId());
+        this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.INFO, messageExpected);
     }
 
     // test case: When calling the doRequestInstance method and occurs any exception,
@@ -315,6 +320,10 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
 
+        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+                asyncRequestInstanceState.getOrderInstanceId(),
+                AsyncRequestInstanceState.StateType.READY);
+
         // verify before
         Assert.assertNull(asyncRequestInstanceState.getState());
 
@@ -323,6 +332,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         // verify after
         Assert.assertEquals(AsyncRequestInstanceState.StateType.READY, asyncRequestInstanceState.getState());
+        this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.INFO, messageExpected);
     }
 
     // test case: When calling the setAsyncRequestInstanceSecondStep method, it must verify if It
@@ -343,6 +353,10 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
         String createFirewallRuleJobId = "jobId";
 
+        String messageExpexted = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+                asyncRequestInstanceState.getOrderInstanceId(),
+                AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
+
         // verify before
         Assert.assertNull(asyncRequestInstanceState.getIpInstanceId());
         Assert.assertNull(asyncRequestInstanceState.getIp());
@@ -358,6 +372,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Assert.assertEquals(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE,
                 asyncRequestInstanceState.getState());
         Assert.assertEquals(createFirewallRuleJobId, asyncRequestInstanceState.getCurrentJobId());
+        this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.INFO, messageExpexted);
     }
 
     // test case: When calling the requestCreateFirewallRule method and occurs a HttpResponseException,
@@ -758,7 +773,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertNull(publicIpInstance);
-        this.loggerTestChecking.assertEquals(FIRST_POSITION, Level.ERROR, Messages.Error.UNEXPECTED_JOB_STATUS);
+        this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.ERROR, Messages.Error.UNEXPECTED_JOB_STATUS);
     }
 
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
@@ -823,7 +838,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
         String errorExpected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
                 PUBLIC_IP_RESOURCE, publicIpOrder.getInstanceId());
-        this.loggerTestChecking.assertEquals(FIRST_POSITION, Level.ERROR, errorExpected);
+        this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.ERROR, errorExpected);
     }
 
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
@@ -930,7 +945,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
         String errorExpected = Messages.Error.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP;
-        this.loggerTestChecking.assertEquals(FIRST_POSITION, Level.ERROR, errorExpected);
+        this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.ERROR, errorExpected);
     }
 
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked

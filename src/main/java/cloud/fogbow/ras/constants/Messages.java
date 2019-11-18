@@ -121,6 +121,8 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
+        public static final String ASYNCHRONOUS_PUBLIC_IP_STAGE =
+                "The asynchronous public ip request %s is in the stage %s.";
     }
 
     public static class Error {

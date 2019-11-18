@@ -247,7 +247,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         String instanceId = getInstanceId(publicIpOrder);
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(
                 AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS, jobId, computeId);
+        asyncRequestInstanceState.setOrderInstanceId(instanceId);
         this.asyncRequestInstanceStateMap.put(instanceId, asyncRequestInstanceState);
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+                instanceId, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS));
     }
 
     /**
@@ -267,11 +270,17 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         asyncRequestInstanceState.setIp(ip);
         asyncRequestInstanceState.setCurrentJobId(createFirewallRuleJobId);
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+                asyncRequestInstanceState.getOrderInstanceId(),
+                AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE));
     }
 
     @VisibleForTesting
     void finishAsyncRequestInstanceSteps(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.READY);
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+                asyncRequestInstanceState.getOrderInstanceId(),
+                AsyncRequestInstanceState.StateType.READY));
     }
 
     @NotNull
