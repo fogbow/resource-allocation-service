@@ -33,7 +33,6 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -51,7 +50,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     private ExpectedException expectedException = ExpectedException.none();
     private LoggerAssert loggerTestChecking = new LoggerAssert(CloudStackPublicIpPlugin.class);
 
-    private Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMapMockEmpty = new HashMap<>();
+    private Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMapMocked = new HashMap<>();
     private CloudStackPublicIpPlugin plugin;
     private CloudStackHttpClient client;
     private CloudStackUser cloudStackUser;
@@ -66,7 +65,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin = Mockito.spy(new CloudStackPublicIpPlugin(cloudStackConfFilePath));
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin.setClient(this.client);
-        this.plugin.setAsyncRequestInstanceStateMap(this.asyncRequestInstanceStateMapMockEmpty);
+        this.plugin.setAsyncRequestInstanceStateMap(this.asyncRequestInstanceStateMapMocked);
 
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
         this.defaultNetworkId = properties.getProperty(CloudStackCloudUtils.DEFAULT_NETWORK_ID_KEY);
@@ -74,6 +73,33 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the setAsyncRequestInstanceFirstStep method, it must verify if It
+    // sets up a new asyncRequestInstanceState with new values.
+    @Test
+    public void testSetAsyncRequestInstanceFirstStepSuccessfully() {
+        // set up
+        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
+        String instanceIdExpected = "instanceId";
+        String computeIdExpected = "computeId";
+        Mockito.when(publicIpOrder.getId()).thenReturn(instanceIdExpected);
+        Mockito.when(publicIpOrder.getComputeId()).thenReturn(computeIdExpected);
+        String jobId = "jobId";
+
+        // verify before
+        AsyncRequestInstanceState asyncRequestInstanceState = this.asyncRequestInstanceStateMapMocked.get(instanceIdExpected);
+        Assert.assertNull(asyncRequestInstanceState);
+
+        // exercise
+        this.plugin.setAsyncRequestInstanceFirstStep(jobId, publicIpOrder);
+
+        // verify after
+        asyncRequestInstanceState = this.asyncRequestInstanceStateMapMocked.get(instanceIdExpected);
+        Assert.assertEquals(AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS,
+                asyncRequestInstanceState.getState());
+        Assert.assertEquals(jobId, asyncRequestInstanceState.getCurrentJobId());
+        Assert.assertEquals(computeIdExpected, asyncRequestInstanceState.getComputeInstanceId());
     }
 
     // test case: When calling the doRequestInstance method and occurs any exception,
@@ -221,7 +247,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
                 AsyncRequestInstanceState.StateType.READY, null, null);
         String ipAddressId = "ipAddressId";
         asyncRequestInstanceStateReady.setIpInstanceId(ipAddressId);
-        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateReady);
+        this.asyncRequestInstanceStateMapMocked.put(instanceId, asyncRequestInstanceStateReady);
 
         Mockito.doThrow(new FogbowException()).when(this.plugin).
                 requestDisassociateIpAddress(Mockito.any(), Mockito.any());
@@ -242,7 +268,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
         Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
 
-        this.asyncRequestInstanceStateMapMockEmpty = new HashMap<>();
+        this.asyncRequestInstanceStateMapMocked = new HashMap<>();
 
         // verify
         this.expectedException.expect(InstanceNotFoundException.class);
@@ -265,7 +291,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
                 AsyncRequestInstanceState.StateType.READY, null, null);
         String ipAddressId = "ipAddressId";
         asyncRequestInstanceStateReady.setIpInstanceId(ipAddressId);
-        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateReady);
+        this.asyncRequestInstanceStateMapMocked.put(instanceId, asyncRequestInstanceStateReady);
 
         Mockito.doNothing().when(this.plugin).requestDisassociateIpAddress(Mockito.any(), Mockito.any());
 
@@ -954,7 +980,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
         AsyncRequestInstanceState asyncRequestInstanceStateReady = new AsyncRequestInstanceState(
                 AsyncRequestInstanceState.StateType.READY, null, null);
-        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateReady);
+        this.asyncRequestInstanceStateMapMocked.put(instanceId, asyncRequestInstanceStateReady);
 
         // exercise
         PublicIpInstance publicIpInstance = this.plugin.doGetInstance(publicIpOrder, this.cloudStackUser);
@@ -974,7 +1000,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
         AsyncRequestInstanceState asyncRequestInstanceStateNotReady = new AsyncRequestInstanceState(
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE, null, null);
-        this.asyncRequestInstanceStateMapMockEmpty.put(instanceId, asyncRequestInstanceStateNotReady);
+        this.asyncRequestInstanceStateMapMocked.put(instanceId, asyncRequestInstanceStateNotReady);
 
         PublicIpInstance publicIpInstanceExcepted = Mockito.mock(PublicIpInstance.class);
         Mockito.doReturn(publicIpInstanceExcepted).when(this.plugin).buildCurrentPublicIpInstance(
@@ -996,7 +1022,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
         String instanceId = "instanceId";
         Mockito.when(publicIpOrder.getId()).thenReturn(instanceId);
-        this.asyncRequestInstanceStateMapMockEmpty = new HashMap<>();
+        this.asyncRequestInstanceStateMapMocked = new HashMap<>();
 
         // exercise
         PublicIpInstance publicIpInstance = this.plugin.doGetInstance(publicIpOrder, this.cloudStackUser);
