@@ -227,14 +227,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                      String jsonResponse)
             throws FogbowException {
 
-        SuccessfulAssociateIpAddressResponse response =
-                SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
+        try {
+            SuccessfulAssociateIpAddressResponse response =
+                    SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
 
-        doEnableStaticNat(response, asyncRequestInstanceState, cloudStackUser);
+            doEnableStaticNat(response, asyncRequestInstanceState, cloudStackUser);
 
-        String createFirewallRuleJobId = doCreateFirewallRule(response, cloudStackUser);
+            String createFirewallRuleJobId = doCreateFirewallRule(response, cloudStackUser);
 
-        setAsyncRequestInstanceSecondStep(response, asyncRequestInstanceState, createFirewallRuleJobId);
+            setAsyncRequestInstanceSecondStep(response, asyncRequestInstanceState, createFirewallRuleJobId);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
     /**
@@ -279,8 +283,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     void finishAsyncRequestInstanceSteps(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.READY);
         LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
-                asyncRequestInstanceState.getOrderInstanceId(),
-                AsyncRequestInstanceState.StateType.READY));
+                asyncRequestInstanceState.getOrderInstanceId(), AsyncRequestInstanceState.StateType.READY));
     }
 
     @NotNull

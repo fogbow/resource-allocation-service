@@ -23,10 +23,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.http.client.HttpResponseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -590,10 +587,14 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
                 .requestEnableStaticNat(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
+    @Ignore
+    @Test
+    public void testDoCreatingFirewallOperationFailWhenThrowHttpResponseExeption() {}
+
     // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
     // and It occurs a FogbowException. it must verify if It throws the same exception.
     @Test
-    public void testDoCreatingFirewallOperationFail() throws FogbowException {
+    public void testDoCreatingFirewallOperationFail() throws FogbowException, HttpResponseException {
         // set up
         AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
         String jsonResponse = "jsonResponse";
@@ -616,7 +617,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked,
     // it must verify if It goes through all methods.
     @Test
-    public void testDoCreatingFirewallOperationSuccessfully() throws FogbowException {
+    public void testDoCreatingFirewallOperationSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
         String jsonResponse = "jsonResponse";

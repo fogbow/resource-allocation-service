@@ -16,7 +16,9 @@ public class CreateFirewallRuleAsyncResponse {
     }
 
     public static CreateFirewallRuleAsyncResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, CreateFirewallRuleAsyncResponse.class);
+        CreateFirewallRuleAsyncResponse createFirewallRuleAsyncResponse =
+                GsonHolder.getInstance().fromJson(json, CreateFirewallRuleAsyncResponse.class);
+        return createFirewallRuleAsyncResponse;
     }
 
     private class CreateFirewallRuleResponse {
