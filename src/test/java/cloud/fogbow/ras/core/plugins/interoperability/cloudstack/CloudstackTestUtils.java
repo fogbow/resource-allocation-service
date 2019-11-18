@@ -56,6 +56,7 @@ public class CloudstackTestUtils {
     private static final String LIST_TEMPLATES_RESPONSE = "listtemplatesresponse.json";
     private static final String LIST_TEMPLATES_ERROR_RESPONSE = "listtemplatesresponse_error.json";
     private static final String LIST_TEMPLATES_EMPTY_RESPONSE = "listtemplatesresponse_empty.json";
+    private static final String ASSOCIATE_IP_ADDRESS_RESPONSE = "associateipaddressresponse.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -324,6 +325,15 @@ public class CloudstackTestUtils {
                 + LIST_TEMPLATES_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createAssociateIpAddressAsyncResponseJson(String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASSOCIATE_IP_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, jobId);
     }
 
     private static String readFileAsString(final String fileName) throws IOException {
