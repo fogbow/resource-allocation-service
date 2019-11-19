@@ -108,7 +108,7 @@ public class CloudStackCloudUtils {
         try {
             Thread.sleep(ONE_SECOND_IN_MILIS);
         } catch (InterruptedException e) {
-            LOGGER.warn(Messages.Warn.THREAD_INTERRUPTED, e);
+            LOGGER.warn(Messages.Warn.SLEEP_THREAD_INTERRUPTED, e);
         }
     }
 
