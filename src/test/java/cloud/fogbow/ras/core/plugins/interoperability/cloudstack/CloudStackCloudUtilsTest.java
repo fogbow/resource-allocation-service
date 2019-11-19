@@ -173,7 +173,7 @@ public class CloudStackCloudUtilsTest {
         mockSleepThread();
 
         // verify
-        this.expectedException.expect(CloudStackCloudUtils.TimeoutCloudstackAsync.class);
+        this.expectedException.expect(CloudStackCloudUtils.CloudStackTimeoutException.class);
 
         // exercise
         try {

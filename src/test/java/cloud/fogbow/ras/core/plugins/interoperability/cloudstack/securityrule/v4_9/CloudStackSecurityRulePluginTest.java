@@ -242,7 +242,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doRequestInstance method with secondary methods mocked and occurs
-    // a TimeoutCloudstackAsync, it must verify if It will delete the instance and rethorws the
+    // a CloudStackTimeoutException, it must verify if It will delete the instance and rethorws the
     // exception.
     @Test
     public void testDoRequestInstanceFailWhenTimeout() throws FogbowException, HttpResponseException {
@@ -266,7 +266,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         String errorMessage = "error";
         PowerMockito.when(CloudStackCloudUtils.waitForResult(Mockito.eq(this.client),
                 Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(new CloudStackCloudUtils.TimeoutCloudstackAsync(errorMessage));
+                .thenThrow(new CloudStackCloudUtils.CloudStackTimeoutException(errorMessage));
 
         CloudStackQueryAsyncJobResponse responseAsync = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
         String securityGroupId = "securityId";
@@ -279,7 +279,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
                 Mockito.eq(securityGroupId), Mockito.eq(this.cloudStackUser));
 
         // verify
-        this.expectedException.expect(CloudStackCloudUtils.TimeoutCloudstackAsync.class);
+        this.expectedException.expect(CloudStackCloudUtils.CloudStackTimeoutException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise

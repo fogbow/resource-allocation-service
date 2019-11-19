@@ -152,7 +152,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             try {
                 return CloudStackCloudUtils.waitForResult(
                         this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
-            } catch (CloudStackCloudUtils.TimeoutCloudstackAsync e) {
+            } catch (CloudStackCloudUtils.CloudStackTimeoutException e) {
                 CloudStackQueryAsyncJobResponse asyncJobResponse = CloudStackCloudUtils.getAsyncJobResponse(
                         this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
                 deleteSecurityRule(asyncJobResponse.getJobInstanceId(), cloudStackUser);

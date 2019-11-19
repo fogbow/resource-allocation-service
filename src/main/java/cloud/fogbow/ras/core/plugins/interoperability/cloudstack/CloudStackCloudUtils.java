@@ -64,7 +64,7 @@ public class CloudStackCloudUtils {
                 client, cloudStackUrl, jobId, cloudStackUser);
         while(response.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
             if (countTries >= MAX_TRIES) {
-                throw new TimeoutCloudstackAsync(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
+                throw new CloudStackTimeoutException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
             }
             sleepThread();
             response = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
@@ -112,9 +112,9 @@ public class CloudStackCloudUtils {
         }
     }
 
-    public static class TimeoutCloudstackAsync extends FogbowException {
+    public static class CloudStackTimeoutException extends FogbowException {
 
-        public TimeoutCloudstackAsync(String message) {
+        public CloudStackTimeoutException(String message) {
             super(message);
         }
 
