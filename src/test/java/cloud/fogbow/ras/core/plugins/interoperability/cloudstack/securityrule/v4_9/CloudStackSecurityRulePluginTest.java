@@ -559,8 +559,8 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         Assert.assertEquals(SecurityRule.Protocol.UDP, fogbowProtocol);
     }
 
-    // test case: When calling the getFogbowProtocol method and the protocol is IMCP,
-    // it must verify if It return an IMCP FogbowProtocol.
+    // test case: When calling the getFogbowProtocol method and the protocol is ICMP,
+    // it must verify if It return an ICMP FogbowProtocol.
     @Test
     public void testGetFogbowProtocolWhenIsImcp() {
         // set up
