@@ -241,8 +241,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     /**
-     * Set the asynchronous request instance to the first stage; This stage consist of
-     * wait the asynchronous Associating Ip Address Operation finish in the Cloudstack.
+     * Set the asynchronous request instance to the first step; This step consist of
+     * wait the asynchronous Associating Ip Address Operation finishes in the Cloudstack.
      */
     @VisibleForTesting
     void setAsyncRequestInstanceFirstStep(String jobId, @NotNull PublicIpOrder publicIpOrder) {
@@ -257,8 +257,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     /**
-     * Set the asynchronous request instance to the second stage; This stage consist of
-     * wait the asynchronous Create Firewall Operation finish in the Cloudstack.
+     * Set the asynchronous request instance to the second step; This step consist of
+     * wait the asynchronous Create Firewall Operation finishes in the Cloudstack.
      */
     @VisibleForTesting
     void setAsyncRequestInstanceSecondStep(@NotNull SuccessfulAssociateIpAddressResponse response,
@@ -278,6 +278,9 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE));
     }
 
+    /**
+     * Finish the cycle and set as Ready the asynchronous request instance.
+     */
     @VisibleForTesting
     void finishAsyncRequestInstanceSteps(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.READY);
