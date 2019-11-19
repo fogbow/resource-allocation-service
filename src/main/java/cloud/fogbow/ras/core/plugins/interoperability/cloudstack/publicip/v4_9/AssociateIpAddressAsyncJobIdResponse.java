@@ -9,7 +9,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.ASSOCIA
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_ID_KEY_JSON;
 
 /**
- * Documentation:
+ * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/associateIpAddress.html
  *
  * Response Example:
  * {
@@ -28,10 +28,7 @@ public class AssociateIpAddressAsyncJobIdResponse {
     }
 
     public static AssociateIpAddressAsyncJobIdResponse fromJson(String json) throws HttpResponseException {
-        AssociateIpAddressAsyncJobIdResponse associateIpAddressAsyncJobIdResponse =
-                GsonHolder.getInstance().fromJson(json, AssociateIpAddressAsyncJobIdResponse.class);
-        associateIpAddressAsyncJobIdResponse.response.checkErrorExistence();
-        return associateIpAddressAsyncJobIdResponse;
+        return GsonHolder.getInstance().fromJson(json, AssociateIpAddressAsyncJobIdResponse.class);
     }
 
     public class AssociateIpAddressResponse extends CloudStackErrorResponse {
