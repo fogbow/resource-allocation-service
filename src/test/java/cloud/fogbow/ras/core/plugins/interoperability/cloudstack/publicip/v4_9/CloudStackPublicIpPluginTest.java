@@ -23,7 +23,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.http.client.HttpResponseException;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -587,9 +590,27 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
                 .requestEnableStaticNat(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
-    @Ignore
+    // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
+    // and It occurs a HttpResponseException. it must verify if It throws a FogbowException.
     @Test
-    public void testDoCreatingFirewallOperationFailWhenThrowHttpResponseExeption() {}
+    public void testDoCreatingFirewallOperationFailWhenThrowHttpResponseExeption()
+            throws FogbowException, HttpResponseException {
+
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        String jsonResponse = "jsonResponse";
+
+        PowerMockito.mockStatic(SuccessfulAssociateIpAddressResponse.class);
+        PowerMockito.when(SuccessfulAssociateIpAddressResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doCreatingFirewallOperation(asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+    }
 
     // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
     // and It occurs a FogbowException. it must verify if It throws the same exception.

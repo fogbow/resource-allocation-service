@@ -184,7 +184,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 }
             case CloudStackQueryJobResult.FAILURE:
                 try {
-                    // any failure should lead to a disassociation of the ip address
                     doDeleteInstance(publicIpOrder, cloudStackUser);
                 } catch (FogbowException e) {
                     LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
@@ -428,7 +427,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     void setAsyncRequestInstanceStateMap(
             Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMap) {
 
-        CloudStackPublicIpPlugin.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
+        this.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
     }
 
     // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.
