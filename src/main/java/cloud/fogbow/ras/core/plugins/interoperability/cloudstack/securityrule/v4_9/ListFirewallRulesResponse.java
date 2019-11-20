@@ -8,7 +8,7 @@ import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroupPlugin.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listFirewallRules.html

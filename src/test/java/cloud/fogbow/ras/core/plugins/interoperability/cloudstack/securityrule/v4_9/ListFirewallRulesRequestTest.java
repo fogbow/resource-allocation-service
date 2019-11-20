@@ -18,7 +18,7 @@ public class ListFirewallRulesRequestTest {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
-                CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_COMMAND);
+                CloudStackConstants.SecurityGroup.LIST_FIREWALL_RULES_COMMAND);
         String urlBaseExpected = uriBuilder.toString();
         String ipAddressId = "ipAddressId";
 

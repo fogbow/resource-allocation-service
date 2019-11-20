@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroupPlugin.DELETE_FIREWALL_RULE_COMMAND;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.DELETE_FIREWALL_RULE_COMMAND;
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Plugins.PublicIp.ID_KEY_JSON;
 
 /**

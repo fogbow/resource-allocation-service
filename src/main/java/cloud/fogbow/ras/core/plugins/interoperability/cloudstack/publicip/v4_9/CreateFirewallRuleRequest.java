@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
-import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroupPlugin.CREATE_FIREWALL_RULE_COMMAND;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.CREATE_FIREWALL_RULE_COMMAND;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html

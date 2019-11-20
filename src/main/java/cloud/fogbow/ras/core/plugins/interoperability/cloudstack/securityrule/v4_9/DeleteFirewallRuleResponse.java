@@ -4,6 +4,8 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.DELETE_FIREWALL_RULE_RESPONSE;
+
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/deleteFirewallRule.html
  *
@@ -19,7 +21,7 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class DeleteFirewallRuleResponse {
-    @SerializedName(CloudStackConstants.SecurityGroupPlugin.DELETE_FIREWALL_RULE_RESPONSE)
+    @SerializedName(DELETE_FIREWALL_RULE_RESPONSE)
     private FirewallRuleResponse response;
 
     public static class FirewallRuleResponse {

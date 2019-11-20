@@ -536,7 +536,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testGetFogbowProtocolWheIsTcp() {
         // set up
-        String protocol = CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL;
+        String protocol = CloudStackConstants.SecurityGroup.TCP_VALUE_PROTOCOL;
 
         // exercise
         SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
@@ -550,7 +550,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testGetFogbowProtocolWhenIsUdp() {
         // set up
-        String protocol = CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL;
+        String protocol = CloudStackConstants.SecurityGroup.UDP_VALUE_PROTOCOL;
 
         // exercise
         SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
@@ -564,7 +564,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testGetFogbowProtocolWhenIsImcp() {
         // set up
-        String protocol = CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL;
+        String protocol = CloudStackConstants.SecurityGroup.ICMP_VALUE_PROTOCOL;
 
         // exercise
         SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
@@ -578,7 +578,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testGetFogbowProtocolWhenIsAny() {
         // set up
-        String protocol = CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL;
+        String protocol = CloudStackConstants.SecurityGroup.ALL_VALUE_PROTOCOL;
 
         // exercise
         SecurityRule.Protocol fogbowProtocol = this.plugin.getFogbowProtocol(protocol);
