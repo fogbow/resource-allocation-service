@@ -269,21 +269,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testGetDiskOfferingIdCustomizedWhenNotFoundDiskOffering() {
         // set up
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
-        int diskSizeOne = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
-        String diskOfferingIdOne = "idOne";
         boolean isNotCustomized = false;
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
-        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
-        Mockito.when(diskOfferingOne.isCustomized()).thenReturn(isNotCustomized);
-        int diskSizeTwo = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
-        String diskOfferingIdTwo = "idTwo";
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
-        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
-        Mockito.when(diskOfferingTwo.isCustomized()).thenReturn(isNotCustomized);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne = buildDiskOfferingMocked(isNotCustomized);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo = buildDiskOfferingMocked(isNotCustomized);
 
         disksOffering.add(diskOfferingOne);
         disksOffering.add(diskOfferingTwo);
@@ -301,22 +289,10 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testGetDiskOfferingIdCustomizedWhenFoundDiskOffering() {
         // set up
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
-        int diskSizeOne = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
-        String diskOfferingIdOne = "idOne";
         boolean isNotCustomized = false;
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
-        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
-        Mockito.when(diskOfferingOne.isCustomized()).thenReturn(isNotCustomized);
-        int diskSizeTwo = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
-        String diskOfferingIdTwo = "idTwo";
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne = buildDiskOfferingMocked(isNotCustomized);
         boolean isCustomized = true;
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
-        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
-        Mockito.when(diskOfferingTwo.isCustomized()).thenReturn(isCustomized);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo = buildDiskOfferingMocked(isCustomized);
 
         disksOffering.add(diskOfferingOne);
         disksOffering.add(diskOfferingTwo);
@@ -325,7 +301,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         String diskOfferingIdCustomized = this.plugin.getDiskOfferingIdCustomized(disksOffering);
 
         // verify
-        Assert.assertEquals(diskOfferingIdTwo, diskOfferingIdCustomized);
+        Assert.assertEquals(diskOfferingTwo.getId(), diskOfferingIdCustomized);
     }
 
     // test case: When calling the buildVolumeCompatible method, it must verify if
@@ -377,17 +353,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         // set up
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
         int diskSizeOne = 1;
-        String diskOfferingIdOne = "idOne";
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
-        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne = buildDiskOfferingMocked(diskSizeOne);
         int diskSizeTwo = 2;
-        String diskOfferingIdTwo = "idTwo";
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
-        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo = buildDiskOfferingMocked(diskSizeTwo);
 
         disksOffering.add(diskOfferingOne);
         disksOffering.add(diskOfferingTwo);
@@ -410,17 +378,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         // set up
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = new ArrayList<>();
         int diskSizeOne = 1;
-        String diskOfferingIdOne = "idOne";
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingOne.getId()).thenReturn(diskOfferingIdOne);
-        Mockito.when(diskOfferingOne.getDiskSize()).thenReturn(diskSizeOne);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingOne = buildDiskOfferingMocked(diskSizeOne);
         int diskSizeTwo = 2;
-        String diskOfferingIdTwo = "idTwo";
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingTwo.getId()).thenReturn(diskOfferingIdTwo);
-        Mockito.when(diskOfferingTwo.getDiskSize()).thenReturn(diskSizeTwo);
+        GetAllDiskOfferingsResponse.DiskOffering diskOfferingTwo = buildDiskOfferingMocked(diskSizeTwo);
 
         disksOffering.add(diskOfferingOne);
         disksOffering.add(diskOfferingTwo);
@@ -432,7 +392,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         String diskOfferingIdCompatible = this.plugin.getDiskOfferingIdCompatible(volumeOrder, disksOffering);
 
         // verify
-        Assert.assertEquals(diskOfferingIdTwo, diskOfferingIdCompatible);
+        Assert.assertEquals(diskOfferingTwo.getId(), diskOfferingIdCompatible);
     }
 
     // test case: When calling the filterDisksOfferingByRequirements method with requirements
@@ -572,7 +532,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.getDisksOffering(
                 this.client, this.cloudStackUser, this.cloudStackUrl)).thenReturn(disksOffering);
 
-        List disksOfferingFilted = new ArrayList();
+        List disksOfferingFilted = new ArrayList<>();
         Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
                 Mockito.eq(disksOffering), Mockito.eq(volumeOrder));
 
@@ -609,7 +569,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.getDisksOffering(
                 this.client, this.cloudStackUser, this.cloudStackUrl)).thenReturn(disksOffering);
 
-        List disksOfferingFilted = new ArrayList();
+        List disksOfferingFilted = new ArrayList<>();
         Mockito.doReturn(disksOfferingFilted).when(this.plugin).filterDisksOfferingByRequirements(
                 Mockito.eq(disksOffering), Mockito.eq(volumeOrder));
 
@@ -794,6 +754,29 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.doDeleteInstance(request, this.cloudStackUser);
+    }
+
+    private GetAllDiskOfferingsResponse.DiskOffering buildDiskOfferingMocked(boolean isCustomized) {
+        int diskSize = CloudStackVolumePlugin.CUSTOMIZED_DISK_SIZE_EXPECTED;
+        return buildDiskOfferingMocked(isCustomized, diskSize);
+    }
+
+    private GetAllDiskOfferingsResponse.DiskOffering buildDiskOfferingMocked(int diskSize) {
+        boolean isCustomized = true;
+        return buildDiskOfferingMocked(isCustomized, diskSize);
+    }
+
+    private GetAllDiskOfferingsResponse.DiskOffering buildDiskOfferingMocked(boolean isCustomized,
+                                                                             int diskSize) {
+        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
+                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
+        String diskOfferingId = "id" + System.currentTimeMillis();
+
+        Mockito.when(diskOffering.getId()).thenReturn(diskOfferingId);
+        Mockito.when(diskOffering.getDiskSize()).thenReturn(diskSize);
+        Mockito.when(diskOffering.isCustomized()).thenReturn(isCustomized);
+
+        return diskOffering;
     }
 
 }
