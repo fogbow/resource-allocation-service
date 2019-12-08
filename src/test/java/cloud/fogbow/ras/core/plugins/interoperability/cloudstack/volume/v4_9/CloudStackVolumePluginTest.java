@@ -96,7 +96,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoGetInstanceFailWhenThrowsException() throws FogbowException, HttpResponseException {
         // set up
-        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
@@ -116,9 +116,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoGetInstanceFailWhenThereIsNoVolume() throws FogbowException, HttpResponseException {
         // set up
-        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
-        String responseStr = "anything";
+        String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
@@ -174,9 +174,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoGetInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
-        String responseStr = "anything";
+        String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
@@ -473,7 +473,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Mockito.when(diskOfferingIncompatibleOne.getTags()).thenReturn("anythingone");
         GetAllDiskOfferingsResponse.DiskOffering diskOfferingIncompatibleTwo =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingIncompatibleTwo.getTags()).thenReturn("");
+        Mockito.when(diskOfferingIncompatibleTwo.getTags()).thenReturn(TestUtils.EMPTY_STRING);
 
         disksOffering.add(diskOfferingIncompatibleOne);
         disksOffering.add(diskOfferingIncompatibleTwo);
@@ -508,7 +508,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         Mockito.when(diskOfferingIncompatibleOne.getTags()).thenReturn("anythingone");
         GetAllDiskOfferingsResponse.DiskOffering diskOfferingIncompatibleTwo =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingIncompatibleTwo.getTags()).thenReturn("");
+        Mockito.when(diskOfferingIncompatibleTwo.getTags()).thenReturn(TestUtils.EMPTY_STRING);
 
 
         disksOffering.add(diskOfferingCompatible);
@@ -638,9 +638,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        CreateVolumeRequest request = new CreateVolumeRequest.Builder().build("");
+        CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
-        String responseStr = "anything";
+        String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
@@ -664,7 +664,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstanceFail() throws FogbowException, HttpResponseException {
         // set up
-        CreateVolumeRequest request = new CreateVolumeRequest.Builder().build("");
+        CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
@@ -725,9 +725,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build("");
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
-        String responseStr = "anything";
+        String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
@@ -751,9 +751,9 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoDeleteInstanceFailWhenReturnSuccessless() throws FogbowException, HttpResponseException {
         // set up
-        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build("");
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
-        String responseStr = "anything";
+        String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
@@ -781,7 +781,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoDeleteInstanceFail() throws FogbowException, HttpResponseException {
         // set up
-        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build("");
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
