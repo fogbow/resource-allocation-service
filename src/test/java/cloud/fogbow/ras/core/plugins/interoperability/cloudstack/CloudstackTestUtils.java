@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
@@ -341,6 +342,10 @@ public class CloudstackTestUtils {
                 + CREATE_VOLUME_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String buildParameterStructureUrl(String key, String value) {
+        return String.format("%s=%s", key, value);
     }
 
     private static String getPathCloudstackFile() {

@@ -20,8 +20,8 @@ public class DeleteVolumeRequestTest {
         String urlBaseExpected = uriBuilder.toString();
         String volumeId = "volumeId";
 
-        String volumeIdStructureUrl = String.format(
-                "%s=%s", CloudStackConstants.Volume.ID_KEY_JSON, volumeId);
+        String volumeIdStructureUrl = CloudstackTestUtils.buildParameterStructureUrl(
+                CloudStackConstants.Volume.ID_KEY_JSON, volumeId);
 
         String[] urlStructure = new String[] {
                 urlBaseExpected,

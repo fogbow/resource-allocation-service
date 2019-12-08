@@ -23,14 +23,14 @@ public class CreateVolumeRequestTest {
         String diskOfferingId = "3";
         String name = "name";
 
-        String sizeStructureUrl = String.format(
-                "%s=%s", CloudStackConstants.Volume.SIZE_KEY_JSON, size);
-        String zoneIdStructureUrl = String.format(
-                "%s=%s", CloudStackConstants.Volume.ZONE_ID_KEY_JSON, zoneId);
-        String diskOfferingIdStructureUrl = String.format(
-                "%s=%s", CloudStackConstants.Volume.DISK_OFFERING_ID_KEY_JSON, diskOfferingId);
-        String nameStructureUrl = String.format(
-                "%s=%s", CloudStackConstants.Volume.NAME_KEY_JSON, name);
+        String sizeStructureUrl = CloudstackTestUtils.buildParameterStructureUrl(
+                CloudStackConstants.Volume.SIZE_KEY_JSON, size);
+        String zoneIdStructureUrl = CloudstackTestUtils.buildParameterStructureUrl(
+                CloudStackConstants.Volume.ZONE_ID_KEY_JSON, zoneId);
+        String diskOfferingIdStructureUrl = CloudstackTestUtils.buildParameterStructureUrl(
+                CloudStackConstants.Volume.DISK_OFFERING_ID_KEY_JSON, diskOfferingId);
+        String nameStructureUrl = CloudstackTestUtils.buildParameterStructureUrl(
+                CloudStackConstants.Volume.NAME_KEY_JSON, name);
 
         String[] urlStructure = new String[] {
                 urlBaseExpected,
