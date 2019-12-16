@@ -20,6 +20,7 @@ public class ComputeAllocation extends Allocation {
     @Column(name = "allocation_disk")
     private int disk;
 
+    @Deprecated
     public ComputeAllocation(int vCPU, int ram, int instances, int disk) {
         this.vCPU = vCPU;
         this.ram = ram;
@@ -48,6 +49,7 @@ public class ComputeAllocation extends Allocation {
         return this.instances;
     }
 
+    @Deprecated
     public int getDisk() {
         return disk;
     }
