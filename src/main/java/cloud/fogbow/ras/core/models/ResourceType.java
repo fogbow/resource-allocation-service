@@ -9,7 +9,8 @@ public enum ResourceType {
     PUBLIC_IP("publicIp"),
     SECURITY_RULE("securityRule"),
     CLOUD_NAMES("cloudNames"),
-    GENERIC_RESOURCE("genericResource");
+    GENERIC_RESOURCE("genericResource"),
+    QUOTA("quota");
 
     private String value;
 
