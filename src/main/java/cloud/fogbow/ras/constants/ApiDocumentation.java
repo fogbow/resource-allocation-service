@@ -111,7 +111,7 @@ public class ApiDocumentation {
         public static final String DEVICE = "/dev/b";
         public static final String DEVICE_NOTE = "(in some cloud orchestrators this parameter is ignored)";
         public static final String PROVIDER = "provider-name.domain";
-        public static final String PROVIDER_NOTE = "(the provider to which the request will be sent)";
+        public static final String PROVIDER_NOTE = "(the provider that will allocate the resource)";
         public static final String CLOUD_NAME = "cloud-name";
         public static final String CLOUD_NAME_NOTE = "(the cloud where the compute is to be created)";
         public static final String COMPUTE_NAME = "my compute";

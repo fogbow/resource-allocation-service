@@ -7,6 +7,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DeployVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DestroyVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
@@ -97,6 +98,12 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
 
     public static class DeleteFirewallRule extends RequestMatcher<DeleteFirewallRuleRequest> {
         public DeleteFirewallRule(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class GetAllImages extends RequestMatcher<GetAllImagesRequest> {
+        public GetAllImages(CloudStackRequest cloudStackRequest) {
             super(cloudStackRequest);
         }
     }

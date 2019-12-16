@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.handlers.*;
 import org.apache.log4j.Logger;
@@ -23,5 +24,6 @@ public class XmppComponentManager extends XMPPComponent {
         addGetHandler(new RemoteGetOrderRequestHandler());
         addGetHandler(new RemoteGetUserQuotaRequestHandler());
         addGetHandler(new RemoteGetAllSecurityRuleHandler());
+        LOGGER.info(Messages.Info.XMPP_HANDLERS_SET);
     }
 }

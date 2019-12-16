@@ -78,13 +78,6 @@ public class InteroperabilityPluginInstantiator {
         return (PublicIpPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
     }
 
-    public GenericRequestPlugin getGenericRequestPlugin(String cloudName) {
-        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.GENERIC_PLUGIN_CLASS_KEY);
-        // This plugin does not require a configuration file, since all required information to interact with the
-        // cloud will come in the request itself.
-        return (GenericRequestPlugin) this.classFactory.createPluginInstance(className);
-    }
-
     public SecurityRulePlugin getSecurityRulePlugin(String cloudName) {
         String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.SECURITY_RULE_PLUGIN_CLASS_KEY);
         return (SecurityRulePlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
