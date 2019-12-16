@@ -1,18 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
-import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
+
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.*;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listFirewallRules.html
  * 
  * Response example:
- * 
- * {  
+ * {
  *  "listfirewallrulesresponse":{  
  *    "firewallrule":[  
  *      {  
@@ -21,7 +23,7 @@ import java.util.List;
  *        "startport":23,
  *        "endport":24,
  *        "ipaddress" : "0.0.0.1",
- *        "cidrList":"0.0.0.0/0",
+ *        "cidrlist":"0.0.0.0/0",
  *      },
  *      {  
  *        "id":"0bd00d5f-5550-4e06-880a-893de7a13082",
@@ -29,7 +31,7 @@ import java.util.List;
  *        "startport":22,
  *        "endport":22,
  *        "ipaddress" : "0.0.0.2",
- *        "cidrList":"0.0.0.0/0",
+ *        "cidrlist":"0.0.0.0/0",
  *      }
  *    ]
  *   }
@@ -38,37 +40,40 @@ import java.util.List;
  */
 public class ListFirewallRulesResponse {
 
-	@SerializedName(CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_KEY_JSON)
+	@SerializedName(LIST_FIREWALL_RULES_KEY_JSON)
 	private ListFirewallRules response;
 
-	public static ListFirewallRulesResponse fromJson(String jsonResponse) {
-		return GsonHolder.getInstance().fromJson(jsonResponse, ListFirewallRulesResponse.class);
+	public static ListFirewallRulesResponse fromJson(String jsonResponse) throws HttpResponseException {
+		ListFirewallRulesResponse listFirewallRulesResponse =
+				GsonHolder.getInstance().fromJson(jsonResponse, ListFirewallRulesResponse.class);
+		listFirewallRulesResponse.response.checkErrorExistence();
+		return listFirewallRulesResponse;
 	}
 
 	public List<SecurityRuleResponse> getSecurityRulesResponse() {
 		return this.response.securityRulesResponse;
 	}
 	
-	private class ListFirewallRules {
+	private class ListFirewallRules extends CloudStackErrorResponse {
 
-		@SerializedName(CloudStackConstants.SecurityGroupPlugin.FIREWALL_RULE_KEY_JSON)
+		@SerializedName(FIREWALL_RULE_KEY_JSON)
 		private List<SecurityRuleResponse> securityRulesResponse;
 
 	}
 
     public class SecurityRuleResponse {
 
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.ID_KEY_JSON)
+    	@SerializedName(ID_KEY_JSON)
         private String instanceId;
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON)
+    	@SerializedName(CIDR_LIST_KEY_JSON)
         private String cidr;
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.START_PORT_KEY_JSON)
+    	@SerializedName(START_PORT_KEY_JSON)
         private int portFrom;
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.END_PORT_KEY_JSON)
+    	@SerializedName(END_PORT_KEY_JSON)
         private int portTo;
-        @SerializedName(CloudStackConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON)
+        @SerializedName(PROPOCOL_KEY_JSON)
 		private String protocol;
-        @SerializedName(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON)
+        @SerializedName(IP_ADDRESS_KEY_JSON)
         private String ipAddress;
         
 		public String getInstanceId() {
