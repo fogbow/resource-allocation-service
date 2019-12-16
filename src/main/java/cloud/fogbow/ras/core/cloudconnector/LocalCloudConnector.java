@@ -23,6 +23,7 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
+import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
@@ -44,6 +45,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.OrderPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
@@ -73,6 +75,7 @@ public class LocalCloudConnector implements CloudConnector {
     private ImagePlugin imagePlugin;
     private SecurityRulePlugin securityRulePlugin;
     private GenericRequestPlugin genericRequestPlugin;
+    private QuotaPlugin quotaPlugin;
 
     private boolean auditRequestsOn = true;
 
@@ -86,6 +89,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.publicIpPlugin = instantiator.getPublicIpPlugin(cloudName);
         this.securityRulePlugin = instantiator.getSecurityRulePlugin(cloudName);
         this.mapperPlugin = instantiator.getSystemToCloudMapperPlugin(cloudName);
+        this.quotaPlugin = instantiator.getQuotaPlugin(cloudName);
     }
 
     @Override
@@ -386,6 +390,9 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 ComputeQuota userQuota = this.computeQuotaPlugin.getUserQuota(token);
                 return userQuota;
+            case QUOTA:
+                ResourceQuota resourceQuota = this.quotaPlugin.getUserQuota(token);
+                return resourceQuota;
             default:
                 throw new UnexpectedException(String.format(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED, resourceType));
         }
