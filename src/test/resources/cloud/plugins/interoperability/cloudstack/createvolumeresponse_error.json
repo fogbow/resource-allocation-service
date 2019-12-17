@@ -1,0 +1,6 @@
+{
+  "createvolumeresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}
