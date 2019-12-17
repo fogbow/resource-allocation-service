@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
@@ -55,6 +56,8 @@ public class CloudstackTestUtils {
     private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
     private static final String DELETE_VOLUME_RESPONSE = "deletevolumeresponse.json";
     private static final String DELETE_VOLUME_ERROR_RESPONSE = "deletevolumeresponse_error.json";
+    private static final String CREATE_VOLUME_RESPONSE = "createvolumeresponse.json";
+    private static final String CREATE_VOLUME_ERROR_RESPONSE = "createvolumeresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -321,6 +324,28 @@ public class CloudstackTestUtils {
                 + DELETE_VOLUME_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    // TODO(chico) - change the method name; Use "build"
+    public static String createCreateVolumeResponseJson(String id) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_VOLUME_RESPONSE);
+
+        return String.format(rawJson, id);
+    }
+
+    // TODO(chico) - change the method name; Use "build"
+    public static String createCreateVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String buildParameterStructureUrl(String key, String value) {
+        return String.format("%s=%s", key, value);
     }
 
     private static String getPathCloudstackFile() {

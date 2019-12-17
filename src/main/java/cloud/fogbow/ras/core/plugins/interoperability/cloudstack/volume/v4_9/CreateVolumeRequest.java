@@ -3,19 +3,16 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
+
 public class CreateVolumeRequest extends CloudStackRequest {
-    protected static final String CREATE_VOLUME_COMMAND = "createVolume";
-    protected static final String ZONE_ID = "zoneid";
-    protected static final String VOLUME_NAME = "name";
-    protected static final String DISK_OFFERING_ID = "diskofferingid";
-    protected static final String VOLUME_SIZE = "size";
 
     protected CreateVolumeRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-        addParameter(ZONE_ID, builder.zoneId);
-        addParameter(VOLUME_NAME, builder.name);
-        addParameter(DISK_OFFERING_ID, builder.diskOfferingId);
-        addParameter(VOLUME_SIZE, builder.size);
+        addParameter(ZONE_ID_KEY_JSON, builder.zoneId);
+        addParameter(NAME_KEY_JSON, builder.name);
+        addParameter(DISK_OFFERING_ID_KEY_JSON, builder.diskOfferingId);
+        addParameter(SIZE_KEY_JSON, builder.size);
     }
 
     @Override
