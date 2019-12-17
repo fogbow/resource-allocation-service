@@ -11,7 +11,11 @@ public class ResourceQuota extends Quota {
     private ResourceAllocation usedQuota;
     private ResourceAllocation availableQuota;
     
-    public ResourceQuota() {}
+    public ResourceQuota(ResourceAllocation totalQuota, ResourceAllocation usedQuota) {
+        this.totalQuota = totalQuota;
+        this.usedQuota = usedQuota;
+        this.availableQuota = calculateQuota(totalQuota, usedQuota);
+    }
 
     @Override
     public Allocation getTotalQuota() {
