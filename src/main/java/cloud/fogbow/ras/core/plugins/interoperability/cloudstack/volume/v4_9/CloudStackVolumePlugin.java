@@ -123,13 +123,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                     this.client, uriRequest.toString(), cloudStackUser);
             GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
             List<GetVolumeResponse.Volume> volumes = response.getVolumes();
-            if (volumes != null && volumes.size() > 0) {
-                // since an id were specified, there should be no more than one volume in the response
-                GetVolumeResponse.Volume volume = volumes.listIterator().next();
-                return buildVolumeInstance(volume);
-            } else {
+            if (volumes.isEmpty()) {
                 throw new UnexpectedException();
             }
+            // since an id were specified, there should be no more than one volume in the response
+            GetVolumeResponse.Volume volume = volumes.listIterator().next();
+            return buildVolumeInstance(volume);
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
@@ -141,7 +140,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                                                  @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering = getDisksOffering(cloudStackUser);
+        List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering =
+                CloudStackCloudUtils.getDisksOffering(this.client, cloudStackUser, this.cloudStackUrl);
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOfferingFiltered =
                 filterDisksOfferingByRequirements(disksOffering, volumeOrder);
 
@@ -175,27 +175,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                     this.client, uriRequest.toString(), cloudStackUser);
             CreateVolumeResponse volumeResponse = CreateVolumeResponse.fromJson(jsonResponse);
             return volumeResponse.getId();
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
-    }
-
-    @NotNull
-    @VisibleForTesting
-    List<GetAllDiskOfferingsResponse.DiskOffering> getDisksOffering(
-            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
-
-        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder()
-                .build(this.cloudStackUrl);
-
-        URIBuilder uriRequest = request.getUriBuilder();
-        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
-
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
-            return response.getDiskOfferings();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
@@ -294,15 +273,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         String state = volume.getState();
         String name = volume.getName();
         long sizeInBytes = volume.getSize();
-        int sizeInGigabytes = convertToGigaByte(sizeInBytes);
+        int sizeInGigabytes = CloudStackCloudUtils.convertToGigabyte(sizeInBytes);
 
         return new VolumeInstance(id, state, name, sizeInGigabytes);
-    }
-
-    // TODO(chico) - Move to the Utils class and implement tests
-    @VisibleForTesting
-    int convertToGigaByte(long sizeInBytes) {
-        return (int) (sizeInBytes / CloudStackCloudUtils.ONE_GB_IN_BYTES);
     }
 
     @VisibleForTesting

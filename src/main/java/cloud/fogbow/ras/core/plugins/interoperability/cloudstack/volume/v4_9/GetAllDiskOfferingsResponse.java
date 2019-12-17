@@ -16,14 +16,14 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
  * <p>
  * Response example:
  * {
- * "listdiskofferingsresponse": {
- * "diskoffering": [{
- * "id": "e9c2a08d-6ca4-4b81-8e21-5ff2a103b7cb",
- * "disksize": 10,
- * "iscustomized": false,
- * "tags": "tag1:value1,tag2:value2"
- * }]
- * }
+ *   "listdiskofferingsresponse": {
+ *     "diskoffering": [{
+ *       "id": "e9c2a08d-6ca4-4b81-8e21-5ff2a103b7cb",
+ *       "disksize": 10,
+ *       "iscustomized": false,
+ *       "tags": "tag1:value1,tag2:value2"
+ *     }]
+ *   }
  * }
  * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
