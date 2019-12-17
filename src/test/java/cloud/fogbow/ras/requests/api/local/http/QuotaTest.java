@@ -12,13 +12,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import com.google.gson.Gson;
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
@@ -62,8 +59,8 @@ public class QuotaTest extends BaseUnitTests {
 
         // exercise
         this.mockMvc
-                .perform(
-                        MockMvcRequestBuilders.get(endpoint).header(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, userToken))
+                .perform(MockMvcRequestBuilders.get(endpoint)
+                        .header(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, userToken))
                 // verify
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(expected));
