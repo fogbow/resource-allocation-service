@@ -3,7 +3,10 @@ package cloud.fogbow.ras.core;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -19,7 +22,6 @@ import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -32,6 +34,7 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
+import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -158,6 +161,12 @@ public class ApplicationFacade {
         return (ComputeAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.COMPUTE);
     }
 
+    public ResourceQuota getResourceQuota(String providerId, String cloudName, String userToken)
+            throws FogbowException {
+        return (ResourceQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.QUOTA);
+    }
+    
+    @Deprecated
     public ComputeQuota getComputeQuota(String providerId, String cloudName, String userToken)
             throws FogbowException {
         return (ComputeQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.COMPUTE);

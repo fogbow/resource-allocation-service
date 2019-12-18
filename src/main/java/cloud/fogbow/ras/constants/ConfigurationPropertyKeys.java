@@ -31,6 +31,7 @@ public class ConfigurationPropertyKeys {
     public static final String SECURITY_RULE_PLUGIN_CLASS_KEY = "security_rule_plugin_class";
     public static final String SYSTEM_TO_CLOUD_MAPPER_PLUGIN_CLASS_KEY = "system_to_cloud_mapper_plugin_class";
     public static final String CLOUD_IDENTITY_PROVIDER_URL_KEY = "cloud_identity_provider_url";
+    public static final String QUOTA_PLUGIN_CLASS_KEY = "quota_plugin_class";
 
     // AS configuration
     public static final String AS_PORT_KEY = "as_port";

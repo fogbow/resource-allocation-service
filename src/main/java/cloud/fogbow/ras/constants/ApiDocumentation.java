@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.constants;
 
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-
 public class ApiDocumentation {
     public static class ApiInfo {
         public static final String API_TITLE = "Fogbow Resource Allocation Service API";
@@ -85,6 +83,11 @@ public class ApiDocumentation {
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules associated to the public IP.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
+    }
+    
+    public static class Quota {
+        public static final String API = "Manages resource quota.";
+        public static final String GET_QUOTA = "Gets the resources quotas for the user on a particular provider.";
     }
 
     public static class Volume {
