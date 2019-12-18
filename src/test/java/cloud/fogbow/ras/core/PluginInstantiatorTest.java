@@ -89,6 +89,21 @@ public class PluginInstantiatorTest {
         // verify
         Assert.assertEquals(expected_compute_plugin_class_value, plugin.getClass().getName());
     }
+    
+    // test case: Tests if getQuotaPlugin() returns StubQuotaPlugin as the plugin class name.
+    @Test
+    public void testCreateQuotaPlugin() {
+        // set up
+        String expected_quota_plugin_class_value = "cloud.fogbow.ras.core.stubs.StubQuotaPlugin";
+
+        // exercise
+
+        QuotaPlugin plugin = this.interoperabilityPluginInstantiator
+                .getQuotaPlugin(TestUtils.DEFAULT_CLOUD_NAME);
+
+        // verify
+        Assert.assertEquals(expected_quota_plugin_class_value, plugin.getClass().getName());
+    }
 
     // test case: Tests if getComputeQuotaPlugin() returns StubComputeQuotaPlugin as the plugin class name.
     @Test
