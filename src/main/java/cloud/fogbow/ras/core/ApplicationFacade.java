@@ -161,14 +161,15 @@ public class ApplicationFacade {
         return (ComputeAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.COMPUTE);
     }
 
-    public ComputeQuota getComputeQuota(String providerId, String cloudName, String userToken)
-            throws FogbowException {
-        return (ComputeQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.COMPUTE);
-    }
-    
     public ResourceQuota getResourceQuota(String providerId, String cloudName, String userToken)
             throws FogbowException {
         return (ResourceQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.QUOTA);
+    }
+    
+    @Deprecated
+    public ComputeQuota getComputeQuota(String providerId, String cloudName, String userToken)
+            throws FogbowException {
+        return (ComputeQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.COMPUTE);
     }
 
     public String createVolume(VolumeOrder volumeOrder, String userToken) throws FogbowException {
