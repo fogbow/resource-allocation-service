@@ -6,8 +6,8 @@ import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.Messages;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 import javax.validation.constraints.NotNull;
 
 public class CloudStackCloudUtils {
-    private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
+    private static final Logger LOGGER = Logger.getLogger(CloudStackCloudUtils.class);
 
     public static final String CLOUDSTACK_URL_CONFIG = "cloudstack_api_url";
     public static final String NETWORK_OFFERING_ID_CONFIG = "network_offering_id";
@@ -24,12 +24,11 @@ public class CloudStackCloudUtils {
     public static final int JOB_STATUS_COMPLETE = 1;
     public static final int JOB_STATUS_PENDING = 0;
     public static final int JOB_STATUS_FAILURE = 2;
-    public static final int JOB_STATUS_INCONSISTENT = 3;
     public static final String PENDING_STATE = "pending";
     public static final String FAILURE_STATE = "failure";
 
-    public static final int ONE_SECOND_IN_MILIS = 1000;
-    public static final int MAX_TRIES = 30;
+    protected static final int ONE_SECOND_IN_MILIS = 1000;
+    protected static final int MAX_TRIES = 30;
 
     /**
      * Request HTTP operations to Cloudstack and treat a possible FogbowException when
@@ -49,39 +48,41 @@ public class CloudStackCloudUtils {
         }
     }
 
-    // TODO (chico) - move to the CloudstackCloudUtil
+    /**
+     * Wait and process the Cloudstack asynchronous response in its asynchronous life cycle.
+     * @throws FogbowException
+     */
+    @NotNull
     public static String waitForResult(@NotNull CloudStackHttpClient client,
                                        String cloudStackUrl,
                                        String jobId,
                                        @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
-        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client,
-                cloudStackUrl, jobId, cloudStackUser);
 
-        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
-            for (int i = 0; i < MAX_TRIES; i++) {
-                queryAsyncJobResult = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
-                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
-                    return processJobResult(queryAsyncJobResult, jobId);
-                }
-                try {
-                    Thread.sleep(ONE_SECOND_IN_MILIS);
-                } catch (InterruptedException e) {
-                    throw new FogbowException();
-                }
+        int countTries = 0;
+        CloudStackQueryAsyncJobResponse response = getAsyncJobResponse(
+                client, cloudStackUrl, jobId, cloudStackUser);
+        while(response.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
+            if (countTries >= MAX_TRIES) {
+                throw new CloudStackTimeoutException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
             }
-            throw new TimeoutCloudstackAsync(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
-        } else {
-            throw new UnexpectedException();
+            sleepThread();
+            response = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
+            countTries++;
         }
+
+        return processJobResult(response, jobId);
     }
 
-    public static String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult,
-                                      String jobId)
+    @NotNull
+    @VisibleForTesting
+    static String processJobResult(@NotNull CloudStackQueryAsyncJobResponse response,
+                                   String jobId)
             throws FogbowException {
-        switch (queryAsyncJobResult.getJobStatus()){
+
+        switch (response.getJobStatus()){
             case CloudStackQueryJobResult.SUCCESS:
-                return queryAsyncJobResult.getJobInstanceId();
+                return response.getJobInstanceId();
             case CloudStackQueryJobResult.FAILURE:
                 throw new FogbowException(String.format(Messages.Exception.JOB_HAS_FAILED, jobId));
             default:
@@ -89,10 +90,12 @@ public class CloudStackCloudUtils {
         }
     }
 
-    public static CloudStackQueryAsyncJobResponse getAsyncJobResponse(CloudStackHttpClient client,
+    @NotNull
+    @VisibleForTesting
+    public static CloudStackQueryAsyncJobResponse getAsyncJobResponse(@NotNull CloudStackHttpClient client,
                                                                       String cloudStackUrl,
                                                                       String jobId,
-                                                                      CloudStackUser cloudStackUser)
+                                                                      @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(
@@ -100,10 +103,21 @@ public class CloudStackCloudUtils {
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
 
-    public static class TimeoutCloudstackAsync extends FogbowException {
-        public TimeoutCloudstackAsync(String message) {
+    @VisibleForTesting
+    static void sleepThread() {
+        try {
+            Thread.sleep(ONE_SECOND_IN_MILIS);
+        } catch (InterruptedException e) {
+            LOGGER.warn(Messages.Warn.SLEEP_THREAD_INTERRUPTED, e);
+        }
+    }
+
+    public static class CloudStackTimeoutException extends FogbowException {
+
+        public CloudStackTimeoutException(String message) {
             super(message);
         }
+
     }
 
 }

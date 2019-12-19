@@ -1,0 +1,6 @@
+{
+  "listfirewallrulesresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

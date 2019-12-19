@@ -11,6 +11,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetA
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.DeleteFirewallRuleRequest;
 import org.mockito.ArgumentMatcher;
 
 public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher<T> {
@@ -84,6 +86,18 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
 
     public static class AttachmentJobStatus extends RequestMatcher<AttachmentJobStatusRequest> {
         public AttachmentJobStatus(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class CreateFirewallRule extends RequestMatcher<CreateFirewallRuleRequest> {
+        public CreateFirewallRule(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class DeleteFirewallRule extends RequestMatcher<DeleteFirewallRuleRequest> {
+        public DeleteFirewallRule(CloudStackRequest cloudStackRequest) {
             super(cloudStackRequest);
         }
     }
