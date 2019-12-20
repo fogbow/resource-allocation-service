@@ -2,6 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import static cloud.fogbow.common.constants.OpenStackConstants.Quota.ABSOLUTE_KEY_JSON;
 import static cloud.fogbow.common.constants.OpenStackConstants.Quota.LIMITS_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.MAX_TOTAL_VOLUMES_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.MAX_TOTAL_VOLUME_GIGABYTES_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.TOTAL_GIGABYTES_USED_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.TOTAL_VOLUMES_USED_KEY_JSON;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -39,16 +43,16 @@ public class GetVolumeQuotasResponse {
         
         public class Absolute {
             
-            @SerializedName("maxTotalVolumeGigabytes") // FIXME migrate the string to a constant...
+            @SerializedName(MAX_TOTAL_VOLUME_GIGABYTES_KEY_JSON)
             private int maxTotalVolumeGigabytes;
             
-            @SerializedName("maxTotalVolumes") // FIXME migrate the string to a constant...
+            @SerializedName(MAX_TOTAL_VOLUMES_KEY_JSON)
             private int maxTotalVolumes;
             
-            @SerializedName("totalVolumesUsed") // FIXME migrate the string to a constant...
+            @SerializedName(TOTAL_VOLUMES_USED_KEY_JSON)
             private int totalVolumesUsed;
             
-            @SerializedName("totalVolumesUsed") // FIXME migrate the string to a constant...
+            @SerializedName(TOTAL_GIGABYTES_USED_KEY_JSON)
             private int totalGigabytesUsed;
             
         }

@@ -46,7 +46,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @Override
     public ResourceQuota getUserQuota(OpenStackV3User cloudUser) throws FogbowException {
-        GetQuotaResponse computeQuotas = getComputeQuotas(cloudUser); // TODO rename GetQuotaResponse to GetComputeQuotasResponse
+        GetComputeQuotasResponse computeQuotas = getComputeQuotas(cloudUser);
         GetNetworkQuotasResponse networkQuotas = getNetworkQuotas(cloudUser);
         GetVolumeQuotasResponse volumeQuotas = getVolumeQuotas(cloudUser);
         return buildResourceQuota(computeQuotas, networkQuotas, volumeQuotas);
@@ -54,7 +54,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     ResourceQuota buildResourceQuota(
-            @NotNull GetQuotaResponse computeQuotas, 
+            @NotNull GetComputeQuotasResponse computeQuotas, 
             @NotNull GetNetworkQuotasResponse networkQuotas,
             @NotNull GetVolumeQuotasResponse volumeQuotas) {
         
@@ -65,7 +65,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @VisibleForTesting
     ResourceAllocation getUsedQuota(
-            @NotNull GetQuotaResponse computeQuotas, 
+            @NotNull GetComputeQuotasResponse computeQuotas, 
             @NotNull GetNetworkQuotasResponse networkQuotas,
             @NotNull GetVolumeQuotasResponse volumeQuotas) {
         
@@ -90,7 +90,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     ResourceAllocation getTotalQuota(
-            @NotNull GetQuotaResponse computeQuotas, 
+            @NotNull GetComputeQuotasResponse computeQuotas, 
             @NotNull GetNetworkQuotasResponse networkQuotas,
             @NotNull GetVolumeQuotasResponse volumeQuotas) {
         
@@ -154,10 +154,10 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    GetQuotaResponse getComputeQuotas(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+    GetComputeQuotasResponse getComputeQuotas(@NotNull OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = getComputeQuotaEndpoint();
         String response = doGetQuota(endpoint, cloudUser);
-        return GetQuotaResponse.fromJson(response);
+        return GetComputeQuotasResponse.fromJson(response);
     }
     
     @VisibleForTesting

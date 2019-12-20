@@ -1,5 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.FLOATING_IP_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.LIMIT_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.NETWORK_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.QUOTA_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.RESERVED_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.USED_KEY_JSON;
+
 import com.google.gson.annotations.SerializedName;
 
 import cloud.fogbow.common.util.GsonHolder;
@@ -26,7 +33,7 @@ import cloud.fogbow.common.util.GsonHolder;
  */
 public class GetNetworkQuotasResponse {
 
-    @SerializedName("quota") // FIXME migrate the string to a constant...
+    @SerializedName(QUOTA_KEY_JSON)
     private Quota quota;
     
     public static GetNetworkQuotasResponse fromJson(String json) {
@@ -35,21 +42,21 @@ public class GetNetworkQuotasResponse {
     
     public class Quota {
         
-        @SerializedName("floatingip") // FIXME migrate the string to a constant...
+        @SerializedName(FLOATING_IP_KEY_JSON)
         private FloatingIp floatingIp;
         
-        @SerializedName("network") // FIXME migrate the string to a constant...
+        @SerializedName(NETWORK_KEY_JSON)
         private Network network;
         
         public class QuotaDetails {
             
-            @SerializedName("limit") // FIXME migrate the string to a constant...
+            @SerializedName(LIMIT_KEY_JSON)
             int limit;
             
-            @SerializedName("reserved") // FIXME migrate the string to a constant...
+            @SerializedName(RESERVED_KEY_JSON)
             int reserved;
             
-            @SerializedName("used") // FIXME migrate the string to a constant...
+            @SerializedName(USED_KEY_JSON)
             int used;
             
         }
