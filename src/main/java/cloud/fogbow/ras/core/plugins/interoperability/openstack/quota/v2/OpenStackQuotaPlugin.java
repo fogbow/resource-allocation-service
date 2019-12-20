@@ -39,13 +39,13 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     private Properties properties;
     private OpenStackHttpClient client;
     
-    public OpenStackQuotaPlugin(String confFilePath) {
+    public OpenStackQuotaPlugin(@NotBlank String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.client = new OpenStackHttpClient();
     }
     
     @Override
-    public ResourceQuota getUserQuota(OpenStackV3User cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(@NotNull OpenStackV3User cloudUser) throws FogbowException {
         GetComputeQuotasResponse computeQuotas = getComputeQuotas(cloudUser);
         GetNetworkQuotasResponse networkQuotas = getNetworkQuotas(cloudUser);
         GetVolumeQuotasResponse volumeQuotas = getVolumeQuotas(cloudUser);
@@ -122,7 +122,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    String getVolumeQuotaEndpoint(String tenantId) {
+    String getVolumeQuotaEndpoint(@NotBlank String tenantId) {
         return this.properties.getProperty(CINDER_V3_URL_KEY)
                 .concat(CINDER_V3_API_ENDPOINT)
                 .concat(URL_SEPARATOR)
