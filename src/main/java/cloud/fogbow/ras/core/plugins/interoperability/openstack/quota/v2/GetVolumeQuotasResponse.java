@@ -1,10 +1,74 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.ABSOLUTE_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Quota.LIMITS_KEY_JSON;
+
+import com.google.gson.annotations.SerializedName;
+
+import cloud.fogbow.common.util.GsonHolder;
+
+/**
+ * Documentation: 
+ * https://docs.openstack.org/api-ref/block-storage/v3/index.html?expanded=#limits-limits
+ *
+ * Response Example: 
+ * {
+ *     "limits": {
+ *         "absolute": {
+ *             "maxTotalVolumeGigabytes": 1000,
+ *             "maxTotalVolumes": 10,
+ *             "totalVolumesUsed": 0,
+ *             "totalGigabytesUsed": 0
+ *         }
+ *     }
+ * }
+ */
 public class GetVolumeQuotasResponse {
 
-    public static GetVolumeQuotasResponse fromJson(String response) {
-        // TODO Auto-generated method stub
-        return null;
+    @SerializedName(LIMITS_KEY_JSON)
+    private Limits limits;
+    
+    public static GetVolumeQuotasResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetVolumeQuotasResponse.class);
+    }
+    
+    public class Limits {
+        
+        @SerializedName(ABSOLUTE_KEY_JSON)
+        private Absolute absolute;
+        
+        public class Absolute {
+            
+            @SerializedName("maxTotalVolumeGigabytes") // FIXME migrate the string to a constant...
+            private int maxTotalVolumeGigabytes;
+            
+            @SerializedName("maxTotalVolumes") // FIXME migrate the string to a constant...
+            private int maxTotalVolumes;
+            
+            @SerializedName("totalVolumesUsed") // FIXME migrate the string to a constant...
+            private int totalVolumesUsed;
+            
+            @SerializedName("totalVolumesUsed") // FIXME migrate the string to a constant...
+            private int totalGigabytesUsed;
+            
+        }
+        
+    }
+    
+    public int getMaxTotalVolumeGigabytes() {
+        return limits.absolute.maxTotalVolumeGigabytes;
     }
 
+    public int getMaxTotalVolumes() {
+        return limits.absolute.maxTotalVolumes;
+    }
+
+    public int getTotalVolumesUsed() {
+        return limits.absolute.totalVolumesUsed;
+    }
+
+    public int getTotalGigabytesUsed() {
+        return limits.absolute.totalGigabytesUsed;
+    }
+    
 }

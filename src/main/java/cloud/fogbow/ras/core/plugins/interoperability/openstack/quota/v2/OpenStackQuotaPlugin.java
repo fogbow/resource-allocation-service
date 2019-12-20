@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import java.util.Properties;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.apache.http.client.HttpResponseException;
@@ -15,6 +16,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
@@ -56,8 +58,59 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
             @NotNull GetNetworkQuotasResponse networkQuotas,
             @NotNull GetVolumeQuotasResponse volumeQuotas) {
         
-        // TODO Auto-generated method stub
-        return null;
+        ResourceAllocation totalQuota = getTotalQuota(computeQuotas, networkQuotas, volumeQuotas);
+        ResourceAllocation usedQuota = getUsedQuota(computeQuotas, networkQuotas, volumeQuotas);
+        return new ResourceQuota(totalQuota, usedQuota);
+    }
+    
+    @VisibleForTesting
+    ResourceAllocation getUsedQuota(
+            @NotNull GetQuotaResponse computeQuotas, 
+            @NotNull GetNetworkQuotasResponse networkQuotas,
+            @NotNull GetVolumeQuotasResponse volumeQuotas) {
+        
+        int totalCoresUsed = computeQuotas.getTotalCoresUsed();
+        int totalRamUsed = computeQuotas.getTotalRamUsed();
+        int totalInstancesUsed = computeQuotas.getTotalInstancesUsed();
+        int floatingIpUsed = networkQuotas.getFloatingIpUsed();
+        int networkUsed = networkQuotas.getNetworkUsed();
+        int totalGigabytesUsed = volumeQuotas.getTotalGigabytesUsed();
+        
+        ResourceAllocation usedQuota = ResourceAllocation.builder()
+                .instances(totalInstancesUsed)
+                .vCPU(totalCoresUsed)
+                .ram(totalRamUsed)
+                .publicIps(floatingIpUsed)
+                .networks(networkUsed)
+                .disk(totalGigabytesUsed)
+                .build();
+        
+        return usedQuota;
+    }
+
+    @VisibleForTesting
+    ResourceAllocation getTotalQuota(
+            @NotNull GetQuotaResponse computeQuotas, 
+            @NotNull GetNetworkQuotasResponse networkQuotas,
+            @NotNull GetVolumeQuotasResponse volumeQuotas) {
+        
+        int maxTotalCores = computeQuotas.getMaxTotalCores();
+        int maxTotalRamSize = computeQuotas.getMaxTotalRamSize();
+        int maxTotalInstances = computeQuotas.getMaxTotalInstances();
+        int floatingIpLimit = networkQuotas.getFloatingIpLimit();
+        int networkLimit = networkQuotas.getNetworkLimit();
+        int maxTotalVolumeGigabytes = volumeQuotas.getMaxTotalVolumeGigabytes();
+        
+        ResourceAllocation totalQuota = ResourceAllocation.builder()
+                .instances(maxTotalInstances)
+                .vCPU(maxTotalCores)
+                .ram(maxTotalRamSize)
+                .publicIps(floatingIpLimit)
+                .networks(networkLimit)
+                .disk(maxTotalVolumeGigabytes)
+                .build();
+        
+        return totalQuota;
     }
 
     @VisibleForTesting
@@ -86,7 +139,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    String getNetworkQuotaEndpoint(String tenantId) {
+    String getNetworkQuotaEndpoint(@NotBlank String tenantId) {
         return this.properties.getProperty(NEUTRON_V2_URL_KEY)
                 .concat(NEUTRON_V2_API_ENDPOINT)
                 .concat(QUOTAS_ENDPOINT)
@@ -96,7 +149,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
     
     @VisibleForTesting
-    String getTenantId(OpenStackV3User cloudUser) throws FogbowException {
+    String getTenantId(@NotNull OpenStackV3User cloudUser) throws FogbowException {
         return OpenStackCloudUtils.getProjectIdFrom(cloudUser);
     }
 
@@ -115,7 +168,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    String doGetQuota(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    String doGetQuota(@NotBlank String endpoint, @NotNull OpenStackV3User cloudUser) throws FogbowException {
         String response = null;
         try {
             LOGGER.debug(Messages.Info.GETTING_QUOTA);
@@ -128,7 +181,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
     
     @VisibleForTesting
-    void setClient(OpenStackHttpClient client) {
+    void setClient(@NotNull OpenStackHttpClient client) {
         this.client = client;
     }
 
