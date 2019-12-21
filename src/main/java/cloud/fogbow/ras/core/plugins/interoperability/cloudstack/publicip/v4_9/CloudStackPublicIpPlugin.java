@@ -26,8 +26,9 @@ import java.util.Properties;
 public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackPublicIpPlugin.class);
 
-    public static final String DEFAULT_SSH_PORT = "22";
-    public static final String DEFAULT_PROTOCOL = "TCP";
+    static final String DEFAULT_SSH_PORT = "22";
+    static final String DEFAULT_PROTOCOL = "TCP";
+    static final String PUBLIC_IP_RESOURCE = "Public ip";
 
     // Since the ip creation and association involves multiple asynchronous requests instance,
     // we need to keep track of where we are in the process in order to fulfill the operation.
@@ -86,7 +87,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                     @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        String jobId = requestIpAddressAssociation(this.defaultNetworkId, cloudStackUser);
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder()
+                .networkId(this.defaultNetworkId)
+                .build(this.cloudStackUrl);
+
+        String jobId = requestIpAddressAssociation(request, cloudStackUser);
         setAsyncRequestInstanceFirstStep(jobId, publicIpOrder);
         return getInstanceId(publicIpOrder);
     }
@@ -102,11 +107,19 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         }
         String ipAddressId = asyncRequestInstanceState.getIpInstanceId();
 
-        DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder()
                 .id(ipAddressId)
                 .build(this.cloudStackUrl);
 
-        URIBuilder uriRequest = disassociateIpAddressRequest.getUriBuilder();
+        requestDisassociateIpAddress(request, cloudStackUser);
+    }
+
+    @VisibleForTesting
+    void requestDisassociateIpAddress(@NotNull DisassociateIpAddressRequest request,
+                                      @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
@@ -131,25 +144,15 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             // order was still spawning, the spawning processor will start monitoring this order after the RAS
             // is restarted. Unfortunately, even if the operation succeeded, we cannot retrieve this information
             // and will have to signal that the order has failed.
+            LOGGER.error(Messages.Error.INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE);
             return buildFailedPublicIpInstance();
         }
 
         if (asyncRequestInstanceState.isReady()) {
             return buildReadyPublicIpInstance(asyncRequestInstanceState);
         } else {
-            return buildNextPublicIpInstance(publicIpOrder, cloudStackUser);
+            return buildCurrentPublicIpInstance(asyncRequestInstanceState, publicIpOrder, cloudStackUser);
         }
-    }
-
-
-    /**
-     * We don't have the id of the ip address yet, but since the instance id is only used
-     * by the plugin, we can return an orderId as an instanceId in the plugin
-     */
-    @NotNull
-    @VisibleForTesting
-    String getInstanceId(@NotNull PublicIpOrder publicIpOrder) {
-        return publicIpOrder.getId();
     }
 
     /**
@@ -158,13 +161,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
      */
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildNextPublicIpInstance(@NotNull PublicIpOrder publicIpOrder,
-                                               @NotNull CloudStackUser cloudStackUser)
+    PublicIpInstance buildCurrentPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+                                                  @NotNull PublicIpOrder publicIpOrder,
+                                                  @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
-
-        String temporaryInstanceId = getInstanceId(publicIpOrder);
-        AsyncRequestInstanceState asyncRequestInstanceState =
-                this.asyncRequestInstanceStateMap.get(temporaryInstanceId);
 
         String currentJobId = asyncRequestInstanceState.getCurrentJobId();
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(
@@ -175,11 +175,20 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             case CloudStackQueryJobResult.PROCESSING:
                 return buildProcessingPublicIpInstance();
             case CloudStackQueryJobResult.SUCCESS:
-                return buildNextOperationPublicIpInstance(
-                        asyncRequestInstanceState, cloudStackUser, jsonResponse);
+                try {
+                    return buildNextOperationPublicIpInstance(
+                            asyncRequestInstanceState, cloudStackUser, jsonResponse);
+                } catch (FogbowException e) {
+                    LOGGER.error(Messages.Error.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP, e);
+                    return buildFailedPublicIpInstance();
+                }
             case CloudStackQueryJobResult.FAILURE:
-                // any failure should lead to a disassociation of the ip address
-                deleteInstance(publicIpOrder, cloudStackUser);
+                try {
+                    doDeleteInstance(publicIpOrder, cloudStackUser);
+                } catch (FogbowException e) {
+                    LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+                                                PUBLIC_IP_RESOURCE, publicIpOrder.getInstanceId()));
+                }
                 return buildFailedPublicIpInstance();
             default:
                 LOGGER.error(Messages.Error.UNEXPECTED_JOB_STATUS);
@@ -217,19 +226,23 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                      String jsonResponse)
             throws FogbowException {
 
-        SuccessfulAssociateIpAddressResponse response =
-                SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
+        try {
+            SuccessfulAssociateIpAddressResponse response =
+                    SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
 
-        doEnableStaticNat(response, asyncRequestInstanceState, cloudStackUser);
+            doEnableStaticNat(response, asyncRequestInstanceState, cloudStackUser);
 
-        String createFirewallRuleJobId = doCreateFirewallRule(response, cloudStackUser);
+            String createFirewallRuleJobId = doCreateFirewallRule(response, cloudStackUser);
 
-        setAsyncRequestInstanceSecondStep(response, asyncRequestInstanceState, createFirewallRuleJobId);
+            setAsyncRequestInstanceSecondStep(response, asyncRequestInstanceState, createFirewallRuleJobId);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
     }
 
     /**
-     * Set the asynchronous request instance to the first stage; This stage consist of
-     * wait the asynchronous Associating Ip Address Operation finish in the Cloudstack.
+     * Set the asynchronous request instance to the first step; This step consist of
+     * wait the asynchronous Associating Ip Address Operation finishes in the Cloudstack.
      */
     @VisibleForTesting
     void setAsyncRequestInstanceFirstStep(String jobId, @NotNull PublicIpOrder publicIpOrder) {
@@ -237,30 +250,42 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         String instanceId = getInstanceId(publicIpOrder);
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(
                 AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS, jobId, computeId);
+        asyncRequestInstanceState.setOrderInstanceId(instanceId);
         this.asyncRequestInstanceStateMap.put(instanceId, asyncRequestInstanceState);
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
+                instanceId, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS));
     }
 
     /**
-     * Set the asynchronous request instance to the second stage; This stage consist of
-     * wait the asynchronous Create Firewall Operation finish in the Cloudstack.
+     * Set the asynchronous request instance to the second step; This step consist of
+     * wait the asynchronous Create Firewall Operation finishes in the Cloudstack.
      */
     @VisibleForTesting
     void setAsyncRequestInstanceSecondStep(@NotNull SuccessfulAssociateIpAddressResponse response,
                                            @NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                            String createFirewallRuleJobId) {
 
-        String ipAddressId = response.getIpAddress().getId();
-        String ipAddress = response.getIpAddress().getIpAddress();
+        SuccessfulAssociateIpAddressResponse.IpAddress ipAddress = response.getIpAddress();
+        String ipAddressId = ipAddress.getId();
+        String ip = ipAddress.getIpAddress();
 
         asyncRequestInstanceState.setIpInstanceId(ipAddressId);
-        asyncRequestInstanceState.setIp(ipAddress);
+        asyncRequestInstanceState.setIp(ip);
         asyncRequestInstanceState.setCurrentJobId(createFirewallRuleJobId);
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
+                asyncRequestInstanceState.getOrderInstanceId(),
+                AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE));
     }
 
+    /**
+     * Finish the cycle and set as Ready the asynchronous request instance.
+     */
     @VisibleForTesting
     void finishAsyncRequestInstanceSteps(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.READY);
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
+                asyncRequestInstanceState.getOrderInstanceId(), AsyncRequestInstanceState.StateType.READY));
     }
 
     @NotNull
@@ -269,7 +294,14 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                                 @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
         String ipAddressId = response.getIpAddress().getId();
-        return requestCreateFirewallRule(ipAddressId, cloudStackUser);
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
+                .protocol(DEFAULT_PROTOCOL)
+                .startPort(DEFAULT_SSH_PORT)
+                .endPort(DEFAULT_SSH_PORT)
+                .ipAddressId(ipAddressId)
+                .build(this.cloudStackUrl);
+
+        return requestCreateFirewallRule(request, cloudStackUser);
     }
 
     @VisibleForTesting
@@ -280,7 +312,12 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         String ipAddressId = response.getIpAddress().getId();
         String computeInstanceId = asyncRequestInstanceState.getComputeInstanceId();
 
-        requestEnableStaticNat(computeInstanceId, ipAddressId, cloudStackUser);
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder()
+                .ipAddressId(ipAddressId)
+                .virtualMachineId(computeInstanceId)
+                .build(this.cloudStackUrl);
+
+        requestEnableStaticNat(request, cloudStackUser);
     }
 
     @NotNull
@@ -309,8 +346,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     @NotNull
-    @VisibleForTesting
-    PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+    private PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                            String state) {
         String id = null;
         String ip = null;
@@ -321,14 +357,20 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         return new PublicIpInstance(id, state, ip);
     }
 
+    /**
+     * We don't have the id of the ip address yet, but since the instance id is only used
+     * by the plugin, we can return an orderId as an instanceId in the plugin
+     */
+    @NotNull
+    private String getInstanceId(@NotNull PublicIpOrder publicIpOrder) {
+        return publicIpOrder.getId();
+    }
+
     @NotNull
     @VisibleForTesting
-    String requestIpAddressAssociation(String networkId, @NotNull CloudStackUser cloudStackUser)
+    String requestIpAddressAssociation(@NotNull AssociateIpAddressRequest request,
+                                       @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
-
-        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder()
-                .networkId(networkId)
-                .build(this.cloudStackUrl);
 
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
@@ -336,8 +378,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         try {
             String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
-            AssociateIpAddressAsyncJobIdResponse response = AssociateIpAddressAsyncJobIdResponse
-                    .fromJson(jsonResponse);
+            AssociateIpAddressAsyncJobIdResponse response =
+                    AssociateIpAddressAsyncJobIdResponse.fromJson(jsonResponse);
             return response.getJobId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
@@ -346,17 +388,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    void requestEnableStaticNat(String computeInstanceId,
-                                String ipAdressId,
+    void requestEnableStaticNat(@NotNull EnableStaticNatRequest request,
                                 @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        EnableStaticNatRequest enableStaticNatRequest = new EnableStaticNatRequest.Builder()
-                .ipAddressId(ipAdressId)
-                .virtualMachineId(computeInstanceId)
-                .build(this.cloudStackUrl);
-
-        URIBuilder uriRequest = enableStaticNatRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         try {
@@ -368,17 +404,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    String requestCreateFirewallRule(String ipAdressId, @NotNull CloudStackUser cloudUser)
+    String requestCreateFirewallRule(@NotNull CreateFirewallRuleRequest request,
+                                     @NotNull CloudStackUser cloudUser)
             throws FogbowException {
 
-        CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
-                .protocol(DEFAULT_PROTOCOL)
-                .startPort(DEFAULT_SSH_PORT)
-                .endPort(DEFAULT_SSH_PORT)
-                .ipAddressId(ipAdressId)
-                .build(this.cloudStackUrl);
-
-        URIBuilder uriRequest = createFirewallRuleRequest.getUriBuilder();
+        URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudUser.getToken());
 
         try {
@@ -389,6 +419,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
+    }
+
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
+        this.client = client;
+    }
+
+    @VisibleForTesting
+    void setAsyncRequestInstanceStateMap(
+            Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMap) {
+
+        this.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
     }
 
     // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.

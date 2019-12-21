@@ -121,6 +121,8 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
+        public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
+                "The asynchronous public ip request %s is in the state %s.";
     }
 
     public static class Error {
@@ -150,6 +152,8 @@ public class Messages {
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
         public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
+        public static final String ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP =
+                "Error while It was trying to pass to the next step in the asynchronous request instance.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE = "Error while removing volume image: %s, with response: %s.";
         public static final String ERROR_WHILE_UPDATING_NETWORK = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
@@ -178,5 +182,7 @@ public class Messages {
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
+        public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
+                "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
     }
 }

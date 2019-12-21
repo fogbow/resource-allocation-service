@@ -1,0 +1,10 @@
+{
+  "queryasyncjobresultresponse": {
+    "jobresult": {
+      "ipaddress": {
+        "id": "%s",
+        "ipaddress": "%s"
+      }
+    }
+  }
+}
