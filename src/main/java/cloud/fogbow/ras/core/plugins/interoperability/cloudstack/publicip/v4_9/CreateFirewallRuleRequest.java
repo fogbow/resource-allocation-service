@@ -8,11 +8,10 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html
  * <p>
- * Request Example:
+ * Request Example: {url_cloudstack}?command=createFirewallRule&protocol={protocol}&startport={startport} /
+ *  * &endport={endport}&ipaddressid={ipaddressid}&cidrlist={cidrlist}&apikey={apiKey}&secret_key={secretKey}
  */
 public class CreateFirewallRuleRequest extends CloudStackRequest {
-
-    public static final String CREATE_FIREWALL_RULE_COMMAND = "createFirewallRule";
 
     protected CreateFirewallRuleRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);

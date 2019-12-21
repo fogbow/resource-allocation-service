@@ -56,6 +56,11 @@ public class CloudstackTestUtils {
     private static final String LIST_TEMPLATES_RESPONSE = "listtemplatesresponse.json";
     private static final String LIST_TEMPLATES_ERROR_RESPONSE = "listtemplatesresponse_error.json";
     private static final String LIST_TEMPLATES_EMPTY_RESPONSE = "listtemplatesresponse_empty.json";
+    private static final String ASSOCIATE_IP_ADDRESS_RESPONSE = "associateipaddressresponse.json";
+    private static final String CREATE_FIREWALL_RULE_ADDRESS_RESPONSE = "createfirewallruleresponse.json";
+    private static final String ASYNC_ASSOCIATE_IP_ADDRESS_RESPONSE = "queryasyncassociateipaddressresponse.json";
+    private static final String ASYNC_ASSOCIATE_IP_ADDRESS_ERROR_RESPONSE =
+            "queryasyncassociateipaddressresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -324,6 +329,42 @@ public class CloudstackTestUtils {
                 + LIST_TEMPLATES_ERROR_RESPONSE);
 
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createAssociateIpAddressAsyncResponseJson(String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASSOCIATE_IP_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String createFirewallRuleAsyncResponseJson(String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_FIREWALL_RULE_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String createAsyncAssociateIpAddressErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ASSOCIATE_IP_ADDRESS_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createAsyncAssociateIpAddressResponseJson(String id, String idAddress)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ASSOCIATE_IP_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, id, idAddress);
     }
 
     private static String readFileAsString(final String fileName) throws IOException {

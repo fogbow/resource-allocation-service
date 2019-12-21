@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 
@@ -9,7 +11,6 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/associateIpAddress.html
  * 
  * Response Example: 
- *
  *{
  *  "queryasyncjobresultresponse":{
  *     "jobresult":{
@@ -20,7 +21,6 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
  *     }
  *   }
  * }
- *
  */
 public class SuccessfulAssociateIpAddressResponse {
 
@@ -31,8 +31,11 @@ public class SuccessfulAssociateIpAddressResponse {
 		return this.response.jobResult.ipAddress;
 	}
 	
-    public static SuccessfulAssociateIpAddressResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, SuccessfulAssociateIpAddressResponse.class);
+    public static SuccessfulAssociateIpAddressResponse fromJson(String json) throws HttpResponseException {
+        SuccessfulAssociateIpAddressResponse successfulAssociateIpAddressResponse =
+                GsonHolder.getInstance().fromJson(json, SuccessfulAssociateIpAddressResponse.class);
+        successfulAssociateIpAddressResponse.response.jobResult.checkErrorExistence();
+        return successfulAssociateIpAddressResponse;
     }
 
     private class QueryAsyncJobResultResponse {
@@ -45,7 +48,7 @@ public class SuccessfulAssociateIpAddressResponse {
 
     }
 
-    private class JobResult {
+    private class JobResult extends CloudStackErrorResponse {
 
         @SerializedName(IP_ADDRESS_KEY_JSON)
         private IpAddress ipAddress;
