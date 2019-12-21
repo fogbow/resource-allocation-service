@@ -1,12 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import static cloud.fogbow.common.constants.CloudStackConstants.Image.*;
+
 /**
- * Documentation:
+ * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listTemplates.html
+ *
  * <p>
  * Response example:
  * {
@@ -22,33 +28,38 @@ import java.util.List;
  */
 public class GetAllImagesResponse {
 
-    @SerializedName("listtemplatesresponse")
+    @SerializedName(LIST_TEMPLATES_KEY_JSON)
     private ListTemplatesResponse response;
 
-    public static GetAllImagesResponse fromJson(String jsonResponse) {
-        return GsonHolder.getInstance().fromJson(jsonResponse, GetAllImagesResponse.class);
+    @NotNull
+    public static GetAllImagesResponse fromJson(String jsonResponse) throws HttpResponseException {
+        GetAllImagesResponse getAllImagesResponse =
+                GsonHolder.getInstance().fromJson(jsonResponse, GetAllImagesResponse.class);
+        getAllImagesResponse.response.checkErrorExistence();
+        return getAllImagesResponse;
     }
 
+    @NotNull
     public List<Image> getImages() {
         return response.images;
     }
 
-    private class ListTemplatesResponse {
+    private class ListTemplatesResponse extends CloudStackErrorResponse {
 
-        @SerializedName("template")
+        @SerializedName(TEMPLATE_KEY_JSON)
         private List<Image> images;
 
     }
 
     public class Image {
 
-        @SerializedName("id")
+        @SerializedName(ID_KEY_JSON)
         private String id;
 
-        @SerializedName("name")
+        @SerializedName(NAME_KEY_JSON)
         private String name;
 
-        @SerializedName("size")
+        @SerializedName(SIZE_KEY_JSON)
         private long size;
 
         public String getId() {

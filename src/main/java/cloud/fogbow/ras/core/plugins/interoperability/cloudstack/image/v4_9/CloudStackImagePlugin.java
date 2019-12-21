@@ -5,43 +5,88 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.ImageSummary;
-import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.api.http.response.ImageInstance;
+import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.log4j.Logger;
 
-import java.util.*;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
+    private static final Logger LOGGER = Logger.getLogger(CloudStackImagePlugin.class);
 
-    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    protected static final int DEFAULT_MIN_DISK_VALUE = -1;
+    protected static final int DEFAULT_MIN_RAM_VALUE = -1;
+    protected static final String DEFAULT_STATUS_VALUE = null;
 
     private String cloudStackUrl;
     private CloudStackHttpClient client;
-    private Properties properties;
 
     public CloudStackImagePlugin(String confFilePath) {
-        this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
         this.client = new CloudStackHttpClient();
     }
 
     @Override
-    public List<ImageSummary> getAllImages(CloudStackUser cloudUser) throws FogbowException {
-        GetAllImagesRequest request = new GetAllImagesRequest.Builder().build(this.cloudStackUrl);
+    public List<ImageSummary> getAllImages(@NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        LOGGER.info(Messages.Info.REQUESTING_GET_ALL_FROM_PROVIDER);
 
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
+        GetAllImagesRequest request = new GetAllImagesRequest.Builder()
+                .build(this.cloudStackUrl);
+
+        return buildImagesSummary(request, cloudStackUser);
+    }
+
+    @Override
+    public ImageInstance getImage(String imageId, @VisibleForTesting CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+
+        GetAllImagesRequest request = new GetAllImagesRequest.Builder()
+                .id(imageId)
+                .build(this.cloudStackUrl);
+
+        return buildImageInstance(request, cloudStackUser);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    ImageInstance buildImageInstance(@NotNull GetAllImagesRequest request,
+                                     @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        GetAllImagesResponse response = doDescribeImagesRequest(request, cloudStackUser);
+        List<GetAllImagesResponse.Image> images = response.getImages();
+        if (images.isEmpty()) {
+            throw new InstanceNotFoundException();
         }
 
-        GetAllImagesResponse response = GetAllImagesResponse.fromJson(jsonResponse);
+        // since an id was specified, there should be no more than one network in the getNetworkResponse
+        GetAllImagesResponse.Image image = images.listIterator().next();
+        return new ImageInstance(image.getId(), image.getName(), image.getSize(),
+                DEFAULT_MIN_DISK_VALUE, DEFAULT_MIN_RAM_VALUE, DEFAULT_STATUS_VALUE);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    List<ImageSummary> buildImagesSummary(@NotNull GetAllImagesRequest request,
+                                          @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
+
+        GetAllImagesResponse response = doDescribeImagesRequest(request, cloudStackUser);
         List<GetAllImagesResponse.Image> images = response.getImages();
 
         List<ImageSummary> idToImageNames = new ArrayList<>();
@@ -53,33 +98,26 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         return idToImageNames;
     }
 
-    @Override
-    public ImageInstance getImage(String imageId, CloudStackUser cloudUser) throws FogbowException {
-        GetAllImagesRequest request = new GetAllImagesRequest.Builder()
-                .id(imageId)
-                .build(this.cloudStackUrl);
+    @NotNull
+    @VisibleForTesting
+    GetAllImagesResponse doDescribeImagesRequest(@NotNull GetAllImagesRequest request,
+                                                 @NotNull CloudStackUser cloudStackUser)
+            throws FogbowException {
 
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            String jsonResponse = CloudStackCloudUtils.doRequest(
+                    this.client, uriRequest.toString(), cloudStackUser);
+            return GetAllImagesResponse.fromJson(jsonResponse);
         } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowExceptionMapper.map(e);
-        }
-
-        GetAllImagesResponse response = GetAllImagesResponse.fromJson(jsonResponse);
-        List<GetAllImagesResponse.Image> images = response.getImages();
-
-        if (images != null && images.size() > 0) {
-            GetAllImagesResponse.Image image = images.get(0);
-            return new ImageInstance(image.getId(), image.getName(), image.getSize(), -1, -1, null);
-        } else {
-            throw new InstanceNotFoundException();
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
-    protected void setClient(CloudStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(CloudStackHttpClient client) {
         this.client = client;
     }
 }

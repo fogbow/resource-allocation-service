@@ -6,6 +6,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
 public class ClosedProcessor implements Runnable {
@@ -54,9 +55,12 @@ public class ClosedProcessor implements Runnable {
 
     protected void processClosedOrder(Order order) throws UnexpectedException {
         synchronized (order) {
-            // No need to check the state of the order because no other thread will attempt to change the
-            // state of an order that is in the CLOSED state.
-           this.orderController.deactivateOrder(order);
+            // Check if the order is still in the CLOSED state (it could have been changed by another thread)
+            OrderState orderState = order.getOrderState();
+            if (!orderState.equals(OrderState.CLOSED)) {
+                return;
+            }
+            this.orderController.deactivateOrder(order);
         }
     }
 }

@@ -60,7 +60,6 @@ public class Attachment {
             throws FogbowException {
 
         try {
-            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> attachmentInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.ATTACHMENT);
             return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);

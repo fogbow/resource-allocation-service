@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
-import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
+
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.IP_ADDRESS_ID_KEY_JSON;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.LIST_FIREWALL_RULES_COMMAND;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/listFirewallRules.html
@@ -14,14 +16,13 @@ public class ListFirewallRulesRequest extends CloudStackRequest {
 
 	protected ListFirewallRulesRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-		addParameter(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
+		addParameter(IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
 	}
 
 	@Override
 	public String getCommand() {
-		return CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_COMMAND;
+		return LIST_FIREWALL_RULES_COMMAND;
 	}
-	
 
     public static class Builder {
         private String cloudStackUrl;

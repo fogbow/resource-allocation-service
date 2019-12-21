@@ -85,6 +85,7 @@ public class Main implements ApplicationRunner {
                 while (true) {
                     try {
                         PacketSenderHolder.init();
+                        LOGGER.info(Messages.Info.PACKET_SENDER_INITIALIZED);
                         break;
                     } catch (IllegalStateException e1) {
                         LOGGER.error(Messages.Error.NO_PACKET_SENDER, e1);
