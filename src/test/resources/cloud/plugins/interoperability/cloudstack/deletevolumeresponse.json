@@ -1,0 +1,6 @@
+{
+  "deletevolumeresponse": {
+    "success": "%s",
+    "displaytext": "%s"
+  }
+}

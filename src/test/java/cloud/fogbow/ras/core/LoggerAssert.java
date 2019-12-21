@@ -11,6 +11,9 @@ import java.util.List;
 
 public class LoggerAssert {
 
+    public static final int SECOND_POSITION = 2;
+    public static final int FIRST_POSITION = 1;
+
     private Logger fooLogger;
     private ListAppender<ILoggingEvent> listAppender;
 

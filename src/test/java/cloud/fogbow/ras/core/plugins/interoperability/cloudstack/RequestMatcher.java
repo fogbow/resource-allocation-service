@@ -13,6 +13,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.De
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.DeleteFirewallRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.DeleteVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import org.mockito.ArgumentMatcher;
 
 public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher<T> {
@@ -90,8 +92,20 @@ public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher
         }
     }
 
+    public static class DeleteVolume extends RequestMatcher<DeleteVolumeRequest> {
+        public DeleteVolume(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
     public static class CreateFirewallRule extends RequestMatcher<CreateFirewallRuleRequest> {
         public CreateFirewallRule(CloudStackRequest cloudStackRequest) {
+            super(cloudStackRequest);
+        }
+    }
+
+    public static class GetVolume extends RequestMatcher<GetVolumeRequest> {
+        public GetVolume(CloudStackRequest cloudStackRequest) {
             super(cloudStackRequest);
         }
     }
