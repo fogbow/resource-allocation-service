@@ -184,7 +184,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 }
             case CloudStackQueryJobResult.FAILURE:
                 try {
-                    // any failure should lead to a disassociation of the ip address
                     doDeleteInstance(publicIpOrder, cloudStackUser);
                 } catch (FogbowException e) {
                     LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
@@ -242,8 +241,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     /**
-     * Set the asynchronous request instance to the first stage; This stage consist of
-     * wait the asynchronous Associating Ip Address Operation finish in the Cloudstack.
+     * Set the asynchronous request instance to the first step; This step consist of
+     * wait the asynchronous Associating Ip Address Operation finishes in the Cloudstack.
      */
     @VisibleForTesting
     void setAsyncRequestInstanceFirstStep(String jobId, @NotNull PublicIpOrder publicIpOrder) {
@@ -253,13 +252,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS, jobId, computeId);
         asyncRequestInstanceState.setOrderInstanceId(instanceId);
         this.asyncRequestInstanceStateMap.put(instanceId, asyncRequestInstanceState);
-        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 instanceId, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS));
     }
 
     /**
-     * Set the asynchronous request instance to the second stage; This stage consist of
-     * wait the asynchronous Create Firewall Operation finish in the Cloudstack.
+     * Set the asynchronous request instance to the second step; This step consist of
+     * wait the asynchronous Create Firewall Operation finishes in the Cloudstack.
      */
     @VisibleForTesting
     void setAsyncRequestInstanceSecondStep(@NotNull SuccessfulAssociateIpAddressResponse response,
@@ -274,15 +273,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         asyncRequestInstanceState.setIp(ip);
         asyncRequestInstanceState.setCurrentJobId(createFirewallRuleJobId);
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
-        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE));
     }
 
+    /**
+     * Finish the cycle and set as Ready the asynchronous request instance.
+     */
     @VisibleForTesting
     void finishAsyncRequestInstanceSteps(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
         asyncRequestInstanceState.setState(AsyncRequestInstanceState.StateType.READY);
-        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        LOGGER.info(String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(), AsyncRequestInstanceState.StateType.READY));
     }
 
@@ -428,7 +430,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     void setAsyncRequestInstanceStateMap(
             Map<String, AsyncRequestInstanceState> asyncRequestInstanceStateMap) {
 
-        CloudStackPublicIpPlugin.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
+        this.asyncRequestInstanceStateMap = asyncRequestInstanceStateMap;
     }
 
     // TODO(chico) - This method will be removed after the Cloudstack Security Rule PR is accepted.

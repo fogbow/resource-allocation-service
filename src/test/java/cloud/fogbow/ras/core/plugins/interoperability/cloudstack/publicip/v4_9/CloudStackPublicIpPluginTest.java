@@ -23,7 +23,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.http.client.HttpResponseException;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -84,7 +87,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(publicIpOrder.getComputeId()).thenReturn(computeIdExpected);
         String jobId = "jobId";
 
-        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 instanceIdExpected, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS);
 
         // verify before
@@ -157,7 +160,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestIpAddressAssociationFail() throws FogbowException, HttpResponseException {
         // set up
-        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder().build("");
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
@@ -176,14 +180,15 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestIpAddressAssociationSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder().build("");
+        AssociateIpAddressRequest request = new AssociateIpAddressRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
-        String jsonResponse = "anything";
+        String jsonResponse = TestUtils.ANY_VALUE;
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
                 thenReturn(jsonResponse);
 
-        String jobIdExpected = "jobId";
+        String jobIdExpected = "jobIdExpected";
         AssociateIpAddressAsyncJobIdResponse response = Mockito.mock(AssociateIpAddressAsyncJobIdResponse.class);
         Mockito.when(response.getJobId()).thenReturn(jobIdExpected);
         PowerMockito.mockStatic(AssociateIpAddressAsyncJobIdResponse.class);
@@ -202,7 +207,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestDisassociateIpAddressFail() throws FogbowException, HttpResponseException {
         // set up
-        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder().build("");
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
@@ -221,11 +227,12 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestDisassociateIpAddressSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder().build("");
+        DisassociateIpAddressRequest request = new DisassociateIpAddressRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
-                thenReturn("");
+                thenReturn(TestUtils.EMPTY_STRING);
 
         // exercise
         this.plugin.requestDisassociateIpAddress(request, this.cloudStackUser);
@@ -317,7 +324,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
 
-        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.READY);
 
@@ -350,7 +357,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
         String createFirewallRuleJobId = "jobId";
 
-        String messageExpexted = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STAGE,
+        String messageExpexted = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
 
@@ -377,7 +384,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestCreateFirewallRuleFail() throws FogbowException, HttpResponseException {
         // set up
-        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
@@ -396,9 +404,10 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestCreateFirewallRuleSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().build("");
+        CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
-        String jsonResponse = "";
+        String jsonResponse = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(jsonResponse);
@@ -425,7 +434,8 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestEnableStaticNatFail() throws FogbowException, HttpResponseException {
         // set up
-        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder().build("");
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder().
+                build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
@@ -444,11 +454,11 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testRequestEnableStaticNatSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder().build("");
+        EnableStaticNatRequest request = new EnableStaticNatRequest.Builder().build(TestUtils.EMPTY_STRING);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("");
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(TestUtils.EMPTY_STRING);
 
         // exercise
         this.plugin.requestEnableStaticNat(request, this.cloudStackUser);
@@ -536,7 +546,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         SuccessfulAssociateIpAddressResponse response = Mockito.mock(SuccessfulAssociateIpAddressResponse.class);
         Mockito.when(response.getIpAddress()).thenReturn(ipAddress);
 
-        String jobIdExpected = "jobId";
+        String jobIdExpected = "jobIdExpected";
         Mockito.doReturn(jobIdExpected).when(this.plugin).requestCreateFirewallRule(Mockito.any(), Mockito.any());
 
         CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
@@ -587,9 +597,27 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
                 .requestEnableStaticNat(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
-    @Ignore
+    // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
+    // and It occurs a HttpResponseException. it must verify if It throws a FogbowException.
     @Test
-    public void testDoCreatingFirewallOperationFailWhenThrowHttpResponseExeption() {}
+    public void testDoCreatingFirewallOperationFailWhenThrowHttpResponseExeption()
+            throws FogbowException, HttpResponseException {
+
+        // set up
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito.mock(AsyncRequestInstanceState.class);
+        String jsonResponse = "jsonResponse";
+
+        PowerMockito.mockStatic(SuccessfulAssociateIpAddressResponse.class);
+        PowerMockito.when(SuccessfulAssociateIpAddressResponse.fromJson(Mockito.eq(jsonResponse))).
+                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
+
+        // exercise
+        this.plugin.doCreatingFirewallOperation(asyncRequestInstanceState, this.cloudStackUser, jsonResponse);
+    }
 
     // test case: When calling the doCreatingFirewallOperation method with secondary methods mocked
     // and It occurs a FogbowException. it must verify if It throws the same exception.

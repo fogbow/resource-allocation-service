@@ -9,7 +9,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.NETWORK
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/associateIpAddress.html
  *
- * Request Example:
+ * Request Example: {url_cloudstack}?command=associateIpAddress&networkid={networkid}&apikey={apiKey}&secret_key={secretKey}
  */
 public class AssociateIpAddressRequest extends CloudStackRequest {
 
