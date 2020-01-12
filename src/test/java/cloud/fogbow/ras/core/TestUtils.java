@@ -9,16 +9,21 @@ import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import org.apache.http.client.HttpResponseException;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+
+import com.google.gson.Gson;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
@@ -300,5 +305,72 @@ public class TestUtils {
         String tokenValue = TestUtils.FAKE_TOKEN_VALUE;
         String projectId = TestUtils.FAKE_PROJECT_ID;
         return new OpenStackV3User(userId, userName, tokenValue, projectId);
+    }
+    
+    /*
+     * Simulates instance of a ApplicationFacade
+     */
+    public ApplicationFacade mockApplicationFacade() {
+        ApplicationFacade facade = Mockito.mock(ApplicationFacade.class);
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(facade);
+        return facade;
+    }
+    
+    /*
+     * Create an available quota for testing.
+     */
+    public ResourceQuota createAvailableQuota() {
+        ResourceAllocation totalQuota = createTotalQuota();
+        ResourceAllocation usedQuota = createUsedQuota();
+        return new ResourceQuota(totalQuota, usedQuota);
+    }
+
+    private ResourceAllocation createTotalQuota() {
+        int totalInstances = 100;
+        int totalvCPU = 8;
+        int tolalRam = 16384;
+        int totalDisk = 30;
+        int totalNetworks = 15;
+        int totalPublicIps = 5;
+        
+        ResourceAllocation totalQuota = ResourceAllocation.builder()
+                .instances(totalInstances)
+                .vCPU(totalvCPU)
+                .ram(tolalRam)
+                .disk(totalDisk)
+                .networks(totalNetworks)
+                .publicIps(totalPublicIps)
+                .build();
+        
+        return totalQuota;
+    }
+    
+    private ResourceAllocation createUsedQuota() {
+        int usedInstances = 1;
+        int usedvCPU = 2;
+        int usedRam = 8192;
+        int usedDisk = 8;
+        int usedNetworks = 1;
+        int usedPublicIps = 1;
+        
+        ResourceAllocation usedQuota =  ResourceAllocation.builder()
+                .instances(usedInstances)
+                .vCPU(usedvCPU)
+                .ram(usedRam)
+                .disk(usedDisk)
+                .networks(usedNetworks)
+                .publicIps(usedPublicIps)
+                .build();
+        
+        return usedQuota;
+    }
+
+    /*
+     * Transforms the content of an object into its JSON 
+     * representation in string format.
+     */
+    public String getResponseContent(Object content) {
+        return new Gson().toJson(content);
     }
 }

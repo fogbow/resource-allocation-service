@@ -26,6 +26,7 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
@@ -290,6 +291,27 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.facade).getUserAllocation(Mockito.eq(providerId), Mockito.eq(cloudName),
                 Mockito.eq(userToken), Mockito.eq(ResourceType.COMPUTE));
+    }
+    
+    // test case: When calling the getResourceQuota method it must check that
+    // getUserQuota method was called.
+    @Test
+    public void testGetResourceQuota() throws FogbowException {
+        // set up
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        ResourceQuota resourceQuota = Mockito.mock(ResourceQuota.class);
+        Mockito.doReturn(resourceQuota).when(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName),
+                Mockito.eq(userToken), Mockito.eq(ResourceType.QUOTA));
+
+        // exercise
+        this.facade.getResourceQuota(providerId, cloudName, userToken);
+
+        // verify
+        Mockito.verify(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName), Mockito.eq(userToken),
+                Mockito.eq(ResourceType.QUOTA));
     }
     
     // test case: When calling the getComputeQuota method it must check that

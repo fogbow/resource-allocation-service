@@ -53,6 +53,17 @@ public class CloudstackTestUtils {
     private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
     private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
     private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
+    private static final String DELETE_VOLUME_RESPONSE = "deletevolumeresponse.json";
+    private static final String DELETE_VOLUME_ERROR_RESPONSE = "deletevolumeresponse_error.json";
+    private static final String CREATE_VOLUME_RESPONSE = "createvolumeresponse.json";
+    private static final String CREATE_VOLUME_ERROR_RESPONSE = "createvolumeresponse_error.json";
+    private static final String CREATE_FIREWALL_RULE_RESPONSE = "createfirewallruleresponse.json";
+    private static final String LIST_FIREWALL_RULES_RESPONSE = "listfirewallrulesresponse.json";
+    private static final String LIST_FIREWALL_RULES_ERROR_RESPONSE =
+            "listfirewallrulesresponse_error.json";
+    private static final String LIST_FIREWALL_RULES_EMPTY_RESPONSE =
+            "listfirewallrulesresponse_empty.json";
+    private static final String DELETE_FIREWALL_RULE_RESPONSE = "deletefirewallruleresponse.json";
     private static final String LIST_TEMPLATES_RESPONSE = "listtemplatesresponse.json";
     private static final String LIST_TEMPLATES_ERROR_RESPONSE = "listtemplatesresponse_error.json";
     private static final String LIST_TEMPLATES_EMPTY_RESPONSE = "listtemplatesresponse_empty.json";
@@ -372,6 +383,76 @@ public class CloudstackTestUtils {
         byte[] bytes = Files.readAllBytes(path);
         String data = new String(bytes);
         return data;
+    }
+
+    public static String createDeleteVolumeResponseJson(boolean status, String displaytext) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_VOLUME_RESPONSE);
+
+        return String.format(rawJson, status, displaytext);
+    }
+
+    public static String createDeleteVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    // TODO(chico) - change the method name; Use "build"
+    public static String createCreateVolumeResponseJson(String id) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_VOLUME_RESPONSE);
+
+        return String.format(rawJson, id);
+    }
+
+    // TODO(chico) - change the method name; Use "build"
+    public static String createCreateVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createListFirewallRulesResponseJson(String id, String protocol, int startPort,
+                                                      int endPort, String ipaddress, String cird)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_FIREWALL_RULES_RESPONSE);
+
+        return String.format(rawJson, id, protocol, startPort, endPort, ipaddress, cird);
+    }
+
+    public static String createListFirewallRulesEmptyResponseJson() throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_FIREWALL_RULES_EMPTY_RESPONSE);
+
+        return String.format(rawJson);
+    }
+
+    public static String createListFirewallRulesErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + LIST_FIREWALL_RULES_ERROR_RESPONSE);
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String buildParameterStructureUrl(String key, String value) {
+        return String.format("%s=%s", key, value);
+    }
+
+    public static String deleteFirewallRuleAsyncResponseJson(String jobId) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_FIREWALL_RULE_RESPONSE);
+
+        return String.format(rawJson, jobId);
     }
 
     private static String getPathCloudstackFile() {

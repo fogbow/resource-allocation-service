@@ -86,6 +86,9 @@ public class Messages {
         public static final String UNABLE_TO_LOCATE_ORDER_S_S = "Unable to locate order <%s> notified by <%s>.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_PROVIDER = "Unable to notify requesting provider %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
+        public static final String DISK_OFFERING_COMPATIBLE_NOT_FOUND = "There is not disk offering compatible with volume order size.";
+        public static final String DISK_OFFERING_CUSTOMIZED_NOT_FOUND ="There is not disk offering customized in the cloud.";
+        public static final String SLEEP_THREAD_INTERRUPTED = "Thread's not able to sleep.";
     }
 
     public static class Info {

@@ -20,6 +20,7 @@ import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
+import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -38,6 +39,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.OrderPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
@@ -58,6 +60,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private PublicIpPlugin publicIpPlugin;
     private SecurityRulePlugin securityRulePlugin;
     private VolumePlugin volumePlugin;
+    private QuotaPlugin quotaPlugin;
 
     @Before
     public void setUp() throws FogbowException {
@@ -806,9 +809,32 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the getUserQuota method with the a valid resource
     // type, it must call the doGetUserQuota method and confirm in auditRequest the
-    // GET_USER_QUOTA operation of the COMPUTE resource type.
+    // GET_USER_QUOTA operation of the QUOTA resource type.
     @Test
     public void testGetUserQuota() throws FogbowException {
+        // set up
+        Mockito.doReturn(this.computePlugin).when(this.localCloudConnector).checkOrderCastingAndSetPlugin(Mockito.any(),
+                Mockito.any());
+
+        ResourceQuota resourceQuota = Mockito.mock(ResourceQuota.class);
+        Mockito.doReturn(resourceQuota).when(this.quotaPlugin).getUserQuota(Mockito.any(CloudUser.class));
+
+        // exercise
+        this.localCloudConnector.getUserQuota(this.testUtils.createSystemUser(), ResourceType.QUOTA);
+
+        // verify
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetUserQuota(Mockito.any(CloudUser.class), Mockito.eq(ResourceType.QUOTA));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
+                Mockito.eq(Operation.GET_USER_QUOTA), Mockito.eq(ResourceType.QUOTA), Mockito.any(SystemUser.class),
+                Mockito.anyString());
+    }
+    
+    // test case: When invoking the getUserQuota method with the a valid resource
+    // type, it must call the doGetUserQuota method and confirm in auditRequest the
+    // GET_USER_QUOTA operation of the COMPUTE resource type.
+    @Test
+    public void testGetUserComputeQuota() throws FogbowException {
         // set up
         Mockito.doReturn(this.computePlugin).when(this.localCloudConnector).checkOrderCastingAndSetPlugin(Mockito.any(),
                 Mockito.any());
@@ -828,8 +854,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
     
     // test case: When invoking the getUserQuota method with a resource type other
-    // than COMPUTE, it must throw an exception and confirm in auditRequest the
-    // GET_USER_QUOTA operation and the resource type used.
+    // than COMPUTE or QUOTA, it must throw an exception and confirm in auditRequest
+    // the GET_USER_QUOTA operation and the resource type used.
     @Test
     public void testGetUserQuotaFail() throws FogbowException {
         // set up
@@ -1446,6 +1472,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(instantiator.getPublicIpPlugin(Mockito.anyString())).thenReturn(this.publicIpPlugin);
         Mockito.when(instantiator.getVolumePlugin(Mockito.anyString())).thenReturn(this.volumePlugin);
         Mockito.when(instantiator.getSecurityRulePlugin(Mockito.anyString())).thenReturn(this.securityRulePlugin);
+        Mockito.when(instantiator.getQuotaPlugin(Mockito.anyString())).thenReturn(this.quotaPlugin);
         return instantiator;
     }
     
@@ -1460,6 +1487,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.genericRequestPlugin = Mockito.mock(GenericRequestPlugin.class);
         this.mapperPlugin = Mockito.mock(SystemToCloudMapperPlugin.class);
         this.securityRulePlugin = Mockito.mock(SecurityRulePlugin.class);
+        this.quotaPlugin = Mockito.mock(QuotaPlugin.class);
     }
 
 }

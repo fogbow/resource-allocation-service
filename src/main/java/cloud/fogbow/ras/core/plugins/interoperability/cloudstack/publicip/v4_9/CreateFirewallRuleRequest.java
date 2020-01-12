@@ -4,12 +4,19 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.CREATE_FIREWALL_RULE_COMMAND;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/createFirewallRule.html
+<<<<<<< HEAD
  * <p>
  * Request Example: {url_cloudstack}?command=createFirewallRule&protocol={protocol}&startport={startport} /
  *  * &endport={endport}&ipaddressid={ipaddressid}&cidrlist={cidrlist}&apikey={apiKey}&secret_key={secretKey}
+=======
+ *
+ * Request Example: {url_cloudstack}?command=createFirewallRule&response=json&protocol={protocol} /
+ * &startport={startPort}&endport={endPort}&ipaddressid={ipAddressId}&cidrlist={cird}
+>>>>>>> origin/develop
  */
 public class CreateFirewallRuleRequest extends CloudStackRequest {
 
