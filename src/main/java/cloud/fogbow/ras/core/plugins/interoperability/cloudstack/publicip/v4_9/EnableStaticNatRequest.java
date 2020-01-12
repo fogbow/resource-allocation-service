@@ -8,7 +8,8 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/enableStaticNat.html
  * <p>
- * Request Example:
+ * Request Example: {url_cloudstack}?command=enableStaticNat&virtualmachineid={virtualmachineid} /
+ * &ipaddressid={ipaddressid}&apikey={apiKey}&secret_key={secretKey}
  */
 public class EnableStaticNatRequest extends CloudStackRequest {
 
