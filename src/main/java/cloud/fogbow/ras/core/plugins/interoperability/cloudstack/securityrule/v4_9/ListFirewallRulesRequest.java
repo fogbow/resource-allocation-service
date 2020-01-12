@@ -14,12 +14,12 @@ public class ListFirewallRulesRequest extends CloudStackRequest {
 
 	protected ListFirewallRulesRequest(Builder builder) throws InvalidParameterException {
         super(builder.cloudStackUrl);
-		addParameter(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
+		addParameter(CloudStackConstants.SecurityGroup.IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
 	}
 
 	@Override
 	public String getCommand() {
-		return CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_COMMAND;
+		return CloudStackConstants.SecurityGroup.LIST_FIREWALL_RULES_COMMAND;
 	}
 	
 

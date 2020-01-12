@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class ListFirewallRulesResponse {
 
-	@SerializedName(CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_KEY_JSON)
+	@SerializedName(CloudStackConstants.SecurityGroup.LIST_FIREWALL_RULES_KEY_JSON)
 	private ListFirewallRules response;
 
 	public static ListFirewallRulesResponse fromJson(String jsonResponse) {
@@ -51,24 +51,24 @@ public class ListFirewallRulesResponse {
 	
 	private class ListFirewallRules {
 
-		@SerializedName(CloudStackConstants.SecurityGroupPlugin.FIREWALL_RULE_KEY_JSON)
+		@SerializedName(CloudStackConstants.SecurityGroup.FIREWALL_RULE_KEY_JSON)
 		private List<SecurityRuleResponse> securityRulesResponse;
 
 	}
 
     public class SecurityRuleResponse {
 
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.ID_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroup.ID_KEY_JSON)
         private String instanceId;
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroup.CIDR_LIST_KEY_JSON)
         private String cidr;
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.START_PORT_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroup.START_PORT_KEY_JSON)
         private int portFrom;
-    	@SerializedName(CloudStackConstants.SecurityGroupPlugin.END_PORT_KEY_JSON)
+    	@SerializedName(CloudStackConstants.SecurityGroup.END_PORT_KEY_JSON)
         private int portTo;
-        @SerializedName(CloudStackConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON)
+        @SerializedName(CloudStackConstants.SecurityGroup.PROPOCOL_KEY_JSON)
 		private String protocol;
-        @SerializedName(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON)
+        @SerializedName(CloudStackConstants.SecurityGroup.IP_ADDRESS_KEY_JSON)
         private String ipAddress;
         
 		public String getInstanceId() {

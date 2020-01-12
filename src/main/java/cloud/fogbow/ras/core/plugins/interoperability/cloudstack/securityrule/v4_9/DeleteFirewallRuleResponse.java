@@ -16,7 +16,7 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class DeleteFirewallRuleResponse {
-    @SerializedName(CloudStackConstants.PublicIp.DELETE_FIREWALL_RULE_RESPOSNE)
+    @SerializedName(CloudStackConstants.SecurityGroup.DELETE_FIREWALL_RULE_RESPONSE)
     private FirewallRuleResponse response;
 
     public static class FirewallRuleResponse {

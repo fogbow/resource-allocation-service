@@ -172,13 +172,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 
 	private SecurityRule.Protocol getFogbowProtocol(String protocol) throws UnexpectedException {
 		switch (protocol) {
-			case CloudStackConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroup.TCP_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.TCP;
-			case CloudStackConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroup.UDP_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.UDP;
-			case CloudStackConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroup.ICMP_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.ICMP;
-			case CloudStackConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL:
+			case CloudStackConstants.SecurityGroup.ALL_VALUE_PROTOCOL:
 				return SecurityRule.Protocol.ANY;
 			default:
 				throw new UnexpectedException(Messages.Exception.INVALID_CLOUDSTACK_PROTOCOL);

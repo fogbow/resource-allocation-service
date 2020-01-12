@@ -410,30 +410,30 @@ public class CloudStackSecurityRuleInstancePluginTest extends BaseUnitTests {
         List<Map<String, Object>> listFirewallRule = new ArrayList<Map<String, Object>>();
         for (SecurityRuleInstance securityRuleInstance : securityRuleInstances) {
             Map<String, Object> firewallRule = new HashMap<String, Object>();
-            firewallRule.put(CloudStackConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON,
+            firewallRule.put(CloudStackConstants.SecurityGroup.CIDR_LIST_KEY_JSON,
                     securityRuleInstance.getCidr());
-            firewallRule.put(CloudStackConstants.SecurityGroupPlugin.ID_KEY_JSON,
+            firewallRule.put(CloudStackConstants.SecurityGroup.ID_KEY_JSON,
                     securityRuleInstance.getId());
-            firewallRule.put(CloudStackConstants.SecurityGroupPlugin.START_PORT_KEY_JSON,
+            firewallRule.put(CloudStackConstants.SecurityGroup.START_PORT_KEY_JSON,
                     securityRuleInstance.getPortFrom());
-            firewallRule.put(CloudStackConstants.SecurityGroupPlugin.END_PORT_KEY_JSON,
+            firewallRule.put(CloudStackConstants.SecurityGroup.END_PORT_KEY_JSON,
                     securityRuleInstance.getPortTo());
-            firewallRule.put(CloudStackConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON,
+            firewallRule.put(CloudStackConstants.SecurityGroup.PROPOCOL_KEY_JSON,
                     securityRuleInstance.getProtocol().toString());
             if (etherType.equals(SecurityRule.EtherType.IPv4)) {
-                firewallRule.put(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON, "0.0.0.0");
+                firewallRule.put(CloudStackConstants.SecurityGroup.IP_ADDRESS_KEY_JSON, "0.0.0.0");
             } else {
-                firewallRule.put(CloudStackConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON,
+                firewallRule.put(CloudStackConstants.SecurityGroup.IP_ADDRESS_KEY_JSON,
                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329");
             }
 
             listFirewallRule.add(firewallRule);
         }
         Map<String, List<Map<String, Object>>> firewallRules = new HashMap<String, List<Map<String, Object>>>();
-        firewallRules.put(CloudStackConstants.SecurityGroupPlugin.FIREWALL_RULE_KEY_JSON, listFirewallRule);
+        firewallRules.put(CloudStackConstants.SecurityGroup.FIREWALL_RULE_KEY_JSON, listFirewallRule);
 
         Map<String, Object> floatingipJsonKey = new HashMap<String, Object>();
-        floatingipJsonKey.put(CloudStackConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_KEY_JSON, firewallRules);
+        floatingipJsonKey.put(CloudStackConstants.SecurityGroup.LIST_FIREWALL_RULES_KEY_JSON, firewallRules);
 
         Gson gson = new Gson();
         return gson.toJson(floatingipJsonKey);

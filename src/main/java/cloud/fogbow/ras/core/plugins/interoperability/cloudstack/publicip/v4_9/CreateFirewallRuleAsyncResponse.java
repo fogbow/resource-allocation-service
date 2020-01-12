@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.CREATE_FIREWALL_RULE_RESPONSE;
+import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.CREATE_FIREWALL_RULE_RESPONSE;
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_ID_KEY_JSON;
 
 /**
