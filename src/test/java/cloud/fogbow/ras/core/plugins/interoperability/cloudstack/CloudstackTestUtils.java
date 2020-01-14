@@ -53,6 +53,10 @@ public class CloudstackTestUtils {
     private static final String DETACH_VOLUME_ERROR_RESPONSE = "detachvolumeresponse_error.json";
     private static final String ASYNC_ATTACH_VOLUME_RESPONSE = "queryasyncattachvolumeresponse.json";
     private static final String ASYNC_ERROR_RESPONSE = "queryasyncresponse_error.json";
+    private static final String DELETE_VOLUME_RESPONSE = "deletevolumeresponse.json";
+    private static final String DELETE_VOLUME_ERROR_RESPONSE = "deletevolumeresponse_error.json";
+    private static final String CREATE_VOLUME_RESPONSE = "createvolumeresponse.json";
+    private static final String CREATE_VOLUME_ERROR_RESPONSE = "createvolumeresponse_error.json";
     private static final String CREATE_FIREWALL_RULE_RESPONSE = "createfirewallruleresponse.json";
     private static final String LIST_FIREWALL_RULES_RESPONSE = "listfirewallrulesresponse.json";
     private static final String LIST_FIREWALL_RULES_ERROR_RESPONSE =
@@ -63,6 +67,11 @@ public class CloudstackTestUtils {
     private static final String LIST_TEMPLATES_RESPONSE = "listtemplatesresponse.json";
     private static final String LIST_TEMPLATES_ERROR_RESPONSE = "listtemplatesresponse_error.json";
     private static final String LIST_TEMPLATES_EMPTY_RESPONSE = "listtemplatesresponse_empty.json";
+    private static final String ASSOCIATE_IP_ADDRESS_RESPONSE = "associateipaddressresponse.json";
+    private static final String CREATE_FIREWALL_RULE_ADDRESS_RESPONSE = "createfirewallruleresponse.json";
+    private static final String ASYNC_ASSOCIATE_IP_ADDRESS_RESPONSE = "queryasyncassociateipaddressresponse.json";
+    private static final String ASYNC_ASSOCIATE_IP_ADDRESS_ERROR_RESPONSE =
+            "queryasyncassociateipaddressresponse_error.json";
 
     public static final CloudStackUser CLOUD_STACK_USER =
             new CloudStackUser("id", "", "", "", new HashMap<>());
@@ -308,13 +317,6 @@ public class CloudstackTestUtils {
         return String.format(rawJson, jobStatus, errorCode, errorText);
     }
 
-    public static String createFirewallRuleAsyncResponseJson(String jobId) throws IOException {
-        String rawJson = readFileAsString(getPathCloudstackFile()
-                + CREATE_FIREWALL_RULE_RESPONSE);
-
-        return String.format(rawJson, jobId);
-    }
-
     public static String createGetAllImagesResponseJson(String id, String name, int size)
             throws IOException {
 
@@ -340,11 +342,81 @@ public class CloudstackTestUtils {
         return String.format(rawJson, errorCode, errorText);
     }
 
+    public static String createAssociateIpAddressAsyncResponseJson(String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASSOCIATE_IP_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String createFirewallRuleAsyncResponseJson(String jobId)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_FIREWALL_RULE_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, jobId);
+    }
+
+    public static String createAsyncAssociateIpAddressErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ASSOCIATE_IP_ADDRESS_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String createAsyncAssociateIpAddressResponseJson(String id, String idAddress)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + ASYNC_ASSOCIATE_IP_ADDRESS_RESPONSE);
+
+        return String.format(rawJson, id, idAddress);
+    }
+
     private static String readFileAsString(final String fileName) throws IOException {
         Path path = Paths.get(fileName);
         byte[] bytes = Files.readAllBytes(path);
         String data = new String(bytes);
         return data;
+    }
+
+    public static String createDeleteVolumeResponseJson(boolean status, String displaytext) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_VOLUME_RESPONSE);
+
+        return String.format(rawJson, status, displaytext);
+    }
+
+    public static String createDeleteVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + DELETE_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
+    }
+
+    // TODO(chico) - change the method name; Use "build"
+    public static String createCreateVolumeResponseJson(String id) throws IOException {
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_VOLUME_RESPONSE);
+
+        return String.format(rawJson, id);
+    }
+
+    // TODO(chico) - change the method name; Use "build"
+    public static String createCreateVolumeErrorResponseJson(int errorCode, String errorText)
+            throws IOException {
+
+        String rawJson = readFileAsString(getPathCloudstackFile()
+                + CREATE_VOLUME_ERROR_RESPONSE);
+
+        return String.format(rawJson, errorCode, errorText);
     }
 
     public static String createListFirewallRulesResponseJson(String id, String protocol, int startPort,
@@ -369,8 +441,11 @@ public class CloudstackTestUtils {
 
         String rawJson = readFileAsString(getPathCloudstackFile()
                 + LIST_FIREWALL_RULES_ERROR_RESPONSE);
-
         return String.format(rawJson, errorCode, errorText);
+    }
+
+    public static String buildParameterStructureUrl(String key, String value) {
+        return String.format("%s=%s", key, value);
     }
 
     public static String deleteFirewallRuleAsyncResponseJson(String jobId) throws IOException {

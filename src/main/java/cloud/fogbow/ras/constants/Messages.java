@@ -86,6 +86,8 @@ public class Messages {
         public static final String UNABLE_TO_LOCATE_ORDER_S_S = "Unable to locate order <%s> notified by <%s>.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_PROVIDER = "Unable to notify requesting provider %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
+        public static final String DISK_OFFERING_COMPATIBLE_NOT_FOUND = "There is not disk offering compatible with volume order size.";
+        public static final String DISK_OFFERING_CUSTOMIZED_NOT_FOUND ="There is not disk offering customized in the cloud.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread's not able to sleep.";
     }
 
@@ -123,6 +125,8 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
+        public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
+                "The asynchronous public ip request %s is in the state %s.";
     }
 
     public static class Error {
@@ -152,6 +156,8 @@ public class Messages {
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
         public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
+        public static final String ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP =
+                "Error while It was trying to pass to the next step in the asynchronous request instance.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE = "Error while removing volume image: %s, with response: %s.";
         public static final String ERROR_WHILE_UPDATING_NETWORK = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
@@ -180,5 +186,7 @@ public class Messages {
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
+        public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
+                "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
     }
 }

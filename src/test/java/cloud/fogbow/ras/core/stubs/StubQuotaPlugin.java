@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.stubs;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
@@ -14,7 +15,7 @@ public class StubQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
 
     @Override
-    public ResourceQuota getUserQuota(CloudUser cloudUser) {
+    public ResourceQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
         return null;
     }
 }
