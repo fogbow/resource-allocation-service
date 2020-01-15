@@ -193,5 +193,8 @@ public class Messages {
         public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
                 "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
         public static final String ERROR_WHILE_CREATING_AZURE_CLIENT = "Error while creating a new Azure client";
+        public static final String ERROR_ID_LIMIT_SIZE_EXCEEDED =
+                "The resource name exceeded %s characters of the limit";
+        public static final String ERROR_DISK_PARAMETER_AZURE_POLICY = "The disk size must be greater than %sGB";;
     }
 }
