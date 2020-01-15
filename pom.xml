@@ -243,7 +243,27 @@
             <artifactId>jackson-annotations</artifactId>
             <version>2.9.8</version>
         </dependency>
-
+        <!-- Azure -->
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-compute</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-resources</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-network</artifactId>
+            <version>1.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

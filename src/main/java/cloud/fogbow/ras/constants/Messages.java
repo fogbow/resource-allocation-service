@@ -126,6 +126,7 @@ public class Messages {
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
         public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
                 "The asynchronous public ip request %s is in the state %s.";
+        public static final String CREATING_AZURE_CLIENT = "Creating a new Azure client";
     }
 
     public static class Error {
@@ -187,5 +188,6 @@ public class Messages {
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
         public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
                 "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
+        public static final String ERROR_WHILE_CREATING_AZURE_CLIENT = "Error while creating a new Azure client";
     }
 }
