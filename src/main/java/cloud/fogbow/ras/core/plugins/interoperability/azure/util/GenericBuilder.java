@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.lang.annotation.ElementType;
@@ -17,7 +18,8 @@ import java.util.function.Supplier;
 public class GenericBuilder<T> {
 
     private static final Logger LOGGER = Logger.getLogger(GenericBuilder.class);
-    private static final String FIELD_REQUIRED_MESSAGE = "The field %s is required in the class %s.";
+    @VisibleForTesting
+    static final String FIELD_REQUIRED_MESSAGE = "The field %s is required in the class %s.";
     private static final String ILLEGAL_ACCESS_FIELD = "There is an illegal access on field %s";
 
     private final Supplier<T> instantiator;
