@@ -196,5 +196,6 @@ public class Messages {
         public static final String ERROR_ID_LIMIT_SIZE_EXCEEDED =
                 "The resource name exceeded %s characters of the limit";
         public static final String ERROR_DISK_PARAMETER_AZURE_POLICY = "The disk size must be greater than %sGB";;
+        public static final String ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED = "Multiple networks not allowed";
     }
 }

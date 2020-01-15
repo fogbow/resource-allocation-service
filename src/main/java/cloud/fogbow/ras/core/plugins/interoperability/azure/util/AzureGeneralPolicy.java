@@ -7,6 +7,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public class AzureGeneralPolicy {
 
+    public static final int MAXIMUM_NETWORK_PER_VIRTUAL_MACHINE = 1;
     static final int MINIMUM_DISK = 30;
     static final String PASSWORD_PREFIX = "P4ss@";
 
@@ -35,5 +36,6 @@ public class AzureGeneralPolicy {
 
         return disk;
     }
+
 
 }
