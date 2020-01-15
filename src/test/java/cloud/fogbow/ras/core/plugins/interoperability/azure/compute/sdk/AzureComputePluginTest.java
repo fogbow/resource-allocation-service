@@ -301,4 +301,26 @@ public class AzureComputePluginTest extends TestUtils {
         Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses());
     }
 
+    // test case: When calling the deleteInstance method,
+    // it must verify if it calls the method with right parameters.
+    @Test
+    public void testDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        String instanceId = "instanceId";
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(instanceId);
+
+        Mockito.doNothing()
+                .when(this.azureVirtualMachineOperation)
+                .doDeleteInstance(Mockito.any(), Mockito.any());
+
+        // exercise
+        this.azureComputePlugin.deleteInstance(computeOrder, this.azureUser);
+
+        // verify
+        Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser));
+    }
+
+
 }
