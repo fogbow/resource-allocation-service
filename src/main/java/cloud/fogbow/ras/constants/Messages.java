@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.constants;
 
+import java.util.Locale;
+
 public class Messages {
 
     public static class Exception {
@@ -127,6 +129,8 @@ public class Messages {
         public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
                 "The asynchronous public ip request %s is in the state %s.";
         public static final String CREATING_AZURE_CLIENT = "Creating a new Azure client";
+        public static final String SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME =
+                "Seek for the Virtual Machine Size by name %s at region %s";
     }
 
     public static class Error {

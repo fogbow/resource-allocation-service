@@ -1,9 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
+import com.microsoft.azure.management.compute.VirtualMachineSize;
+import com.microsoft.azure.management.compute.VirtualMachineSizes;
 import com.microsoft.azure.management.compute.VirtualMachines;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -88,6 +92,53 @@ public class AzureVirtualMachineSDKTest {
 
         // exercise
         AzureVirtualMachineSDK.getVirtualMachineById(azure, virtualMachineId);
+    }
+
+    // test case: When calling the getVirtualMachineSizes method,
+    // it must verify if It returns a list of virtual machine sizes.
+    @Test
+    public void testGetVirtualMachineSizesSuccessfully() throws Exception {
+        // set up
+        Azure azure = null;
+        Region region = Region.US_EAST;
+
+        VirtualMachines virtualMachineObject = Mockito.mock(VirtualMachines.class);
+        PowerMockito.spy(AzureVirtualMachineSDK.class);
+        VirtualMachineSizes sizes = Mockito.mock(VirtualMachineSizes.class);
+        PagedList<VirtualMachineSize> virtualMachineSizeExpected = Mockito.mock(PagedList.class);
+        Mockito.when(sizes.listByRegion(Mockito.eq(region))).thenReturn(virtualMachineSizeExpected);
+        Mockito.when(virtualMachineObject.sizes()).thenReturn(sizes);
+        PowerMockito.doReturn(virtualMachineObject)
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+
+        // exercise
+        PagedList<VirtualMachineSize> virtualMachineSizes =
+                AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
+
+        // verify
+        Assert.assertEquals(virtualMachineSizeExpected, virtualMachineSizes);
+    }
+
+    // test case: When calling the getVirtualMachineSizes method ant throws an exception,
+    // it must verify if It throws a UnexpectedException.
+    @Test
+    public void testGetVirtualMachineSizesFail() throws Exception {
+        // set up
+        Azure azure = null;
+        Region region = Region.US_EAST;
+
+        String errorMessage = "error";
+        PowerMockito.spy(AzureVirtualMachineSDK.class);
+        PowerMockito.doThrow(new RuntimeException(errorMessage))
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expectMessage(errorMessage);
+
+        // exercise
+        AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
+
     }
 
 }
