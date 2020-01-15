@@ -21,7 +21,7 @@ public class AzureGetVirtualMachineRef {
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     private void setId(String id) {
@@ -29,7 +29,7 @@ public class AzureGetVirtualMachineRef {
     }
 
     public String getCloudState() {
-        return cloudState;
+        return this.cloudState;
     }
 
     private void setCloudState(String cloudState) {
@@ -37,7 +37,7 @@ public class AzureGetVirtualMachineRef {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     private void setName(String name) {
@@ -53,7 +53,7 @@ public class AzureGetVirtualMachineRef {
     }
 
     public int getMemory() {
-        return memory;
+        return this.memory;
     }
 
     private void setMemory(int memory) {
@@ -61,7 +61,7 @@ public class AzureGetVirtualMachineRef {
     }
 
     public int getDisk() {
-        return disk;
+        return this.disk;
     }
 
     private void setDisk(int disk) {
@@ -69,7 +69,7 @@ public class AzureGetVirtualMachineRef {
     }
 
     public List<String> getIpAddresses() {
-        return ipAddresses;
+        return this.ipAddresses;
     }
 
     private void setIpAddresses(List<String> ipAddresses) {
@@ -81,13 +81,13 @@ public class AzureGetVirtualMachineRef {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AzureGetVirtualMachineRef that = (AzureGetVirtualMachineRef) o;
-        return vCPU == that.vCPU &&
-                memory == that.memory &&
-                disk == that.disk &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(cloudState, that.cloudState) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(ipAddresses, that.ipAddresses);
+        return this.vCPU == that.vCPU &&
+                this.memory == that.memory &&
+                this.disk == that.disk &&
+                Objects.equals(this.id, that.id) &&
+                Objects.equals(this.cloudState, that.cloudState) &&
+                Objects.equals(this.name, that.name) &&
+                Objects.equals(this.ipAddresses, that.ipAddresses);
     }
 
     public static class Builder extends GenericBuilder<AzureGetVirtualMachineRef> {
