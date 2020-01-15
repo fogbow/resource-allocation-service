@@ -41,7 +41,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AzureClientCacheManager.class, AzureVirtualMachineSDK.class, AzureNetworkSDK.class})
+@PrepareForTest({AzureClientCacheManager.class, AzureVirtualMachineSDK.class,
+        AzureNetworkSDK.class, AzureVolumeSDK.class})
 public class AzureVirtualMachineOperationSDKTest {
 
     private static final Logger LOGGER_CLASS_MOCK = Logger.getLogger(AzureVirtualMachineOperationSDK.class);
@@ -418,6 +419,205 @@ public class AzureVirtualMachineOperationSDKTest {
                 Mockito.eq(userDataExpected), Mockito.eq(diskSize), Mockito.eq(virtualMachineSizeNameExpected));
     }
 
+    // test case: When calling the doDeleteInstance method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws UnexpectedException,
+            InstanceNotFoundException, UnauthenticatedUserException {
+
+        // set up
+        mockGetAzureClient();
+        String instanceId = "instanceId";
+
+        String completableMessageOne = "completableMessageOne";
+        Completable completableOne = createSimpleCompletableSuccess(completableMessageOne);
+        mockDeleteVirtualMachineCompletable(instanceId, completableOne);
+
+        String completableMessageTwo = "completableMessageOne";
+        Completable completableTwo = createSimpleCompletableSuccess(completableMessageTwo);
+        mockDeleteVirtualMachineDiskCompletable(instanceId, completableTwo);
+
+        // exercise
+        this.azureVirtualMachineOperationSDK.doDeleteInstance(instanceId, this.azureCloudUser);
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.DEBUG, completableMessageOne)
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.DEBUG, completableMessageTwo)
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the doDeleteInstance method and the completable executes
+    // with error in the delete virtual machine, it must verify if It returns the right logs and
+    // does not execute the delete virtual machine disk.
+    @Test
+    public void testDoDeleteInstanceFailOnVirtualMachineDeletion() throws UnexpectedException,
+            InstanceNotFoundException, UnauthenticatedUserException {
+
+        // set up
+        mockGetAzureClient();
+        String instanceId = "instanceId";
+
+        String completableMessageOne = "completableMessageOne";
+        Completable completableOne = createSimpleCompletableFail(completableMessageOne);
+        mockDeleteVirtualMachineCompletable(instanceId, completableOne);
+
+        String completableMessageTwo = "completableMessageOne";
+        Completable completableTwo = createSimpleCompletableSuccess(completableMessageTwo);
+        mockDeleteVirtualMachineDiskCompletable(instanceId, completableTwo);
+
+        // exercise
+        this.azureVirtualMachineOperationSDK.doDeleteInstance(instanceId, this.azureCloudUser);
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.DEBUG, completableMessageOne)
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR)
+                .verifyLogEnd();
+    }
+
+    // test case: When calling the doDeleteInstance method and the completable executes
+    // with error in the delete virtual machine disk, it must verify if It returns the right logs.
+    @Test
+    public void testDoDeleteInstanceFailOnVirtualMachineDiskDeletion() throws UnexpectedException,
+            InstanceNotFoundException, UnauthenticatedUserException {
+
+        // set up
+        mockGetAzureClient();
+        String instanceId = "instanceId";
+
+        String completableMessageOne = "completableMessageOne";
+        Completable completableOne = createSimpleCompletableSuccess(completableMessageOne);
+        mockDeleteVirtualMachineCompletable(instanceId, completableOne);
+
+        String completableMessageTwo = "completableMessageOne";
+        Completable completableTwo = createSimpleCompletableFail(completableMessageTwo);
+        mockDeleteVirtualMachineDiskCompletable(instanceId, completableTwo);
+
+        // exercise
+        this.azureVirtualMachineOperationSDK.doDeleteInstance(instanceId, this.azureCloudUser);
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.DEBUG, completableMessageOne)
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.DEBUG, completableMessageTwo)
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR)
+                .verifyLogEnd();
+    }
+
+
+    // test case: When calling the buildDeleteVirtualMachineDiskCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualMachineDiskCompletableSuccessfully()
+            throws UnexpectedException, InstanceNotFoundException {
+
+        // set up
+        String instanceId = "instanceId";
+        String compĺetableMessage = "compĺetableMessage";
+        Completable simpleCompletableSuccess = createSimpleCompletableSuccess(compĺetableMessage);
+        mockDeleteVirtualMachineDiskCompletable(instanceId, simpleCompletableSuccess);
+
+        // exercise
+        Completable completable = this.azureVirtualMachineOperationSDK.buildDeleteVirtualMachineDiskCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.DEBUG, compĺetableMessage)
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteVirtualMachineDiskCompletable method and the completable executes
+    // with error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualMachineDiskCompletableFail()
+            throws UnexpectedException, InstanceNotFoundException {
+
+        // set up
+        String instanceId = "instanceId";
+        Completable simpleCompletableFail = createSimpleCompletableFail();
+        mockDeleteVirtualMachineDiskCompletable(instanceId, simpleCompletableFail);
+
+        // exercise
+        Completable completable = this.azureVirtualMachineOperationSDK.buildDeleteVirtualMachineDiskCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteVirtualMachineDiskCompletable method and throws a exception because
+    // it does not found the disk, it must verify if It throws a InstanceNotFoundException.
+    @Test
+    public void testBuildDeleteVirtualMachineDiskCompletableFailWhenNotFindDisk()
+            throws UnexpectedException, InstanceNotFoundException {
+
+        // set up
+        String instanceId = "instanceId";
+
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(null);
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineById(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualMachineOptional);
+
+        // verify
+        this.expectedException.expect(InstanceNotFoundException.class);
+
+        // exercise
+        this.azureVirtualMachineOperationSDK.buildDeleteVirtualMachineDiskCompletable(this.azure, instanceId);
+    }
+
+    // test case: When calling the buildDeleteVirtualMachineCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualMachineCompletableSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+        Completable virtualMachineCompletableSuccess = createSimpleCompletableSuccess();
+
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        PowerMockito.when(AzureVirtualMachineSDK
+                .buildDeleteVirtualMachineCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualMachineCompletableSuccess);
+
+        // exercise
+        Completable completable = this.azureVirtualMachineOperationSDK
+                .buildDeleteVirtualMachineCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteVirtualMachineCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualMachineCompletableFail() {
+        // set up
+        String instanceId = "instanceId";
+
+        Completable virtualMachineCompletableFail = createSimpleCompletableFail();
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        PowerMockito.when(AzureVirtualMachineSDK
+                .buildDeleteVirtualMachineCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualMachineCompletableFail);
+
+        // exercise
+        Completable completable = this.azureVirtualMachineOperationSDK
+                .buildDeleteVirtualMachineCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
+    }
+
+
     private PagedList<VirtualMachineSize> getVirtualMachineSizesMock() {
         return new PagedList<VirtualMachineSize>() {
             @Override
@@ -494,6 +694,29 @@ public class AzureVirtualMachineOperationSDKTest {
         Mockito.when(virtualMachineSize.numberOfCores()).thenReturn(vcpu);
         Mockito.when(virtualMachineSize.name()).thenReturn(name);
         return virtualMachineSize;
+    }
+
+    private void mockDeleteVirtualMachineDiskCompletable(String instanceId, Completable deleteDiskCompletable)
+            throws UnexpectedException {
+
+        VirtualMachine virtalMachine = Mockito.mock(VirtualMachine.class);
+        String osDiskId = "osDiskId";
+        Mockito.when(virtalMachine.osDiskId()).thenReturn(osDiskId);
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtalMachine);
+        PowerMockito.when(AzureVirtualMachineSDK
+                .getVirtualMachineById(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualMachineOptional);
+
+        PowerMockito.mockStatic(AzureVolumeSDK.class);
+        PowerMockito.when(AzureVolumeSDK
+                .buildDeleteDiskCompletable(Mockito.eq(this.azure), Mockito.eq(osDiskId)))
+                .thenReturn(deleteDiskCompletable);
+    }
+
+    private void mockDeleteVirtualMachineCompletable(String instanceId, Completable deleteVMCompletable) {
+        PowerMockito.when(AzureVirtualMachineSDK.buildDeleteVirtualMachineCompletable(
+                Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(deleteVMCompletable);
     }
 
 }

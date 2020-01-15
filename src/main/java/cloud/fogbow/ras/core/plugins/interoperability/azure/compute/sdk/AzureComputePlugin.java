@@ -149,8 +149,13 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @Override
-    public void deleteInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+    public void deleteInstance(ComputeOrder computeOrder, AzureUser azureCloudUser)
+            throws FogbowException {
 
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
+
+        String azureVirtualMachineId = computeOrder.getInstanceId();
+        this.azureVirtualMachineOperation.doDeleteInstance(azureVirtualMachineId, azureCloudUser);
     }
 
     @VisibleForTesting

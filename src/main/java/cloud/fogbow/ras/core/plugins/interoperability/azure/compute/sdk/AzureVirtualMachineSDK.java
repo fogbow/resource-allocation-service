@@ -11,6 +11,7 @@ import com.microsoft.azure.management.compute.VirtualMachines;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import rx.Completable;
 import rx.Observable;
 
 import java.util.Optional;
@@ -73,6 +74,10 @@ public class AzureVirtualMachineSDK {
         } catch (RuntimeException e) {
             throw new UnexpectedException(e.getMessage(), e);
         }
+    }
+
+    static Completable buildDeleteVirtualMachineCompletable(Azure azure, String virtualMachineId) {
+        return azure.virtualMachines().deleteByIdAsync(virtualMachineId);
     }
 
     @VisibleForTesting

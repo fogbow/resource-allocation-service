@@ -21,6 +21,7 @@ import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.apache.log4j.Logger;
+import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
@@ -176,6 +177,63 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
                 .filter((virtualMachineSize) -> virtualMachineSizeNameWanted.equals(virtualMachineSize.name()))
                 .findFirst()
                 .orElseThrow(() -> new NoAvailableResourcesException());
+    }
+
+    /**
+     * Delete asynchronously because this operation takes a long time to finish.
+     */
+    @Override
+    public void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser)
+            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
+
+        Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
+
+        Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
+        Completable secondDeleteVirtualMachineDisk = buildDeleteVirtualMachineDiskCompletable(azure, azureInstanceId);
+
+        Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+    }
+
+    @VisibleForTesting
+    Completable buildDeleteVirtualMachineDiskCompletable(Azure azure, String azureInstanceId)
+            throws InstanceNotFoundException, UnexpectedException {
+
+        VirtualMachine virtualMachine = AzureVirtualMachineSDK
+                .getVirtualMachineById(azure, azureInstanceId)
+                .orElseThrow(InstanceNotFoundException::new);
+        String osDiskId = virtualMachine.osDiskId();
+        Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);
+
+        return setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
+    }
+
+    @VisibleForTesting
+    Completable buildDeleteVirtualMachineCompletable(Azure azure, String azureInstanceId) {
+        Completable deleteVirtualMachine = AzureVirtualMachineSDK
+                .buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
+        return setDeleteVirtualMachineBehaviour(deleteVirtualMachine);
+    }
+
+    private Completable setDeleteVirtualMachineDiskBehaviour(Completable deleteVirutalMachineDisk) {
+        return deleteVirutalMachineDisk
+                .doOnError((error -> {
+                    LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+                }))
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+                });
+    }
+
+    private Completable setDeleteVirtualMachineBehaviour(Completable deleteVirtualMachineCompletable) {
+        return deleteVirtualMachineCompletable
+                .doOnError((error -> {
+                    LOGGER.error(Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR, error);
+                }))
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR);
+                });
     }
 
     @VisibleForTesting
