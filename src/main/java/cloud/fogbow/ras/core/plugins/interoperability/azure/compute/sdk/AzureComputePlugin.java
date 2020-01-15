@@ -12,24 +12,25 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtual
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
+import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.List;
 import java.util.Properties;
 
-import static software.amazon.awssdk.regions.internal.util.EC2MetadataUtils.getUserData;
-
 public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
 
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
+    private final DefaultLaunchCommandGenerator launchCommandGenerator;
     private final String defaultNetworkInterfaceName;
 
     public AzureComputePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultNetworkInterfaceName = properties.getProperty(AzureConstants.DEFAULT_NETWORK_INTERFACE_NAME_KEY);
+        this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK();
     }
 
@@ -54,7 +55,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                 .buildAzureVirtualMachineImageBy(computeOrder.getImageId());
         String virtualMachineName = AzureInstancePolicy
                 .generateAzureResourceNameBy(computeOrder, azureUser);
-        String userData = getUserData();
+        String userData = getUserData(computeOrder);
         String osUserName = computeOrder.getId();
         String osUserPassword = AzureGeneralPolicy.generatePassword();
         String osComputeName = computeOrder.getId();
@@ -76,6 +77,11 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                 .checkAndBuild();
 
         return doRequestInstance(computeOrder, azureUser, azureCreateVirtualMachineRef);
+    }
+
+    @VisibleForTesting
+    String getUserData(ComputeOrder computeOrder) {
+        return this.launchCommandGenerator.createLaunchCommand(computeOrder);
     }
 
     @VisibleForTesting
