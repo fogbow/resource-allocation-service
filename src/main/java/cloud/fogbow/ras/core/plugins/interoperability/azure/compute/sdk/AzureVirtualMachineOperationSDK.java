@@ -48,7 +48,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     @Override
     public void doCreateInstance(AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
                                  AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, InstanceNotFoundException {
+            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
 
@@ -61,10 +61,12 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     @VisibleForTesting
     Observable<Indexable> buildAzureVirtualMachineObservable(
             AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
-            Azure azure) throws InstanceNotFoundException {
+            Azure azure) throws InstanceNotFoundException, UnexpectedException {
 
         String networkInterfaceId = azureCreateVirtualMachineRef.getNetworkInterfaceId();
-        NetworkInterface networkInterface = AzureNetworkSDK.getNetworkInterface(azure, networkInterfaceId);
+        NetworkInterface networkInterface = AzureNetworkSDK
+                .getNetworkInterface(azure, networkInterfaceId)
+                .orElseThrow(InstanceNotFoundException::new);
         String resourceGroupName = azureCreateVirtualMachineRef.getResourceGroupName();
         String regionName = azureCreateVirtualMachineRef.getRegionName();
         String virtualMachineName = azureCreateVirtualMachineRef.getVirtualMachineName();

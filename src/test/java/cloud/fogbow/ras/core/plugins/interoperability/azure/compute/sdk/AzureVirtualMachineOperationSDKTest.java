@@ -339,7 +339,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the doCreateInstance method, it must verify if It finishes without error.
     @Test
     public void testDoCreateInstanceSuccessfully()
-            throws UnauthenticatedUserException, InstanceNotFoundException {
+            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
 
         // set up
         mockGetAzureClient();
@@ -364,7 +364,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the buildAzureVirtualMachineObservable method, it must verify if
     // It calls the method with the right parameters.
     @Test
-    public void testBuildAzureVirtualMachineObservable() throws InvalidParameterException, InstanceNotFoundException {
+    public void testBuildAzureVirtualMachineObservable() throws InvalidParameterException, InstanceNotFoundException, UnexpectedException {
         // set up
         String imagePublishedExpected = "publisher";
         String imageSkuExpected = "sku";
@@ -398,9 +398,10 @@ public class AzureVirtualMachineOperationSDKTest {
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
         NetworkInterface networkInterfaceExcepted = Mockito.mock(NetworkInterface.class);
+        Optional<NetworkInterface> networkInterfaceExceptedOptional = Optional.ofNullable(networkInterfaceExcepted);
         PowerMockito.when(AzureNetworkSDK
                 .getNetworkInterface(Mockito.eq(this.azure), Mockito.eq(networkInterfaceIdExpected)))
-                .thenReturn(networkInterfaceExcepted);
+                .thenReturn(networkInterfaceExceptedOptional);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
         Region regionExpected = Region.fromName(regionNameExpected);
