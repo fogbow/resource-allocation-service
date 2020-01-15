@@ -2,22 +2,30 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureGetVirtualMachineRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureIdBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.List;
+import java.util.Properties;
 
 public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
 
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
+
+    public AzureComputePlugin(String confFilePath) {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK();
+    }
 
     @Override
     public boolean isReady(String instanceState) {
@@ -30,7 +38,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, AzureUser cloudUser) throws FogbowException {
+    public String requestInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
         return null;
     }
 
@@ -63,8 +71,13 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @Override
-    public void deleteInstance(ComputeOrder computeOrder, AzureUser cloudUser) throws FogbowException {
+    public void deleteInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
 
+    }
+
+    @VisibleForTesting
+    void setAzureVirtualMachineOperation(AzureVirtualMachineOperation azureVirtualMachineOperation) {
+        this.azureVirtualMachineOperation = azureVirtualMachineOperation;
     }
 
 }

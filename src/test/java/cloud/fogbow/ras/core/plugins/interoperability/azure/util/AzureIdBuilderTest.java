@@ -12,7 +12,7 @@ public class AzureIdBuilderTest {
 
     @Before
     public void setUp() {
-        this.azureUser = AzureTestUtils.createAzureCloudUser();
+        this.azureUser = AzureTestUtils.createAzureUser();
     }
 
     // test case: When calling the buildVirtualMachineId method, it must verify if

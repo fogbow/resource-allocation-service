@@ -29,7 +29,7 @@ public class AzureClientCacheManagerTest {
 
     @Before
     public void setUp() {
-        this.azureUser = AzureTestUtils.createAzureCloudUser();
+        this.azureUser = AzureTestUtils.createAzureUser();
     }
 
     // test case: When calling the getAzure method and throws an exception,

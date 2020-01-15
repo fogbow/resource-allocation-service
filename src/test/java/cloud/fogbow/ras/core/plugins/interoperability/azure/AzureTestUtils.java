@@ -5,11 +5,12 @@ import org.mockito.Mockito;
 
 public class AzureTestUtils {
 
+    public static final String AZURE_CLOUD_NAME = "azure";
     private static final String SUBSCRIPTION_ID_DEFAULT = "subscriptionId";
     private static final String RESOURCE_GROUP_NAME_DEFAULT = "resourceGroupName";
     private static final String REGION_NAME_DEFAULT = "regionName";
 
-    public static AzureUser createAzureCloudUser() {
+    public static AzureUser createAzureUser() {
         AzureUser azureUser = Mockito.mock(AzureUser.class);
         Mockito.when(azureUser.getSubscriptionId()).thenReturn(SUBSCRIPTION_ID_DEFAULT);
         Mockito.when(azureUser.getRegionName()).thenReturn(REGION_NAME_DEFAULT);
