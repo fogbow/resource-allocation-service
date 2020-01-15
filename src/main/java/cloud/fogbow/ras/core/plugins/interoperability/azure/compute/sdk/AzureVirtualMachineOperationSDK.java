@@ -98,11 +98,11 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     private Observable<Indexable> setCreateVirtualMachineBehaviour(Observable<Indexable> virtualMachineObservable) {
         return virtualMachineObservable
                 .onErrorReturn((error -> {
-                    LOGGER.error(Messages.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
+                    LOGGER.error(Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
                     return null;
                 }))
                 .doOnCompleted(() -> {
-                    LOGGER.info(Messages.END_CREATE_VM_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
                 });
     }
 
@@ -112,7 +112,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
             throws UnauthenticatedUserException, NoAvailableResourcesException,
             UnexpectedException {
 
-        LOGGER.debug(String.format(Messages.SEEK_VIRTUAL_MACHINE_SIZE_NAME, memoryRequired, vCpuRequired, regionName));
+        LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_NAME, memoryRequired, vCpuRequired, regionName));
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
 
         Region region = Region.findByLabelOrName(regionName);
@@ -176,6 +176,11 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
                 .filter((virtualMachineSize) -> virtualMachineSizeNameWanted.equals(virtualMachineSize.name()))
                 .findFirst()
                 .orElseThrow(() -> new NoAvailableResourcesException());
+    }
+
+    @VisibleForTesting
+    void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
 }
