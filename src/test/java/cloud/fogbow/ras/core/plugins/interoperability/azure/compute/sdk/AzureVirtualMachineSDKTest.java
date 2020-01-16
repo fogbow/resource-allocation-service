@@ -318,7 +318,6 @@ public class AzureVirtualMachineSDKTest {
 
         // exercise
         AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
-
     }
 
     private void checkBuildVirtualMachineObservable(String imageReference, String osUserName, String osUserPassword, String osComputeName,
