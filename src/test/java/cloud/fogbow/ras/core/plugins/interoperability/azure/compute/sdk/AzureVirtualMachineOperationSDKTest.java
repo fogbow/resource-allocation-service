@@ -108,7 +108,7 @@ public class AzureVirtualMachineOperationSDKTest {
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
         Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtualMachine);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineById(
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachine(
                 Mockito.eq(this.azure), Mockito.eq(instanceId)))
                 .thenReturn(virtualMachineOptional);
 
@@ -141,7 +141,7 @@ public class AzureVirtualMachineOperationSDKTest {
         String instanceId = "instanceId";
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineById(
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachine(
                 Mockito.eq(this.azure), Mockito.eq(instanceId)))
                 .thenThrow(new UnexpectedException());
 
@@ -564,7 +564,7 @@ public class AzureVirtualMachineOperationSDKTest {
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
         Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(null);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineById(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachine(Mockito.eq(this.azure), Mockito.eq(instanceId)))
                 .thenReturn(virtualMachineOptional);
 
         // verify
@@ -707,7 +707,7 @@ public class AzureVirtualMachineOperationSDKTest {
         Mockito.when(virtalMachine.osDiskId()).thenReturn(osDiskId);
         Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtalMachine);
         PowerMockito.when(AzureVirtualMachineSDK
-                .getVirtualMachineById(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .getVirtualMachine(Mockito.eq(this.azure), Mockito.eq(instanceId)))
                 .thenReturn(virtualMachineOptional);
 
         PowerMockito.mockStatic(AzureVolumeSDK.class);

@@ -145,7 +145,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
 
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
-                .getVirtualMachineById(azure, azureInstanceId)
+                .getVirtualMachine(azure, azureInstanceId)
                 .orElseThrow(InstanceNotFoundException::new);
         String virtualMachineSizeName = virtualMachine.size().toString();
         String cloudState = virtualMachine.provisioningState();
@@ -205,7 +205,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
             throws InstanceNotFoundException, UnexpectedException {
 
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
-                .getVirtualMachineById(azure, azureInstanceId)
+                .getVirtualMachine(azure, azureInstanceId)
                 .orElseThrow(InstanceNotFoundException::new);
         String osDiskId = virtualMachine.osDiskId();
         Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);

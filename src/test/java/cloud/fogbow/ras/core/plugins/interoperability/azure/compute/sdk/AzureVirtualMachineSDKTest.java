@@ -207,10 +207,10 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertFalse(containsWindows);
     }
 
-    // test case: When calling the getVirtualMachineById method and finds a virtual machine,
+    // test case: When calling the getVirtualMachine method and finds a virtual machine,
     // it must verify if It returns a Optional with a virtual machine.
     @Test
-    public void testGetVirtualMachineByIdSuccessfullyWhenFindVirtualMachine() throws Exception {
+    public void testGetVirtualMachineSuccessfullyWhenFindVirtualMachine() throws Exception {
         // set up
         Azure azure = null;
         String virtualMachineId = "virtualMachineId";
@@ -224,17 +224,17 @@ public class AzureVirtualMachineSDKTest {
 
         // exercise
         Optional<VirtualMachine> virtualMachineOptional =
-                AzureVirtualMachineSDK.getVirtualMachineById(azure, virtualMachineId);
+                AzureVirtualMachineSDK.getVirtualMachine(azure, virtualMachineId);
 
         // verify
         Assert.assertTrue(virtualMachineOptional.isPresent());
         Assert.assertEquals(virtualMachine, virtualMachineOptional.get());
     }
 
-    // test case: When calling the getVirtualMachineById method and do not find a virtual machine,
+    // test case: When calling the getVirtualMachine method and do not find a virtual machine,
     // it must verify if It returns a Optional with a virtual machine.
     @Test
-    public void testGetVirtualMachineByIdSuccessfullyWhenNotFindVirtualMachine() throws Exception {
+    public void testGetVirtualMachineSuccessfullyWhenNotFindVirtualMachine() throws Exception {
         // set up
         Azure azure = null;
         String virtualMachineId = "virtualMachineId";
@@ -248,16 +248,16 @@ public class AzureVirtualMachineSDKTest {
 
         // exercise
         Optional<VirtualMachine> virtualMachineOptional =
-                AzureVirtualMachineSDK.getVirtualMachineById(azure, virtualMachineId);
+                AzureVirtualMachineSDK.getVirtualMachine(azure, virtualMachineId);
 
         // verify
         Assert.assertFalse(virtualMachineOptional.isPresent());
     }
 
-    // test case: When calling the getVirtualMachineById method and throws any exception,
+    // test case: When calling the getVirtualMachine method and throws any exception,
     // it must verify if It throws an UnexpectedException.
     @Test
-    public void testGetVirtualMachineByIdFail() throws Exception {
+    public void testGetVirtualMachineFail() throws Exception {
         // set up
         Azure azure = null;
         String virtualMachineId = "virtualMachineId";
@@ -271,7 +271,7 @@ public class AzureVirtualMachineSDKTest {
         this.expectedException.expectMessage(errorMessage);
 
         // exercise
-        AzureVirtualMachineSDK.getVirtualMachineById(azure, virtualMachineId);
+        AzureVirtualMachineSDK.getVirtualMachine(azure, virtualMachineId);
     }
 
     // test case: When calling the getVirtualMachineSizes method,
