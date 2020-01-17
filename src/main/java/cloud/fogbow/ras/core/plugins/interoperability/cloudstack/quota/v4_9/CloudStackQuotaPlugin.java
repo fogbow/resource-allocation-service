@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
@@ -8,6 +9,8 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import org.apache.http.client.HttpResponseException;
@@ -54,7 +57,25 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     private ResourceAllocation getUsedQuota(CloudStackUser cloudUser) throws FogbowException {
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = getVirtualMachines(cloudUser);
         List<GetVolumeResponse.Volume> volumes = getVolumes(cloudUser);
-        return getUsedAllocation(virtualMachines, volumes);
+        List<GetNetworkResponse.Network> networks = getNetworks(cloudUser);
+        return getUsedAllocation(virtualMachines, volumes, networks);
+    }
+
+    private List<GetNetworkResponse.Network> getNetworks(CloudStackUser cloudUser) throws FogbowException {
+        GetNetworkRequest request = new GetNetworkRequest.Builder().build(this.cloudStackUrl);
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+
+        String networkJsonResponse;
+        GetNetworkResponse response = null;
+
+        try {
+            networkJsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            response = GetNetworkResponse.fromJson(networkJsonResponse);
+        } catch (HttpResponseException e) {
+            e.printStackTrace();
+        }
+
+        return response.getNetworks();
     }
 
     private ResourceAllocation getTotalQuota(CloudStackUser cloudUser) throws FogbowException {
@@ -114,13 +135,13 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
 
-    private ResourceAllocation getUsedAllocation(List<GetVirtualMachineResponse.VirtualMachine> vms, List<GetVolumeResponse.Volume> volumes) {
+    private ResourceAllocation getUsedAllocation(List<GetVirtualMachineResponse.VirtualMachine> vms, List<GetVolumeResponse.Volume> volumes, List<GetNetworkResponse.Network> networks) {
         int usedCores = 0;
         int usedRam = 0;
         int usedInstances = vms.size();
         long usedDisk = 0;
         int usedPublicIps = 0;
-        int usedNetworks = 0;
+        int usedNetworks = networks.size();
 
         for (GetVirtualMachineResponse.VirtualMachine vm : vms) {
             usedCores += vm.getCpuNumber();
