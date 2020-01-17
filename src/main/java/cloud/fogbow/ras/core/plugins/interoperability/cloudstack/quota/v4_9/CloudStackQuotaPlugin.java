@@ -22,6 +22,7 @@ import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -58,7 +59,26 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = getVirtualMachines(cloudUser);
         List<GetVolumeResponse.Volume> volumes = getVolumes(cloudUser);
         List<GetNetworkResponse.Network> networks = getNetworks(cloudUser);
-        return getUsedAllocation(virtualMachines, volumes, networks);
+        List<ListPublicIpAddressResponse.PublicIpAddress> publicIps = getPublicIps(cloudUser);
+        return getUsedAllocation(virtualMachines, volumes, networks, publicIps);
+    }
+
+    private List<ListPublicIpAddressResponse.PublicIpAddress> getPublicIps(CloudStackUser cloudUser) throws FogbowException {
+        ListPublicIpAddressRequest request = new ListPublicIpAddressRequest.Builder().build(this.cloudStackUrl);
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
+
+        String jsonResponse;
+        ListPublicIpAddressResponse response = null;
+
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudUser);
+            response = ListPublicIpAddressResponse.fromJson(jsonResponse);
+        } catch (HttpResponseException e) {
+            e.printStackTrace();
+        }
+
+        List<ListPublicIpAddressResponse.PublicIpAddress> publicIps = response.getPublicIpAddresses();
+        return publicIps;
     }
 
     private List<GetNetworkResponse.Network> getNetworks(CloudStackUser cloudUser) throws FogbowException {
@@ -135,12 +155,12 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
 
-    private ResourceAllocation getUsedAllocation(List<GetVirtualMachineResponse.VirtualMachine> vms, List<GetVolumeResponse.Volume> volumes, List<GetNetworkResponse.Network> networks) {
+    private ResourceAllocation getUsedAllocation(List<GetVirtualMachineResponse.VirtualMachine> vms, List<GetVolumeResponse.Volume> volumes, List<GetNetworkResponse.Network> networks, List<ListPublicIpAddressResponse.PublicIpAddress> publicIps) {
         int usedCores = 0;
         int usedRam = 0;
         int usedInstances = vms.size();
         long usedDisk = 0;
-        int usedPublicIps = 0;
+        int usedPublicIps = publicIps.size();
         int usedNetworks = networks.size();
 
         for (GetVirtualMachineResponse.VirtualMachine vm : vms) {
