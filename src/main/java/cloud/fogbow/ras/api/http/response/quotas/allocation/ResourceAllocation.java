@@ -62,6 +62,21 @@ public class ResourceAllocation extends Allocation {
         return new ResourceAllocation.Builder();
     }
     
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ResourceAllocation that = (ResourceAllocation) o;
+        return instances == that.instances 
+                && vCPU == that.vCPU 
+                && ram == that.ram 
+                && disk == that.disk
+                && networks == that.networks 
+                && publicIps == that.publicIps;
+    }
+    
     public static class Builder {
         private int instances;
         private int vCPU;

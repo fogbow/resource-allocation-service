@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.api.http.response.quotas;
 
+import java.util.Objects;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
@@ -30,6 +32,18 @@ public class ResourceQuota extends Quota {
     @Override
     public Allocation getAvailableQuota() {
         return this.availableQuota;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ResourceQuota that = (ResourceQuota) o;
+        return Objects.equals(totalQuota, that.totalQuota) 
+                && Objects.equals(usedQuota, that.usedQuota)
+                && Objects.equals(availableQuota, that.availableQuota);
     }
 
     @Override
