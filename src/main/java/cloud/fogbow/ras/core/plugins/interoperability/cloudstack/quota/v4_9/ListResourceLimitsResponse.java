@@ -4,6 +4,7 @@ import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+import java.util.Objects;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Quota.*;
 
@@ -54,6 +55,15 @@ public class ListResourceLimitsResponse {
         @SerializedName(MAX_KEY_JSON)
         private int max;
 
+        public ResourceLimit(String resourceType, String domainId, int max) {
+            this.resourceType = resourceType;
+            this.domainId = domainId;
+            this.max = max;
+        }
+
+        public ResourceLimit() {
+        }
+
         public String getResourceType() {
             return resourceType;
         }
@@ -64,6 +74,21 @@ public class ListResourceLimitsResponse {
 
         public int getMax() {
             return max;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ResourceLimit that = (ResourceLimit) o;
+            return max == that.max &&
+                    resourceType.equals(that.resourceType) &&
+                    domainId.equals(that.domainId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(resourceType, domainId, max);
         }
     }
 }
