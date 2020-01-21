@@ -387,6 +387,8 @@ public class LocalCloudConnector implements CloudConnector {
 
     protected Quota doGetUserQuota(CloudUser token, ResourceType resourceType) throws FogbowException {
         switch (resourceType) {
+            // FIXME(pauloewerton): this test is going to be obsolete as soon as we finish implementing the new quota
+            // plugins and should it be removed in the future.
             case COMPUTE:
                 ComputeQuota userQuota = this.computeQuotaPlugin.getUserQuota(token);
                 return userQuota;

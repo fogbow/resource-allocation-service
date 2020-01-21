@@ -18,5 +18,4 @@ public class StubQuotaPlugin implements QuotaPlugin<CloudUser> {
     public ResourceQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
         return null;
     }
-
 }
