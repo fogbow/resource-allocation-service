@@ -67,4 +67,8 @@ public class VolumeOrder extends Order<VolumeOrder> {
     @Override
     public void updateFromRemote(VolumeOrder remoteOrder) {
     }
+
+    public VolumeAllocation getActualAllocation() {
+        return this.actualAllocation;
+    }
 }

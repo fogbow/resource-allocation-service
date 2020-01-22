@@ -66,4 +66,8 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
     @Override
     public void updateFromRemote(PublicIpOrder remoteOrder) {
     }
+
+    public PublicIpAllocation getActualAllocation() {
+        return actualAllocation;
+    }
 }
