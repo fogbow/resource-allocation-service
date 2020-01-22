@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
@@ -189,6 +191,48 @@ public class VolumeTest {
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Assert.assertEquals(fakeVolumeAllocation.getDisk(), resultComputeAllocation.getDisk());
+    }
+
+    // test case: Request the user allocation with unauthenticated user. Check the response of request
+    // and the call of facade for get the user allocation.
+    @Test
+    public void testGetUserAllocationUnauthenticatedException() throws Exception {
+        // set up
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getVolumeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        final String ALLOCATION_ENDPOINT = VOLUME_END_POINT + "/" + Volume.ALLOCATION_SUFFIX_ENDPOINT;
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        // verify
+        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
+
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getVolumeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+    }
+
+    // test case: Request the user allocation with unauthorized user. Check the response of request
+    // and the call of facade for get the user allocation.
+    @Test
+    public void testGetUserAllocationUnauthorizedException() throws Exception {
+        // set up
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getVolumeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        final String ALLOCATION_ENDPOINT = VOLUME_END_POINT + "/" + Volume.ALLOCATION_SUFFIX_ENDPOINT;
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        // verify
+        int expectedStatus = HttpStatus.FORBIDDEN.value();
+
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getVolumeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
