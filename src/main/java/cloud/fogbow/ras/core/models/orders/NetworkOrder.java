@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -35,6 +36,9 @@ public class NetworkOrder extends Order<NetworkOrder> {
     @Column
     @Enumerated(EnumType.STRING)
     private NetworkAllocationMode allocationMode;
+
+    @Embedded
+    private NetworkAllocation actualAllocation;
 
     public NetworkOrder() {
         this(UUID.randomUUID().toString());

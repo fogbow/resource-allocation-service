@@ -1,14 +1,12 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.UUID;
 
@@ -23,6 +21,9 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
     @Size(max = Order.ID_FIXED_SIZE)
     @Column
     private String computeOrderId;
+
+    @Embedded
+    private PublicIpAllocation actualAllocation;
 
     public PublicIpOrder() {
         this(UUID.randomUUID().toString());
