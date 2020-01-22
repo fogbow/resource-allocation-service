@@ -23,6 +23,7 @@ import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
@@ -482,6 +483,35 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(expectedValue, allocation.getvCPU());
     }
     
+    // test case: Tests if the getUserAllocation method returns the
+    // VolumeAllocation properly.
+    @Test
+    public void testGetUserAllocationToVolumeResourceType() throws UnexpectedException {
+        // set up
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        VolumeOrder volumeOrder1 = createFulfilledVolumeOrder(systemUser);
+        volumeOrder1.setActualAllocation(new VolumeAllocation(1));
+
+        VolumeOrder volumeOrder2 = createFulfilledVolumeOrder(systemUser);
+        volumeOrder2.setActualAllocation(new VolumeAllocation(1));
+
+        this.activeOrdersMap.put(volumeOrder1.getId(), volumeOrder1);
+        this.activeOrdersMap.put(volumeOrder2.getId(), volumeOrder2);
+
+        this.fulfilledOrdersList.addItem(volumeOrder1);
+        this.fulfilledOrdersList.addItem(volumeOrder2);
+
+        int expectedValue = 2;
+
+        // exercise
+        VolumeAllocation allocation = (VolumeAllocation) this.ordersController
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.VOLUME);
+
+        // verify
+        Assert.assertEquals(expectedValue, allocation.getDisk());
+    }
+    
     // test case: Tests if the getUserAllocation method throws an Exception for an
     // Order with the ResourceType not implemented.
     @Test(expected = UnexpectedException.class)
@@ -635,6 +665,15 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrderWithInvalidId() throws InstanceNotFoundException {
         // exercise
         this.ordersController.getOrder(INVALID_ORDER_ID);
+    }
+    
+    private VolumeOrder createFulfilledVolumeOrder(SystemUser systemUser) throws UnexpectedException {
+        VolumeOrder volumeOrder = new VolumeOrder();
+        volumeOrder.setSystemUser(systemUser);
+        volumeOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
+        volumeOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        return volumeOrder;
     }
     
     private NetworkOrder createFulfilledNetworkOrder(SystemUser systemUser) throws UnexpectedException {
