@@ -6,6 +6,7 @@ import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -33,6 +34,8 @@ public class Network {
 
     public static final String SECURITY_RULES_SUFFIX_ENDPOINT = "securityRules";
     public static final String SECURITY_RULE_NAME = "security rule";
+    public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
+    private static final String NETWORK_ALLOCATION_RESOURCE = "network allocation";
 
     private final Logger LOGGER = Logger.getLogger(Network.class);
 
@@ -170,6 +173,28 @@ public class Network {
             ApplicationFacade.getInstance().deleteSecurityRule(networkId, ruleId, systemUserToken,
                     ResourceType.NETWORK);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
+    @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    public ResponseEntity<NetworkAllocation> getUserAllocation(
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_RESOURCE_S_REQUEST, NETWORK_ALLOCATION_RESOURCE, providerId));
+            NetworkAllocation networkAllocation =
+                    ApplicationFacade.getInstance().getNetworkAllocation(providerId, cloudName, systemUserToken);
+            return new ResponseEntity<>(networkAllocation, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
