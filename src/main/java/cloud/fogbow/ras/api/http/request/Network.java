@@ -179,7 +179,7 @@ public class Network {
         }
     }
 
-    @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
+    @ApiOperation(value = ApiDocumentation.Network.GET_ALLOCATION)
     @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<NetworkAllocation> getUserAllocation(
             @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
