@@ -111,6 +111,9 @@ public class Compute {
         }
     }
 
+    // TODO(pauloewerton): this endpoint is deprecated and should be removed soon. user should be using the /ras/quota
+    // endpoint. keeping it for now until the remaining quota plugins are implemented.
+    @Deprecated
     @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
     @RequestMapping(value = "/" + QUOTA_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(

@@ -25,12 +25,12 @@ import static cloud.fogbow.common.constants.OpenStackConstants.Quota.*;
  * }
  * }
  */
-public class GetQuotaResponse {
+public class GetComputeQuotasResponse {
     @SerializedName(LIMITS_KEY_JSON)
     private Limits limits;
 
-    public static GetQuotaResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetQuotaResponse.class);
+    public static GetComputeQuotasResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetComputeQuotasResponse.class);
     }
 
     public class Limits {
