@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -12,8 +13,6 @@ import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -183,12 +182,45 @@ public class OrderController {
                     computeOrders.add((ComputeOrder) order);
                 }
                 return getUserComputeAllocation(computeOrders);
+            case VOLUME:
+                List<VolumeOrder> volumeOrders = new ArrayList<>();
+                for (Order order : filteredOrders) {
+                    volumeOrders.add((VolumeOrder) order);
+                }
+                return getUserVolumeAllocation(volumeOrders);
+            case NETWORK:
+                List<NetworkOrder> networkOrders = new ArrayList<>();
+                for (Order order : filteredOrders) {
+                    networkOrders.add((NetworkOrder) order);
+                }
+                return getUserNetworkAllocation(networkOrders);
+            case PUBLIC_IP:
+                List<PublicIpOrder> publicIpOrders = new ArrayList<>();
+                for (Order order : filteredOrders) {
+                    publicIpOrders.add((PublicIpOrder) order);
+                }
+                return getUserPublicIpAllocation(publicIpOrders);
             default:
                 throw new UnexpectedException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
         }
     }
 
-	public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InstanceNotFoundException {
+    private PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("This feature has not been implemented yet.");
+    }
+
+    private NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("This feature has not been implemented yet.");
+    }
+
+    private VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("This feature has not been implemented yet.");
+    };
+
+    public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InstanceNotFoundException {
 		List<InstanceStatus> instanceStatusList = new ArrayList<>();
 		List<Order> allOrders = getAllOrders(systemUser, resourceType);
 
