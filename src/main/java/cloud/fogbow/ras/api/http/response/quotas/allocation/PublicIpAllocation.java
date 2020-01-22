@@ -9,7 +9,7 @@ import java.util.Objects;
 @Embeddable
 public class PublicIpAllocation extends Allocation {
     @ApiModelProperty(position = 0, example = "1")
-    @Column(name = "allocation_instances")
+    @Column(name = "allocation_public_ips")
     private int publicIps;
 
     public PublicIpAllocation() {
