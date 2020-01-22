@@ -6,6 +6,8 @@ import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -33,6 +35,8 @@ public class PublicIp {
 
     public static final String SECURITY_RULES_SUFFIX_ENDPOINT = "securityRules";
     public static final String SECURITY_RULE_NAME = "security rule";
+    private static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
+    private static final String PUBLIC_IP_RESOURCE_ALLOCATION = "public ips allocation";
 
     private final Logger LOGGER = Logger.getLogger(PublicIp.class);
 
@@ -172,6 +176,28 @@ public class PublicIp {
             ApplicationFacade.getInstance().deleteSecurityRule(publicIpId, ruleId, systemUserToken,
                     ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.PublicIp.GET_ALLOCATION)
+    @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    public ResponseEntity<PublicIpAllocation> getUserAllocation(
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_RESOURCE_S_REQUEST, PUBLIC_IP_RESOURCE_ALLOCATION, providerId));
+            PublicIpAllocation publicIpAllocation =
+                    ApplicationFacade.getInstance().getPublicIpAllocation(providerId, cloudName, systemUserToken);
+            return new ResponseEntity<>(publicIpAllocation, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
