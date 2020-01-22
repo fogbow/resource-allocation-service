@@ -5,6 +5,10 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
+import cloud.fogbow.ras.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +20,13 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.google.gson.Gson;
@@ -58,6 +64,7 @@ public class PublicIpTest extends BaseUnitTests {
     private static final String PUBLIC_IP_ENDPOINT_BAR_STATUS = PUBLIC_IP_ENDPOINT + "/status";
 	private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
 	private static final String SECURITY_RULES_ENDPOINT = ADDRESS_SEPARATOR + PublicIp.SECURITY_RULES_SUFFIX_ENDPOINT;
+	private static final String ENDPOINT_SUFFIX = "/cloudName";
 
 	@Autowired
     private MockMvc mockMvc;
@@ -68,6 +75,8 @@ public class PublicIpTest extends BaseUnitTests {
     public void setUp() throws FogbowException {
     	this.testUtils.mockReadOrdersFromDataBase();
         this.facade = Mockito.spy(ApplicationFacade.class);
+		PowerMockito.mockStatic(ApplicationFacade.class);
+		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
 	// test case: Create a public IP instance
@@ -436,7 +445,105 @@ public class PublicIpTest extends BaseUnitTests {
 			fail();
 		}
 	}
-	
+
+	// test case: Request the user allocation with unauthenticated user. Check the response of request
+	// and the call of facade for get the user allocation.
+	@Test
+	public void testGetUserAllocationUnauthenticatedException() throws Exception {
+		// set up
+		final String FAKE_PROVIDER_ID = "fake-provider-id";
+		Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		final String ALLOCATION_ENDPOINT = PUBLIC_IP_ENDPOINT + "/" + PublicIp.ALLOCATION_SUFFIX_ENDPOINT;
+		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+		// exercise
+		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+		// verify
+		int expectedStatus = HttpStatus.UNAUTHORIZED.value();
+
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+	}
+
+	// test case: Request the user allocation with unauthorized user. Check the response of request
+	// and the call of facade for get the user allocation.
+	@Test
+	public void testGetUserAllocationUnauthorizedException() throws Exception {
+		// set up
+		final String FAKE_PROVIDER_ID = "fake-provider-id";
+		Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		final String ALLOCATION_ENDPOINT = PUBLIC_IP_ENDPOINT + "/" + PublicIp.ALLOCATION_SUFFIX_ENDPOINT;
+		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+		// exercise
+		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+		// verify
+		int expectedStatus = HttpStatus.FORBIDDEN.value();
+
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+	}
+
+	// test case: Request the user allocation and test successfully return. Check the response of request
+	// and the call of facade for get the user allocation.
+	@Test
+	public void testGetUserAllocation() throws Exception {
+
+		// set up
+		final String FAKE_PROVIDER_ID = "fake-provider-id";
+		final int PUBLIC_IPS_TOTAL = 1;
+
+		PublicIpAllocation fakePublicIpAllocation = new PublicIpAllocation(PUBLIC_IPS_TOTAL);
+
+		Mockito.doReturn(fakePublicIpAllocation).when(this.facade).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+		final String ALLOCATION_ENDPOINT = PUBLIC_IP_ENDPOINT + "/" + PublicIp.ALLOCATION_SUFFIX_ENDPOINT;
+		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+		// set up
+		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+		// verify
+		int expectedStatus = HttpStatus.OK.value();
+		PublicIpAllocation resultPublicIpAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), PublicIpAllocation.class);
+
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Assert.assertEquals(fakePublicIpAllocation.getPublicIps(), resultPublicIpAllocation.getPublicIps());
+
+		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+	}
+
+	private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
+		switch (method) {
+			case POST:
+				return MockMvcRequestBuilders.post(urlTemplate)
+						.headers(headers)
+						.accept(MediaType.APPLICATION_JSON)
+						.content(body)
+						.contentType(MediaType.APPLICATION_JSON);
+			case GET:
+				return MockMvcRequestBuilders.get(urlTemplate)
+						.headers(headers)
+						.accept(MediaType.APPLICATION_JSON)
+						.content(body)
+						.contentType(MediaType.APPLICATION_JSON);
+			case DELETE:
+				return MockMvcRequestBuilders.delete(urlTemplate)
+						.headers(headers)
+						.accept(MediaType.APPLICATION_JSON)
+						.content(body)
+						.contentType(MediaType.APPLICATION_JSON);
+			default:
+				return null;
+		}
+
+	}
+
 	private String createSecurityRuleBody() {
 		String requestBody = "{\n" 
 				+ "  \"cidr\": \"192.168.0.1/24\",\n" 
