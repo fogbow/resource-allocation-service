@@ -211,8 +211,16 @@ public class OrderController {
     }
 
     private NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("This feature has not been implemented yet.");
+        int networks = 0;
+
+        for (NetworkOrder order : networkOrders) {
+            synchronized (order) {
+                NetworkAllocation actualAllocation = order.getActualAllocation();
+                networks += actualAllocation.getNetworks();
+            }
+        }
+
+        return new NetworkAllocation(networks);
     }
 
     private VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
