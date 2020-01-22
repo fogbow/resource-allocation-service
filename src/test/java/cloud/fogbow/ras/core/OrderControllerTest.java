@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core;
 import java.util.List;
 import java.util.Map;
 
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +45,8 @@ public class OrderControllerTest extends BaseUnitTests {
     private static final String AVAILABLE_STATE = "available";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String INVALID_ORDER_ID = "invalid-order-id";
-    
+    private static final int INSTANCES_LAUNCH_NUMBER = 1;
+
     private OrderController ordersController;
     private LocalCloudConnector localCloudConnector;
     private Map<String, Order> activeOrdersMap;
@@ -511,7 +514,65 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(expectedValue, allocation.getDisk());
     }
-    
+
+    // test case: Tests if the getUserAllocation method returns the
+    // NetworkAllocation properly
+    @Test
+    public void testGetUserAllocationToNetworkResourceType() throws UnexpectedException {
+        // set up
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        NetworkOrder networkOrder1 = createFulfilledNetworkOrder(systemUser);
+        networkOrder1.setActualAllocation(new NetworkAllocation(INSTANCES_LAUNCH_NUMBER));
+
+        NetworkOrder networkOrder2 = createFulfilledNetworkOrder(systemUser);
+        networkOrder2.setActualAllocation(new NetworkAllocation(INSTANCES_LAUNCH_NUMBER));
+
+        this.activeOrdersMap.put(networkOrder1.getId(), networkOrder1);
+        this.activeOrdersMap.put(networkOrder2.getId(), networkOrder2);
+
+        this.fulfilledOrdersList.addItem(networkOrder1);
+        this.fulfilledOrdersList.addItem(networkOrder2);
+
+        int expectedValue = 2;
+
+        // exercise
+        NetworkAllocation allocation = (NetworkAllocation) this.ordersController
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.NETWORK);
+
+        // verify
+        Assert.assertEquals(expectedValue, allocation.getNetworks());
+    }
+
+    // test case: Tests if the getUserAllocation method returns the
+    // PublicIpAllocation properly
+    @Test
+    public void testGetUserAllocationToPublicIpResourceType() throws UnexpectedException {
+        // set up
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        PublicIpOrder publicIpOrder1 = createFulfilledPublicIpOrder(systemUser);
+        publicIpOrder1.setActualAllocation(new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER));
+
+        PublicIpOrder publicIpOrder2 = createFulfilledPublicIpOrder(systemUser);
+        publicIpOrder2.setActualAllocation(new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER));
+
+        this.activeOrdersMap.put(publicIpOrder1.getId(), publicIpOrder1);
+        this.activeOrdersMap.put(publicIpOrder2.getId(), publicIpOrder2);
+
+        this.fulfilledOrdersList.addItem(publicIpOrder1);
+        this.fulfilledOrdersList.addItem(publicIpOrder2);
+
+        int expectedValue = 2;
+
+        // exercise
+        PublicIpAllocation allocation = (PublicIpAllocation) this.ordersController
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.PUBLIC_IP);
+
+        // verify
+        Assert.assertEquals(expectedValue, allocation.getPublicIps());
+    }
+
     // test case: Tests if the getUserAllocation method throws an Exception for an
     // Order with the ResourceType not implemented.
     @Test(expected = UnexpectedException.class)
@@ -666,7 +727,16 @@ public class OrderControllerTest extends BaseUnitTests {
         // exercise
         this.ordersController.getOrder(INVALID_ORDER_ID);
     }
-    
+
+    private PublicIpOrder createFulfilledPublicIpOrder(SystemUser systemUser) throws UnexpectedException {
+        PublicIpOrder publicIpOrder = new PublicIpOrder();
+        publicIpOrder.setSystemUser(systemUser);
+        publicIpOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
+        publicIpOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
+        publicIpOrder.setOrderState(OrderState.FULFILLED);
+        return publicIpOrder;
+    }
+
     private VolumeOrder createFulfilledVolumeOrder(SystemUser systemUser) throws UnexpectedException {
         VolumeOrder volumeOrder = new VolumeOrder();
         volumeOrder.setSystemUser(systemUser);
