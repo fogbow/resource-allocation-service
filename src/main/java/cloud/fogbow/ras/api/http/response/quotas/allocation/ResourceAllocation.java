@@ -1,82 +1,71 @@
 package cloud.fogbow.ras.api.http.response.quotas.allocation;
 
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 
-import io.swagger.annotations.ApiModelProperty;
+import java.util.Objects;
 
 @Embeddable
 public class ResourceAllocation extends Allocation {
 
-    @ApiModelProperty(position = 0, example = "2")
-    @Column(name = "allocation_instances")
-    private int instances;
-    
-    @ApiModelProperty(position = 1, example = "4")
-    @Column(name = "allocation_vcpu")
-    private int vCPU;
-    
-    @ApiModelProperty(position = 2, example = "8192")
-    @Column(name = "allocation_ram")
-    private int ram;
-    
-    @ApiModelProperty(position = 3, example = "30")
-    @Column(name = "allocation_disk")
-    private int disk;
-    
-    @ApiModelProperty(position = 4, example = "15")
-    @Column(name = "allocation_networks")
-    private int networks;
-    
-    @ApiModelProperty(position = 5, example = "5")
-    @Column(name = "allocation_public_ips")
-    private int publicIps;
+    @Embedded
+    private ComputeAllocation computeAllocation;
+
+    @Embedded
+    private VolumeAllocation volumeAllocation;
+
+    @Embedded
+    private NetworkAllocation networkAllocation;
+
+    @Embedded
+    private PublicIpAllocation publicIpAllocation;
     
     public ResourceAllocation() {}
 
     public int getInstances() {
-        return instances;
+        return computeAllocation.getInstances();
     }
 
     public int getvCPU() {
-        return vCPU;
+        return computeAllocation.getvCPU();
     }
 
     public int getRam() {
-        return ram;
+        return computeAllocation.getRam();
     }
 
     public int getDisk() {
-        return disk;
+        return volumeAllocation.getDisk();
     }
 
     public int getNetworks() {
-        return networks;
+        return networkAllocation.getNetworks();
     }
 
     public int getPublicIps() {
-        return publicIps;
+        return publicIpAllocation.getPublicIps();
     }
 
     public static Builder builder() {
         return new ResourceAllocation.Builder();
     }
-    
+
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ResourceAllocation that = (ResourceAllocation) o;
-        return instances == that.instances 
-                && vCPU == that.vCPU 
-                && ram == that.ram 
-                && disk == that.disk
-                && networks == that.networks 
-                && publicIps == that.publicIps;
+        return Objects.equals(computeAllocation, that.computeAllocation) &&
+                Objects.equals(volumeAllocation, that.volumeAllocation) &&
+                Objects.equals(networkAllocation, that.networkAllocation) &&
+                Objects.equals(publicIpAllocation, that.publicIpAllocation);
     }
-    
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(computeAllocation, volumeAllocation, networkAllocation, publicIpAllocation);
+    }
+
     public static class Builder {
         private int instances;
         private int vCPU;
@@ -121,12 +110,17 @@ public class ResourceAllocation extends Allocation {
     }
     
     public ResourceAllocation(Builder builder) {
-        this.instances = builder.instances;
-        this.vCPU = builder.vCPU;
-        this.ram = builder.ram;
-        this.disk = builder.disk;
-        this.networks = builder.networks;
-        this.publicIps = builder.publicIps;
+        int instances = builder.instances;
+        int vCPU = builder.vCPU;
+        int ram = builder.ram;
+        int disk = builder.disk;
+        int networks = builder.networks;
+        int publicIps = builder.publicIps;
+
+        this.computeAllocation = new ComputeAllocation(vCPU, ram, instances);
+        this.volumeAllocation = new VolumeAllocation(disk);
+        this.networkAllocation = new NetworkAllocation(networks);
+        this.publicIpAllocation = new PublicIpAllocation(publicIps);
     }
     
 }
