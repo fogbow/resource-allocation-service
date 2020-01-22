@@ -451,41 +451,41 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getResourceInstance(null);
     }
 
-    // test case: Tests if the getUserAllocation method returns the ComputeAllocation properly.
+    // test case: Tests if the getUserAllocation method returns the
+    // ComputeAllocation properly.
     @Test
-    public void testGetUserAllocation() throws UnexpectedException {
+    public void testGetUserAllocationToComputeResourceType() throws UnexpectedException {
         // set up
         SystemUser systemUser = this.testUtils.createSystemUser();
-        
+
         ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
-        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 3, 4));
-        
+        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 3));
+
         ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
-        computeOrder2.setActualAllocation(new ComputeAllocation(4, 3, 2, 1));
+        computeOrder2.setActualAllocation(new ComputeAllocation(3, 2, 1));
 
         this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
-        
+
         this.fulfilledOrdersList.addItem(computeOrder1);
         this.fulfilledOrdersList.addItem(computeOrder2);
-        
-        int expectedValue = 5;
+
+        int expectedValue = 4;
 
         // exercise
-        ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
-                TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.COMPUTE);
+        ComputeAllocation allocation = (ComputeAllocation) this.ordersController
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertEquals(expectedValue, allocation.getInstances());
         Assert.assertEquals(expectedValue, allocation.getRam());
         Assert.assertEquals(expectedValue, allocation.getvCPU());
-        Assert.assertEquals(expectedValue, allocation.getDisk());
     }
-
-    // test case: Tests if the getUserAllocation method throws UnexpectedException when there is no order
-    // with the ResourceType specified.
+    
+    // test case: Tests if the getUserAllocation method throws an Exception for an
+    // Order with the ResourceType not implemented.
     @Test(expected = UnexpectedException.class)
-    public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException {
+    public void testGetUserAllocationWithInvalidResourceType() throws UnexpectedException {
         // set up
         SystemUser systemUser = this.testUtils.createSystemUser();
         NetworkOrder networkOrder = createFulfilledNetworkOrder(systemUser);
@@ -494,7 +494,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.NETWORK);
+        this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.GENERIC_RESOURCE);
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders
