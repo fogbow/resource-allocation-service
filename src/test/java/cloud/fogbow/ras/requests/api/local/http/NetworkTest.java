@@ -5,6 +5,8 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.TestUtils;
@@ -443,6 +445,48 @@ public class NetworkTest {
 			// verify
 			fail();
 		}
+	}
+
+	// test case: Request the user allocation with unauthenticated user. Check the response of request
+	// and the call of facade for get the user allocation.
+	@Test
+	public void testGetUserAllocationUnauthenticatedException() throws Exception {
+		// set up
+		final String FAKE_PROVIDER_ID = "fake-provider-id";
+		Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
+		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+		// exercise
+		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+		// verify
+		int expectedStatus = HttpStatus.UNAUTHORIZED.value();
+
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+	}
+
+	// test case: Request the user allocation with unauthorized user. Check the response of request
+	// and the call of facade for get the user allocation.
+	@Test
+	public void testGetUserAllocationUnauthorizedException() throws Exception {
+		// set up
+		final String FAKE_PROVIDER_ID = "fake-provider-id";
+		Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
+		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+		// exercise
+		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+		// verify
+		int expectedStatus = HttpStatus.FORBIDDEN.value();
+
+		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 	}
 
 	// test case: Request the user allocation and test successfully return. Check the response of request
