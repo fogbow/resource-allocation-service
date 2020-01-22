@@ -28,6 +28,9 @@ import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -291,6 +294,69 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.facade).getUserAllocation(Mockito.eq(providerId), Mockito.eq(cloudName),
                 Mockito.eq(userToken), Mockito.eq(ResourceType.COMPUTE));
+    }
+    
+    // test case: When calling the getVolumeAllocation method it must check that
+    // getUserAllocation method was called.
+    @Test
+    public void testGetVolumeAllocation() throws FogbowException {
+        // set up
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        VolumeAllocation volumeAllocation = Mockito.mock(VolumeAllocation.class);
+        Mockito.doReturn(volumeAllocation).when(this.facade).getUserAllocation(Mockito.eq(providerId),
+                Mockito.eq(cloudName), Mockito.eq(userToken), Mockito.eq(ResourceType.VOLUME));
+
+        // exercise
+        this.facade.getVolumeAllocation(providerId, cloudName, userToken);
+
+        // verify
+        Mockito.verify(this.facade).getUserAllocation(Mockito.eq(providerId), Mockito.eq(cloudName),
+                Mockito.eq(userToken), Mockito.eq(ResourceType.VOLUME));
+    }
+    
+    // test case: When calling the getNetworkAllocation method it must check that
+    // getUserAllocation method was called.
+    @Test
+    public void testGetNetworkAllocation() throws FogbowException {
+        // set up
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        NetworkAllocation networkAllocation = Mockito.mock(NetworkAllocation.class);
+        Mockito.doReturn(networkAllocation).when(this.facade).getUserAllocation(Mockito.eq(providerId),
+                Mockito.eq(cloudName), Mockito.eq(userToken), Mockito.eq(ResourceType.NETWORK));
+
+        // exercise
+        this.facade.getNetworkAllocation(providerId, cloudName, userToken);
+
+        // verify
+        Mockito.verify(this.facade).getUserAllocation(Mockito.eq(providerId), Mockito.eq(cloudName),
+                Mockito.eq(userToken), Mockito.eq(ResourceType.NETWORK));
+    }
+    
+    // test case: When calling the getPublicIpAllocation method it must check that
+    // getUserAllocation method was called.
+    @Test
+    public void testGetPublicIpAllocation() throws FogbowException {
+        // set up
+        String providerId = TestUtils.LOCAL_MEMBER_ID;
+        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+
+        PublicIpAllocation publicIpAllocation = Mockito.mock(PublicIpAllocation.class);
+        Mockito.doReturn(publicIpAllocation).when(this.facade).getUserAllocation(Mockito.eq(providerId),
+                Mockito.eq(cloudName), Mockito.eq(userToken), Mockito.eq(ResourceType.PUBLIC_IP));
+
+        // exercise
+        this.facade.getPublicIpAllocation(providerId, cloudName, userToken);
+
+        // verify
+        Mockito.verify(this.facade).getUserAllocation(Mockito.eq(providerId), Mockito.eq(cloudName),
+                Mockito.eq(userToken), Mockito.eq(ResourceType.PUBLIC_IP));
     }
     
     // test case: When calling the getResourceQuota method it must check that
