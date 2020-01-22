@@ -206,8 +206,15 @@ public class OrderController {
     }
 
     private PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("This feature has not been implemented yet.");
+        int publicIps = 0;
+
+        for (PublicIpOrder order :
+                publicIpOrders) {
+            PublicIpAllocation publicIpAllocation = order.getActualAllocation();
+            publicIps += publicIpAllocation.getPublicIps();
+        }
+
+        return new PublicIpAllocation(publicIps);
     }
 
     private NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
