@@ -32,6 +32,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -114,9 +115,10 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String instanceIdExpected = "instanceID";
         Mockito.when(createNetworkResponseExpected.getId()).thenReturn(instanceIdExpected);
         PowerMockito.when(CreateNetworkResponse.fromJson(responseStr)).thenReturn(createNetworkResponseExpected);
+        NetworkOrder order = Mockito.mock(NetworkOrder.class);
 
         // exercise
-        String instanceId = this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
+        String instanceId = this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser, order);
 
         // verify
         Assert.assertEquals(instanceIdExpected, instanceId);
@@ -130,6 +132,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
         String uriRequestExpected = createNetworkRequest.getUriBuilder().toString();
+        NetworkOrder order = Mockito.mock(NetworkOrder.class);
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -140,7 +143,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
                 Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
 
         // exercise
-        this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
+        this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser, order);
     }
 
     // test case: When calling the requestInstance method with secondary methods mocked,
@@ -166,7 +169,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         String instanceIdExpected = "instanceId";
         Mockito.doReturn(instanceIdExpected).when(this.plugin)
-                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser));
+                .doRequestInstance(Mockito.any(), Mockito.eq(cloudStackUser), Mockito.eq(networkOrder));
 
         CreateNetworkRequest request = new CreateNetworkRequest.Builder()
                 .name(nameExpected)
@@ -186,7 +189,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         Assert.assertEquals(instanceIdExpected, instanceId);
         RequestMatcher<CreateNetworkRequest> matcher = new RequestMatcher.CreateNetwork(request);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
-                Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
+                Mockito.argThat(matcher), Mockito.eq(cloudStackUser), Mockito.eq(networkOrder));
     }
 
     // test case: When calling the requestInstance method and occurs an InvalidParameterException
