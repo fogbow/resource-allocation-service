@@ -101,6 +101,7 @@ public class ApiDocumentation {
                 "The body of the request must specify the size of the volume to be " +
                 "created; optionally, it may specify the provider and the cloud where the " +
                 "volume should be created, and a name to be assigned to the volume.";
+        public static final String GET_ALLOCATION = "Gets the current volume allocation for the user on a particular provider.";
     }
 
     public static class CommonParameters {

@@ -216,8 +216,16 @@ public class OrderController {
     }
 
     private VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("This feature has not been implemented yet.");
+        int disk = 0;
+
+        for (VolumeOrder order : volumeOrders) {
+            synchronized (order) {
+                VolumeAllocation actualAllocation = order.getActualAllocation();
+                disk += actualAllocation.getDisk();
+            }
+        }
+
+        return new VolumeAllocation(disk);
     };
 
     public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InstanceNotFoundException {

@@ -64,11 +64,17 @@ public class VolumeOrder extends Order<VolumeOrder> {
         this.name = name;
     }
 
-    @Override
-    public void updateFromRemote(VolumeOrder remoteOrder) {
-    }
-
     public VolumeAllocation getActualAllocation() {
         return this.actualAllocation;
     }
+    
+    public void setActualAllocation(VolumeAllocation actualAllocation) {
+        this.actualAllocation = actualAllocation;
+    }
+    
+    @Override
+    public void updateFromRemote(VolumeOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
+    }
+
 }
