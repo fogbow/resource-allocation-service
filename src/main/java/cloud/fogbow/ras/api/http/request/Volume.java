@@ -110,7 +110,6 @@ public class Volume {
         }
     }
 
-    //
     @ApiOperation(value = ApiDocumentation.Volume.GET_ALLOCATION)
     @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<VolumeAllocation> getUserAllocation(
