@@ -88,7 +88,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         // set up
         PublicIpOrder order = createPublicIpOrder();
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin)
-                .doRequestInstance(Mockito.eq(order.getComputeId()), Mockito.eq(this.client));
+                .doRequestInstance(Mockito.eq(order), Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -100,7 +100,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doRequestInstance(Mockito.eq(order.getComputeId()), Mockito.eq(this.client));
+                .doRequestInstance(Mockito.eq(order), Mockito.eq(this.client));
     }
     
     // test case: When calling the deleteInstance method, with a public IP order and
@@ -430,8 +430,8 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstance() throws FogbowException {
         // set up
+        PublicIpOrder order = createPublicIpOrder();
         String allocationId = FAKE_ALLOCATION_ID;
-        String computeId = TestUtils.FAKE_COMPUTE_ID;
         String groupId = FAKE_GROUP_ID;
         String networkInterfaceId = FAKE_NETWORK_INTERFACE_ID;
 
@@ -440,7 +440,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         Mockito.doReturn(groupId).when(this.plugin).handleSecurityIssues(Mockito.eq(allocationId),
                 Mockito.eq(this.client));
         
-        Mockito.doReturn(networkInterfaceId).when(this.plugin).getInstanceNetworkInterfaceId(Mockito.eq(computeId),
+        Mockito.doReturn(networkInterfaceId).when(this.plugin).getInstanceNetworkInterfaceId(Mockito.eq(order.getComputeId()),
                 Mockito.eq(this.client));
         
         Mockito.doNothing().when(this.plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
@@ -450,7 +450,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
 
         // exercise
-        this.plugin.doRequestInstance(computeId, this.client);
+        this.plugin.doRequestInstance(order, this.client);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAllocateAddresses(Mockito.eq(this.client));
@@ -458,7 +458,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(this.client));
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .getInstanceNetworkInterfaceId(Mockito.eq(computeId), Mockito.eq(this.client));
+                .getInstanceNetworkInterfaceId(Mockito.eq(order.getComputeId()), Mockito.eq(this.client));
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doModifyNetworkInterfaceAttributes(
                 Mockito.eq(allocationId), Mockito.eq(groupId), Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
