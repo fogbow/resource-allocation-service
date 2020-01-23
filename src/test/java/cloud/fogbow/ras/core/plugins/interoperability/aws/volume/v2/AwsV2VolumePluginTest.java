@@ -142,9 +142,8 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
                 .availabilityZone(TEST_AVAILABILITY_ZONE)
                 .build();
 
-        String instanceName = TestUtils.FAKE_ORDER_NAME;
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(request),
-                Mockito.eq(instanceName), Mockito.eq(client));
+                Mockito.eq(order), Mockito.eq(client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -156,7 +155,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(request),
-                Mockito.eq(instanceName), Mockito.eq(this.client));
+                Mockito.eq(order), Mockito.eq(this.client));
     }
 
     // test case: When calling the getInstance method, with a volume order and
@@ -320,7 +319,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstanceFail() throws FogbowException {
         // set up
-        String name = TestUtils.FAKE_ORDER_NAME;
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
 
         CreateVolumeRequest request = CreateVolumeRequest.builder()
                 .size(TestUtils.DISK_VALUE)
@@ -334,7 +333,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 
         try {
             // exercise
-            this.plugin.doRequestInstance(request, name, this.client);
+            this.plugin.doRequestInstance(request, volumeOrder, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -347,8 +346,8 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstance() throws Exception {
         // set up
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        String instanceName = TestUtils.FAKE_ORDER_NAME;
         String tagName = AwsV2CloudUtil.AWS_TAG_NAME;
 
         CreateVolumeRequest request = CreateVolumeRequest.builder()
@@ -364,16 +363,17 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
         PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD,
-                Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(instanceName), Mockito.eq(this.client));
+                Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(volumeOrder.getName()),
+                Mockito.eq(this.client));
 
         // exercise
-        this.plugin.doRequestInstance(request, instanceName, this.client);
+        this.plugin.doRequestInstance(request, volumeOrder, this.client);
 
         // verify
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createVolume(Mockito.eq(request));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(instanceName),
+        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(volumeOrder.getName()),
                 Mockito.eq(this.client));
     }
 	
