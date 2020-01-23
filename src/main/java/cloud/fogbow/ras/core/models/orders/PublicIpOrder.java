@@ -65,9 +65,14 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
 
     @Override
     public void updateFromRemote(PublicIpOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 
     public PublicIpAllocation getActualAllocation() {
         return actualAllocation;
+    }
+
+    public void setActualAllocation(PublicIpAllocation actualAllocation) {
+        this.actualAllocation = actualAllocation;
     }
 }
