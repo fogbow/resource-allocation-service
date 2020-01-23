@@ -10,6 +10,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFo
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -29,6 +30,7 @@ import java.util.Properties;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
+    private static final int NETWORK_INSTANCES_NUMBER = 1;
 
     private CloudStackHttpClient client;
     private Properties properties;
@@ -76,7 +78,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
 
-        return doRequestInstance(request, cloudStackUser);
+        return doRequestInstance(request, cloudStackUser, networkOrder);
     }
 
     @Override
@@ -143,7 +145,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     String doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
-                             @NotNull CloudStackUser cloudStackUser)
+                             @NotNull CloudStackUser cloudStackUser, @NotNull NetworkOrder order)
             throws FogbowException {
 
         URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
@@ -153,9 +155,17 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
+            updateNetworkOrder(order);
             return response.getId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+    }
+
+    private void updateNetworkOrder(NetworkOrder order) {
+        synchronized (order) {
+            NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
+            order.setActualAllocation(networkAllocation);
         }
     }
 
