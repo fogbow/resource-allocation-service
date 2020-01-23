@@ -11,6 +11,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFo
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -60,8 +61,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        // getDiskOffering()
         CreateVolumeRequest request = buildCreateVolumeRequest(volumeOrder, cloudStackUser);
-        return doRequestInstance(request, cloudStackUser);
+        return doRequestInstance(request, cloudStackUser, volumeOrder);
     }
 
     @Override
@@ -164,7 +166,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    String doRequestInstance(@NotNull CreateVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
+    String doRequestInstance(@NotNull CreateVolumeRequest request, @NotNull CloudStackUser cloudStackUser, @NotNull VolumeOrder volumeOrder)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -174,9 +176,17 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             CreateVolumeResponse volumeResponse = CreateVolumeResponse.fromJson(jsonResponse);
+            updateVolumeOrder(volumeOrder);
             return volumeResponse.getId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+    }
+
+    void updateVolumeOrder(VolumeOrder order) {
+        synchronized (order) {
+            VolumeAllocation volumeAllocation = new VolumeAllocation(order.getVolumeSize());
+            order.setActualAllocation(volumeAllocation);
         }
     }
 
