@@ -7,6 +7,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -29,6 +30,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     static final String DEFAULT_SSH_PORT = "22";
     static final String DEFAULT_PROTOCOL = "TCP";
     static final String PUBLIC_IP_RESOURCE = "Public ip";
+    private static final int PUBLIC_IP_LAUNCH_NUMBER = 1;
+    private static final int PUBLIC_IP_ADDRESS_INSTANCES_NUMBER = 1;
 
     // Since the ip creation and association involves multiple asynchronous requests instance,
     // we need to keep track of where we are in the process in order to fulfill the operation.
@@ -93,7 +96,15 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
         String jobId = requestIpAddressAssociation(request, cloudStackUser);
         setAsyncRequestInstanceFirstStep(jobId, publicIpOrder);
+        updatePublicIpOrder(publicIpOrder);
         return getInstanceId(publicIpOrder);
+    }
+
+    private void updatePublicIpOrder(PublicIpOrder order) {
+        synchronized (order) {
+            PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_ADDRESS_INSTANCES_NUMBER);
+            order.setActualAllocation(publicIpAllocation);
+        }
     }
 
     @VisibleForTesting
