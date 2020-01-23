@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -66,7 +67,16 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         String endpoint = getPrefixEndpoint(projectId) + VOLUMES;
         
         GetVolumeResponse volumeResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
+        setAllocationToOrder(order);
         return volumeResponse.getId();
+    }
+
+    private void setAllocationToOrder(VolumeOrder order) {
+        synchronized (order) {
+            int size = order.getVolumeSize();
+            VolumeAllocation volumeAllocation = new VolumeAllocation(size);
+            order.setActualAllocation(volumeAllocation);
+        }
     }
 
     @Override
