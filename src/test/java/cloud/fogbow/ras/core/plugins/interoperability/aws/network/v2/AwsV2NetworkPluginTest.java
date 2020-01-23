@@ -88,7 +88,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
                 .vpcId(vpcId)
                 .build();
 
-        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order.getName()),
+        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order),
                 Mockito.eq(request), Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -100,7 +100,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order.getName()),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order),
                 Mockito.eq(request), Mockito.eq(this.client));
     }
     
@@ -282,24 +282,24 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstance() throws FogbowException {
         // set up
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
         String cidr = FAKE_CIDR_ADDRESS;
-        String instanceName = TestUtils.FAKE_INSTANCE_NAME;
         String subnetId = FAKE_SUBNET_ID;
 
         CreateSubnetRequest request = CreateSubnetRequest.builder().availabilityZone(DEFAULT_AVAILABILITY_ZONE)
                 .cidrBlock(cidr).vpcId(FAKE_VPC_ID).build();
 
-        Mockito.doReturn(subnetId).when(this.plugin).doCreateSubnetResquest(Mockito.eq(instanceName),
+        Mockito.doReturn(subnetId).when(this.plugin).doCreateSubnetResquest(Mockito.eq(order.getName()),
                 Mockito.eq(request), Mockito.eq(this.client));
         Mockito.doNothing().when(this.plugin).doAssociateRouteTables(Mockito.eq(subnetId), Mockito.eq(this.client));
         Mockito.doNothing().when(this.plugin).handleSecurityIssues(Mockito.eq(subnetId), Mockito.eq(cidr),
                 Mockito.eq(this.client));
 
         // exercise
-        this.plugin.doRequestInstance(instanceName, request, this.client);
+        this.plugin.doRequestInstance(order, request, this.client);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateSubnetResquest(Mockito.eq(instanceName),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateSubnetResquest(Mockito.eq(order.getName()),
                 Mockito.eq(request), Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAssociateRouteTables(Mockito.eq(subnetId),
                 Mockito.eq(this.client));
