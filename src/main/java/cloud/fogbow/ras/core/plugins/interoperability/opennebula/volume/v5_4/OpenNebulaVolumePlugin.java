@@ -83,7 +83,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 				.build();
 
 		String instanceId = this.doRequestInstance(request, client);
-		this.setOrderAllocation(volumeOrder, size);
+		this.setOrderAllocation(volumeOrder, volumeOrder.getVolumeSize());
 		return instanceId;
 	}
 
