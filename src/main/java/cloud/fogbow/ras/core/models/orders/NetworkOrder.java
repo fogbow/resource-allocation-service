@@ -88,9 +88,14 @@ public class NetworkOrder extends Order<NetworkOrder> {
 
     @Override
     public void updateFromRemote(NetworkOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 
     public NetworkAllocation getActualAllocation() {
         return actualAllocation;
+    }
+
+    public void setActualAllocation(NetworkAllocation actualAllocation) {
+        this.actualAllocation = actualAllocation;
     }
 }
