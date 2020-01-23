@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
@@ -599,7 +600,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
-
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
@@ -613,7 +614,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.when(CreateVolumeResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
 
         // exercise
-        String instanceId = this.plugin.doRequestInstance(request, this.cloudStackUser);
+        String instanceId = this.plugin.doRequestInstance(request, this.cloudStackUser, volumeOrder);
 
         // verify
         Assert.assertEquals(instanceIdExpected, instanceId);
@@ -625,6 +626,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testDoRequestInstanceFail() throws FogbowException, HttpResponseException {
         // set up
         CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
@@ -636,7 +638,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
         // exercise
-        this.plugin.doRequestInstance(request, this.cloudStackUser);
+        this.plugin.doRequestInstance(request, this.cloudStackUser, volumeOrder);
     }
 
     // test case: When calling the deleteInstance method with secondary methods mocked,
