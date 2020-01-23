@@ -66,6 +66,7 @@ public class ApiDocumentation {
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules associated to the network.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
+        public static final String GET_ALLOCATION = "Gets the current network allocation for the user on a particular provider.";
     }
 
     public static class PublicIp {
