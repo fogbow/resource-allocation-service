@@ -52,24 +52,24 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 @PrepareForTest(ApplicationFacade.class)
 public class NetworkTest {
 
-	private static final String ADDRESS_SEPARATOR = "/";
-	private static final String FAKE_ADDRESS = "fake-address";
-	private static final String FAKE_CLOUD_STATE = "fake-cloud-state";
-	private static final String FAKE_GATEWAY = "fake-gateway";
-	private static final String FAKE_IDENTITY_PROVIDER_ID = "fake-identity-provider-id";
-	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
-	private static final String FAKE_LABEL = "fake-label";
-	private static final String FAKE_USER_ID = "fake-user-id";
-	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String FAKE_USER_TOKEN = "fake-user-token";
-	private static final String FAKE_VLAN = "fake-vlan";
+    private static final String ADDRESS_SEPARATOR = "/";
+    private static final String FAKE_ADDRESS = "fake-address";
+    private static final String FAKE_CLOUD_STATE = "fake-cloud-state";
+    private static final String FAKE_GATEWAY = "fake-gateway";
+    private static final String FAKE_IDENTITY_PROVIDER_ID = "fake-identity-provider-id";
+    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_LABEL = "fake-label";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_USER_TOKEN = "fake-user-token";
+    private static final String FAKE_VLAN = "fake-vlan";
     private static final String NETWORK_ENDPOINT = ADDRESS_SEPARATOR + Network.NETWORK_ENDPOINT;
     private static final String NETWORK_ENDPOINT_BAR_STATUS = NETWORK_ENDPOINT + "/status";
-	private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
-	private static final String SECURITY_RULES_ENDPOINT = "/" + Network.SECURITY_RULES_SUFFIX_ENDPOINT;
-	private static final String ENDPOINT_SUFFIX = "/cloudName";
+    private static final String RULE_ID_EXAMPLE = "ANY@@192.168.0.1@@4@@8080:8081@@inbound@@anything@@1";
+    private static final String SECURITY_RULES_ENDPOINT = "/" + Network.SECURITY_RULES_SUFFIX_ENDPOINT;
+    private static final String ENDPOINT_SUFFIX = "/cloudName";
 
-	private ApplicationFacade facade;
+    private ApplicationFacade facade;
 
     @Autowired
     private MockMvc mockMvc;
@@ -77,472 +77,472 @@ public class NetworkTest {
     @Before
     public void setUp() {
         this.facade = Mockito.spy(ApplicationFacade.class);
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
-	// test case: Create a network instance
-	@Test
-	public void testCreateNetwork() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
+    // test case: Create a network instance
+    @Test
+    public void testCreateNetwork() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doReturn(networkOrder.getId()).when(this.facade).createNetwork(Mockito.any(NetworkOrder.class),
-				Mockito.anyString());
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doReturn(networkOrder.getId()).when(this.facade).createNetwork(Mockito.any(NetworkOrder.class),
+                Mockito.anyString());
 
-		String body = createNetworkOrderBody();
-		HttpHeaders headers = getHttpHeaders();
-		int expectedStatus = HttpStatus.CREATED.value();
+        String body = createNetworkOrderBody();
+        HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.CREATED.value();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post(NETWORK_ENDPOINT)
-				.headers(headers)
-				.accept(MediaType.APPLICATION_JSON)
-				.content(body)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andReturn();
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post(NETWORK_ENDPOINT)
+                .headers(headers)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-		// verify
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).createNetwork(Mockito.any(NetworkOrder.class),
-				Mockito.anyString());
-	}
-	
-	// test case: Fail to create a network instance
-	@Test
-	public void testCreateNetworkFailed() throws Exception {
-		// set up
-		String body = createNetworkOrderBody();
-		HttpHeaders headers = getHttpHeaders();
+        // verify
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).createNetwork(Mockito.any(NetworkOrder.class),
+                Mockito.anyString());
+    }
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders.post(NETWORK_ENDPOINT)
-					.headers(headers)
-					.accept(MediaType.APPLICATION_JSON)
-					.content(body)
-					.contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
+    // test case: Fail to create a network instance
+    @Test
+    public void testCreateNetworkFailed() throws Exception {
+        // set up
+        String body = createNetworkOrderBody();
+        HttpHeaders headers = getHttpHeaders();
 
-		} catch (Exception e) {
-			// verify
-			fail();
-		}
-	}	
-	
-	// test case: Get a list of networks instance status
-	@Test
-	public void testGetAllNetworksStatus() throws Exception {
-		// set up
-		List<InstanceStatus> networkInstanceStatus = Mockito.spy(new ArrayList<InstanceStatus>());
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders.post(NETWORK_ENDPOINT)
+                    .headers(headers)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .content(body)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doReturn(networkInstanceStatus).when(this.facade).getAllInstancesStatus(Mockito.anyString(),
-				Mockito.eq(ResourceType.NETWORK));
+        } catch (Exception e) {
+            // verify
+            fail();
+        }
+    }
 
-		HttpHeaders headers = getHttpHeaders();
-		int expectedStatus = HttpStatus.OK.value();
+    // test case: Get a list of networks instance status
+    @Test
+    public void testGetAllNetworksStatus() throws Exception {
+        // set up
+        List<InstanceStatus> networkInstanceStatus = Mockito.spy(new ArrayList<InstanceStatus>());
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT_BAR_STATUS)
-				.headers(headers)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andReturn();
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doReturn(networkInstanceStatus).when(this.facade).getAllInstancesStatus(Mockito.anyString(),
+                Mockito.eq(ResourceType.NETWORK));
 
-		// verify
-		List<InstanceStatus> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
-		Assert.assertNotNull(resultList);
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(),
-				Mockito.eq(ResourceType.NETWORK));
-	}
-	
-	// test case: Fail to get a list of networks instance status
-	@Test
-	public void testGetAllNetworksStatusFailed() throws Exception {
-		// set up
-		HttpHeaders headers = getHttpHeaders();
+        HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.OK.value();
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT_BAR_STATUS)
-					.headers(headers)
-					.contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT_BAR_STATUS)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-		} catch (Exception e) {
-			// verify
-			fail();
-		}
-	}
-	
-	// test case: Get a network instance
-	@Test
-	public void testGetNetwork() throws Exception {
-		// set up
-		NetworkInstance instance = createNetworkInstance();
-		String networkId = instance.getId();
+        // verify
+        List<InstanceStatus> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
+        Assert.assertNotNull(resultList);
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(),
+                Mockito.eq(ResourceType.NETWORK));
+    }
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doReturn(instance).when(this.facade).getNetwork(Mockito.anyString(), Mockito.anyString());
+    // test case: Fail to get a list of networks instance status
+    @Test
+    public void testGetAllNetworksStatusFailed() throws Exception {
+        // set up
+        HttpHeaders headers = getHttpHeaders();
 
-		HttpHeaders headers = getHttpHeaders();
-		int expectedStatus = HttpStatus.OK.value();
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT_BAR_STATUS)
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT 
-				+ ADDRESS_SEPARATOR 
-				+ networkId)
-				.headers(headers)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andReturn();
+        } catch (Exception e) {
+            // verify
+            fail();
+        }
+    }
 
-		// verify
-		NetworkInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(),
-				NetworkInstance.class);
-		Assert.assertEquals(instance.getId(), resultInstance.getId());
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).getNetwork(Mockito.anyString(), Mockito.anyString());
-	}
+    // test case: Get a network instance
+    @Test
+    public void testGetNetwork() throws Exception {
+        // set up
+        NetworkInstance instance = createNetworkInstance();
+        String networkId = instance.getId();
 
-	// test case: Fail to get a network instance
-	@Test
-	public void testGetNetworkFailed() throws Exception {
-		// set up
-		String networkId = FAKE_INSTANCE_ID;
-		HttpHeaders headers = getHttpHeaders();
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doReturn(instance).when(this.facade).getNetwork(Mockito.anyString(), Mockito.anyString());
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkId)
-					.headers(headers)
-					.contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
+        HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.OK.value();
 
-		} catch (Exception e) {
-			// verify
-			fail();
-		}
-	}
-	
-	// test case: Delete an existing network instance
-	@Test
-	public void testDeleteNetwork() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		String networkId = networkOrder.getId();
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT
+                + ADDRESS_SEPARATOR
+                + networkId)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doNothing().when(this.facade).deleteNetwork(Mockito.anyString(), Mockito.anyString());
+        // verify
+        NetworkInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(),
+                NetworkInstance.class);
+        Assert.assertEquals(instance.getId(), resultInstance.getId());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getNetwork(Mockito.anyString(), Mockito.anyString());
+    }
 
-		HttpHeaders headers = getHttpHeaders();
-		int expectedStatus = HttpStatus.OK.value();
+    // test case: Fail to get a network instance
+    @Test
+    public void testGetNetworkFailed() throws Exception {
+        // set up
+        String networkId = FAKE_INSTANCE_ID;
+        HttpHeaders headers = getHttpHeaders();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT 
-				+ ADDRESS_SEPARATOR 
-				+ networkId)
-				.headers(headers)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andReturn();
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkId)
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		// verify
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).deleteNetwork(Mockito.anyString(), Mockito.anyString());
-	}
-    
-	// test case: Fail to delete an existing network instance
-	@Test
-	public void testDeleteNetworkFailed() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		String networkId = networkOrder.getId();
-		HttpHeaders headers = getHttpHeaders();
+        } catch (Exception e) {
+            // verify
+            fail();
+        }
+    }
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkId)
-					.headers(headers).contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
-			
-		} catch (Exception e) {
-			// Verify
-			fail();
-		}
-	}
-	
-	// test case: Create a instance of security rule
-	@Test
-	public void testCreateSecurityRule() throws Exception {
-		// set up
-		String ruleId = RULE_ID_EXAMPLE;
+    // test case: Delete an existing network instance
+    @Test
+    public void testDeleteNetwork() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        String networkId = networkOrder.getId();
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doReturn(ruleId).when(this.facade).createSecurityRule(Mockito.anyString(),
-				Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doNothing().when(this.facade).deleteNetwork(Mockito.anyString(), Mockito.anyString());
 
-		NetworkOrder networkOrder = createNetworkOrder();
-		HttpHeaders headers = getHttpHeaders();
-		String body = createSecurityRuleBody();
+        HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.OK.value();
 
-		int expectedStatus = HttpStatus.CREATED.value();
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT
+                + ADDRESS_SEPARATOR
+                + networkId)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders
-				.post(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkOrder.getId() + SECURITY_RULES_ENDPOINT)
-				.headers(headers)
-				.accept(MediaType.APPLICATION_JSON)
-				.content(body)
-				.contentType(MediaType.APPLICATION_JSON)).andReturn();
+        // verify
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).deleteNetwork(Mockito.anyString(), Mockito.anyString());
+    }
 
-		// verify
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).createSecurityRule(Mockito.eq(networkOrder.getId()),
-				Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
-	}
+    // test case: Fail to delete an existing network instance
+    @Test
+    public void testDeleteNetworkFailed() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        String networkId = networkOrder.getId();
+        HttpHeaders headers = getHttpHeaders();
 
-	// test case: Fail to create a instance of security rule
-	@Test
-	public void testCreateSecurityRuleFailed() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		HttpHeaders headers = getHttpHeaders();
-		String body = createSecurityRuleBody();
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkId)
+                    .headers(headers).contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders
-					.post(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkOrder.getId() + SECURITY_RULES_ENDPOINT)
-					.headers(headers)
-					.accept(MediaType.APPLICATION_JSON)
-					.content(body)
-					.contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
-			
-		} catch (Exception e) {
-			// verify
-			fail();
-		}
-	}
-		
-	// test case: Get a list of security rules
-	@Test
-	public void testGetAllSecurityRules() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		List<SecurityRuleInstance> securityRuleInstances = Mockito.spy(new ArrayList<SecurityRuleInstance>());
+        } catch (Exception e) {
+            // Verify
+            fail();
+        }
+    }
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doReturn(securityRuleInstances).when(this.facade).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
-				Mockito.eq(ResourceType.NETWORK));
+    // test case: Create a instance of security rule
+    @Test
+    public void testCreateSecurityRule() throws Exception {
+        // set up
+        String ruleId = RULE_ID_EXAMPLE;
 
-		HttpHeaders headers = getHttpHeaders();
-		int expectedStatus = HttpStatus.OK.value();
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doReturn(ruleId).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT 
-				+ ADDRESS_SEPARATOR 
-				+ networkOrder.getId() 
-				+ ADDRESS_SEPARATOR
-				+ SECURITY_RULES_ENDPOINT)
-				.headers(headers)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andReturn();
+        NetworkOrder networkOrder = createNetworkOrder();
+        HttpHeaders headers = getHttpHeaders();
+        String body = createSecurityRuleBody();
 
-		// verify
-		List<SecurityRuleInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
-		Assert.assertNotNull(resultList);
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
-				Mockito.eq(ResourceType.NETWORK));
-	}
-	
-	// test case: Fail to get a list of security rules
-	@Test
-	public void testGetAllSecurityRulesFailed() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.CREATED.value();
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT 
-					+ ADDRESS_SEPARATOR 
-					+ networkOrder.getId() 
-					+ ADDRESS_SEPARATOR
-					+ SECURITY_RULES_ENDPOINT)
-					.headers(headers)
-					.contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
-			
-		} catch (Exception e) {
-			// verify
-			fail();
-		}
-	}
-	
-	// test case: Delete an existing network security rule instance
-	@Test
-	public void testDeleteSecurityRule() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		String orderId = networkOrder.getId();
-		String ruleId = RULE_ID_EXAMPLE;
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders
+                .post(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkOrder.getId() + SECURITY_RULES_ENDPOINT)
+                .headers(headers)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
-		PowerMockito.mockStatic(ApplicationFacade.class);
-		BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-		Mockito.doNothing().when(this.facade).deleteSecurityRule(Mockito.eq(orderId), Mockito.eq(ruleId),
-				Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+        // verify
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).createSecurityRule(Mockito.eq(networkOrder.getId()),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+    }
 
-		HttpHeaders headers = getHttpHeaders();
-		int expectedStatus = HttpStatus.OK.value();
+    // test case: Fail to create a instance of security rule
+    @Test
+    public void testCreateSecurityRuleFailed() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        HttpHeaders headers = getHttpHeaders();
+        String body = createSecurityRuleBody();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT 
-				+ ADDRESS_SEPARATOR 
-				+ networkOrder.getId() 
-				+ SECURITY_RULES_ENDPOINT 
-				+ ADDRESS_SEPARATOR 
-				+ ruleId)
-				.headers(headers)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andReturn();
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders
+                    .post(NETWORK_ENDPOINT + ADDRESS_SEPARATOR + networkOrder.getId() + SECURITY_RULES_ENDPOINT)
+                    .headers(headers)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .content(body)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		// verify
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(1)).deleteSecurityRule(Mockito.eq(networkOrder.getId()),
-				Mockito.eq(ruleId), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
-	}
+        } catch (Exception e) {
+            // verify
+            fail();
+        }
+    }
 
-	// test case: Fail to delete an existing network security rule instance
-	@Test
-	public void testDeleteSecurityRuleFailed() throws Exception {
-		// set up
-		NetworkOrder networkOrder = createNetworkOrder();
-		String ruleId = RULE_ID_EXAMPLE;
-		HttpHeaders headers = getHttpHeaders();
+    // test case: Get a list of security rules
+    @Test
+    public void testGetAllSecurityRules() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        List<SecurityRuleInstance> securityRuleInstances = Mockito.spy(new ArrayList<SecurityRuleInstance>());
 
-		try {
-			// exercise
-			this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT 
-					+ ADDRESS_SEPARATOR 
-					+ networkOrder.getId()
-					+ SECURITY_RULES_ENDPOINT 
-					+ ADDRESS_SEPARATOR 
-					+ ruleId)
-					.headers(headers)
-					.contentType(MediaType.APPLICATION_JSON))
-					.andReturn();
-			
-		} catch (Exception e) {
-			// verify
-			fail();
-		}
-	}
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doReturn(securityRuleInstances).when(this.facade).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
+                Mockito.eq(ResourceType.NETWORK));
 
-	// test case: Request the user allocation with unauthenticated user. Check the response of request
-	// and the call of facade for get the user allocation.
-	@Test
-	public void testGetUserAllocationUnauthenticatedException() throws Exception {
-		// set up
-		final String FAKE_PROVIDER_ID = "fake-provider-id";
-		Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
-		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
-		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+        HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.OK.value();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT
+                + ADDRESS_SEPARATOR
+                + networkOrder.getId()
+                + ADDRESS_SEPARATOR
+                + SECURITY_RULES_ENDPOINT)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-		// verify
-		int expectedStatus = HttpStatus.UNAUTHORIZED.value();
+        // verify
+        List<SecurityRuleInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), List.class);
+        Assert.assertNotNull(resultList);
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(),
+                Mockito.eq(ResourceType.NETWORK));
+    }
 
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-	}
+    // test case: Fail to get a list of security rules
+    @Test
+    public void testGetAllSecurityRulesFailed() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        HttpHeaders headers = getHttpHeaders();
 
-	// test case: Request the user allocation with unauthorized user. Check the response of request
-	// and the call of facade for get the user allocation.
-	@Test
-	public void testGetUserAllocationUnauthorizedException() throws Exception {
-		// set up
-		final String FAKE_PROVIDER_ID = "fake-provider-id";
-		Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
-		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
-		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_ENDPOINT
+                    + ADDRESS_SEPARATOR
+                    + networkOrder.getId()
+                    + ADDRESS_SEPARATOR
+                    + SECURITY_RULES_ENDPOINT)
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        } catch (Exception e) {
+            // verify
+            fail();
+        }
+    }
 
-		// verify
-		int expectedStatus = HttpStatus.FORBIDDEN.value();
+    // test case: Delete an existing network security rule instance
+    @Test
+    public void testDeleteSecurityRule() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        String orderId = networkOrder.getId();
+        String ruleId = RULE_ID_EXAMPLE;
 
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-	}
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        Mockito.doNothing().when(this.facade).deleteSecurityRule(Mockito.eq(orderId), Mockito.eq(ruleId),
+                Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
-	// test case: Request the user allocation and test successfully return. Check the response of request
-	// and the call of facade for get the user allocation.
-	@Test
-	public void testGetUserAllocation() throws Exception {
-		// set up
-		final String FAKE_PROVIDER_ID = "fake-provider-id";
-		final int NETWORKS_TOTAL = 1;
+        HttpHeaders headers = getHttpHeaders();
+        int expectedStatus = HttpStatus.OK.value();
 
-		NetworkAllocation fakeNetworkAllocation = new NetworkAllocation(NETWORKS_TOTAL);
+        // exercise
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT
+                + ADDRESS_SEPARATOR
+                + networkOrder.getId()
+                + SECURITY_RULES_ENDPOINT
+                + ADDRESS_SEPARATOR
+                + ruleId)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-		Mockito.doReturn(fakeNetworkAllocation).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        // verify
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).deleteSecurityRule(Mockito.eq(networkOrder.getId()),
+                Mockito.eq(ruleId), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+    }
 
-		final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
-		final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
-		RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+    // test case: Fail to delete an existing network security rule instance
+    @Test
+    public void testDeleteSecurityRuleFailed() throws Exception {
+        // set up
+        NetworkOrder networkOrder = createNetworkOrder();
+        String ruleId = RULE_ID_EXAMPLE;
+        HttpHeaders headers = getHttpHeaders();
 
-		// exercise
-		MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        try {
+            // exercise
+            this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_ENDPOINT
+                    + ADDRESS_SEPARATOR
+                    + networkOrder.getId()
+                    + SECURITY_RULES_ENDPOINT
+                    + ADDRESS_SEPARATOR
+                    + ruleId)
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn();
 
-		// verify
-		int expectedStatus = HttpStatus.OK.value();
-		NetworkAllocation resultComputeAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), NetworkAllocation.class);
+        } catch (Exception e) {
+            // verify
+            fail();
+        }
+    }
 
-		Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-		Assert.assertEquals(fakeNetworkAllocation.getNetworks(), resultComputeAllocation.getNetworks());
+    // test case: Request the user allocation with unauthenticated user. Check the response of request
+    // and the call of facade for get the user allocation.
+    @Test
+    public void testGetUserAllocationUnauthenticatedException() throws Exception {
+        // set up
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
 
-		Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-	}
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
-	private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
-		switch (method) {
-			case POST:
-				return MockMvcRequestBuilders.post(urlTemplate)
-						.headers(headers)
-						.accept(MediaType.APPLICATION_JSON)
-						.content(body)
-						.contentType(MediaType.APPLICATION_JSON);
-			case GET:
-				return MockMvcRequestBuilders.get(urlTemplate)
-						.headers(headers)
-						.accept(MediaType.APPLICATION_JSON)
-						.content(body)
-						.contentType(MediaType.APPLICATION_JSON);
-			case DELETE:
-				return MockMvcRequestBuilders.delete(urlTemplate)
-						.headers(headers)
-						.accept(MediaType.APPLICATION_JSON)
-						.content(body)
-						.contentType(MediaType.APPLICATION_JSON);
-			default:
-				return null;
-		}
+        // verify
+        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
 
-	}
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+    }
+
+    // test case: Request the user allocation with unauthorized user. Check the response of request
+    // and the call of facade for get the user allocation.
+    @Test
+    public void testGetUserAllocationUnauthorizedException() throws Exception {
+        // set up
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        // verify
+        int expectedStatus = HttpStatus.FORBIDDEN.value();
+
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+    }
+
+    // test case: Request the user allocation and test successfully return. Check the response of request
+    // and the call of facade for get the user allocation.
+    @Test
+    public void testGetUserAllocation() throws Exception {
+        // set up
+        final String FAKE_PROVIDER_ID = "fake-provider-id";
+        final int NETWORKS_TOTAL = 1;
+
+        NetworkAllocation fakeNetworkAllocation = new NetworkAllocation(NETWORKS_TOTAL);
+
+        Mockito.doReturn(fakeNetworkAllocation).when(this.facade).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        final String ALLOCATION_ENDPOINT = NETWORK_ENDPOINT + "/" + Network.ALLOCATION_SUFFIX_ENDPOINT;
+        final String providerIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
+
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        // verify
+        int expectedStatus = HttpStatus.OK.value();
+        NetworkAllocation resultComputeAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), NetworkAllocation.class);
+
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(fakeNetworkAllocation.getNetworks(), resultComputeAllocation.getNetworks());
+
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+    }
+
+    private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
+        switch (method) {
+            case POST:
+                return MockMvcRequestBuilders.post(urlTemplate)
+                        .headers(headers)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON);
+            case GET:
+                return MockMvcRequestBuilders.get(urlTemplate)
+                        .headers(headers)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON);
+            case DELETE:
+                return MockMvcRequestBuilders.delete(urlTemplate)
+                        .headers(headers)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON);
+            default:
+                return null;
+        }
+
+    }
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
@@ -555,7 +555,7 @@ public class NetworkTest {
         String userId = FAKE_USER_ID;
         String userName = FAKE_USER_NAME;
         String identityProviderId = FAKE_IDENTITY_PROVIDER_ID;
-    	SystemUser systemUser = new SystemUser(userId, userName, identityProviderId);
+        SystemUser systemUser = new SystemUser(userId, userName, identityProviderId);
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
         networkOrder.setSystemUser(systemUser);
@@ -572,31 +572,31 @@ public class NetworkTest {
         NetworkAllocationMode networkAllocationMode = NetworkAllocationMode.STATIC;
         return new NetworkInstance(id, cloudState, name, cidr, gateway, vLan, networkAllocationMode, null, null, null);
     }
-    
-	private String createSecurityRuleBody() {
-		String requestBody = "{\n" 
-				+ "  \"cidr\": \"192.168.0.1/24\",\n" 
-				+ "  \"direction\": \"IN\",\n"
-				+ "  \"etherType\": \"IPv4\",\n" 
-				+ "  \"instanceId\": \"fake-instance-id\",\n"
-				+ "  \"portFrom\": 8080,\n" 
-				+ "  \"portTo\": 8081,\n" 
-				+ "  \"protocol\": \"TCP\"\n" 
-				+ "}";
 
-		return requestBody;
-	}
-    
-	private String createNetworkOrderBody() {
-		String requestBody = "{"
-				+ "\"requestingMember\":\"req-member\", "
-				+ "\"providingMember\":\"prov-member\", "
-				+ "\"gateway\":\"gateway\", "
-				+ "\"address\":\"address\", "
-				+ "\"allocation\":\"dynamic\""
-				+ "}";
-		
-		return requestBody;
-	}
-	
+    private String createSecurityRuleBody() {
+        String requestBody = "{\n"
+                + "  \"cidr\": \"192.168.0.1/24\",\n"
+                + "  \"direction\": \"IN\",\n"
+                + "  \"etherType\": \"IPv4\",\n"
+                + "  \"instanceId\": \"fake-instance-id\",\n"
+                + "  \"portFrom\": 8080,\n"
+                + "  \"portTo\": 8081,\n"
+                + "  \"protocol\": \"TCP\"\n"
+                + "}";
+
+        return requestBody;
+    }
+
+    private String createNetworkOrderBody() {
+        String requestBody = "{"
+                + "\"requestingMember\":\"req-member\", "
+                + "\"providingMember\":\"prov-member\", "
+                + "\"gateway\":\"gateway\", "
+                + "\"address\":\"address\", "
+                + "\"allocation\":\"dynamic\""
+                + "}";
+
+        return requestBody;
+    }
+
 }
