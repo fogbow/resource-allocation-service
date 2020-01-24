@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 
 import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -88,7 +89,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         return instanceId;
     }
 
-    private void setAllocationToOrder(PublicIpOrder order) {
+    @VisibleForTesting
+    void setAllocationToOrder(PublicIpOrder order) {
         synchronized (order) {
             PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_ADDRESS_INSTANCES_NUMBER);
             order.setActualAllocation(publicIpAllocation);
