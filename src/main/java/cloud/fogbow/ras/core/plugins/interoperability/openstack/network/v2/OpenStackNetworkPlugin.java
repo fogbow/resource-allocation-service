@@ -16,6 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonSyntaxException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -85,7 +86,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         return createdNetworkId;
     }
 
-    private void setAllocationToOrder(NetworkOrder order) {
+    @VisibleForTesting
+    void setAllocationToOrder(NetworkOrder order) {
         synchronized (order) {
             NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
             order.setActualAllocation(networkAllocation);
