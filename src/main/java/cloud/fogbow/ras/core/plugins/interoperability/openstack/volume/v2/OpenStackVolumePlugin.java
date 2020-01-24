@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -71,7 +72,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         return volumeResponse.getId();
     }
 
-    private void setAllocationToOrder(VolumeOrder order) {
+    @VisibleForTesting
+    void setAllocationToOrder(VolumeOrder order) {
         synchronized (order) {
             int size = order.getVolumeSize();
             VolumeAllocation volumeAllocation = new VolumeAllocation(size);
