@@ -448,6 +448,8 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         
         Mockito.doNothing().when(this.plugin).doAssociateAddress(Mockito.eq(allocationId),
                 Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
+        
+        Mockito.doNothing().when(this.plugin).updatePublicIpAllocation(Mockito.eq(order));
 
         // exercise
         this.plugin.doRequestInstance(order, this.client);
@@ -465,6 +467,23 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAssociateAddress(Mockito.eq(allocationId),
                 Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
+        
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updatePublicIpAllocation(Mockito.eq(order));
+    }
+    
+    // test case: When calling the updatePublicIpAllocation method, it must verify
+    // that the expected value was returned.
+    @Test
+    public void testUpdatePublicIpAllocation() {
+        // set up
+        PublicIpOrder order = createPublicIpOrder();
+        int expected = AwsV2PublicIpPlugin.PUBLIC_IP_ALLOCATION_NUMBER;
+
+        // exercise
+        this.plugin.updatePublicIpAllocation(order);
+
+        // verify
+        Assert.assertEquals(expected, order.getActualAllocation().getPublicIps());
     }
     
     // test case: When calling the doAssociateAddress method, it must verify

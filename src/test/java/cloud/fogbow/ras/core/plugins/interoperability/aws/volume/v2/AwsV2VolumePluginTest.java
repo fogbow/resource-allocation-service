@@ -346,7 +346,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstance() throws Exception {
         // set up
-        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        VolumeOrder order = this.testUtils.createLocalVolumeOrder();
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
         String tagName = AwsV2CloudUtil.AWS_TAG_NAME;
 
@@ -357,24 +357,49 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 
         CreateVolumeResponse response = CreateVolumeResponse.builder()
                 .volumeId(TestUtils.FAKE_INSTANCE_ID)
+                .size(TestUtils.DISK_VALUE)
                 .build();
 
         Mockito.when(this.client.createVolume(Mockito.eq(request))).thenReturn(response);
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
         PowerMockito.doCallRealMethod().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD,
-                Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(volumeOrder.getName()),
-                Mockito.eq(this.client));
+                Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(order.getName()), Mockito.eq(this.client));
+
+        Mockito.doNothing().when(this.plugin).updateVolumeAllocation(Mockito.eq(order), Mockito.eq(response));
 
         // exercise
-        this.plugin.doRequestInstance(request, volumeOrder, this.client);
+        this.plugin.doRequestInstance(request, order, this.client);
 
         // verify
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createVolume(Mockito.eq(request));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(volumeOrder.getName()),
+        AwsV2CloudUtil.createTagsRequest(Mockito.eq(instanceId), Mockito.eq(tagName), Mockito.eq(order.getName()),
                 Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateVolumeAllocation(Mockito.eq(order),
+                Mockito.eq(response));
+    }
+    
+    // test case: When calling the updateVolumeAllocation method, it must verify
+    // that the expected value was returned.
+    @Test
+    public void testUpdateVolumeAllocation() {
+        // set up
+        VolumeOrder order = this.testUtils.createLocalVolumeOrder();
+        int expected = TestUtils.DISK_VALUE;
+        
+        CreateVolumeResponse response = CreateVolumeResponse.builder()
+                .volumeId(TestUtils.FAKE_INSTANCE_ID)
+                .size(expected)
+                .build();
+        
+        // exercise
+        this.plugin.updateVolumeAllocation(order, response);
+        
+        // verify
+        Assert.assertEquals(expected, order.getActualAllocation().getDisk());
     }
 	
     private VolumeInstance createVolumeInstance() {
