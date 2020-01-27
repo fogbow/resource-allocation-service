@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import java.util.Objects;
 
 @Embeddable
@@ -17,25 +18,24 @@ public class ComputeAllocation extends Allocation {
     @ApiModelProperty(position = 2, example = "8192")
     @Column(name = "allocation_ram")
     private int ram;
-
-    private VolumeAllocation volumeAllocation;
+    @ApiModelProperty(position = 2, example = "8192")
+    @Column(name = "allocation_disk")
+    private int disk;
 
     public ComputeAllocation(int vCPU, int ram, int instances, int disk) {
         this.vCPU = vCPU;
         this.ram = ram;
         this.instances = instances;
-        this.volumeAllocation = new VolumeAllocation(disk);
+        this.disk = disk;
     }
 
     public ComputeAllocation(int vCPU, int ram, int instances) {
         this.vCPU = vCPU;
         this.ram = ram;
         this.instances = instances;
-        this.volumeAllocation = new VolumeAllocation();
     }
 
-    public ComputeAllocation() {
-        this.volumeAllocation = new VolumeAllocation();
+    public ComputeAllocation(){
     }
 
     public int getvCPU() {
@@ -51,7 +51,7 @@ public class ComputeAllocation extends Allocation {
     }
 
     public int getDisk() {
-        return this.volumeAllocation.getDisk();
+        return this.disk;
     }
 
     @Override
@@ -62,11 +62,11 @@ public class ComputeAllocation extends Allocation {
         return instances == that.instances &&
                 vCPU == that.vCPU &&
                 ram == that.ram &&
-                Objects.equals(volumeAllocation, that.volumeAllocation);
+                disk == that.disk;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instances, vCPU, ram, volumeAllocation);
+        return Objects.hash(instances, vCPU, ram, disk);
     }
 }
