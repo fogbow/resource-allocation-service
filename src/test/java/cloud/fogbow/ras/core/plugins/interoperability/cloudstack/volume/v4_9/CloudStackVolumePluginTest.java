@@ -10,6 +10,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -31,6 +32,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.*;
+
+import static cloud.fogbow.ras.core.TestUtils.FAKE_INSTANCE_ID;
 
 @PrepareForTest({CloudStackUrlUtil.class, DeleteVolumeResponse.class, DeleteVolumeResponse.class,
         GetVolumeResponse.class, DatabaseManager.class, CloudStackCloudUtils.class,
@@ -61,6 +64,49 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         this.testUtils.mockReadOrdersFromDataBase();
         CloudstackTestUtils.ignoringCloudStackUrl();
+    }
+
+    // test case: When calling the requestInstance method with secondary methods mocked,
+    // it must verify if the buildCreateVolumeRequest, doRequestInstance and updateVolumeOrder are called;
+    // this includes the checking in the Cloudstack request.
+    @Test
+    public void testRequestInstance() throws FogbowException {
+        // setup
+        CloudStackUser user = CloudstackTestUtils.CLOUD_STACK_USER;
+        VolumeOrder order = Mockito.mock(VolumeOrder.class);
+        CreateVolumeRequest request = Mockito.mock(CreateVolumeRequest.class);
+
+        Mockito.doReturn(request).when(this.plugin).buildCreateVolumeRequest(Mockito.eq(order), Mockito.eq(user));
+        Mockito.doReturn(FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(request), Mockito.eq(user));
+        Mockito.doNothing().when(this.plugin).updateVolumeOrder(order);
+
+        // exercise
+        this.plugin.requestInstance(order, user);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildCreateVolumeRequest(Mockito.eq(order), Mockito.eq(user));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(request), Mockito.eq(user));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateVolumeOrder(Mockito.eq(order));
+    }
+
+    // test case: When calling the updateVolumeOrder method with order and new values,
+    // it must verify if It updates the volume order.
+    @Test
+    public void testUpdateVolumeOrder() {
+        // setup
+        VolumeOrder order = Mockito.mock(VolumeOrder.class);
+        int expectedDiskSize = 1024;
+
+        Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(VolumeAllocation.class));
+        Mockito.doCallRealMethod().when(order).getActualAllocation();
+        Mockito.doReturn(expectedDiskSize).when(order).getVolumeSize();
+
+        // exercise
+        this.plugin.updateVolumeOrder(order);
+
+        // verify
+        Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(VolumeAllocation.class));
+        Assert.assertEquals(expectedDiskSize, order.getActualAllocation().getDisk());
     }
 
     // test case: When calling the getInstance method with secondary methods mocked,
@@ -599,7 +645,6 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
-
         String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
