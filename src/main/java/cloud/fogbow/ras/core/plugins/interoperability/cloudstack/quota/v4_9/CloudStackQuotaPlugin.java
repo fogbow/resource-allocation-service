@@ -169,7 +169,14 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = request.getUriBuilder().toString();
         String limitsResponse = doGetRequest(cloudUser, uri);
-        ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(limitsResponse);
+        ListResourceLimitsResponse response = null;
+
+        try {
+            response = ListResourceLimitsResponse.fromJson(limitsResponse);
+        } catch (HttpResponseException e) {
+            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+
         return response.getResourceLimits();
     }
 
