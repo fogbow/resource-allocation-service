@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.util.Objects;
 
 @Embeddable
 public class ComputeAllocation extends Allocation {
@@ -34,6 +35,7 @@ public class ComputeAllocation extends Allocation {
     }
 
     public ComputeAllocation() {
+        this.volumeAllocation = new VolumeAllocation();
     }
 
     public int getvCPU() {
@@ -50,5 +52,21 @@ public class ComputeAllocation extends Allocation {
 
     public int getDisk() {
         return this.volumeAllocation.getDisk();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ComputeAllocation that = (ComputeAllocation) o;
+        return instances == that.instances &&
+                vCPU == that.vCPU &&
+                ram == that.ram &&
+                Objects.equals(volumeAllocation, that.volumeAllocation);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(instances, vCPU, ram, volumeAllocation);
     }
 }
