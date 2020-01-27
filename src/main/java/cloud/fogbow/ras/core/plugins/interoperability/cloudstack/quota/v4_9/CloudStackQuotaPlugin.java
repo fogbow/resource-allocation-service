@@ -23,6 +23,8 @@ import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Properties;
 
@@ -50,14 +52,14 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @Override
-    public ResourceQuota getUserQuota(CloudStackUser cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(@NotNull CloudStackUser cloudUser) throws FogbowException {
         ResourceAllocation totalQuota = getTotalQuota(cloudUser);
         ResourceAllocation usedQuota = getUsedQuota(cloudUser);
         return new ResourceQuota(totalQuota, usedQuota);
     }
 
     @VisibleForTesting
-    ResourceAllocation getUsedQuota(CloudStackUser cloudUser) throws FogbowException {
+    ResourceAllocation getUsedQuota(@NotNull CloudStackUser cloudUser) throws FogbowException {
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = getVirtualMachines(cloudUser);
         List<GetVolumeResponse.Volume> volumes = getVolumes(cloudUser);
         List<GetNetworkResponse.Network> networks = getNetworks(cloudUser);
@@ -66,7 +68,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    List<ListPublicIpAddressResponse.PublicIpAddress> getPublicIps(CloudStackUser cloudUser) throws FogbowException {
+    List<ListPublicIpAddressResponse.PublicIpAddress> getPublicIps(@NotNull CloudStackUser cloudUser) throws FogbowException {
         ListPublicIpAddressRequest request = new ListPublicIpAddressRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -85,7 +87,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    String doGetRequest(CloudStackUser cloudUser, String uri) throws FogbowException {
+    String doGetRequest(@NotNull CloudStackUser cloudUser, @NotBlank String uri) throws FogbowException {
         String response = null;
 
         try {
@@ -100,7 +102,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    List<GetNetworkResponse.Network> getNetworks(CloudStackUser cloudUser) throws FogbowException {
+    List<GetNetworkResponse.Network> getNetworks(@NotNull CloudStackUser cloudUser) throws FogbowException {
         GetNetworkRequest request = new GetNetworkRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -118,13 +120,13 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getTotalQuota(CloudStackUser cloudUser) throws FogbowException {
+    ResourceAllocation getTotalQuota(@NotNull CloudStackUser cloudUser) throws FogbowException {
         List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = getResourceLimits(cloudUser);
         return getTotalAllocation(resourceLimits, cloudUser);
     }
 
     @VisibleForTesting
-    List<GetVolumeResponse.Volume> getVolumes(CloudStackUser cloudUser) throws FogbowException {
+    List<GetVolumeResponse.Volume> getVolumes(@NotNull CloudStackUser cloudUser) throws FogbowException {
         GetVolumeRequest volumeRequest = new GetVolumeRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(volumeRequest.getUriBuilder(), cloudUser.getToken());
 
@@ -142,7 +144,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    List<GetVirtualMachineResponse.VirtualMachine> getVirtualMachines(CloudStackUser cloudUser) throws FogbowException {
+    List<GetVirtualMachineResponse.VirtualMachine> getVirtualMachines(@NotNull CloudStackUser cloudUser) throws FogbowException {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
@@ -160,7 +162,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    List<ListResourceLimitsResponse.ResourceLimit> getResourceLimits(CloudStackUser cloudUser) throws FogbowException {
+    List<ListResourceLimitsResponse.ResourceLimit> getResourceLimits(@NotNull CloudStackUser cloudUser) throws FogbowException {
         ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
                 .build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
@@ -230,7 +232,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ResourceLimit getDomainResourceLimit(ResourceLimit limit, CloudStackUser cloudUser) {
+    ResourceLimit getDomainResourceLimit(@NotNull ResourceLimit limit, @NotNull CloudStackUser cloudUser) {
         try {
             limit = doGetDomainResourceLimit(limit.getResourceType(), limit.getDomainId(), cloudUser);
         } catch (Exception ex) {
@@ -241,7 +243,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getTotalAllocation(List<ResourceLimit> resourceLimits, CloudStackUser cloudUser) {
+    ResourceAllocation getTotalAllocation(List<ResourceLimit> resourceLimits, @NotNull CloudStackUser cloudUser) {
         ResourceAllocation.Builder builder = ResourceAllocation.builder();
         int max = 0;
 
@@ -267,7 +269,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ListResourceLimitsResponse.ResourceLimit doGetDomainResourceLimit(String resourceType, String domainId, CloudStackUser cloudUser)
+    ListResourceLimitsResponse.ResourceLimit doGetDomainResourceLimit(@NotBlank String resourceType, @NotBlank String domainId, @NotNull CloudStackUser cloudUser)
             throws FogbowException {
         ListResourceLimitsRequest request = new ListResourceLimitsRequest.Builder()
                 .domainId(domainId)
@@ -278,7 +280,14 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = request.getUriBuilder().toString();
         String limitsResponse = doGetRequest(cloudUser, uri);
-        ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(limitsResponse);
+        ListResourceLimitsResponse response = null;
+
+        try {
+            response = ListResourceLimitsResponse.fromJson(limitsResponse);
+        } catch (HttpResponseException e) {
+            e.printStackTrace();
+        }
+
         // NOTE(pauloewerton): we're limiting result count by resource type, so request should only return one value
         ListResourceLimitsResponse.ResourceLimit resourceLimit = response.getResourceLimits().listIterator().next();
         return resourceLimit;
