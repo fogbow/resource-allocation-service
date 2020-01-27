@@ -35,8 +35,8 @@ public class PublicIp {
 
     public static final String SECURITY_RULES_SUFFIX_ENDPOINT = "securityRules";
     public static final String SECURITY_RULE_NAME = "security rule";
-    private static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
-    private static final String PUBLIC_IP_RESOURCE_ALLOCATION = "public ips allocation";
+    public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
+    public static final String PUBLIC_IP_RESOURCE_ALLOCATION = "public ips allocation";
 
     private final Logger LOGGER = Logger.getLogger(PublicIp.class);
 
