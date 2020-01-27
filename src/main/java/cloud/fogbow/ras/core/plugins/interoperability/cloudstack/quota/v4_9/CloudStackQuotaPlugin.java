@@ -173,14 +173,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = request.getUriBuilder().toString();
         String limitsResponse = doGetRequest(cloudUser, uri);
-        ListResourceLimitsResponse response = null;
-
-        try {
-            response = ListResourceLimitsResponse.fromJson(limitsResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
-
+        ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(limitsResponse);
         return response.getResourceLimits();
     }
 
@@ -290,14 +283,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = request.getUriBuilder().toString();
         String limitsResponse = doGetRequest(cloudUser, uri);
-        ListResourceLimitsResponse response = null;
-
-        try {
-            response = ListResourceLimitsResponse.fromJson(limitsResponse);
-        } catch (HttpResponseException e) {
-            e.printStackTrace();
-        }
-
+        ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(limitsResponse);
         // NOTE(pauloewerton): we're limiting result count by resource type, so request should only return one value
         ResourceLimit resourceLimit = response.getResourceLimits().listIterator().next();
         return resourceLimit;

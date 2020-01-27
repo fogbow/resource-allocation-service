@@ -36,10 +36,8 @@ public class ListResourceLimitsResponse {
         return response.resourceLimits;
     }
 
-    public static ListResourceLimitsResponse fromJson(String json) throws HttpResponseException {
-        ListResourceLimitsResponse resourceLimitsResponse = GsonHolder.getInstance().fromJson(json, ListResourceLimitsResponse.class);
-        resourceLimitsResponse.response.checkErrorExistence();
-        return resourceLimitsResponse;
+    public static ListResourceLimitsResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, ListResourceLimitsResponse.class);
     }
 
     public class ResourceLimitsResponse extends CloudStackErrorResponse {
