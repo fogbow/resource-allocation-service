@@ -4,6 +4,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
@@ -86,8 +87,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
 
-        List<PublicIpAddress> publicIps = response.getPublicIpAddresses();
-        return publicIps;
+        return response.getPublicIpAddresses();
     }
 
     @VisibleForTesting
@@ -192,8 +192,12 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
         int usedPublicIps = getPublicIpAllocation(publicIps);
         int usedNetworks = getNetworkAllocation(networks);
         int usedDisk = getVolumeAllocation(volumes);
+        ComputeAllocation computeAllocation = this.buildComputeAllocation(vms);
 
-        ResourceAllocation usedAllocation = buildComputeAllocation(vms)
+        ResourceAllocation usedAllocation = ResourceAllocation.builder()
+                .instances(computeAllocation.getInstances())
+                .ram(computeAllocation.getRam())
+                .vCPU(computeAllocation.getvCPU())
                 .publicIps(usedPublicIps)
                 .networks(usedNetworks)
                 .disk(usedDisk)
@@ -213,22 +217,17 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation.Builder buildComputeAllocation(List<VirtualMachine> vms) {
-        int usedInstances = vms.size();
-        int usedCores = 0;
-        int usedRam = 0;
+    ComputeAllocation buildComputeAllocation(List<VirtualMachine> vms) {
+        int instances = vms.size();
+        int cores = 0;
+        int ram = 0;
 
         for (VirtualMachine vm : vms) {
-            usedCores += vm.getCpuNumber();
-            usedRam += vm.getMemory();
+            cores += vm.getCpuNumber();
+            ram += vm.getMemory();
         }
 
-        ResourceAllocation.Builder builder = ResourceAllocation.builder()
-                .vCPU(usedCores)
-                .instances(usedInstances)
-                .ram(usedRam);
-
-        return builder;
+        return new ComputeAllocation(cores, ram, instances);
     }
 
     @VisibleForTesting
