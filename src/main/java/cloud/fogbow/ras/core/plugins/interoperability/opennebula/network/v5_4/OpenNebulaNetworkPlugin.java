@@ -10,6 +10,7 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.log4j.Logger;
@@ -90,7 +91,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return instanceId;
 	}
 
-	private void setOrderAllocation(NetworkOrder order) {
+	@VisibleForTesting
+	void setOrderAllocation(NetworkOrder order) {
 		synchronized (order) {
 			NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
 			order.setActualAllocation(networkAllocation);

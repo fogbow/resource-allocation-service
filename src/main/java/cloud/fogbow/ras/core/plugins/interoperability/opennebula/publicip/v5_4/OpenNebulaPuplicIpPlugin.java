@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -97,7 +98,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return instanceId;
 	}
 
-	private void setOrderAllocation(PublicIpOrder order) {
+	@VisibleForTesting
+	void setOrderAllocation(PublicIpOrder order) {
 		synchronized (order) {
 			PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_ADDRESS_INSTANCES_NUMBER);
 			order.setActualAllocation(publicIpAllocation);
