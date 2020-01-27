@@ -18,7 +18,7 @@ public class ComputeAllocation extends Allocation {
     @ApiModelProperty(position = 2, example = "8192")
     @Column(name = "allocation_ram")
     private int ram;
-    @ApiModelProperty(position = 2, example = "8192")
+    @ApiModelProperty(position = 3, example = "30")
     @Column(name = "allocation_disk")
     private int disk;
 
@@ -35,7 +35,7 @@ public class ComputeAllocation extends Allocation {
         this.instances = instances;
     }
 
-    public ComputeAllocation(){
+    public ComputeAllocation() {
     }
 
     public int getvCPU() {
