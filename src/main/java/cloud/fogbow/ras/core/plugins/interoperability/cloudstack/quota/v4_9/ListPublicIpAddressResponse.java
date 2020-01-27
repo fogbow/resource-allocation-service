@@ -30,7 +30,9 @@ public class ListPublicIpAddressResponse {
     private ListPublicIpAddressesResponse response;
 
     public static ListPublicIpAddressResponse fromJson(String json) throws HttpResponseException {
-        return GsonHolder.getInstance().fromJson(json, ListPublicIpAddressResponse.class);
+        ListPublicIpAddressResponse listPublicIpAddressResponse = GsonHolder.getInstance().fromJson(json, ListPublicIpAddressResponse.class);
+        listPublicIpAddressResponse.response.checkErrorExistence();
+        return listPublicIpAddressResponse;
     }
 
     public List<PublicIpAddress> getPublicIpAddresses() {
