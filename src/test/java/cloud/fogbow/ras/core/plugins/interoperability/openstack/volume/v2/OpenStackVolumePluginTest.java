@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -153,6 +154,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         Mockito.doReturn(response).when(this.plugin).doRequestInstance(Mockito.eq(endpoint),
                 Mockito.eq(FAKE_JSON_REQUEST), Mockito.eq(cloudUser));
 
+        Mockito.doNothing().when(this.plugin).setAllocationToOrder(Mockito.eq(order));
+
         // exercise
         this.plugin.requestInstance(order, cloudUser);
 
@@ -168,6 +171,29 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
                 Mockito.eq(String.valueOf(order.getVolumeSize())), Mockito.eq(order.getName()), Mockito.anyString());
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(endpoint),
                 Mockito.eq(FAKE_JSON_REQUEST), Mockito.eq(cloudUser));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setAllocationToOrder(Mockito.eq(order));
+    }
+
+    // test case: Verify if allocation is set to the order properly
+    @Test
+    public void testSetAllocationToOrder() {
+        // set up
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        int diskSize = 1;
+        VolumeAllocation volumeAllocation = new VolumeAllocation(diskSize);
+
+        Mockito.doReturn(diskSize).when(volumeOrder).getVolumeSize();
+        Mockito.doCallRealMethod().when(volumeOrder).setActualAllocation(Mockito.any(VolumeAllocation.class));
+        Mockito.doReturn(volumeAllocation).when(volumeOrder).getActualAllocation();
+
+        // exercise
+        this.plugin.setAllocationToOrder(volumeOrder);
+
+        // verify
+        Mockito.verify(volumeOrder, Mockito.times(testUtils.RUN_ONCE))
+                .setActualAllocation(Mockito.any());
+
+        Assert.assertEquals(volumeAllocation.getDisk(), volumeOrder.getActualAllocation().getDisk());
     }
     
     // test case: When invoking the getInstance method with a valid volume
