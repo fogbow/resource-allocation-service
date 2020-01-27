@@ -116,7 +116,6 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         String instanceIdExpected = "instanceID";
         Mockito.when(createNetworkResponseExpected.getId()).thenReturn(instanceIdExpected);
         PowerMockito.when(CreateNetworkResponse.fromJson(responseStr)).thenReturn(createNetworkResponseExpected);
-        NetworkOrder order = Mockito.mock(NetworkOrder.class);
 
         // exercise
         String instanceId = this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
@@ -133,7 +132,6 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
         String uriRequestExpected = createNetworkRequest.getUriBuilder().toString();
-        NetworkOrder order = Mockito.mock(NetworkOrder.class);
 
         // verify
         this.expectedException.expect(FogbowException.class);

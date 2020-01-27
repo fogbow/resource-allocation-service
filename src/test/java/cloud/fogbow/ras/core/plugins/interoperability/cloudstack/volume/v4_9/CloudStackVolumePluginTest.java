@@ -78,8 +78,6 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         VolumeOrder order = Mockito.mock(VolumeOrder.class);
         CreateVolumeRequest request = Mockito.mock(CreateVolumeRequest.class);
 
-        int expectedSize = (int) Math.pow(1024, 2);
-
         Mockito.doReturn(request).when(this.plugin).buildCreateVolumeRequest(Mockito.eq(order), Mockito.eq(user));
         Mockito.doReturn(FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(request), Mockito.eq(user));
         Mockito.doNothing().when(this.plugin).updateVolumeOrder(order);
@@ -649,7 +647,6 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
         // set up
         CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         String responseStr = TestUtils.ANY_VALUE;
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
@@ -675,7 +672,6 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     public void testDoRequestInstanceFail() throws FogbowException, HttpResponseException {
         // set up
         CreateVolumeRequest request = new CreateVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
