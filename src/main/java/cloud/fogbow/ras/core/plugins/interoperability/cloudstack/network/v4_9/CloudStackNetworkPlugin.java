@@ -78,7 +78,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
 
-        return doRequestInstance(request, cloudStackUser, networkOrder);
+        updateNetworkOrder(networkOrder);
+        return doRequestInstance(request, cloudStackUser);
     }
 
     @Override
@@ -145,7 +146,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     @NotNull
     @VisibleForTesting
     String doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
-                             @NotNull CloudStackUser cloudStackUser, @NotNull NetworkOrder order)
+                             @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
@@ -155,14 +156,14 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
-            updateNetworkOrder(order);
             return response.getId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
         }
     }
 
-    private void updateNetworkOrder(NetworkOrder order) {
+    @VisibleForTesting
+    void updateNetworkOrder(NetworkOrder order) {
         synchronized (order) {
             NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
             order.setActualAllocation(networkAllocation);

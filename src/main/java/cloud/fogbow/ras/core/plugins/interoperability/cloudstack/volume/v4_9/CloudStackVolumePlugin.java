@@ -61,9 +61,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-        // getDiskOffering()
         CreateVolumeRequest request = buildCreateVolumeRequest(volumeOrder, cloudStackUser);
-        return doRequestInstance(request, cloudStackUser, volumeOrder);
+        String instanceId = doRequestInstance(request, cloudStackUser);
+        updateVolumeOrder(volumeOrder);
+        return instanceId;
     }
 
     @Override
@@ -166,7 +167,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
 
     @NotNull
     @VisibleForTesting
-    String doRequestInstance(@NotNull CreateVolumeRequest request, @NotNull CloudStackUser cloudStackUser, @NotNull VolumeOrder volumeOrder)
+    String doRequestInstance(@NotNull CreateVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -176,7 +177,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             String jsonResponse = CloudStackCloudUtils.doRequest(
                     this.client, uriRequest.toString(), cloudStackUser);
             CreateVolumeResponse volumeResponse = CreateVolumeResponse.fromJson(jsonResponse);
-            updateVolumeOrder(volumeOrder);
             return volumeResponse.getId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);

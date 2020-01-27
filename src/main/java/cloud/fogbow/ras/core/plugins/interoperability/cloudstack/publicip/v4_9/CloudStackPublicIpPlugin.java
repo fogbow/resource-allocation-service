@@ -64,7 +64,9 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-        return doRequestInstance(publicIpOrder, cloudStackUser);
+        String instanceId = doRequestInstance(publicIpOrder, cloudStackUser);
+        updatePublicIpOrder(publicIpOrder);
+        return instanceId;
     }
 
     @Override
@@ -96,11 +98,11 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
         String jobId = requestIpAddressAssociation(request, cloudStackUser);
         setAsyncRequestInstanceFirstStep(jobId, publicIpOrder);
-        updatePublicIpOrder(publicIpOrder);
         return getInstanceId(publicIpOrder);
     }
 
-    private void updatePublicIpOrder(PublicIpOrder order) {
+    @VisibleForTesting
+    void updatePublicIpOrder(PublicIpOrder order) {
         synchronized (order) {
             PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_ADDRESS_INSTANCES_NUMBER);
             order.setActualAllocation(publicIpAllocation);
