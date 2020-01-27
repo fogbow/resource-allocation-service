@@ -27,12 +27,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static cloud.fogbow.ras.core.TestUtils.FAKE_INSTANCE_ID;

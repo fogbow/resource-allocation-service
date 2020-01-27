@@ -33,7 +33,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Properties;
 
