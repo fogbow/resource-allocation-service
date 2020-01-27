@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -96,6 +97,8 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
 		Mockito.doReturn(FAKE_ID).when(this.plugin).doRequestInstance(
 				Mockito.any(Client.class), Mockito.any(CreateComputeRequest.class));
+		Mockito.doNothing().when(this.plugin).setOrderAllocation(Mockito.eq(computeOrder),
+				Mockito.eq(createComputeRequest.getVirtualMachine()));
 
 		// exercise
 		this.plugin.requestInstance(this.computeOrder, this.cloudUser);
@@ -108,6 +111,42 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
 				Mockito.eq(this.client), Mockito.eq(createComputeRequest));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setOrderAllocation(Mockito.eq(computeOrder),
+				Mockito.eq(createComputeRequest.getVirtualMachine()));
+	}
+
+	// test case: verify if allocation is being set to the order properly
+	@Test
+	public void testSetOrderAllocation() {
+		// setup
+		ComputeOrder order = Mockito.mock(ComputeOrder.class);
+		ComputeAllocation allocation = Mockito.mock(ComputeAllocation.class);
+		VirtualMachineTemplate vm = Mockito.mock(VirtualMachineTemplate.class);
+		VirtualMachineTemplate.Disk disk = Mockito.mock(VirtualMachineTemplate.Disk.class);
+
+		int expectedCPU = 1;
+		int expectedRam = 512;
+		int expectedInstances = 1;
+		int expectedDisk = (int) Math.pow(1024, 3);
+
+		Mockito.doReturn(disk).when(vm).getDisk();
+		Mockito.doReturn(Integer.toString(expectedCPU)).when(vm).getCpu();
+		Mockito.doReturn(Integer.toString(expectedRam)).when(vm).getMemory();
+		Mockito.doReturn(Integer.toString(expectedDisk)).when(disk).getSize();
+
+		Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(ComputeAllocation.class));
+		Mockito.doCallRealMethod().when(order).getActualAllocation();
+
+		// exercise
+		this.plugin.setOrderAllocation(order, vm);
+
+		// verify
+		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(ComputeAllocation.class));
+
+		Assert.assertEquals(expectedCPU, order.getActualAllocation().getvCPU());
+		Assert.assertEquals(expectedRam, order.getActualAllocation().getRam());
+		Assert.assertEquals(expectedInstances, order.getActualAllocation().getInstances());
+		Assert.assertEquals(expectedDisk, order.getActualAllocation().getDisk());
 	}
 
 	// test case: when invoking the getCreateRequestInstance method with a valid client and compute order,
@@ -292,7 +331,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.getTemplatePool(Mockito.eq(this.client));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImagesSizes(Mockito.eq(this.client));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_THRICE)).convertToInteger(Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_TWICE)).convertToInteger(Mockito.anyString());
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getId();
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getName();
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_THRICE)).xpath(Mockito.anyString());
@@ -333,7 +372,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.getTemplatePool(Mockito.eq(this.client));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImagesSizes(Mockito.eq(this.client));
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_THRICE)).convertToInteger(Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_TWICE)).convertToInteger(Mockito.anyString());
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getId();
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_ONCE)).getName();
 		Mockito.verify(template, Mockito.times(TestUtils.RUN_FOUR_TIMES)).xpath(Mockito.anyString());
