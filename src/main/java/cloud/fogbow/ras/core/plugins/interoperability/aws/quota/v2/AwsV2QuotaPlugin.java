@@ -53,9 +53,9 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     protected static final int ONE_TERABYTE = 1000;
 
     private static final String TEMPORARY_FLAVORS_TYPE_FILE_PATH_KEY = "private/clouds/aws/flavors.csv";
-    private static int MAXIMUM_STORAGE_VALUE;
-    private static int MAXIMUM_SUBNETS_VALUE;
-    private static int MAXIMUM_PUBLIC_IP_ADDRESSES_VALUE;
+    public static int MAXIMUM_STORAGE_VALUE;
+    public static int MAXIMUM_SUBNETS_VALUE;
+    public static int MAXIMUM_PUBLIC_IP_ADDRESSES_VALUE;
 
     private Map<String, ComputeAllocation> totalComputeAllocationMap;
     private Map<String, ComputeAllocation> computeAllocationMap;
@@ -242,7 +242,9 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     List<String> loadLinesFromFlavorFile() throws FogbowException {
         String flavorsPath = this.getFlavorsFilePath();
         URL res = getClass().getClassLoader().getResource(flavorsPath);
-        Path path = Paths.get(res.getPath());
+        String pathToFile = res != null ? res.getPath() : flavorsPath;
+
+        Path path = Paths.get(pathToFile);
         try {
             return Files.readAllLines(path);
         } catch (IOException e) {
