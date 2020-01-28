@@ -203,7 +203,7 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
     // test case: When calling the getVolumeQuotas method, it must verify that
     // the call was successful.
     @Test
-    public void testGetVolumeQuotas() throws FogbowException {
+    public void testGetVolumeQuotas() throws Exception {
         // set up
         String tenantId = FAKE_TENANT_ID;
         Mockito.doReturn(tenantId).when(this.plugin).getTenantId(Mockito.eq(this.cloudUser));
@@ -213,6 +213,11 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
 
         String response = generateVolumeQuotas();
         Mockito.doReturn(response).when(this.plugin).doGetQuota(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
+
+        GetVolumeQuotasResponse getVolumeQuotasResponse = Mockito.mock(GetVolumeQuotasResponse.class);
+        PowerMockito.mockStatic(GetVolumeQuotasResponse.class);
+        PowerMockito.when(GetVolumeQuotasResponse.class, "fromJson", response)
+                .thenReturn(getVolumeQuotasResponse);
 
         // exercise
         this.plugin.getVolumeQuotas(this.cloudUser);
