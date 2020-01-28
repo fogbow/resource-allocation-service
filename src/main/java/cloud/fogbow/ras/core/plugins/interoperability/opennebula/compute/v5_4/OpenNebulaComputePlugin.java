@@ -231,10 +231,20 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			for (Template template : templatePool) {
 				String id = template.getId();
 				String name = template.getName();
-				int cpu = this.convertToInteger(template.xpath(TEMPLATE_CPU_PATH));
+
+				// NOTE(jadsonluan): Some templates may have a decimal CPU number and it do not must convert it
+				// directly to Integer
+				String stringCPU = template.xpath(TEMPLATE_CPU_PATH);
+				double doubleCPU = Double.parseDouble(stringCPU);
+				int cpu = (int) doubleCPU;
+
 				int memory = this.convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
 
-				int disk = this.convertToInteger(template.xpath(TEMPLATE_DISK_SIZE_PATH));
+				// NOTE(jadsonluan): if template disk size is no set it will be a empty string. In order to work properly
+				// it should be mapped to zero disk size.
+				String stringDisk = template.xpath(TEMPLATE_DISK_SIZE_PATH);
+				int disk = stringDisk.isEmpty() ? 0 : this.convertToInteger(stringDisk);
+
 				// NOTE(pauloewerton): template disk size is not set, so fallback to image disk size
 				if (disk == 0) {
 					String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);

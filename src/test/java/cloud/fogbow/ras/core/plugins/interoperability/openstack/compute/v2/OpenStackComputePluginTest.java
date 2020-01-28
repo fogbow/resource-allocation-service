@@ -674,7 +674,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(mockRequirements).when(this.computePlugin).findSmallestFlavor(computeOrder, cloudUser);
         Mockito.doReturn(new ArrayList<String>()).when(this.computePlugin).getNetworkIds(Mockito.any());
         Mockito.doReturn(ANY_STRING).when(this.computePlugin).getKeyName(Mockito.any(), Mockito.any(), Mockito.any());
-
+        Mockito.doNothing().when(this.computePlugin).setAllocationToOrder(Mockito.eq(computeOrder), Mockito.any(HardwareRequirements.class));
         Mockito.doReturn(ANY_STRING).when(this.computePlugin)
                 .doRequestInstance(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 

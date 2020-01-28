@@ -12,6 +12,7 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -47,6 +48,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     protected static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
     protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
     protected static final String TCP_PROTOCOL = "tcp";
+    protected static final int PUBLIC_IP_ALLOCATION_NUMBER = 1;
     protected static final int SSH_DEFAULT_PORT = 22;
 
     private String defaultGroupId;
@@ -66,8 +68,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     public String requestInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-        String computeId = publicIpOrder.getComputeId();
-        return doRequestInstance(computeId, client);
+        return doRequestInstance(publicIpOrder, client);
     }
 
     @Override
@@ -154,13 +155,24 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         return AwsV2StateMapper.ERROR_STATE;
     }
 
-    protected String doRequestInstance(String computeId, Ec2Client client) throws FogbowException {
+    protected String doRequestInstance(PublicIpOrder order, Ec2Client client) throws FogbowException {
         String allocationId = doAllocateAddresses(client);
         String groupId = handleSecurityIssues(allocationId, client);
+        String computeId = order.getComputeId();
         String networkInterfaceId = getInstanceNetworkInterfaceId(computeId, client);
         doModifyNetworkInterfaceAttributes(allocationId, groupId, networkInterfaceId, client);
         doAssociateAddress(allocationId, networkInterfaceId, client);
+        updatePublicIpAllocation(order);
         return allocationId;
+    }
+
+    protected void updatePublicIpAllocation(PublicIpOrder publicIpOrder) {
+        int publicIps = PUBLIC_IP_ALLOCATION_NUMBER;
+        synchronized (publicIpOrder) {
+            PublicIpAllocation actualAllocation = new PublicIpAllocation(publicIps);
+            publicIpOrder.setActualAllocation(actualAllocation);
+        }
+        
     }
 
     protected void doAssociateAddress(String allocationId, String networkInterfaceId, Ec2Client client)

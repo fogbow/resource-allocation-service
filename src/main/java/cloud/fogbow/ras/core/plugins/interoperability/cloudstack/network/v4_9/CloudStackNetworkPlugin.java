@@ -10,6 +10,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFo
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -29,6 +30,7 @@ import java.util.Properties;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
+    private static final int NETWORK_INSTANCES_NUMBER = 1;
 
     private CloudStackHttpClient client;
     private Properties properties;
@@ -76,6 +78,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
                 .netmask(subnetInfo.getNetmask())
                 .build(this.cloudStackUrl);
 
+        updateNetworkOrder(networkOrder);
         return doRequestInstance(request, cloudStackUser);
     }
 
@@ -156,6 +159,14 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             return response.getId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+    }
+
+    @VisibleForTesting
+    void updateNetworkOrder(NetworkOrder order) {
+        synchronized (order) {
+            NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
+            order.setActualAllocation(networkAllocation);
         }
     }
 

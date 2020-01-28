@@ -11,6 +11,7 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFo
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -61,7 +62,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         CreateVolumeRequest request = buildCreateVolumeRequest(volumeOrder, cloudStackUser);
-        return doRequestInstance(request, cloudStackUser);
+        String instanceId = doRequestInstance(request, cloudStackUser);
+        updateVolumeOrder(volumeOrder);
+        return instanceId;
     }
 
     @Override
@@ -177,6 +180,13 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             return volumeResponse.getId();
         } catch (HttpResponseException e) {
             throw CloudStackHttpToFogbowExceptionMapper.get(e);
+        }
+    }
+
+    void updateVolumeOrder(VolumeOrder order) {
+        synchronized (order) {
+            VolumeAllocation volumeAllocation = new VolumeAllocation(order.getVolumeSize());
+            order.setActualAllocation(volumeAllocation);
         }
     }
 

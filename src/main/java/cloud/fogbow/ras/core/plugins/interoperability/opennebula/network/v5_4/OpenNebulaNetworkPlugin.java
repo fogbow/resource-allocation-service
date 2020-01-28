@@ -6,9 +6,11 @@ import java.util.Properties;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.log4j.Logger;
@@ -57,6 +59,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	protected static final String ADDRESS_RANGE_USED_LEASES_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/USED_LEASES";
 
 	protected static final int IPV4_AMOUNT_BITS = 32;
+	private static final int NETWORK_INSTANCES_NUMBER = 1;
 
 	private String endpoint;
 	private String defaultNetwork;
@@ -83,7 +86,17 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
 		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(networkOrder, virtualNetwork);
 
-		return this.doRequestInstance(client, networkOrder.getId(), request);
+		String instanceId = this.doRequestInstance(client, networkOrder.getId(), request);
+		setOrderAllocation(networkOrder);
+		return instanceId;
+	}
+
+	@VisibleForTesting
+	void setOrderAllocation(NetworkOrder order) {
+		synchronized (order) {
+			NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
+			order.setActualAllocation(networkAllocation);
+		}
 	}
 
 	@Override

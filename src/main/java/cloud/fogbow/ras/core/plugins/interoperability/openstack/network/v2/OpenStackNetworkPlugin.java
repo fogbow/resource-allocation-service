@@ -6,6 +6,7 @@ import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -15,6 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonSyntaxException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -46,6 +48,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final String UDP_PROTOCOL = "udp";
     protected static final String ICMP_PROTOCOL = "icmp";
+    private static final int NETWORK_INSTANCES_NUMBER = 1;
 
     private OpenStackHttpClient client;
     private String networkV2APIEndpoint;
@@ -79,7 +82,16 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(cloudUser, securityGroupName,
                 tenantId, createdNetworkId);
         createSecurityGroupRules(order, cloudUser, createdNetworkId, securityGroupResponse.getId());
+        setAllocationToOrder(order);
         return createdNetworkId;
+    }
+
+    @VisibleForTesting
+    void setAllocationToOrder(NetworkOrder order) {
+        synchronized (order) {
+            NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_NUMBER);
+            order.setActualAllocation(networkAllocation);
+        }
     }
 
     @Override
