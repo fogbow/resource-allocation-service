@@ -50,7 +50,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     private CloudStackHttpClient client;
     private String cloudStackUrl;
 
-    public CloudStackQuotaPlugin(String confFilePath) {
+    public CloudStackQuotaPlugin(@NotBlank String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.client = new CloudStackHttpClient();
@@ -178,10 +178,10 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getUsedAllocation(List<VirtualMachine> vms,
-                                         List<Volume> volumes,
-                                         List<Network> networks,
-                                         List<PublicIpAddress> publicIps) {
+    ResourceAllocation getUsedAllocation(@NotNull List<VirtualMachine> vms,
+                                         @NotNull List<Volume> volumes,
+                                         @NotNull List<Network> networks,
+                                         @NotNull List<PublicIpAddress> publicIps) {
         int usedPublicIps = getPublicIpAllocation(publicIps);
         int usedNetworks = getNetworkAllocation(networks);
         int usedDisk = getVolumeAllocation(volumes);
@@ -200,17 +200,17 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    int getNetworkAllocation(List<Network> networks) {
+    int getNetworkAllocation(@NotNull List<Network> networks) {
         return networks.size();
     }
 
     @VisibleForTesting
-    int getPublicIpAllocation(List<PublicIpAddress> publicIps) {
+    int getPublicIpAllocation(@NotNull List<PublicIpAddress> publicIps) {
         return publicIps.size();
     }
 
     @VisibleForTesting
-    ComputeAllocation buildComputeAllocation(List<VirtualMachine> vms) {
+    ComputeAllocation buildComputeAllocation(@NotNull List<VirtualMachine> vms) {
         int instances = vms.size();
         int cores = 0;
         int ram = 0;
@@ -224,7 +224,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    int getVolumeAllocation(List<Volume> volumes) {
+    int getVolumeAllocation(@NotNull List<Volume> volumes) {
         long sizeInBytes = 0;
 
         for (Volume volume: volumes) {
@@ -246,7 +246,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getTotalAllocation(List<ResourceLimit> resourceLimits, @NotNull CloudStackUser cloudUser) {
+    ResourceAllocation getTotalAllocation(@NotNull List<ResourceLimit> resourceLimits, @NotNull CloudStackUser cloudUser) {
         ResourceAllocation.Builder builder = ResourceAllocation.builder();
         int max = 0;
 
@@ -290,7 +290,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    void setClient(CloudStackHttpClient client) {
+    void setClient(@NotNull CloudStackHttpClient client) {
         this.client = client;
     }
 }
