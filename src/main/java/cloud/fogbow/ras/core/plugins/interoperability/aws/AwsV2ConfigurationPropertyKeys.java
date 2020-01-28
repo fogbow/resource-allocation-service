@@ -8,5 +8,7 @@ public class AwsV2ConfigurationPropertyKeys {
 	public static final String AWS_DEFAULT_VPC_ID_KEY = "aws_default_vpc_id_key";
 	public static final String AWS_FLAVORS_TYPES_FILE_PATH_KEY = "aws_flavors_types_file_path_key";
 	public static final String AWS_REGION_SELECTION_KEY = "aws_region_selection_key";
-
+	public static final String AWS_STORAGE_QUOTA = "aws_storage_quota";
+	public static final String AWS_ELASTIC_IP_ADDRESSES_QUOTA = "aws_elastic_ip_addresses_quota";
+	public static final String AWS_SUBNETS_QUOTA = "aws_subnets_quota";
 }
