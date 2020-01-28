@@ -37,8 +37,14 @@ import java.io.File;
 import java.util.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackUrlUtil.class, ListResourceLimitsResponse.class, CloudStackHttpToFogbowExceptionMapper.class,
-GetVirtualMachineResponse.class, GetVolumeResponse.class, ListPublicIpAddressResponse.class, GetNetworkResponse.class})
+@PrepareForTest({
+        CloudStackHttpToFogbowExceptionMapper.class,
+        CloudStackUrlUtil.class,
+        GetNetworkResponse.class,
+        GetVirtualMachineResponse.class,
+        GetVolumeResponse.class,
+        ListResourceLimitsResponse.class,
+        ListPublicIpAddressResponse.class})
 public class CloudStackQuotaPluginTest {
     private static final String CLOUD_NAME = "cloudstack";
 
@@ -96,7 +102,7 @@ public class CloudStackQuotaPluginTest {
         this.plugin.setClient(client);
         this.cloudUser = new CloudStackUser(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_DOMAIN, FAKE_COOKIE_HEADER);
 
-        this.resourcesAccountLimited = this.buildAccountLimitedResources();
+        this.resourcesAccountLimited = this.buildAccountLimitedResources(MAX_DISK);
 
         this.ignoringCloudStackUrl();
     }
@@ -104,24 +110,29 @@ public class CloudStackQuotaPluginTest {
     // test case: when given a cloud user, it should return the user resource quota (total, available and used quota)
     @Test
     public void testGetUserQuotaSuccessful() throws FogbowException {
+        // set up
         ResourceAllocation totalQuota = Mockito.mock(ResourceAllocation.class);
         Mockito.doReturn(totalQuota).when(this.plugin).getTotalQuota(Mockito.eq(this.cloudUser));
 
         ResourceAllocation usedQuota = Mockito.mock(ResourceAllocation.class);
         Mockito.doReturn(usedQuota).when(this.plugin).getUsedQuota(Mockito.eq(this.cloudUser));
 
+        ResourceQuota expectedUserQuota = new ResourceQuota(totalQuota, usedQuota);
+
+        // exercise
         ResourceQuota userQuota = this.plugin.getUserQuota(this.cloudUser);
 
+        // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTotalQuota(Mockito.eq(this.cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTotalQuota(Mockito.eq(this.cloudUser));
 
-        ResourceQuota expectedUserQuota = new ResourceQuota(totalQuota, usedQuota);
         Assert.assertEquals(expectedUserQuota, userQuota);
     }
 
     // test case: when given a cloud user, it should return the user total resource quota (limit)
     @Test
     public void testGetUserTotalQuotaSuccessful() throws FogbowException {
+        // set up
         List<ResourceLimit> resourceLimits = new ArrayList<>();
         ResourceLimit resourceLimit = Mockito.mock(ResourceLimit.class);
         resourceLimits.add(resourceLimit);
@@ -144,6 +155,7 @@ public class CloudStackQuotaPluginTest {
     // test case: when a cloud user is given, return a list of resource limits
     @Test
     public void testGetResourceLimitsSuccessful() throws FogbowException {
+        // set up
         ListResourceLimitsResponse response = Mockito.mock(ListResourceLimitsResponse.class);
         Mockito.doReturn(this.resourcesAccountLimited).when(response).getResourceLimits();
 
@@ -165,10 +177,7 @@ public class CloudStackQuotaPluginTest {
     // account, a ResourceAllocation instance must be built and returned
     @Test
     public void testGetTotalAllocationSuccessful() {
-        // exercise
-        ResourceAllocation totalAllocation = this.plugin.getTotalAllocation(this.resourcesAccountLimited, this.cloudUser);
-
-        // verify
+        // set up
         ResourceAllocation expectedAllocation = new ResourceAllocation.Builder()
                 .instances(MAX_INSTANCES)
                 .ram(MAX_RAM)
@@ -178,6 +187,10 @@ public class CloudStackQuotaPluginTest {
                 .publicIps(MAX_PUBLIC_IP_ADDRESSES)
                 .build();
 
+        // exercise
+        ResourceAllocation totalAllocation = this.plugin.getTotalAllocation(this.resourcesAccountLimited, this.cloudUser);
+
+        // verify
         Assert.assertEquals(totalAllocation, expectedAllocation);
     }
 
@@ -186,7 +199,8 @@ public class CloudStackQuotaPluginTest {
     // build a ResourceAllocation object with the new resource limit replaced
     @Test
     public void testGetTotalAllocationSuccessfulLimitedResources() {
-        List<ResourceLimit> resourceLimits = this.buildAccountLimitedResourcesButDisk();
+        // set up
+        List<ResourceLimit> resourceLimits = this.buildAccountLimitedResources(UNLIMITED_RESOURCE);
         ResourceLimit resourceLimit = new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, UNLIMITED_RESOURCE);
         ResourceLimit mockedResponse = new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_DISK);
 
@@ -207,8 +221,8 @@ public class CloudStackQuotaPluginTest {
     // domain resource limit (in this case, disk resource), the resource limit must be zero
     @Test
     public void testGetTotalAllocationUnsuccessfulLimitedResources() throws FogbowException {
-        // setup
-        List<ResourceLimit> resourceLimits = this.buildAccountLimitedResourcesButDisk();
+        // set up
+        List<ResourceLimit> resourceLimits = this.buildAccountLimitedResources(UNLIMITED_RESOURCE);
         ResourceLimit resourceLimit = new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, UNLIMITED_RESOURCE);
 
         FogbowException exception = new FogbowException();
@@ -243,6 +257,7 @@ public class CloudStackQuotaPluginTest {
     // if the get method from the CloudStackHttpToFogbowExceptionMapper class was called
     @Test
     public void testDoGetRequestUnsuccessful() throws Exception {
+        // set up
         HttpResponseException exception = new HttpResponseException(ANY_STATUS_CODE, Messages.Exception.INVALID_PARAMETER);
         Mockito.when(this.client.doGetRequest(Mockito.eq(ANY_URL), Mockito.eq(this.cloudUser))).thenThrow(exception);
 
@@ -254,6 +269,7 @@ public class CloudStackQuotaPluginTest {
             this.plugin.doGetRequest(this.cloudUser, ANY_URL);
             Assert.fail();
         } catch (FogbowException e) {
+            // verify
             PowerMockito.verifyStatic(CloudStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
             CloudStackHttpToFogbowExceptionMapper.get(Mockito.eq(exception));
             Assert.assertEquals(exception.getMessage(), e.getMessage());
@@ -265,7 +281,7 @@ public class CloudStackQuotaPluginTest {
     // limit of the given resource domain
     @Test
     public void testGetDomainResourceLimit() throws FogbowException {
-        // setup
+        // set up
         List<ResourceLimit> resourceLimits = new ArrayList<>();
         resourceLimits.add(new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_DISK));
 
@@ -291,25 +307,13 @@ public class CloudStackQuotaPluginTest {
     // if it is returned the ResourceAllocation correct
     @Test
     public void testGetUsedQuota() throws FogbowException {
-        // setup
-        List<VirtualMachine> virtualMachines = new ArrayList<>();
-        virtualMachines.add(Mockito.mock(VirtualMachine.class));
-        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(Mockito.eq(this.cloudUser));
-
-        List<Volume> volumes = new ArrayList<>();
-        volumes.add(Mockito.mock(Volume.class));
-        Mockito.doReturn(volumes).when(this.plugin).getVolumes(Mockito.eq(this.cloudUser));
-
-        List<Network> networks = new ArrayList<>();
-        networks.add(Mockito.mock(Network.class));
-        Mockito.doReturn(networks).when(this.plugin).getNetworks(Mockito.eq(this.cloudUser));
-
-        List<PublicIpAddress> publicIpAddresses = new ArrayList<>();
-        publicIpAddresses.add(Mockito.mock(PublicIpAddress.class));
-        Mockito.doReturn(publicIpAddresses).when(this.plugin).getPublicIpAddresses(Mockito.eq(this.cloudUser));
+        // set up
+        List<VirtualMachine> virtualMachines = getVirtualMachines();
+        List<Volume> volumes = getVolumes();
+        List<Network> networks = getNetworks();
+        List<PublicIpAddress> publicIpAddresses = getPublicIpAddresses();
 
         ResourceAllocation resourceAllocation = Mockito.mock(ResourceAllocation.class);
-
         Mockito.doReturn(resourceAllocation).when(this.plugin).getUsedAllocation(Mockito.eq(virtualMachines), Mockito.eq(volumes),
                 Mockito.eq(networks), Mockito.eq(publicIpAddresses));
 
@@ -327,11 +331,43 @@ public class CloudStackQuotaPluginTest {
         Assert.assertEquals(resourceAllocation, response);
     }
 
+    private List<VirtualMachine> getVirtualMachines() throws FogbowException {
+        List<VirtualMachine> virtualMachines = new ArrayList<>();
+        VirtualMachine mock = Mockito.mock(VirtualMachine.class);
+        virtualMachines.add(mock);
+        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(Mockito.eq(this.cloudUser));
+        return virtualMachines;
+    }
+
+    private List<PublicIpAddress> getPublicIpAddresses() throws FogbowException {
+        List<PublicIpAddress> publicIpAddresses = new ArrayList<>();
+        PublicIpAddress mock = Mockito.mock(PublicIpAddress.class);
+        publicIpAddresses.add(mock);
+        Mockito.doReturn(publicIpAddresses).when(this.plugin).getPublicIpAddresses(Mockito.eq(this.cloudUser));
+        return publicIpAddresses;
+    }
+
+    private List<Network> getNetworks() throws FogbowException {
+        List<Network> networks = new ArrayList<>();
+        Network mock = Mockito.mock(Network.class);
+        networks.add(mock);
+        Mockito.doReturn(networks).when(this.plugin).getNetworks(Mockito.eq(this.cloudUser));
+        return networks;
+    }
+
+    private List<Volume> getVolumes() throws FogbowException {
+        List<Volume> volumes = new ArrayList<>();
+        Volume mock = Mockito.mock(Volume.class);
+        volumes.add(mock);
+        Mockito.doReturn(volumes).when(this.plugin).getVolumes(Mockito.eq(this.cloudUser));
+        return volumes;
+    }
+
     // test case: When calling getVirtualMachines with secondary methods mocked, it must verify if it is returned
     // the list of virtual machines correctly
     @Test
     public void testGetVirtualMachinesSuccessful() throws FogbowException, HttpResponseException {
-        // setup
+        // set up
         GetVirtualMachineResponse mockedResponse = Mockito.mock(GetVirtualMachineResponse.class);
 
         List<VirtualMachine> virtualMachines = new ArrayList<>();
@@ -362,7 +398,7 @@ public class CloudStackQuotaPluginTest {
     // it must verify if the threw exception is mapped by CloudStackHttpToFogbowExceptionMapper correctly
     @Test
     public void testGetVirtualMachinesUnsuccessful() throws Exception {
-        // setup
+        // set up
         HttpResponseException exception = new HttpResponseException(ANY_STATUS_CODE, Messages.Exception.INVALID_PARAMETER);
 
         PowerMockito.mockStatic(GetVirtualMachineResponse.class);
@@ -391,7 +427,7 @@ public class CloudStackQuotaPluginTest {
     // volumes correctly
     @Test
     public void testGetVolumesSuccessful() throws FogbowException, HttpResponseException {
-        // setup
+        // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetRequest(Mockito.eq(this.cloudUser), Mockito.anyString());
 
         PowerMockito.mockStatic(GetVolumeResponse.class);
@@ -420,7 +456,7 @@ public class CloudStackQuotaPluginTest {
     // it must map with CloudStackHttpToFogbowExceptionMapper
     @Test
     public void testGetVolumesUnsuccessful() throws Exception {
-        // setup
+        // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetRequest(Mockito.eq(this.cloudUser), Mockito.anyString());
 
         HttpResponseException exception = new HttpResponseException(ANY_STATUS_CODE, Messages.Exception.INVALID_PARAMETER);
@@ -453,7 +489,7 @@ public class CloudStackQuotaPluginTest {
     // networks correctly
     @Test
     public void testGetNetworksSuccessful() throws FogbowException, HttpResponseException {
-        // setup
+        // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetRequest(Mockito.eq(this.cloudUser), Mockito.anyString());
 
         PowerMockito.mockStatic(GetNetworkResponse.class);
@@ -482,7 +518,7 @@ public class CloudStackQuotaPluginTest {
     // it must map with CloudStackHttpToFogbowExceptionMapper
     @Test
     public void testGetNetworksUnsuccessful() throws Exception {
-        // setup
+        // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetRequest(Mockito.eq(this.cloudUser), Mockito.anyString());
 
         HttpResponseException exception = new HttpResponseException(ANY_STATUS_CODE, Messages.Exception.INVALID_PARAMETER);
@@ -515,7 +551,7 @@ public class CloudStackQuotaPluginTest {
     // public ip addresses correctly
     @Test
     public void testGetPublicIpsSuccessful() throws FogbowException, HttpResponseException {
-        // setup
+        // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetRequest(Mockito.eq(this.cloudUser), Mockito.anyString());
 
         PowerMockito.mockStatic(ListPublicIpAddressResponse.class);
@@ -544,7 +580,7 @@ public class CloudStackQuotaPluginTest {
     // it must map with CloudStackHttpToFogbowExceptionMapper
     @Test
     public void testGetPublicIpsUnsuccessful() throws Exception {
-        // setup
+        // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetRequest(Mockito.eq(this.cloudUser), Mockito.anyString());
 
         HttpResponseException exception = new HttpResponseException(ANY_STATUS_CODE, Messages.Exception.INVALID_PARAMETER);
@@ -577,7 +613,7 @@ public class CloudStackQuotaPluginTest {
     // ResourceAllocation object correctly
     @Test
     public void testGetUsedAllocation() {
-        // setup
+        // set up
         ArrayList<VirtualMachine> vms = new ArrayList<>();
         ArrayList<Volume> volumes = new ArrayList<>();
         ArrayList<Network> networks= new ArrayList<>();
@@ -611,6 +647,7 @@ public class CloudStackQuotaPluginTest {
     // ResourceAllocation.Builder with the total allocation (cores, ram and instances) of all virtual machines
     @Test
     public void testBuildComputeAllocation() {
+        // set up
         VirtualMachine vm1 = Mockito.mock(VirtualMachine.class);
         VirtualMachine vm2 = Mockito.mock(VirtualMachine.class);
 
@@ -643,6 +680,7 @@ public class CloudStackQuotaPluginTest {
     // allocation of the volumes in gigabytes
     @Test
     public void testGetVolumeAllocation() {
+        // set up
         Volume volume1 = Mockito.mock(Volume.class);
         Volume volume2 = Mockito.mock(Volume.class);
         Volume volume3 = Mockito.mock(Volume.class);
@@ -671,6 +709,7 @@ public class CloudStackQuotaPluginTest {
     // test case: When calling getNetworkAllocation method given a list of networks, it must returns the total networks
     @Test
     public void testGetNetworkAllocation() {
+        // set up
         Network network1 = Mockito.mock(Network.class);
         Network network2 = Mockito.mock(Network.class);
         Network network3 = Mockito.mock(Network.class);
@@ -690,6 +729,7 @@ public class CloudStackQuotaPluginTest {
     // test case: When calling getPublicIpkAllocation method given a list of networks, it must returns the total networks
     @Test
     public void testGetPublicIpAllocation() {
+        // set up
         PublicIpAddress publicIp1 = Mockito.mock(PublicIpAddress.class);
         PublicIpAddress publicIp2 = Mockito.mock(PublicIpAddress.class);
         PublicIpAddress publicIp3 = Mockito.mock(PublicIpAddress.class);
@@ -706,26 +746,13 @@ public class CloudStackQuotaPluginTest {
         Assert.assertEquals(publicIps.size(), publicIpAllocation);
     }
 
-    private List<ResourceLimit> buildAccountLimitedResources() {
+    private List<ResourceLimit> buildAccountLimitedResources(int diskLimit) {
         List<ResourceLimit> resourceLimits = new ArrayList<>();
 
         resourceLimits.add(new ResourceLimit(INSTANCE_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_INSTANCES));
         resourceLimits.add(new ResourceLimit(CPU_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_CORES));
         resourceLimits.add(new ResourceLimit(RAM_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_RAM));
-        resourceLimits.add(new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_DISK));
-        resourceLimits.add(new ResourceLimit(NETWORK_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_NETWORKS));
-        resourceLimits.add(new ResourceLimit(PUBLIC_IP_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_PUBLIC_IP_ADDRESSES));
-
-        return resourceLimits;
-    }
-
-    private List<ResourceLimit> buildAccountLimitedResourcesButDisk() {
-        List<ResourceLimit> resourceLimits = new ArrayList<>();
-
-        resourceLimits.add(new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, UNLIMITED_RESOURCE));
-        resourceLimits.add(new ResourceLimit(INSTANCE_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_INSTANCES));
-        resourceLimits.add(new ResourceLimit(CPU_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_CORES));
-        resourceLimits.add(new ResourceLimit(RAM_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_RAM));
+        resourceLimits.add(new ResourceLimit(STORAGE_RESOURCE_TYPE, FAKE_DOMAIN_ID, diskLimit));
         resourceLimits.add(new ResourceLimit(NETWORK_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_NETWORKS));
         resourceLimits.add(new ResourceLimit(PUBLIC_IP_RESOURCE_TYPE, FAKE_DOMAIN_ID, MAX_PUBLIC_IP_ADDRESSES));
 
