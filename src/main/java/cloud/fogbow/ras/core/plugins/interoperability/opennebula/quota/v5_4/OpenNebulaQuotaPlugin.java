@@ -4,6 +4,7 @@ import java.util.Properties;
 
 import javax.validation.constraints.NotNull;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.user.User;
@@ -20,6 +21,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
 public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
 
@@ -53,24 +55,24 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
         User user = OpenNebulaClientUtil.getUser(userPool, cloudUser.getId());
-        
+
         ResourceAllocation totalAllocation = getTotalAllocation(user);
-        ResourceAllocation usedAllocation = getUsedAllocation(user);
+        ResourceAllocation usedAllocation = getUsedAllocation(user, client);
         
         return new ResourceQuota(totalAllocation, usedAllocation);
     }
 
     @VisibleForTesting
-    ResourceAllocation getUsedAllocation(@NotNull User user) {
-        String networkQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultNetwork);
-        String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultPublicNetwork);
-        
+    ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws UnexpectedException {
+        String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultPublicNetwork);
+        VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPool(client);
+
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
         int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
         
         int diskInUse = convertToInteger(user.xpath(QUOTA_DISK_SIZE_USED_PATH));
-        int networksInUse = convertToInteger(user.xpath(networkQuotaUsedPath));
+        int networksInUse = networkPool.getLength();
         int publicIpsInUse = convertToInteger(user.xpath(publicIpQuotaUsedPath));
         
         ResourceAllocation usedAllocation = ResourceAllocation.builder()
@@ -89,7 +91,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     ResourceAllocation getTotalAllocation(@NotNull User user) {
         String networkQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultNetwork);
         String publicIpQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultPublicNetwork);
-        
+
         int maxCpu = convertToInteger(user.xpath(QUOTA_CPU_PATH));
         int maxDisk = convertToInteger(user.xpath(QUOTA_DISK_SIZE_PATH));
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
