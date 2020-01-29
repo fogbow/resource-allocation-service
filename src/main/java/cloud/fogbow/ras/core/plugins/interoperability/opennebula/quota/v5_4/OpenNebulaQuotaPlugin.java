@@ -4,16 +4,16 @@ import java.util.Properties;
 
 import javax.validation.constraints.NotNull;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.OpenNebulaUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
@@ -21,9 +21,8 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
-import org.opennebula.client.vnet.VirtualNetworkPool;
 
-public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
+public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaQuotaPlugin.class);
     
@@ -49,7 +48,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     }
 
     @Override
-    public ResourceQuota getUserQuota(OpenNebulaUser cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Info.GETTING_QUOTA);
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
@@ -62,15 +61,14 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws UnexpectedException {
+    ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws FogbowException {
         String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultPublicNetwork);
         VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPoolByUser(client);
 
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
+        int diskInUse = convertToInteger(user.xpath(QUOTA_DISK_SIZE_USED_PATH));
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
         int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
-        
-        int diskInUse = convertToInteger(user.xpath(QUOTA_DISK_SIZE_USED_PATH));
         int networksInUse = networkPool.getLength();
         int publicIpsInUse = convertToInteger(user.xpath(publicIpQuotaUsedPath));
         
