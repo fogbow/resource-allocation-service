@@ -37,14 +37,13 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     protected static final String QUOTA_DISK_SIZE_USED_PATH = "VM_QUOTA/VM/SYSTEM_DISK_SIZE_USED";
     protected static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
     protected static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
+    protected static final int UNLIMITED_NETWORK_QUOTA_VALUE = -1;
     
-    private String defaultNetwork;
     private String defaultPublicNetwork;
     private String endpoint;
 
     public OpenNebulaQuotaPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.defaultNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_RESERVATIONS_NETWORK_ID_KEY);
         this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
         this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
     }
@@ -89,14 +88,13 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
 
     @VisibleForTesting
     ResourceAllocation getTotalAllocation(@NotNull User user) {
-        String networkQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultNetwork);
         String publicIpQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultPublicNetwork);
 
         int maxCpu = convertToInteger(user.xpath(QUOTA_CPU_PATH));
         int maxDisk = convertToInteger(user.xpath(QUOTA_DISK_SIZE_PATH));
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
         int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
-        int maxNetworks = convertToInteger(user.xpath(networkQuotaPath));
+        int maxNetworks = UNLIMITED_NETWORK_QUOTA_VALUE;
         int maxPublicIps = convertToInteger(user.xpath(publicIpQuotaPath));
         
         ResourceAllocation totalAllocation = ResourceAllocation.builder()
