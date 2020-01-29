@@ -17,6 +17,7 @@ import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -25,9 +26,6 @@ import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
-import org.opennebula.client.vnet.VirtualNetworkPool;
-
-import java.util.Arrays;
 
 public class OpenNebulaClientUtil {
 
@@ -74,7 +72,7 @@ public class OpenNebulaClientUtil {
 		return group;
     }
 
-	public static VirtualNetworkPool getNetworkPool(Client client) throws UnexpectedException {
+	public static VirtualNetworkPool getNetworkPoolByUser(Client client) throws UnexpectedException {
 		VirtualNetworkPool networkPool = new VirtualNetworkPool(client, RESOURCE_BELONGS_TO_USER_FILTER);;
 		OneResponse response = networkPool.info();
 		if (response.isError()) {
@@ -84,7 +82,7 @@ public class OpenNebulaClientUtil {
 		return networkPool;
 	}
 	
-	public static Image getImage(Client client, String imageId) throws UnexpectedException, InvalidParameterException,
+	public static Image getImage(Client client, String imageId) throws InvalidParameterException,
 			UnauthorizedRequestException, InstanceNotFoundException {
 		
 		Image image = (Image) generateOnePoolElement(client, imageId, Image.class);
@@ -341,7 +339,6 @@ public class OpenNebulaClientUtil {
         } else if (classType.isAssignableFrom(DatastorePool.class)) {
 			return new DatastorePool(client);
 		}
-
 		return null;
 	}
 }

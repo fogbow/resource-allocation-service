@@ -65,7 +65,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     @VisibleForTesting
     ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws UnexpectedException {
         String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultPublicNetwork);
-        VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPool(client);
+        VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPoolByUser(client);
 
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
@@ -119,7 +119,6 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
         } catch (NumberFormatException e) {
             LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e));
         }
-
         return converted;
     }
 
