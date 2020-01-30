@@ -73,7 +73,7 @@ public class OpenNebulaClientUtil {
     }
 
 	public static VirtualNetworkPool getNetworkPoolByUser(Client client) throws UnexpectedException {
-		VirtualNetworkPool networkPool = new VirtualNetworkPool(client, RESOURCE_BELONGS_TO_USER_FILTER);;
+		VirtualNetworkPool networkPool = new VirtualNetworkPool(client, RESOURCE_BELONGS_TO_USER_FILTER);
 		OneResponse response = networkPool.info();
 		if (response.isError()) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USERS, response.getErrorMessage()));
