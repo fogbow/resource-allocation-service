@@ -12,6 +12,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -59,14 +60,16 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         Mockito.when(OpenNebulaClientUtil.getUserPool(Mockito.any(Client.class))).thenReturn(userPool);
         Mockito.when(OpenNebulaClientUtil.getUser(Mockito.eq(userPool), Mockito.anyString())).thenReturn(this.user);
         
-        ResourceAllocation totalAllocation = Mockito.mock(ResourceAllocation.class);
-        Mockito.doReturn(totalAllocation).when(this.plugin).getTotalAllocation(this.user);
+        ResourceAllocation totalAllocation = buildTotalAllocation();
+        Mockito.doReturn(totalAllocation).when(this.plugin).getTotalAllocation(Mockito.eq(this.user));
         
-        ResourceAllocation usedAllocation = Mockito.mock(ResourceAllocation.class);
-        Mockito.doReturn(usedAllocation).when(this.plugin).getUsedAllocation(this.user, this.client);
+        ResourceAllocation usedAllocation = buildUsedAllocation();
+        Mockito.doReturn(usedAllocation).when(this.plugin).getUsedAllocation(Mockito.eq(this.user), Mockito.eq(this.client));
+        
+        ResourceQuota expected = new ResourceQuota(totalAllocation, usedAllocation);
 
         // exercise
-        this.plugin.getUserQuota(this.cloudUser);
+        ResourceQuota quota = this.plugin.getUserQuota(this.cloudUser);
 
         // verify
         PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -80,6 +83,8 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTotalAllocation(Mockito.eq(this.user));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getUsedAllocation(Mockito.eq(this.user), Mockito.eq(this.client));
+        
+        Assert.assertEquals(expected, quota);
     }
     
     // test case: When calling the getUsedAllocation method, it must verify that
@@ -174,20 +179,30 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
 
     
     // test case: When invoking the testConvertToInteger method, with an
-    // integer-convertible String, return the respective round int value or 0
-    // otherwise.
+    // integer-convertible String, return the respective round integer value.
     @Test
     public void testConvertToInteger() {
         // set up
         int expectedIntSuccess = 2;
-        int expectedIntFail = 0;
 
         // exercise
         int intSuccess = this.plugin.convertToInteger(FRACTION_RESOURCE_USED_VALUE);
-        int intFail = this.plugin.convertToInteger(TestUtils.EMPTY_STRING);
 
         // verify
         Assert.assertEquals(expectedIntSuccess, intSuccess);
+    }
+    
+    // test case: When invoking the testConvertToInteger method, with a String not
+    // convertible to an integer, return the value 0 (zero).
+    @Test
+    public void testConvertToIntegerFail() {
+        // set up
+        int expectedIntFail = 0;
+
+        // exercise
+        int intFail = this.plugin.convertToInteger(TestUtils.EMPTY_STRING);
+
+        // verify
         Assert.assertEquals(expectedIntFail, intFail);
     }
     
