@@ -23,7 +23,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
@@ -33,7 +32,7 @@ import java.util.Map;
 
 @PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsV2QuotaPluginTest extends BaseUnitTests {
-    private static final String CLOUD_NAME = "amazon"; // not aws?
+    private static final String CLOUD_NAME = "amazon";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
     private static final String FLAVOR_LINE_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s";
