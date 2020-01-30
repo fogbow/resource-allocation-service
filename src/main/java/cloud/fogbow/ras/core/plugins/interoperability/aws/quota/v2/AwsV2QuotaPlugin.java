@@ -53,9 +53,9 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     protected static final int ONE_TERABYTE = 1000;
 
     private static final String TEMPORARY_FLAVORS_TYPE_FILE_PATH_KEY = "private/clouds/aws/flavors.csv";
-    public static int MAXIMUM_STORAGE_VALUE;
-    public static int MAXIMUM_SUBNETS_VALUE;
-    public static int MAXIMUM_PUBLIC_IP_ADDRESSES_VALUE;
+    public static int maximumStorage;
+    public static int maximumSubnets;
+    public static int maximumPublicIpAddresses;
 
     private Map<String, ComputeAllocation> totalComputeAllocationMap;
     private Map<String, ComputeAllocation> computeAllocationMap;
@@ -65,11 +65,10 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     public AwsV2QuotaPlugin(@NotNull String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-//        this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
         this.flavorsFilePath = TEMPORARY_FLAVORS_TYPE_FILE_PATH_KEY;
-        this.MAXIMUM_STORAGE_VALUE = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_STORAGE_QUOTA));
-        this.MAXIMUM_SUBNETS_VALUE = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_SUBNETS_QUOTA));
-        this.MAXIMUM_PUBLIC_IP_ADDRESSES_VALUE = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_ELASTIC_IP_ADDRESSES_QUOTA));
+        this.maximumStorage = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_STORAGE_QUOTA_KEY));
+        this.maximumSubnets = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_SUBNETS_QUOTA_KEY));
+        this.maximumPublicIpAddresses = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_ELASTIC_IP_ADDRESSES_QUOTA_KEY));
         this.totalComputeAllocationMap = new HashMap<String, ComputeAllocation>();
         this.computeAllocationMap = new HashMap<String, ComputeAllocation>();
     }
@@ -134,9 +133,9 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
-                .disk(MAXIMUM_STORAGE_VALUE)
-                .networks(MAXIMUM_SUBNETS_VALUE)
-                .publicIps(MAXIMUM_PUBLIC_IP_ADDRESSES_VALUE)
+                .disk(maximumStorage)
+                .networks(maximumSubnets)
+                .publicIps(maximumPublicIpAddresses)
                 .build();
 
         return allocation;
