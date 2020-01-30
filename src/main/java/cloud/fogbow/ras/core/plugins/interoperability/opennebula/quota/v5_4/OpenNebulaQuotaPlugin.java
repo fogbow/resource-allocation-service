@@ -2,18 +2,19 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
 import java.util.Properties;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.OpenNebulaUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
@@ -21,9 +22,8 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
-import org.opennebula.client.vnet.VirtualNetworkPool;
 
-public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
+public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaQuotaPlugin.class);
     
@@ -42,14 +42,14 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     private String defaultPublicNetwork;
     private String endpoint;
 
-    public OpenNebulaQuotaPlugin(String confFilePath) {
+    public OpenNebulaQuotaPlugin(@NotBlank String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
         this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
     }
 
     @Override
-    public ResourceQuota getUserQuota(OpenNebulaUser cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(@NotNull CloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Info.GETTING_QUOTA);
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
@@ -62,7 +62,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws UnexpectedException {
+    ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws FogbowException {
         String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultPublicNetwork);
         VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPoolByUser(client);
 
@@ -94,8 +94,15 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
         int maxDisk = convertToInteger(user.xpath(QUOTA_DISK_SIZE_PATH));
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
         int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
-        int maxNetworks = UNLIMITED_NETWORK_QUOTA_VALUE;
         int maxPublicIps = convertToInteger(user.xpath(publicIpQuotaPath));
+        
+        /**
+         * OpenNebula defines user quotas for the number of addresses generated from a
+         * network, but it does not allow estimating how many network reservations can
+         * be created, so the value -1 will be adopted to inform this resource as
+         * unlimited.
+         */
+        int maxNetworks = UNLIMITED_NETWORK_QUOTA_VALUE;
         
         ResourceAllocation totalAllocation = ResourceAllocation.builder()
                 .instances(maxInstances)
@@ -110,7 +117,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<OpenNebulaUser> {
     }
     
     @VisibleForTesting
-    int convertToInteger(String number) {
+    int convertToInteger(@NotBlank String number) {
         int converted = 0;
         try {
             converted = (int) Math.round(Double.parseDouble(number));
