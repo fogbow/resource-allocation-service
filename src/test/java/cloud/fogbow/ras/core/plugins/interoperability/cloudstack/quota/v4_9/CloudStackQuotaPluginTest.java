@@ -88,14 +88,12 @@ public class CloudStackQuotaPluginTest {
     private CloudStackQuotaPlugin plugin;
     private CloudStackHttpClient client;
     private CloudStackUser cloudUser;
-    private Properties properties;
     private List<ResourceLimit> resourcesAccountLimited;
 
     @Before
     public void setUp() throws InvalidParameterException {
         String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
                 File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
         this.client = Mockito.mock(CloudStackHttpClient.class);
         this.plugin = Mockito.spy(new CloudStackQuotaPlugin(cloudStackConfFilePath));
