@@ -67,10 +67,9 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
         VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPoolByUser(client);
 
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
+        int diskInUse = convertToInteger(user.xpath(QUOTA_DISK_SIZE_USED_PATH));
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
         int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
-        
-        int diskInUse = convertToInteger(user.xpath(QUOTA_DISK_SIZE_USED_PATH));
         int networksInUse = networkPool.getLength();
         int publicIpsInUse = convertToInteger(user.xpath(publicIpQuotaUsedPath));
         
@@ -117,7 +116,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
     
     @VisibleForTesting
-    int convertToInteger(@NotBlank String number) {
+    int convertToInteger(String number) {
         int converted = 0;
         try {
             converted = (int) Math.round(Double.parseDouble(number));
