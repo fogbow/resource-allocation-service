@@ -329,38 +329,6 @@ public class CloudStackQuotaPluginTest {
         Assert.assertEquals(resourceAllocation, response);
     }
 
-    private List<VirtualMachine> getVirtualMachines() throws FogbowException {
-        List<VirtualMachine> virtualMachines = new ArrayList<>();
-        VirtualMachine mock = Mockito.mock(VirtualMachine.class);
-        virtualMachines.add(mock);
-        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(Mockito.eq(this.cloudUser));
-        return virtualMachines;
-    }
-
-    private List<PublicIpAddress> getPublicIpAddresses() throws FogbowException {
-        List<PublicIpAddress> publicIpAddresses = new ArrayList<>();
-        PublicIpAddress mock = Mockito.mock(PublicIpAddress.class);
-        publicIpAddresses.add(mock);
-        Mockito.doReturn(publicIpAddresses).when(this.plugin).getPublicIpAddresses(Mockito.eq(this.cloudUser));
-        return publicIpAddresses;
-    }
-
-    private List<Network> getNetworks() throws FogbowException {
-        List<Network> networks = new ArrayList<>();
-        Network mock = Mockito.mock(Network.class);
-        networks.add(mock);
-        Mockito.doReturn(networks).when(this.plugin).getNetworks(Mockito.eq(this.cloudUser));
-        return networks;
-    }
-
-    private List<Volume> getVolumes() throws FogbowException {
-        List<Volume> volumes = new ArrayList<>();
-        Volume mock = Mockito.mock(Volume.class);
-        volumes.add(mock);
-        Mockito.doReturn(volumes).when(this.plugin).getVolumes(Mockito.eq(this.cloudUser));
-        return volumes;
-    }
-
     // test case: When calling getVirtualMachines with secondary methods mocked, it must verify if it is returned
     // the list of virtual machines correctly
     @Test
@@ -761,5 +729,37 @@ public class CloudStackQuotaPluginTest {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
                 Mockito.anyString())).thenCallRealMethod();
+    }
+
+    private List<VirtualMachine> getVirtualMachines() throws FogbowException {
+        List<VirtualMachine> virtualMachines = new ArrayList<>();
+        VirtualMachine mock = Mockito.mock(VirtualMachine.class);
+        virtualMachines.add(mock);
+        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(Mockito.eq(this.cloudUser));
+        return virtualMachines;
+    }
+
+    private List<PublicIpAddress> getPublicIpAddresses() throws FogbowException {
+        List<PublicIpAddress> publicIpAddresses = new ArrayList<>();
+        PublicIpAddress mock = Mockito.mock(PublicIpAddress.class);
+        publicIpAddresses.add(mock);
+        Mockito.doReturn(publicIpAddresses).when(this.plugin).getPublicIpAddresses(Mockito.eq(this.cloudUser));
+        return publicIpAddresses;
+    }
+
+    private List<Network> getNetworks() throws FogbowException {
+        List<Network> networks = new ArrayList<>();
+        Network mock = Mockito.mock(Network.class);
+        networks.add(mock);
+        Mockito.doReturn(networks).when(this.plugin).getNetworks(Mockito.eq(this.cloudUser));
+        return networks;
+    }
+
+    private List<Volume> getVolumes() throws FogbowException {
+        List<Volume> volumes = new ArrayList<>();
+        Volume mock = Mockito.mock(Volume.class);
+        volumes.add(mock);
+        Mockito.doReturn(volumes).when(this.plugin).getVolumes(Mockito.eq(this.cloudUser));
+        return volumes;
     }
 }
