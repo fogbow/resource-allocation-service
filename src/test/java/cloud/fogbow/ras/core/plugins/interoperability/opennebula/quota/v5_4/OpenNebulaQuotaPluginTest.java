@@ -28,7 +28,6 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
     private static final String FRACTION_RESOURCE_USED_VALUE = "1.5";
     private static final String MEMORY_MAX_VALUE = "15155";
     private static final String MEMORY_USED_VALUE = "2048";
-    
     private static final String NETWORK_USED_VALUE = "0";
     private static final String PUBLIC_IP_MAX_VALUE = "5";
     private static final String PUBLIC_IP_USED_VALUE = "1";
@@ -43,7 +42,6 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
     @Before
     public void setUp() throws FogbowException {
         super.setUp();
-        
         this.plugin = Mockito.spy(new OpenNebulaQuotaPlugin(this.openNebulaConfFilePath));
         this.user = Mockito.mock(User.class);
     }

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
 import java.util.Properties;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.apache.log4j.Logger;
@@ -41,14 +42,14 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     private String defaultPublicNetwork;
     private String endpoint;
 
-    public OpenNebulaQuotaPlugin(String confFilePath) {
+    public OpenNebulaQuotaPlugin(@NotBlank String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
         this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
     }
 
     @Override
-    public ResourceQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(@NotNull CloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Info.GETTING_QUOTA);
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
@@ -92,8 +93,15 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
         int maxDisk = convertToInteger(user.xpath(QUOTA_DISK_SIZE_PATH));
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
         int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
-        int maxNetworks = UNLIMITED_NETWORK_QUOTA_VALUE;
         int maxPublicIps = convertToInteger(user.xpath(publicIpQuotaPath));
+        
+        /**
+         * OpenNebula defines user quotas for the number of addresses generated from a
+         * network, but it does not allow estimating how many network reservations can
+         * be created, so the value -1 will be adopted to inform this resource as
+         * unlimited.
+         */
+        int maxNetworks = UNLIMITED_NETWORK_QUOTA_VALUE;
         
         ResourceAllocation totalAllocation = ResourceAllocation.builder()
                 .instances(maxInstances)
@@ -108,7 +116,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
     
     @VisibleForTesting
-    int convertToInteger(String number) {
+    int convertToInteger(@NotBlank String number) {
         int converted = 0;
         try {
             converted = (int) Math.round(Double.parseDouble(number));
