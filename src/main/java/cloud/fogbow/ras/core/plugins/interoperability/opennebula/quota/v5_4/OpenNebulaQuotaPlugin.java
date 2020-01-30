@@ -29,21 +29,23 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     
     protected static final String FORMAT_QUOTA_NETWORK_S_PATH = "NETWORK_QUOTA/NETWORK[ID=%s]/LEASES";
     protected static final String FORMAT_QUOTA_NETWORK_S_USED_PATH = "NETWORK_QUOTA/NETWORK[ID=%s]/LEASES_USED";
+    protected static final String FORMAT_QUOTA_DATASTORE_S_SIZE_PATH = "DATASTORE_QUOTA/DATASTORE[ID=%s]/SIZE";
+    protected static final String FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH = "DATASTORE_QUOTA/DATASTORE[ID=1]/SIZE_USED";
     protected static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
-    protected static final String QUOTA_DISK_SIZE_PATH = "VM_QUOTA/VM/SYSTEM_DISK_SIZE";
     protected static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
     protected static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
     protected static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
-    protected static final String QUOTA_DISK_SIZE_USED_PATH = "VM_QUOTA/VM/SYSTEM_DISK_SIZE_USED";
     protected static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
     protected static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
     protected static final int UNLIMITED_NETWORK_QUOTA_VALUE = -1;
     
+    private String defaultDatastore;
     private String defaultPublicNetwork;
     private String endpoint;
 
     public OpenNebulaQuotaPlugin(@NotBlank String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.defaultDatastore = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_DATASTORE_ID_KEY);
         this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
         this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
     }
@@ -63,11 +65,12 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
     @VisibleForTesting
     ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws FogbowException {
+        String diskSizeQuotaUsedPath = String.format(FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH, this.defaultDatastore);
         String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultPublicNetwork);
         VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPoolByUser(client);
 
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
-        int diskInUse = convertToInteger(user.xpath(QUOTA_DISK_SIZE_USED_PATH));
+        int diskInUse = convertToInteger(user.xpath(diskSizeQuotaUsedPath));
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
         int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
         int networksInUse = networkPool.getLength();
@@ -87,10 +90,11 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
     @VisibleForTesting
     ResourceAllocation getTotalAllocation(@NotNull User user) {
+        String diskSizeQuotaPath = String.format(FORMAT_QUOTA_DATASTORE_S_SIZE_PATH, this.defaultDatastore);
         String publicIpQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultPublicNetwork);
 
         int maxCpu = convertToInteger(user.xpath(QUOTA_CPU_PATH));
-        int maxDisk = convertToInteger(user.xpath(QUOTA_DISK_SIZE_PATH));
+        int maxDisk = convertToInteger(user.xpath(diskSizeQuotaPath));
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
         int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
         int maxPublicIps = convertToInteger(user.xpath(publicIpQuotaPath));
