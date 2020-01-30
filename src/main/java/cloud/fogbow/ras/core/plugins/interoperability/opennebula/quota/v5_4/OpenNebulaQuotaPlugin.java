@@ -30,7 +30,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     protected static final String FORMAT_QUOTA_NETWORK_S_PATH = "NETWORK_QUOTA/NETWORK[ID=%s]/LEASES";
     protected static final String FORMAT_QUOTA_NETWORK_S_USED_PATH = "NETWORK_QUOTA/NETWORK[ID=%s]/LEASES_USED";
     protected static final String FORMAT_QUOTA_DATASTORE_S_SIZE_PATH = "DATASTORE_QUOTA/DATASTORE[ID=%s]/SIZE";
-    protected static final String FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH = "DATASTORE_QUOTA/DATASTORE[ID=1]/SIZE_USED";
+    protected static final String FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH = "DATASTORE_QUOTA/DATASTORE[ID=%s]/SIZE_USED";
     protected static final String QUOTA_CPU_PATH = "VM_QUOTA/VM/CPU";
     protected static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
     protected static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
