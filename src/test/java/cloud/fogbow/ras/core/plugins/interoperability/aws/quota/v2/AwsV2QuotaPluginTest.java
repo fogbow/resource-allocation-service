@@ -224,9 +224,9 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(computeAllocation.getvCPU(), totalQuota.getvCPU());
         Assert.assertEquals(computeAllocation.getRam(), totalQuota.getRam());
         Assert.assertEquals(computeAllocation.getInstances(), totalQuota.getInstances());
-        Assert.assertEquals(AwsV2QuotaPlugin.MAXIMUM_STORAGE_VALUE, totalQuota.getDisk());
-        Assert.assertEquals(AwsV2QuotaPlugin.MAXIMUM_SUBNETS_VALUE, totalQuota.getNetworks());
-        Assert.assertEquals(AwsV2QuotaPlugin.MAXIMUM_PUBLIC_IP_ADDRESSES_VALUE, totalQuota.getPublicIps());
+        Assert.assertEquals(AwsV2QuotaPlugin.maximumStorage, totalQuota.getDisk());
+        Assert.assertEquals(AwsV2QuotaPlugin.maximumSubnets, totalQuota.getNetworks());
+        Assert.assertEquals(AwsV2QuotaPlugin.maximumPublicIpAddresses, totalQuota.getPublicIps());
     }
 
     // test case: When calling the getAllVolumesSize method, it must verify that
