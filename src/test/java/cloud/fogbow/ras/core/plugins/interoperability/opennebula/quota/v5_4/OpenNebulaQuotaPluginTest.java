@@ -36,6 +36,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
     private static final String VMS_USED_VALUE = "1";
     
     private static final int FAKE_PUBLIC_NETWORK_ID = 100;
+    private static final int FAKE_DATASTORE_ID = 1;
     
     private OpenNebulaQuotaPlugin plugin;
     private User user;
@@ -94,18 +95,19 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         // set up
         String publicIpQuotaUsedPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_NETWORK_S_USED_PATH,
                 FAKE_PUBLIC_NETWORK_ID);
+        String diskSizeQuotaUsedPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH,
+                FAKE_DATASTORE_ID);
 
         PowerMockito.mockStatic(OpenNebulaClientUtil.class);
         VirtualNetworkPool networkPool = Mockito.mock(VirtualNetworkPool.class);
         PowerMockito.when(OpenNebulaClientUtil.class, TestUtils.GET_NETWORK_POOL_BY_USER_METHOD, Mockito.eq(this.client)).thenReturn(networkPool);
         
+        Mockito.when(this.user.xpath(Mockito.eq(diskSizeQuotaUsedPath))).thenReturn(DISK_USED_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(publicIpQuotaUsedPath))).thenReturn(PUBLIC_IP_USED_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_USED_PATH))).thenReturn(VMS_USED_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_CPU_USED_PATH))).thenReturn(CPU_USED_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_MEMORY_USED_PATH)))
                 .thenReturn(MEMORY_USED_VALUE);
-        Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_DISK_SIZE_USED_PATH)))
-                .thenReturn(DISK_USED_VALUE);
         
 
         ResourceAllocation expected = buildUsedAllocation();
@@ -117,6 +119,10 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.timeout(TestUtils.RUN_ONCE));
         OpenNebulaClientUtil.getNetworkPoolByUser(Mockito.eq(this.client));
         
+        Mockito.verify(networkPool, Mockito.times(TestUtils.RUN_ONCE)).getLength();
+        Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(diskSizeQuotaUsedPath));
+        Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(publicIpQuotaUsedPath));
+        
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE))
                 .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_CPU_USED_PATH));
         
@@ -126,11 +132,6 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE))
                 .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_USED_PATH));
         
-        Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE))
-                .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_DISK_SIZE_USED_PATH));
-        
-        Mockito.verify(networkPool, Mockito.times(TestUtils.RUN_ONCE)).getLength();
-        Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(publicIpQuotaUsedPath));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_FIVE_TIMES)).convertToInteger(Mockito.anyString());
         
         Assert.assertEquals(expected, usedAllocation);
@@ -141,15 +142,16 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
     @Test
     public void testGetTotalAllocation() {
         // set up
+        String publicIpQuotaPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_NETWORK_S_PATH,
+                FAKE_PUBLIC_NETWORK_ID);
+        String diskSizeQuotaPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_DATASTORE_S_SIZE_PATH,
+                FAKE_DATASTORE_ID);
+        
+        Mockito.when(this.user.xpath(Mockito.eq(diskSizeQuotaPath))).thenReturn(DISK_MAX_VALUE);
+        Mockito.when(this.user.xpath(Mockito.eq(publicIpQuotaPath))).thenReturn(PUBLIC_IP_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_CPU_PATH))).thenReturn(CPU_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_MEMORY_PATH))).thenReturn(MEMORY_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_PATH))).thenReturn(VMS_MAX_VALUE);
-        Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_DISK_SIZE_PATH)))
-                .thenReturn(DISK_MAX_VALUE);
-
-        String publicIpQuotaPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_NETWORK_S_PATH,
-                FAKE_PUBLIC_NETWORK_ID);
-        Mockito.when(this.user.xpath(Mockito.eq(publicIpQuotaPath))).thenReturn(PUBLIC_IP_MAX_VALUE);
 
         ResourceAllocation expected = buildTotalAllocation();
 
@@ -169,8 +171,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
                 .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_MEMORY_PATH));
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE))
                 .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_PATH));
-        Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE))
-                .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_DISK_SIZE_PATH));
+        Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(diskSizeQuotaPath));
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(publicIpQuotaPath));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_FIVE_TIMES)).convertToInteger(Mockito.anyString());
 
