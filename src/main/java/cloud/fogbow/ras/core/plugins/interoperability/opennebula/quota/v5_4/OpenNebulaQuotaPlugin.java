@@ -116,7 +116,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
     
     @VisibleForTesting
-    int convertToInteger(@NotBlank String number) {
+    int convertToInteger(String number) {
         int converted = 0;
         try {
             converted = (int) Math.round(Double.parseDouble(number));
