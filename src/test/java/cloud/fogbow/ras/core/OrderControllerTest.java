@@ -734,6 +734,7 @@ public class OrderControllerTest extends BaseUnitTests {
         publicIpOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         publicIpOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         publicIpOrder.setOrderState(OrderState.FULFILLED);
+        publicIpOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return publicIpOrder;
     }
 
@@ -743,6 +744,7 @@ public class OrderControllerTest extends BaseUnitTests {
         volumeOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         volumeOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         volumeOrder.setOrderState(OrderState.FULFILLED);
+        volumeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return volumeOrder;
     }
     
@@ -752,6 +754,7 @@ public class OrderControllerTest extends BaseUnitTests {
         networkOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         networkOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         networkOrder.setOrderState(OrderState.FULFILLED);
+        networkOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return networkOrder;
     }
     
@@ -761,6 +764,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         computeOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         computeOrder.setOrderState(OrderState.FULFILLED);
+        computeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return computeOrder;
     }
     
