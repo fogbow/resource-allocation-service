@@ -326,7 +326,7 @@ public class TestUtils {
         return new ResourceQuota(totalQuota, usedQuota);
     }
 
-    private ResourceAllocation createTotalQuota() {
+    public ResourceAllocation createTotalQuota() {
         int totalInstances = 100;
         int totalvCPU = 8;
         int tolalRam = 16384;
@@ -346,7 +346,7 @@ public class TestUtils {
         return totalQuota;
     }
     
-    private ResourceAllocation createUsedQuota() {
+    public ResourceAllocation createUsedQuota() {
         int usedInstances = 1;
         int usedvCPU = 2;
         int usedRam = 8192;
