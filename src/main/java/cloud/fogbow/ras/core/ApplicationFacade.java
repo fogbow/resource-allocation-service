@@ -369,7 +369,7 @@ public class ApplicationFacade {
             cloudName = this.cloudListController.getDefaultCloudName();
         RasOperation rasOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, cloudName);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
-        return this.orderController.getUserAllocation(providerId, requester, resourceType);
+        return this.orderController.getUserAllocation(providerId, cloudName, requester, resourceType);
     }
 
     protected Quota getUserQuota(String providerId, String cloudName, String userToken, ResourceType resourceType)
