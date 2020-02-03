@@ -240,7 +240,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				.thenReturn(ID_VALUE_ONE);
 		Mockito.doReturn(ZERO_VALUE).when(this.plugin).convertToInteger(Mockito.anyString());
 		Mockito.doReturn(updateNetworkTemplate).when(this.plugin).getNetworkUpdateTemplate(
-				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
+				Mockito.any(Client.class), Mockito.anyString());
 
 		// exercise
 		this.plugin.doRequestInstance(this.client, this.orderId, request);
@@ -255,7 +255,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.eq(ID_VALUE_ZERO));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkUpdateTemplate(
-				Mockito.eq(this.client), Mockito.eq(ID_VALUE_ZERO), Mockito.eq(this.orderId));
+				Mockito.eq(this.client), Mockito.eq(ID_VALUE_ZERO));
 		Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).getVirtualNetworkReserved();
 	}
 
@@ -265,14 +265,14 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	public void testGetNetworkUpdateTemplate() throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 		// set up
 		Mockito.doReturn(ID_VALUE_ZERO).when(this.plugin).createSecurityGroup(
-				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
+				Mockito.any(Client.class), Mockito.anyString());
 
 		// exercise
-		this.plugin.createSecurityGroup(this.client, this.instanceId, this.orderId);
+		this.plugin.createSecurityGroup(this.client, this.instanceId);
 
 		// verify
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(
-				Mockito.eq(this.client), Mockito.eq(this.instanceId), Mockito.eq(this.orderId));
+				Mockito.eq(this.client), Mockito.eq(this.instanceId));
 	}
 
 	// test case: When you call the createSecurityGroup method with a valid client,
@@ -286,7 +286,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(VNET_ADDRESS_RANGE_SIZE_PATH))).thenReturn(FAKE_SIZE);
 
 		// exercise
-		this.plugin.createSecurityGroup(this.client, this.instanceId, this.orderId);
+		this.plugin.createSecurityGroup(this.client, this.instanceId);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -294,7 +294,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.allocateSecurityGroup(Mockito.eq(this.client), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateSecurityGroupName(Mockito.eq(orderId));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).generateSecurityGroupName(Mockito.eq(this.instanceId));
 	}
 
 	// test case: when invoking getInstance with valid order and cloud user, the plugin should return
@@ -364,7 +364,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupForVirtualNetwork(
-				Mockito.eq(this.client), Mockito.eq(this.virtualNetwork), Mockito.eq(this.orderId));
+				Mockito.eq(this.client), Mockito.eq(this.virtualNetwork), Mockito.eq(this.instanceId));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).deleteSecurityGroup(securityGroup);
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(this.virtualNetwork);
 	}
