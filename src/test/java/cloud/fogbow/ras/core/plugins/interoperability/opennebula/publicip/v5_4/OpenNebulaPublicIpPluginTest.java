@@ -32,7 +32,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.OpenNebulaPuplicIpPlugin.*;
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.OpenNebulaPublicIpPlugin.*;
 
 @PrepareForTest({DatabaseManager.class, OpenNebulaClientUtil.class, SecurityGroup.class, Thread.class, VirtualNetwork.class})
 public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
@@ -47,7 +47,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	private static final int ID_VALUE_ONE = 1;
 	private static final int FAKE_SIZE = 1;
 
-	private OpenNebulaPuplicIpPlugin plugin;
+	private OpenNebulaPublicIpPlugin plugin;
 	private PublicIpOrder publicIpOrder;
 	private String instanceId;
 	private String computeId;
@@ -59,7 +59,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	public void setUp() throws FogbowException {
 	    super.setUp();
 
-		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin(this.openNebulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaPublicIpPlugin(this.openNebulaConfFilePath));
 
 		this.publicIpOrder = this.createPublicIpOrder();
 		this.instanceId = this.publicIpOrder.getInstanceId();
@@ -161,7 +161,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 		Mockito.doReturn(ID_VALUE_ONE).when(this.plugin).convertToInteger(Mockito.anyString());
 		Mockito.doReturn(STRING_ID_ONE).when(this.plugin).createSecurityGroup(
-				Mockito.any(Client.class), Mockito.any(PublicIpOrder.class));
+				Mockito.any(Client.class), Mockito.anyString());
 		Mockito.doNothing().when(this.plugin).addSecurityGroupToPublicIp(
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.anyString());
 		Mockito.doNothing().when(this.plugin).attachPublicIpToCompute(
@@ -178,11 +178,11 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(
-				Mockito.eq(this.client), Mockito.eq(this.publicIpOrder));
+				Mockito.eq(this.client), Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).addSecurityGroupToPublicIp(
 				Mockito.eq(this.client), Mockito.eq(STRING_ID_ONE), Mockito.eq(STRING_ID_ONE));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).attachPublicIpToCompute(
-				Mockito.eq(this.client), Mockito.eq(STRING_ID_ONE), Mockito.eq(this.publicIpOrder.getComputeOrderId()));
+				Mockito.eq(this.client), Mockito.eq(STRING_ID_ONE), Mockito.anyString());
 		Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).getVirtualNetworkReserved();
 	}
 
@@ -206,7 +206,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 
 
-	// test case: when invoking createSecurityGroup with valid client and public ip order,
+	// test case: when invoking createSecurityGroup with valid client and public ip instance id,
 	// the plugin should allocate the default fogbow security group in ONe and return its id
 	@Test
 	public void testCreateSecurityGroup() throws InvalidParameterException {
@@ -215,7 +215,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 				.thenReturn(STRING_ID_ONE);
 
 		// exercise
-		this.plugin.createSecurityGroup(this.client, this.publicIpOrder);
+		this.plugin.createSecurityGroup(this.client, TestUtils.FAKE_INSTANCE_ID);
 
 		// verify
         PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -430,7 +430,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 		// verify
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).xpath(
-				Mockito.eq(String.format(EXPRESSION_NIC_ID_FROM_NETWORK, this.instanceId)));
+				Mockito.eq(String.format(EXPRESSION_NIC_ID_FROM_NETWORK_ID_S_FORMAT, this.instanceId)));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.eq(STRING_ID_ONE));
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).nicDetach(Mockito.eq(ID_VALUE_ONE));
 		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
@@ -459,7 +459,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 		// verify
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).xpath(
-				Mockito.eq(String.format(EXPRESSION_NIC_ID_FROM_NETWORK, this.instanceId)));
+				Mockito.eq(String.format(EXPRESSION_NIC_ID_FROM_NETWORK_ID_S_FORMAT, this.instanceId)));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(Mockito.eq(STRING_ID_ONE));
 		Mockito.verify(this.virtualMachine, Mockito.times(TestUtils.RUN_ONCE)).nicDetach(Mockito.eq(ID_VALUE_ONE));
 		Mockito.verify(this.response, Mockito.times(TestUtils.RUN_ONCE)).isError();
@@ -556,7 +556,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getSecurityGroup(Mockito.eq(this.client), Mockito.anyString());
 
-		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_SECURITY_GROUPS_PATH));
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(SECURITY_GROUPS_PATH));
 		Mockito.verify(securityGroup, Mockito.times(TestUtils.RUN_ONCE)).getName();
 		Assert.assertNotNull(secGroup);
 	}
@@ -576,7 +576,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getVirtualNetwork(Mockito.eq(this.client), Mockito.eq(this.instanceId));
 
-		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(VNET_TEMPLATE_SECURITY_GROUPS_PATH));
+		Mockito.verify(this.virtualNetwork, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(SECURITY_GROUPS_PATH));
 		Assert.assertNull(secGroup);
 	}
 
@@ -606,7 +606,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testDoGetInstance() throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		// set up
-		String publicIpPath = String.format(EXPRESSION_IP_FROM_NETWORK, this.instanceId);
+		String publicIpPath = String.format(EXPRESSION_IP_FROM_NETWORK_ID_S_FORMAT, this.instanceId);
 
 		Mockito.when(this.virtualMachine.xpath(Mockito.anyString())).thenReturn(FAKE_IP_ADDRESS);
 
@@ -643,7 +643,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	public void testIsPowerOff() {
 		// set up
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-		Mockito.when(virtualMachine.stateStr()).thenReturn(OpenNebulaPuplicIpPlugin.POWEROFF_STATE);
+		Mockito.when(virtualMachine.stateStr()).thenReturn(OpenNebulaPublicIpPlugin.POWEROFF_STATE);
 
 		// exercise
 		boolean powerOff = this.plugin.isPowerOff(virtualMachine);
