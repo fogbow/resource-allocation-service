@@ -120,19 +120,18 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	public void testSetOrderAllocation() {
 		// setup
 		ComputeOrder order = Mockito.mock(ComputeOrder.class);
-		ComputeAllocation allocation = Mockito.mock(ComputeAllocation.class);
 		VirtualMachineTemplate vm = Mockito.mock(VirtualMachineTemplate.class);
 		VirtualMachineTemplate.Disk disk = Mockito.mock(VirtualMachineTemplate.Disk.class);
 
 		int expectedCPU = 1;
 		int expectedRam = 512;
 		int expectedInstances = 1;
-		int expectedDisk = (int) Math.pow(1024, 3);
+		int expectedDisk = 3;
 
 		Mockito.doReturn(disk).when(vm).getDisk();
 		Mockito.doReturn(Integer.toString(expectedCPU)).when(vm).getCpu();
 		Mockito.doReturn(Integer.toString(expectedRam)).when(vm).getMemory();
-		Mockito.doReturn(Integer.toString(expectedDisk)).when(disk).getSize();
+		Mockito.doReturn(Integer.toString(expectedDisk*ONE_GIGABYTE_IN_MEGABYTES)).when(disk).getSize();
 
 		Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(ComputeAllocation.class));
 		Mockito.doCallRealMethod().when(order).getActualAllocation();
@@ -212,9 +211,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// a new network ids list should be returned containing only default network id.
 	@Test
 	public void testListNetworkIdsEmpty() {
-		// set up
-		String defaultNetworkId = "0";
-
 		// exercise
 		List<String> networkIds = this.plugin.getNetworkIds(this.networkIds);
 
