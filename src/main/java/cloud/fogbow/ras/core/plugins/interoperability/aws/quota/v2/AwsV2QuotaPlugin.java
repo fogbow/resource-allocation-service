@@ -52,7 +52,6 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     protected static final int ONE_GIGABYTE = 1024;
     protected static final int ONE_TERABYTE = 1000;
 
-    private static final String TEMPORARY_FLAVORS_TYPE_FILE_PATH_KEY = "private/clouds/aws/flavors.csv";
     public static int maximumStorage;
     public static int maximumSubnets;
     public static int maximumPublicIpAddresses;
@@ -65,7 +64,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     public AwsV2QuotaPlugin(@NotNull String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
-        this.flavorsFilePath = TEMPORARY_FLAVORS_TYPE_FILE_PATH_KEY;
+        this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
         this.maximumStorage = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_STORAGE_QUOTA_KEY));
         this.maximumSubnets = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_SUBNETS_QUOTA_KEY));
         this.maximumPublicIpAddresses = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_ELASTIC_IP_ADDRESSES_QUOTA_KEY));
@@ -240,10 +239,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     @VisibleForTesting
     List<String> loadLinesFromFlavorFile() throws FogbowException {
         String flavorsPath = this.getFlavorsFilePath();
-        URL res = getClass().getClassLoader().getResource(flavorsPath);
-        String pathToFile = res != null ? res.getPath() : flavorsPath;
-
-        Path path = Paths.get(pathToFile);
+        Path path = Paths.get(flavorsPath);
         try {
             return Files.readAllLines(path);
         } catch (IOException e) {
