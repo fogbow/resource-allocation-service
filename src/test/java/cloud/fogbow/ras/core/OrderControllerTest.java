@@ -478,7 +478,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController
-                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.COMPUTE);
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertEquals(expectedValue, allocation.getInstances());
@@ -509,7 +509,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         VolumeAllocation allocation = (VolumeAllocation) this.ordersController
-                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.VOLUME);
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.VOLUME);
 
         // verify
         Assert.assertEquals(expectedValue, allocation.getDisk());
@@ -538,7 +538,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         NetworkAllocation allocation = (NetworkAllocation) this.ordersController
-                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.NETWORK);
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.NETWORK);
 
         // verify
         Assert.assertEquals(expectedValue, allocation.getNetworks());
@@ -567,7 +567,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         PublicIpAllocation allocation = (PublicIpAllocation) this.ordersController
-                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.PUBLIC_IP);
+                .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.PUBLIC_IP);
 
         // verify
         Assert.assertEquals(expectedValue, allocation.getPublicIps());
@@ -585,7 +585,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, systemUser, ResourceType.GENERIC_RESOURCE);
+        this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.GENERIC_RESOURCE);
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders
@@ -734,6 +734,7 @@ public class OrderControllerTest extends BaseUnitTests {
         publicIpOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         publicIpOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         publicIpOrder.setOrderState(OrderState.FULFILLED);
+        publicIpOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return publicIpOrder;
     }
 
@@ -743,6 +744,7 @@ public class OrderControllerTest extends BaseUnitTests {
         volumeOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         volumeOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         volumeOrder.setOrderState(OrderState.FULFILLED);
+        volumeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return volumeOrder;
     }
     
@@ -752,6 +754,7 @@ public class OrderControllerTest extends BaseUnitTests {
         networkOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         networkOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         networkOrder.setOrderState(OrderState.FULFILLED);
+        networkOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return networkOrder;
     }
     
@@ -761,6 +764,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setRequester(TestUtils.LOCAL_MEMBER_ID);
         computeOrder.setProvider(TestUtils.LOCAL_MEMBER_ID);
         computeOrder.setOrderState(OrderState.FULFILLED);
+        computeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return computeOrder;
     }
     

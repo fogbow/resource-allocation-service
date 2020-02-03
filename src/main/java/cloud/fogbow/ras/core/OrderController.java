@@ -164,7 +164,7 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String providerId, SystemUser systemUser, ResourceType resourceType)
+    public Allocation getUserAllocation(String providerId, String cloudName, SystemUser systemUser, ResourceType resourceType)
             throws UnexpectedException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
@@ -173,6 +173,7 @@ public class OrderController {
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
                 .filter(order -> order.isProviderLocal(providerId))
                 .filter(order -> order.getSystemUser().equals(systemUser))
+                .filter(order -> order.getCloudName().equals(cloudName))
                 .collect(Collectors.toList());
 
         switch (resourceType) {

@@ -1441,7 +1441,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE))
-                .getUserAllocation(Mockito.eq(providerId), Mockito.eq(systemUser), Mockito.eq(resourceType));
+                .getUserAllocation(Mockito.eq(providerId), Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(systemUser), Mockito.eq(resourceType));
     }
     
     // test case: When calling the getUserQuota method with null or empty cloud
