@@ -529,7 +529,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setComputeInstanceNetworks(Mockito.any(ComputeInstance.class));
 
-		Assert.assertEquals(this.computeOrder.getDisk() / MB_CONVERT, computeInstance.getDisk());
+		Assert.assertEquals(this.computeOrder.getDisk() / ONE_GIGABYTE_IN_MEGABYTES, computeInstance.getDisk());
 	}
 
 	// test case: when invoking deleteInstance with a valid compute order and cloud user,
