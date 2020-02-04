@@ -206,7 +206,8 @@ public class OrderController {
         return result;
     }
 
-    private PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
+    @VisibleForTesting
+    PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
         int publicIps = 0;
 
         for (PublicIpOrder order :
@@ -218,7 +219,8 @@ public class OrderController {
         return new PublicIpAllocation(publicIps);
     }
 
-    private NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
+    @VisibleForTesting
+    NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
         int networks = 0;
 
         for (NetworkOrder order : networkOrders) {
@@ -231,7 +233,8 @@ public class OrderController {
         return new NetworkAllocation(networks);
     }
 
-    private VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
+    @VisibleForTesting
+    VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
         int disk = 0;
 
         for (VolumeOrder order : volumeOrders) {
@@ -292,7 +295,8 @@ public class OrderController {
         return CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
     }
 
-    private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
+    @VisibleForTesting
+    ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
         int vCPU = 0;
         int ram = 0;
         int instances = 0;
