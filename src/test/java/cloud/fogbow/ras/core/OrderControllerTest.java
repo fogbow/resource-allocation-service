@@ -959,20 +959,6 @@ public class OrderControllerTest extends BaseUnitTests {
         return order;
     }
 
-//    private NetworkOrder createFulfilledNetworkOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
-//        NetworkOrder order = createFulfilledNetworkOrder(systemUser);
-//        NetworkAllocation networkAllocation = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
-//        order.setActualAllocation(networkAllocation);
-//        return order;
-//    }
-//
-//    private PublicIpOrder createFulfilledPublicIpOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
-//        PublicIpOrder order = createFulfilledPublicIpOrder(systemUser);
-//        PublicIpAllocation networkAllocation = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
-//        order.setActualAllocation(networkAllocation);
-//        return order;
-//    }
-
     private InstanceStatus createInstanceStatus(ComputeOrder computeOrder) throws InstanceNotFoundException {
         return new InstanceStatus(computeOrder.getId(),
                 computeOrder.getProvider(), computeOrder.getCloudName(),

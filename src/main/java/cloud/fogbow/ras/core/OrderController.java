@@ -198,14 +198,12 @@ public class OrderController {
     @VisibleForTesting
     <T extends Order> List<T> castOrders(List<Order> orders) {
         List<T> result = new ArrayList<>();
-        
         for (Order order : orders) {
             result.add((T) order);
         }
-        
         return result;
     }
-//<<<<<<< HEAD
+
     @VisibleForTesting
     PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
         int publicIps = publicIpOrders.size();
