@@ -62,12 +62,14 @@ public class ResourceQuota extends Quota {
         int disk = calculateResource(totalQuota.getStorage(), usedQuota.getStorage());;
         int networks = calculateResource(totalQuota.getNetworks(), usedQuota.getNetworks());;
         int publicIps = calculateResource(totalQuota.getPublicIps(), usedQuota.getPublicIps());;
+        int volumes = calculateResource(totalQuota.getVolumes(), usedQuota.getVolumes());
 
         ResourceAllocation resourceAllocation = ResourceAllocation.builder()
                 .instances(instance)
                 .vCPU(vCPU)
                 .ram(ram)
                 .storage(disk)
+                .volumes(volumes)
                 .networks(networks)
                 .publicIps(publicIps)
                 .build();
