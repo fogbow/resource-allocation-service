@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -15,7 +14,8 @@ import java.util.UUID;
 public class NetworkOrder extends Order<NetworkOrder> {
     private static final long serialVersionUID = 1L;
 
-    private transient static final Logger LOGGER = Logger.getLogger(NetworkOrder.class);
+    @Transient
+    private transient final Logger LOGGER = Logger.getLogger(NetworkOrder.class);
 
     private static final String NAME_COLUMN_NAME = "name";
     private static final String GATEWAY_COLUMN_NAME = "gateway";
@@ -36,9 +36,6 @@ public class NetworkOrder extends Order<NetworkOrder> {
     @Column
     @Enumerated(EnumType.STRING)
     private NetworkAllocationMode allocationMode;
-
-    @Embedded
-    private NetworkAllocation actualAllocation;
 
     public NetworkOrder() {
         this(UUID.randomUUID().toString());
@@ -88,14 +85,6 @@ public class NetworkOrder extends Order<NetworkOrder> {
 
     @Override
     public void updateFromRemote(NetworkOrder remoteOrder) {
-        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 
-    public NetworkAllocation getActualAllocation() {
-        return actualAllocation;
-    }
-
-    public void setActualAllocation(NetworkAllocation actualAllocation) {
-        this.actualAllocation = actualAllocation;
-    }
 }

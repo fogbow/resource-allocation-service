@@ -207,41 +207,26 @@ public class OrderController {
     }
 
     private PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
-        int publicIps = 0;
-
-        for (PublicIpOrder order :
-                publicIpOrders) {
-            PublicIpAllocation publicIpAllocation = order.getActualAllocation();
-            publicIps += publicIpAllocation.getPublicIps();
-        }
-
+        int publicIps = publicIpOrders.size();
         return new PublicIpAllocation(publicIps);
     }
 
     private NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
-        int networks = 0;
-
-        for (NetworkOrder order : networkOrders) {
-            synchronized (order) {
-                NetworkAllocation actualAllocation = order.getActualAllocation();
-                networks += actualAllocation.getNetworks();
-            }
-        }
-
+        int networks = networkOrders.size();
         return new NetworkAllocation(networks);
     }
 
     private VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
-        int disk = 0;
+        int volumes = volumeOrders.size();
+        int storage = 0;
 
         for (VolumeOrder order : volumeOrders) {
             synchronized (order) {
                 VolumeAllocation actualAllocation = order.getActualAllocation();
-                disk += actualAllocation.getDisk();
+                storage += actualAllocation.getStorage();
             }
         }
-
-        return new VolumeAllocation(disk);
+        return new VolumeAllocation(volumes, storage);
     };
 
     public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InstanceNotFoundException {
@@ -293,9 +278,9 @@ public class OrderController {
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
+        int instances = computeOrders.size();
         int vCPU = 0;
         int ram = 0;
-        int instances = 0;
         int disk = 0;
 
         for (ComputeOrder order : computeOrders) {
@@ -303,11 +288,9 @@ public class OrderController {
                 ComputeAllocation actualAllocation = order.getActualAllocation();
                 vCPU += actualAllocation.getvCPU();
                 ram += actualAllocation.getRam();
-                instances += actualAllocation.getInstances();
                 disk += actualAllocation.getDisk();
             }
         }
-
         return new ComputeAllocation(vCPU, ram, instances, disk);
     }
 

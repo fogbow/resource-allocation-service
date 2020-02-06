@@ -4,13 +4,14 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
+import javax.persistence.Transient;
+
 import java.util.Objects;
 
 @Embeddable
 public class ComputeAllocation extends Allocation {
     @ApiModelProperty(position = 0, example = "2")
-    @Column(name = "allocation_instances")
+    @Transient
     private int instances;
     @ApiModelProperty(position = 1, example = "4")
     @Column(name = "allocation_vcpu")

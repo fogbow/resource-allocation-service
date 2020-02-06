@@ -296,7 +296,6 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         Mockito.doNothing().when(this.plugin).doAssociateRouteTables(Mockito.eq(subnetId), Mockito.eq(this.client));
         Mockito.doNothing().when(this.plugin).handleSecurityIssues(Mockito.eq(subnetId), Mockito.eq(cidr),
                 Mockito.eq(this.client));
-        Mockito.doNothing().when(this.plugin).updateNetworkAllocation(Mockito.eq(order));
 
         // exercise
         this.plugin.doRequestInstance(order, request, this.client);
@@ -308,22 +307,6 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
                 Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).handleSecurityIssues(Mockito.eq(subnetId),
                 Mockito.eq(cidr), Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateNetworkAllocation(Mockito.eq(order));
-    }
-    
-    // test case: When calling the updateNetworkAllocation method, it must verify
-    // that the expected value was returned.
-    @Test
-    public void testUpdateNetworkAllocation() {
-        // set up
-        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
-        int expected = AwsV2NetworkPlugin.SUBNET_ALLOCATION_NUMBER;
-
-        // exercise
-        this.plugin.updateNetworkAllocation(order);
-
-        // verify
-        Assert.assertEquals(expected, order.getActualAllocation().getNetworks());
     }
     
     // test case: When calling the handleSecurityIssues method, it must verify

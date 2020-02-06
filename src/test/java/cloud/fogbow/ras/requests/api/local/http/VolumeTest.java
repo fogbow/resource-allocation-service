@@ -190,7 +190,7 @@ public class VolumeTest {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getVolumeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(fakeVolumeAllocation.getDisk(), resultComputeAllocation.getDisk());
+        Assert.assertEquals(fakeVolumeAllocation.getStorage(), resultComputeAllocation.getStorage());
     }
 
     // test case: Request the user allocation with unauthenticated user. Check the response of request

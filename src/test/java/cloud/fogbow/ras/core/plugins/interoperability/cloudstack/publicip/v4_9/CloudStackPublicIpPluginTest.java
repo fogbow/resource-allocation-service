@@ -12,7 +12,6 @@ import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsy
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryJobResult;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.LoggerAssert;
@@ -119,33 +118,12 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         CloudStackUser user = Mockito.mock(CloudStackUser.class);
 
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order), Mockito.eq(user));
-        Mockito.doNothing().when(this.plugin).updatePublicIpOrder(Mockito.eq(order));
 
         // exercise
         this.plugin.requestInstance(order, user);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order), Mockito.eq(user));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updatePublicIpOrder(Mockito.eq(order));
-    }
-
-    // test case: When calling the updatePublicIpOrder method with order and new values,
-    // it must verify if It updates the network order.
-    @Test
-    public void testUpdatePublicIpOrder() {
-        // setup
-        PublicIpOrder order = Mockito.mock(PublicIpOrder.class);
-        final int EXPECTED_INSTANCES = 1;
-
-        Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(PublicIpAllocation.class));
-        Mockito.doCallRealMethod().when(order).getActualAllocation();
-
-        // exercise
-        this.plugin.updatePublicIpOrder(order);
-
-        // verify
-        Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(PublicIpAllocation.class));
-        Assert.assertEquals(EXPECTED_INSTANCES, order.getActualAllocation().getPublicIps());
     }
 
     // test case: When calling the doRequestInstance method and occurs any exception,

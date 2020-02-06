@@ -8,7 +8,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -29,7 +28,6 @@ import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -96,7 +94,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
             .createSecurityGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.doNothing().when(openStackNetworkPlugin).createSubNet(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.doNothing().when(openStackNetworkPlugin).createSecurityGroupRules(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
-        Mockito.doNothing().when(openStackNetworkPlugin).setAllocationToOrder(Mockito.eq(order));
 
         //exercise
         openStackNetworkPlugin.requestInstance(order, openStackV3User);
@@ -110,30 +107,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).createSubNet(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).createSecurityGroupRules(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
-        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).setAllocationToOrder(Mockito.eq(order));
     }
-
-    // test case: Verify if allocation is set to the order properly
-    @Test
-    public void testSetAllocationToOrder() {
-        // set up
-        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
-        final int NETWORK_INSTANCES_INITIAL_AMOUNT = 1;
-        NetworkAllocation networkAllocation = new NetworkAllocation(NETWORK_INSTANCES_INITIAL_AMOUNT);
-
-        Mockito.doCallRealMethod().when(networkOrder).setActualAllocation(Mockito.any(NetworkAllocation.class));
-        Mockito.doReturn(networkAllocation).when(networkOrder).getActualAllocation();
-
-        // exercise
-        this.openStackNetworkPlugin.setAllocationToOrder(networkOrder);
-
-        // verify
-        Mockito.verify(networkOrder, Mockito.times(testUtils.RUN_ONCE))
-                .setActualAllocation(Mockito.any());
-
-        Assert.assertEquals(networkAllocation.getNetworks(), networkOrder.getActualAllocation().getNetworks());
-    }
-
 
     //test case: Check if the method makes the expected calls
     @Test
@@ -745,7 +719,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
 
     private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
                                             NetworkAllocationMode allocation) {
-        String requestingMember = "fake-requesting-member";
         String providingMember = "fake-providing-member";
         String name = "name";
         NetworkOrder order = new NetworkOrder(providingMember,

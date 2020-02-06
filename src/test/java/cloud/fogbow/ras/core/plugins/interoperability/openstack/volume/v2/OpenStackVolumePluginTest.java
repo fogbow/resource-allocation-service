@@ -193,7 +193,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         Mockito.verify(volumeOrder, Mockito.times(testUtils.RUN_ONCE))
                 .setActualAllocation(Mockito.any());
 
-        Assert.assertEquals(volumeAllocation.getDisk(), volumeOrder.getActualAllocation().getDisk());
+        Assert.assertEquals(volumeAllocation.getStorage(), volumeOrder.getActualAllocation().getStorage());
     }
     
     // test case: When invoking the getInstance method with a valid volume

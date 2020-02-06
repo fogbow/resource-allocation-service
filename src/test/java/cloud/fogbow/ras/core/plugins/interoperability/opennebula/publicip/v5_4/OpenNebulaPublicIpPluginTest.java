@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
 import java.util.UUID;
 
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
@@ -146,7 +145,6 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.createClient(Mockito.anyString(), Mockito.eq(this.cloudUser.getToken()));
-		Mockito.doNothing().when(this.plugin).setOrderAllocation(Mockito.eq(publicIpOrder));
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
 				Mockito.eq(this.client), Mockito.eq(this.publicIpOrder), Mockito.any(CreateNetworkReserveRequest.class ));
@@ -185,26 +183,6 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.client), Mockito.eq(STRING_ID_ONE), Mockito.eq(this.publicIpOrder.getComputeOrderId()));
 		Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).getVirtualNetworkReserved();
 	}
-
-	// test case: verify if allocation is being set to the order properly
-	@Test
-	public void testSetOrderAllocation() {
-		// setup
-		PublicIpOrder order = Mockito.mock(PublicIpOrder.class);
-
-		int expectedInstances = 1;
-
-		Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(PublicIpAllocation.class));
-		Mockito.doCallRealMethod().when(order).getActualAllocation();
-
-		// exercise
-		this.plugin.setOrderAllocation(order);
-
-		// verify
-		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(PublicIpAllocation.class));
-		Assert.assertEquals(expectedInstances, order.getActualAllocation().getPublicIps());
-	}
-
 
 	// test case: when invoking createSecurityGroup with valid client and public ip order,
 	// the plugin should allocate the default fogbow security group in ONe and return its id

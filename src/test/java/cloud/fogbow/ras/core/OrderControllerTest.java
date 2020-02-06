@@ -45,7 +45,6 @@ public class OrderControllerTest extends BaseUnitTests {
     private static final String AVAILABLE_STATE = "available";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String INVALID_ORDER_ID = "invalid-order-id";
-    private static final int INSTANCES_LAUNCH_NUMBER = 1;
 
     private OrderController ordersController;
     private LocalCloudConnector localCloudConnector;
@@ -463,10 +462,10 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
-        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 3));
+        computeOrder1.setActualAllocation(new ComputeAllocation(2, 2048, 1, 4));
 
         ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
-        computeOrder2.setActualAllocation(new ComputeAllocation(3, 2, 1));
+        computeOrder2.setActualAllocation(new ComputeAllocation(4, 4096, 1, 8));
 
         this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
@@ -474,16 +473,20 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(computeOrder1);
         this.fulfilledOrdersList.addItem(computeOrder2);
 
-        int expectedValue = 4;
+        int expectedCpuValue = 6;
+        int expectedMemoryValue = 6144;
+        int expectedInstancesValue = 2;
+        int expectedDiskValue = 12;
 
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertEquals(expectedValue, allocation.getInstances());
-        Assert.assertEquals(expectedValue, allocation.getRam());
-        Assert.assertEquals(expectedValue, allocation.getvCPU());
+        Assert.assertEquals(expectedCpuValue, allocation.getvCPU());
+        Assert.assertEquals(expectedMemoryValue, allocation.getRam());
+        Assert.assertEquals(expectedInstancesValue, allocation.getInstances());
+        Assert.assertEquals(expectedDiskValue, allocation.getDisk());
     }
     
     // test case: Tests if the getUserAllocation method returns the
@@ -512,7 +515,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.VOLUME);
 
         // verify
-        Assert.assertEquals(expectedValue, allocation.getDisk());
+        Assert.assertEquals(expectedValue, allocation.getStorage());
     }
 
     // test case: Tests if the getUserAllocation method returns the
@@ -523,10 +526,7 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         NetworkOrder networkOrder1 = createFulfilledNetworkOrder(systemUser);
-        networkOrder1.setActualAllocation(new NetworkAllocation(INSTANCES_LAUNCH_NUMBER));
-
         NetworkOrder networkOrder2 = createFulfilledNetworkOrder(systemUser);
-        networkOrder2.setActualAllocation(new NetworkAllocation(INSTANCES_LAUNCH_NUMBER));
 
         this.activeOrdersMap.put(networkOrder1.getId(), networkOrder1);
         this.activeOrdersMap.put(networkOrder2.getId(), networkOrder2);
@@ -541,7 +541,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.NETWORK);
 
         // verify
-        Assert.assertEquals(expectedValue, allocation.getNetworks());
+        Assert.assertEquals(expectedValue, allocation.getInstances());
     }
 
     // test case: Tests if the getUserAllocation method returns the
@@ -552,10 +552,7 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         PublicIpOrder publicIpOrder1 = createFulfilledPublicIpOrder(systemUser);
-        publicIpOrder1.setActualAllocation(new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER));
-
         PublicIpOrder publicIpOrder2 = createFulfilledPublicIpOrder(systemUser);
-        publicIpOrder2.setActualAllocation(new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER));
 
         this.activeOrdersMap.put(publicIpOrder1.getId(), publicIpOrder1);
         this.activeOrdersMap.put(publicIpOrder2.getId(), publicIpOrder2);
@@ -570,7 +567,7 @@ public class OrderControllerTest extends BaseUnitTests {
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.PUBLIC_IP);
 
         // verify
-        Assert.assertEquals(expectedValue, allocation.getPublicIps());
+        Assert.assertEquals(expectedValue, allocation.getInstances());
     }
 
     // test case: Tests if the getUserAllocation method throws an Exception for an

@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -80,7 +79,6 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				Mockito.any(NetworkOrder.class), Mockito.any(VirtualNetwork.class));
 		Mockito.doReturn(this.networkOrder.getInstanceId()).when(this.plugin).doRequestInstance(
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
-		Mockito.doNothing().when(this.plugin).setOrderAllocation(Mockito.eq(networkOrder));
 
 		// exercise
 		this.plugin.requestInstance(this.networkOrder, this.cloudUser);
@@ -91,28 +89,8 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);
 		OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString());
 
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setOrderAllocation(Mockito.eq(networkOrder));
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
 				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
-	}
-
-	// test case: verify if allocation is being set to the order properly
-	@Test
-	public void testSetOrderAllocation() {
-		// setup
-		NetworkOrder order = Mockito.mock(NetworkOrder.class);
-
-		int expectedInstances = 1;
-
-		Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(NetworkAllocation.class));
-		Mockito.doCallRealMethod().when(order).getActualAllocation();
-
-		// exercise
-		this.plugin.setOrderAllocation(order);
-
-		// verify
-		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(NetworkAllocation.class));
-		Assert.assertEquals(expectedInstances, order.getActualAllocation().getNetworks());
 	}
 
 	// test case: when invoking getCreateNetworkReserveRequest with valid network order and virtual network,
