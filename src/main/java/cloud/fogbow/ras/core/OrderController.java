@@ -13,6 +13,7 @@ import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -178,35 +179,35 @@ public class OrderController {
 
         switch (resourceType) {
             case COMPUTE:
-                List<ComputeOrder> computeOrders = new ArrayList<>();
-                for (Order order : filteredOrders) {
-                    computeOrders.add((ComputeOrder) order);
-                }
+                List<ComputeOrder> computeOrders = castOrders(filteredOrders);
                 return getUserComputeAllocation(computeOrders);
             case VOLUME:
-                List<VolumeOrder> volumeOrders = new ArrayList<>();
-                for (Order order : filteredOrders) {
-                    volumeOrders.add((VolumeOrder) order);
-                }
+                List<VolumeOrder> volumeOrders = castOrders(filteredOrders);
                 return getUserVolumeAllocation(volumeOrders);
             case NETWORK:
-                List<NetworkOrder> networkOrders = new ArrayList<>();
-                for (Order order : filteredOrders) {
-                    networkOrders.add((NetworkOrder) order);
-                }
+                List<NetworkOrder> networkOrders = castOrders(filteredOrders);
                 return getUserNetworkAllocation(networkOrders);
             case PUBLIC_IP:
-                List<PublicIpOrder> publicIpOrders = new ArrayList<>();
-                for (Order order : filteredOrders) {
-                    publicIpOrders.add((PublicIpOrder) order);
-                }
+                List<PublicIpOrder> publicIpOrders = castOrders(filteredOrders);
                 return getUserPublicIpAllocation(publicIpOrders);
             default:
                 throw new UnexpectedException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
         }
     }
 
-    private PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
+    @VisibleForTesting
+    <T extends Order> List<T> castOrders(List<Order> orders) {
+        List<T> result = new ArrayList<>();
+
+        for (Order order : orders) {
+            result.add((T) order);
+        }
+
+        return result;
+    }
+
+    @VisibleForTesting
+    PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
         int publicIps = 0;
 
         for (PublicIpOrder order :
@@ -218,7 +219,8 @@ public class OrderController {
         return new PublicIpAllocation(publicIps);
     }
 
-    private NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
+    @VisibleForTesting
+    NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
         int networks = 0;
 
         for (NetworkOrder order : networkOrders) {
@@ -231,7 +233,8 @@ public class OrderController {
         return new NetworkAllocation(networks);
     }
 
-    private VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
+    @VisibleForTesting
+    VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
         int disk = 0;
 
         for (VolumeOrder order : volumeOrders) {
@@ -292,7 +295,8 @@ public class OrderController {
         return CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
     }
 
-    private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
+    @VisibleForTesting
+    ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
         int vCPU = 0;
         int ram = 0;
         int instances = 0;

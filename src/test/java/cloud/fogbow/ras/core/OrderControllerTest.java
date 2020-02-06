@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -463,10 +464,12 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
-        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 3));
+        ComputeAllocation computeAllocation1 = new ComputeAllocation(1, 2, 3, 4);
+        computeOrder1.setActualAllocation(computeAllocation1);
 
         ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
-        computeOrder2.setActualAllocation(new ComputeAllocation(3, 2, 1));
+        ComputeAllocation computeAllocation2 = new ComputeAllocation(3, 2, 1, 3);
+        computeOrder2.setActualAllocation(computeAllocation2);
 
         this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
@@ -474,16 +477,30 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(computeOrder1);
         this.fulfilledOrdersList.addItem(computeOrder2);
 
-        int expectedValue = 4;
+        int expectedInstance = computeAllocation1.getInstances() + computeAllocation2.getInstances();
+        int expectedDisk = computeAllocation1.getDisk() + computeAllocation2.getDisk();
+        int expectedCores = computeAllocation1.getvCPU() + computeAllocation2.getvCPU();
+        int expectedRam = computeAllocation1.getRam() + computeAllocation2.getRam();
 
+        List<ComputeOrder> orders = new ArrayList<>();
+        orders.add(computeOrder1);
+        orders.add(computeOrder2);
+
+        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedCores, expectedRam, expectedInstance, expectedDisk);
+        Mockito.doReturn(expectedAllocation).when(this.ordersController).getUserComputeAllocation(Mockito.eq(orders));
+        Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertEquals(expectedValue, allocation.getInstances());
-        Assert.assertEquals(expectedValue, allocation.getRam());
-        Assert.assertEquals(expectedValue, allocation.getvCPU());
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserComputeAllocation(Mockito.eq(orders));
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
+
+        Assert.assertEquals(expectedInstance, allocation.getInstances());
+        Assert.assertEquals(expectedRam, allocation.getRam());
+        Assert.assertEquals(expectedCores, allocation.getvCPU());
+        Assert.assertEquals(expectedDisk, allocation.getDisk());
     }
     
     // test case: Tests if the getUserAllocation method returns the
@@ -494,10 +511,12 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         VolumeOrder volumeOrder1 = createFulfilledVolumeOrder(systemUser);
-        volumeOrder1.setActualAllocation(new VolumeAllocation(1));
+        VolumeAllocation volumeAllocation1 = new VolumeAllocation(2);
+        volumeOrder1.setActualAllocation(volumeAllocation1);
 
         VolumeOrder volumeOrder2 = createFulfilledVolumeOrder(systemUser);
-        volumeOrder2.setActualAllocation(new VolumeAllocation(1));
+        VolumeAllocation volumeAllocation2 = new VolumeAllocation(5);
+        volumeOrder2.setActualAllocation(volumeAllocation2);
 
         this.activeOrdersMap.put(volumeOrder1.getId(), volumeOrder1);
         this.activeOrdersMap.put(volumeOrder2.getId(), volumeOrder2);
@@ -505,13 +524,24 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(volumeOrder1);
         this.fulfilledOrdersList.addItem(volumeOrder2);
 
-        int expectedValue = 2;
+        List<VolumeOrder> orders = new ArrayList<>();
+        orders.add(volumeOrder1);
+        orders.add(volumeOrder2);
+
+        int expectedValue = volumeAllocation1.getDisk() + volumeAllocation2.getDisk();
+        VolumeAllocation expectedAllocation = new VolumeAllocation(expectedValue);
+
+        Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
+        Mockito.doReturn(expectedAllocation).when(this.ordersController).getUserVolumeAllocation(Mockito.eq(orders));
 
         // exercise
         VolumeAllocation allocation = (VolumeAllocation) this.ordersController
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.VOLUME);
 
         // verify
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserVolumeAllocation(Mockito.eq(orders));
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
+
         Assert.assertEquals(expectedValue, allocation.getDisk());
     }
 
@@ -523,10 +553,12 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         NetworkOrder networkOrder1 = createFulfilledNetworkOrder(systemUser);
-        networkOrder1.setActualAllocation(new NetworkAllocation(INSTANCES_LAUNCH_NUMBER));
+        NetworkAllocation networkAllocation1 = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
+        networkOrder1.setActualAllocation(networkAllocation1);
 
         NetworkOrder networkOrder2 = createFulfilledNetworkOrder(systemUser);
-        networkOrder2.setActualAllocation(new NetworkAllocation(INSTANCES_LAUNCH_NUMBER));
+        NetworkAllocation networkAllocation2 = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
+        networkOrder2.setActualAllocation(networkAllocation2);
 
         this.activeOrdersMap.put(networkOrder1.getId(), networkOrder1);
         this.activeOrdersMap.put(networkOrder2.getId(), networkOrder2);
@@ -534,13 +566,24 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(networkOrder1);
         this.fulfilledOrdersList.addItem(networkOrder2);
 
-        int expectedValue = 2;
+        List<NetworkOrder> orders = new ArrayList<>();
+        orders.add(networkOrder1);
+        orders.add(networkOrder2);
+
+        int expectedValue = networkAllocation1.getNetworks() + networkAllocation2.getNetworks();
+        NetworkAllocation expectedAllocation = new NetworkAllocation(expectedValue);
+
+        Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
+        Mockito.doReturn(expectedAllocation).when(this.ordersController).getUserNetworkAllocation(Mockito.eq(orders));
 
         // exercise
         NetworkAllocation allocation = (NetworkAllocation) this.ordersController
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.NETWORK);
 
         // verify
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserNetworkAllocation(Mockito.eq(orders));
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
+
         Assert.assertEquals(expectedValue, allocation.getNetworks());
     }
 
@@ -552,10 +595,12 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         PublicIpOrder publicIpOrder1 = createFulfilledPublicIpOrder(systemUser);
-        publicIpOrder1.setActualAllocation(new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER));
+        PublicIpAllocation publicIpAllocation1 = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
+        publicIpOrder1.setActualAllocation(publicIpAllocation1);
 
         PublicIpOrder publicIpOrder2 = createFulfilledPublicIpOrder(systemUser);
-        publicIpOrder2.setActualAllocation(new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER));
+        PublicIpAllocation publicIpAllocation2 = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
+        publicIpOrder2.setActualAllocation(publicIpAllocation2);
 
         this.activeOrdersMap.put(publicIpOrder1.getId(), publicIpOrder1);
         this.activeOrdersMap.put(publicIpOrder2.getId(), publicIpOrder2);
@@ -563,13 +608,24 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(publicIpOrder1);
         this.fulfilledOrdersList.addItem(publicIpOrder2);
 
-        int expectedValue = 2;
+        List<PublicIpOrder> orders = new ArrayList<>();
+        orders.add(publicIpOrder1);
+        orders.add(publicIpOrder2);
+
+        int expectedValue = publicIpAllocation1.getPublicIps() + publicIpAllocation2.getPublicIps();
+        PublicIpAllocation expectedAllocation = new PublicIpAllocation(expectedValue);
+
+        Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
+        Mockito.doReturn(expectedAllocation).when(this.ordersController).getUserPublicIpAllocation(Mockito.eq(orders));
 
         // exercise
         PublicIpAllocation allocation = (PublicIpAllocation) this.ordersController
                 .getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.PUBLIC_IP);
 
         // verify
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserPublicIpAllocation(Mockito.eq(orders));
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
+
         Assert.assertEquals(expectedValue, allocation.getPublicIps());
     }
 
@@ -586,6 +642,137 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.GENERIC_RESOURCE);
+    }
+
+    // test case: Tests if the castOrders method casts a list of orders (Order.class) to
+    // a list of orders which the type is inferred by the return type (it should be a order's subclass)
+    @Test
+    public void testCastOrders() throws UnexpectedException {
+        // set up
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        List<Order> ordersToCastCompute = new ArrayList<>();
+        ordersToCastCompute.add(createFulfilledComputeOrder(systemUser));
+
+        List<Order> ordersToCastVolume = new ArrayList<>();
+        ordersToCastCompute.add(createFulfilledVolumeOrder(systemUser));
+
+        List<Order> ordersToCastNetwork = new ArrayList<>();
+        ordersToCastCompute.add(createFulfilledNetworkOrder(systemUser));
+
+        List<Order> ordersToCastPublicIp = new ArrayList<>();
+        ordersToCastCompute.add(createFulfilledPublicIpOrder(systemUser));
+
+        // exercise
+        List<ComputeOrder> computeOrders = this.ordersController.castOrders(ordersToCastCompute);
+        List<VolumeOrder> volumeOrders = this.ordersController.castOrders(ordersToCastVolume);
+        List<PublicIpOrder> publicIpOrders = this.ordersController.castOrders(ordersToCastPublicIp);
+        List<NetworkOrder> networkOrders = this.ordersController.castOrders(ordersToCastNetwork);
+
+        // verify
+        Assert.assertEquals(ordersToCastCompute.size(), computeOrders.size());
+        Assert.assertEquals(ordersToCastVolume.size(), volumeOrders.size());
+        Assert.assertEquals(ordersToCastNetwork.size(), networkOrders.size());
+        Assert.assertEquals(ordersToCastPublicIp.size(), publicIpOrders.size());
+    }
+
+    // test case: Tests if the getUserComputeAllocation method builds a ComputeAllocation with
+    // the total allocation of all orders passed by
+    @Test
+    public void testGetUserComputeAllocation() throws UnexpectedException {
+        // set up
+        List<ComputeOrder> orders = new ArrayList<>();
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        int numberOfInstances = 3;
+        int expectedDisk = numberOfInstances * TestUtils.DISK_VALUE;
+        int expectedRam = numberOfInstances * TestUtils.MEMORY_VALUE;
+        int expectedCores = numberOfInstances * TestUtils.CPU_VALUE;
+
+        ComputeOrder order;
+        for (int i = 0; i < numberOfInstances; i++) {
+            order = createFulfilledComputeOrderWithAllocation(systemUser);
+            orders.add(order);
+        }
+
+        // exercise
+        ComputeAllocation allocation = this.ordersController.getUserComputeAllocation(orders);
+
+        // verify
+        Assert.assertEquals(numberOfInstances, allocation.getInstances());
+        Assert.assertEquals(expectedDisk, allocation.getDisk());
+        Assert.assertEquals(expectedCores, allocation.getvCPU());
+        Assert.assertEquals(expectedRam, allocation.getRam());
+    }
+
+    // test case: Tests if the getUserVolumeAllocation method builds a VolumeAllocation with
+    // the total allocation of all orders passed by
+    @Test
+    public void testGetUserVolumeAllocation() throws UnexpectedException {
+        // set up
+        List<VolumeOrder> orders = new ArrayList<>();
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        int numberOfInstances = 3;
+        int expectedDisk = numberOfInstances * TestUtils.DISK_VALUE;
+
+        VolumeOrder order;
+        for (int i = 0; i < numberOfInstances; i++) {
+            order = createFulfilledVolumeOrderWithAllocation(systemUser);
+            orders.add(order);
+        }
+
+        // exercise
+        VolumeAllocation allocation = this.ordersController.getUserVolumeAllocation(orders);
+
+        // verify
+        Assert.assertEquals(expectedDisk, allocation.getDisk());
+    }
+
+    // test case: Tests if the getUserNetworkAllocation method builds a NetworkAllocation with
+    // the total allocation of all orders passed by
+    @Test
+    public void testGetUserNetworkAllocation() throws UnexpectedException {
+        // set up
+        List<NetworkOrder> orders = new ArrayList<>();
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        int numberOfInstances = 3;
+
+        NetworkOrder order;
+        for (int i = 0; i < numberOfInstances; i++) {
+            order = createFulfilledNetworkOrderWithAllocation(systemUser);
+            orders.add(order);
+        }
+
+        // exercise
+        NetworkAllocation allocation = this.ordersController.getUserNetworkAllocation(orders);
+
+        // verify
+        Assert.assertEquals(numberOfInstances, allocation.getNetworks());
+    }
+
+    // test case: Tests if the getUserNetworkAllocation method builds a NetworkAllocation with
+    // the total allocation of all orders passed by
+    @Test
+    public void testGetUserPublicIpllocation() throws UnexpectedException {
+        // set up
+        List<PublicIpOrder> orders = new ArrayList<>();
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        int numberOfInstances = 3;
+
+        PublicIpOrder order;
+        for (int i = 0; i < numberOfInstances; i++) {
+            order = createFulfilledPublicIpOrderWithAllocation(systemUser);
+            orders.add(order);
+        }
+
+        // exercise
+        PublicIpAllocation allocation = this.ordersController.getUserPublicIpAllocation(orders);
+
+        // verify
+        Assert.assertEquals(numberOfInstances, allocation.getPublicIps());
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders
@@ -767,7 +954,36 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return computeOrder;
     }
-    
+
+    private ComputeOrder createFulfilledComputeOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
+        ComputeOrder order = createFulfilledComputeOrder(systemUser);
+        ComputeAllocation computeAllocation = new ComputeAllocation(
+                TestUtils.CPU_VALUE, TestUtils.MEMORY_VALUE, INSTANCES_LAUNCH_NUMBER, TestUtils.DISK_VALUE);
+        order.setActualAllocation(computeAllocation);
+        return order;
+    }
+
+    private VolumeOrder createFulfilledVolumeOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
+        VolumeOrder order = createFulfilledVolumeOrder(systemUser);
+        VolumeAllocation volumeAllocation = new VolumeAllocation(TestUtils.DISK_VALUE);
+        order.setActualAllocation(volumeAllocation);
+        return order;
+    }
+
+    private NetworkOrder createFulfilledNetworkOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
+        NetworkOrder order = createFulfilledNetworkOrder(systemUser);
+        NetworkAllocation networkAllocation = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
+        order.setActualAllocation(networkAllocation);
+        return order;
+    }
+
+    private PublicIpOrder createFulfilledPublicIpOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
+        PublicIpOrder order = createFulfilledPublicIpOrder(systemUser);
+        PublicIpAllocation networkAllocation = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
+        order.setActualAllocation(networkAllocation);
+        return order;
+    }
+
     private InstanceStatus createInstanceStatus(ComputeOrder computeOrder) throws InstanceNotFoundException {
         return new InstanceStatus(computeOrder.getId(),
                 computeOrder.getProvider(), computeOrder.getCloudName(),
