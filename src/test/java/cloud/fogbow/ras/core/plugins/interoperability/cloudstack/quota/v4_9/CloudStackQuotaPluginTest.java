@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
@@ -180,7 +179,7 @@ public class CloudStackQuotaPluginTest {
                 .instances(MAX_INSTANCES)
                 .ram(MAX_RAM)
                 .vCPU(MAX_CORES)
-                .disk(MAX_DISK)
+                .storage(MAX_DISK)
                 .networks(MAX_NETWORKS)
                 .publicIps(MAX_PUBLIC_IP_ADDRESSES)
                 .build();
@@ -212,7 +211,7 @@ public class CloudStackQuotaPluginTest {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getDomainResourceLimit(Mockito.eq(resourceLimit),
                 Mockito.eq(this.cloudUser));
 
-        Assert.assertEquals(MAX_DISK, totalAllocation.getDisk());
+        Assert.assertEquals(MAX_DISK, totalAllocation.getStorage());
     }
 
     // test case: When calling getTotalAllocation method and got a unexpected exception when was attempted to get the
@@ -234,7 +233,7 @@ public class CloudStackQuotaPluginTest {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetDomainResourceLimit(
                 Mockito.eq(resourceLimit.getResourceType()), Mockito.eq(FAKE_DOMAIN_ID), Mockito.eq(this.cloudUser));
 
-        Assert.assertEquals(DOMAIN_LIMIT_NOT_FOUND_VALUE, totalAllocation.getDisk());
+        Assert.assertEquals(DOMAIN_LIMIT_NOT_FOUND_VALUE, totalAllocation.getStorage());
     }
 
     // test case: When calling doGetRequest, it must verify if the call was successful
@@ -604,7 +603,7 @@ public class CloudStackQuotaPluginTest {
         Assert.assertEquals(USED_INSTANCES, usedAllocation.getInstances());
         Assert.assertEquals(USED_CORES, usedAllocation.getvCPU());
         Assert.assertEquals(USED_RAM, usedAllocation.getRam());
-        Assert.assertEquals(USED_DISK, usedAllocation.getDisk());
+        Assert.assertEquals(USED_DISK, usedAllocation.getStorage());
         Assert.assertEquals(USED_NETWORKS, usedAllocation.getNetworks());
         Assert.assertEquals(USED_PUBLIC_IP_ADDRESSES, usedAllocation.getPublicIps());
     }

@@ -59,7 +59,7 @@ public class ResourceQuota extends Quota {
         int instance = calculateResource(totalQuota.getInstances(), usedQuota.getInstances());
         int vCPU = calculateResource(totalQuota.getvCPU(), usedQuota.getvCPU());;
         int ram = calculateResource(totalQuota.getRam(), usedQuota.getRam());
-        int disk = calculateResource(totalQuota.getDisk(), usedQuota.getDisk());;
+        int disk = calculateResource(totalQuota.getStorage(), usedQuota.getStorage());;
         int networks = calculateResource(totalQuota.getNetworks(), usedQuota.getNetworks());;
         int publicIps = calculateResource(totalQuota.getPublicIps(), usedQuota.getPublicIps());;
 
@@ -67,7 +67,7 @@ public class ResourceQuota extends Quota {
                 .instances(instance)
                 .vCPU(vCPU)
                 .ram(ram)
-                .disk(disk)
+                .storage(disk)
                 .networks(networks)
                 .publicIps(publicIps)
                 .build();

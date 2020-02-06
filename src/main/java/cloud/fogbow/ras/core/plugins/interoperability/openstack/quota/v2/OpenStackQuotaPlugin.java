@@ -82,7 +82,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
                 .ram(totalRamUsed)
                 .publicIps(floatingIpUsed)
                 .networks(networkUsed)
-                .disk(totalGigabytesUsed)
+                .storage(totalGigabytesUsed)
                 .build();
         
         return usedQuota;
@@ -107,7 +107,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
                 .ram(maxTotalRamSize)
                 .publicIps(floatingIpLimit)
                 .networks(networkLimit)
-                .disk(maxTotalVolumeGigabytes)
+                .storage(maxTotalVolumeGigabytes)
                 .build();
         
         return totalQuota;

@@ -158,7 +158,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         Mockito.doReturn(expected.getInstances()).when(this.plugin).convertToInteger(Mockito.eq(VMS_MAX_VALUE));
         Mockito.doReturn(expected.getvCPU()).when(this.plugin).convertToInteger(Mockito.eq(CPU_MAX_VALUE));
         Mockito.doReturn(expected.getRam()).when(this.plugin).convertToInteger(Mockito.eq(MEMORY_MAX_VALUE));
-        Mockito.doReturn(expected.getDisk()).when(this.plugin).convertToInteger(Mockito.eq(DISK_MAX_VALUE));
+        Mockito.doReturn(expected.getStorage()).when(this.plugin).convertToInteger(Mockito.eq(DISK_MAX_VALUE));
         Mockito.doReturn(expected.getPublicIps()).when(this.plugin).convertToInteger(Mockito.eq(PUBLIC_IP_MAX_VALUE));
 
         // exercise
@@ -219,7 +219,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
                 .instances(maxInstances)
                 .vCPU(maxCPU)
                 .ram(maxRam)
-                .disk(maxDisk)
+                .storage(maxDisk)
                 .networks(maxNetworks)
                 .publicIps(maxPublicIps)
                 .build();
@@ -239,7 +239,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
                 .instances(usedInstances)
                 .vCPU(usedCPU)
                 .ram(usedRam)
-                .disk(usedDisk)
+                .storage(usedDisk)
                 .networks(usedNetworks)
                 .publicIps(usedPublicIps)
                 .build();

@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.quota.v2;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -95,7 +94,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
-                .disk(volumesDiskUsage)
+                .storage(volumesDiskUsage)
                 .networks(subnets)
                 .publicIps(elasticIps)
                 .build();
@@ -132,7 +131,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
-                .disk(maximumStorage)
+                .storage(maximumStorage)
                 .networks(maximumSubnets)
                 .publicIps(maximumPublicIpAddresses)
                 .build();

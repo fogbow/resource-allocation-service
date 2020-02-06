@@ -193,7 +193,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
                 .vCPU(computeAllocation.getvCPU())
                 .publicIps(usedPublicIps)
                 .networks(usedNetworks)
-                .disk(usedDisk)
+                .storage(usedDisk)
                 .build();
 
         return usedAllocation;
@@ -260,7 +260,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
             switch (resourceLimit.getResourceType()) {
                 case LIMIT_TYPE_INSTANCES: builder.instances(max); break;
                 case LIMIT_TYPE_PUBLIC_IP: builder.publicIps(max); break;
-                case LIMIT_TYPE_STORAGE: builder.disk(max); break;
+                case LIMIT_TYPE_STORAGE: builder.storage(max); break;
                 case LIMIT_TYPE_NETWORK: builder.networks(max); break;
                 case LIMIT_TYPE_CPU: builder.vCPU(max); break;
                 case LIMIT_TYPE_MEMORY: builder.ram(max); break;

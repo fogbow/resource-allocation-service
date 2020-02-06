@@ -80,7 +80,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
                 .instances(instancesInUse)
                 .vCPU(cpuInUse)
                 .ram(memoryInUse)
-                .disk(diskInUse)
+                .storage(diskInUse)
                 .networks(networksInUse)
                 .publicIps(publicIpsInUse)
                 .build();
@@ -111,7 +111,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
                 .instances(maxInstances)
                 .vCPU(maxCpu)
                 .ram(maxMemory)
-                .disk(maxDisk)
+                .storage(maxDisk)
                 .networks(maxNetworks)
                 .publicIps(maxPublicIps)
                 .build();

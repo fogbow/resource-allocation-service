@@ -98,7 +98,7 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
 
         Mockito.doReturn(expectedQuota.getPublicIps()).when(this.plugin).calculateUsedElasticIp(Mockito.eq(this.client));
         Mockito.doReturn(expectedQuota.getNetworks()).when(this.plugin).calculateUsedSubnets(Mockito.eq(this.client));
-        Mockito.doReturn(expectedQuota.getDisk()).when(this.plugin).calculateVolumesUsage(Mockito.eq(this.client));
+        Mockito.doReturn(expectedQuota.getStorage()).when(this.plugin).calculateVolumesUsage(Mockito.eq(this.client));
         Mockito.doReturn(computeAllocation).when(this.plugin).calculateComputeUsedQuota();
 
         // exercise
@@ -224,7 +224,7 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(computeAllocation.getvCPU(), totalQuota.getvCPU());
         Assert.assertEquals(computeAllocation.getRam(), totalQuota.getRam());
         Assert.assertEquals(computeAllocation.getInstances(), totalQuota.getInstances());
-        Assert.assertEquals(AwsV2QuotaPlugin.maximumStorage, totalQuota.getDisk());
+        Assert.assertEquals(AwsV2QuotaPlugin.maximumStorage, totalQuota.getStorage());
         Assert.assertEquals(AwsV2QuotaPlugin.maximumSubnets, totalQuota.getNetworks());
         Assert.assertEquals(AwsV2QuotaPlugin.maximumPublicIpAddresses, totalQuota.getPublicIps());
     }

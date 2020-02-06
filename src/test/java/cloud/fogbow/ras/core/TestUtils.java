@@ -340,7 +340,7 @@ public class TestUtils {
                 .instances(totalInstances)
                 .vCPU(totalvCPU)
                 .ram(tolalRam)
-                .disk(totalDisk)
+                .storage(totalDisk)
                 .networks(totalNetworks)
                 .publicIps(totalPublicIps)
                 .build();
@@ -360,7 +360,7 @@ public class TestUtils {
                 .instances(usedInstances)
                 .vCPU(usedvCPU)
                 .ram(usedRam)
-                .disk(usedDisk)
+                .storage(usedDisk)
                 .networks(usedNetworks)
                 .publicIps(usedPublicIps)
                 .build();
