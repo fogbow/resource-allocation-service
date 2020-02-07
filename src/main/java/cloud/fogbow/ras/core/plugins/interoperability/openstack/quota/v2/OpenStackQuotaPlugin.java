@@ -75,6 +75,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
         int floatingIpUsed = networkQuotas.getFloatingIpUsed();
         int networkUsed = networkQuotas.getNetworkUsed();
         int totalGigabytesUsed = volumeQuotas.getTotalGigabytesUsed();
+        int volumesUsed = volumeQuotas.getTotalVolumesUsed();
         
         ResourceAllocation usedQuota = ResourceAllocation.builder()
                 .instances(totalInstancesUsed)
@@ -82,6 +83,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
                 .ram(totalRamUsed)
                 .publicIps(floatingIpUsed)
                 .networks(networkUsed)
+                .volumes(volumesUsed)
                 .storage(totalGigabytesUsed)
                 .build();
         
@@ -100,6 +102,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
         int floatingIpLimit = networkQuotas.getFloatingIpLimit();
         int networkLimit = networkQuotas.getNetworkLimit();
         int maxTotalVolumeGigabytes = volumeQuotas.getMaxTotalVolumeGigabytes();
+        int maxVolumes = volumeQuotas.getMaxTotalVolumes();
         
         ResourceAllocation totalQuota = ResourceAllocation.builder()
                 .instances(maxTotalInstances)
@@ -107,6 +110,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
                 .ram(maxTotalRamSize)
                 .publicIps(floatingIpLimit)
                 .networks(networkLimit)
+                .volumes(maxVolumes)
                 .storage(maxTotalVolumeGigabytes)
                 .build();
         

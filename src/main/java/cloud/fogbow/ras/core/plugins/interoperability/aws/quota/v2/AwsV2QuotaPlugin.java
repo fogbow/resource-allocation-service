@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
@@ -89,17 +90,25 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
         int volumesDiskUsage = this.calculateVolumesUsage(client);
         int elasticIps = this.calculateUsedElasticIp(client);
         int subnets = this.calculateUsedSubnets(client);
+        int volumeInstances = this.calculateUsedVolumes(client);
 
         ResourceAllocation allocation = ResourceAllocation.builder()
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
                 .storage(volumesDiskUsage)
+                .volumes(volumeInstances)
                 .networks(subnets)
                 .publicIps(elasticIps)
                 .build();
 
         return allocation;
+    }
+
+    @VisibleForTesting
+    int calculateUsedVolumes(Ec2Client client) {
+        List<Volume> volumes = client.describeVolumes().volumes();
+        return volumes.size();
     }
 
     @VisibleForTesting
@@ -132,6 +141,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
                 .storage(maximumStorage)
+                .volumes(FogbowConstants.UNLIMITED_RESOURCE)
                 .networks(maximumSubnets)
                 .publicIps(maximumPublicIpAddresses)
                 .build();

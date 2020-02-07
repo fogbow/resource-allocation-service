@@ -40,6 +40,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
     private static final String LIMIT_TYPE_INSTANCES = "0";
     private static final String LIMIT_TYPE_PUBLIC_IP = "1";
+    private static final String LIMIT_TYPE_VOLUME = "2";
     private static final String LIMIT_TYPE_NETWORK = "6";
     private static final String LIMIT_TYPE_CPU = "8";
     private static final String LIMIT_TYPE_MEMORY = "9";
@@ -185,6 +186,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
         int usedPublicIps = getPublicIpAllocation(publicIps);
         int usedNetworks = getNetworkAllocation(networks);
         int usedDisk = getVolumeAllocation(volumes);
+        int usedVolumes = volumes.size();
         ComputeAllocation computeAllocation = this.buildComputeAllocation(vms);
 
         ResourceAllocation usedAllocation = ResourceAllocation.builder()
@@ -192,6 +194,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .publicIps(usedPublicIps)
+                .volumes(usedVolumes)
                 .networks(usedNetworks)
                 .storage(usedDisk)
                 .build();
@@ -261,6 +264,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
                 case LIMIT_TYPE_INSTANCES: builder.instances(max); break;
                 case LIMIT_TYPE_PUBLIC_IP: builder.publicIps(max); break;
                 case LIMIT_TYPE_STORAGE: builder.storage(max); break;
+                case LIMIT_TYPE_VOLUME: builder.volumes(max); break;
                 case LIMIT_TYPE_NETWORK: builder.networks(max); break;
                 case LIMIT_TYPE_CPU: builder.vCPU(max); break;
                 case LIMIT_TYPE_MEMORY: builder.ram(max); break;
