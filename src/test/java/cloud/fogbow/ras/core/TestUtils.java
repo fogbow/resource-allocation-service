@@ -50,6 +50,7 @@ public class TestUtils {
     public static final int RUN_TWICE = 2;
     public static final int RUN_THRICE = 3;
     public static final int RUN_FOUR_TIMES = 4;
+    public static final int RUN_FIVE_TIMES = 5;
     public static final int RUN_SIX_TIMES = 6;
 
     public static final long DEFAULT_SLEEP_TIME = 500;
@@ -90,6 +91,7 @@ public class TestUtils {
     public static final String FROM_JSON_METHOD = "fromJson";
     public static final String GET_ADDRESS_BY_ID_METHOD = "getAddressById";
     public static final String GET_GROUP_ID_FROM_METHOD = "getGroupIdFrom";
+    public static final String GET_NETWORK_POOL_BY_USER_METHOD = "getNetworkPoolByUser";
     public static final String DEFAULT_CIDR = "0.0.0.0/0";
     public static final String TCP_PROTOCOL = "tcp";
     public static final String UDP_PROTOCOL = "udp";
@@ -326,39 +328,43 @@ public class TestUtils {
         return new ResourceQuota(totalQuota, usedQuota);
     }
 
-    private ResourceAllocation createTotalQuota() {
+    public ResourceAllocation createTotalQuota() {
         int totalInstances = 100;
         int totalvCPU = 8;
         int tolalRam = 16384;
         int totalDisk = 30;
         int totalNetworks = 15;
         int totalPublicIps = 5;
+        int totalVolumes = 200;
         
         ResourceAllocation totalQuota = ResourceAllocation.builder()
                 .instances(totalInstances)
                 .vCPU(totalvCPU)
                 .ram(tolalRam)
-                .disk(totalDisk)
+                .storage(totalDisk)
                 .networks(totalNetworks)
+                .volumes(totalVolumes)
                 .publicIps(totalPublicIps)
                 .build();
         
         return totalQuota;
     }
     
-    private ResourceAllocation createUsedQuota() {
+    public ResourceAllocation createUsedQuota() {
         int usedInstances = 1;
         int usedvCPU = 2;
         int usedRam = 8192;
         int usedDisk = 8;
         int usedNetworks = 1;
         int usedPublicIps = 1;
-        
+        int usedVolumes = 2;
+
         ResourceAllocation usedQuota =  ResourceAllocation.builder()
                 .instances(usedInstances)
                 .vCPU(usedvCPU)
                 .ram(usedRam)
-                .disk(usedDisk)
+                .storage(usedDisk)
+                .volumes(usedVolumes)
                 .networks(usedNetworks)
                 .publicIps(usedPublicIps)
                 .build();
