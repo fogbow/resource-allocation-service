@@ -40,7 +40,9 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     protected static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
     protected static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
     protected static final int UNLIMITED_NETWORK_QUOTA_VALUE = -1;
-    
+
+    private static final int ONE_GIGABYTE_IN_MEGABYTES = 1024;
+
     private String defaultDatastore;
     private String defaultPublicNetwork;
     private String endpoint;
@@ -74,6 +76,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
         int diskInUse = convertToInteger(user.xpath(diskSizeQuotaUsedPath));
+        int diskInUseGB = convertMegabytesIntoGigabytes(diskInUse);
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
         int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
         int networksInUse = networkPool.getLength();
@@ -84,13 +87,18 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
                 .instances(instancesInUse)
                 .vCPU(cpuInUse)
                 .ram(memoryInUse)
-                .storage(diskInUse)
+                .storage(diskInUseGB)
                 .networks(networksInUse)
                 .volumes(volumesInUse)
                 .publicIps(publicIpsInUse)
                 .build();
         
         return usedAllocation;
+    }
+
+    @VisibleForTesting
+    int convertMegabytesIntoGigabytes(int sizeInMb) {
+        return sizeInMb / ONE_GIGABYTE_IN_MEGABYTES;
     }
 
     @VisibleForTesting
