@@ -377,7 +377,7 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
                 .instances(USED_INSTANCES_VALUE)
                 .vCPU(USED_VCPU_VALUE)
                 .ram(USED_RAM_VALUE)
-                .disk(USED_DISK_VALUE)
+                .storage(USED_DISK_VALUE)
                 .networks(USED_NETWORK_VALUE)
                 .publicIps(USED_PUBLIC_IP_VALUE)
                 .build();
@@ -388,7 +388,7 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
                 .instances(TOTAL_INSTANCES_VALUE)
                 .vCPU(TOTAL_VCPU_VALUE)
                 .ram(TOTAL_RAM_VALUE)
-                .disk(TOTAL_DISK_VALUE)
+                .storage(TOTAL_DISK_VALUE)
                 .networks(TOTAL_NETWORK_VALUE)
                 .publicIps(TOTAL_PUBLIC_IP_VALUE)
                 .build();

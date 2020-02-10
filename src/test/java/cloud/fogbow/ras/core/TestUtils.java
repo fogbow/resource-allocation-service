@@ -335,13 +335,15 @@ public class TestUtils {
         int totalDisk = 30;
         int totalNetworks = 15;
         int totalPublicIps = 5;
+        int totalVolumes = 200;
         
         ResourceAllocation totalQuota = ResourceAllocation.builder()
                 .instances(totalInstances)
                 .vCPU(totalvCPU)
                 .ram(tolalRam)
-                .disk(totalDisk)
+                .storage(totalDisk)
                 .networks(totalNetworks)
+                .volumes(totalVolumes)
                 .publicIps(totalPublicIps)
                 .build();
         
@@ -355,12 +357,14 @@ public class TestUtils {
         int usedDisk = 8;
         int usedNetworks = 1;
         int usedPublicIps = 1;
-        
+        int usedVolumes = 2;
+
         ResourceAllocation usedQuota =  ResourceAllocation.builder()
                 .instances(usedInstances)
                 .vCPU(usedvCPU)
                 .ram(usedRam)
-                .disk(usedDisk)
+                .storage(usedDisk)
+                .volumes(usedVolumes)
                 .networks(usedNetworks)
                 .publicIps(usedPublicIps)
                 .build();

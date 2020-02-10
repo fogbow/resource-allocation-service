@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.quota.v2;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
@@ -87,20 +87,28 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     @VisibleForTesting
     ResourceAllocation calculateUsedQuota(@NotNull Ec2Client client) throws FogbowException {
         ComputeAllocation computeAllocation = this.calculateComputeUsedQuota();
-        int volumesDiskUsage = this.calculateVolumesUsage(client);
+        int storage = this.calculateUsedStorage(client);
         int elasticIps = this.calculateUsedElasticIp(client);
         int subnets = this.calculateUsedSubnets(client);
+        int volumes = this.calculateUsedVolumes(client);
 
         ResourceAllocation allocation = ResourceAllocation.builder()
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
-                .disk(volumesDiskUsage)
+                .storage(storage)
+                .volumes(volumes)
                 .networks(subnets)
                 .publicIps(elasticIps)
                 .build();
 
         return allocation;
+    }
+
+    @VisibleForTesting
+    int calculateUsedVolumes(Ec2Client client) {
+        List<Volume> volumes = client.describeVolumes().volumes();
+        return volumes.size();
     }
 
     @VisibleForTesting
@@ -118,7 +126,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    int calculateVolumesUsage(@NotNull Ec2Client client) throws FogbowException {
+    int calculateUsedStorage(@NotNull Ec2Client client) throws FogbowException {
         DescribeVolumesRequest request = DescribeVolumesRequest.builder().build();
         DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
         return getAllVolumesSize(response.volumes());
@@ -132,7 +140,8 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .ram(computeAllocation.getRam())
                 .vCPU(computeAllocation.getvCPU())
                 .instances(computeAllocation.getInstances())
-                .disk(maximumStorage)
+                .storage(maximumStorage)
+                .volumes(FogbowConstants.UNLIMITED_RESOURCE)
                 .networks(maximumSubnets)
                 .publicIps(maximumPublicIpAddresses)
                 .build();

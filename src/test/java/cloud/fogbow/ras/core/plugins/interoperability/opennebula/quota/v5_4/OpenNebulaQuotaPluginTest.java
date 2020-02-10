@@ -31,13 +31,15 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
     private static final String MEMORY_USED_VALUE = "2048";
     private static final String NETWORK_USED_VALUE = "0";
     private static final String PUBLIC_IP_MAX_VALUE = "5";
+    private static final String MAX_VOLUMES = "200";
     private static final String PUBLIC_IP_USED_VALUE = "1";
     private static final String VMS_MAX_VALUE = "8";
     private static final String VMS_USED_VALUE = "1";
-    
+    private static final String USED_VOLUMES = "2";
+
     private static final int FAKE_PUBLIC_NETWORK_ID = 100;
     private static final int FAKE_DATASTORE_ID = 1;
-    
+
     private OpenNebulaQuotaPlugin plugin;
     private User user;
     
@@ -97,6 +99,8 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
                 FAKE_PUBLIC_NETWORK_ID);
         String diskSizeQuotaUsedPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH,
                 FAKE_DATASTORE_ID);
+        String volumesQuotaPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_DATASTORE_S_IMAGES_USED_PATH,
+                FAKE_DATASTORE_ID);
 
         PowerMockito.mockStatic(OpenNebulaClientUtil.class);
         VirtualNetworkPool networkPool = Mockito.mock(VirtualNetworkPool.class);
@@ -108,6 +112,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_CPU_USED_PATH))).thenReturn(CPU_USED_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_MEMORY_USED_PATH)))
                 .thenReturn(MEMORY_USED_VALUE);
+        Mockito.when(this.user.xpath(Mockito.eq(volumesQuotaPath))).thenReturn(USED_VOLUMES);
         
 
         ResourceAllocation expected = buildUsedAllocation();
@@ -132,8 +137,19 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE))
                 .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_USED_PATH));
         
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_FIVE_TIMES)).convertToInteger(Mockito.anyString());
-        
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_SIX_TIMES)).convertToInteger(Mockito.anyString());
+
+        Assert.assertEquals(expected.getInstances(), usedAllocation.getInstances());
+        Assert.assertEquals(expected.getRam(), usedAllocation.getRam());
+        Assert.assertEquals(expected.getvCPU(), usedAllocation.getvCPU());
+
+        Assert.assertEquals(expected.getStorage(), usedAllocation.getStorage());
+        Assert.assertEquals(expected.getVolumes(), usedAllocation.getVolumes());
+
+        Assert.assertEquals(expected.getNetworks(), usedAllocation.getNetworks());
+
+        Assert.assertEquals(expected.getPublicIps(), usedAllocation.getPublicIps());
+
         Assert.assertEquals(expected, usedAllocation);
     }
     
@@ -146,20 +162,24 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
                 FAKE_PUBLIC_NETWORK_ID);
         String diskSizeQuotaPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_DATASTORE_S_SIZE_PATH,
                 FAKE_DATASTORE_ID);
-        
+        String volumesQuotaPath = String.format(OpenNebulaQuotaPlugin.FORMAT_QUOTA_DATASTORE_S_IMAGES_PATH,
+                FAKE_DATASTORE_ID);
+
         Mockito.when(this.user.xpath(Mockito.eq(diskSizeQuotaPath))).thenReturn(DISK_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(publicIpQuotaPath))).thenReturn(PUBLIC_IP_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_CPU_PATH))).thenReturn(CPU_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_MEMORY_PATH))).thenReturn(MEMORY_MAX_VALUE);
         Mockito.when(this.user.xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_PATH))).thenReturn(VMS_MAX_VALUE);
+        Mockito.when(this.user.xpath(Mockito.eq(volumesQuotaPath))).thenReturn(MAX_VOLUMES);
 
         ResourceAllocation expected = buildTotalAllocation();
 
         Mockito.doReturn(expected.getInstances()).when(this.plugin).convertToInteger(Mockito.eq(VMS_MAX_VALUE));
         Mockito.doReturn(expected.getvCPU()).when(this.plugin).convertToInteger(Mockito.eq(CPU_MAX_VALUE));
         Mockito.doReturn(expected.getRam()).when(this.plugin).convertToInteger(Mockito.eq(MEMORY_MAX_VALUE));
-        Mockito.doReturn(expected.getDisk()).when(this.plugin).convertToInteger(Mockito.eq(DISK_MAX_VALUE));
+        Mockito.doReturn(expected.getStorage()).when(this.plugin).convertToInteger(Mockito.eq(DISK_MAX_VALUE));
         Mockito.doReturn(expected.getPublicIps()).when(this.plugin).convertToInteger(Mockito.eq(PUBLIC_IP_MAX_VALUE));
+        Mockito.doReturn(expected.getVolumes()).when(this.plugin).convertToInteger(Mockito.eq(MAX_VOLUMES));
 
         // exercise
         ResourceAllocation totalAllocation = this.plugin.getTotalAllocation(this.user);
@@ -173,7 +193,18 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
                 .xpath(Mockito.eq(OpenNebulaQuotaPlugin.QUOTA_VMS_PATH));
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(diskSizeQuotaPath));
         Mockito.verify(this.user, Mockito.times(TestUtils.RUN_ONCE)).xpath(Mockito.eq(publicIpQuotaPath));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_FIVE_TIMES)).convertToInteger(Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_SIX_TIMES)).convertToInteger(Mockito.anyString());
+
+        Assert.assertEquals(expected.getInstances(), totalAllocation.getInstances());
+        Assert.assertEquals(expected.getRam(), totalAllocation.getRam());
+        Assert.assertEquals(expected.getvCPU(), totalAllocation.getvCPU());
+
+        Assert.assertEquals(expected.getStorage(), totalAllocation.getStorage());
+        Assert.assertEquals(expected.getVolumes(), totalAllocation.getVolumes());
+
+        Assert.assertEquals(expected.getNetworks(), totalAllocation.getNetworks());
+
+        Assert.assertEquals(expected.getPublicIps(), totalAllocation.getPublicIps());
 
         Assert.assertEquals(expected, totalAllocation);
     }
@@ -212,15 +243,18 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         int maxCPU = Integer.parseInt(CPU_MAX_VALUE);
         int maxRam = Integer.parseInt(MEMORY_MAX_VALUE);
         int maxDisk = Integer.parseInt(DISK_MAX_VALUE);
+        int maxDiskInGB = this.plugin.convertMegabytesIntoGigabytes(maxDisk);
         int maxNetworks = OpenNebulaQuotaPlugin.UNLIMITED_NETWORK_QUOTA_VALUE;
         int maxPublicIps = Integer.parseInt(PUBLIC_IP_MAX_VALUE);
+        int maxVolumes = Integer.parseInt(MAX_VOLUMES);
         
         ResourceAllocation expected = ResourceAllocation.builder()
                 .instances(maxInstances)
                 .vCPU(maxCPU)
                 .ram(maxRam)
-                .disk(maxDisk)
+                .storage(maxDiskInGB)
                 .networks(maxNetworks)
+                .volumes(maxVolumes)
                 .publicIps(maxPublicIps)
                 .build();
         
@@ -232,15 +266,18 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         int usedCPU = Integer.parseInt(CPU_USED_VALUE);
         int usedRam = Integer.parseInt(MEMORY_USED_VALUE);
         int usedDisk = Integer.parseInt(DISK_USED_VALUE);
+        int usedDiskInGB = this.plugin.convertMegabytesIntoGigabytes(usedDisk);
         int usedNetworks = Integer.parseInt(NETWORK_USED_VALUE);
         int usedPublicIps = Integer.parseInt(PUBLIC_IP_USED_VALUE);
+        int usedVolumes = Integer.parseInt(USED_VOLUMES);
         
         ResourceAllocation expected = ResourceAllocation.builder()
                 .instances(usedInstances)
                 .vCPU(usedCPU)
                 .ram(usedRam)
-                .disk(usedDisk)
+                .storage(usedDiskInGB)
                 .networks(usedNetworks)
+                .volumes(usedVolumes)
                 .publicIps(usedPublicIps)
                 .build();
         
