@@ -10,6 +10,7 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -29,7 +30,6 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import org.opennebula.client.vnet.VirtualNetwork;
 
 import javax.annotation.Nullable;
 
@@ -37,7 +37,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
 
-	protected static final int MB_CONVERT = 1024;
+	protected static final int ONE_GIGABYTE_IN_MEGABYTES = 1024;
 	protected static final int DEFAULT_NUMBER_OF_INSTANCES = 1;
 
 	protected static final String DEFAULT_ARCHITECTURE = "x86_64";
@@ -124,7 +124,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
 		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
-		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)) / MB_CONVERT;
+		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)) / ONE_GIGABYTE_IN_MEGABYTES;
 
 		String xml = response.getMessage();
 		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
@@ -178,12 +178,19 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected synchronized void setOrderAllocation(ComputeOrder computeOrder, VirtualMachineTemplate virtualMachine) {
+		int sizeInMegabytes = Integer.parseInt(virtualMachine.getDisk().getSize());
+		int size = convertDiskSizeToGb(sizeInMegabytes);
 		ComputeAllocation actualAllocation = new ComputeAllocation(
 				Integer.parseInt(virtualMachine.getCpu()),
 				Integer.parseInt(virtualMachine.getMemory()),
 				DEFAULT_NUMBER_OF_INSTANCES,
-				Integer.parseInt(virtualMachine.getDisk().getSize()));
+				size);
 		computeOrder.setActualAllocation(actualAllocation);
+	}
+
+	@VisibleForTesting
+	int convertDiskSizeToGb(int sizeInMegabytes) {
+		return sizeInMegabytes / ONE_GIGABYTE_IN_MEGABYTES;
 	}
 
 	protected List<String> getNetworkIds(List<String> networkIds) {
@@ -272,7 +279,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected long convertDiskSizeToMb(int diskSizeInGb) {
-		return diskSizeInGb * MB_CONVERT;
+		return diskSizeInGb * ONE_GIGABYTE_IN_MEGABYTES;
 	}
 
 	protected Map<String, String> getImagesSizes(Client client) throws UnexpectedException {
