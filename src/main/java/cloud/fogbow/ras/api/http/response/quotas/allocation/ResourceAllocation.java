@@ -25,7 +25,7 @@ public class ResourceAllocation extends Allocation {
     private int storage;
 
     @ApiModelProperty(position = 4, example = "3")
-    @Column(name = "allocation_volume_instances")
+    @Column(name = "allocation_volumes")
     private int volumes;
     
     @ApiModelProperty(position = 5, example = "15")
