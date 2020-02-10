@@ -98,7 +98,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkOrder.getInstanceId());
 
-		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, networkOrder.getId());
+		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, networkOrder.getInstanceId());
 		if (securityGroup != null) {
 			this.deleteSecurityGroup(securityGroup);
 		}
@@ -112,7 +112,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		int defaultNetworkId = this.convertToInteger(this.defaultNetwork);
 		String networkReserveTemplate = createNetworkReserveRequest.getVirtualNetworkReserved().marshalTemplate();
 		String networkInstanceId = OpenNebulaClientUtil.reserveVirtualNetwork(client, defaultNetworkId, networkReserveTemplate);
-		String networkUpdateTemplate = this.getNetworkUpdateTemplate(client, networkInstanceId, networkOrderId);
+		String networkUpdateTemplate = this.getNetworkUpdateTemplate(client, networkInstanceId);
 
 		return OpenNebulaClientUtil.updateVirtualNetwork(client, this.convertToInteger(networkInstanceId), networkUpdateTemplate);
 	}
@@ -232,25 +232,25 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 				.build();
 	}
 
-	protected String getNetworkUpdateTemplate(Client client, String networkInstanceId, String networkOrderId)
+	protected String getNetworkUpdateTemplate(Client client, String networkInstanceId)
 			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 
-		String fogbowSecurityGroupId = this.createSecurityGroup(client, networkInstanceId, networkOrderId);
+		String securityGroupId = this.createSecurityGroup(client, networkInstanceId);
 
 		CreateNetworkUpdateRequest updateRequest = new CreateNetworkUpdateRequest.Builder()
-				.securityGroups(fogbowSecurityGroupId)
+				.securityGroups(securityGroupId)
 				.build();
 
 		return updateRequest.getVirtualNetworkUpdate().marshalTemplate();
 	}
 
-	protected String createSecurityGroup(Client client, String virtualNetworkId, String networkOrderId)
+	protected String createSecurityGroup(Client client, String virtualNetworkId)
 			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
 		String ip = virtualNetwork.xpath(VNET_ADDRESS_RANGE_IP_PATH);
 		String size = virtualNetwork.xpath(VNET_ADDRESS_RANGE_SIZE_PATH);
-		String name = this.generateSecurityGroupName(networkOrderId);
+		String name = this.generateSecurityGroupName(virtualNetworkId);
 
 		// "ALL" setting applies to all protocols if a port range is not defined
 		String protocol = ALL_PROTOCOLS;
@@ -307,7 +307,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 
 	@Nullable
-	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, String orderId)
+	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		SecurityGroup securityGroup = null;
 		String securityGroupIdsStr = virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH);
@@ -318,7 +318,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 
 		String[] securityGroupIds =  securityGroupIdsStr.split(SECURITY_GROUPS_SEPARATOR);
-		String securityGroupName = this.generateSecurityGroupName(orderId);
+		String securityGroupName = this.generateSecurityGroupName(instanceId);
 		for (String securityGroupId : securityGroupIds) {
 			securityGroup = OpenNebulaClientUtil.getSecurityGroup(client, securityGroupId);
 			if (securityGroup.getName().equals(securityGroupName)) {
@@ -329,8 +329,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return securityGroup;
 	}
 
-	protected String generateSecurityGroupName(String orderId) {
-		return SystemConstants.PN_SECURITY_GROUP_PREFIX + orderId;
+	protected String generateSecurityGroupName(String instanceId) {
+		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
 	}
 	
 	protected String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {

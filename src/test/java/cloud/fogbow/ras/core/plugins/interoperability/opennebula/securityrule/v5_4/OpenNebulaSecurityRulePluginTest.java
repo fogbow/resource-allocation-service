@@ -515,7 +515,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
     public void testRetrieveSecurityGroupNameFromNetworkOrder() throws FogbowException {
         // set up
         Order majorOrder = createMajorOrder(ResourceType.NETWORK);
-        String expected = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getId();
+        String expected = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
 
         // exercise
         String securityGroupName = this.plugin.retrieveSecurityGroupName(majorOrder);
@@ -530,7 +530,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
     public void testRetrieveSecurityGroupNameFromPublicIpOrder() throws FogbowException {
         // set up
         Order majorOrder = createMajorOrder(ResourceType.PUBLIC_IP);
-        String expected = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getId();
+        String expected = SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
 
         // exercise
         String securityGroupName = this.plugin.retrieveSecurityGroupName(majorOrder);
