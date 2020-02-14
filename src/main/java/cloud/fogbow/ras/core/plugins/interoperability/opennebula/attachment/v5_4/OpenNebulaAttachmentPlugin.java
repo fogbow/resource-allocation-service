@@ -2,7 +2,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 
 import java.util.Properties;
 
-import cloud.fogbow.common.exceptions.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -10,7 +12,13 @@ import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.vm.VirtualMachine;
 
-import cloud.fogbow.common.constants.OpenNebulaConstants;
+import com.google.common.annotations.VisibleForTesting;
+
+import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -22,157 +30,156 @@ import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.XmlUnmarshaller;
 
 public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
-	private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
-	
-	protected static final String TARGET_PATH_FORMAT = "//TEMPLATE/DISK[%s]/TARGET";
-	protected static final String IMAGE_ID_PATH_FORMAT = "//TEMPLATE/DISK[%s]/IMAGE_ID";
-	private static final String DEFAULT_TARGET = "hdb";
-	private static final String DEVICE_PATH_SEPARATOR = "/";
-	private static final int TARGET_INDEX = 2;
-	private static final int MAX_DISK_NUMBER_SEARCH = 100;
+    private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 
-	private String endpoint;
+    protected static final String DEFAULT_TARGET = "hdb";
+    protected static final String DEVICE_PATH_SEPARATOR = "/";
+    protected static final String IMAGE_ID_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/DISK_ID";
+    protected static final String TARGET_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/TARGET";
 
-	public OpenNebulaAttachmentPlugin(String confFilePath) throws FatalErrorException {
-		Properties properties = PropertiesUtil.readProperties(confFilePath);
-		this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
-	}
+    protected static final int DEVICE_PATH_LENGTH = 3;
+    protected static final int TARGET_INDEX = 2;
 
-	@Override
-	public boolean isReady(String cloudState) {
-		return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.READY);
-	}
+    private String endpoint;
 
-	@Override
-	public boolean hasFailed(String cloudState) {
-		return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.FAILED);
-	}
+    public OpenNebulaAttachmentPlugin(@NotBlank String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
+        this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
+    }
 
-	@Override
-	public String requestInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
-		// NOTE(pauloewerton): expecting a default target device such as /dev/sdb
-		String[] targetList = order.getDevice().split(DEVICE_PATH_SEPARATOR);
-		String target = targetList.length == 3 ? targetList[TARGET_INDEX] : DEFAULT_TARGET;
-		String imageId = order.getVolumeId();
+    @Override
+    public boolean isReady(@NotBlank String cloudState) {
+        return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.READY);
+    }
 
-		CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
-				.imageId(imageId)
+    @Override
+    public boolean hasFailed(@NotBlank String cloudState) {
+        return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.FAILED);
+    }
+
+    @Override
+    public String requestInstance(@NotNull AttachmentOrder order, @NotNull CloudUser cloudUser) throws FogbowException {
+        Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+        String virtualMachineId = order.getComputeId();
+        String imageId = order.getVolumeId();
+        String target = normalizeDeviceTarget(order);
+
+        CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
+                .imageId(imageId)
                 .target(target)
-				.build();
+                .build();
 
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String virtualMachineId = order.getComputeId();
-		String template = request.getAttachDisk().marshalTemplate();
-		VirtualMachine virtualMachine = doRequestInstance(client, virtualMachineId, imageId, template);
-		String diskId = getDiskIdFromContentOf(virtualMachine);
+        String template = request.getAttachDisk().marshalTemplate();
+        doRequestInstance(client, virtualMachineId, imageId, template);
+        return getImageDiskId(client, virtualMachineId, imageId);
+    }
 
-		return diskId;
-	}
+    @Override
+    public void deleteInstance(@NotNull AttachmentOrder order, @NotNull CloudUser cloudUser) throws FogbowException {
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+        String instanceId = order.getInstanceId();
+        String computeId = order.getComputeId();
+        doDeleteInstance(client, computeId, instanceId);
+    }
 
-	@Override
-	public void deleteInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
-		if (order == null) {
-			throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-		}
+    @Override
+    public AttachmentInstance getInstance(@NotNull AttachmentOrder order, @NotNull CloudUser cloudUser)
+            throws FogbowException {
 
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String computeId = order.getComputeId();
-		int diskId = Integer.parseInt(order.getVolumeId());
+        if (order == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
+        String instanceId = order.getInstanceId();
+        String computeId = order.getComputeId();
+        String volumeId = order.getVolumeId();
+        return doGetInstance(client, instanceId, computeId, volumeId);
+    }
 
-		this.doDeleteInstance(client, computeId, diskId);
-	}
+    @VisibleForTesting
+    String getImageDiskId(
+            @NotNull Client client, 
+            @NotBlank String virtualMachineId, 
+            @NotBlank String imageId) throws FogbowException {
 
-	@Override
-	public AttachmentInstance getInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
-		if (order == null) {
-			throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-		}
+        VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
+        String imageIdPath = String.format(IMAGE_ID_PATH_FORMAT, imageId);
+        String diskId = virtualMachine.xpath(imageIdPath);
+        return diskId;
+    }
 
-		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String instanceId = order.getInstanceId();
-		String computeId = order.getComputeId();
-		String volumeId = order.getVolumeId();
+    @VisibleForTesting
+    void doRequestInstance(
+            @NotNull Client client, 
+            @NotBlank String virtualMachineId, 
+            @NotBlank String imageId,
+            @NotBlank String template) throws FogbowException {
 
-		return this.doGetInstance(client, instanceId, computeId, volumeId);
-	}
+        VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
+        OneResponse response = virtualMachine.diskAttach(template);
+        if (response.isError()) {
+            String message = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME, imageId, response.getMessage());
+            LOGGER.error(message);
+            throw new InvalidParameterException(message);
+        }
+    }
 
-	protected VirtualMachine doRequestInstance(Client client, String virtualMachineId, String imageId, String template)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
-		OneResponse response = virtualMachine.diskAttach(template);
+    @VisibleForTesting
+    String normalizeDeviceTarget(@NotNull AttachmentOrder order) {
+        // Expecting a default target device such as "/dev/sdb".
+        String[] pathSplited = order.getDevice().split(DEVICE_PATH_SEPARATOR);
+        String target = pathSplited.length == DEVICE_PATH_LENGTH 
+                ? pathSplited[TARGET_INDEX]
+                : DEFAULT_TARGET;
 
-		if (response.isError()) {
-			String message = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME, imageId, response.getMessage());
-			LOGGER.error(message);
-			throw new InvalidParameterException(message);
-		}
+        return target;
+    }
 
-		return virtualMachine;
-	}
+    @VisibleForTesting
+    void doDeleteInstance(
+            @NotNull Client client, 
+            @NotBlank String computeId, 
+            @NotBlank String instanceId) throws FogbowException {
 
-	protected void doDeleteInstance(Client client, String computeId, int diskId) throws UnauthorizedRequestException,
-			InstanceNotFoundException, InvalidParameterException, UnexpectedException {
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
-		OneResponse response = virtualMachine.diskDetach(diskId);
+        VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
+        int diskId = Integer.parseInt(instanceId);
+        OneResponse response = virtualMachine.diskDetach(diskId);
+        if (response.isError()) {
+            String message = String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, diskId, response.getMessage());
+            LOGGER.error(message);
+            throw new UnexpectedException(message);
+        }
+    }
 
-		if (response.isError()) {
-			String message = String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, diskId, response.getMessage());
-			LOGGER.error(message);
-			throw new UnexpectedException(message);
-		}
-	}
+    @VisibleForTesting
+    AttachmentInstance doGetInstance(
+            @NotNull Client client, 
+            @NotBlank String instanceId, 
+            @NotBlank String computeId,
+            @NotBlank String volumeId) throws FogbowException {
 
-	protected AttachmentInstance doGetInstance(Client client, String instanceId, String computeId, String volumeId)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException, UnexpectedException {
-		String state = this.getState(client, volumeId);
-		String device = this.getTargetDevice(client, computeId, volumeId);
+        VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
+        String deviceTargetPath = String.format(TARGET_PATH_FORMAT, volumeId);
+        String device = virtualMachine.xpath(deviceTargetPath);
+        String state = getImageState(client, volumeId);
 
-		AttachmentInstance attachmentInstance = new AttachmentInstance(
-				instanceId, state, computeId, volumeId, device);
+        return new AttachmentInstance(instanceId, state, computeId, volumeId, device);
+    }
 
-		return attachmentInstance;
-	}
+    @VisibleForTesting
+    String getImageState(@NotNull Client client, @NotBlank String volumeId) throws FogbowException {
+        ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
+        Image image = imagePool.getById(Integer.parseInt(volumeId));
+        if (image == null)
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 
-	protected String getDiskIdFromContentOf(VirtualMachine virtualMachine) {
-		OneResponse response = virtualMachine.info();
-		String xml = response.getMessage();
-		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
-		String content = xmlUnmarshaller.getContentOfLastElement(OpenNebulaConstants.DISK_ID);
+        return image.shortStateStr();
+    }
 
-		return content;
-	}
-
-	protected String getState(Client client, String volumeId) throws UnexpectedException, InstanceNotFoundException {
-		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(volumeId));
-
-		if (image == null) throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-
-		return image.stateString();
-	}
-
-	protected String getTargetDevice(Client client, String computeId, String volumeId) throws UnauthorizedRequestException,
-			InstanceNotFoundException, InvalidParameterException {
-		String device = null;
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
-
-		for (int i = 1; i < MAX_DISK_NUMBER_SEARCH; i++) {
-			String imageId = virtualMachine.xpath(String.format(IMAGE_ID_PATH_FORMAT, i));
-
-			if (!imageId.equalsIgnoreCase(volumeId)) continue;
-
-			device = virtualMachine.xpath(String.format(TARGET_PATH_FORMAT, i));
-            break;
-		}
-
-		// NOTE(pauloewerton): the disk was probably detached or the number of attached disks shall be bigger than
-		// MAX_DISK_NUMBER_SEARCH
-		if (device == null) throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
-
-		return device;
-	}
 }
