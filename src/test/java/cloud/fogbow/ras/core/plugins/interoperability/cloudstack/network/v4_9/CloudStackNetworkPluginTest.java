@@ -9,7 +9,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
@@ -158,7 +157,6 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         Mockito.when(networkOrder.getCidr()).thenReturn(cirdExpected);
         Mockito.when(networkOrder.getName()).thenReturn(nameExpected);
         Mockito.when(networkOrder.getGateway()).thenReturn(gatewayExpected);
-        Mockito.doNothing().when(this.plugin).updateNetworkOrder(Mockito.eq(networkOrder));
 
         SubnetUtils.SubnetInfo subnetInfoExpected = new SubnetUtils(cirdExpected).getInfo();
         String startingIpExpected = subnetInfoExpected.getLowAddress();
@@ -189,7 +187,6 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         RequestMatcher<CreateNetworkRequest> matcher = new RequestMatcher.CreateNetwork(request);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
                 Mockito.argThat(matcher), Mockito.eq(cloudStackUser));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateNetworkOrder(Mockito.eq(networkOrder));
     }
 
     // test case: When calling the requestInstance method and occurs an InvalidParameterException
@@ -201,7 +198,6 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.doThrow(new InvalidParameterException()).when(this.plugin)
                 .getSubnetInfo(Mockito.anyString());
-        Mockito.doNothing().when(this.plugin).updateNetworkOrder(networkOrder);
 
         // verify
         this.expectedException.expect(InvalidParameterException.class);
@@ -215,26 +211,6 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
             Mockito.verify(networkOrder, Mockito.times(TestUtils.NEVER_RUN)).getName();
         }
     }
-
-    // test case: When calling the updateNetworkOrder method with order and new values,
-    // it must verify if It updates the network order.
-    @Test
-    public void testUpdateNetworkOrder() {
-        // setup
-        NetworkOrder order = Mockito.mock(NetworkOrder.class);
-        final int EXPECTED_INSTANCES = 1;
-
-        Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(NetworkAllocation.class));
-        Mockito.doCallRealMethod().when(order).getActualAllocation();
-
-        // exercise
-        this.plugin.updateNetworkOrder(order);
-
-        // verify
-        Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(NetworkAllocation.class));
-        Assert.assertEquals(EXPECTED_INSTANCES, order.getActualAllocation().getNetworks());
-    }
-
 
     // test case: When calling the getInstance method with secondary methods mocked,
     // it must verify if the doGetInstance is called with the right parameters;

@@ -464,12 +464,10 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
-        ComputeAllocation computeAllocation1 = new ComputeAllocation(1, 2, 3, 4);
-        computeOrder1.setActualAllocation(computeAllocation1);
+        computeOrder1.setActualAllocation(new ComputeAllocation(2, 2048, 1, 4));
 
         ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
-        ComputeAllocation computeAllocation2 = new ComputeAllocation(3, 2, 1, 3);
-        computeOrder2.setActualAllocation(computeAllocation2);
+        computeOrder2.setActualAllocation(new ComputeAllocation(4, 4096, 1, 8));
 
         this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
@@ -477,16 +475,16 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(computeOrder1);
         this.fulfilledOrdersList.addItem(computeOrder2);
 
-        int expectedInstance = computeAllocation1.getInstances() + computeAllocation2.getInstances();
-        int expectedDisk = computeAllocation1.getDisk() + computeAllocation2.getDisk();
-        int expectedCores = computeAllocation1.getvCPU() + computeAllocation2.getvCPU();
-        int expectedRam = computeAllocation1.getRam() + computeAllocation2.getRam();
+        int expectedCpuValue = 6;
+        int expectedMemoryValue = 6144;
+        int expectedInstancesValue = 2;
+        int expectedDiskValue = 12;
 
         List<ComputeOrder> orders = new ArrayList<>();
         orders.add(computeOrder1);
         orders.add(computeOrder2);
 
-        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedCores, expectedRam, expectedInstance, expectedDisk);
+        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedCpuValue, expectedMemoryValue, expectedInstancesValue, expectedDiskValue);
         Mockito.doReturn(expectedAllocation).when(this.ordersController).getUserComputeAllocation(Mockito.eq(orders));
         Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
         // exercise
@@ -496,11 +494,11 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserComputeAllocation(Mockito.eq(orders));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
-
-        Assert.assertEquals(expectedInstance, allocation.getInstances());
-        Assert.assertEquals(expectedRam, allocation.getRam());
-        Assert.assertEquals(expectedCores, allocation.getvCPU());
-        Assert.assertEquals(expectedDisk, allocation.getDisk());
+        
+        Assert.assertEquals(expectedCpuValue, allocation.getvCPU());
+        Assert.assertEquals(expectedMemoryValue, allocation.getRam());
+        Assert.assertEquals(expectedInstancesValue, allocation.getInstances());
+        Assert.assertEquals(expectedDiskValue, allocation.getDisk());
     }
     
     // test case: Tests if the getUserAllocation method returns the
@@ -528,7 +526,7 @@ public class OrderControllerTest extends BaseUnitTests {
         orders.add(volumeOrder1);
         orders.add(volumeOrder2);
 
-        int expectedValue = volumeAllocation1.getDisk() + volumeAllocation2.getDisk();
+        int expectedValue = volumeAllocation1.getStorage() + volumeAllocation2.getStorage();
         VolumeAllocation expectedAllocation = new VolumeAllocation(expectedValue);
 
         Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
@@ -541,8 +539,8 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserVolumeAllocation(Mockito.eq(orders));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
-
-        Assert.assertEquals(expectedValue, allocation.getDisk());
+        
+        Assert.assertEquals(expectedValue, allocation.getStorage());
     }
 
     // test case: Tests if the getUserAllocation method returns the
@@ -553,12 +551,7 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         NetworkOrder networkOrder1 = createFulfilledNetworkOrder(systemUser);
-        NetworkAllocation networkAllocation1 = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
-        networkOrder1.setActualAllocation(networkAllocation1);
-
         NetworkOrder networkOrder2 = createFulfilledNetworkOrder(systemUser);
-        NetworkAllocation networkAllocation2 = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
-        networkOrder2.setActualAllocation(networkAllocation2);
 
         this.activeOrdersMap.put(networkOrder1.getId(), networkOrder1);
         this.activeOrdersMap.put(networkOrder2.getId(), networkOrder2);
@@ -570,7 +563,7 @@ public class OrderControllerTest extends BaseUnitTests {
         orders.add(networkOrder1);
         orders.add(networkOrder2);
 
-        int expectedValue = networkAllocation1.getNetworks() + networkAllocation2.getNetworks();
+        int expectedValue = orders.size();
         NetworkAllocation expectedAllocation = new NetworkAllocation(expectedValue);
 
         Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
@@ -584,7 +577,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserNetworkAllocation(Mockito.eq(orders));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
 
-        Assert.assertEquals(expectedValue, allocation.getNetworks());
+        Assert.assertEquals(expectedValue, allocation.getInstances());
     }
 
     // test case: Tests if the getUserAllocation method returns the
@@ -595,12 +588,7 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         PublicIpOrder publicIpOrder1 = createFulfilledPublicIpOrder(systemUser);
-        PublicIpAllocation publicIpAllocation1 = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
-        publicIpOrder1.setActualAllocation(publicIpAllocation1);
-
         PublicIpOrder publicIpOrder2 = createFulfilledPublicIpOrder(systemUser);
-        PublicIpAllocation publicIpAllocation2 = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
-        publicIpOrder2.setActualAllocation(publicIpAllocation2);
 
         this.activeOrdersMap.put(publicIpOrder1.getId(), publicIpOrder1);
         this.activeOrdersMap.put(publicIpOrder2.getId(), publicIpOrder2);
@@ -612,7 +600,7 @@ public class OrderControllerTest extends BaseUnitTests {
         orders.add(publicIpOrder1);
         orders.add(publicIpOrder2);
 
-        int expectedValue = publicIpAllocation1.getPublicIps() + publicIpAllocation2.getPublicIps();
+        int expectedValue = orders.size();
         PublicIpAllocation expectedAllocation = new PublicIpAllocation(expectedValue);
 
         Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
@@ -626,7 +614,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserPublicIpAllocation(Mockito.eq(orders));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
 
-        Assert.assertEquals(expectedValue, allocation.getPublicIps());
+        Assert.assertEquals(expectedValue, allocation.getInstances());
     }
 
     // test case: Tests if the getUserAllocation method throws an Exception for an
@@ -714,7 +702,7 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         int numberOfInstances = 3;
-        int expectedDisk = numberOfInstances * TestUtils.DISK_VALUE;
+        int expectedStorage = numberOfInstances * TestUtils.DISK_VALUE;
 
         VolumeOrder order;
         for (int i = 0; i < numberOfInstances; i++) {
@@ -726,7 +714,8 @@ public class OrderControllerTest extends BaseUnitTests {
         VolumeAllocation allocation = this.ordersController.getUserVolumeAllocation(orders);
 
         // verify
-        Assert.assertEquals(expectedDisk, allocation.getDisk());
+        Assert.assertEquals(expectedStorage, allocation.getStorage());
+        Assert.assertEquals(numberOfInstances, allocation.getInstances());
     }
 
     // test case: Tests if the getUserNetworkAllocation method builds a NetworkAllocation with
@@ -741,7 +730,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         NetworkOrder order;
         for (int i = 0; i < numberOfInstances; i++) {
-            order = createFulfilledNetworkOrderWithAllocation(systemUser);
+            order = createFulfilledNetworkOrder(systemUser);
             orders.add(order);
         }
 
@@ -749,7 +738,7 @@ public class OrderControllerTest extends BaseUnitTests {
         NetworkAllocation allocation = this.ordersController.getUserNetworkAllocation(orders);
 
         // verify
-        Assert.assertEquals(numberOfInstances, allocation.getNetworks());
+        Assert.assertEquals(numberOfInstances, allocation.getInstances());
     }
 
     // test case: Tests if the getUserNetworkAllocation method builds a NetworkAllocation with
@@ -764,7 +753,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         PublicIpOrder order;
         for (int i = 0; i < numberOfInstances; i++) {
-            order = createFulfilledPublicIpOrderWithAllocation(systemUser);
+            order = createFulfilledPublicIpOrder(systemUser);
             orders.add(order);
         }
 
@@ -772,7 +761,7 @@ public class OrderControllerTest extends BaseUnitTests {
         PublicIpAllocation allocation = this.ordersController.getUserPublicIpAllocation(orders);
 
         // verify
-        Assert.assertEquals(numberOfInstances, allocation.getPublicIps());
+        Assert.assertEquals(numberOfInstances, allocation.getInstances());
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders
@@ -967,20 +956,6 @@ public class OrderControllerTest extends BaseUnitTests {
         VolumeOrder order = createFulfilledVolumeOrder(systemUser);
         VolumeAllocation volumeAllocation = new VolumeAllocation(TestUtils.DISK_VALUE);
         order.setActualAllocation(volumeAllocation);
-        return order;
-    }
-
-    private NetworkOrder createFulfilledNetworkOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
-        NetworkOrder order = createFulfilledNetworkOrder(systemUser);
-        NetworkAllocation networkAllocation = new NetworkAllocation(INSTANCES_LAUNCH_NUMBER);
-        order.setActualAllocation(networkAllocation);
-        return order;
-    }
-
-    private PublicIpOrder createFulfilledPublicIpOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
-        PublicIpOrder order = createFulfilledPublicIpOrder(systemUser);
-        PublicIpAllocation networkAllocation = new PublicIpAllocation(INSTANCES_LAUNCH_NUMBER);
-        order.setActualAllocation(networkAllocation);
         return order;
     }
 

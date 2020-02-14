@@ -12,7 +12,6 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -162,17 +161,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         String networkInterfaceId = getInstanceNetworkInterfaceId(computeId, client);
         doModifyNetworkInterfaceAttributes(allocationId, groupId, networkInterfaceId, client);
         doAssociateAddress(allocationId, networkInterfaceId, client);
-        updatePublicIpAllocation(order);
         return allocationId;
-    }
-
-    protected void updatePublicIpAllocation(PublicIpOrder publicIpOrder) {
-        int publicIps = PUBLIC_IP_ALLOCATION_NUMBER;
-        synchronized (publicIpOrder) {
-            PublicIpAllocation actualAllocation = new PublicIpAllocation(publicIps);
-            publicIpOrder.setActualAllocation(actualAllocation);
-        }
-        
     }
 
     protected void doAssociateAddress(String allocationId, String networkInterfaceId, Ec2Client client)

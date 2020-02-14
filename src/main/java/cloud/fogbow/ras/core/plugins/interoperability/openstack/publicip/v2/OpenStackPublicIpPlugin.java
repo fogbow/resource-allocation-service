@@ -4,8 +4,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Properties;
 
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -47,7 +45,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     protected static final String PORTS = "/ports";
     protected static final String PUBLIC_IP_RESOURCE = "Public IP";
     protected static final String QUERY_NAME = "?name=";
-    private static final int PUBLIC_IP_ADDRESS_INSTANCES_NUMBER = 1;
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -85,16 +82,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         String securityGroupId = doCreateSecurityGroup(instanceId, cloudUser);
         allowAllIngressSecurityRules(securityGroupId, cloudUser);
         associateSecurityGroup(securityGroupId, instanceId, order, cloudUser);
-        setAllocationToOrder(order);
         return instanceId;
-    }
-
-    @VisibleForTesting
-    void setAllocationToOrder(PublicIpOrder order) {
-        synchronized (order) {
-            PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_ADDRESS_INSTANCES_NUMBER);
-            order.setActualAllocation(publicIpAllocation);
-        }
     }
 
     @Override

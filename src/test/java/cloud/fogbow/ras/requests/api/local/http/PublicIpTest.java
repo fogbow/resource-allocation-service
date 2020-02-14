@@ -513,7 +513,7 @@ public class PublicIpTest extends BaseUnitTests {
         PublicIpAllocation resultPublicIpAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), PublicIpAllocation.class);
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(fakePublicIpAllocation.getPublicIps(), resultPublicIpAllocation.getPublicIps());
+        Assert.assertEquals(fakePublicIpAllocation.getInstances(), resultPublicIpAllocation.getInstances());
 
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getPublicIpAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }

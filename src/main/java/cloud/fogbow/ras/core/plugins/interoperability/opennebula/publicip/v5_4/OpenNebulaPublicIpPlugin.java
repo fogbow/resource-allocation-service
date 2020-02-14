@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -59,7 +57,6 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 	
 	protected static final long ONE_POINT_TWO_SECONDS = 1200;
 	protected static final boolean SHUT_OFF = true;
-	private static final int PUBLIC_IP_ADDRESS_INSTANCES_NUMBER = 1;
 
 	private String endpoint;
 	private String defaultPublicNetwork;
@@ -93,16 +90,7 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 				.build();
 
 		String instanceId = this.doRequestInstance(client, publicIpOrder, reserveRequest);
-		setOrderAllocation(publicIpOrder);
 		return instanceId;
-	}
-
-	@VisibleForTesting
-	void setOrderAllocation(PublicIpOrder order) {
-		synchronized (order) {
-			PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_ADDRESS_INSTANCES_NUMBER);
-			order.setActualAllocation(publicIpAllocation);
-		}
 	}
 
 	@Override

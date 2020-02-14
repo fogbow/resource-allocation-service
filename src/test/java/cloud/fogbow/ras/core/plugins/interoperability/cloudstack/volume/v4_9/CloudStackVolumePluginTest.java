@@ -106,7 +106,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(VolumeAllocation.class));
-        Assert.assertEquals(expectedDiskSize, order.getActualAllocation().getDisk());
+        Assert.assertEquals(expectedDiskSize, order.getActualAllocation().getStorage());
     }
 
     // test case: When calling the getInstance method with secondary methods mocked,

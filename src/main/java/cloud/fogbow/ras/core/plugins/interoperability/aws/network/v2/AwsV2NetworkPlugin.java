@@ -12,7 +12,6 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
@@ -140,16 +139,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         String subnetId = doCreateSubnetResquest(order.getName(), request, client);
         doAssociateRouteTables(subnetId, client);
         handleSecurityIssues(subnetId, request.cidrBlock(), client);
-        updateNetworkAllocation(order);
         return subnetId;
-    }
-
-    protected void updateNetworkAllocation(NetworkOrder networkOrder) {
-        int network = SUBNET_ALLOCATION_NUMBER;
-        synchronized (networkOrder) {
-            NetworkAllocation actualAllocation = new NetworkAllocation(network);
-            networkOrder.setActualAllocation(actualAllocation);
-        }
     }
 
     protected void handleSecurityIssues(String subnetId, String cidr, Ec2Client client) throws FogbowException {

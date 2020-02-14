@@ -158,7 +158,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 
 		// verify
 		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(VolumeAllocation.class));
-		Assert.assertEquals(expectedDisk, order.getActualAllocation().getDisk());
+		Assert.assertEquals(expectedDisk, order.getActualAllocation().getStorage());
 	}
 
 	// test case: When calling the doRequestInstance method, with valid create volume request and client,

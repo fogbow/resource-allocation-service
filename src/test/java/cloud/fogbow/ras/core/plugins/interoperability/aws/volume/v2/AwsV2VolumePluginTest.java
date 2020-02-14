@@ -399,7 +399,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
         this.plugin.updateVolumeAllocation(order, response);
         
         // verify
-        Assert.assertEquals(expected, order.getActualAllocation().getDisk());
+        Assert.assertEquals(expected, order.getActualAllocation().getStorage());
     }
 	
     private VolumeInstance createVolumeInstance() {

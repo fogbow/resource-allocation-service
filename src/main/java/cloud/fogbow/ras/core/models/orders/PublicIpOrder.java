@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -21,9 +20,6 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
     @Size(max = Order.ID_FIXED_SIZE)
     @Column
     private String computeOrderId;
-
-    @Embedded
-    private PublicIpAllocation actualAllocation;
 
     public PublicIpOrder() {
         this(UUID.randomUUID().toString());
@@ -65,14 +61,6 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
 
     @Override
     public void updateFromRemote(PublicIpOrder remoteOrder) {
-        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 
-    public PublicIpAllocation getActualAllocation() {
-        return actualAllocation;
-    }
-
-    public void setActualAllocation(PublicIpAllocation actualAllocation) {
-        this.actualAllocation = actualAllocation;
-    }
 }

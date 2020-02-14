@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import java.io.File;
 
-import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -151,7 +150,6 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(cloudUser));
         Mockito.doNothing().when(this.plugin).associateSecurityGroup(Mockito.eq(securityGroupId),
                 Mockito.eq(instanceId), Mockito.eq(order), Mockito.eq(cloudUser));
-        Mockito.doNothing().when(this.plugin).setAllocationToOrder(Mockito.eq(order));
 
         // exercise
         this.plugin.requestInstance(order, cloudUser);
@@ -171,31 +169,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 .allowAllIngressSecurityRules(Mockito.eq(securityGroupId), Mockito.eq(cloudUser));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).associateSecurityGroup(
                 Mockito.eq(securityGroupId), Mockito.eq(instanceId), Mockito.eq(order), Mockito.eq(cloudUser));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setAllocationToOrder(Mockito.eq(order));
     }
-
-
-    // test case: Verify if allocation is set to the order properly
-    @Test
-    public void testSetAllocationToOrder() {
-        // set up
-        PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
-        final int PUBLIC_IP_INSTANCES_INITIAL_AMOUNT = 1;
-        PublicIpAllocation publicIpAllocation = new PublicIpAllocation(PUBLIC_IP_INSTANCES_INITIAL_AMOUNT);
-
-        Mockito.doCallRealMethod().when(publicIpOrder).setActualAllocation(Mockito.any(PublicIpAllocation.class));
-        Mockito.doReturn(publicIpAllocation).when(publicIpOrder).getActualAllocation();
-
-        // exercise
-        this.plugin.setAllocationToOrder(publicIpOrder);
-
-        // verify
-        Mockito.verify(publicIpOrder, Mockito.times(testUtils.RUN_ONCE))
-                .setActualAllocation(Mockito.any());
-
-        Assert.assertEquals(publicIpAllocation.getPublicIps(), publicIpOrder.getActualAllocation().getPublicIps());
-    }
-
 
     // test case: When invoking the getInstance method with a valid public IP order
     // and a cloud user, it must verify that the call was successful.

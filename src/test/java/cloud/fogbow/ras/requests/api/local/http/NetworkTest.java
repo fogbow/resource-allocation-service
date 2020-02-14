@@ -513,7 +513,7 @@ public class NetworkTest {
         NetworkAllocation resultComputeAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), NetworkAllocation.class);
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(fakeNetworkAllocation.getNetworks(), resultComputeAllocation.getNetworks());
+        Assert.assertEquals(fakeNetworkAllocation.getInstances(), resultComputeAllocation.getInstances());
 
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).getNetworkAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
