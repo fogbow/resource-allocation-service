@@ -109,6 +109,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
         int maxCpu = convertToInteger(user.xpath(QUOTA_CPU_PATH));
         int maxDisk = convertToInteger(user.xpath(diskSizeQuotaPath));
+        int maxDiskGB = convertMegabytesIntoGigabytes(maxDisk);
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
         int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
         int maxPublicIps = convertToInteger(user.xpath(publicIpQuotaPath));
@@ -126,7 +127,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
                 .instances(maxInstances)
                 .vCPU(maxCpu)
                 .ram(maxMemory)
-                .storage(maxDisk)
+                .storage(maxDiskGB)
                 .networks(maxNetworks)
                 .volumes(maxVolumes)
                 .publicIps(maxPublicIps)
