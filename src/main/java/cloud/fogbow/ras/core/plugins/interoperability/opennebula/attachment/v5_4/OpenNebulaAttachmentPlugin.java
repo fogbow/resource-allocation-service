@@ -37,7 +37,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     protected static final String DEFAULT_TARGET = "hdb";
     protected static final String DEVICE_PATH_SEPARATOR = "/";
-    protected static final String IMAGE_ID_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/DISK_ID";
+    protected static final String DISK_ID_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/DISK_ID";
     protected static final String TARGET_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/TARGET";
 
     protected static final int DEVICE_PATH_LENGTH = 3;
@@ -109,7 +109,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
             @NotBlank String imageId) throws FogbowException {
 
         VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
-        String imageIdPath = String.format(IMAGE_ID_PATH_FORMAT, imageId);
+        String imageIdPath = String.format(DISK_ID_PATH_FORMAT, imageId);
         String diskId = virtualMachine.xpath(imageIdPath);
         return diskId;
     }
