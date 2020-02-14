@@ -192,20 +192,23 @@ public class TestUtils {
     }
 
     public AttachmentOrder createLocalAttachmentOrder(ComputeOrder computeOrder, VolumeOrder volumeOrder) {
+        return createAttachmentOrder(computeOrder, volumeOrder, FAKE_DEVICE);
+    }
+
+    public AttachmentOrder createAttachmentOrder(ComputeOrder computeOrder, VolumeOrder volumeOrder, String device) {
         String computeOrderId = computeOrder.getId();
         String volumeOrderId = volumeOrder.getId();
-
+        
         AttachmentOrder attachmentOrder = new AttachmentOrder(createSystemUser(), 
                 LOCAL_MEMBER_ID, 
                 LOCAL_MEMBER_ID,
                 DEFAULT_CLOUD_NAME, 
                 computeOrderId, 
                 volumeOrderId, 
-                FAKE_DEVICE);
+                device);
 
         return attachmentOrder;
     }
-
 
     public PublicIpOrder createLocalPublicIpOrder(String computeOrderId) {
         PublicIpOrder publicIpOrder = new PublicIpOrder(createSystemUser(), 

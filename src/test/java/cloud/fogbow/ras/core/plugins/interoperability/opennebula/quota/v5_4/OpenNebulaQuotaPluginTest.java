@@ -174,13 +174,6 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
 
         ResourceAllocation expected = buildTotalAllocation();
 
-        Mockito.doReturn(expected.getInstances()).when(this.plugin).convertToInteger(Mockito.eq(VMS_MAX_VALUE));
-        Mockito.doReturn(expected.getvCPU()).when(this.plugin).convertToInteger(Mockito.eq(CPU_MAX_VALUE));
-        Mockito.doReturn(expected.getRam()).when(this.plugin).convertToInteger(Mockito.eq(MEMORY_MAX_VALUE));
-        Mockito.doReturn(expected.getStorage()).when(this.plugin).convertToInteger(Mockito.eq(DISK_MAX_VALUE));
-        Mockito.doReturn(expected.getPublicIps()).when(this.plugin).convertToInteger(Mockito.eq(PUBLIC_IP_MAX_VALUE));
-        Mockito.doReturn(expected.getVolumes()).when(this.plugin).convertToInteger(Mockito.eq(MAX_VOLUMES));
-
         // exercise
         ResourceAllocation totalAllocation = this.plugin.getTotalAllocation(this.user);
 
