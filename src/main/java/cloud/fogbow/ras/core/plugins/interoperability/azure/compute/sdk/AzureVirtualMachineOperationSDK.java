@@ -132,7 +132,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
                         .comparingInt(VirtualMachineSize::memoryInMB)
                         .thenComparingInt(VirtualMachineSize::numberOfCores))
                 .findFirst()
-                .orElseThrow(() -> new NoAvailableResourcesException());
+                .orElseThrow(NoAvailableResourcesException::new);
 
         return firstVirtualMachineSize.name();
     }
@@ -180,7 +180,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
         return virtualMachineSizes.stream()
                 .filter((virtualMachineSize) -> virtualMachineSizeNameWanted.equals(virtualMachineSize.name()))
                 .findFirst()
-                .orElseThrow(() -> new NoAvailableResourcesException());
+                .orElseThrow(NoAvailableResourcesException::new);
     }
 
     /**
