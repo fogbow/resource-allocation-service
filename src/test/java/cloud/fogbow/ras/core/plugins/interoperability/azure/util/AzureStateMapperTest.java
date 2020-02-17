@@ -36,7 +36,7 @@ public class AzureStateMapperTest {
     }
 
     // test case: When calling the map method with compute type and creating state,
-    // it must verify if It returns the instance creating state.
+    // it must verify if It returns the instance inconsistent state.
     @Test
     public void testMapSuccessfullyWhenUndefinedState() {
         // set up
