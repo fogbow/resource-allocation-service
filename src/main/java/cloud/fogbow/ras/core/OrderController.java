@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
@@ -12,8 +13,7 @@ import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.*;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -165,7 +165,7 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String providerId, SystemUser systemUser, ResourceType resourceType)
+    public Allocation getUserAllocation(String providerId, String cloudName, SystemUser systemUser, ResourceType resourceType)
             throws UnexpectedException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
@@ -174,21 +174,63 @@ public class OrderController {
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
                 .filter(order -> order.isProviderLocal(providerId))
                 .filter(order -> order.getSystemUser().equals(systemUser))
+                .filter(order -> order.getCloudName().equals(cloudName))
                 .collect(Collectors.toList());
 
         switch (resourceType) {
             case COMPUTE:
-                List<ComputeOrder> computeOrders = new ArrayList<>();
-                for (Order order : filteredOrders) {
-                    computeOrders.add((ComputeOrder) order);
-                }
+                List<ComputeOrder> computeOrders = castOrders(filteredOrders);
                 return getUserComputeAllocation(computeOrders);
+            case VOLUME:
+                List<VolumeOrder> volumeOrders = castOrders(filteredOrders);
+                return getUserVolumeAllocation(volumeOrders);
+            case NETWORK:
+                List<NetworkOrder> networkOrders = castOrders(filteredOrders);
+                return getUserNetworkAllocation(networkOrders);
+            case PUBLIC_IP:
+                List<PublicIpOrder> publicIpOrders = castOrders(filteredOrders);
+                return getUserPublicIpAllocation(publicIpOrders);
             default:
                 throw new UnexpectedException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
         }
     }
 
-	public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InstanceNotFoundException {
+    @VisibleForTesting
+    <T extends Order> List<T> castOrders(List<Order> orders) {
+        List<T> result = new ArrayList<>();
+        for (Order order : orders) {
+            result.add((T) order);
+        }
+        return result;
+    }
+
+    @VisibleForTesting
+    PublicIpAllocation getUserPublicIpAllocation(List<PublicIpOrder> publicIpOrders) {
+        int publicIps = publicIpOrders.size();
+        return new PublicIpAllocation(publicIps);
+    }
+
+    @VisibleForTesting
+    NetworkAllocation getUserNetworkAllocation(List<NetworkOrder> networkOrders) {
+        int networks = networkOrders.size();
+        return new NetworkAllocation(networks);
+    }
+
+    @VisibleForTesting
+    VolumeAllocation getUserVolumeAllocation(List<VolumeOrder> volumeOrders) {
+        int volumes = volumeOrders.size();
+        int storage = 0;
+
+        for (VolumeOrder order : volumeOrders) {
+            synchronized (order) {
+                VolumeAllocation actualAllocation = order.getActualAllocation();
+                storage += actualAllocation.getStorage();
+            }
+        }
+        return new VolumeAllocation(volumes, storage);
+    };
+
+    public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InstanceNotFoundException {
 		List<InstanceStatus> instanceStatusList = new ArrayList<>();
 		List<Order> allOrders = getAllOrders(systemUser, resourceType);
 
@@ -236,10 +278,11 @@ public class OrderController {
         return CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
     }
 
-    private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
+    @VisibleForTesting
+    ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
+        int instances = computeOrders.size();
         int vCPU = 0;
         int ram = 0;
-        int instances = 0;
         int disk = 0;
 
         for (ComputeOrder order : computeOrders) {
@@ -247,11 +290,9 @@ public class OrderController {
                 ComputeAllocation actualAllocation = order.getActualAllocation();
                 vCPU += actualAllocation.getvCPU();
                 ram += actualAllocation.getRam();
-                instances += actualAllocation.getInstances();
                 disk += actualAllocation.getDisk();
             }
         }
-
         return new ComputeAllocation(vCPU, ram, instances, disk);
     }
 

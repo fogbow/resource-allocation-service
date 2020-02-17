@@ -11,15 +11,15 @@ public class ResourceAllocation extends Allocation {
     @ApiModelProperty(position = 0, example = "2")
     @Column(name = "allocation_instances")
     private int instances;
-    
+
     @ApiModelProperty(position = 1, example = "4")
     @Column(name = "allocation_vcpu")
     private int vCPU;
-    
+
     @ApiModelProperty(position = 2, example = "8192")
     @Column(name = "allocation_ram")
     private int ram;
-    
+
     @ApiModelProperty(position = 3, example = "30")
     @Column(name = "allocation_disk")
     private int storage;
@@ -35,7 +35,7 @@ public class ResourceAllocation extends Allocation {
     @ApiModelProperty(position = 6, example = "5")
     @Column(name = "allocation_public_ips")
     private int publicIps;
-    
+
     public ResourceAllocation() {}
 
     public int getInstances() {
@@ -69,7 +69,7 @@ public class ResourceAllocation extends Allocation {
     public static Builder builder() {
         return new ResourceAllocation.Builder();
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -85,7 +85,7 @@ public class ResourceAllocation extends Allocation {
                 && publicIps == that.publicIps
                 && volumes == that.volumes;
     }
-    
+
     public static class Builder {
         private int instances;
         private int vCPU;
@@ -99,12 +99,12 @@ public class ResourceAllocation extends Allocation {
             this.instances = instances;
             return this;
         }
-        
+
         public Builder vCPU(int vCPU) {
             this.vCPU = vCPU;
             return this;
         }
-        
+
         public Builder ram(int ram) {
             this.ram = ram;
             return this;
@@ -114,12 +114,12 @@ public class ResourceAllocation extends Allocation {
             this.storage = storage;
             return this;
         }
-        
+
         public Builder networks(int networks) {
             this.networks = networks;
             return this;
         }
-        
+
         public Builder publicIps(int publicIps) {
             this.publicIps = publicIps;
             return this;
@@ -134,7 +134,7 @@ public class ResourceAllocation extends Allocation {
             return new ResourceAllocation(this);
         }
     }
-    
+
     public ResourceAllocation(Builder builder) {
         this.instances = builder.instances;
         this.vCPU = builder.vCPU;
@@ -144,5 +144,5 @@ public class ResourceAllocation extends Allocation {
         this.publicIps = builder.publicIps;
         this.volumes = builder.volumes;
     }
-    
+
 }

@@ -28,7 +28,6 @@ import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -720,7 +719,6 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
 
     private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
                                             NetworkAllocationMode allocation) {
-        String requestingMember = "fake-requesting-member";
         String providingMember = "fake-providing-member";
         String name = "name";
         NetworkOrder order = new NetworkOrder(providingMember,

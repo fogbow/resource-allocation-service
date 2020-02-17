@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
 import cloud.fogbow.common.constants.OpenNebulaConstants;
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.TestUtils;
@@ -123,6 +125,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		// set up
 		Mockito.doReturn(STRING_VALUE_ONE).when(this.plugin).doRequestInstance(
 				Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
+		Mockito.doNothing().when(this.plugin).setOrderAllocation(Mockito.eq(volumeOrder), Mockito.anyLong());
 
 		// exercise
 		String volumeId = this.plugin.requestInstance(this.volumeOrder, this.cloudUser);
@@ -133,8 +136,29 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
 				Mockito.any(CreateVolumeRequest.class), Mockito.any(Client.class));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).setOrderAllocation(Mockito.eq(volumeOrder), Mockito.anyLong());
 
 		Assert.assertEquals(volumeId, this.volumeOrder.getInstanceId());
+	}
+
+	// test case: verify if allocation is being set to the order properly
+	@Test
+	public void testSetOrderAllocation() {
+		// setup
+		VolumeOrder order = Mockito.mock(VolumeOrder.class);
+		VolumeAllocation allocation = Mockito.mock(VolumeAllocation.class);
+
+		long expectedDisk = (long) Math.pow(1024, 3);
+
+		Mockito.doCallRealMethod().when(order).setActualAllocation(Mockito.any(VolumeAllocation.class));
+		Mockito.doCallRealMethod().when(order).getActualAllocation();
+
+		// exercise
+		this.plugin.setOrderAllocation(order, expectedDisk);
+
+		// verify
+		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).setActualAllocation(Mockito.any(VolumeAllocation.class));
+		Assert.assertEquals(expectedDisk, order.getActualAllocation().getStorage());
 	}
 
 	// test case: When calling the doRequestInstance method, with valid create volume request and client,

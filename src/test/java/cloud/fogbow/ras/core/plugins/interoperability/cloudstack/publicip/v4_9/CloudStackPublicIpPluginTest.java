@@ -107,6 +107,25 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         this.loggerTestChecking.assertEquals(FIRST_POSITION_LOG, Level.INFO, messageExpected);
     }
 
+
+    // test case: When calling the requestInstance method with secondary methods mocked,
+    // it must verify if the buildCreateVolumeRequest, doRequestInstance and updateVolumeOrder are called;
+    // this includes the checking in the Cloudstack request.
+    @Test
+    public void testRequestInstance() throws FogbowException {
+        // setup
+        PublicIpOrder order = Mockito.mock(PublicIpOrder.class);
+        CloudStackUser user = Mockito.mock(CloudStackUser.class);
+
+        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order), Mockito.eq(user));
+
+        // exercise
+        this.plugin.requestInstance(order, user);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order), Mockito.eq(user));
+    }
+
     // test case: When calling the doRequestInstance method and occurs any exception,
     // it must verify if It throws the same exception.
     @Test

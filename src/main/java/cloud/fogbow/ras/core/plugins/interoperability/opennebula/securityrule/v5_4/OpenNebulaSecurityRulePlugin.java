@@ -351,9 +351,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected String retrieveSecurityGroupName(Order majorOrder) throws FogbowException {
         switch (majorOrder.getType()) {
         case NETWORK:
-            return SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getId();
+            return SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
         case PUBLIC_IP:
-            return SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getId();
+            return SystemConstants.PIP_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
         default:
             throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }

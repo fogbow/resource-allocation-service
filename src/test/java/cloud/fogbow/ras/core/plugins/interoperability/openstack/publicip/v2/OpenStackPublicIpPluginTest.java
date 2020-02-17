@@ -170,7 +170,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).associateSecurityGroup(
                 Mockito.eq(securityGroupId), Mockito.eq(instanceId), Mockito.eq(order), Mockito.eq(cloudUser));
     }
-    
+
     // test case: When invoking the getInstance method with a valid public IP order
     // and a cloud user, it must verify that the call was successful.
     @Test
