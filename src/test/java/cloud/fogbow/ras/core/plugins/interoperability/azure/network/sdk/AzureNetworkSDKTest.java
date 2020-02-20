@@ -48,7 +48,7 @@ public class AzureNetworkSDKTest {
     }
 
     // test case: When calling the getNetworkInterface method and do not find a network interface,
-    // it must verify if It returns a Optional with a network interface.
+    // it must verify if It returns a Optional without a network interface.
     @Test
     public void testGetNetworkInterfaceSuccessfullyWhenNotFindNetworkInterface() throws Exception {
         // set up
@@ -76,7 +76,6 @@ public class AzureNetworkSDKTest {
         // set up
         Azure azure = null;
         String networkInterfaceId = "networkInterfaceId";
-        NetworkInterfaces networkInterfacesObject = Mockito.mock(NetworkInterfaces.class);
         PowerMockito.spy(AzureNetworkSDK.class);
         String errorMessage = "error";
         PowerMockito.doThrow(new RuntimeException(errorMessage))
