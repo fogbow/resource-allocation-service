@@ -36,7 +36,7 @@ public class AzureNetworkSDKTest {
                 .thenReturn(networkInterfaceExpected);
         PowerMockito.spy(AzureNetworkSDK.class);
         PowerMockito.doReturn(networkInterfacesObject)
-                .when(AzureNetworkSDK.class, "getNetworkInterfaces", Mockito.eq(azure));
+                .when(AzureNetworkSDK.class, "getNetworkInterfacesSDK", Mockito.eq(azure));
 
         // exercise
         Optional<NetworkInterface> networkInterface =
@@ -60,7 +60,7 @@ public class AzureNetworkSDKTest {
                 .thenReturn(networkInterfaceExpected);
         PowerMockito.spy(AzureNetworkSDK.class);
         PowerMockito.doReturn(networkInterfacesObject)
-                .when(AzureNetworkSDK.class, "getNetworkInterfaces", Mockito.eq(azure));
+                .when(AzureNetworkSDK.class, "getNetworkInterfacesSDK", Mockito.eq(azure));
 
         // exercise
         Optional<NetworkInterface> networkInterface = AzureNetworkSDK.getNetworkInterface(azure, networkInterfaceId);
@@ -79,7 +79,7 @@ public class AzureNetworkSDKTest {
         PowerMockito.spy(AzureNetworkSDK.class);
         String errorMessage = "error";
         PowerMockito.doThrow(new RuntimeException(errorMessage))
-                .when(AzureNetworkSDK.class, "getNetworkInterfaces", Mockito.eq(azure));
+                .when(AzureNetworkSDK.class, "getNetworkInterfacesSDK", Mockito.eq(azure));
 
         // verify
         this.expectedException.expect(UnexpectedException.class);

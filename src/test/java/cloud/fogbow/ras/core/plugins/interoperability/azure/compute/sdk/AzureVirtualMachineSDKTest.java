@@ -220,7 +220,7 @@ public class AzureVirtualMachineSDKTest {
                 .thenReturn(virtualMachine);
         PowerMockito.spy(AzureVirtualMachineSDK.class);
         PowerMockito.doReturn(virtualMachineObject)
-                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // exercise
         Optional<VirtualMachine> virtualMachineOptional =
@@ -244,7 +244,7 @@ public class AzureVirtualMachineSDKTest {
                 .thenReturn(virtualMachineNull);
         PowerMockito.spy(AzureVirtualMachineSDK.class);
         PowerMockito.doReturn(virtualMachineObject)
-                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // exercise
         Optional<VirtualMachine> virtualMachineOptional =
@@ -264,7 +264,7 @@ public class AzureVirtualMachineSDKTest {
         String errorMessage = "error";
         PowerMockito.spy(AzureVirtualMachineSDK.class);
         PowerMockito.doThrow(new RuntimeException(errorMessage))
-                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // verify
         this.expectedException.expect(UnexpectedException.class);
@@ -289,7 +289,7 @@ public class AzureVirtualMachineSDKTest {
         Mockito.when(sizes.listByRegion(Mockito.eq(region))).thenReturn(virtualMachineSizeExpected);
         Mockito.when(virtualMachineObject.sizes()).thenReturn(sizes);
         PowerMockito.doReturn(virtualMachineObject)
-                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // exercise
         PagedList<VirtualMachineSize> virtualMachineSizes =
@@ -310,7 +310,7 @@ public class AzureVirtualMachineSDKTest {
         String errorMessage = "error";
         PowerMockito.spy(AzureVirtualMachineSDK.class);
         PowerMockito.doThrow(new RuntimeException(errorMessage))
-                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // verify
         this.expectedException.expect(UnexpectedException.class);
@@ -376,7 +376,7 @@ public class AzureVirtualMachineSDKTest {
         Mockito.when(withSize.createAsync()).thenReturn(observableExpected);
 
         PowerMockito.doReturn(virtualMachine)
-                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesObject", Mockito.eq(azure));
+                .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // exercise
         Observable<Indexable> observable = AzureVirtualMachineSDK.buildVirtualMachineObservable(
