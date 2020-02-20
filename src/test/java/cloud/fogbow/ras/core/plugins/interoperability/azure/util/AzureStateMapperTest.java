@@ -35,6 +35,20 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.READY, instanceState);
     }
 
+    // test case: When calling the map method with compute type and failed state,
+    // it must verify if It returns the instance failed state.
+    @Test
+    public void testMapSuccessfullyWhenFailedState() {
+        // set up
+        ResourceType resourceType = ResourceType.COMPUTE;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.FAILED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
+    }
+
     // test case: When calling the map method with compute type and creating state,
     // it must verify if It returns the instance inconsistent state.
     @Test

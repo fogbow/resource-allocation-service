@@ -13,16 +13,19 @@ public class AzureStateMapper {
     private static final String COMPUTE_PLUGIN = AzureComputePlugin.class.getSimpleName();
     public static final String CREATING_STATE = "Creating";
     public static final String SUCCEEDED_STATE = "Succeeded";
+    public static final String FAILED_STATE = "Failed";
 
     public static InstanceState map(ResourceType type, String state) {
         switch (type) {
             case COMPUTE:
-                // cloud state values: [sreating, succeded]
+                // cloud state values: [creating, succeeded]
                 switch (state) {
                     case CREATING_STATE:
                         return InstanceState.CREATING;
                     case SUCCEEDED_STATE:
                         return InstanceState.READY;
+                    case FAILED_STATE:
+                        return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;

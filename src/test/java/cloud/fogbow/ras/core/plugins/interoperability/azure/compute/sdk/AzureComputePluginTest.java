@@ -59,6 +59,50 @@ public class AzureComputePluginTest extends TestUtils {
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
+    // test case: When calling the isReady method and the instance state is ready,
+    // it must verify if It returns true value
+    @Test
+    public void testIsReadySuccessfullyWhenIsReady() {
+        // set up
+        String instanceState = AzureStateMapper.SUCCEEDED_STATE;
+
+        // exercise and verify
+        Assert.assertTrue(this.azureComputePlugin.isReady(instanceState));
+    }
+
+    // test case: When calling the isReady method and the instance state is not ready,
+    // it must verify if It returns false value
+    @Test
+    public void testIsReadySuccessfullyWhenNotReady() {
+        // set up
+        String instanceState = AzureStateMapper.CREATING_STATE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureComputePlugin.isReady(instanceState));
+    }
+
+    // test case: When calling the hasFailed method and the instance state is failed,
+    // it must verify if It returns true value
+    @Test
+    public void testHasFailedSuccessfullyWhenIsFailed() {
+        // set up
+        String instanceState = AzureStateMapper.FAILED_STATE;
+
+        // exercise and verify
+        Assert.assertTrue(this.azureComputePlugin.hasFailed(instanceState));
+    }
+
+    // test case: When calling the hasFailed method and the instance state is not failed,
+    // it must verify if It returns false value
+    @Test
+    public void testHasFailedSuccessfullyWhenIsNotFailed() {
+        // set up
+        String instanceState = AzureStateMapper.SUCCEEDED_STATE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureComputePlugin.hasFailed(instanceState));
+    }
+
     // test case: When calling the getNetworkInterfaceId method without network in the order,
     // it must verify if It returns the default networkInterfaceId.
     @Test
