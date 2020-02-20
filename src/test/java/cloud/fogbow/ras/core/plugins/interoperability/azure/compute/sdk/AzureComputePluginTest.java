@@ -312,7 +312,7 @@ public class AzureComputePluginTest extends TestUtils {
 
         Mockito.doNothing()
                 .when(this.azureVirtualMachineOperation)
-                .doDeleteInstance(Mockito.any(), Mockito.any());
+                .doDeleteInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser));
 
         // exercise
         this.azureComputePlugin.deleteInstance(computeOrder, this.azureUser);
