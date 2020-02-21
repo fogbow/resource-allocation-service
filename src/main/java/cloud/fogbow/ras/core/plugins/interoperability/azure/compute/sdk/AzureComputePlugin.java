@@ -14,7 +14,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtual
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
@@ -29,16 +28,16 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
     private final DefaultLaunchCommandGenerator launchCommandGenerator;
     private final String defaultNetworkInterfaceName;
-    private final String regionName;
-    private final String resourceGroupName;
+    private final String defaultRegionName;
+    private final String defaultResourceGroupName;
 
     public AzureComputePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultNetworkInterfaceName = properties.getProperty(AzureConstants.DEFAULT_NETWORK_INTERFACE_NAME_KEY);
-        this.regionName = properties.getProperty(AzureConstants.REGION_NAME_KEY);
-        this.resourceGroupName = properties.getProperty(AzureConstants.RESOURCE_GROUP_NAME_KEY);
+        this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
+        this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK(regionName);
+        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK(this.defaultRegionName);
     }
 
     @Override
@@ -66,8 +65,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         String osUserName = computeOrder.getId();
         String osUserPassword = AzureGeneralPolicy.generatePassword();
         String osComputeName = computeOrder.getId();
-        String regionName = this.regionName;
-        String resourceGroupName = this.resourceGroupName;
+        String regionName = this.defaultRegionName;
+        String resourceGroupName = this.defaultResourceGroupName;
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .virtualMachineName(virtualMachineName)
@@ -97,7 +96,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
             throws UnauthenticatedUserException, UnexpectedException, InstanceNotFoundException, InvalidParameterException {
 
         this.azureVirtualMachineOperation.doCreateInstance(azureCreateVirtualMachineRef, azureCloudUser);
-        return AzureInstancePolicy.generateFogbowInstanceIdBy(computeOrder, azureCloudUser);
+        return AzureInstancePolicy.generateFogbowInstanceIdBy(computeOrder, azureCloudUser, this.defaultResourceGroupName);
     }
 
     @VisibleForTesting
@@ -108,7 +107,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         if (networkIds.isEmpty()) {
             return AzureIdBuilder
                     .configure(azureCloudUser)
-                    .resourceGroupName(resourceGroupName)
+                    .resourceGroupName(this.defaultResourceGroupName)
                     .resourceName(this.defaultNetworkInterfaceName)
                     .structure(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE)
                     .build();
@@ -127,7 +126,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         return this.azureVirtualMachineOperation.findVirtualMachineSizeName(
                 computeOrder.getMemory(), computeOrder.getvCPU(),
-                this.regionName, azureCloudUser);
+                this.defaultRegionName, azureCloudUser);
     }
 
     @Override
@@ -148,7 +147,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         String virtualMachineName = azureGetVirtualMachineRef.getName();
         String virtualMachineId = AzureIdBuilder
                 .configure(azureUser)
-                .resourceGroupName(resourceGroupName)
+                .resourceGroupName(this.defaultResourceGroupName)
                 .resourceName(virtualMachineName)
                 .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
                 .build();
