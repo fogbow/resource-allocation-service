@@ -32,8 +32,6 @@ public class AzureAllToOneMapperTest {
     private static final String FAKE_TENANT_ID = "fake-tenant-id";
     private static final String FAKE_CLIENT_KEY = "fake-client-key";
     private static final String FAKE_SUBSCRIPTION_ID = "fake-subscription-id";
-    private static final String FAKE_RESOURCE_GROUP_NAME = "fake-resource-group-name";
-    private static final String FAKE_REGION_NAME = "fake-region-name";
 
     @Before
     public void setUp() {
@@ -55,7 +53,7 @@ public class AzureAllToOneMapperTest {
         AzureSystemUser user2 = Mockito.mock(AzureSystemUser.class);
 
         AzureUser expectedUser = new AzureUser(FAKE_USER_ID, FAKE_USER_NAME, this.providerId,
-                FAKE_TENANT_ID, FAKE_CLIENT_KEY, FAKE_SUBSCRIPTION_ID, FAKE_RESOURCE_GROUP_NAME, FAKE_REGION_NAME);
+                FAKE_TENANT_ID, FAKE_CLIENT_KEY, FAKE_SUBSCRIPTION_ID);
         Mockito.doReturn(expectedUser).when(this.identityProviderPlugin).getCloudUser(Mockito.anyMap());
 
         //exercise
