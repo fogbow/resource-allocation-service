@@ -68,20 +68,21 @@ public class AzureInstancePolicyTest {
 
         // set up
         String resourceName = "resourceName";
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         String orderId = "orderId";
         Mockito.when(computeOrder.getId()).thenReturn(orderId);
         Mockito.when(computeOrder.getName()).thenReturn(resourceName);
 
         String instanceIdExpected = AzureIdBuilder.configure(this.azureUser)
+                .resourceGroupName(resourceGroupName)
                 .resourceName(resourceName)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
                 .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
                 .build();
 
         // exercise
         String instanceId = AzureInstancePolicy
-                .generateFogbowInstanceIdBy(computeOrder, this.azureUser);
+                .generateFogbowInstanceIdBy(computeOrder, this.azureUser, resourceGroupName);
 
         // verify
         Assert.assertEquals(instanceIdExpected, instanceId);
