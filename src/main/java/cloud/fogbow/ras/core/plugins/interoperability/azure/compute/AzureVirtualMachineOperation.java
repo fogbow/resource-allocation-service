@@ -21,5 +21,8 @@ public interface AzureVirtualMachineOperation {
             throws UnauthenticatedUserException, UnexpectedException,
             NoAvailableResourcesException, InstanceNotFoundException;
 
+    void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser)
+            throws UnauthenticatedUserException, UnexpectedException, InstanceNotFoundException;
+
 }
 

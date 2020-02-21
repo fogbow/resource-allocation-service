@@ -11,6 +11,7 @@ import com.microsoft.azure.management.compute.VirtualMachines;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import rx.Completable;
 import rx.Observable;
 
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class AzureVirtualMachineSDK {
                                                                String osUserName, String osUserPassword, String osComputeName,
                                                                String userData, int diskSize, String size) {
 
-        VirtualMachines virtualMachine = getVirtualMachinesObject(azure);
+        VirtualMachines virtualMachine = getVirtualMachinesSDK(azure);
 
         VirtualMachine.DefinitionStages.WithOS osChoosen = virtualMachine
                 .define(virtualMachineName)
@@ -52,11 +53,11 @@ public class AzureVirtualMachineSDK {
                 .createAsync();
     }
 
-    static Optional<VirtualMachine> getVirtualMachineById(Azure azure, String virtualMachineId)
+    static Optional<VirtualMachine> getVirtualMachine(Azure azure, String virtualMachineId)
             throws UnexpectedException {
 
         try {
-            VirtualMachines virtualMachinesObject = getVirtualMachinesObject(azure);
+            VirtualMachines virtualMachinesObject = getVirtualMachinesSDK(azure);
             return Optional.ofNullable(virtualMachinesObject.getById(virtualMachineId));
         } catch (RuntimeException e) {
             throw new UnexpectedException(e.getMessage(), e);
@@ -67,12 +68,16 @@ public class AzureVirtualMachineSDK {
             throws UnexpectedException {
 
         try {
-            VirtualMachines virtualMachinesObject = getVirtualMachinesObject(azure);
+            VirtualMachines virtualMachinesObject = getVirtualMachinesSDK(azure);
             VirtualMachineSizes sizes = virtualMachinesObject.sizes();
             return sizes.listByRegion(region);
         } catch (RuntimeException e) {
             throw new UnexpectedException(e.getMessage(), e);
         }
+    }
+
+    static Completable buildDeleteVirtualMachineCompletable(Azure azure, String virtualMachineId) {
+        return azure.virtualMachines().deleteByIdAsync(virtualMachineId);
     }
 
     @VisibleForTesting
@@ -91,7 +96,7 @@ public class AzureVirtualMachineSDK {
     // This class is used only for test proposes.
     // It is necessary because was not possible mock the Azure(final class)
     @VisibleForTesting
-    static VirtualMachines getVirtualMachinesObject(Azure azure) {
+    static VirtualMachines getVirtualMachinesSDK(Azure azure) {
         return azure.virtualMachines();
     }
 

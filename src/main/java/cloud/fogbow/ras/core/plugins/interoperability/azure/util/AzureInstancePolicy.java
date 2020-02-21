@@ -4,8 +4,7 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import com.sun.istack.internal.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.function.BiFunction;
 
 public class AzureInstancePolicy {

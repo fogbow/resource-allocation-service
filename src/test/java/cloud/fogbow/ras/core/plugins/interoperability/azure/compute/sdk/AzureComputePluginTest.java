@@ -59,6 +59,50 @@ public class AzureComputePluginTest extends TestUtils {
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
+    // test case: When calling the isReady method and the instance state is ready,
+    // it must verify if It returns true value
+    @Test
+    public void testIsReadySuccessfullyWhenIsReady() {
+        // set up
+        String instanceState = AzureStateMapper.SUCCEEDED_STATE;
+
+        // exercise and verify
+        Assert.assertTrue(this.azureComputePlugin.isReady(instanceState));
+    }
+
+    // test case: When calling the isReady method and the instance state is not ready,
+    // it must verify if It returns false value
+    @Test
+    public void testIsReadySuccessfullyWhenNotReady() {
+        // set up
+        String instanceState = AzureStateMapper.CREATING_STATE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureComputePlugin.isReady(instanceState));
+    }
+
+    // test case: When calling the hasFailed method and the instance state is failed,
+    // it must verify if It returns true value
+    @Test
+    public void testHasFailedSuccessfullyWhenIsFailed() {
+        // set up
+        String instanceState = AzureStateMapper.FAILED_STATE;
+
+        // exercise and verify
+        Assert.assertTrue(this.azureComputePlugin.hasFailed(instanceState));
+    }
+
+    // test case: When calling the hasFailed method and the instance state is not failed,
+    // it must verify if It returns false value
+    @Test
+    public void testHasFailedSuccessfullyWhenIsNotFailed() {
+        // set up
+        String instanceState = AzureStateMapper.SUCCEEDED_STATE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureComputePlugin.hasFailed(instanceState));
+    }
+
     // test case: When calling the getNetworkInterfaceId method without network in the order,
     // it must verify if It returns the default networkInterfaceId.
     @Test
@@ -300,5 +344,27 @@ public class AzureComputePluginTest extends TestUtils {
         Assert.assertEquals(cloudStateExpected, computeInstance.getCloudState());
         Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses());
     }
+
+    // test case: When calling the deleteInstance method,
+    // it must verify if it calls the method with right parameters.
+    @Test
+    public void testDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        String instanceId = "instanceId";
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(instanceId);
+
+        Mockito.doNothing()
+                .when(this.azureVirtualMachineOperation)
+                .doDeleteInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser));
+
+        // exercise
+        this.azureComputePlugin.deleteInstance(computeOrder, this.azureUser);
+
+        // verify
+        Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser));
+    }
+
 
 }
