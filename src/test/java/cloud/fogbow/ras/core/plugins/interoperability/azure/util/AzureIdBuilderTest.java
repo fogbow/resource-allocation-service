@@ -29,15 +29,19 @@ public class AzureIdBuilderTest {
         // set up
         String networkInterfaceName = "networkInterfaceName";
 
+
         String networkInterfaceIdExpected = String.format(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
-                this.azureUser.getResourceGroupName(),
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
                 networkInterfaceName);
 
         // exercise
         String networkInterfaceId = AzureIdBuilder
                 .configure(this.azureUser)
-                .buildNetworkInterfaceId(networkInterfaceName);
+                .resourceName(networkInterfaceName)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE)
+                .build();
 
         // verify
         Assert.assertEquals(networkInterfaceIdExpected, networkInterfaceId);
@@ -52,13 +56,16 @@ public class AzureIdBuilderTest {
 
         String virtualMachineIdExpected = String.format(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
-                this.azureUser.getResourceGroupName(),
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
                 virtualMachineName);
 
         // exercise
         String networkInterfaceId = AzureIdBuilder
                 .configure(this.azureUser)
-                .buildVirtualMachineId(virtualMachineName);
+                .resourceName(virtualMachineName)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .build();;
 
         // verify
         Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
@@ -74,7 +81,10 @@ public class AzureIdBuilderTest {
 
         String idInTheLimitSize = AzureIdBuilder
                 .configure(this.azureUser)
-                .buildNetworkInterfaceId(resourceNameInTheLimit);
+                .resourceName(resourceNameInTheLimit)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.BIGGER_STRUCTURE)
+                .build();
 
         // exercise
         AzureIdBuilder
@@ -96,7 +106,10 @@ public class AzureIdBuilderTest {
 
         String idInTheLimitSize = AzureIdBuilder
                 .configure(this.azureUser)
-                .buildNetworkInterfaceId(resourceNameInTheLimit);
+                .resourceName(resourceNameInTheLimit)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.BIGGER_STRUCTURE)
+                .build();
 
         // verify
         Assert.assertEquals(Order.FIELDS_MAX_SIZE + outOfLimit, idInTheLimitSize.length());
@@ -113,7 +126,11 @@ public class AzureIdBuilderTest {
     private int getWhatLeftToTotalLimit() {
         String anyIdEmpty = AzureIdBuilder
                 .configure(this.azureUser)
-                .buildId(AzureIdBuilder.BIGGER_STRUCTURE, "");
+                .resourceName("")
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.BIGGER_STRUCTURE)
+                .build();
+
         return Order.FIELDS_MAX_SIZE - anyIdEmpty.length();
     }
 

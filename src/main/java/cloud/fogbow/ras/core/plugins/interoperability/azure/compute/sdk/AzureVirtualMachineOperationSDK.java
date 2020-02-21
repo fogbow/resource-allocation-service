@@ -36,12 +36,18 @@ import java.util.concurrent.ExecutorService;
 public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOperation {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualMachineOperationSDK.class);
+    private final String regionName;
 
     private Scheduler scheduler;
 
     public AzureVirtualMachineOperationSDK() {
+        this("");
+    }
+
+    public AzureVirtualMachineOperationSDK(String regionName) {
         ExecutorService virtualMachineExecutor = AzureSchedulerManager.getVirtualMachineExecutor();
         this.scheduler = Schedulers.from(virtualMachineExecutor);
+        this.regionName = regionName;
     }
 
     /**
@@ -153,8 +159,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
         String primaryPrivateIp = virtualMachine.getPrimaryNetworkInterface().primaryPrivateIP();
         List<String> ipAddresses = Arrays.asList(primaryPrivateIp);
 
-        String regionName = azureCloudUser.getRegionName();
-        VirtualMachineSize virtualMachineSize = findVirtualMachineSizeByName(virtualMachineSizeName, regionName, azure);
+        VirtualMachineSize virtualMachineSize = findVirtualMachineSizeByName(virtualMachineSizeName, this.regionName, azure);
         int vCPU = virtualMachineSize.numberOfCores();
         int memory = virtualMachineSize.memoryInMB();
         int disk = virtualMachine.osDiskSize();

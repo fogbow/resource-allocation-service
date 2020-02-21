@@ -50,7 +50,9 @@ public class AzureInstancePolicy {
         String resourceName = generateAzureResourceNameBy(computeOrder, azureUser);
         return AzureIdBuilder
                 .configure(azureUser)
-                .buildVirtualMachineId(resourceName);
+                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .resourceName(resourceName)
+                .build();
     }
 
     private static String generateFogbowIstanceId(String resourceName, AzureUser azureUser,

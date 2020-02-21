@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
@@ -60,7 +61,7 @@ public class AzureVirtualMachineOperationSDKTest {
     @Before
     public void setUp() {
         this.azureVirtualMachineOperationSDK =
-                Mockito.spy(new AzureVirtualMachineOperationSDK());
+                Mockito.spy(new AzureVirtualMachineOperationSDK(AzureTestUtils.DEFAULT_REGION_NAME));
         this.azureCloudUser = Mockito.mock(AzureUser.class);
         this.azure = null;
         makeTheObservablesSynchronous();
@@ -95,7 +96,7 @@ public class AzureVirtualMachineOperationSDKTest {
         int diskSize = 3;
         Mockito.when(virtualMachine.osDiskSize()).thenReturn(diskSize);
 
-        String regionName = this.azureCloudUser.getRegionName();
+        String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
 
         VirtualMachineSize virtualMachineSize = Mockito.mock(VirtualMachineSize.class);
         int memory = 1;

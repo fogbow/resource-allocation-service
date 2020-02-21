@@ -114,7 +114,10 @@ public class AzureComputePluginTest extends TestUtils {
 
         String networkInsterfaceIdExpected = AzureIdBuilder
                 .configure(this.azureUser)
-                .buildNetworkInterfaceId(this.defaultNetworkInterfaceName);
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .resourceName(this.defaultNetworkInterfaceName)
+                .structure(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE)
+                .build();
 
         // exercise
         String networkInterfaceId = this.azureComputePlugin.getNetworkInterfaceId(computeOrder, this.azureUser);
@@ -200,8 +203,8 @@ public class AzureComputePluginTest extends TestUtils {
         String password = "password";
         PowerMockito.when(AzureGeneralPolicy.generatePassword()).thenReturn(password);
 
-        String regionName = this.azureUser.getRegionName();
-        String resourceGroupName = this.azureUser.getResourceGroupName();
+        String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .virtualMachineName(virtualMachineName)
@@ -255,7 +258,7 @@ public class AzureComputePluginTest extends TestUtils {
         Mockito.when(computeOrder.getMemory()).thenReturn(memory);
         Mockito.when(computeOrder.getvCPU()).thenReturn(vcpu);
 
-        String regionName = this.azureUser.getRegionName();
+        String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
 
         // exercise
         this.azureComputePlugin.getVirtualMachineSizeName(computeOrder, this.azureUser);
@@ -322,7 +325,14 @@ public class AzureComputePluginTest extends TestUtils {
         int vcpuExpected = 3;
         String cloudStateExpected = AzureStateMapper.SUCCEEDED_STATE;
         List<String> ipAddressExpected = Arrays.asList("id");
-        String idExpected = AzureIdBuilder.configure(this.azureUser).buildVirtualMachineId(nameExpected);
+
+        String idExpected = AzureIdBuilder
+                .configure(this.azureUser)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .resourceName(nameExpected)
+                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .build();
+
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = AzureGetVirtualMachineRef.builder()
                 .disk(diskExpected)
                 .vCPU(vcpuExpected)

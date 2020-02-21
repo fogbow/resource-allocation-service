@@ -29,12 +29,16 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
     private final DefaultLaunchCommandGenerator launchCommandGenerator;
     private final String defaultNetworkInterfaceName;
+    private final String regionName;
+    private final String resourceGroupName;
 
     public AzureComputePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultNetworkInterfaceName = properties.getProperty(AzureConstants.DEFAULT_NETWORK_INTERFACE_NAME_KEY);
+        this.regionName = properties.getProperty(AzureConstants.REGION_NAME_KEY);
+        this.resourceGroupName = properties.getProperty(AzureConstants.RESOURCE_GROUP_NAME_KEY);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK();
+        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK(regionName);
     }
 
     @Override
@@ -62,8 +66,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         String osUserName = computeOrder.getId();
         String osUserPassword = AzureGeneralPolicy.generatePassword();
         String osComputeName = computeOrder.getId();
-        String regionName = azureUser.getRegionName();
-        String resourceGroupName = azureUser.getResourceGroupName();
+        String regionName = this.regionName;
+        String resourceGroupName = this.resourceGroupName;
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .virtualMachineName(virtualMachineName)
@@ -104,7 +108,10 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         if (networkIds.isEmpty()) {
             return AzureIdBuilder
                     .configure(azureCloudUser)
-                    .buildNetworkInterfaceId(this.defaultNetworkInterfaceName);
+                    .resourceGroupName(resourceGroupName)
+                    .resourceName(this.defaultNetworkInterfaceName)
+                    .structure(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE)
+                    .build();
         } else {
             if (networkIds.size() > AzureGeneralPolicy.MAXIMUM_NETWORK_PER_VIRTUAL_MACHINE) {
                 throw new FogbowException(Messages.Error.ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED);
@@ -120,7 +127,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         return this.azureVirtualMachineOperation.findVirtualMachineSizeName(
                 computeOrder.getMemory(), computeOrder.getvCPU(),
-                azureCloudUser.getRegionName(), azureCloudUser);
+                this.regionName, azureCloudUser);
     }
 
     @Override
@@ -141,7 +148,10 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         String virtualMachineName = azureGetVirtualMachineRef.getName();
         String virtualMachineId = AzureIdBuilder
                 .configure(azureUser)
-                .buildVirtualMachineId(virtualMachineName);
+                .resourceGroupName(resourceGroupName)
+                .resourceName(virtualMachineName)
+                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .build();
         String cloudState = azureGetVirtualMachineRef.getCloudState();
         int vCPU = azureGetVirtualMachineRef.getvCPU();
         int memory = azureGetVirtualMachineRef.getMemory();

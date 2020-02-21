@@ -74,7 +74,10 @@ public class AzureInstancePolicyTest {
         Mockito.when(computeOrder.getName()).thenReturn(resourceName);
 
         String instanceIdExpected = AzureIdBuilder.configure(this.azureUser)
-                .buildVirtualMachineId(resourceName);
+                .resourceName(resourceName)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .build();
 
         // exercise
         String instanceId = AzureInstancePolicy
@@ -95,12 +98,21 @@ public class AzureInstancePolicyTest {
         String orderId = "orderId";
         Mockito.when(order.getId()).thenReturn(orderId);
         BiFunction<String, AzureUser, String> builder = (name, cloudUser) ->
-                AzureIdBuilder.configure(cloudUser).buildVirtualMachineId(name);
+                AzureIdBuilder.configure(cloudUser)
+                        .resourceName(name)
+                        .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                        .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                        .build();
+
 
         String resourceNameExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
 
         String instanceIdExpected = AzureIdBuilder.configure(this.azureUser)
-                .buildVirtualMachineId(resourceNameExpected);
+                .resourceName(resourceNameExpected)
+                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .build();
+
 
         // exercise
         String instanceId = AzureInstancePolicy
