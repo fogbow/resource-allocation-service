@@ -17,6 +17,7 @@ import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -36,6 +37,7 @@ public class OpenNebulaClientUtil {
 	protected static final String RESPONSE_DONE = "DONE";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 	protected static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
+	private static final int RESOURCE_BELONGS_TO_USER_FILTER = -3;
 
 	public static Client instance;
 	
@@ -69,8 +71,18 @@ public class OpenNebulaClientUtil {
     	group.info();		
 		return group;
     }
+
+	public static VirtualNetworkPool getNetworkPoolByUser(Client client) throws UnexpectedException {
+		VirtualNetworkPool networkPool = new VirtualNetworkPool(client, RESOURCE_BELONGS_TO_USER_FILTER);
+		OneResponse response = networkPool.info();
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USERS, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+		}
+		return networkPool;
+	}
 	
-	public static Image getImage(Client client, String imageId) throws UnexpectedException, InvalidParameterException,
+	public static Image getImage(Client client, String imageId) throws InvalidParameterException,
 			UnauthorizedRequestException, InstanceNotFoundException {
 		
 		Image image = (Image) generateOnePoolElement(client, imageId, Image.class);
@@ -327,7 +339,6 @@ public class OpenNebulaClientUtil {
         } else if (classType.isAssignableFrom(DatastorePool.class)) {
 			return new DatastorePool(client);
 		}
-
 		return null;
 	}
 }

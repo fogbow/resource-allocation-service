@@ -41,6 +41,7 @@ public class Quota {
         @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
         @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws Exception{
         try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_RESOURCE_S_REQUEST, QUOTA_SUFFIX_ENDPOINT, providerId));
             ResourceQuota resourceQuota = ApplicationFacade.getInstance().getResourceQuota(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(resourceQuota, HttpStatus.OK);
         } catch (Exception e) {

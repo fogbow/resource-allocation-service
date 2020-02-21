@@ -42,6 +42,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
     protected static final String LOCAL_GATEWAY_DESTINATION = "local";
     protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
     protected static final String SUBNET_RESOURCE = "Subnet";
+    protected static final int SUBNET_ALLOCATION_NUMBER = 1;
 
     private String defaultVpcId;
     private String region;
@@ -59,7 +60,6 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String cidr = networkOrder.getCidr();
-        String instanceName = networkOrder.getName();
 
         CreateSubnetRequest request = CreateSubnetRequest.builder()
                 .availabilityZone(this.zone)
@@ -67,7 +67,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
                 .vpcId(this.defaultVpcId)
                 .build();
 
-        return doRequestInstance(instanceName, request, client);
+        return doRequestInstance(networkOrder, request, client);
     }
 
     @Override
@@ -133,10 +133,10 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
         return null;
     }
 
-    protected String doRequestInstance(String instanceName, CreateSubnetRequest request, Ec2Client client)
+    protected String doRequestInstance(NetworkOrder order, CreateSubnetRequest request, Ec2Client client)
             throws FogbowException {
         
-        String subnetId = doCreateSubnetResquest(instanceName, request, client);
+        String subnetId = doCreateSubnetResquest(order.getName(), request, client);
         doAssociateRouteTables(subnetId, client);
         handleSecurityIssues(subnetId, request.cidrBlock(), client);
         return subnetId;

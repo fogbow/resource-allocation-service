@@ -1,9 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
+import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
+import java.util.Objects;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Quota.*;
 
@@ -37,7 +40,7 @@ public class ListResourceLimitsResponse {
         return GsonHolder.getInstance().fromJson(json, ListResourceLimitsResponse.class);
     }
 
-    public class ResourceLimitsResponse {
+    public class ResourceLimitsResponse extends CloudStackErrorResponse {
 
         @SerializedName(RESOURCE_LIMIT_KEY_JSON)
         private List<ResourceLimit> resourceLimits;
@@ -54,6 +57,15 @@ public class ListResourceLimitsResponse {
         @SerializedName(MAX_KEY_JSON)
         private int max;
 
+        public ResourceLimit(String resourceType, String domainId, int max) {
+            this.resourceType = resourceType;
+            this.domainId = domainId;
+            this.max = max;
+        }
+
+        public ResourceLimit() {
+        }
+
         public String getResourceType() {
             return resourceType;
         }
@@ -64,6 +76,21 @@ public class ListResourceLimitsResponse {
 
         public int getMax() {
             return max;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ResourceLimit that = (ResourceLimit) o;
+            return max == that.max &&
+                    resourceType.equals(that.resourceType) &&
+                    domainId.equals(that.domainId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(resourceType, domainId, max);
         }
     }
 }

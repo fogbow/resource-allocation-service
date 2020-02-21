@@ -4,11 +4,14 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Transient;
+
+import java.util.Objects;
 
 @Embeddable
 public class ComputeAllocation extends Allocation {
     @ApiModelProperty(position = 0, example = "2")
-    @Column(name = "allocation_instances")
+    @Transient
     private int instances;
     @ApiModelProperty(position = 1, example = "4")
     @Column(name = "allocation_vcpu")
@@ -20,7 +23,6 @@ public class ComputeAllocation extends Allocation {
     @Column(name = "allocation_disk")
     private int disk;
 
-    @Deprecated
     public ComputeAllocation(int vCPU, int ram, int instances, int disk) {
         this.vCPU = vCPU;
         this.ram = ram;
@@ -49,8 +51,23 @@ public class ComputeAllocation extends Allocation {
         return this.instances;
     }
 
-    @Deprecated
     public int getDisk() {
-        return disk;
+        return this.disk;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ComputeAllocation that = (ComputeAllocation) o;
+        return instances == that.instances &&
+                vCPU == that.vCPU &&
+                ram == that.ram &&
+                disk == that.disk;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(instances, vCPU, ram, disk);
     }
 }

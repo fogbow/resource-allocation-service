@@ -61,7 +61,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-        return doRequestInstance(publicIpOrder, cloudStackUser);
+        String instanceId = doRequestInstance(publicIpOrder, cloudStackUser);
+        return instanceId;
     }
 
     @Override

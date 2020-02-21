@@ -249,7 +249,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
             Ec2Client client) throws FogbowException {
 
         synchronized (computeOrder) {
-            int vCPU = instance.cpuOptions().coreCount();
+            int vCPU = flavor.getCpu();
             int memory = flavor.getMemory();
             String imageId = flavor.getImageId();
             Image image = getImageById(imageId, client);
@@ -326,9 +326,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
         updateHardwareRequirements(cloudUser);
         TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
+        int memoryInGB = computeOrder.getMemory()/ONE_GIGABYTE; 
         for (AwsHardwareRequirements hardwareRequirements : resultset) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getMemory() >= computeOrder.getMemory()
+                    && hardwareRequirements.getMemory() >= memoryInGB
                     && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
                 return hardwareRequirements;
             }
