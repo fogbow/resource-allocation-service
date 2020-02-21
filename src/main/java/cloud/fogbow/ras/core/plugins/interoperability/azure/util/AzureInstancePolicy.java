@@ -44,13 +44,14 @@ public class AzureInstancePolicy {
         return generateFogbowIstanceId(resourceName, azureCloudUser, builderId);
     }
 
-    public static String generateFogbowInstanceIdBy(ComputeOrder computeOrder, AzureUser azureUser)
+    public static String generateFogbowInstanceIdBy(ComputeOrder computeOrder, AzureUser azureUser, String resourceGroupName)
             throws InvalidParameterException {
 
         String resourceName = generateAzureResourceNameBy(computeOrder, azureUser);
         return AzureIdBuilder
                 .configure(azureUser)
                 .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
+                .resourceGroupName(resourceGroupName)
                 .resourceName(resourceName)
                 .build();
     }
