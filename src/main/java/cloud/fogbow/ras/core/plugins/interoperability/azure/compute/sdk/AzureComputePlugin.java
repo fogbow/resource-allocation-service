@@ -4,7 +4,9 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureGetVirtualMachineRef;
@@ -12,6 +14,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtual
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
@@ -36,12 +39,12 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return false;
+        return AzureStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return AzureStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override

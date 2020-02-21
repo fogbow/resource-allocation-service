@@ -26,7 +26,7 @@ public class AzureVirtualMachineSDK {
                                                                String osUserName, String osUserPassword, String osComputeName,
                                                                String userData, int diskSize, String size) {
 
-        VirtualMachines virtualMachine = getVirtualMachinesObject(azure);
+        VirtualMachines virtualMachine = getVirtualMachinesSDK(azure);
 
         VirtualMachine.DefinitionStages.WithOS osChoosen = virtualMachine
                 .define(virtualMachineName)
@@ -57,7 +57,7 @@ public class AzureVirtualMachineSDK {
             throws UnexpectedException {
 
         try {
-            VirtualMachines virtualMachinesObject = getVirtualMachinesObject(azure);
+            VirtualMachines virtualMachinesObject = getVirtualMachinesSDK(azure);
             return Optional.ofNullable(virtualMachinesObject.getById(virtualMachineId));
         } catch (RuntimeException e) {
             throw new UnexpectedException(e.getMessage(), e);
@@ -68,7 +68,7 @@ public class AzureVirtualMachineSDK {
             throws UnexpectedException {
 
         try {
-            VirtualMachines virtualMachinesObject = getVirtualMachinesObject(azure);
+            VirtualMachines virtualMachinesObject = getVirtualMachinesSDK(azure);
             VirtualMachineSizes sizes = virtualMachinesObject.sizes();
             return sizes.listByRegion(region);
         } catch (RuntimeException e) {
@@ -96,7 +96,7 @@ public class AzureVirtualMachineSDK {
     // This class is used only for test proposes.
     // It is necessary because was not possible mock the Azure(final class)
     @VisibleForTesting
-    static VirtualMachines getVirtualMachinesObject(Azure azure) {
+    static VirtualMachines getVirtualMachinesSDK(Azure azure) {
         return azure.virtualMachines();
     }
 

@@ -400,10 +400,10 @@ public class AzureVirtualMachineOperationSDKTest {
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
         NetworkInterface networkInterfaceExcepted = Mockito.mock(NetworkInterface.class);
-        Optional<NetworkInterface> networkInterfaceExceptedOptional = Optional.ofNullable(networkInterfaceExcepted);
+        Optional<NetworkInterface> networkInterfaceExpectedOptional = Optional.ofNullable(networkInterfaceExcepted);
         PowerMockito.when(AzureNetworkSDK
                 .getNetworkInterface(Mockito.eq(this.azure), Mockito.eq(networkInterfaceIdExpected)))
-                .thenReturn(networkInterfaceExceptedOptional);
+                .thenReturn(networkInterfaceExpectedOptional);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
         Region regionExpected = Region.fromName(regionNameExpected);

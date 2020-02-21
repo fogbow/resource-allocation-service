@@ -13,7 +13,7 @@ public class AzureNetworkSDK {
             throws UnexpectedException {
 
         try {
-            NetworkInterfaces networkInterfaces = getNetworkInterfaces(azure);
+            NetworkInterfaces networkInterfaces = getNetworkInterfacesSDK(azure);
             NetworkInterface networkInterface = networkInterfaces.getById(azureNetworkInterfaceId);
             return Optional.ofNullable(networkInterface);
         } catch (RuntimeException e) {
@@ -21,7 +21,7 @@ public class AzureNetworkSDK {
         }
     }
 
-    public static NetworkInterfaces getNetworkInterfaces(Azure azure) {
+    public static NetworkInterfaces getNetworkInterfacesSDK(Azure azure) {
         return azure.networkInterfaces();
     }
 
