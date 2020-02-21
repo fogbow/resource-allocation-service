@@ -16,6 +16,7 @@ public class LoggerAssert {
 
     private Logger fooLogger;
     private ListAppender<ILoggingEvent> listAppender;
+    private int globalPosition = 1;
 
     public LoggerAssert(Class classToTest) {
         this.fooLogger = (Logger) LoggerFactory.getLogger(classToTest);
@@ -30,6 +31,17 @@ public class LoggerAssert {
         ILoggingEvent iLoggingEvent = list.get(getPositionList(logPosition));
         Assert.assertEquals(iLoggingEvent.getMessage(), message);
         Assert.assertEquals(iLoggingEvent.getLevel(), level);
+    }
+
+    public LoggerAssert assertEqualsInOrder(Level level, String message) {
+        assertEquals(this.globalPosition++, level, message);
+        return this;
+    }
+
+    public void verifyLogEnd() {
+        if (this.globalPosition <= this.listAppender.list.size()) {
+            Assert.fail("The log is not on the end");
+        }
     }
 
     private int getPositionList(int logPosition) {
