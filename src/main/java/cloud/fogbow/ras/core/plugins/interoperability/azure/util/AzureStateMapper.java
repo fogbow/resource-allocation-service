@@ -3,7 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureComputePlugin;
+
 import org.apache.log4j.Logger;
 
 public class AzureStateMapper {
