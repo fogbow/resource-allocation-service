@@ -248,8 +248,8 @@ public class AzureVirtualMachineOperationSDKTest {
                 .findVirtualMachineSize(memory, vcpu, regionName, this.azureCloudUser);
 
         // verify
-        Assert.assertNotEquals(virtualMachineSizeFitsBigger.name(), virtualMachineSize);
-        Assert.assertEquals(virtualMachineSizeFitsSmaller.name(), virtualMachineSize);
+        Assert.assertNotEquals(virtualMachineSizeFitsBigger, virtualMachineSize);
+        Assert.assertEquals(virtualMachineSizeFitsSmaller, virtualMachineSize);
     }
 
     // test case: When calling the findVirtualMachineSizeName method with any virtual machine size name that
