@@ -1,28 +1,34 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import com.microsoft.azure.management.compute.VirtualMachineSize;
+
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 
 public interface AzureVirtualMachineOperation {
 
-    void doCreateInstance(AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
-                          AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, UnexpectedException, InstanceNotFoundException;
+    void doCreateInstance(
+            @NotNull AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
+            @NotNull AzureUser azureCloudUser) throws FogbowException;
 
-    String findVirtualMachineSizeName(int memoryRequired, int vCpuRequired,
-                                      String regionName, AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, NoAvailableResourcesException, UnexpectedException;
+    VirtualMachineSize findVirtualMachineSize(
+            int memoryRequired, 
+            int vCpuRequired,
+            @NotBlank String regionName, 
+            @NotNull AzureUser azureCloudUser) throws FogbowException;
 
-    AzureGetVirtualMachineRef doGetInstance(String azureInstanceId, AzureUser azureUser)
-            throws UnauthenticatedUserException, UnexpectedException,
-            NoAvailableResourcesException, InstanceNotFoundException;
+    AzureGetVirtualMachineRef doGetInstance(
+            @NotBlank String azureInstanceId, 
+            @NotNull AzureUser azureUser) throws FogbowException;
 
-    void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, UnexpectedException, InstanceNotFoundException;
+    void doDeleteInstance(
+            @NotBlank String azureInstanceId, 
+            @NotNull AzureUser azureCloudUser) throws FogbowException;
 
 }
 
