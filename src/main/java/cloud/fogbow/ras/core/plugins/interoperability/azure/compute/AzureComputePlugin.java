@@ -33,7 +33,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandG
 public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
-    private static final String DEFAULT_OS_USER_NAME = "fogbow";
+
+    @VisibleForTesting
+    static final String DEFAULT_OS_USER_NAME = "fogbow";
 
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
     private final DefaultLaunchCommandGenerator launchCommandGenerator;
