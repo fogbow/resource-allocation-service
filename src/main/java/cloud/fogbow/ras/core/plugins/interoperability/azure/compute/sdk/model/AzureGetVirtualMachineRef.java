@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
+package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model;
 
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.GenericBuilder;
 
