@@ -1,19 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureGetVirtualMachineRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNetworkSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+import org.apache.log4j.Logger;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
@@ -22,27 +15,33 @@ import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
-import org.apache.log4j.Logger;
+
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNetworkSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-
 public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOperation {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualMachineOperationSDK.class);
-    private final String regionName;
+    private String regionName;
 
     private Scheduler scheduler;
 
-    public AzureVirtualMachineOperationSDK() {
-        this("");
-    }
+    public AzureVirtualMachineOperationSDK() {}
 
     public AzureVirtualMachineOperationSDK(String regionName) {
         ExecutorService virtualMachineExecutor = AzureSchedulerManager.getVirtualMachineExecutor();
@@ -54,41 +53,38 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
      * Create asynchronously because this operation takes a long time to finish.
      */
     @Override
-    public void doCreateInstance(AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
-                                 AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
+    public void doCreateInstance(AzureCreateVirtualMachineRef virtualMachineRef, AzureUser azureUser)
+            throws FogbowException {
 
-        Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
-
-        Observable<Indexable> virtualMachineAsync = buildAzureVirtualMachineObservable(
-                azureCreateVirtualMachineRef, azure);
-
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        Observable<Indexable> virtualMachineAsync = buildAzureVirtualMachineObservable(virtualMachineRef, azure);
         subscribeCreateVirtualMachine(virtualMachineAsync);
     }
 
     @VisibleForTesting
     Observable<Indexable> buildAzureVirtualMachineObservable(
-            AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
-            Azure azure) throws InstanceNotFoundException, UnexpectedException {
+            AzureCreateVirtualMachineRef virtualMachineRef,
+            Azure azure) throws FogbowException {
 
-        String networkInterfaceId = azureCreateVirtualMachineRef.getNetworkInterfaceId();
+        String networkInterfaceId = virtualMachineRef.getNetworkInterfaceId();
         NetworkInterface networkInterface = AzureNetworkSDK
                 .getNetworkInterface(azure, networkInterfaceId)
                 .orElseThrow(InstanceNotFoundException::new);
-        String resourceGroupName = azureCreateVirtualMachineRef.getResourceGroupName();
-        String regionName = azureCreateVirtualMachineRef.getRegionName();
-        String virtualMachineName = azureCreateVirtualMachineRef.getVirtualMachineName();
-        String osUserName = azureCreateVirtualMachineRef.getOsUserName();
-        String osUserPassword = azureCreateVirtualMachineRef.getOsUserPassword();
-        String osComputeName = azureCreateVirtualMachineRef.getOsComputeName();
-        String userData = azureCreateVirtualMachineRef.getUserData();
-        String size = azureCreateVirtualMachineRef.getSize();
-        int diskSize = azureCreateVirtualMachineRef.getDiskSize();
-        AzureGetImageRef azureVirtualMachineImage = azureCreateVirtualMachineRef.getAzureGetImageRef();
+        
+        String resourceGroupName = virtualMachineRef.getResourceGroupName();
+        String regionName = virtualMachineRef.getRegionName();
+        String virtualMachineName = virtualMachineRef.getVirtualMachineName();
+        String osUserName = virtualMachineRef.getOsUserName();
+        String osUserPassword = virtualMachineRef.getOsUserPassword();
+        String osComputeName = virtualMachineRef.getOsComputeName();
+        String userData = virtualMachineRef.getUserData();
+        String size = virtualMachineRef.getSize();
+        int diskSize = virtualMachineRef.getDiskSize();
+        AzureGetImageRef azureImage = virtualMachineRef.getAzureGetImageRef();
         Region region = Region.findByLabelOrName(regionName);
-        String imagePublished = azureVirtualMachineImage.getPublisher();
-        String imageOffer = azureVirtualMachineImage.getOffer();
-        String imageSku = azureVirtualMachineImage.getSku();
+        String imagePublished = azureImage.getPublisher();
+        String imageOffer = azureImage.getOffer();
+        String imageSku = azureImage.getSku();
 
         return AzureVirtualMachineSDK.buildVirtualMachineObservable(
                 azure, virtualMachineName, region, resourceGroupName, networkInterface,
@@ -118,17 +114,16 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     }
 
     @Override
-    public String findVirtualMachineSizeName(int memoryRequired, int vCpuRequired,
-                                             String regionName, AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, NoAvailableResourcesException,
-            UnexpectedException {
+    public VirtualMachineSize findVirtualMachineSize(int memoryRequired, int vCpuRequired, String regionName,
+            AzureUser azureCloudUser) throws FogbowException {
 
         LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_NAME, memoryRequired, vCpuRequired, regionName));
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
-
         Region region = Region.findByLabelOrName(regionName);
+        
         PagedList<VirtualMachineSize> virtualMachineSizes =
                 AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
+        
         VirtualMachineSize firstVirtualMachineSize = virtualMachineSizes.stream()
                 .filter((virtualMachineSize) ->
                         virtualMachineSize.memoryInMB() >= memoryRequired &&
@@ -140,19 +135,19 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
                 .findFirst()
                 .orElseThrow(NoAvailableResourcesException::new);
 
-        return firstVirtualMachineSize.name();
+        return firstVirtualMachineSize;
     }
 
     @Override
     public AzureGetVirtualMachineRef doGetInstance(String azureInstanceId, AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, UnexpectedException,
-            NoAvailableResourcesException, InstanceNotFoundException {
+            throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
 
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
                 .getVirtualMachine(azure, azureInstanceId)
                 .orElseThrow(InstanceNotFoundException::new);
+        
         String virtualMachineSizeName = virtualMachine.size().toString();
         String cloudState = virtualMachine.provisioningState();
         String name = virtualMachine.name();
@@ -175,12 +170,12 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     }
 
     @VisibleForTesting
-    VirtualMachineSize findVirtualMachineSizeByName(String virtualMachineSizeNameWanted,
-                                                    String regionName, Azure azure)
-            throws NoAvailableResourcesException, UnexpectedException {
+    VirtualMachineSize findVirtualMachineSizeByName(String virtualMachineSizeNameWanted, String regionName, Azure azure)
+            throws FogbowException {
 
         LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME, virtualMachineSizeNameWanted, regionName));
         Region region = Region.findByLabelOrName(regionName);
+        
         PagedList<VirtualMachineSize> virtualMachineSizes = AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
         return virtualMachineSizes.stream()
                 .filter((virtualMachineSize) -> virtualMachineSizeNameWanted.equals(virtualMachineSize.name()))
@@ -192,29 +187,24 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
      * Delete asynchronously because this operation takes a long time to finish.
      */
     @Override
-    public void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser)
-            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
-
+    public void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
-
         Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
         Completable secondDeleteVirtualMachineDisk = buildDeleteVirtualMachineDiskCompletable(azure, azureInstanceId);
-
         Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
     @VisibleForTesting
-    Completable buildDeleteVirtualMachineDiskCompletable(Azure azure, String azureInstanceId)
-            throws InstanceNotFoundException, UnexpectedException {
+    Completable buildDeleteVirtualMachineDiskCompletable(Azure azure, String azureInstanceId) throws FogbowException {
 
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
                 .getVirtualMachine(azure, azureInstanceId)
                 .orElseThrow(InstanceNotFoundException::new);
+        
         String osDiskId = virtualMachine.osDiskId();
         Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);
-
         return setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
     }
 
@@ -222,6 +212,7 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     Completable buildDeleteVirtualMachineCompletable(Azure azure, String azureInstanceId) {
         Completable deleteVirtualMachine = AzureVirtualMachineSDK
                 .buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
+        
         return setDeleteVirtualMachineBehaviour(deleteVirtualMachine);
     }
 
