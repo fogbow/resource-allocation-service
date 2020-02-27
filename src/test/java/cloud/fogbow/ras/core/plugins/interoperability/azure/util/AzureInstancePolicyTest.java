@@ -1,17 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.function.BiFunction;
+import cloud.fogbow.common.constants.AzureConstants;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
 public class AzureInstancePolicyTest {
 
@@ -27,15 +26,14 @@ public class AzureInstancePolicyTest {
     @Test
     public void testGenerateAzureResourceNameSuccessfullyByWhenOrder() throws InvalidParameterException {
         // set up
-        Order order = Mockito.mock(Order.class);
+        ComputeOrder order = Mockito.mock(ComputeOrder.class);
         String orderId = "orderId";
         Mockito.when(order.getId()).thenReturn(orderId);
 
         String resourceNameExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
 
         // exercise
-        String resourceName = AzureInstancePolicy.generateAzureResourceNameBy(order.getId(),
-                this.azureUser);
+        String resourceName = AzureInstancePolicy.checkAzureResourceName(order, this.azureUser, "default-resource-group");
 
         // verify
         Assert.assertEquals(resourceNameExpected, resourceName);
@@ -53,8 +51,7 @@ public class AzureInstancePolicyTest {
         Mockito.when(computeOrder.getName()).thenReturn(resourceNameExpected);
 
         // exercise
-        String resourceName = AzureInstancePolicy.generateAzureResourceNameBy(
-                computeOrder, this.azureUser);
+        String resourceName = AzureInstancePolicy.checkAzureResourceName(computeOrder, this.azureUser, "default-resource-group");
 
         // verify
         Assert.assertEquals(resourceNameExpected, resourceName);
@@ -74,50 +71,14 @@ public class AzureInstancePolicyTest {
         Mockito.when(computeOrder.getId()).thenReturn(orderId);
         Mockito.when(computeOrder.getName()).thenReturn(resourceName);
 
-        String instanceIdExpected = AzureIdBuilder.configure(this.azureUser)
-                .resourceGroupName(resourceGroupName)
-                .resourceName(resourceName)
-                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
-                .build();
+        String instanceIdExpected = AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(resourceName)
+                .buildResourceId();
 
         // exercise
-        String instanceId = AzureInstancePolicy
-                .generateFogbowInstanceIdBy(computeOrder, this.azureUser, resourceGroupName);
-
-        // verify
-        Assert.assertEquals(instanceIdExpected, instanceId);
-    }
-
-    // test case: When calling the generateFogbowInstanceIdBy method with general order,
-    // it must verify if it returns an instance using the order name.
-    @Test
-    public void testGenerateFogbowInstanceIdBySuccessfullyWhenOrder()
-            throws InvalidParameterException {
-
-        // set up
-        Order order = Mockito.mock(Order.class);
-        String orderId = "orderId";
-        Mockito.when(order.getId()).thenReturn(orderId);
-        BiFunction<String, AzureUser, String> builder = (name, cloudUser) ->
-                AzureIdBuilder.configure(cloudUser)
-                        .resourceName(name)
-                        .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                        .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
-                        .build();
-
-
-        String resourceNameExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
-
-        String instanceIdExpected = AzureIdBuilder.configure(this.azureUser)
-                .resourceName(resourceNameExpected)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
-                .build();
-
-
-        // exercise
-        String instanceId = AzureInstancePolicy
-                .generateFogbowInstanceIdBy(order.getId(), this.azureUser, builder);
+        String instanceId = AzureInstancePolicy.generateFogbowInstanceId(computeOrder, this.azureUser, resourceGroupName);
 
         // verify
         Assert.assertEquals(instanceIdExpected, instanceId);

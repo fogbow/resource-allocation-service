@@ -1,21 +1,11 @@
-package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
+package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.TestUtils;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureGetVirtualMachineRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,11 +17,29 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import cloud.fogbow.common.constants.AzureConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineOperationSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureImageOperationUtil.class, AzureInstancePolicy.class, AzureGeneralPolicy.class})
@@ -112,12 +120,11 @@ public class AzureComputePluginTest extends TestUtils {
         List<String> networds = new ArrayList<>();
         Mockito.when(computeOrder.getNetworkIds()).thenReturn(networds);
 
-        String networkInsterfaceIdExpected = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .resourceName(this.defaultNetworkInterfaceName)
-                .structure(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE)
-                .build();
+        String networkInsterfaceIdExpected = AzureResourceIdBuilder.configure(AzureConstants.NETWORK_INTERFACE_STRUCTURE)
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(this.defaultNetworkInterfaceName)
+                .buildResourceId();
 
         // exercise
         String networkInterfaceId = this.azureComputePlugin.getNetworkInterfaceId(computeOrder, this.azureUser);
@@ -181,7 +188,7 @@ public class AzureComputePluginTest extends TestUtils {
 
         String virtualMachineSizeName = "virtualMachineSizeName";
         Mockito.doReturn(virtualMachineSizeName).when(this.azureComputePlugin)
-                .getVirtualMachineSizeName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
+                .getVirtualMachineSize(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
         int disk = 1;
         Mockito.when(AzureGeneralPolicy.getDisk(Mockito.eq(computeOrder))).thenReturn(disk);
@@ -194,7 +201,7 @@ public class AzureComputePluginTest extends TestUtils {
         String virtualMachineName = "virtualMachineName";
         PowerMockito.mockStatic(AzureInstancePolicy.class);
         PowerMockito.when(AzureInstancePolicy.
-                generateAzureResourceNameBy(Mockito.eq(computeOrder), Mockito.eq(this.azureUser)))
+                checkAzureResourceName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser), Mockito.anyString()))
                 .thenReturn(virtualMachineName);
 
         String userData = "userData";
@@ -226,8 +233,8 @@ public class AzureComputePluginTest extends TestUtils {
 
         // verify
         Mockito.verify(this.azureComputePlugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
-                Mockito.eq(computeOrder), Mockito.eq(this.azureUser), Mockito.eq(azureCreateVirtualMachineRef)
-        );
+                Mockito.eq(computeOrder), Mockito.eq(this.azureUser), Mockito.eq(azureCreateVirtualMachineRef),
+                Mockito.any());
     }
 
     // test case: When calling the requestInstance method any throws any exception,
@@ -261,10 +268,10 @@ public class AzureComputePluginTest extends TestUtils {
         String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
 
         // exercise
-        this.azureComputePlugin.getVirtualMachineSizeName(computeOrder, this.azureUser);
+        this.azureComputePlugin.getVirtualMachineSize(computeOrder, this.azureUser);
 
         // verify
-        Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE)).findVirtualMachineSizeName(
+        Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE)).findVirtualMachineSize(
                 Mockito.eq(memory), Mockito.eq(vcpu), Mockito.eq(regionName), Mockito.eq(this.azureUser)
         );
     }
@@ -326,12 +333,11 @@ public class AzureComputePluginTest extends TestUtils {
         String cloudStateExpected = AzureStateMapper.SUCCEEDED_STATE;
         List<String> ipAddressExpected = Arrays.asList("id");
 
-        String idExpected = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .resourceName(nameExpected)
-                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
-                .build();
+        String idExpected = AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(nameExpected)
+                .buildResourceId();
 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = AzureGetVirtualMachineRef.builder()
                 .disk(diskExpected)
