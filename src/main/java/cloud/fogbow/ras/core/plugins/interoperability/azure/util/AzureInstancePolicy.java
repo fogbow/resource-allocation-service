@@ -1,66 +1,57 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import javax.annotation.Nullable;
-import java.util.function.BiFunction;
 
 public class AzureInstancePolicy {
 
+    public static String checkAzureResourceName(
+            @NotNull ComputeOrder computeOrder,
+            @NotNull AzureUser azureCloudUser, 
+            @NotBlank String resourceGroupName) throws InvalidParameterException {
+
+        String subscriptionId = azureCloudUser.getSubscriptionId();
+        return checkAzureResourceName(computeOrder.getName(), computeOrder.getId(), resourceGroupName, subscriptionId);
+    }
+
     /**
-     * Generate the Azure Resource Name and check if It's in accordance with the policy.
+     * Set the Azure Resource Name and check if It's in accordance with the policy.
      */
-    private static String generateAzureResourceNameBy(@Nullable String orderName, String orderId,
-                                                      AzureUser azureCloudUser)
-            throws InvalidParameterException {
+    private static String checkAzureResourceName(
+            @NotBlank String orderName, 
+            @NotBlank String orderId,
+            @NotBlank String resourceGroupName, 
+            @NotBlank String subscriptionId) throws InvalidParameterException {
 
         if (orderName == null) {
             orderName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
         }
+        AzureResourceIdBuilder.configure()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(orderName)
+                .checkIdSizePolicy();
 
-        AzureIdBuilder.configure(azureCloudUser).checkIdSizePolicy(orderName);
         return orderName;
     }
 
-    public static String generateAzureResourceNameBy(
-            ComputeOrder computeOrder, AzureUser azureCloudUser) throws InvalidParameterException {
+    public static String generateFogbowInstanceId(
+            @NotNull ComputeOrder computeOrder, 
+            @NotNull AzureUser azureUser,
+            @NotBlank String resourceGroupName) throws InvalidParameterException {
 
-        return generateAzureResourceNameBy(computeOrder.getName(), computeOrder.getId(), azureCloudUser);
+        String resourceName = checkAzureResourceName(computeOrder, azureUser, resourceGroupName);
+        return AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(resourceName)
+                .buildResourceId();
     }
-
-    public static String generateAzureResourceNameBy(String orderId, AzureUser azureUser)
-            throws InvalidParameterException {
-
-        return generateAzureResourceNameBy(null, orderId, azureUser);
-    }
-
-    public static String generateFogbowInstanceIdBy(String orderId, AzureUser azureCloudUser,
-                                                    BiFunction<String, AzureUser, String> builderId)
-            throws InvalidParameterException {
-
-        String resourceName = generateAzureResourceNameBy(orderId, azureCloudUser);
-        return generateFogbowIstanceId(resourceName, azureCloudUser, builderId);
-    }
-
-    public static String generateFogbowInstanceIdBy(ComputeOrder computeOrder, AzureUser azureUser, String resourceGroupName)
-            throws InvalidParameterException {
-
-        String resourceName = generateAzureResourceNameBy(computeOrder, azureUser);
-        return AzureIdBuilder
-                .configure(azureUser)
-                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
-                .resourceGroupName(resourceGroupName)
-                .resourceName(resourceName)
-                .build();
-    }
-
-    private static String generateFogbowIstanceId(String resourceName, AzureUser azureUser,
-                                                  BiFunction<String, AzureUser, String> builderId) {
-
-        return builderId.apply(resourceName, azureUser);
-    }
-
 
 }
