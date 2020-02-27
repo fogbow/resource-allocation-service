@@ -193,7 +193,7 @@ public class AzureComputePluginTest extends TestUtils {
 
         String virtualMachineSizeName = "virtualMachineSizeName";
         VirtualMachineSize virtualMachineSizeMock = Mockito.mock(VirtualMachineSize.class);
-        Mockito.doReturn(virtualMachineSizeName).when(virtualMachineSizeMock).name();
+        Mockito.when(virtualMachineSizeMock.name()).thenReturn(virtualMachineSizeName);
 
         Mockito.doReturn(virtualMachineSizeMock).when(this.azureComputePlugin)
                 .getVirtualMachineSize(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
