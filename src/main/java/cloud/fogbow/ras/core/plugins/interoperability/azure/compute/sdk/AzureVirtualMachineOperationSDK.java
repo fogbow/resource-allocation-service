@@ -21,7 +21,6 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
@@ -34,7 +33,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOperation {
+public class AzureVirtualMachineOperationSDK {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualMachineOperationSDK.class);
     private String regionName;
@@ -52,7 +51,6 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     /**
      * Create asynchronously because this operation takes a long time to finish.
      */
-    @Override
     public void doCreateInstance(AzureCreateVirtualMachineRef virtualMachineRef, AzureUser azureUser)
             throws FogbowException {
 
@@ -113,7 +111,6 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
                 });
     }
 
-    @Override
     public VirtualMachineSize findVirtualMachineSize(int memoryRequired, int vCpuRequired, String regionName,
             AzureUser azureCloudUser) throws FogbowException {
 
@@ -138,7 +135,6 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
         return firstVirtualMachineSize;
     }
 
-    @Override
     public AzureGetVirtualMachineRef doGetInstance(String azureInstanceId, AzureUser azureCloudUser)
             throws FogbowException {
 
@@ -186,7 +182,6 @@ public class AzureVirtualMachineOperationSDK implements AzureVirtualMachineOpera
     /**
      * Delete asynchronously because this operation takes a long time to finish.
      */
-    @Override
     public void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
         Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
