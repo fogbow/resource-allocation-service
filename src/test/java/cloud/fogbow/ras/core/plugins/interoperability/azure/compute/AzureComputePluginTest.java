@@ -31,7 +31,6 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureVirtualMachineOperation;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
@@ -51,7 +50,7 @@ public class AzureComputePluginTest extends TestUtils {
 
     private AzureComputePlugin azureComputePlugin;
     private AzureUser azureUser;
-    private AzureVirtualMachineOperation azureVirtualMachineOperation;
+    private AzureVirtualMachineOperationSDK azureVirtualMachineOperation;
     private String defaultNetworkInterfaceName;
     private String defaultResourceGroupName;
     private String defaultRegionName;
@@ -209,7 +208,7 @@ public class AzureComputePluginTest extends TestUtils {
         String virtualMachineName = "virtualMachineName";
         PowerMockito.mockStatic(AzureInstancePolicy.class);
         PowerMockito.when(AzureInstancePolicy.
-                checkAzureResourceName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser), Mockito.anyString()))
+                defineAzureResourceName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser), Mockito.anyString()))
                 .thenReturn(virtualMachineName);
 
         String userData = "userData";

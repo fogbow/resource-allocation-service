@@ -38,7 +38,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     @VisibleForTesting
     static final String DEFAULT_OS_USER_NAME = "fogbow";
 
-    private AzureVirtualMachineOperation azureVirtualMachineOperation;
+    private AzureVirtualMachineOperationSDK azureVirtualMachineOperation;
     private final DefaultLaunchCommandGenerator launchCommandGenerator;
     private final String defaultNetworkInterfaceName;
     private final String defaultRegionName;
@@ -74,7 +74,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(imageId);
         String regionName = this.defaultRegionName;
         String resourceGroupName = this.defaultResourceGroupName;
-        String virtualMachineName = AzureInstancePolicy.checkAzureResourceName(computeOrder, azureUser, resourceGroupName);
+        String virtualMachineName = AzureInstancePolicy.defineAzureResourceName(computeOrder, azureUser, resourceGroupName);
         String userData = getUserData(computeOrder);
         String osUserName = DEFAULT_OS_USER_NAME;
         String osUserPassword = AzureGeneralPolicy.generatePassword();
@@ -193,7 +193,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    void setAzureVirtualMachineOperation(AzureVirtualMachineOperation azureVirtualMachineOperation) {
+    void setAzureVirtualMachineOperation(AzureVirtualMachineOperationSDK azureVirtualMachineOperation) {
         this.azureVirtualMachineOperation = azureVirtualMachineOperation;
     }
 
