@@ -34,6 +34,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
     private static final String DEFAULT_OS_USER_NAME = "fogbow";
+    protected static final int INSTANCES_LAUNCH_NUMBER = 1;
 
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
     private final DefaultLaunchCommandGenerator launchCommandGenerator;
@@ -155,7 +156,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
             int vCPU = virtualMachineSize.numberOfCores();
             int memory = virtualMachineSize.memoryInMB();
             int disk = computeOrder.getDisk();
-            int instances = 1;
+            int instances = INSTANCES_LAUNCH_NUMBER;
             ComputeAllocation actualAllocation = new ComputeAllocation(vCPU, memory, instances, disk);
             computeOrder.setActualAllocation(actualAllocation);
         }

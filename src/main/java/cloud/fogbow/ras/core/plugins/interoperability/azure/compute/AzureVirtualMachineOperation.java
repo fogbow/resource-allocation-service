@@ -14,13 +14,13 @@ public interface AzureVirtualMachineOperation {
 
     void doCreateInstance(
             @NotNull AzureCreateVirtualMachineRef azureCreateVirtualMachineRef,
-            @NotNull AzureUser azureCloudUser) throws FogbowException;
+            @NotNull AzureUser azureUser) throws FogbowException;
 
     VirtualMachineSize findVirtualMachineSize(
             int memoryRequired, 
             int vCpuRequired,
             @NotBlank String regionName, 
-            @NotNull AzureUser azureCloudUser) throws FogbowException;
+            @NotNull AzureUser azureUser) throws FogbowException;
 
     AzureGetVirtualMachineRef doGetInstance(
             @NotBlank String azureInstanceId, 
@@ -28,7 +28,7 @@ public interface AzureVirtualMachineOperation {
 
     void doDeleteInstance(
             @NotBlank String azureInstanceId, 
-            @NotNull AzureUser azureCloudUser) throws FogbowException;
+            @NotNull AzureUser azureUser) throws FogbowException;
 
 }
 
