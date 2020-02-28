@@ -13,7 +13,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
-public class AzureResourcePathBuilderTest {
+public class AzureResourceIdBuilderTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

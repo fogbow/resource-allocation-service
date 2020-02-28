@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import com.microsoft.azure.management.compute.VirtualMachineSize;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,6 +53,8 @@ public class AzureComputePluginTest extends TestUtils {
     private AzureUser azureUser;
     private AzureVirtualMachineOperation azureVirtualMachineOperation;
     private String defaultNetworkInterfaceName;
+    private String defaultResourceGroupName;
+    private String defaultRegionName;
 
     @Before
     public void setUp() {
@@ -61,6 +64,8 @@ public class AzureComputePluginTest extends TestUtils {
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         Properties properties = PropertiesUtil.readProperties(azureConfFilePath);
         this.defaultNetworkInterfaceName = properties.getProperty(AzureConstants.DEFAULT_NETWORK_INTERFACE_NAME_KEY);
+        this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
+        this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.azureComputePlugin = Mockito.spy(new AzureComputePlugin(azureConfFilePath));
         this.azureVirtualMachineOperation = Mockito.mock(AzureVirtualMachineOperationSDK.class);
         this.azureComputePlugin.setAzureVirtualMachineOperation(this.azureVirtualMachineOperation);
@@ -122,7 +127,7 @@ public class AzureComputePluginTest extends TestUtils {
 
         String networkInsterfaceIdExpected = AzureResourceIdBuilder.configure(AzureConstants.NETWORK_INTERFACE_STRUCTURE)
                 .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(this.defaultNetworkInterfaceName)
                 .buildResourceId();
 
@@ -177,17 +182,20 @@ public class AzureComputePluginTest extends TestUtils {
         // set up
         PowerMockito.mockStatic(AzureGeneralPolicy.class);
         String imageId = "imageId";
-        String orderId = "orderId";
+        String orderName = "orderName";
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
-        Mockito.when(computeOrder.getId()).thenReturn(orderId);
+        Mockito.when(computeOrder.getName()).thenReturn(orderName);
 
         String networkInterfaceId = "networkInterfaceId";
         Mockito.doReturn(networkInterfaceId).when(this.azureComputePlugin)
                 .getNetworkInterfaceId(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
         String virtualMachineSizeName = "virtualMachineSizeName";
-        Mockito.doReturn(virtualMachineSizeName).when(this.azureComputePlugin)
+        VirtualMachineSize virtualMachineSizeMock = Mockito.mock(VirtualMachineSize.class);
+        Mockito.when(virtualMachineSizeMock.name()).thenReturn(virtualMachineSizeName);
+
+        Mockito.doReturn(virtualMachineSizeMock).when(this.azureComputePlugin)
                 .getVirtualMachineSize(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
         int disk = 1;
@@ -210,8 +218,8 @@ public class AzureComputePluginTest extends TestUtils {
         String password = "password";
         PowerMockito.when(AzureGeneralPolicy.generatePassword()).thenReturn(password);
 
-        String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
-        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        String regionName = this.defaultRegionName;
+        String resourceGroupName = this.defaultResourceGroupName;
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .virtualMachineName(virtualMachineName)
@@ -219,8 +227,8 @@ public class AzureComputePluginTest extends TestUtils {
                 .networkInterfaceId(networkInterfaceId)
                 .diskSize(disk)
                 .size(virtualMachineSizeName)
-                .osComputeName(orderId)
-                .osUserName(orderId)
+                .osComputeName(orderName)
+                .osUserName(AzureComputePlugin.DEFAULT_OS_USER_NAME)
                 .osUserPassword(password)
                 .regionName(regionName)
                 .resourceGroupName(resourceGroupName)
@@ -265,7 +273,7 @@ public class AzureComputePluginTest extends TestUtils {
         Mockito.when(computeOrder.getMemory()).thenReturn(memory);
         Mockito.when(computeOrder.getvCPU()).thenReturn(vcpu);
 
-        String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
+        String regionName = this.defaultRegionName;
 
         // exercise
         this.azureComputePlugin.getVirtualMachineSize(computeOrder, this.azureUser);
@@ -335,7 +343,7 @@ public class AzureComputePluginTest extends TestUtils {
 
         String idExpected = AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(nameExpected)
                 .buildResourceId();
 
