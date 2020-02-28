@@ -21,10 +21,10 @@ public class AzureInstancePolicyTest {
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
-    // test case: When calling the generateAzureResourceNameBy method with general order,
-    // it must verify if it returns a resourceGroupName using the order id.
+    // test case: When calling the defineAzureResourceName method with general order,
+    // it must verify if it returns a resourceName using the order id.
     @Test
-    public void testGenerateAzureResourceNameSuccessfullyByWhenOrder() throws InvalidParameterException {
+    public void testDefineAzureResourceNameSuccessfully() throws InvalidParameterException {
         // set up
         ComputeOrder order = Mockito.mock(ComputeOrder.class);
         String orderId = "orderId";
@@ -33,38 +33,18 @@ public class AzureInstancePolicyTest {
         String resourceNameExpected = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
 
         // exercise
-        String resourceName = AzureInstancePolicy.checkAzureResourceName(order, this.azureUser, "default-resource-group");
+        String resourceName = AzureInstancePolicy.defineAzureResourceName(order, this.azureUser, "default-resource-group");
 
         // verify
         Assert.assertEquals(resourceNameExpected, resourceName);
     }
 
-    // test case: When calling the generateAzureResourceNameBy method with Compute order,
-    // it must verify if it returns a resourceGroupName using the order name.
-    @Test
-    public void testGenerateAzureResourceNameSuccessfullyByWhenComputeOrder() throws InvalidParameterException {
-        // set up
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        String orderId = "orderId";
-        Mockito.when(computeOrder.getId()).thenReturn(orderId);
-        String resourceNameExpected = "resourceName";
-        Mockito.when(computeOrder.getName()).thenReturn(resourceNameExpected);
-
-        // exercise
-        String resourceName = AzureInstancePolicy.checkAzureResourceName(computeOrder, this.azureUser, "default-resource-group");
-
-        // verify
-        Assert.assertEquals(resourceNameExpected, resourceName);
-    }
-
-    // test case: When calling the generateFogbowInstanceIdBy method with Compute order,
+    // test case: When calling the generateFogbowInstanceId method with Compute order,
     // it must verify if it returns an instance using the order name.
     @Test
-    public void testGenerateFogbowInstanceIdBySuccessfullyWhenComputeOrder()
-            throws InvalidParameterException {
-
+    public void testGenerateFogbowInstanceIdSuccessfully() throws InvalidParameterException {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = "fogbow-orderId";
         String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         String orderId = "orderId";

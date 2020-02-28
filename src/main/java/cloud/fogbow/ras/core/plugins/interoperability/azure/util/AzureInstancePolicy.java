@@ -11,34 +11,32 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 
 public class AzureInstancePolicy {
 
-    public static String checkAzureResourceName(
+    public static String defineAzureResourceName(
             @NotNull ComputeOrder computeOrder,
             @NotNull AzureUser azureCloudUser, 
             @NotBlank String resourceGroupName) throws InvalidParameterException {
 
         String subscriptionId = azureCloudUser.getSubscriptionId();
-        return checkAzureResourceName(computeOrder.getName(), computeOrder.getId(), resourceGroupName, subscriptionId);
+        return defineAzureResourceName(computeOrder.getId(), resourceGroupName, subscriptionId);
     }
 
     /**
-     * Set the Azure Resource Name and check if It's in accordance with the policy.
+     * Define the Azure Resource Name and check if It's in accordance with the policy.
      */
-    private static String checkAzureResourceName(
-            @NotBlank String orderName, 
+    private static String defineAzureResourceName(
             @NotBlank String orderId,
             @NotBlank String resourceGroupName, 
             @NotBlank String subscriptionId) throws InvalidParameterException {
 
-        if (orderName == null) {
-            orderName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
-        }
+        String resourceName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + orderId;
+
         AzureResourceIdBuilder.configure()
                 .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(resourceGroupName)
-                .withResourceName(orderName)
+                .withResourceName(resourceName)
                 .checkIdSizePolicy();
 
-        return orderName;
+        return resourceName;
     }
 
     public static String generateFogbowInstanceId(
@@ -46,7 +44,7 @@ public class AzureInstancePolicy {
             @NotNull AzureUser azureUser,
             @NotBlank String resourceGroupName) throws InvalidParameterException {
 
-        String resourceName = checkAzureResourceName(computeOrder, azureUser, resourceGroupName);
+        String resourceName = defineAzureResourceName(computeOrder, azureUser, resourceGroupName);
         return AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(resourceGroupName)
