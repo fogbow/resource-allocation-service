@@ -84,7 +84,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         associateSecurityGroup(securityGroupId, instanceId, order, cloudUser);
         return instanceId;
     }
-    
+
     @Override
     public PublicIpInstance getInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();

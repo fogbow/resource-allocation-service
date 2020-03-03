@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.as.core.util.AuthenticationUtil;
@@ -35,8 +36,6 @@ import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.Allocation;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -159,6 +158,21 @@ public class ApplicationFacade {
     public ComputeAllocation getComputeAllocation(String providerId, String cloudName, String userToken)
             throws FogbowException {
         return (ComputeAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.COMPUTE);
+    }
+
+    public VolumeAllocation getVolumeAllocation(String providerId, String cloudName, String userToken)
+            throws FogbowException {
+        return (VolumeAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.VOLUME);
+    }
+
+    public NetworkAllocation getNetworkAllocation(String providerId, String cloudName, String userToken)
+            throws FogbowException {
+        return (NetworkAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.NETWORK);
+    }
+
+    public PublicIpAllocation getPublicIpAllocation(String providerId, String cloudName, String userToken)
+            throws FogbowException {
+        return (PublicIpAllocation) getUserAllocation(providerId, cloudName, userToken, ResourceType.PUBLIC_IP);
     }
 
     public ResourceQuota getResourceQuota(String providerId, String cloudName, String userToken)
@@ -355,7 +369,7 @@ public class ApplicationFacade {
             cloudName = this.cloudListController.getDefaultCloudName();
         RasOperation rasOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, cloudName);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
-        return this.orderController.getUserAllocation(providerId, requester, resourceType);
+        return this.orderController.getUserAllocation(providerId, cloudName, requester, resourceType);
     }
 
     protected Quota getUserQuota(String providerId, String cloudName, String userToken, ResourceType resourceType)

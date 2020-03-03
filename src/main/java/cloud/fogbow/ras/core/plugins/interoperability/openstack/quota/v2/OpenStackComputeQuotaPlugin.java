@@ -37,7 +37,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin<OpenStack
 
         jsonResponse = doGetQuota(endpoint, cloudUser);
 
-        GetQuotaResponse getQuotaResponse = GetQuotaResponse.fromJson(jsonResponse);
+        GetComputeQuotasResponse getQuotaResponse = GetComputeQuotasResponse.fromJson(jsonResponse);
 
         int maxTotalCores = getQuotaResponse.getMaxTotalCores();
         int maxTotalRamSize = getQuotaResponse.getMaxTotalRamSize();

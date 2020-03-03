@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.models.orders;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
@@ -20,6 +21,9 @@ public class VolumeOrder extends Order<VolumeOrder> {
 
     @Column
     private int volumeSize;
+
+    @Embedded
+    private VolumeAllocation actualAllocation;
 
     @Size(max = Order.FIELDS_MAX_SIZE)
     @Column(name = NAME_COLUMN_NAME)
@@ -60,7 +64,17 @@ public class VolumeOrder extends Order<VolumeOrder> {
         this.name = name;
     }
 
+    public VolumeAllocation getActualAllocation() {
+        return this.actualAllocation;
+    }
+    
+    public void setActualAllocation(VolumeAllocation actualAllocation) {
+        this.actualAllocation = actualAllocation;
+    }
+    
     @Override
     public void updateFromRemote(VolumeOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
+
 }

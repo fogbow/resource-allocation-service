@@ -66,6 +66,7 @@ public class ApiDocumentation {
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules associated to the network.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
+        public static final String GET_ALLOCATION = "Gets the current network allocation for the user on a particular provider.";
     }
 
     public static class PublicIp {
@@ -83,6 +84,7 @@ public class ApiDocumentation {
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules associated to the public IP.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
+        public static final String GET_ALLOCATION = "Gets the current public ip allocation for the user on a particular provider.";
     }
     
     public static class Quota {
@@ -101,6 +103,7 @@ public class ApiDocumentation {
                 "The body of the request must specify the size of the volume to be " +
                 "created; optionally, it may specify the provider and the cloud where the " +
                 "volume should be created, and a name to be assigned to the volume.";
+        public static final String GET_ALLOCATION = "Gets the current volume allocation for the user on a particular provider.";
     }
 
     public static class CommonParameters {

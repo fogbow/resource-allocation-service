@@ -10,6 +10,7 @@ import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
@@ -54,16 +55,14 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
-		
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
-		String instanceName = volumeOrder.getName();
 		
 		CreateVolumeRequest request = CreateVolumeRequest.builder()
 			.size(volumeOrder.getVolumeSize())
 			.availabilityZone(this.zone)
 			.build();
 
-		return doRequestInstance(request, instanceName, client);
+		return doRequestInstance(request, volumeOrder, client);
 	}
 
 	@Override
@@ -112,16 +111,24 @@ public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
         return new VolumeInstance(id, cloudState, name, size);
     }
 	
-    protected String doRequestInstance(CreateVolumeRequest request, String name, Ec2Client client) throws FogbowException {
+    protected String doRequestInstance(CreateVolumeRequest request, VolumeOrder order, Ec2Client client) throws FogbowException {
         String volumeId;
         try {
             CreateVolumeResponse response = client.createVolume(request);
             volumeId = response.volumeId();
-            AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, name, client);
+            AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, order.getName(), client);
+            updateVolumeAllocation(order, response);
         } catch (Exception e) {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
         return volumeId;
+    }
+
+    protected void updateVolumeAllocation(VolumeOrder volumeOrder, CreateVolumeResponse volumeResponse) {
+        synchronized (volumeOrder) {
+            VolumeAllocation actualAllocation = new VolumeAllocation(volumeResponse.size());
+            volumeOrder.setActualAllocation(actualAllocation);
+        }
     }
     
 }

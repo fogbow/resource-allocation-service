@@ -3,7 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -81,7 +83,17 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 				.devicePrefix(devicePrefix)
 				.build();
 
-		return this.doRequestInstance(request, client);
+		String instanceId = this.doRequestInstance(request, client);
+		this.setOrderAllocation(volumeOrder, volumeOrder.getVolumeSize());
+		return instanceId;
+	}
+
+	@VisibleForTesting
+	void setOrderAllocation(VolumeOrder order, long size) {
+		synchronized (order) {
+			VolumeAllocation volumeAllocation = new VolumeAllocation((int) size);
+			order.setActualAllocation(volumeAllocation);
+		}
 	}
 
 	@Override

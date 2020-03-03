@@ -25,7 +25,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.io.File;
 
-@PrepareForTest({ GetQuotaResponse.class, DatabaseManager.class,
+@PrepareForTest({ GetComputeQuotasResponse.class, DatabaseManager.class,
         OpenStackHttpToFogbowExceptionMapper.class })
 public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
 
@@ -65,10 +65,10 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         // set up
         Mockito.doReturn(ANY_JSON).when(this.plugin).doGetQuota(Mockito.anyString(), Mockito.eq(cloudUser));
 
-        GetQuotaResponse getQuotaResponse = getQuotaResponseMock();
+        GetComputeQuotasResponse getQuotaResponse = getQuotaResponseMock();
 
-        PowerMockito.mockStatic(GetQuotaResponse.class);
-        BDDMockito.given(GetQuotaResponse.fromJson(Mockito.anyString()))
+        PowerMockito.mockStatic(GetComputeQuotasResponse.class);
+        BDDMockito.given(GetComputeQuotasResponse.fromJson(Mockito.anyString()))
                 .willReturn(getQuotaResponse);
 
         int maxTotalCores = getQuotaResponse.getMaxTotalCores();
@@ -127,10 +127,10 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
         PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
-        GetQuotaResponse getQuotaResponse = getQuotaResponseMock();
+        GetComputeQuotasResponse getQuotaResponse = getQuotaResponseMock();
 
-        PowerMockito.mockStatic(GetQuotaResponse.class);
-        BDDMockito.given(GetQuotaResponse.fromJson(Mockito.anyString()))
+        PowerMockito.mockStatic(GetComputeQuotasResponse.class);
+        BDDMockito.given(GetComputeQuotasResponse.fromJson(Mockito.anyString()))
                 .willReturn(getQuotaResponse);
 
         try {
@@ -145,8 +145,8 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         }
     }
 
-    private GetQuotaResponse getQuotaResponseMock() {
-        GetQuotaResponse mock = Mockito.mock(GetQuotaResponse.class);
+    private GetComputeQuotasResponse getQuotaResponseMock() {
+        GetComputeQuotasResponse mock = Mockito.mock(GetComputeQuotasResponse.class);
         Mockito.when(mock.getMaxTotalCores()).thenReturn(FAKE_MAX_TOTAL_CORES);
         Mockito.when(mock.getMaxTotalInstances()).thenReturn(FAKE_MAX_TOTAL_INSTANCES);
         Mockito.when(mock.getMaxTotalRamSize()).thenReturn(FAKE_MAX_TOTAL_MEMORY);
