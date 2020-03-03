@@ -40,8 +40,6 @@ public class AzureVirtualMachineOperationSDK {
 
     private Scheduler scheduler;
 
-    public AzureVirtualMachineOperationSDK() {}
-
     public AzureVirtualMachineOperationSDK(String regionName) {
         ExecutorService virtualMachineExecutor = AzureSchedulerManager.getVirtualMachineExecutor();
         this.scheduler = Schedulers.from(virtualMachineExecutor);
