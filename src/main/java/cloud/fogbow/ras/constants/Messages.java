@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.constants;
 
+import java.util.Locale;
+
 public class Messages {
 
     public static class Exception {
@@ -127,6 +129,14 @@ public class Messages {
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
         public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
                 "The asynchronous public ip request %s is in the state %s.";
+        public static final String CREATING_AZURE_CLIENT = "Creating a new Azure client";
+        public static final String SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME =
+                "Seek for the Virtual Machine Size by name %s at region %s";
+        public static final String END_CREATE_VM_ASYNC_BEHAVIOUR = "End asynchronous create virtual machine";
+        public static final String SEEK_VIRTUAL_MACHINE_SIZE_NAME =
+                "Seek for the Virtual Machine Size that fits with memory(%s) and vCpu(%s) at region %s";
+        public static final String END_DELETE_DISK_ASYNC_BEHAVIOUR = "End asynchronous delete disk";
+        public static final String END_DELETE_VM_ASYNC_BEHAVIOUR = "End asynchronous delete virtual machine";
     }
 
     public static class Error {
@@ -188,5 +198,13 @@ public class Messages {
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
         public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
                 "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
+        public static final String ERROR_WHILE_CREATING_AZURE_CLIENT = "Error while creating a new Azure client";
+        public static final String ERROR_ID_LIMIT_SIZE_EXCEEDED =
+                "The resource name exceeded %s characters of the limit";
+        public static final String ERROR_DISK_PARAMETER_AZURE_POLICY = "The disk size must be greater than %sGB";;
+        public static final String ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED = "Multiple networks not allowed";
+        public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously";
+        public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchonously";
+        public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously";
     }
 }
