@@ -6,9 +6,9 @@ import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNetworkSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
@@ -73,8 +73,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the doGetInstance method with methods mocked,
     // it must verify if It returns the right AzureGetVirtualMachineRef.
     @Test
-    public void testDoGetInstanceSuccessfully() throws NoAvailableResourcesException, UnexpectedException,
-            UnauthenticatedUserException, InstanceNotFoundException {
+    public void testDoGetInstanceSuccessfully() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -104,7 +103,7 @@ public class AzureVirtualMachineOperationSDKTest {
         Integer vCPU = 2;
         Mockito.when(virtualMachineSize.numberOfCores()).thenReturn(vCPU);
         Mockito.doReturn(virtualMachineSize).when(this.azureVirtualMachineOperationSDK)
-                .findVirtualMachineSizeByName(Mockito.eq(virtualMachineSizeName),
+                .findVirtualMachineSize(Mockito.eq(virtualMachineSizeName),
                         Mockito.eq(regionName), Mockito.eq(this.azure));
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
@@ -133,9 +132,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the doGetInstance method with methods mocked and throw any exception,
     // it must verify if It retrows the same exception.
     @Test
-    public void testDoGetInstanceFailWhenThrowException()
-            throws UnauthenticatedUserException, UnexpectedException,
-            InstanceNotFoundException, NoAvailableResourcesException {
+    public void testDoGetInstanceFailWhenThrowException() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -153,21 +150,20 @@ public class AzureVirtualMachineOperationSDKTest {
         this.azureVirtualMachineOperationSDK.doGetInstance(instanceId, this.azureCloudUser);
     }
 
-    // test case: When calling the findVirtualMachineSizeByName method and find one the virtual machine size,
+    // test case: When calling the findVirtualMachineSize method and find one the virtual machine size,
     // it must verify if It returns the right virtual machine size.
     @Test
-    public void testFindVirtualMachineSizeByNameSuccessfully()
-            throws UnauthenticatedUserException, NoAvailableResourcesException, UnexpectedException {
+    public void testFindVirtualMachineSizeSuccessfully() throws FogbowException {
         // set up
         mockGetAzureClient();
-        String virtualMachineSizeNameExpected = "nameExpected";
+        String virtualMachineSizeExpected = "nameExpected";
 
         Region region = Region.US_EAST;
         String regionName = region.name();
         PagedList<VirtualMachineSize> virtualMachines = getVirtualMachineSizesMock();
 
         VirtualMachineSize virtualMachineSizeNotMactchOne = buildVirtualMachineSizeMock("notmatch");
-        VirtualMachineSize virtualMachineSizeMatch = buildVirtualMachineSizeMock(virtualMachineSizeNameExpected);
+        VirtualMachineSize virtualMachineSizeMatch = buildVirtualMachineSizeMock(virtualMachineSizeExpected);
         VirtualMachineSize virtualMachineSizeNotMactchTwo = buildVirtualMachineSizeMock("notmatch");
 
         virtualMachines.add(virtualMachineSizeNotMactchOne);
@@ -180,20 +176,20 @@ public class AzureVirtualMachineOperationSDKTest {
 
         // exercise
         VirtualMachineSize virtualMachineSize = this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSizeByName(virtualMachineSizeNameExpected, regionName, this.azure);
+                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, this.azure);
 
         // verify
         Assert.assertEquals(virtualMachineSizeMatch.name(), virtualMachineSize.name());
     }
 
-    // test case: When calling the findVirtualMachineSizeByName method and does not find the virtual machine size,
+    // test case: When calling the findVirtualMachineSize method and does not find the virtual machine size,
     // it must verify if It throws a NoAvailableResourcesException exception.
     @Test
-    public void testFindVirtualMachineSizeByNameFail()
-            throws UnauthenticatedUserException, NoAvailableResourcesException, UnexpectedException {
+    public void testFindVirtualMachineSizeFail()
+            throws FogbowException {
         // set up
         mockGetAzureClient();
-        String virtualMachineSizeNameExpected = "nameExpected";
+        String virtualMachineSizeExpected = "nameExpected";
 
         Region region = Region.US_EAST;
         String regionName = region.name();
@@ -214,15 +210,14 @@ public class AzureVirtualMachineOperationSDKTest {
 
         // exercise
         this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSizeByName(virtualMachineSizeNameExpected, regionName, this.azure);
+                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, this.azure);
     }
 
 
-    // test case: When calling the findVirtualMachineSizeName method with two virtual machine size name that
-    // fits in the requirements, it must verify if It returns the smaller virtual machine size.
+    // test case: When calling the findVirtualMachineSize method with two virtual machines size name that
+    // fits in the requirements, it must verify if It returns the smaller virtual machines size.
     @Test
-    public void testFindVirtualMachineSizeNameSuccessfully()
-            throws NoAvailableResourcesException, UnauthenticatedUserException, UnexpectedException {
+    public void testFindVirtualMachineSizeWithTwoVirtualMachinesSize() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -249,19 +244,18 @@ public class AzureVirtualMachineOperationSDKTest {
                 .thenReturn(virtualMachines);
 
         // exercise
-        String virtualMachineSize = this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSizeName(memory, vcpu, regionName, this.azureCloudUser);
+        VirtualMachineSize virtualMachineSize = this.azureVirtualMachineOperationSDK
+                .findVirtualMachineSize(memory, vcpu, regionName, this.azureCloudUser);
 
         // verify
-        Assert.assertNotEquals(virtualMachineSizeFitsBigger.name(), virtualMachineSize);
-        Assert.assertEquals(virtualMachineSizeFitsSmaller.name(), virtualMachineSize);
+        Assert.assertNotEquals(virtualMachineSizeFitsBigger, virtualMachineSize);
+        Assert.assertEquals(virtualMachineSizeFitsSmaller, virtualMachineSize);
     }
 
-    // test case: When calling the findVirtualMachineSizeName method with any virtual machine size name that
+    // test case: When calling the findVirtualMachineSize method with any virtual machine size name that
     // fits in the requirements, it must verify if It throws a NoAvailableResourcesException.
     @Test
-    public void testFindVirtualMachineSizeNameFail()
-            throws NoAvailableResourcesException, UnauthenticatedUserException, UnexpectedException {
+    public void testFindVirtualMachineSizeFailWhenSizeThatNotFits() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -286,14 +280,13 @@ public class AzureVirtualMachineOperationSDKTest {
         this.expectedException.expect(NoAvailableResourcesException.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.findVirtualMachineSizeName(memory, vcpu, regionName, this.azureCloudUser);
+        this.azureVirtualMachineOperationSDK.findVirtualMachineSize(memory, vcpu, regionName, this.azureCloudUser);
     }
 
     // test case: When calling the findVirtualMachineSizeName method with throws an Unauthorized
     // exception, it must verify if It throws an Unauthorized exception.
     @Test
-    public void testFindVirtualMachineSizeFailWhenThrowUnauthorized()
-            throws NoAvailableResourcesException, UnauthenticatedUserException, UnexpectedException {
+    public void testFindVirtualMachineSizeFailWhenThrowUnauthorized() throws FogbowException {
 
         // set up
         mockGetAzureClientUnauthorized();
@@ -305,7 +298,7 @@ public class AzureVirtualMachineOperationSDKTest {
         this.expectedException.expect(UnauthenticatedUserException.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.findVirtualMachineSizeName(
+        this.azureVirtualMachineOperationSDK.findVirtualMachineSize(
                 memory, vcpu, regionName, this.azureCloudUser);
     }
 
@@ -341,8 +334,7 @@ public class AzureVirtualMachineOperationSDKTest {
 
     // test case: When calling the doCreateInstance method, it must verify if It finishes without error.
     @Test
-    public void testDoCreateInstanceSuccessfully()
-            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
+    public void testDoCreateInstanceSuccessfully() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -367,7 +359,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the buildAzureVirtualMachineObservable method, it must verify if
     // It calls the method with the right parameters.
     @Test
-    public void testBuildAzureVirtualMachineObservable() throws InvalidParameterException, InstanceNotFoundException, UnexpectedException {
+    public void testBuildAzureVirtualMachineObservable() throws FogbowException {
         // set up
         String imagePublishedExpected = "publisher";
         String imageSkuExpected = "sku";
@@ -426,8 +418,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the doDeleteInstance method and the completable executes
     // without any error, it must verify if It returns the right logs.
     @Test
-    public void testDoDeleteInstanceSuccessfully() throws UnexpectedException,
-            InstanceNotFoundException, UnauthenticatedUserException {
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -456,8 +447,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // with error in the delete virtual machine, it must verify if It returns the right logs and
     // does not execute the delete virtual machine disk.
     @Test
-    public void testDoDeleteInstanceFailOnVirtualMachineDeletion() throws UnexpectedException,
-            InstanceNotFoundException, UnauthenticatedUserException {
+    public void testDoDeleteInstanceFailOnVirtualMachineDeletion() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -484,8 +474,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the doDeleteInstance method and the completable executes
     // with error in the delete virtual machine disk, it must verify if It returns the right logs.
     @Test
-    public void testDoDeleteInstanceFailOnVirtualMachineDiskDeletion() throws UnexpectedException,
-            InstanceNotFoundException, UnauthenticatedUserException {
+    public void testDoDeleteInstanceFailOnVirtualMachineDiskDeletion() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -515,8 +504,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the buildDeleteVirtualMachineDiskCompletable method and the completable executes
     // without any error, it must verify if It returns the right logs.
     @Test
-    public void testBuildDeleteVirtualMachineDiskCompletableSuccessfully()
-            throws UnexpectedException, InstanceNotFoundException {
+    public void testBuildDeleteVirtualMachineDiskCompletableSuccessfully() throws FogbowException {
 
         // set up
         String instanceId = "instanceId";
@@ -537,8 +525,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the buildDeleteVirtualMachineDiskCompletable method and the completable executes
     // with error, it must verify if It returns the right logs.
     @Test
-    public void testBuildDeleteVirtualMachineDiskCompletableFail()
-            throws UnexpectedException, InstanceNotFoundException {
+    public void testBuildDeleteVirtualMachineDiskCompletableFail() throws FogbowException {
 
         // set up
         String instanceId = "instanceId";
@@ -557,8 +544,7 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the buildDeleteVirtualMachineDiskCompletable method and throws a exception because
     // it does not found the disk, it must verify if It throws a InstanceNotFoundException.
     @Test
-    public void testBuildDeleteVirtualMachineDiskCompletableFailWhenNotFindDisk()
-            throws UnexpectedException, InstanceNotFoundException {
+    public void testBuildDeleteVirtualMachineDiskCompletableFailWhenNotFindDisk() throws FogbowException {
 
         // set up
         String instanceId = "instanceId";

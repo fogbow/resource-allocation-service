@@ -1,17 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class AzureIdBuilderTest {
+import cloud.fogbow.common.constants.AzureConstants;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+
+public class AzureResourceIdBuilderTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -30,17 +32,16 @@ public class AzureIdBuilderTest {
         String networkInterfaceName = "networkInterfaceName";
 
 
-        String networkInterfaceIdExpected = String.format(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE,
+        String networkInterfaceIdExpected = String.format(AzureConstants.NETWORK_INTERFACE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
                 networkInterfaceName);
 
         // exercise
-        String networkInterfaceId = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceName(networkInterfaceName)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .structure(AzureIdBuilder.NETWORK_INTERFACE_STRUCTURE)
+        String networkInterfaceId = AzureResourceIdBuilder.configure(AzureConstants.NETWORK_INTERFACE_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(networkInterfaceName)
                 .build();
 
         // verify
@@ -54,18 +55,17 @@ public class AzureIdBuilderTest {
         // set up
         String virtualMachineName = "virtualMachineName";
 
-        String virtualMachineIdExpected = String.format(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE,
+        String virtualMachineIdExpected = String.format(AzureConstants.VIRTUAL_MACHINE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
                 virtualMachineName);
 
         // exercise
-        String networkInterfaceId = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceName(virtualMachineName)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .structure(AzureIdBuilder.VIRTUAL_MACHINE_STRUCTURE)
-                .build();;
+        String networkInterfaceId = AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(virtualMachineName)
+                .build();
 
         // verify
         Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
@@ -79,17 +79,18 @@ public class AzureIdBuilderTest {
         int whatLeftToTotalLimit = getWhatLeftToTotalLimit();
         String resourceNameInTheLimit = String.valueOf(new char[whatLeftToTotalLimit]);
 
-        String idInTheLimitSize = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceName(resourceNameInTheLimit)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .structure(AzureIdBuilder.BIGGER_STRUCTURE)
+        String idInTheLimitSize = AzureResourceIdBuilder.configure(AzureConstants.BIGGER_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceNameInTheLimit)
                 .build();
 
         // exercise
-        AzureIdBuilder
-                .configure(this.azureUser)
-                .checkIdSizePolicy(resourceNameInTheLimit);
+        AzureResourceIdBuilder.configure()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceNameInTheLimit)
+                .checkIdSizePolicy();
 
         // verify
         Assert.assertEquals(Order.FIELDS_MAX_SIZE, idInTheLimitSize.length());
@@ -104,11 +105,10 @@ public class AzureIdBuilderTest {
         int outOfLimit = 1;
         String resourceNameInTheLimit = String.valueOf(new char[whatLeftToTotalLimit + outOfLimit]);
 
-        String idInTheLimitSize = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceName(resourceNameInTheLimit)
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .structure(AzureIdBuilder.BIGGER_STRUCTURE)
+        String idInTheLimitSize = AzureResourceIdBuilder.configure(AzureConstants.BIGGER_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceNameInTheLimit)
                 .build();
 
         // verify
@@ -117,18 +117,19 @@ public class AzureIdBuilderTest {
         this.expectedException.expectMessage(String.format(Messages.Error.ERROR_ID_LIMIT_SIZE_EXCEEDED, outOfLimit));
 
         // exercise
-        AzureIdBuilder
-                .configure(this.azureUser)
-                .checkIdSizePolicy(resourceNameInTheLimit);
+        AzureResourceIdBuilder.configure()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceNameInTheLimit)
+                .checkIdSizePolicy();
 
     }
 
     private int getWhatLeftToTotalLimit() {
-        String anyIdEmpty = AzureIdBuilder
-                .configure(this.azureUser)
-                .resourceName("")
-                .resourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .structure(AzureIdBuilder.BIGGER_STRUCTURE)
+        String anyIdEmpty = AzureResourceIdBuilder.configure(AzureConstants.BIGGER_STRUCTURE)
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName("")
                 .build();
 
         return Order.FIELDS_MAX_SIZE - anyIdEmpty.length();
