@@ -150,7 +150,7 @@ public class AzureVirtualMachineOperationSDK {
         String primaryPrivateIp = virtualMachine.getPrimaryNetworkInterface().primaryPrivateIP();
         List<String> ipAddresses = Arrays.asList(primaryPrivateIp);
 
-        VirtualMachineSize virtualMachineSize = findVirtualMachineSizeByName(virtualMachineSizeName, this.regionName, azure);
+        VirtualMachineSize virtualMachineSize = findVirtualMachineSize(virtualMachineSizeName, this.regionName, azure);
         int vCPU = virtualMachineSize.numberOfCores();
         int memory = virtualMachineSize.memoryInMB();
         int disk = virtualMachine.osDiskSize();
@@ -166,15 +166,15 @@ public class AzureVirtualMachineOperationSDK {
     }
 
     @VisibleForTesting
-    VirtualMachineSize findVirtualMachineSizeByName(String virtualMachineSizeNameWanted, String regionName, Azure azure)
+    VirtualMachineSize findVirtualMachineSize(String virtualMachineSizeWanted, String regionName, Azure azure)
             throws FogbowException {
 
-        LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME, virtualMachineSizeNameWanted, regionName));
+        LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME, virtualMachineSizeWanted, regionName));
         Region region = Region.findByLabelOrName(regionName);
         
         PagedList<VirtualMachineSize> virtualMachineSizes = AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
         return virtualMachineSizes.stream()
-                .filter((virtualMachineSize) -> virtualMachineSizeNameWanted.equals(virtualMachineSize.name()))
+                .filter((virtualMachineSize) -> virtualMachineSizeWanted.equals(virtualMachineSize.name()))
                 .findFirst()
                 .orElseThrow(NoAvailableResourcesException::new);
     }

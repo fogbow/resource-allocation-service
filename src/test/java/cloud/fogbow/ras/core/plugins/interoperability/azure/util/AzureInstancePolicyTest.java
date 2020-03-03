@@ -55,7 +55,7 @@ public class AzureInstancePolicyTest {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
-                .buildResourceId();
+                .build();
 
         // exercise
         String instanceId = AzureInstancePolicy.generateFogbowInstanceId(computeOrder, this.azureUser, resourceGroupName);

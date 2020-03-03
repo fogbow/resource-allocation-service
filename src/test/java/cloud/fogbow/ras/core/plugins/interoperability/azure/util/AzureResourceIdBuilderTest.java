@@ -42,7 +42,7 @@ public class AzureResourceIdBuilderTest {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
                 .withResourceName(networkInterfaceName)
-                .buildResourceId();
+                .build();
 
         // verify
         Assert.assertEquals(networkInterfaceIdExpected, networkInterfaceId);
@@ -65,7 +65,7 @@ public class AzureResourceIdBuilderTest {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
                 .withResourceName(virtualMachineName)
-                .buildResourceId();
+                .build();
 
         // verify
         Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
@@ -83,7 +83,7 @@ public class AzureResourceIdBuilderTest {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
                 .withResourceName(resourceNameInTheLimit)
-                .buildResourceId();
+                .build();
 
         // exercise
         AzureResourceIdBuilder.configure()
@@ -109,7 +109,7 @@ public class AzureResourceIdBuilderTest {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
                 .withResourceName(resourceNameInTheLimit)
-                .buildResourceId();
+                .build();
 
         // verify
         Assert.assertEquals(Order.FIELDS_MAX_SIZE + outOfLimit, idInTheLimitSize.length());
@@ -130,7 +130,7 @@ public class AzureResourceIdBuilderTest {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
                 .withResourceName("")
-                .buildResourceId();
+                .build();
 
         return Order.FIELDS_MAX_SIZE - anyIdEmpty.length();
     }

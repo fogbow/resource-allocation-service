@@ -103,7 +103,7 @@ public class AzureVirtualMachineOperationSDKTest {
         Integer vCPU = 2;
         Mockito.when(virtualMachineSize.numberOfCores()).thenReturn(vCPU);
         Mockito.doReturn(virtualMachineSize).when(this.azureVirtualMachineOperationSDK)
-                .findVirtualMachineSizeByName(Mockito.eq(virtualMachineSizeName),
+                .findVirtualMachineSize(Mockito.eq(virtualMachineSizeName),
                         Mockito.eq(regionName), Mockito.eq(this.azure));
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
@@ -150,20 +150,20 @@ public class AzureVirtualMachineOperationSDKTest {
         this.azureVirtualMachineOperationSDK.doGetInstance(instanceId, this.azureCloudUser);
     }
 
-    // test case: When calling the findVirtualMachineSizeByName method and find one the virtual machine size,
+    // test case: When calling the findVirtualMachineSize method and find one the virtual machine size,
     // it must verify if It returns the right virtual machine size.
     @Test
-    public void testFindVirtualMachineSizeByNameSuccessfully() throws FogbowException {
+    public void testFindVirtualMachineSizeSuccessfully() throws FogbowException {
         // set up
         mockGetAzureClient();
-        String virtualMachineSizeNameExpected = "nameExpected";
+        String virtualMachineSizeExpected = "nameExpected";
 
         Region region = Region.US_EAST;
         String regionName = region.name();
         PagedList<VirtualMachineSize> virtualMachines = getVirtualMachineSizesMock();
 
         VirtualMachineSize virtualMachineSizeNotMactchOne = buildVirtualMachineSizeMock("notmatch");
-        VirtualMachineSize virtualMachineSizeMatch = buildVirtualMachineSizeMock(virtualMachineSizeNameExpected);
+        VirtualMachineSize virtualMachineSizeMatch = buildVirtualMachineSizeMock(virtualMachineSizeExpected);
         VirtualMachineSize virtualMachineSizeNotMactchTwo = buildVirtualMachineSizeMock("notmatch");
 
         virtualMachines.add(virtualMachineSizeNotMactchOne);
@@ -176,20 +176,20 @@ public class AzureVirtualMachineOperationSDKTest {
 
         // exercise
         VirtualMachineSize virtualMachineSize = this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSizeByName(virtualMachineSizeNameExpected, regionName, this.azure);
+                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, this.azure);
 
         // verify
         Assert.assertEquals(virtualMachineSizeMatch.name(), virtualMachineSize.name());
     }
 
-    // test case: When calling the findVirtualMachineSizeByName method and does not find the virtual machine size,
+    // test case: When calling the findVirtualMachineSize method and does not find the virtual machine size,
     // it must verify if It throws a NoAvailableResourcesException exception.
     @Test
-    public void testFindVirtualMachineSizeByNameFail()
+    public void testFindVirtualMachineSizeFail()
             throws FogbowException {
         // set up
         mockGetAzureClient();
-        String virtualMachineSizeNameExpected = "nameExpected";
+        String virtualMachineSizeExpected = "nameExpected";
 
         Region region = Region.US_EAST;
         String regionName = region.name();
@@ -210,14 +210,14 @@ public class AzureVirtualMachineOperationSDKTest {
 
         // exercise
         this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSizeByName(virtualMachineSizeNameExpected, regionName, this.azure);
+                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, this.azure);
     }
 
 
-    // test case: When calling the findVirtualMachineSizeName method with two virtual machine size name that
-    // fits in the requirements, it must verify if It returns the smaller virtual machine size.
+    // test case: When calling the findVirtualMachineSize method with two virtual machines size name that
+    // fits in the requirements, it must verify if It returns the smaller virtual machines size.
     @Test
-    public void testFindVirtualMachineSizeNameSuccessfully() throws FogbowException {
+    public void testFindVirtualMachineSizeWithTwoVirtualMachinesSize() throws FogbowException {
 
         // set up
         mockGetAzureClient();
@@ -252,10 +252,10 @@ public class AzureVirtualMachineOperationSDKTest {
         Assert.assertEquals(virtualMachineSizeFitsSmaller, virtualMachineSize);
     }
 
-    // test case: When calling the findVirtualMachineSizeName method with any virtual machine size name that
+    // test case: When calling the findVirtualMachineSize method with any virtual machine size name that
     // fits in the requirements, it must verify if It throws a NoAvailableResourcesException.
     @Test
-    public void testFindVirtualMachineSizeNameFail() throws FogbowException {
+    public void testFindVirtualMachineSizeFailWhenSizeThatNotFits() throws FogbowException {
 
         // set up
         mockGetAzureClient();

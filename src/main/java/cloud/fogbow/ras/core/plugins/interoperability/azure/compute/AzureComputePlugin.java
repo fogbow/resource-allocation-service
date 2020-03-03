@@ -69,6 +69,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         String networkInterfaceId = getNetworkInterfaceId(computeOrder, azureUser);
         VirtualMachineSize virtualMachineSize = getVirtualMachineSize(computeOrder, azureUser);
+        String size = virtualMachineSize.name();
         int diskSize = AzureGeneralPolicy.getDisk(computeOrder);
         String imageId = computeOrder.getImageId();
         AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(imageId);
@@ -85,7 +86,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                 .azureGetImageRef(imageRef)
                 .networkInterfaceId(networkInterfaceId)
                 .diskSize(diskSize)
-                .size(virtualMachineSize.name())
+                .size(size)
                 .osComputeName(osComputeName)
                 .osUserName(osUserName)
                 .osUserPassword(osUserPassword)
@@ -122,7 +123,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                     .withSubscriptionId(azureCloudUser.getSubscriptionId())
                     .withResourceGroupName(this.defaultResourceGroupName)
                     .withResourceName(this.defaultNetworkInterfaceName)
-                    .buildResourceId();
+                    .build();
         } else {
             if (networkIds.size() > AzureGeneralPolicy.MAXIMUM_NETWORK_PER_VIRTUAL_MACHINE) {
                 throw new FogbowException(Messages.Error.ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED);
@@ -171,7 +172,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(virtualMachineName)
-                .buildResourceId();
+                .build();
         
         String cloudState = azureGetVirtualMachineRef.getCloudState();
         int vCPU = azureGetVirtualMachineRef.getvCPU();

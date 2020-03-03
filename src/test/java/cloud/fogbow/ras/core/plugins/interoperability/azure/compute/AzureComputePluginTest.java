@@ -128,7 +128,7 @@ public class AzureComputePluginTest extends TestUtils {
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(this.defaultNetworkInterfaceName)
-                .buildResourceId();
+                .build();
 
         // exercise
         String networkInterfaceId = this.azureComputePlugin.getNetworkInterfaceId(computeOrder, this.azureUser);
@@ -344,7 +344,7 @@ public class AzureComputePluginTest extends TestUtils {
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(nameExpected)
-                .buildResourceId();
+                .build();
 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = AzureGetVirtualMachineRef.builder()
                 .disk(diskExpected)

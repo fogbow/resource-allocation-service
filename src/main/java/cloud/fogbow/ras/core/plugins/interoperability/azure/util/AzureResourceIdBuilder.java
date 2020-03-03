@@ -42,7 +42,7 @@ public class AzureResourceIdBuilder {
             return this;
         }
 
-        public String buildResourceId() {
+        public String build() {
             return String.format(this.structure, this.subscriptionId, this.resourceGroupName, this.resourceName);
         }
 
@@ -53,7 +53,7 @@ public class AzureResourceIdBuilder {
          */
         public void checkIdSizePolicy() throws InvalidParameterException {
             this.structure = AzureConstants.BIGGER_STRUCTURE;
-            String idBuilt = this.buildResourceId();
+            String idBuilt = this.build();
             int sizeExceeded = idBuilt.length() - Order.FIELDS_MAX_SIZE;
             if (sizeExceeded > 0) {
                 throw new InvalidParameterException(

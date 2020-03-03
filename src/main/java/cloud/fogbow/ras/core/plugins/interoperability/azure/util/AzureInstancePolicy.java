@@ -49,7 +49,7 @@ public class AzureInstancePolicy {
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
-                .buildResourceId();
+                .build();
     }
 
 }
