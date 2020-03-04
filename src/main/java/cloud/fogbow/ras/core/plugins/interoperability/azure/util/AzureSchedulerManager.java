@@ -11,4 +11,8 @@ public class AzureSchedulerManager {
         return Executors.newFixedThreadPool(VIRTUAL_MACHINE_POOL_SIZE);
     }
 
+    // TODO implement
+    public static ExecutorService getVirtualNetworkExecutor() {
+        return null;
+    }
 }
