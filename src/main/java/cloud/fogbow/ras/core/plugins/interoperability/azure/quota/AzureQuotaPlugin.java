@@ -70,12 +70,17 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
     @VisibleForTesting
     VolumeAllocation getUsedVolumeAllocation(PagedList<Disk> disks) {
-        int initialValue = NO_USAGE;
         int volumes = disks.size();
-        int storage = disks.stream()
+        int storage = this.getStorageUsage(disks);
+        return new VolumeAllocation(volumes, storage);
+    }
+
+    @VisibleForTesting
+    int getStorageUsage(PagedList<Disk> disks) {
+        int initialValue = NO_USAGE;
+        return disks.stream()
                 .map(disk -> disk.sizeInGB())
                 .reduce(initialValue, Integer::sum);
-        return new VolumeAllocation(volumes, storage);
     }
 
     @VisibleForTesting
