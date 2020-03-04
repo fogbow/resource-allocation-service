@@ -24,11 +24,21 @@ import java.util.stream.Collectors;
 
 public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
+    @VisibleForTesting
     private static final String QUOTA_VM_INSTANCES_KEY = "virtualMachines";
+
+    @VisibleForTesting
     private static final String QUOTA_VM_CORES_KEY = "cores";
-    private static final String QUOTA_NETWORK_INSTANCES = "VirtualNetworks";
-    private static final String QUOTA_PUBLIC_IP_ADDRESSES = "PublicIPAddresses";
-    private static final int NO_USAGE = 0;
+
+    @VisibleForTesting
+    static final String QUOTA_NETWORK_INSTANCES = "VirtualNetworks";
+
+    @VisibleForTesting
+    static final String QUOTA_PUBLIC_IP_ADDRESSES = "PublicIPAddresses";
+
+    @VisibleForTesting
+    static final int NO_USAGE = 0;
+
     private static final int ONE_PETABYTE_IN_GIGABYTES = 1048576;
 
     /**
