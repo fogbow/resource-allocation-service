@@ -1,12 +1,21 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import org.apache.log4j.Logger;
 
-public class AzureNetworkPlugin implements NetworkPlugin {
+public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
+
+    private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
+
+    private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
+
+    public AzureNetworkPlugin() {
+
+    }
 
     @Override
     public boolean isReady(String instanceState) {
@@ -19,17 +28,17 @@ public class AzureNetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+    public String requestInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         return null;
     }
 
     @Override
-    public NetworkInstance getInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+    public NetworkInstance getInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         return null;
     }
 
     @Override
-    public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+    public void deleteInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
 
     }
 
