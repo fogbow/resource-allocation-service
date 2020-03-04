@@ -6,14 +6,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
+
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
-public class AzureResourceIdBuilderTest {
+public class AzureResourceIdBuilderTest extends AzureTestUtils {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -71,69 +72,28 @@ public class AzureResourceIdBuilderTest {
         Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
     }
 
-    // test case: When calling the checkIdSizePolicy method with resourceName within the limit,
-    // it must verify if It does not throw an InvalidParameterException.
-    @Test
-    public void testCheckIdSizePolicySuccessfully() throws InvalidParameterException {
-        // set up
-        int whatLeftToTotalLimit = getWhatLeftToTotalLimit();
-        String resourceNameInTheLimit = String.valueOf(new char[whatLeftToTotalLimit]);
-
-        String idInTheLimitSize = AzureResourceIdBuilder.configure(AzureConstants.BIGGER_STRUCTURE)
-                .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(resourceNameInTheLimit)
-                .build();
-
-        // exercise
-        AzureResourceIdBuilder.configure()
-                .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(resourceNameInTheLimit)
-                .checkIdSizePolicy();
-
-        // verify
-        Assert.assertEquals(Order.FIELDS_MAX_SIZE, idInTheLimitSize.length());
-    }
-
     // test case: When calling the checkIdSizePolicy method with resourceName out of the limit,
     // it must verify if It throws an InvalidParameterException.
     @Test
-    public void testCheckIdSizePolicyFail() throws InvalidParameterException {
+    public void testCheckSizePolicyFail() {
         // set up
-        int whatLeftToTotalLimit = getWhatLeftToTotalLimit();
-        int outOfLimit = 1;
-        String resourceNameInTheLimit = String.valueOf(new char[whatLeftToTotalLimit + outOfLimit]);
-
-        String idInTheLimitSize = AzureResourceIdBuilder.configure(AzureConstants.BIGGER_STRUCTURE)
-                .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(resourceNameInTheLimit)
-                .build();
-
-        // verify
-        Assert.assertEquals(Order.FIELDS_MAX_SIZE + outOfLimit, idInTheLimitSize.length());
-        this.expectedException.expect(InvalidParameterException.class);
-        this.expectedException.expectMessage(String.format(Messages.Error.ERROR_ID_LIMIT_SIZE_EXCEEDED, outOfLimit));
-
-        // exercise
-        AzureResourceIdBuilder.configure()
-                .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(resourceNameInTheLimit)
-                .checkIdSizePolicy();
-
+        String resourceName = getResourceNameOutOfLimit();
+        String expected = String.format(Messages.Error.ERROR_ID_LIMIT_SIZE_EXCEEDED, SIZE_EXCEEDED);
+        
+        try {
+            // exercise
+            AzureResourceIdBuilder.configure().withResourceName(resourceName).checkSizePolicy();
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
 
-    private int getWhatLeftToTotalLimit() {
-        String anyIdEmpty = AzureResourceIdBuilder.configure(AzureConstants.BIGGER_STRUCTURE)
-                .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName("")
-                .build();
-
-        return Order.FIELDS_MAX_SIZE - anyIdEmpty.length();
+    private String getResourceNameOutOfLimit() {
+        String resourceId = AzureInstancePolicy.generateResourceId(RESOUCE_ID_PREFIX);
+        String orderName = SdkContext.randomResourceName(ORDER_NAME, BIGGEST_LENGTH);
+        return resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
     }
-
 
 }

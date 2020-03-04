@@ -43,7 +43,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMappe
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureImageOperationUtil.class, AzureInstancePolicy.class, AzureGeneralPolicy.class})
-public class AzureComputePluginTest extends TestUtils {
+public class AzureComputePluginTest extends AzureTestUtils {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -208,7 +208,7 @@ public class AzureComputePluginTest extends TestUtils {
         String virtualMachineName = "virtualMachineName";
         PowerMockito.mockStatic(AzureInstancePolicy.class);
         PowerMockito.when(AzureInstancePolicy.
-                defineAzureResourceName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser), Mockito.anyString()))
+                defineAzureResourceName(Mockito.eq(computeOrder)))
                 .thenReturn(virtualMachineName);
 
         String userData = "userData";
@@ -288,13 +288,18 @@ public class AzureComputePluginTest extends TestUtils {
     @Test
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
+        String resourceId = RESOURCE_ID;
+        String orderName = ORDER_NAME;
+        
         ComputeOrder computeOrder = new ComputeOrder();
-        String instanceId = "instanceId";
-        computeOrder.setInstanceId(instanceId);
+        computeOrder.setInstanceId(resourceId);
+        computeOrder.setName(orderName);
+        
+        String resourceIdUrl = mockBuildResourceIdUrl(resourceId, orderName);
 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = Mockito.mock(AzureGetVirtualMachineRef.class);
         Mockito.when(this.azureVirtualMachineOperation
-                .doGetInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser)))
+                .doGetInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser)))
                 .thenReturn(azureGetVirtualMachineRef);
 
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
@@ -308,17 +313,23 @@ public class AzureComputePluginTest extends TestUtils {
         Assert.assertEquals(computeInstanceExpected, computeInstance);
     }
 
+
     // test case: When calling the getInstance method and throws a Exception,
     // it must verify if It does not treat and rethrow the same exception.
     @Test
     public void testGetInstanceFail() throws FogbowException {
         // set up
+        String resourceId = RESOURCE_ID;
+        String orderName = ORDER_NAME;
+        
         ComputeOrder computeOrder = new ComputeOrder();
-        String instanceId = "instanceId";
-        computeOrder.setInstanceId(instanceId);
+        computeOrder.setInstanceId(resourceId);
+        computeOrder.setName(orderName);
+        
+        String resourceIdUrl = mockBuildResourceIdUrl(resourceId, orderName);
 
         Mockito.when(this.azureVirtualMachineOperation
-                .doGetInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser)))
+                .doGetInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser)))
                 .thenThrow(new UnexpectedException());
 
         // verify
@@ -373,21 +384,34 @@ public class AzureComputePluginTest extends TestUtils {
     @Test
     public void testDeleteInstanceSuccessfully() throws FogbowException {
         // set up
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        String instanceId = "instanceId";
-        Mockito.when(computeOrder.getInstanceId()).thenReturn(instanceId);
+        String resourceId = RESOURCE_ID;
+        String orderName = ORDER_NAME;
+        
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setInstanceId(resourceId);
+        computeOrder.setName(orderName);
+        
+        String resourceIdUrl = mockBuildResourceIdUrl(resourceId, orderName);
 
         Mockito.doNothing()
                 .when(this.azureVirtualMachineOperation)
-                .doDeleteInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser));
+                .doDeleteInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser));
 
         // exercise
         this.azureComputePlugin.deleteInstance(computeOrder, this.azureUser);
 
         // verify
         Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
-                .doDeleteInstance(Mockito.eq(instanceId), Mockito.eq(this.azureUser));
+                .doDeleteInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser));
     }
 
+    private String mockBuildResourceIdUrl(String resourceId, String orderName) {
+        String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+        String resourceGroupName = DEFAULT_RESOURCE_GROUP_NAME;
+        String subscriptionId = DEFAULT_SUBSCRIPTION_ID;
+        String resourceIdUrl = String.format(AzureConstants.VIRTUAL_MACHINE_STRUCTURE, subscriptionId, resourceGroupName, resourceName);
+        Mockito.doReturn(resourceIdUrl).when(this.azureComputePlugin).buildResourceIdUrl(subscriptionId, resourceName);
+        return resourceIdUrl;
+    }
 
 }
