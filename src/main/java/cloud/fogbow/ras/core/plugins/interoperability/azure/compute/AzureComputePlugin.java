@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -75,7 +76,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(imageId);
         String regionName = this.defaultRegionName;
         String resourceGroupName = this.defaultResourceGroupName;
-        String virtualMachineName = AzureInstancePolicy.defineAzureResourceName(computeOrder, azureUser, resourceGroupName);
+        String virtualMachineName = AzureInstancePolicy.defineAzureResourceName(computeOrder);
         String userData = getUserData(computeOrder);
         String osUserName = DEFAULT_OS_USER_NAME;
         String osUserPassword = AzureGeneralPolicy.generatePassword();
@@ -112,7 +113,14 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         this.azureVirtualMachineOperation.doCreateInstance(azureCreateVirtualMachineRef, azureUser);
         updateInstanceAllocation(computeOrder, virtualMachineSize);
-        return AzureInstancePolicy.generateFogbowInstanceId(computeOrder, azureUser, this.defaultResourceGroupName);
+        return getInstanceId(azureCreateVirtualMachineRef);
+    }
+
+    @VisibleForTesting
+    String getInstanceId(AzureCreateVirtualMachineRef azureCreateVirtualMachineRef) {
+        String resourceName = azureCreateVirtualMachineRef.getVirtualMachineName();
+        List<String> identifiers = Arrays.asList(resourceName.split(AzureConstants.RESOURCE_NAME_SEPARATOR));
+        return identifiers.listIterator().next();
     }
 
     @VisibleForTesting
@@ -145,12 +153,29 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
-        String azureVirtualMachineId = computeOrder.getInstanceId();
-
+        String resourceName = computeOrder.getInstanceId() 
+                + AzureConstants.RESOURCE_NAME_SEPARATOR
+                + computeOrder.getName();
+        
+        String subscriptionId = azureUser.getSubscriptionId();
+        String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
+                
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = this.azureVirtualMachineOperation
-                .doGetInstance(azureVirtualMachineId, azureUser);
+                .doGetInstance(instanceIdUrl, azureUser);
         
         return buildComputeInstance(azureGetVirtualMachineRef, azureUser);
+    }
+
+    @VisibleForTesting
+    String buildResourceIdUrl(String subscriptionId, String resourceName) {
+        String resourceIdUrl = AzureResourceIdBuilder
+                .configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        
+        return resourceIdUrl;
     }
 
     @VisibleForTesting
@@ -184,13 +209,17 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @Override
-    public void deleteInstance(ComputeOrder computeOrder, AzureUser azureCloudUser)
+    public void deleteInstance(ComputeOrder computeOrder, AzureUser azureUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
-
-        String azureVirtualMachineId = computeOrder.getInstanceId();
-        this.azureVirtualMachineOperation.doDeleteInstance(azureVirtualMachineId, azureCloudUser);
+        String resourceName = computeOrder.getInstanceId() 
+                + AzureConstants.RESOURCE_NAME_SEPARATOR
+                + computeOrder.getName();
+        
+        String subscriptionId = azureUser.getSubscriptionId();
+        String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
+        this.azureVirtualMachineOperation.doDeleteInstance(instanceIdUrl, azureUser);
     }
 
     @VisibleForTesting
