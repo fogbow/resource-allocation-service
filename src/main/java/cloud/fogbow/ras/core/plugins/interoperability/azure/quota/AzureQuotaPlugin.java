@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
 public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
     @VisibleForTesting
-    private static final String QUOTA_VM_INSTANCES_KEY = "virtualMachines";
+    static final String QUOTA_VM_INSTANCES_KEY = "virtualMachines";
 
     @VisibleForTesting
-    private static final String QUOTA_VM_CORES_KEY = "cores";
+    static final String QUOTA_VM_CORES_KEY = "cores";
 
     @VisibleForTesting
     static final String QUOTA_NETWORK_INSTANCES = "VirtualNetworks";
@@ -47,7 +47,8 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
      *
      * https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#storage-limits
      */
-    private static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = 50 * ONE_PETABYTE_IN_GIGABYTES;
+    @VisibleForTesting
+    static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = 50 * ONE_PETABYTE_IN_GIGABYTES;
 
     private final String defaultRegionName;
 
