@@ -9,6 +9,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerM
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.apache.log4j.Logger;
 import rx.Observable;
@@ -41,9 +42,13 @@ public class AzureVirtualNetworkOperationSDK {
         subscribeCreateVirtualMachine(virtualMachineAsync);
     }
 
-    // TODO implement
     private Observable<Indexable> buildAzureVirtualNetworkObservable(AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
-        return AzureNetworkSDK.createSecurityGroupAsync()
+        String securityGroupName = virtualNetworkRef.getSecurityGroupName();
+        String resourceGroupName = virtualNetworkRef.getResourceGroupName();
+        String cidr = virtualNetworkRef.getCidr();
+        Region region = Region.fromName(this.regionName);
+
+        return AzureNetworkSDK.createSecurityGroupAsync(azure, securityGroupName, region, resourceGroupName, cidr)
                 .doOnNext(indexable -> {
                     LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                     doNetworkCreationStepTwo(indexable);

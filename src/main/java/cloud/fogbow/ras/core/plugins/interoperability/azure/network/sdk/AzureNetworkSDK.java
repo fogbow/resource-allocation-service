@@ -27,14 +27,14 @@ public class AzureNetworkSDK {
     }
 
     public static Observable<Indexable> createSecurityGroupAsync(Azure azure, String securityGroupName, Region region,
-                                                                 String resourceGroupName, String cird) {
+                                                                 String resourceGroupName, String cidr) {
         return azure.networkSecurityGroups()
                 .define(securityGroupName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
                 .defineRule(DEFAULT_SECURITY_GROUPS_RULES_NAME)
                     .allowInbound()
-                    .fromAddress(cird)
+                    .fromAddress(cidr)
                     .fromAnyPort()
                     .toAnyAddress()
                     .toAnyPort()
