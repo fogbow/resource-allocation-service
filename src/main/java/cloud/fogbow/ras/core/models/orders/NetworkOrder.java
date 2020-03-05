@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "network_order_table")
-public class NetworkOrder extends Order<NetworkOrder> {
+public class NetworkOrder extends Order<NetworkOrder> implements OrderName {
     private static final long serialVersionUID = 1L;
 
     @Transient
@@ -63,6 +63,7 @@ public class NetworkOrder extends Order<NetworkOrder> {
         this.type = ResourceType.NETWORK;
     }
 
+    @Override
     public String getName() {
         return name;
     }

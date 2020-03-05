@@ -13,7 +13,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "compute_order_table")
-public class ComputeOrder extends Order<ComputeOrder> {
+public class ComputeOrder extends Order<ComputeOrder> implements OrderName {
     private static final long serialVersionUID = 1L;
 
     private static final String NAME_COLUMN_NAME = "name";
@@ -107,6 +107,7 @@ public class ComputeOrder extends Order<ComputeOrder> {
         this.actualAllocation = actualAllocation;
     }
 
+    @Override
     public String getName() {
         return name;
     }
