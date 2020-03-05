@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
@@ -9,6 +10,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.apache.log4j.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
@@ -16,6 +18,8 @@ import rx.schedulers.Schedulers;
 import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualNetworkOperationSDK {
+
+    private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
     private final String regionName;
     private Scheduler scheduler;
@@ -26,7 +30,9 @@ public class AzureVirtualNetworkOperationSDK {
         this.regionName = regionName;
     }
 
-
+    /**
+     * Create asynchronously because this operation takes a long time to finish.
+     */
     public void doCreateInstance(AzureCreateVirtualNetworkRef virtualNetworkRef, AzureUser azureUser)
             throws FogbowException {
 
@@ -37,13 +43,17 @@ public class AzureVirtualNetworkOperationSDK {
 
     // TODO implement
     private Observable<Indexable> buildAzureVirtualNetworkObservable(AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
-
         return AzureNetworkSDK.createSecurityGroupAsync()
                 .doOnNext(indexable -> {
+                    LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                     doNetworkCreationStepTwo(indexable);
+                    LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                 })
                 .doOnError(error -> {
-
+                    LOGGER.error(Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR);
+                })
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
 

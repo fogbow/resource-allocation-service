@@ -135,6 +135,11 @@ public class Messages {
                 "Seek for the Virtual Machine Size that fits with memory(%s) and vCpu(%s) at region %s";
         public static final String END_DELETE_DISK_ASYNC_BEHAVIOUR = "End asynchronous delete disk";
         public static final String END_DELETE_VM_ASYNC_BEHAVIOUR = "End asynchronous delete virtual machine";
+        public static final String END_CREATE_VNET_ASYNC_BEHAVIOUR = "End asynchronous create virtual network.";
+        public static final String FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR
+                = "First step on virtual network creation: Security group created.";
+        public static final String SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR
+                = "Second step on virtual network creation: Network created.";
     }
 
     public static class Error {
@@ -204,5 +209,6 @@ public class Messages {
         public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously";
         public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchronously";
         public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously";
+        public static final String ERROR_CREATE_VNET_ASYNC_BEHAVIOUR = "Error while deleting virtual network asynchronously.";
     }
 }
