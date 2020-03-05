@@ -36,7 +36,7 @@ public class AzureInstancePolicy {
         case VOLUME:
             return generateResourceId(AzureConstants.VOLUME_ID_PREFIX);
         default:
-            String message = String.format(Messages.Exception.UNSUPPORTED_ORDER_NAME, order.getType());
+            String message = String.format(Messages.Exception.UNSUPPORTED_ATTRIBUTE_NAME_FROM_ORDER_TYPE_S, order.getType());
             throw new InvalidParameterException(message);
         }
     }

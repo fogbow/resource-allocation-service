@@ -144,8 +144,8 @@ public class AzureInstancePolicyTest extends AzureTestUtils {
     public void testDefineResourceIdByFail() throws Exception {
         // set up
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(RESOURCE_ID);
-        String expected = String.format(Messages.Exception.UNSUPPORTED_ORDER_NAME, order.getType());
-        
+        String expected = String.format(Messages.Exception.UNSUPPORTED_ATTRIBUTE_NAME_FROM_ORDER_TYPE_S,
+                order.getType());
         try {
             // exercise
             AzureInstancePolicy.defineResourceIdBy(order);
