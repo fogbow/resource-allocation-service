@@ -4,12 +4,15 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.network.NetworkInterfaces;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Observable;
 
 import java.util.Optional;
 
 public class AzureNetworkSDK {
+
+    private static final String DEFAULT_SECURITY_GROUPS_RULES_NAME = "default-security-group-rules-name";
 
     public static Optional<NetworkInterface> getNetworkInterface(Azure azure, String azureNetworkInterfaceId)
             throws UnexpectedException {
@@ -23,9 +26,21 @@ public class AzureNetworkSDK {
         }
     }
 
-    // TODO implement
-    public static Observable<Indexable> createSecurityGroupAsync() {
-        return null;
+    public static Observable<Indexable> createSecurityGroupAsync(Azure azure, String securityGroupName, Region region,
+                                                                 String resourceGroupName, String cird) {
+        return azure.networkSecurityGroups()
+                .define(securityGroupName)
+                .withRegion(region)
+                .withExistingResourceGroup(resourceGroupName)
+                .defineRule(DEFAULT_SECURITY_GROUPS_RULES_NAME)
+                    .allowInbound()
+                    .fromAddress(cird)
+                    .fromAnyPort()
+                    .toAnyAddress()
+                    .toAnyPort()
+                    .withAnyProtocol()
+                    .attach()
+                .createAsync();
     }
 
     // TODO implement
