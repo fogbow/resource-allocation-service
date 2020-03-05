@@ -27,7 +27,9 @@ public class AzureInstancePolicy {
     }
 
     @VisibleForTesting
-    static String defineResourceIdBy(Order order) throws InvalidParameterException {
+    static String defineResourceIdBy(
+            @NotNull Order order) throws InvalidParameterException {
+        
         switch (order.getType()) {
         case COMPUTE:
             return generateResourceId(AzureConstants.VIRTUAL_MACHINE_ID_PREFIX);
@@ -36,7 +38,9 @@ public class AzureInstancePolicy {
         case VOLUME:
             return generateResourceId(AzureConstants.VOLUME_ID_PREFIX);
         default:
-            String message = String.format(Messages.Exception.UNSUPPORTED_ATTRIBUTE_NAME_FROM_ORDER_TYPE_S, order.getType());
+            String message = String.format(
+                    Messages.Exception.UNSUPPORTED_ATTRIBUTE_NAME_FROM_ORDER_TYPE_S, order.getType());
+            
             throw new InvalidParameterException(message);
         }
     }
