@@ -2,12 +2,12 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model;
 
 public class AzureCreateVirtualNetworkRef {
 
-    private String securityGroupName;
+    private String name;
     private String resourceGroupName;
     private String cidr;
 
-    public String getSecurityGroupName() {
-        return securityGroupName;
+    public String getName() {
+        return name;
     }
 
     public String getResourceGroupName() {

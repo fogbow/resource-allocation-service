@@ -14,6 +14,7 @@ import java.util.Optional;
 public class AzureNetworkSDK {
 
     private static final String DEFAULT_SECURITY_GROUPS_RULES_NAME = "default-security-group-rules-name";
+    private static final String DEFAULT_SUBNET_NAME = "default-subnet-name";
 
     public static Optional<NetworkInterface> getNetworkInterface(Azure azure, String azureNetworkInterfaceId)
             throws UnexpectedException {
@@ -45,13 +46,13 @@ public class AzureNetworkSDK {
     }
 
     public static Observable<Indexable> createNetworkAsync(Azure azure, String networkName, Region region, String resourceGroupName,
-                                                           String subnetName, String cidr, NetworkSecurityGroup networkSecurityGroup) {
+                                                           String cidr, NetworkSecurityGroup networkSecurityGroup) {
         return azure.networks()
                 .define(networkName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
                 .withAddressSpace(cidr)
-                .defineSubnet(subnetName)
+                .defineSubnet(DEFAULT_SUBNET_NAME)
                     .withAddressPrefix(cidr)
                     .withExistingNetworkSecurityGroup(networkSecurityGroup)
                     .attach()

@@ -43,15 +43,15 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     private Observable<Indexable> buildAzureVirtualNetworkObservable(AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
-        String securityGroupName = virtualNetworkRef.getSecurityGroupName();
+        String name = virtualNetworkRef.getName();
         String resourceGroupName = virtualNetworkRef.getResourceGroupName();
         String cidr = virtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
 
-        return AzureNetworkSDK.createSecurityGroupAsync(azure, securityGroupName, region, resourceGroupName, cidr)
-                .doOnNext(indexable -> {
+        return AzureNetworkSDK.createSecurityGroupAsync(azure, name, region, resourceGroupName, cidr)
+                .doOnNext(indexableSecurityGroup -> {
                     LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
-                    doNetworkCreationStepTwo(indexable);
+                    doNetworkCreationStepTwo(indexableSecurityGroup, virtualNetworkRef, azure);
                     LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                 })
                 .doOnError(error -> {
@@ -63,16 +63,20 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     @VisibleForTesting
-    Indexable doNetworkCreationStepTwo(Indexable indexableSecurityGroup) {
+    Indexable doNetworkCreationStepTwo(Indexable indexableSecurityGroup, AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
         try {
+            String name = virtualNetworkRef.getName();
+            String resourceGroupName = virtualNetworkRef.getResourceGroupName();
+            String cidr = virtualNetworkRef.getCidr();
+            Region region = Region.fromName(this.regionName);
+
             NetworkSecurityGroup networkSecurityGroup = (NetworkSecurityGroup) indexableSecurityGroup;
-            Observable<Indexable> networkObservable = AzureNetworkSDK.createNetworkAsync();
+            Observable<Indexable> networkObservable = AzureNetworkSDK.createNetworkAsync(azure, name, region, resourceGroupName, cidr, networkSecurityGroup);
             return networkObservable
                     .toBlocking()
                     .first();
-        } catch (RuntimeException e) {
-            // TODO implement
-            throw new RuntimeException("", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
