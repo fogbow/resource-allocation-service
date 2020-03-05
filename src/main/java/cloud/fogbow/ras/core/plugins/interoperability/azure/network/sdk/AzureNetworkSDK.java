@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.network.NetworkInterfaces;
+import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Observable;
@@ -43,9 +44,18 @@ public class AzureNetworkSDK {
                 .createAsync();
     }
 
-    // TODO implement
-    public static Observable<Indexable> createNetworkAsync() {
-        return null;
+    public static Observable<Indexable> createNetworkAsync(Azure azure, String networkName, Region region, String resourceGroupName,
+                                                           String subnetName, String cidr, NetworkSecurityGroup networkSecurityGroup) {
+        return azure.networks()
+                .define(networkName)
+                .withRegion(region)
+                .withExistingResourceGroup(resourceGroupName)
+                .withAddressSpace(cidr)
+                .defineSubnet(subnetName)
+                    .withAddressPrefix(cidr)
+                    .withExistingNetworkSecurityGroup(networkSecurityGroup)
+                    .attach()
+                .createAsync();
     }
 
     public static NetworkInterfaces getNetworkInterfacesSDK(Azure azure) {
