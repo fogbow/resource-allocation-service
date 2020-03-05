@@ -9,18 +9,36 @@ import com.sun.istack.Nullable;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderName;
 
 public class AzureInstancePolicy {
 
     private static final int MAXIMUM_ID_LENGTH = 20;
 
     public static String defineAzureResourceName(
-            @NotNull ComputeOrder computeOrder) throws InvalidParameterException {
+            @NotNull Order order) throws InvalidParameterException {
         
-        String orderName = computeOrder.getName();
-        String resourceId = generateResourceId(AzureConstants.VIRTUAL_MACHINE_ID_PREFIX);
+        OrderName orderWithName = (OrderName) order;
+        String orderName = orderWithName.getName();
+        String resourceId = defineResourceIdBy(order);
         return defineAndCheckResourceName(resourceId, orderName);
+    }
+
+    @VisibleForTesting
+    static String defineResourceIdBy(Order order) throws InvalidParameterException {
+        switch (order.getType()) {
+        case COMPUTE:
+            return generateResourceId(AzureConstants.VIRTUAL_MACHINE_ID_PREFIX);
+        case NETWORK:
+            return generateResourceId(AzureConstants.VIRTUAL_NETWORK_ID_PREFIX);
+        case VOLUME:
+            return generateResourceId(AzureConstants.VOLUME_ID_PREFIX);
+        default:
+            String message = String.format(Messages.Exception.UNSUPPORTED_ORDER_NAME, order.getType());
+            throw new InvalidParameterException(message);
+        }
     }
     
     public static String generateResourceId(@NotBlank String prefix) {
