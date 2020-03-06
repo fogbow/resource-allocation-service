@@ -59,7 +59,6 @@ public class Messages {
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER = "Unable to retrieve response from provider: %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
-        public static final String UNSUPPORTED_ATTRIBUTE_NAME_FROM_ORDER_TYPE_S = "Order type %s does not support the name attribute.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +

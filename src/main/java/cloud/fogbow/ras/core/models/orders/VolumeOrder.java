@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "volume_order_table")
-public class VolumeOrder extends Order<VolumeOrder> implements OrderName {
+public class VolumeOrder extends Order<VolumeOrder> {
     private static final long serialVersionUID = 1L;
 
     private static final String NAME_COLUMN_NAME = "name";
@@ -56,7 +56,6 @@ public class VolumeOrder extends Order<VolumeOrder> implements OrderName {
         return volumeSize;
     }
 
-    @Override
     public String getName() {
         return name;
     }
