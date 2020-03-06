@@ -13,6 +13,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -24,7 +25,10 @@ public class AzureInstancePolicyTest extends AzureTestUtils {
 
     private static final String DEFINE_AND_CHECK_RESOURCE_NAME_METHOD = "defineAndCheckResourceName";
     private static final String DEFINE_AZURE_RESOURCE_NAME_METHOD = "defineAzureResourceName";
-    private static final String DEFINE_RESOURCE_ID_BY_METHOD = "defineResourceIdBy";
+	private static final String DEFINE_VIRTUAL_MACHINE_ID_BY_METHOD = "defineVirtualMachineIdBy";
+	private static final String DEFINE_VIRTUAL_NETWORK_ID_BY_METHOD = "defineVirtualNetworkIdBy";
+	private static final String DEFINE_VOLUME_ID_BY_METHOD = "defineVolumeIdBy";
+	private static final String GENERATE_RESOURCE_ID_METHOD = "generateResourceId";
     
     private TestUtils testUtils;
     
@@ -33,129 +37,242 @@ public class AzureInstancePolicyTest extends AzureTestUtils {
         this.testUtils = new TestUtils();
     }
 
-    // test case: When invoking the defineAzureResourceName method with a
-    // computeOrder, it must verify that his internal methods have been called.
-    @Test
-    public void testDefineAzureResourceNameWithComputeOrder() throws Exception {
-        // set up
-        String orderName = ORDER_NAME;
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        Mockito.when(computeOrder.getName()).thenReturn(orderName);
+	// test case: When invoking the defineAzureResourceName method with a
+	// computeOrder, it must verify that the defineVirtualMachineIdBy method has
+	// been called.
+	@Test
+	public void testDefineAzureResourceNameWithComputeOrder() throws Exception {
+		// set up
+		String orderName = ORDER_NAME;
+		ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
+		Mockito.when(computeOrder.getName()).thenReturn(orderName);
 
-        PowerMockito.mockStatic(AzureInstancePolicy.class);
-        PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
-                Mockito.eq(computeOrder));
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
+				Mockito.eq(computeOrder));
 
-        String prefix = AzureConstants.VIRTUAL_MACHINE_ID_PREFIX;
-        String resourceId = prefix + RESOURCE_ID;
-        PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, DEFINE_RESOURCE_ID_BY_METHOD,
-                Mockito.eq(computeOrder));
-        
-        String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
-        PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_AND_CHECK_RESOURCE_NAME_METHOD,
-                Mockito.eq(resourceId), Mockito.eq(orderName));
+		String prefix = AzureConstants.VIRTUAL_MACHINE_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+		PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_VIRTUAL_MACHINE_ID_BY_METHOD,
+				Mockito.eq(computeOrder));
 
-        // exercise
-        AzureInstancePolicy.defineAzureResourceName(computeOrder);
+		// exercise
+		AzureInstancePolicy.defineAzureResourceName(computeOrder);
 
-        // verify
-        Mockito.verify(computeOrder, Mockito.times(TestUtils.RUN_ONCE)).getName();
-        
-        PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureInstancePolicy.defineResourceIdBy(computeOrder);
-        
-        PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureInstancePolicy.defineAndCheckResourceName(Mockito.eq(resourceId), Mockito.eq(orderName));
-    }
-    
-    // test case: When invoking the defineAzureResourceName method with a
-    // networkOrder, it must verify that his internal methods have been called.
-    @Test
-    public void testDefineAzureResourceNameWithNetworkOrder() throws Exception {
-        // set up
-        String orderName = ORDER_NAME;
-        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
-        Mockito.when(networkOrder.getName()).thenReturn(orderName);
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineVirtualMachineIdBy(Mockito.eq(computeOrder));
+	}
+	
+	// test case: When invoking the defineAzureResourceName method with a
+	// networkOrder, it must verify that the defineVirtualNetworkIdBy method has
+	// been called.
+	@Test
+	public void testDefineAzureResourceNameWithNetworkOrder() throws Exception {
+		// set up
+		String orderName = ORDER_NAME;
+		NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
+		Mockito.when(networkOrder.getName()).thenReturn(orderName);
 
-        PowerMockito.mockStatic(AzureInstancePolicy.class);
-        PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
-                Mockito.eq(networkOrder));
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
+				Mockito.eq(networkOrder));
 
-        String prefix = AzureConstants.VIRTUAL_NETWORK_ID_PREFIX;
-        String resourceId = prefix + RESOURCE_ID;
-        PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, DEFINE_RESOURCE_ID_BY_METHOD,
-                Mockito.eq(networkOrder));
-        
-        String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
-        PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_AND_CHECK_RESOURCE_NAME_METHOD,
-                Mockito.eq(resourceId), Mockito.eq(orderName));
+		String prefix = AzureConstants.VIRTUAL_NETWORK_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+		PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_VIRTUAL_NETWORK_ID_BY_METHOD,
+				Mockito.eq(networkOrder));
 
-        // exercise
-        AzureInstancePolicy.defineAzureResourceName(networkOrder);
+		// exercise
+		AzureInstancePolicy.defineAzureResourceName(networkOrder);
 
-        // verify
-        Mockito.verify(networkOrder, Mockito.times(TestUtils.RUN_ONCE)).getName();
-        
-        PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureInstancePolicy.defineResourceIdBy(networkOrder);
-        
-        PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureInstancePolicy.defineAndCheckResourceName(Mockito.eq(resourceId), Mockito.eq(orderName));
-    }
-    
-    // test case: When invoking the defineAzureResourceName method with a
-    // computeOrder, it must verify that his internal methods have been called.
-    @Test
-    public void testDefineAzureResourceNameWithVolumeOrder() throws Exception {
-        // set up
-        String orderName = ORDER_NAME;
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
-        Mockito.when(volumeOrder.getName()).thenReturn(orderName);
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineVirtualNetworkIdBy(Mockito.eq(networkOrder));
+	}
+	
+	// test case: When invoking the defineAzureResourceName method with a
+	// volumeOrder, it must verify that the defineVolumeIdBy method has
+	// been called.
+	@Test
+	public void testDefineAzureResourceNameWithVolumeOrder() throws Exception {
+		// set up
+		String orderName = ORDER_NAME;
+		VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
+		Mockito.when(volumeOrder.getName()).thenReturn(orderName);
 
-        PowerMockito.mockStatic(AzureInstancePolicy.class);
-        PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
-                Mockito.eq(volumeOrder));
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
+				Mockito.eq(volumeOrder));
 
-        String prefix = AzureConstants.VOLUME_ID_PREFIX;
-        String resourceId = prefix + RESOURCE_ID;
-        PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, DEFINE_RESOURCE_ID_BY_METHOD,
-                Mockito.eq(volumeOrder));
-        
-        String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
-        PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_AND_CHECK_RESOURCE_NAME_METHOD,
-                Mockito.eq(resourceId), Mockito.eq(orderName));
+		String prefix = AzureConstants.VOLUME_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+		PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_VOLUME_ID_BY_METHOD,
+				Mockito.eq(volumeOrder));
 
-        // exercise
-        AzureInstancePolicy.defineAzureResourceName(volumeOrder);
+		// exercise
+		AzureInstancePolicy.defineAzureResourceName(volumeOrder);
 
-        // verify
-        Mockito.verify(volumeOrder, Mockito.times(TestUtils.RUN_ONCE)).getName();
-        
-        PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureInstancePolicy.defineResourceIdBy(volumeOrder);
-        
-        PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureInstancePolicy.defineAndCheckResourceName(Mockito.eq(resourceId), Mockito.eq(orderName));
-    }
-    
-    // test case: When invoking the defineResourceIdBy method with an order without
-    // the name attribute, the InvalidParameterException must be thrown.
-    @Test
-    public void testDefineResourceIdByFail() throws Exception {
-        // set up
-        PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(RESOURCE_ID);
-        String expected = String.format(Messages.Exception.UNSUPPORTED_ATTRIBUTE_NAME_FROM_ORDER_TYPE_S,
-                order.getType());
-        try {
-            // exercise
-            AzureInstancePolicy.defineResourceIdBy(order);
-            Assert.fail();
-        } catch (InvalidParameterException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineVolumeIdBy(Mockito.eq(volumeOrder));
+	}
+	
+	// test case: When invoking the defineAzureResourceName method with a
+	// publicIpOrder, it must verify that the defineResourceId method has
+	// been called.
+	@Test
+	public void testDefineAzureResourceNameWithPublicIpOrder() throws Exception {
+		// set up
+		String computeOrderId = TestUtils.FAKE_ORDER_ID;
+		PublicIpOrder publicIpOrder = this.testUtils.createLocalPublicIpOrder(computeOrderId);
+
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_AZURE_RESOURCE_NAME_METHOD,
+				Mockito.eq(publicIpOrder));
+
+		String prefix = AzureConstants.PUBLIC_IP_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, GENERATE_RESOURCE_ID_METHOD,
+				Mockito.eq(publicIpOrder));
+
+		// exercise
+		AzureInstancePolicy.defineAzureResourceName(publicIpOrder);
+
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.generateResourceId(Mockito.eq(prefix));
+	}
+	
+	// test case: When invoking the defineAzureResourceName method with an invalid
+	// order, the InvalidParameterException must be thrown.
+	@Test
+	public void testDefineAzureResourceNameFail() throws Exception {
+		// set up
+		ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
+		VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
+		AttachmentOrder order = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+
+		String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType());
+
+		try {
+			// exercise
+			AzureInstancePolicy.defineAzureResourceName(order);
+			Assert.fail();
+		} catch (InvalidParameterException e) {
+			// verify
+			Assert.assertEquals(expected, e.getMessage());
+		}
+	}
+	
+	// test case: When invoking the defineVirtualMachineIdBy method with a valid
+	// Order, it must verify that his internal methods have been called.
+	@Test
+	public void testDefineVirtualMachineIdBy() throws Exception {
+		// set up
+		String orderName = ORDER_NAME;
+		ComputeOrder order = Mockito.spy(new ComputeOrder());
+		Mockito.when(order.getName()).thenReturn(orderName);
+		
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_VIRTUAL_MACHINE_ID_BY_METHOD,
+				Mockito.eq(order));
+
+		String prefix = AzureConstants.VIRTUAL_MACHINE_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, GENERATE_RESOURCE_ID_METHOD,
+				Mockito.eq(prefix));
+
+		String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+		PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_AND_CHECK_RESOURCE_NAME_METHOD,
+				Mockito.eq(resourceId), Mockito.eq(orderName));
+
+		// exercise
+		AzureInstancePolicy.defineVirtualMachineIdBy(order);
+
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineVirtualMachineIdBy(Mockito.eq(order));
+
+		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).getName();
+
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineAndCheckResourceName(Mockito.eq(resourceId), Mockito.eq(orderName));
+	}
+	
+	// test case: When invoking the defineVirtualNetworkIdBy method with a valid
+	// Order, it must verify that his internal methods have been called.
+	@Test
+	public void testDefineVirtualNetworkIdBy() throws Exception {
+		// set up
+		String orderName = ORDER_NAME;
+		NetworkOrder order = Mockito.spy(new NetworkOrder());
+		Mockito.when(order.getName()).thenReturn(orderName);
+
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_VIRTUAL_NETWORK_ID_BY_METHOD,
+				Mockito.eq(order));
+
+		String prefix = AzureConstants.VIRTUAL_NETWORK_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, GENERATE_RESOURCE_ID_METHOD,
+				Mockito.eq(prefix));
+
+		String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+		PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_AND_CHECK_RESOURCE_NAME_METHOD,
+				Mockito.eq(resourceId), Mockito.eq(orderName));
+
+		// exercise
+		AzureInstancePolicy.defineVirtualNetworkIdBy(order);
+
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineVirtualNetworkIdBy(Mockito.eq(order));
+
+		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).getName();
+
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineAndCheckResourceName(Mockito.eq(resourceId), Mockito.eq(orderName));
+	}
+	
+	// test case: When invoking the defineVolumeIdBy method with a valid
+	// Order, it must verify that his internal methods have been called.
+	@Test
+	public void testDefineVolumeIdBy() throws Exception {
+		// set up
+		String orderName = ORDER_NAME;
+		VolumeOrder order = Mockito.spy(new VolumeOrder());
+		Mockito.when(order.getName()).thenReturn(orderName);
+
+		PowerMockito.mockStatic(AzureInstancePolicy.class);
+		PowerMockito.doCallRealMethod().when(AzureInstancePolicy.class, DEFINE_VOLUME_ID_BY_METHOD,
+				Mockito.eq(order));
+
+		String prefix = AzureConstants.VOLUME_ID_PREFIX;
+		String resourceId = prefix + RESOURCE_ID;
+		PowerMockito.doReturn(resourceId).when(AzureInstancePolicy.class, GENERATE_RESOURCE_ID_METHOD,
+				Mockito.eq(prefix));
+
+		String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+		PowerMockito.doReturn(resourceName).when(AzureInstancePolicy.class, DEFINE_AND_CHECK_RESOURCE_NAME_METHOD,
+				Mockito.eq(resourceId), Mockito.eq(orderName));
+
+		// exercise
+		AzureInstancePolicy.defineVolumeIdBy(order);
+
+		// verify
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineVolumeIdBy(Mockito.eq(order));
+
+		Mockito.verify(order, Mockito.times(TestUtils.RUN_ONCE)).getName();
+
+		PowerMockito.verifyStatic(AzureInstancePolicy.class, Mockito.times(TestUtils.RUN_ONCE));
+		AzureInstancePolicy.defineAndCheckResourceName(Mockito.eq(resourceId), Mockito.eq(orderName));
+	}
+	
     // test case: When calling the generateResourceId method, it must generate a
     // random resource ID starting with the prefix passed by parameter.
     @Test
