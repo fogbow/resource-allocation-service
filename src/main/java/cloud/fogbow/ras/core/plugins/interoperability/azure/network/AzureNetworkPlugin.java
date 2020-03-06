@@ -11,6 +11,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.Properties;
@@ -63,7 +64,10 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
 
     @Override
     public void deleteInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
-
     }
 
+    @VisibleForTesting
+    void setAzureVirtualNetworkOperationSDK(AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK) {
+        this.azureVirtualNetworkOperationSDK = azureVirtualNetworkOperationSDK;
+    }
 }

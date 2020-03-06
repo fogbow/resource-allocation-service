@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model;
 
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.GenericBuilder;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class AzureCreateVirtualNetworkRef {
@@ -39,6 +40,21 @@ public class AzureCreateVirtualNetworkRef {
 
     public void setCidr(String cidr) {
         this.cidr = cidr;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AzureCreateVirtualNetworkRef that = (AzureCreateVirtualNetworkRef) o;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(resourceGroupName, that.resourceGroupName) &&
+                Objects.equals(cidr, that.cidr);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, resourceGroupName, cidr);
     }
 
     public static class Builder extends GenericBuilder<AzureCreateVirtualNetworkRef> {
