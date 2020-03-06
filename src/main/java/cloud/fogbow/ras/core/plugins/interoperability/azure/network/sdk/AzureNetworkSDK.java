@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.network.NetworkInterfaces;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -28,6 +29,7 @@ public class AzureNetworkSDK {
         }
     }
 
+    // TODO implement tests
     public static Observable<Indexable> createSecurityGroupAsync(Azure azure, String securityGroupName, Region region,
                                                                  String resourceGroupName, String cidr) {
         return azure.networkSecurityGroups()
@@ -45,8 +47,9 @@ public class AzureNetworkSDK {
                 .createAsync();
     }
 
-    public static Observable<Indexable> createNetworkAsync(Azure azure, String networkName, Region region, String resourceGroupName,
-                                                           String cidr, NetworkSecurityGroup networkSecurityGroup) {
+    // TODO implement tests
+    public static Network createNetworkSync(Azure azure, String networkName, Region region, String resourceGroupName,
+                                            String cidr, NetworkSecurityGroup networkSecurityGroup) {
         return azure.networks()
                 .define(networkName)
                 .withRegion(region)
@@ -56,7 +59,7 @@ public class AzureNetworkSDK {
                     .withAddressPrefix(cidr)
                     .withExistingNetworkSecurityGroup(networkSecurityGroup)
                     .attach()
-                .createAsync();
+                .create();
     }
 
     public static NetworkInterfaces getNetworkInterfacesSDK(Azure azure) {

@@ -44,6 +44,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     public String requestInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
 
+        // TODO It might change due to the fact that the team is deciding the new approach
         String name = networkOrder.getName();
         String cidr = networkOrder.getCidr();
 
