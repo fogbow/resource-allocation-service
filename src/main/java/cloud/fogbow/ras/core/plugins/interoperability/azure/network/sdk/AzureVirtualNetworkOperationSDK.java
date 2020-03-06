@@ -31,11 +31,11 @@ public class AzureVirtualNetworkOperationSDK {
         this.regionName = regionName;
     }
 
-    public void doCreateInstance(AzureCreateVirtualNetworkRef virtualNetworkRef, AzureUser azureUser)
+    public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, AzureUser azureUser)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Observable<Indexable> virtualMachineAsync = setAzureVirtualNetworkBehaviour(virtualNetworkRef, azure);
+        Observable<Indexable> virtualMachineAsync = setAzureVirtualNetworkBehaviour(azureCreateVirtualNetworkRef, azure);
         subscribeCreateVirtualMachine(virtualMachineAsync);
     }
 
@@ -45,12 +45,12 @@ public class AzureVirtualNetworkOperationSDK {
      * 2 - Create Virtual Network based on security group created previously
      */
     @VisibleForTesting
-    Observable<Indexable> setAzureVirtualNetworkBehaviour(AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
-        Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(virtualNetworkRef, azure);
+    Observable<Indexable> setAzureVirtualNetworkBehaviour(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Azure azure) {
+        Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, azure);
         return securityGroupObservable
                 .doOnNext(indexableSecurityGroup -> {
                     LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
-                    doNetworkCreationStepTwo(indexableSecurityGroup, virtualNetworkRef, azure);
+                    doNetworkCreationStepTwo(indexableSecurityGroup, azureCreateVirtualNetworkRef, azure);
                     LOGGER.info(Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                 })
                 .doOnError(error -> {
@@ -62,29 +62,34 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     @VisibleForTesting
-    Observable<Indexable> buildCreateSecurityGroupObservable(AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
-        String name = virtualNetworkRef.getName();
-        String resourceGroupName = virtualNetworkRef.getResourceGroupName();
-        String cidr = virtualNetworkRef.getCidr();
+    Observable<Indexable> buildCreateSecurityGroupObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Azure azure) {
+        String name = azureCreateVirtualNetworkRef.getName();
+        String resourceGroupName = azureCreateVirtualNetworkRef.getResourceGroupName();
+        String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
 
         return AzureNetworkSDK.createSecurityGroupAsync(azure, name, region, resourceGroupName, cidr);
     }
 
     @VisibleForTesting
-    Observable<Indexable> buildCreateVirtualNetworkObservable(AzureCreateVirtualNetworkRef virtualNetworkRef, NetworkSecurityGroup networkSecurityGroup, Azure azure) {
-        String name = virtualNetworkRef.getName();
-        String resourceGroupName = virtualNetworkRef.getResourceGroupName();
-        String cidr = virtualNetworkRef.getCidr();
+    Observable<Indexable> buildCreateVirtualNetworkObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
+                                                              NetworkSecurityGroup networkSecurityGroup, Azure azure) {
+
+        String name = azureCreateVirtualNetworkRef.getName();
+        String resourceGroupName = azureCreateVirtualNetworkRef.getResourceGroupName();
+        String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
 
         return AzureNetworkSDK.createNetworkAsync(azure, name, region, resourceGroupName, cidr, networkSecurityGroup);
     }
 
     @VisibleForTesting
-    Indexable doNetworkCreationStepTwo(Indexable indexableSecurityGroup, AzureCreateVirtualNetworkRef virtualNetworkRef, Azure azure) {
+    Indexable doNetworkCreationStepTwo(Indexable indexableSecurityGroup,
+                                       AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
+                                       Azure azure) {
+
         NetworkSecurityGroup networkSecurityGroup = (NetworkSecurityGroup) indexableSecurityGroup;
-        Observable<Indexable> networkObservable = buildCreateVirtualNetworkObservable(virtualNetworkRef, networkSecurityGroup, azure);
+        Observable<Indexable> networkObservable = buildCreateVirtualNetworkObservable(azureCreateVirtualNetworkRef, networkSecurityGroup, azure);
         return networkObservable
                 .toBlocking()
                 .first();
