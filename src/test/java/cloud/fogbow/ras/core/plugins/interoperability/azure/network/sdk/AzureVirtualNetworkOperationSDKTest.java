@@ -3,17 +3,29 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 import ch.qos.logback.classic.Level;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
+import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Observable;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({AzureNetworkSDK.class})
 public class AzureVirtualNetworkOperationSDKTest {
 
     @Rule
@@ -22,16 +34,16 @@ public class AzureVirtualNetworkOperationSDKTest {
     private LoggerAssert loggerAssert = new LoggerAssert(AzureVirtualNetworkOperationSDK.class);
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
+    private String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
     private Azure azure;
 
     @Before
     public void setUp() {
-        this.azureVirtualNetworkOperationSDK =
-                Mockito.spy(new AzureVirtualNetworkOperationSDK(AzureTestUtils.DEFAULT_REGION_NAME));
+        this.azureVirtualNetworkOperationSDK = Mockito.spy(new AzureVirtualNetworkOperationSDK(this.regionName));
         this.azure = null;
     }
 
-    // test case: When calling the testBuildVirtualNetworkCreationObservable method and the observables execute
+    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
     // without any error, it must verify if It returns the right logs.
     @Test
     public void testBuildVirtualNetworkCreationObservableSuccessfully() {
@@ -59,5 +71,64 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
     }
 
+    // TODO implement failed cases to the buildVirtualNetworkCreationObservable method
+
+    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // without any error, it must verify if It returns the right observable.
+    @Test
+    public void testBuildCreateSecurityGroupObservableSuccessfully() {
+        // set up
+        String nameExpected = TestUtils.ANY_VALUE;
+        String cidrExpected = TestUtils.ANY_VALUE;
+        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
+                .name(nameExpected)
+                .resourceGroupName(resourceGroupNameExpected)
+                .cidr(cidrExpected)
+                .build();
+        Region regionExpected = Region.fromName(this.regionName);
+
+        Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure), Mockito.eq(nameExpected)
+                , Mockito.eq(regionExpected), Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected)))
+                .thenReturn(observableExpected);
+
+        // exercise
+        Observable<Indexable> observable = this.azureVirtualNetworkOperationSDK.buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, this.azure);
+
+        // verify
+        Assert.assertEquals(observableExpected, observable);
+    }
+
+    // TODO implement failed cases to the buildVirtualNetworkCreationObservable method
+
+    // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
+    // without any error, it must verify if It execute the right method.
+    @Test
+    public void testdoNetworkCreationStepTwoSyncSuccessfully() {
+        // set up
+        String nameExpected = TestUtils.ANY_VALUE;
+        String cidrExpected = TestUtils.ANY_VALUE;
+        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
+                .name(nameExpected)
+                .resourceGroupName(resourceGroupNameExpected)
+                .cidr(cidrExpected)
+                .build();
+        Region regionExpected = Region.fromName(this.regionName);
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+
+        NetworkSecurityGroup indexableExpected = Mockito.mock(NetworkSecurityGroup.class);
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
+
+        // verify
+        PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AzureNetworkSDK.createNetworkSync(Mockito.eq(this.azure), Mockito.eq(nameExpected), Mockito.eq(regionExpected)
+                , Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected), Mockito.eq(indexableExpected));
+    }
 
 }
