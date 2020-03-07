@@ -23,7 +23,7 @@ public class AzureVirtualNetworkOperationSDK {
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
     private final String regionName;
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
 
     public AzureVirtualNetworkOperationSDK(String regionName) {
         ExecutorService virtualNetworkExecutor = AzureSchedulerManager.getVirtualNetworkExecutor();
@@ -87,8 +87,7 @@ public class AzureVirtualNetworkOperationSDK {
         AzureNetworkSDK.createNetworkSync(azure, name, region, resourceGroupName, cidr, networkSecurityGroup);
     }
 
-    @VisibleForTesting
-    void subscribeCreateVirtualMachine(Observable<Indexable> virtualNetworkObservable) {
+    private void subscribeCreateVirtualMachine(Observable<Indexable> virtualNetworkObservable) {
         virtualNetworkObservable
                 .subscribeOn(this.scheduler)
                 .subscribe();

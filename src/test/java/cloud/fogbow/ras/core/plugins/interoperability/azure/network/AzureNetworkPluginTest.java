@@ -14,13 +14,18 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Properties;
 
 public class AzureNetworkPluginTest {
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     private AzureUser azureUser;
     private String defaultResourceGroupName;
@@ -70,6 +75,31 @@ public class AzureNetworkPluginTest {
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser));
         Assert.assertEquals(instanceIdExpected, instanceId);
+    }
+
+    // test case: When calling the requestInstance method with mocked methods and throws an exception,
+    // it must verify if it rethrows the same exception.
+    @Test
+    public void testRequestInstanceFail() throws FogbowException {
+        // set up
+        String cidr = "10.10.10.10/24";
+        String name = "name";
+        String orderId = "orderId";
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        Mockito.when(networkOrder.getCidr()).thenReturn(cidr);
+        Mockito.when(networkOrder.getId()).thenReturn(orderId);
+        Mockito.when(networkOrder.getName()).thenReturn(name);
+
+        FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
+        Mockito.doThrow(exceptionExpected)
+                .when(this.azureVirtualNetworkOperation).doCreateInstance(Mockito.any(), Mockito.any());
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
     }
 
 }
