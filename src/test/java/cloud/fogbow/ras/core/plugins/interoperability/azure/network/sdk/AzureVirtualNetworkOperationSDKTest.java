@@ -71,7 +71,33 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
     }
 
-    // TODO implement failed cases to the buildVirtualNetworkCreationObservable method
+    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // with an error, it must verify if It returns the right logs with an error log.
+    @Test
+    public void testBuildVirtualNetworkCreationObservableFail() {
+        // set up
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
+
+        Indexable securityGroupIndexable = Mockito.mock(Indexable.class);
+        Observable<Indexable> observableSecurityGroupSuccess = AzureTestUtils.createSimpleObservableSuccess(securityGroupIndexable);
+        Mockito.doReturn(observableSecurityGroupSuccess).when(this.azureVirtualNetworkOperationSDK)
+                .buildCreateSecurityGroupObservable(Mockito.eq(azureCreateVirtualNetworkRef), Mockito.eq(this.azure));
+
+        Mockito.doThrow(new RuntimeException()).when(this.azureVirtualNetworkOperationSDK)
+                .doNetworkCreationStepTwoSync(Mockito.eq(securityGroupIndexable),
+                        Mockito.eq(azureCreateVirtualNetworkRef), Mockito.eq(this.azure));
+
+        // exercise
+        Observable<Indexable> virtualNetworkCreationObservable = this.azureVirtualNetworkOperationSDK
+                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure);
+        virtualNetworkCreationObservable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
+    }
 
     // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
     // without any error, it must verify if It returns the right observable.
@@ -101,12 +127,39 @@ public class AzureVirtualNetworkOperationSDKTest {
         Assert.assertEquals(observableExpected, observable);
     }
 
-    // TODO implement failed cases to the buildVirtualNetworkCreationObservable method
+    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // with an error, it must verify if It rethrows the same error.
+    @Test
+    public void testBuildCreateSecurityGroupObservableFail() {
+        // set up
+        String nameExpected = TestUtils.ANY_VALUE;
+        String cidrExpected = TestUtils.ANY_VALUE;
+        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
+                .name(nameExpected)
+                .resourceGroupName(resourceGroupNameExpected)
+                .cidr(cidrExpected)
+                .build();
+        Region regionExpected = Region.fromName(this.regionName);
+
+        RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure), Mockito.eq(nameExpected)
+                , Mockito.eq(regionExpected), Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected)))
+                .thenThrow(exceptionExpected);
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, this.azure);
+    }
 
     // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
     // without any error, it must verify if It execute the right method.
     @Test
-    public void testdoNetworkCreationStepTwoSyncSuccessfully() {
+    public void testDoNetworkCreationStepTwoSyncSuccessfully() {
         // set up
         String nameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
@@ -129,6 +182,37 @@ public class AzureVirtualNetworkOperationSDKTest {
         PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AzureNetworkSDK.createNetworkSync(Mockito.eq(this.azure), Mockito.eq(nameExpected), Mockito.eq(regionExpected)
                 , Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected), Mockito.eq(indexableExpected));
+    }
+
+    // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
+    // with an error, it must verify if It rethrows the same exception.
+    @Test
+    public void testDoNetworkCreationStepTwoSyncFail() {
+        // set up
+        String nameExpected = TestUtils.ANY_VALUE;
+        String cidrExpected = TestUtils.ANY_VALUE;
+        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
+                .name(nameExpected)
+                .resourceGroupName(resourceGroupNameExpected)
+                .cidr(cidrExpected)
+                .build();
+        Region regionExpected = Region.fromName(this.regionName);
+
+        RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK.createNetworkSync(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(exceptionExpected);
+
+        NetworkSecurityGroup indexableExpected = Mockito.mock(NetworkSecurityGroup.class);
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
     }
 
 }

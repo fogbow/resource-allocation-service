@@ -53,8 +53,9 @@ public class AzureVirtualNetworkOperationSDK {
                     doNetworkCreationStepTwoSync(indexableSecurityGroup, azureCreateVirtualNetworkRef, azure);
                     LOGGER.info(Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                 })
-                .doOnError(error -> {
+                .onErrorReturn(error -> {
                     LOGGER.error(Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR);
+                    return null;
                 })
                 .doOnCompleted(() -> {
                     LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);

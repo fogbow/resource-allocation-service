@@ -209,6 +209,6 @@ public class Messages {
         public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously";
         public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchronously";
         public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously";
-        public static final String ERROR_CREATE_VNET_ASYNC_BEHAVIOUR = "Error while deleting virtual network asynchronously.";
+        public static final String ERROR_CREATE_VNET_ASYNC_BEHAVIOUR = "Error while creating virtual network asynchronously.";
     }
 }
