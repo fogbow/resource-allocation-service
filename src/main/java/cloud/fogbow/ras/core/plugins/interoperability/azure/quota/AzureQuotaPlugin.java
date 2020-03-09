@@ -44,8 +44,6 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
     /**
      * This value is hardcoded because at the time this plugin was developed, a value for maximum storage capacity was
      * not provided by the SDK. The current value is informed in the documentation.
-     *
-     * https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#storage-limits
      */
     @VisibleForTesting
     static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = 50 * ONE_PETABYTE_IN_GIGABYTES;
@@ -192,8 +190,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
         Map<String, ComputeUsage> computeUsageMap = new HashMap<>();
         List<String> validComputeUsages = Arrays.asList(QUOTA_VM_INSTANCES_KEY, QUOTA_VM_CORES_KEY);
 
-        this.getComputeUsage(azure)
-                .stream()
+        this.getComputeUsage(azure).stream()
                 .filter(computeUsage -> validComputeUsages.contains(computeUsage.name().value()))
                 .forEach(computeUsage -> computeUsageMap.put(computeUsage.name().value(), computeUsage));
 
@@ -210,8 +207,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
         Map<String, NetworkUsage> networkUsageMap = new HashMap<>();
         List<String> validNetworkUsages = Arrays.asList(QUOTA_NETWORK_INSTANCES, QUOTA_PUBLIC_IP_ADDRESSES);
 
-        this.getNetworkUsage(azure)
-                .stream()
+        this.getNetworkUsage(azure).stream()
                 .filter(networkUsage -> validNetworkUsages.contains(networkUsage.name().value()))
                 .forEach(networkUsage -> networkUsageMap.put(networkUsage.name().value(), networkUsage));
 
@@ -226,17 +222,10 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
     @VisibleForTesting
     int getMemoryUsage(Azure azure) {
         List<String> sizeNamesInUse = this.getVirtualMachineSizeNamesInUse(azure);
-        Map<String, VirtualMachineSize> virtualMachineSizes = this.getVirtualMachineSizes(sizeNamesInUse, azure);
+        Map<String, VirtualMachineSize> virtualMachineSizes = this.getVirtualMachineSizesInUse(sizeNamesInUse, azure);
         return this.doGetMemoryUsage(sizeNamesInUse, virtualMachineSizes);
     }
 
-    /**
-     * Return the total memory in use by all created virtual machines
-     *
-     * @param sizeNamesInUse list of virtual machine size names
-     * @param virtalMachineSizes list of virtual machine sizes in use
-     * @return total memory in use
-     */
     @VisibleForTesting
     int doGetMemoryUsage(List<String> sizeNamesInUse, Map<String, VirtualMachineSize> virtalMachineSizes) {
         Integer initialValue = NO_USAGE;
@@ -246,60 +235,32 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
                 .reduce(initialValue, Integer::sum);
     }
 
-    /**
-     * Return a map of virtual machine sizes in use. The virtual machine size name is the key.
-     * @param sizeNames a list of virtual machine size names in use
-     * @param azure the azure client
-     * @return map where
-     */
-    @VisibleForTesting
-    Map<String, VirtualMachineSize> getVirtualMachineSizes(List<String> sizeNames, Azure azure) {
+   @VisibleForTesting
+    Map<String, VirtualMachineSize> getVirtualMachineSizesInUse(List<String> sizeNames, Azure azure) {
         Map<String, VirtualMachineSize> sizes = new HashMap<>();
-        this.getVirtualMachineSizes(azure)
-                .stream()
+        this.getVirtualMachineSizes(azure).stream()
                 .filter(virtualMachineSize -> sizeNames.contains(virtualMachineSize.name()))
                 .forEach(virtualMachineSize -> sizes.put(virtualMachineSize.name(), virtualMachineSize));
         return sizes;
     }
 
-    /**
-     * Return the names of the sizes used by all the virtual machines created
-     * @param azure the azure client
-     * @return a list of virtual machine size names
-     */
     @VisibleForTesting
     List<String> getVirtualMachineSizeNamesInUse(Azure azure) {
-        return this.getVirtualMachines(azure)
-                .stream()
+        return this.getVirtualMachines(azure).stream()
                 .map(virtualMachine -> virtualMachine.size().toString())
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Return a list of all virtual machines created
-     * @param azure the azure client
-     * @return a list of virtual machines
-     */
     @VisibleForTesting
     PagedList<VirtualMachine> getVirtualMachines(Azure azure) {
         return azure.virtualMachines().list();
     }
 
-    /**
-     * Return a list with all virtual machine sizes of the default region
-     * @param azure the azure client
-     * @return a list of virtual machine sizes
-     */
     @VisibleForTesting
     PagedList<VirtualMachineSize> getVirtualMachineSizes(Azure azure) {
         return azure.virtualMachines().sizes().listByRegion(this.defaultRegionName);
     }
 
-    /**
-     * Return a list of all disks created
-     * @param azure the azure client
-     * @return a list of disks
-     */
     @VisibleForTesting
     PagedList<Disk> getDisks(Azure azure) {
         return azure.disks().list();
