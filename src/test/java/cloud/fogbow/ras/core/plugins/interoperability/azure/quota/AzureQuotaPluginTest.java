@@ -1,13 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.quota;
 
-import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -40,10 +38,8 @@ public class AzureQuotaPluginTest extends TestUtils {
     private static final String VM_SIZE_A2 = "basic_A2";
     private static final String VM_SIZE_A3 = "basic_A3";
     private static final String VM_SIZE_A4 = "basic_A4";
-    private static final int DEFAULT_MEMORY = 1024;
 
     private AzureQuotaPlugin plugin;
-    private String defaultRegionName;
     private AzureUser azureUser;
     private Azure azure;
 
@@ -53,8 +49,6 @@ public class AzureQuotaPluginTest extends TestUtils {
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        Properties properties = PropertiesUtil.readProperties(azureConfFilePath);
-        this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.plugin = Mockito.spy(new AzureQuotaPlugin(azureConfFilePath));
         this.azureUser = AzureTestUtils.createAzureUser();
         this.azure = null;
