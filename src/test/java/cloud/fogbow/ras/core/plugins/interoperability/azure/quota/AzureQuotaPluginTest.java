@@ -614,7 +614,7 @@ public class AzureQuotaPluginTest extends TestUtils {
         Mockito.doReturn(sizeNamesInUse).when(this.plugin).getVirtualMachineSizeNamesInUse(Mockito.eq(this.azure));
 
         Map<String, VirtualMachineSize> virtualMachineSizes = (HashMap<String, VirtualMachineSize>) Mockito.mock(HashMap.class);
-        Mockito.doReturn(virtualMachineSizes).when(this.plugin).getVirtualMachineSizes(Mockito.eq(sizeNamesInUse),
+        Mockito.doReturn(virtualMachineSizes).when(this.plugin).getVirtualMachineSizesInUse(Mockito.eq(sizeNamesInUse),
                 Mockito.eq(this.azure));
 
         Mockito.doReturn(expectedMemory).when(this.plugin).doGetMemoryUsage(Mockito.eq(sizeNamesInUse),
@@ -625,7 +625,7 @@ public class AzureQuotaPluginTest extends TestUtils {
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachineSizeNamesInUse(Mockito.eq(this.azure));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachineSizes(Mockito.eq(sizeNamesInUse),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachineSizesInUse(Mockito.eq(sizeNamesInUse),
                 Mockito.eq(this.azure));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetMemoryUsage(Mockito.eq(sizeNamesInUse),
                 Mockito.eq(virtualMachineSizes));
@@ -683,7 +683,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // a map of VirtualMachineSize with only the virtual machine sizes that the name is
     // contained in the list of size names parameter
     @Test
-    public void testGetVirtualMachineSizes() throws UnauthenticatedUserException {
+    public void testGetVirtualMachineSizesInUse() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
         List<String> sizeNames = Arrays.asList(VM_SIZE_A1, VM_SIZE_A2);
@@ -695,7 +695,7 @@ public class AzureQuotaPluginTest extends TestUtils {
         Mockito.doReturn(mockedSizes).when(this.plugin).getVirtualMachineSizes(Mockito.eq(this.azure));
 
         // exercise
-        Map<String, VirtualMachineSize> virtualMachineSizes = this.plugin.getVirtualMachineSizes(sizeNames, this.azure);
+        Map<String, VirtualMachineSize> virtualMachineSizes = this.plugin.getVirtualMachineSizesInUse(sizeNames, this.azure);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachineSizes(Mockito.eq(this.azure));
