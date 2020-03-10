@@ -2,10 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.network.Network;
-import com.microsoft.azure.management.network.NetworkInterface;
-import com.microsoft.azure.management.network.NetworkInterfaces;
-import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.*;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Observable;
@@ -24,6 +21,19 @@ public class AzureNetworkSDK {
             NetworkInterfaces networkInterfaces = getNetworkInterfacesSDK(azure);
             NetworkInterface networkInterface = networkInterfaces.getById(azureNetworkInterfaceId);
             return Optional.ofNullable(networkInterface);
+        } catch (RuntimeException e) {
+            throw new UnexpectedException(e.getMessage(), e);
+        }
+    }
+
+    // TODO(chico) - Implement tests
+    public static Optional<Network> getNetwork(Azure azure, String azureNetworkId)
+            throws UnexpectedException {
+
+        try {
+            Networks networks = getNetworksSDK(azure);
+            Network network = networks.getById(azureNetworkId);
+            return Optional.ofNullable(network);
         } catch (RuntimeException e) {
             throw new UnexpectedException(e.getMessage(), e);
         }
@@ -62,6 +72,10 @@ public class AzureNetworkSDK {
 
     public static NetworkInterfaces getNetworkInterfacesSDK(Azure azure) {
         return azure.networkInterfaces();
+    }
+
+    public static Networks getNetworksSDK(Azure azure) {
+        return azure.networks();
     }
 
 }

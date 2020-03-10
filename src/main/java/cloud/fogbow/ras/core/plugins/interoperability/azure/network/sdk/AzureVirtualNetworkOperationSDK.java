@@ -1,14 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.implementation.VirtualNetworkInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.apache.log4j.Logger;
@@ -16,6 +22,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualNetworkOperationSDK {
@@ -93,4 +100,27 @@ public class AzureVirtualNetworkOperationSDK {
                 .subscribe();
     }
 
+    // TODO(chico) - Implement tests
+    public AzureGetVirtualNetworkRef doGetInstance(String azureVirtualNetworkId, AzureUser azureUser)
+            throws FogbowException {
+
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        Network network = AzureNetworkSDK
+                .getNetwork(azure, azureVirtualNetworkId)
+                .orElseThrow(InstanceNotFoundException::new);
+
+        VirtualNetworkInner virtualNetworkInner = network.inner();
+        String id = virtualNetworkInner.id();
+        String provisioningState = virtualNetworkInner.provisioningState();
+        String name = network.name();
+        // TODO(chico) - refactor this
+        String cird = network.addressSpaces().listIterator().next();
+
+        return AzureGetVirtualNetworkRef.builder()
+                .id(id)
+                .cidr(cird)
+                .name(name)
+                .state(provisioningState)
+                .build();
+    }
 }
