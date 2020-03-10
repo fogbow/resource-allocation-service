@@ -35,8 +35,8 @@ public class AzureVirtualNetworkOperationSDK {
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Observable<Indexable> virtualMachineAsync = buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, azure);
-        subscribeCreateVirtualMachine(virtualMachineAsync);
+        Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, azure);
+        subscribeVirtualNetworkCreation(virtualNetworkCreationObservable);
     }
 
     /**
@@ -87,7 +87,7 @@ public class AzureVirtualNetworkOperationSDK {
         AzureNetworkSDK.createNetworkSync(azure, name, region, resourceGroupName, cidr, networkSecurityGroup);
     }
 
-    private void subscribeCreateVirtualMachine(Observable<Indexable> virtualNetworkObservable) {
+    private void subscribeVirtualNetworkCreation(Observable<Indexable> virtualNetworkObservable) {
         virtualNetworkObservable
                 .subscribeOn(this.scheduler)
                 .subscribe();
