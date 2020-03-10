@@ -29,7 +29,6 @@ public class AzureNetworkSDK {
         }
     }
 
-    // TODO implement tests
     public static Observable<Indexable> createSecurityGroupAsync(Azure azure, String securityGroupName, Region region,
                                                                  String resourceGroupName, String cidr) {
         return azure.networkSecurityGroups()
@@ -47,7 +46,6 @@ public class AzureNetworkSDK {
                 .createAsync();
     }
 
-    // TODO implement tests
     public static Network createNetworkSync(Azure azure, String networkName, Region region, String resourceGroupName,
                                             String cidr, NetworkSecurityGroup networkSecurityGroup) {
         return azure.networks()
