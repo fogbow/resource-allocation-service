@@ -381,7 +381,7 @@ public class AzureVirtualMachineSDKTest {
         Mockito.when(withSize.withTags(tags)).thenReturn(withTags);
 
         Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
-        Mockito.when(withSize.createAsync()).thenReturn(observableExpected);
+        Mockito.when(withTags.createAsync()).thenReturn(observableExpected);
 
         PowerMockito.doReturn(virtualMachine)
                 .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
