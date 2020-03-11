@@ -57,7 +57,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUserQuota method with all secondary methods
     // mocked, it must return a ResourceQuota object
     @Test
-    public void testGetUserQuotaSuccessful() throws FogbowException {
+    public void testGetUserQuotaSuccessfully() throws FogbowException {
         // set up
         mockGetAzureClient();
 
@@ -99,7 +99,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedQuota with all secondary methods mocked,
     // it must return a ResourceAllocation object
     @Test
-    public void testGetUsedQuota() throws UnauthenticatedUserException {
+    public void testGetUsedQuotaSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
 
@@ -140,7 +140,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedVolumeAllocation with all secondary methods mocked,
     // it must return a VolumeAllocation object
     @Test
-    public void testGetUsedVolumeAllocation() {
+    public void testGetUsedVolumeAllocationSuccessfully() {
         // set up
         PagedList<Disk> disks = (PagedList<Disk>) Mockito.mock(PagedList.class);
 
@@ -163,7 +163,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getStorageUsage method with given a paged list of disks,
     // it must return the total storage used by all disks
     @Test
-    public void testGetStorageUsage() {
+    public void testGetStorageUsageSuccessfully() {
         // set up
         PagedList<Disk> disks = (PagedList<Disk>) Mockito.mock(PagedList.class);
 
@@ -189,7 +189,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getStorageUsage method with a empty paged list of disks,
     // it must return zero (no usage)
     @Test
-    public void testGetStorageUsageEmptyList() {
+    public void testGetStorageUsageWithEmptyList() {
         // set up
         PagedList<Disk> disks = (PagedList<Disk>) Mockito.mock(PagedList.class);
 
@@ -208,7 +208,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedNetworkAllocation with a map of network usages,
     // it must return a NetworkAllocation object with the number of used instances
     @Test
-    public void testGetUsedNetworkAllocation() {
+    public void testGetUsedNetworkAllocationSuccessfully() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
         NetworkUsage mockedNetworkUsage = Mockito.mock(NetworkUsage.class);
@@ -229,7 +229,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedNetworkAllocation with a empty map of network usages,
     // it must return a NetworkAllocation object with instances set to AzureQuotaPlugin.NO_USAGE
     @Test
-    public void testGetUsedNetworkAllocationEmptyMap() {
+    public void testGetUsedNetworkAllocationWithEmptyMap() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
 
@@ -244,7 +244,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // it must return a ComputeAllocation object with the right instances, vCPUs and
     // memory values.
     @Test
-    public void testGetUsedComputeAllocation() throws UnauthenticatedUserException {
+    public void testGetUsedComputeAllocationSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
 
@@ -277,7 +277,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedComputeAllocation with a empty map of network usages,
     // it must return a ComputeAllocation with instances and cores set to AzureQuotaPlugin.NO_USAGE
     @Test
-    public void testGetUsedComputeAllocationEmptyMap() throws UnauthenticatedUserException {
+    public void testGetUsedComputeAllocationWithEmptyMap() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
         Map<String, ComputeUsage> computeUsageMap = new HashMap<>();
@@ -296,7 +296,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedPublicIpAllocation with a map of network usages,
     // it must return a PublicIpAllocation object with the number of used instances
     @Test
-    public void testGetUsedPublicIpAllocation() {
+    public void testGetUsedPublicIpAllocationSuccessfully() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
         NetworkUsage mockedNetworkUsage = Mockito.mock(NetworkUsage.class);
@@ -317,7 +317,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getUsedPublicIpAllocation with a empty map of network usages,
     // it must return a PublicIpAllocation object with instances set to AzureQuotaPlugin.NO_USAGE
     @Test
-    public void testGetUsedPublicIpAllocationEmptyMap() {
+    public void testGetUsedPublicIpAllocationWithEmptyMap() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
 
@@ -331,7 +331,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getTotalQuota method with all secondary methods mocked
     // it should return a ResourceAllocation object
     @Test
-    public void testGetTotalQuota() {
+    public void testGetTotalQuotaSuccessfully() {
         // set up
         Map<String, ComputeUsage> computeUsageMap = Mockito.mock(HashMap.class);
         Map<String, NetworkUsage> networkUsageMap = Mockito.mock(HashMap.class);
@@ -368,7 +368,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // a VolumeAllocation object with instances set to FogbowConstants.UNLIMITED_RESOURCE
     // and storage set to AzureQuotaPlugin.MAXIMUM_STORAGE_ACCOUNT_CAPACITY
     @Test
-    public void testGetTotalVolumeAllocation() {
+    public void testGetTotalVolumeAllocationSuccessfully() {
         // set up
         int expectedInstances = FogbowConstants.UNLIMITED_RESOURCE;
         int expectedStorage = AzureQuotaPlugin.MAXIMUM_STORAGE_ACCOUNT_CAPACITY;
@@ -384,7 +384,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getTotalNetworkAllocation with a map of network usages,
     // it must return a NetworkAllocation object with the number of total instances
     @Test
-    public void testGetTotalNetworkAllocation() {
+    public void testGetTotalNetworkAllocationSuccessfully() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
         NetworkUsage mockedNetworkUsage = Mockito.mock(NetworkUsage.class);
@@ -405,7 +405,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getTotalNetworkAllocation with a empty map of network usages,
     // it must return a NetworkAllocation object with instances set to AzureQuotaPlugin.NO_USAGE
     @Test
-    public void testGetTotalNetworkAllocationEmptyMap() {
+    public void testGetTotalNetworkAllocationWithEmptyMap() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
 
@@ -420,7 +420,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // it must return a ComputeAllocation object with the right instances, vCPUs and
     // memory values.
     @Test
-    public void testGetTotalComputeAllocation() throws UnauthenticatedUserException {
+    public void testGetTotalComputeAllocationSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
 
@@ -450,7 +450,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getTotalComputeAllocation with a empty map of network usages,
     // it must return a ComputeAllocation with instances and cores set to AzureQuotaPlugin.NO_USAGE
     @Test
-    public void testGetTotalComputeAllocationEmptyMap() throws UnauthenticatedUserException {
+    public void testGetTotalComputeAllocationWithEmptyMap() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
         Map<String, ComputeUsage> computeUsageMap = new HashMap<>();
@@ -469,7 +469,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getTotalPublicIpAllocation with a map of network usages,
     // it must return a PublicIpAllocation object with the number of total instances
     @Test
-    public void testGetTotalPublicIpAllocation() {
+    public void testGetTotalPublicIpAllocationSuccessfully() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
         NetworkUsage mockedNetworkUsage = Mockito.mock(NetworkUsage.class);
@@ -490,7 +490,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getTotalPublicIpAllocation with a empty map of network usages,
     // it must return a PublicIpAllocation object with instances set to AzureQuotaPlugin.NO_USAGE
     @Test
-    public void testGetTotalPublicIpAllocationEmptyMap() {
+    public void testGetTotalPublicIpAllocationWithEmptyMap() {
         // set up
         Map<String, NetworkUsage> networkUsages = new HashMap<>();
 
@@ -505,7 +505,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // NetworkAllocation and PublicIpAllocation as parameters, it should return a
     // ResourceAllocation with the allocations information
     @Test
-    public void testBuildQuota() {
+    public void testBuildQuotaSuccessfully() {
         // set up
         int expectedInstances = 1;
         int expectedCores = 2;
@@ -538,7 +538,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // mocked it must return a map of ComputeUsage with only valid usages:
     // AzureQuotaPlugin.QUOTA_VM_INSTANCES_KEY and AzureQuotaPlugin.QUOTA_VM_CORES_KEY
     @Test
-    public void testGetComputeUsageMap() throws UnauthenticatedUserException {
+    public void testGetComputeUsageMapSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
 
@@ -569,7 +569,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // mocked it must return a map of NetworkUsage with only valid usages:
     // AzureQuotaPlugin.QUOTA_QUOTA_NETWORK_INSTANCES and AzureQuotaPlugin.QUOTA_PUBLIC_IP_ADDRESSES
     @Test
-    public void testGetNetworkUsageMap() throws UnauthenticatedUserException {
+    public void testGetNetworkUsageMapSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
 
@@ -599,7 +599,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getMemoryUsage method with all secondary methods mocked
     // it must return the total memory in use
     @Test
-    public void testGetMemoryUsage() throws UnauthenticatedUserException {
+    public void testGetMemoryUsageSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
         int expectedMemory = 4096;
@@ -631,7 +631,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // it must return the sum of all memory used by the virtual machine sizes passed
     // by parameter.
     @Test
-    public void testDoGetMemoryUsage() {
+    public void testDoGetMemoryUsageSuccessfully() {
         // set up
         String sizeName1 = "basic_A1";
         String sizeName2 = "basic_A2";
@@ -659,7 +659,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling doGetMemoryUsage method with the list of size names in use empty
     // it must return AzureQuotaPlugin.NO_USAGE (zero)
     @Test
-    public void testDoGetMemoryUsageNoSizeInUse() {
+    public void testDoGetMemoryUsageNoSizeInUseSuccessfully() {
         // set up
         int expectedSum = 0;
         List<String> sizeNamesInUse = new ArrayList<>();
@@ -677,7 +677,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // a map of VirtualMachineSize with only the virtual machine sizes that the name is
     // contained in the list of size names parameter
     @Test
-    public void testGetVirtualMachineSizesInUse() throws UnauthenticatedUserException {
+    public void testGetVirtualMachineSizesInUseSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
         List<String> sizeNames = Arrays.asList(VM_SIZE_A1, VM_SIZE_A2);
@@ -701,7 +701,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     // test case: When calling getVirtualMachineSizeNamesInUse method with secondary methods mocked
     // it must return a list of virtual machine size names that is in use
     @Test
-    public void testGetVirtualMachineSizeNamesInUse() throws UnauthenticatedUserException {
+    public void testGetVirtualMachineSizeNamesInUseSuccessfully() throws UnauthenticatedUserException {
         // set up
         mockGetAzureClient();
 
