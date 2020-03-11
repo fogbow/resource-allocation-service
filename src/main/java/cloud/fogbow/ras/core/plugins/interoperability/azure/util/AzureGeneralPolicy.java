@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public class AzureGeneralPolicy {
@@ -38,4 +40,10 @@ public class AzureGeneralPolicy {
     }
 
 
+    public static void checkRegionName(String regionName) {
+        if (Region.findByLabelOrName(regionName) == null) {
+            throw new FatalErrorException(
+                    String.format(Messages.Exception.INVALID_REGION_NAME, regionName));
+        }
+    }
 }
