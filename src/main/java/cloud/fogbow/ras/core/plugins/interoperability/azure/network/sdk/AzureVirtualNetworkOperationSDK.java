@@ -101,12 +101,14 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     // TODO(chico) - Implement tests
-    public AzureGetVirtualNetworkRef doGetInstance(String azureVirtualNetworkId, AzureUser azureUser)
+    public AzureGetVirtualNetworkRef doGetInstance(String instanceId, AzureUser azureUser)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        // TODO(chico) - Build azureVirtualNetworkId by AzureBuilder; Note: Waiting another PR be accepted
+        String azureVirtualNetworkId = "" + instanceId;
         Network network = AzureNetworkSDK
-                .getNetwork(azure, azureVirtualNetworkId)
+                .getNetwork(azure, instanceId)
                 .orElseThrow(InstanceNotFoundException::new);
 
         VirtualNetworkInner virtualNetworkInner = network.inner();

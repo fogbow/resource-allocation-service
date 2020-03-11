@@ -66,10 +66,10 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     public NetworkInstance getInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
 
-        String azureVirtualNetworkId = networkOrder.getInstanceId();
+        String instanceId = networkOrder.getInstanceId();
 
         AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
-                .doGetInstance(azureVirtualNetworkId, azureUser);
+                .doGetInstance(instanceId, azureUser);
 
         return buildNetworkInstance(azureGetVirtualNetworkRef);
     }
