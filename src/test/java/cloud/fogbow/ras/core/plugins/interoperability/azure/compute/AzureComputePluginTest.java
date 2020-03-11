@@ -3,7 +3,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.microsoft.azure.management.compute.VirtualMachineSize;
@@ -37,12 +39,11 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AzureImageOperationUtil.class, AzureInstancePolicy.class, AzureGeneralPolicy.class})
+@PrepareForTest({AzureImageOperationUtil.class, AzureGeneralPolicy.class})
 public class AzureComputePluginTest extends AzureTestUtils {
 
     @Rule
@@ -124,7 +125,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
         List<String> networds = new ArrayList<>();
         Mockito.when(computeOrder.getNetworkIds()).thenReturn(networds);
 
-        String networkInsterfaceIdExpected = AzureResourceIdBuilder.configure(AzureConstants.NETWORK_INTERFACE_STRUCTURE)
+        String networkInsterfaceIdExpected = AzureResourceIdBuilder.networkInterfaceId()
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(this.defaultNetworkInterfaceName)
@@ -205,11 +206,8 @@ public class AzureComputePluginTest extends AzureTestUtils {
         Mockito.when(AzureImageOperationUtil.buildAzureVirtualMachineImageBy(Mockito.eq(imageId)))
                 .thenReturn(azureGetImageRef);
 
-        String virtualMachineName = "virtualMachineName";
-        PowerMockito.mockStatic(AzureInstancePolicy.class);
-        PowerMockito.when(AzureInstancePolicy.
-                defineAzureResourceName(Mockito.eq(computeOrder)))
-                .thenReturn(virtualMachineName);
+        String resourceName = RESOURCE_NAME;
+        Mockito.doReturn(resourceName).when(this.azureComputePlugin).generateResourceName();
 
         String userData = "userData";
         Mockito.doReturn(userData).when(this.azureComputePlugin).getUserData(Mockito.eq(computeOrder));
@@ -219,9 +217,10 @@ public class AzureComputePluginTest extends AzureTestUtils {
 
         String regionName = this.defaultRegionName;
         String resourceGroupName = this.defaultResourceGroupName;
+        Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, orderName);
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
-                .virtualMachineName(virtualMachineName)
+                .resourceName(resourceName)
                 .azureGetImageRef(azureGetImageRef)
                 .networkInterfaceId(networkInterfaceId)
                 .diskSize(disk)
@@ -232,6 +231,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
                 .regionName(regionName)
                 .resourceGroupName(resourceGroupName)
                 .userData(userData)
+                .tags(tags)
                 .checkAndBuild();
 
 
@@ -288,14 +288,14 @@ public class AzureComputePluginTest extends AzureTestUtils {
     @Test
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
-        String resourceId = RESOURCE_ID;
+        String resourceName = RESOURCE_NAME;
         String orderName = ORDER_NAME;
         
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(resourceId);
+        computeOrder.setInstanceId(resourceName);
         computeOrder.setName(orderName);
         
-        String resourceIdUrl = mockBuildResourceIdUrl(resourceId, orderName);
+        String resourceIdUrl = mockBuildResourceIdUrl(resourceName);
 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = Mockito.mock(AzureGetVirtualMachineRef.class);
         Mockito.when(this.azureVirtualMachineOperation
@@ -319,14 +319,14 @@ public class AzureComputePluginTest extends AzureTestUtils {
     @Test
     public void testGetInstanceFail() throws FogbowException {
         // set up
-        String resourceId = RESOURCE_ID;
+        String resourceName = RESOURCE_NAME;
         String orderName = ORDER_NAME;
         
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(resourceId);
+        computeOrder.setInstanceId(resourceName);
         computeOrder.setName(orderName);
         
-        String resourceIdUrl = mockBuildResourceIdUrl(resourceId, orderName);
+        String resourceIdUrl = mockBuildResourceIdUrl(resourceName);
 
         Mockito.when(this.azureVirtualMachineOperation
                 .doGetInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser)))
@@ -345,13 +345,14 @@ public class AzureComputePluginTest extends AzureTestUtils {
     public void testBuildComputeInstanceSuccessfully() {
         // set up
         int diskExpected = 1;
-        String nameExpected = "name";
         int memoryExpected = 2;
         int vcpuExpected = 3;
         String cloudStateExpected = AzureStateMapper.SUCCEEDED_STATE;
         List<String> ipAddressExpected = Arrays.asList("id");
+        String nameExpected = "virtualMachineNameExpected";
+        Map expectedTags = Collections.singletonMap(AzureConstants.TAG_NAME, nameExpected);
 
-        String idExpected = AzureResourceIdBuilder.configure(AzureConstants.VIRTUAL_MACHINE_STRUCTURE)
+        String idExpected = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(nameExpected)
@@ -364,6 +365,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
                 .cloudState(cloudStateExpected)
                 .name(nameExpected)
                 .ipAddresses(ipAddressExpected)
+                .tags(expectedTags)
                 .build();
 
         // exercise
@@ -377,6 +379,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
         Assert.assertEquals(idExpected, computeInstance.getId());
         Assert.assertEquals(cloudStateExpected, computeInstance.getCloudState());
         Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses());
+        Assert.assertEquals(nameExpected, computeInstance.getName());
     }
 
     // test case: When calling the deleteInstance method,
@@ -384,14 +387,14 @@ public class AzureComputePluginTest extends AzureTestUtils {
     @Test
     public void testDeleteInstanceSuccessfully() throws FogbowException {
         // set up
-        String resourceId = RESOURCE_ID;
+        String resourceName = RESOURCE_NAME;
         String orderName = ORDER_NAME;
         
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(resourceId);
+        computeOrder.setInstanceId(resourceName);
         computeOrder.setName(orderName);
         
-        String resourceIdUrl = mockBuildResourceIdUrl(resourceId, orderName);
+        String resourceIdUrl = mockBuildResourceIdUrl(resourceName);
 
         Mockito.doNothing()
                 .when(this.azureVirtualMachineOperation)
@@ -405,8 +408,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
                 .doDeleteInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser));
     }
 
-    private String mockBuildResourceIdUrl(String resourceId, String orderName) {
-        String resourceName = resourceId + AzureConstants.RESOURCE_NAME_SEPARATOR + orderName;
+    private String mockBuildResourceIdUrl(String resourceName) {
         String resourceGroupName = DEFAULT_RESOURCE_GROUP_NAME;
         String subscriptionId = DEFAULT_SUBSCRIPTION_ID;
         String resourceIdUrl = String.format(AzureConstants.VIRTUAL_MACHINE_STRUCTURE, subscriptionId, resourceGroupName, resourceName);
