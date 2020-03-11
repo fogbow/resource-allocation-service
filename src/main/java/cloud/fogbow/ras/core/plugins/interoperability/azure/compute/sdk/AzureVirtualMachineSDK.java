@@ -14,6 +14,7 @@ import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Completable;
 import rx.Observable;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,7 +25,7 @@ public class AzureVirtualMachineSDK {
                                                                String resourceGroupName, NetworkInterface networkInterface,
                                                                String imagePublished, String imageOffer, String imageSku,
                                                                String osUserName, String osUserPassword, String osComputeName,
-                                                               String userData, int diskSize, String size) {
+                                                               String userData, int diskSize, String size, Map tags) {
 
         VirtualMachines virtualMachine = getVirtualMachinesSDK(azure);
 
@@ -50,6 +51,7 @@ public class AzureVirtualMachineSDK {
                 .withCustomData(userData)
                 .withOSDiskSizeInGB(diskSize)
                 .withSize(size)
+                .withTags(tags)
                 .createAsync();
     }
 
