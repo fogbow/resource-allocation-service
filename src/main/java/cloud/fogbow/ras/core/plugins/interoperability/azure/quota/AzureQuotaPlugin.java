@@ -9,6 +9,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
@@ -53,6 +54,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
     public AzureQuotaPlugin(@NotNull String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
+        AzureGeneralPolicy.checkRegionName(this.defaultRegionName);
     }
 
     @Override
