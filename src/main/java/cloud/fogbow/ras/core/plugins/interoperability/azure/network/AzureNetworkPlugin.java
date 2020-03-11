@@ -97,8 +97,8 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     public void deleteInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
-        String azureVirtualNetworkId = networkOrder.getInstanceId();
-        this.azureVirtualNetworkOperationSDK.doDeleteInstance(azureVirtualNetworkId, azureUser);
+        String instanceId = networkOrder.getInstanceId();
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(instanceId, azureUser);
     }
 
     @VisibleForTesting

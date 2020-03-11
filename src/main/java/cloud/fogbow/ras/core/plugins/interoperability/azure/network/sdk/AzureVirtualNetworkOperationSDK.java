@@ -2,10 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
@@ -23,7 +21,6 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualNetworkOperationSDK {
@@ -125,21 +122,25 @@ public class AzureVirtualNetworkOperationSDK {
                 .build();
     }
 
-    public void doDeleteInstance(String azureVirtualNetworkId, AzureUser azureUser) throws FogbowException {
+    public void doDeleteInstance(String instanceId, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
 
+        // TODO(chico) - Build azureVirtualNetworkId by AzureBuilder; Note: Waiting another PR be accepted
+        String azureVirtualNetworkId = "" + instanceId;
         Completable firstDeleteVirtualNetwork = buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
-        String securityGroupId = null;
-        Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, securityGroupId);
+        // TODO(chico) - Build azureVirtualNetworkId by AzureBuilder; Note: Waiting another PR be accepted
+        String azureSecurityGroupId = "" + instanceId;
+        Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, azureVirtualNetworkId);
+
         Completable.concat(firstDeleteVirtualNetwork, secondDeleteSecurityGroup)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
     @VisibleForTesting
-    Completable buildDeleteSecurityGroupCompletable(Azure azure, String securityGroupId) {
+    Completable buildDeleteSecurityGroupCompletable(Azure azure, String azureVirtualNetworkId) {
         Completable buildDeleteNetworkSecurityGroupCompletable =
-                AzureNetworkSDK.buildDeleteNetworkSecurityGroupCompletable(azure, securityGroupId);
+                AzureNetworkSDK.buildDeleteNetworkSecurityGroupCompletable(azure, azureVirtualNetworkId);
 
         return setDeleteSecurityGroupBehaviour(buildDeleteNetworkSecurityGroupCompletable);
     }
@@ -171,4 +172,5 @@ public class AzureVirtualNetworkOperationSDK {
                     LOGGER.info(Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
+
 }
