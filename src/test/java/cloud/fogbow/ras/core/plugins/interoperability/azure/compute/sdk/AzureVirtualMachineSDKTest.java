@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
@@ -21,6 +22,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Observable;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -326,7 +329,7 @@ public class AzureVirtualMachineSDKTest {
 
         // verify
         Azure azure = null;
-        String virtualMachineName = "virtualMachineName";
+        String resourceName = "resourceName";
         Region region = Region.US_EAST;
         String resourceGroupName = "resourceGroupName";
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
@@ -336,13 +339,14 @@ public class AzureVirtualMachineSDKTest {
         String userData = "userData";
         int diskSize = 1;
         String size = "size";
+        Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, "virtualMachineName");;
 
         PowerMockito.spy(AzureVirtualMachineSDK.class);
 
         VirtualMachines virtualMachine = Mockito.mock(VirtualMachines.class);
 
         VirtualMachine.DefinitionStages.Blank define = Mockito.mock(VirtualMachine.DefinitionStages.Blank.class);
-        Mockito.when(virtualMachine.define(Mockito.eq(virtualMachineName))).thenReturn(define);
+        Mockito.when(virtualMachine.define(Mockito.eq(resourceName))).thenReturn(define);
 
         VirtualMachine.DefinitionStages.WithGroup withRegion = Mockito.mock(VirtualMachine.DefinitionStages.WithGroup.class);
         Mockito.when(define.withRegion(Mockito.eq(region))).thenReturn(withRegion);
@@ -371,6 +375,10 @@ public class AzureVirtualMachineSDKTest {
         VirtualMachine.DefinitionStages.WithCreate withSize
                 = Mockito.mock(VirtualMachine.DefinitionStages.WithCreate.class);
         Mockito.when(withOSDiskSizeInGB.withSize(size)).thenReturn(withSize);
+        
+        VirtualMachine.DefinitionStages.WithCreate withTags = Mockito
+                .mock(VirtualMachine.DefinitionStages.WithCreate.class);
+        Mockito.when(withSize.withTags(tags)).thenReturn(withTags);
 
         Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
         Mockito.when(withSize.createAsync()).thenReturn(observableExpected);
@@ -380,9 +388,9 @@ public class AzureVirtualMachineSDKTest {
 
         // exercise
         Observable<Indexable> observable = AzureVirtualMachineSDK.buildVirtualMachineObservable(
-                azure, virtualMachineName, region, resourceGroupName, networkInterface,
+                azure, resourceName, region, resourceGroupName, networkInterface,
                 imagePublished, imageOffer, imageSku, osUserName, osUserPassword,
-                osComputeName, userData, diskSize, size);
+                osComputeName, userData, diskSize, size, tags);
 
         // verify
         Assert.assertEquals(observableExpected, observable);
