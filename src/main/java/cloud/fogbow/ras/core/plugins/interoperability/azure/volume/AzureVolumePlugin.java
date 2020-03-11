@@ -149,7 +149,7 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
         
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Completable completable = azure.virtualMachines().deleteByIdAsync(instanceIdUrl);
+        Completable completable = azure.disks().deleteByIdAsync(instanceIdUrl);
         completable.doOnError((error -> {
             LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
         }))
