@@ -6,7 +6,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
@@ -29,7 +28,7 @@ public class AzureResourceIdBuilderTest extends AzureTestUtils {
         String networkInterfaceName = "networkInterfaceName";
 
 
-        String networkInterfaceIdExpected = String.format(AzureConstants.NETWORK_INTERFACE_STRUCTURE,
+        String networkInterfaceIdExpected = String.format(AzureResourceIdBuilder.NETWORK_INTERFACE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
                 networkInterfaceName);
@@ -52,7 +51,7 @@ public class AzureResourceIdBuilderTest extends AzureTestUtils {
         // set up
         String virtualMachineName = "virtualMachineName";
 
-        String virtualMachineIdExpected = String.format(AzureConstants.VIRTUAL_MACHINE_STRUCTURE,
+        String virtualMachineIdExpected = String.format(AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
                 virtualMachineName);
