@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class AzureVirtualMachineSDK {
 
-    static Observable<Indexable> buildVirtualMachineObservable(Azure azure, String virtualMachineName, Region region,
+    static Observable<Indexable> buildVirtualMachineObservable(Azure azure, String resourceName, Region region,
                                                                String resourceGroupName, NetworkInterface networkInterface,
                                                                String imagePublished, String imageOffer, String imageSku,
                                                                String osUserName, String osUserPassword, String osComputeName,
@@ -30,7 +30,7 @@ public class AzureVirtualMachineSDK {
         VirtualMachines virtualMachine = getVirtualMachinesSDK(azure);
 
         VirtualMachine.DefinitionStages.WithOS osChoosen = virtualMachine
-                .define(virtualMachineName)
+                .define(resourceName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
                 .withExistingPrimaryNetworkInterface(networkInterface);
