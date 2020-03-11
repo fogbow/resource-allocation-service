@@ -106,7 +106,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
     @VisibleForTesting
     String generateResourceName() {
-        return SdkContext.randomResourceName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX, AzureConstants.MAXIMUM_LENGTH);
+        return SdkContext.randomResourceName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX, AzureConstants.MAXIMUM_RESOURCE_NAME_LENGTH);
     }
 
     @VisibleForTesting
