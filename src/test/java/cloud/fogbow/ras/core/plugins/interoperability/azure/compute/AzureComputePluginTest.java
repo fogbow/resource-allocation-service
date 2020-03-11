@@ -409,11 +409,13 @@ public class AzureComputePluginTest extends AzureTestUtils {
     }
 
     private String mockBuildResourceIdUrl(String resourceName) {
-        String resourceGroupName = DEFAULT_RESOURCE_GROUP_NAME;
         String subscriptionId = DEFAULT_SUBSCRIPTION_ID;
-        String resourceIdUrl = String.format(AzureConstants.VIRTUAL_MACHINE_STRUCTURE, subscriptionId, resourceGroupName, resourceName);
-        Mockito.doReturn(resourceIdUrl).when(this.azureComputePlugin).buildResourceIdUrl(subscriptionId, resourceName);
-        return resourceIdUrl;
+        String resourceGroupName = DEFAULT_RESOURCE_GROUP_NAME;
+        return AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
     }
 
 }
