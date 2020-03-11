@@ -130,7 +130,7 @@ public class AzureVirtualNetworkOperationSDK {
         Completable firstDeleteVirtualNetwork = buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
         // TODO(chico) - Build azureVirtualNetworkId by AzureBuilder; Note: Waiting another PR be accepted
         String azureSecurityGroupId = "" + instanceId;
-        Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, azureVirtualNetworkId);
+        Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, azureSecurityGroupId);
 
         Completable.concat(firstDeleteVirtualNetwork, secondDeleteSecurityGroup)
                 .subscribeOn(this.scheduler)
