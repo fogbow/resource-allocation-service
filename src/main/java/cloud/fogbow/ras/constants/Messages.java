@@ -65,6 +65,7 @@ public class Messages {
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +
                 " This address range is likely in use.";
+        public static final String INVALID_REGION_NAME = "The region name '%s' is invalid.";
     }
 
     public static class Fatal {
