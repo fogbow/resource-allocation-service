@@ -4,12 +4,15 @@ import cloud.fogbow.common.constants.AzureConstants;
 
 public class AzureResourceIdBuilder {
 
+    static final String VIRTUAL_MACHINE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+    static final String NETWORK_INTERFACE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s";
+    
     public static AzureResourceIdConfigured virtualMachineId() {
-        return new AzureResourceIdConfigured(AzureConstants.VIRTUAL_MACHINE_STRUCTURE);
+        return new AzureResourceIdConfigured(VIRTUAL_MACHINE_STRUCTURE);
     }
     
     public static AzureResourceIdConfigured networkInterfaceId() {
-        return new AzureResourceIdConfigured(AzureConstants.NETWORK_INTERFACE_STRUCTURE);
+        return new AzureResourceIdConfigured(NETWORK_INTERFACE_STRUCTURE);
     }
     
     public static class AzureResourceIdConfigured {
