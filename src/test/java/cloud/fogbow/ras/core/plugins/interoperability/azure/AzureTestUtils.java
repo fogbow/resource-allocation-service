@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure;
 import cloud.fogbow.common.models.AzureUser;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.mockito.Mockito;
+import rx.Completable;
 import rx.Observable;
 
 public class AzureTestUtils {
@@ -33,6 +34,14 @@ public class AzureTestUtils {
         return Observable.defer(() -> {
             throw new RuntimeException();
         });
+    }
+
+    public static Completable createSimpleCompletableSuccess() {
+        return Completable.complete();
+    }
+
+    public static Completable createSimpleCompletableFail() {
+        return Completable.error(new RuntimeException());
     }
 
 }

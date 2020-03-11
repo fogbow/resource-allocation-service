@@ -122,6 +122,7 @@ public class AzureVirtualNetworkOperationSDK {
                 .build();
     }
 
+    // TODO(chico) - Finish the implementation
     public void doDeleteInstance(String instanceId, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
 

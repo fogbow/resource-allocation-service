@@ -5,7 +5,6 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -22,6 +21,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import rx.Completable;
 import rx.Observable;
 
 @RunWith(PowerMockRunner.class)
@@ -179,7 +179,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
 
         // verify
-        PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        PowerMockito.verifyStatic(AzureNetworkSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AzureNetworkSDK.createNetworkSync(Mockito.eq(this.azure), Mockito.eq(nameExpected), Mockito.eq(regionExpected)
                 , Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected), Mockito.eq(indexableExpected));
     }
@@ -213,6 +213,55 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
+    }
+
+
+    // TODO(chico) - Remove this commentary after merge. ---------------------- Network ----------------------
+
+    // test case: When calling the buildDeleteVirtualNetworkCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualNetworkCompletableSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+        Completable virtualNetworkCompletableSuccess = AzureTestUtils.createSimpleCompletableSuccess();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualNetworkCompletableSuccess);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteVirtualNetworkCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteVirtualNetworkCompletable method and the completable executes
+    // with error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualNetworkCompletableFail() {
+        // set up
+        String instanceId = "instanceId";
+        Completable virtualNetworkCompletableFail = AzureTestUtils.createSimpleCompletableFail();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualNetworkCompletableFail);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteVirtualNetworkCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
 }
