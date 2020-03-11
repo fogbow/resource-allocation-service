@@ -5,6 +5,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.*;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import rx.Completable;
 import rx.Observable;
 
 import java.util.Optional;
@@ -68,6 +69,14 @@ public class AzureNetworkSDK {
                     .withExistingNetworkSecurityGroup(networkSecurityGroup)
                     .attach()
                 .create();
+    }
+
+    public static Completable buildDeleteVirtualNetworkCompletable(Azure azure, String virtualNetworkId) {
+        return azure.networks().deleteByIdAsync(virtualNetworkId);
+    }
+
+    public static Completable buildDeleteNetworkSecurityGroupCompletable(Azure azure, String securityGroupId) {
+        return azure.networkSecurityGroups().deleteByIdAsync(securityGroupId);
     }
 
     public static NetworkInterfaces getNetworkInterfacesSDK(Azure azure) {

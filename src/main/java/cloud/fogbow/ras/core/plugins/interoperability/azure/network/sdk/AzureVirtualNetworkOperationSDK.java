@@ -18,6 +18,7 @@ import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.apache.log4j.Logger;
+import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
@@ -122,5 +123,52 @@ public class AzureVirtualNetworkOperationSDK {
                 .name(name)
                 .state(provisioningState)
                 .build();
+    }
+
+    public void doDeleteInstance(String azureVirtualNetworkId, AzureUser azureUser) throws FogbowException {
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+
+        Completable firstDeleteVirtualNetwork = buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
+        String securityGroupId = null;
+        Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, securityGroupId);
+        Completable.concat(firstDeleteVirtualNetwork, secondDeleteSecurityGroup)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+    }
+
+    @VisibleForTesting
+    Completable buildDeleteSecurityGroupCompletable(Azure azure, String securityGroupId) {
+        Completable buildDeleteNetworkSecurityGroupCompletable =
+                AzureNetworkSDK.buildDeleteNetworkSecurityGroupCompletable(azure, securityGroupId);
+
+        return setDeleteSecurityGroupBehaviour(buildDeleteNetworkSecurityGroupCompletable);
+    }
+
+    private Completable setDeleteSecurityGroupBehaviour(Completable deleteNetworkSecurityGroupCompletable) {
+        return deleteNetworkSecurityGroupCompletable
+                .doOnError((error -> {
+                    LOGGER.error(Messages.Error.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+                }))
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+                });
+    }
+
+    @VisibleForTesting
+    Completable buildDeleteVirtualNetworkCompletable(Azure azure, String azureVirtualNetworkId) {
+        Completable deleteVirtualNetworkCompletable = AzureNetworkSDK
+                .buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
+
+        return setDeleteVirtualNetworkBehaviour(deleteVirtualNetworkCompletable);
+    }
+
+    private Completable setDeleteVirtualNetworkBehaviour(Completable deleteVirtualNetworkCompletable) {
+        return deleteVirtualNetworkCompletable
+                .doOnError((error -> {
+                    LOGGER.error(Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
+                }))
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+                });
     }
 }

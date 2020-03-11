@@ -133,13 +133,15 @@ public class Messages {
         public static final String END_CREATE_VM_ASYNC_BEHAVIOUR = "End asynchronous create virtual machine";
         public static final String SEEK_VIRTUAL_MACHINE_SIZE_NAME =
                 "Seek for the Virtual Machine Size that fits with memory(%s) and vCpu(%s) at region %s";
-        public static final String END_DELETE_DISK_ASYNC_BEHAVIOUR = "End asynchronous delete disk";
+        public static final String END_DELETE_DISK_ASYNC_BEHAVIOUR = "End asynchronous delete disk.";
         public static final String END_DELETE_VM_ASYNC_BEHAVIOUR = "End asynchronous delete virtual machine";
         public static final String END_CREATE_VNET_ASYNC_BEHAVIOUR = "End asynchronous create virtual network.";
         public static final String FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR
                 = "First step on virtual network creation: Security group created.";
         public static final String SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR
                 = "Second step on virtual network creation: Network created.";
+        public static final String END_DELETE_VNET_ASYNC_BEHAVIOUR = "End asynchronous delete virtual network.";
+        public static final String END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "End asynchronous delete security group.";
     }
 
     public static class Error {
@@ -206,9 +208,11 @@ public class Messages {
                 "The resource name exceeded %s characters of the limit";
         public static final String ERROR_DISK_PARAMETER_AZURE_POLICY = "The disk size must be greater than %sGB";;
         public static final String ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED = "Multiple networks not allowed";
-        public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously";
-        public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchronously";
-        public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously";
+        public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously.";
+        public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchronously.";
+        public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously.";
         public static final String ERROR_CREATE_VNET_ASYNC_BEHAVIOUR = "Error while creating virtual network asynchronously.";
+        public static final String ERROR_DELETE_VNET_ASYNC_BEHAVIOUR = "Error while deleting virtual network asynchronously.";
+        public static final String ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "Error while deleting security group asynchronously.";
     }
 }
