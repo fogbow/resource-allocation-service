@@ -35,11 +35,12 @@ public class AzureVirtualNetworkOperationSDKTest {
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
     private String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
+    private String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
     private Azure azure;
 
     @Before
     public void setUp() {
-        this.azureVirtualNetworkOperationSDK = Mockito.spy(new AzureVirtualNetworkOperationSDK(this.regionName));
+        this.azureVirtualNetworkOperationSDK = Mockito.spy(new AzureVirtualNetworkOperationSDK(this.regionName, this.resourceGroupName));
         this.azure = null;
     }
 
@@ -106,10 +107,8 @@ public class AzureVirtualNetworkOperationSDKTest {
         // set up
         String nameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
-        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .name(nameExpected)
-                .resourceGroupName(resourceGroupNameExpected)
                 .cidr(cidrExpected)
                 .build();
         Region regionExpected = Region.fromName(this.regionName);
@@ -117,7 +116,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
         PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure), Mockito.eq(nameExpected)
-                , Mockito.eq(regionExpected), Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected)))
+                , Mockito.eq(regionExpected), Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected)))
                 .thenReturn(observableExpected);
 
         // exercise
@@ -134,10 +133,8 @@ public class AzureVirtualNetworkOperationSDKTest {
         // set up
         String nameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
-        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .name(nameExpected)
-                .resourceGroupName(resourceGroupNameExpected)
                 .cidr(cidrExpected)
                 .build();
         Region regionExpected = Region.fromName(this.regionName);
@@ -145,7 +142,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
         PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure), Mockito.eq(nameExpected)
-                , Mockito.eq(regionExpected), Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected)))
+                , Mockito.eq(regionExpected), Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected)))
                 .thenThrow(exceptionExpected);
 
         // verify
@@ -163,10 +160,8 @@ public class AzureVirtualNetworkOperationSDKTest {
         // set up
         String nameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
-        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .name(nameExpected)
-                .resourceGroupName(resourceGroupNameExpected)
                 .cidr(cidrExpected)
                 .build();
         Region regionExpected = Region.fromName(this.regionName);
@@ -181,7 +176,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         // verify
         PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AzureNetworkSDK.createNetworkSync(Mockito.eq(this.azure), Mockito.eq(nameExpected), Mockito.eq(regionExpected)
-                , Mockito.eq(resourceGroupNameExpected), Mockito.eq(cidrExpected), Mockito.eq(indexableExpected));
+                , Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected), Mockito.eq(indexableExpected));
     }
 
     // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
@@ -191,13 +186,10 @@ public class AzureVirtualNetworkOperationSDKTest {
         // set up
         String nameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
-        String resourceGroupNameExpected = TestUtils.ANY_VALUE;
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .name(nameExpected)
-                .resourceGroupName(resourceGroupNameExpected)
                 .cidr(cidrExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
 
         RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
