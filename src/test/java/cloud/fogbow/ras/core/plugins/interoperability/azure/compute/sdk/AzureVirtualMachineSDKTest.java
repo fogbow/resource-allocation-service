@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
@@ -21,6 +22,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Observable;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -105,10 +108,10 @@ public class AzureVirtualMachineSDKTest {
         checkBuildVirtualMachineObservable(imageReference , osUserName, osUserPassword, osComputeName, windowsMock);
     }
 
-    // test case: When calling the constainsWindownsOn method and imagesku has the windows in the text,
+    // test case: When calling the isWindowsImage method and imagesku has the windows in the text,
     // it must verify if It returns true.
     @Test
-    public void testTsWindowsImageSuccessfullyWhenImageSkuHasWindows() {
+    public void testIsWindowsImageSuccessfullyWhenImageSkuHasWindows() {
         // set up
         String imageSku = "windows";
         String imageOffer = "System";
@@ -119,7 +122,7 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertTrue(isWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and imageoffer has the windows in the text,
+    // test case: When calling the isWindowsImage method and imageoffer has the windows in the text,
     // it must verify if It returns true.
     @Test
     public void testIsWindowsImageSuccessfullyWhenImageOfferHasWindows() {
@@ -133,7 +136,7 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertTrue(isWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and neither sku or offer has the
+    // test case: When calling the isWindowsImage method and neither sku or offer has the
     // windows in the text, it must verify if It returns false.
     @Test
     public void testIsWindowsImageSuccessfullyWhenItIsNotWindows() {
@@ -147,38 +150,38 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertFalse(isWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it contains windows lower case,
+    // test case: When calling the containsWindownsOn method and it contains windows lower case,
     // it must verify if It returns true.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenContainsLowerCase() {
+    public void testContainsWindownsOnSuccessfullyWhenContainsLowerCase() {
         // set up
         String text = "windows";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it contains windows upper case,
+    // test case: When calling the containsWindownsOn method and it contains windows upper case,
     // it must verify if It returns true.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenContainsUpperCase() {
+    public void testContainsWindownsOnSuccessfullyWhenContainsUpperCase() {
         // set up
         String text = "WINDOWS";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it contains windows in a long text,
+    // test case: When calling the containsWindownsOn method and it contains windows in a long text,
     // it must verify if It returns true.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenContainsLongText() {
+    public void testContainsWindownsOnSuccessfullyWhenContainsLongText() {
         // set up
         String text = "abc - windows WINDOWS  1204.65.78.9.8.7.86 _()}Ç:,vm";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
@@ -190,19 +193,19 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "linux-v2";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertFalse(containsWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it does not contains windows but
+    // test case: When calling the containsWindownsOn method and it does not contains windows but
     // the text is similar, it must verify if It returns false.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenNotContainsWitSimilarText() {
+    public void testContainsWindownsOnSuccessfullyWhenNotContainsWitSimilarText() {
         // set up
         String text = "linux-wind.wos-WINDOW-S";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertFalse(containsWindows);
     }
@@ -326,7 +329,7 @@ public class AzureVirtualMachineSDKTest {
 
         // verify
         Azure azure = null;
-        String virtualMachineName = "virtualMachineName";
+        String resourceName = "resourceName";
         Region region = Region.US_EAST;
         String resourceGroupName = "resourceGroupName";
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
@@ -336,13 +339,14 @@ public class AzureVirtualMachineSDKTest {
         String userData = "userData";
         int diskSize = 1;
         String size = "size";
+        Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, "virtualMachineName");;
 
         PowerMockito.spy(AzureVirtualMachineSDK.class);
 
         VirtualMachines virtualMachine = Mockito.mock(VirtualMachines.class);
 
         VirtualMachine.DefinitionStages.Blank define = Mockito.mock(VirtualMachine.DefinitionStages.Blank.class);
-        Mockito.when(virtualMachine.define(Mockito.eq(virtualMachineName))).thenReturn(define);
+        Mockito.when(virtualMachine.define(Mockito.eq(resourceName))).thenReturn(define);
 
         VirtualMachine.DefinitionStages.WithGroup withRegion = Mockito.mock(VirtualMachine.DefinitionStages.WithGroup.class);
         Mockito.when(define.withRegion(Mockito.eq(region))).thenReturn(withRegion);
@@ -371,18 +375,22 @@ public class AzureVirtualMachineSDKTest {
         VirtualMachine.DefinitionStages.WithCreate withSize
                 = Mockito.mock(VirtualMachine.DefinitionStages.WithCreate.class);
         Mockito.when(withOSDiskSizeInGB.withSize(size)).thenReturn(withSize);
+        
+        VirtualMachine.DefinitionStages.WithCreate withTags = Mockito
+                .mock(VirtualMachine.DefinitionStages.WithCreate.class);
+        Mockito.when(withSize.withTags(tags)).thenReturn(withTags);
 
         Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
-        Mockito.when(withSize.createAsync()).thenReturn(observableExpected);
+        Mockito.when(withTags.createAsync()).thenReturn(observableExpected);
 
         PowerMockito.doReturn(virtualMachine)
                 .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // exercise
         Observable<Indexable> observable = AzureVirtualMachineSDK.buildVirtualMachineObservable(
-                azure, virtualMachineName, region, resourceGroupName, networkInterface,
+                azure, resourceName, region, resourceGroupName, networkInterface,
                 imagePublished, imageOffer, imageSku, osUserName, osUserPassword,
-                osComputeName, userData, diskSize, size);
+                osComputeName, userData, diskSize, size, tags);
 
         // verify
         Assert.assertEquals(observableExpected, observable);

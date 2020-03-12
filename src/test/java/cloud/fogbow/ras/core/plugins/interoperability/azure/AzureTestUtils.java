@@ -14,12 +14,9 @@ public class AzureTestUtils {
     public static final String DEFAULT_REGION_NAME = "eastus";
     public static final String DEFAULT_SUBSCRIPTION_ID = "default-subscription-id";
     public static final String ORDER_NAME = "order-name";
-    public static final String RESOURCE_ID = "resource-id";
+    public static final String RESOURCE_NAME = "resource-name";
     public static final String RESOUCE_ID_PREFIX = "prefix-";
     
-    public static final int BIGGEST_LENGTH = 100;
-    public static final int SIZE_EXCEEDED = 20;
-
     public static AzureUser createAzureUser() {
         AzureUser azureUser = Mockito.mock(AzureUser.class);
         Mockito.when(azureUser.getSubscriptionId()).thenReturn(DEFAULT_SUBSCRIPTION_ID);

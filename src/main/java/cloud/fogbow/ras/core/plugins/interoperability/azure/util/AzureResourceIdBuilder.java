@@ -1,28 +1,29 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.ras.constants.Messages;
+import com.google.common.annotations.VisibleForTesting;
 
 public class AzureResourceIdBuilder {
 
-    public static AzureResourceIdConfigured configure() {
-        return new AzureResourceIdConfigured();
+    @VisibleForTesting
+    static final String VIRTUAL_MACHINE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+    
+    @VisibleForTesting
+    static final String NETWORK_INTERFACE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s";
+    
+    public static AzureResourceIdConfigured virtualMachineId() {
+        return new AzureResourceIdConfigured(VIRTUAL_MACHINE_STRUCTURE);
     }
     
-    public static AzureResourceIdConfigured configure(String structure) {
-        return new AzureResourceIdConfigured(structure);
+    public static AzureResourceIdConfigured networkInterfaceId() {
+        return new AzureResourceIdConfigured(NETWORK_INTERFACE_STRUCTURE);
     }
-
+    
     public static class AzureResourceIdConfigured {
-        
-        private static final int MAXIMUM_RESOURCE_NAME_LENGTH = 80;
         
         private String structure;
         private String subscriptionId;
         private String resourceGroupName;
         private String resourceName;
-        
-        public AzureResourceIdConfigured() {}
         
         public AzureResourceIdConfigured(String structure) {
             this.structure = structure;
@@ -45,18 +46,6 @@ public class AzureResourceIdBuilder {
 
         public String build() {
             return String.format(this.structure, this.subscriptionId, this.resourceGroupName, this.resourceName);
-        }
-
-        /**
-         * Checks the size of the resource name according to the limit stipulated by the
-         * Azure cloud.
-         */
-        public void checkSizePolicy() throws InvalidParameterException {
-            int sizeExceeded = this.resourceName.length() - MAXIMUM_RESOURCE_NAME_LENGTH;
-            if (sizeExceeded > 0) {
-                String message = String.format(Messages.Error.ERROR_ID_LIMIT_SIZE_EXCEEDED, sizeExceeded);
-                throw new InvalidParameterException(message);
-            }
         }
 
     }
