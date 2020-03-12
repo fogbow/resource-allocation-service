@@ -150,10 +150,10 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertFalse(isWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it contains windows lower case,
+    // test case: When calling the containsWindownsOn method and it contains windows lower case,
     // it must verify if It returns true.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenContainsLowerCase() {
+    public void testContainsWindownsOnSuccessfullyWhenContainsLowerCase() {
         // set up
         String text = "windows";
         // exercise
