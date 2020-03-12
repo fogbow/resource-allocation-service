@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.volume;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -26,13 +26,13 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import rx.Completable;
 import rx.Observable;
-import rx.schedulers.Schedulers;
 
 public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
 
@@ -40,11 +40,14 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
     
     private final String defaultRegionName;
     private final String defaultResourceGroupName;
+    
+    private AzureVolumeOperationSDK operation;
 
     public AzureVolumePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
+        this.operation = new AzureVolumeOperationSDK();
     }
 
     @Override
@@ -60,76 +63,71 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
     @Override
     public String requestInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-        
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String volumeName = AzureInstancePolicy.defineAzureResourceName(volumeOrder);
+        String resourceName = AzureGeneralUtil.generateResourceName();
         int sizeInGB = volumeOrder.getVolumeSize();
+        Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, volumeOrder.getName());
         
-        Creatable<Disk> creatableDisk = azure.disks().define(volumeName)
+        Creatable<Disk> diskCreatable = azure.disks().define(resourceName)
                 .withRegion(this.defaultRegionName)
                 .withExistingResourceGroup(this.defaultResourceGroupName)
                 .withData()
-                .withSizeInGB(sizeInGB);
+                .withSizeInGB(sizeInGB)
+                .withTags(tags);
         
-        Observable<Indexable> observable = creatableDisk.createAsync();
-        observable.doOnError((error -> {
-            LOGGER.error(Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
-        }))
-        .doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
-        })
-        .subscribeOn(Schedulers.from(AzureSchedulerManager.getVolumeExecutor()))
-        .subscribe();
-        
-        updateInstanceAllocation(volumeOrder, sizeInGB);
-        return getInstanceId(creatableDisk);
-    }
-
-    @VisibleForTesting
-    String getInstanceId(Creatable<Disk> creatableDisk) {
-        String resourceName = creatableDisk.name();
-        List<String> identifiers = Arrays.asList(resourceName.split(AzureConstants.RESOURCE_NAME_SEPARATOR));
-        return identifiers.listIterator().next();
-    }
-
-    @VisibleForTesting
-    void updateInstanceAllocation(VolumeOrder volumeOrder, int sizeInGB) {
-        synchronized (volumeOrder) {
-            VolumeAllocation actualAllocation = new VolumeAllocation(sizeInGB);
-            volumeOrder.setActualAllocation(actualAllocation);
-        }
+        return doRequestInstance(volumeOrder, diskCreatable);
     }
 
     @Override
     public VolumeInstance getInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
-        String resourceName = volumeOrder.getInstanceId() 
-                + AzureConstants.RESOURCE_NAME_SEPARATOR
-                + volumeOrder.getName();
-        
+        String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
         String subscriptionId = azureUser.getSubscriptionId();
-        String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
+        String resourceId = buildResourceId(subscriptionId, resourceName);
         
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        Disk disk = doGetInstance(azure, resourceId);
+        return buildVolumeInstance(disk);
+    }
+    
+    @Override
+    public void deleteInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
+        String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
+        String subscriptionId = azureUser.getSubscriptionId();
+        String instanceId = buildResourceId(subscriptionId, resourceName);
         
-        Disk disk = null;
-        try {
-            Disks disks = azure.disks();
-            disk = disks.getById(instanceIdUrl);
-        } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
-        }
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        doDeleteInstance(azure, instanceId); 
+    }
 
+    private void doDeleteInstance(Azure azure, String instanceId) {
+        Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, instanceId);
+        this.operation.subscribeDeleteDisk(completable);
+    }
+    
+    @VisibleForTesting
+    VolumeInstance buildVolumeInstance(Disk disk) {
+        String id = AzureGeneralUtil.defineInstanceId(disk.name());
         String cloudState = disk.inner().provisioningState();
-        String name = disk.name();
+        String name = disk.tags().get(AzureConstants.TAG_NAME);
         int size = disk.sizeInGB();
-        return new VolumeInstance(instanceIdUrl, cloudState, name , size);
+        return new VolumeInstance(id, cloudState, name , size);
     }
 
     @VisibleForTesting
-    String buildResourceIdUrl(String subscriptionId, String resourceName) {
-        String resourceIdUrl = AzureResourceIdBuilder
-                .configure(AzureConstants.VOLUME_STRUCTURE)
+    Disk doGetInstance(Azure azure, String resourceId) throws UnexpectedException {
+        try {
+            Disks disks = azure.disks();
+            return disks.getById(resourceId);
+        } catch (Exception e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
+    @VisibleForTesting
+    String buildResourceId(String subscriptionId, String resourceName) {
+        String resourceIdUrl = AzureResourceIdBuilder.diskId()
                 .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(resourceName)
@@ -137,27 +135,22 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         
         return resourceIdUrl;
     }
+    
+    @VisibleForTesting
+    String doRequestInstance(VolumeOrder volumeOrder, Creatable<Disk> diskCreatable) {
+        Observable<Indexable> observable = AzureVolumeSDK.buildCreateDiskObservable(diskCreatable);
+        this.operation.subscribeCreateDisk(observable);
+        updateInstanceAllocation(volumeOrder);
+        return AzureGeneralUtil.defineInstanceId(diskCreatable.name());
+    }
 
-    @Override
-    public void deleteInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
-        String resourceName = volumeOrder.getInstanceId() 
-                + AzureConstants.RESOURCE_NAME_SEPARATOR
-                + volumeOrder.getName();
-        
-        String subscriptionId = azureUser.getSubscriptionId();
-        String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
-        
-        Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Completable completable = azure.disks().deleteByIdAsync(instanceIdUrl);
-        completable.doOnError((error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
-        }))
-        .doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
-        })
-        .subscribeOn(Schedulers.from(AzureSchedulerManager.getVolumeExecutor()))
-        .subscribe(); 
+    @VisibleForTesting
+    void updateInstanceAllocation(VolumeOrder volumeOrder) {
+        synchronized (volumeOrder) {
+            int sizeInGB = volumeOrder.getVolumeSize();
+            VolumeAllocation actualAllocation = new VolumeAllocation(sizeInGB);
+            volumeOrder.setActualAllocation(actualAllocation);
+        }
     }
 
 }
