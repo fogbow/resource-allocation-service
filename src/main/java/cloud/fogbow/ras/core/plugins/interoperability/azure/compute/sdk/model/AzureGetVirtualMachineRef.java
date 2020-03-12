@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.GenericBuilder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -15,6 +16,7 @@ public class AzureGetVirtualMachineRef {
     private int memory;
     private int disk;
     private List<String> ipAddresses;
+    private Map<String, String> tags;
 
     public static Builder builder() {
         return new Builder(AzureGetVirtualMachineRef::new);
@@ -75,6 +77,14 @@ public class AzureGetVirtualMachineRef {
     private void setIpAddresses(List<String> ipAddresses) {
         this.ipAddresses = ipAddresses;
     }
+    
+    public Map<String, String> getTags() {
+        return tags;
+    }
+
+    private void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -87,7 +97,8 @@ public class AzureGetVirtualMachineRef {
                 Objects.equals(this.id, that.id) &&
                 Objects.equals(this.cloudState, that.cloudState) &&
                 Objects.equals(this.name, that.name) &&
-                Objects.equals(this.ipAddresses, that.ipAddresses);
+                Objects.equals(this.ipAddresses, that.ipAddresses) &&
+                Objects.equals(this.tags, that.tags);
     }
 
     public static class Builder extends GenericBuilder<AzureGetVirtualMachineRef> {
@@ -128,6 +139,11 @@ public class AzureGetVirtualMachineRef {
 
         public Builder ipAddresses(List<String> ipAddresses) {
             with(AzureGetVirtualMachineRef::setIpAddresses, ipAddresses);
+            return this;
+        }
+        
+        public Builder tags(Map<String, String> tags) {
+            with(AzureGetVirtualMachineRef::setTags, tags);
             return this;
         }
 
