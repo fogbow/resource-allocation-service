@@ -2,9 +2,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.ras.constants.SystemConstants;
+import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
 
 public interface AzureGeneralUtil {
+
+    @VisibleForTesting
+    static final String NO_INFORMATION = null;
 
     // Generate a pattern name to all Resources that it will be created in the cloud
     static String generateResourceName() {

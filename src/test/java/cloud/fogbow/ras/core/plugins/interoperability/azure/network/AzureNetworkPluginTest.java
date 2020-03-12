@@ -137,9 +137,9 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
         Assert.assertEquals(idExpected, networkInstance.getId());
         Assert.assertEquals(stateExpected, networkInstance.getCloudState());
         Assert.assertEquals(nameExpected, networkInstance.getName());
-        Assert.assertEquals(AzureNetworkPlugin.NO_INFORMATION, networkInstance.getGateway());
-        Assert.assertEquals(AzureNetworkPlugin.NO_INFORMATION, networkInstance.getInterfaceState());
-        Assert.assertEquals(AzureNetworkPlugin.NO_INFORMATION, networkInstance.getMACInterface());
+        Assert.assertEquals(AzureGeneralUtil.NO_INFORMATION, networkInstance.getGateway());
+        Assert.assertEquals(AzureGeneralUtil.NO_INFORMATION, networkInstance.getInterfaceState());
+        Assert.assertEquals(AzureGeneralUtil.NO_INFORMATION, networkInstance.getMACInterface());
         Assert.assertEquals(NetworkAllocationMode.DYNAMIC, networkInstance.getAllocationMode());
     }
 

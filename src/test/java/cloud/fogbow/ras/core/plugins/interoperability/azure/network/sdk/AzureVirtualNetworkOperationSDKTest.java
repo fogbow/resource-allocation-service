@@ -1,14 +1,19 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import ch.qos.logback.classic.Level;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.implementation.VirtualNetworkInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.junit.Assert;
@@ -36,11 +41,13 @@ public class AzureVirtualNetworkOperationSDKTest {
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
     private String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
     private String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+    private AzureUser azureUser;
     private Azure azure;
 
     @Before
     public void setUp() {
         this.azureVirtualNetworkOperationSDK = Mockito.spy(new AzureVirtualNetworkOperationSDK(this.regionName, this.resourceGroupName));
+        this.azureUser = AzureTestUtils.createAzureUser();
         this.azure = null;
     }
 
@@ -205,6 +212,115 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
+    }
+
+    // test case: When calling the doGetInstance method with mocked methods
+    // , it must verify if It execute the right AzureGetVirtualNetworkRef.
+    @Test
+    public void testDoGetInstanceSuccessfully() throws FogbowException {
+        // set up
+        String resourceName = "resourceName";
+        String provisioningState = "provisioningState";
+        String id = "id";
+        String name = "name";
+        String cird = "cird";
+
+        VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
+        Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
+        Mockito.when(virtualNetworkInner.id()).thenReturn(id);
+
+        Network network = Mockito.mock(Network.class);
+        Mockito.when(network.name()).thenReturn(name);
+        Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
+
+        Mockito.doReturn(network)
+                .when(this.azureVirtualNetworkOperationSDK).getNetwork(Mockito.eq(resourceName), Mockito.eq(this.azureUser));
+
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRefExpected = AzureGetVirtualNetworkRef.builder()
+                .state(provisioningState)
+                .cidr(cird)
+                .name(name)
+                .id(id)
+                .build();
+
+        Mockito.doReturn(cird)
+                .when(this.azureVirtualNetworkOperationSDK).getCIRD(Mockito.eq(network));
+
+        // exercise
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+
+        // verify
+        Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
+    }
+
+    // test case: When calling the doGetInstance method with mocked methods and cird beeing null
+    // , it must verify if It execute the right AzureGetVirtualNetworkRef.
+    @Test
+    public void testDoGetInstanceSuccessfullyWithCIRDNull() throws FogbowException {
+        // set up
+        String resourceName = "resourceName";
+        String provisioningState = "provisioningState";
+        String id = "id";
+        String name = "name";
+        String cird = "cird";
+
+        VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
+        Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
+        Mockito.when(virtualNetworkInner.id()).thenReturn(id);
+
+        Network network = Mockito.mock(Network.class);
+        Mockito.when(network.name()).thenReturn(name);
+        Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
+
+        Mockito.doReturn(network)
+                .when(this.azureVirtualNetworkOperationSDK).getNetwork(Mockito.eq(resourceName), Mockito.eq(this.azureUser));
+
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRefExpected = AzureGetVirtualNetworkRef.builder()
+                .state(provisioningState)
+                .cidr(null)
+                .name(name)
+                .id(id)
+                .build();
+
+        Mockito.doReturn(null)
+                .when(this.azureVirtualNetworkOperationSDK).getCIRD(Mockito.eq(network));
+
+        // exercise
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+
+        // verify
+        Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
+    }
+
+    // test case: When calling the doGetInstance method with mocked methods and throws an exception
+    // , it must verify if It rethrows the same exception.
+    @Test
+    public void testDoGetInstanceFail() throws FogbowException {
+        // set up
+        String resourceName = "resourceName";
+        String provisioningState = "provisioningState";
+        String id = "id";
+        String name = "name";
+        String cird = "cird";
+
+        VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
+        Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
+        Mockito.when(virtualNetworkInner.id()).thenReturn(id);
+
+        Network network = Mockito.mock(Network.class);
+        Mockito.when(network.name()).thenReturn(name);
+        Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
+
+        FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
+        Mockito.doThrow(exceptionExpected).when(this.azureVirtualNetworkOperationSDK)
+                .getNetwork(Mockito.eq(resourceName), Mockito.eq(this.azureUser));
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
     }
 
 }
