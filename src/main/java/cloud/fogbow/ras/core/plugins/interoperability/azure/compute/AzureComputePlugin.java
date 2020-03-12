@@ -163,23 +163,23 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
         String resourceName = computeOrder.getInstanceId();
         String subscriptionId = azureUser.getSubscriptionId();
-        String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
+        String instanceId = buildResourceId(subscriptionId, resourceName);
                 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = this.azureVirtualMachineOperation
-                .doGetInstance(instanceIdUrl, azureUser);
+                .doGetInstance(instanceId, azureUser);
         
         return buildComputeInstance(azureGetVirtualMachineRef, azureUser);
     }
 
     @VisibleForTesting
-    String buildResourceIdUrl(String subscriptionId, String resourceName) {
-        String resourceIdUrl = AzureResourceIdBuilder.virtualMachineId()
+    String buildResourceId(String subscriptionId, String resourceName) {
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(resourceName)
                 .build();
         
-        return resourceIdUrl;
+        return resourceId;
     }
 
     @VisibleForTesting
@@ -198,7 +198,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     ComputeInstance buildComputeInstance(AzureGetVirtualMachineRef azureGetVirtualMachineRef, AzureUser azureUser) {
         String subscriptionId = azureUser.getSubscriptionId();
         String virtualMachineName = azureGetVirtualMachineRef.getName();
-        String id = buildResourceIdUrl(subscriptionId, virtualMachineName);
+        String id = buildResourceId(subscriptionId, virtualMachineName);
         String cloudState = azureGetVirtualMachineRef.getCloudState();
         String name = azureGetVirtualMachineRef.getTags().get(AzureConstants.TAG_NAME);
         int vCPU = azureGetVirtualMachineRef.getvCPU();
@@ -216,8 +216,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
         String resourceName = computeOrder.getInstanceId();
         String subscriptionId = azureUser.getSubscriptionId();
-        String instanceIdUrl = buildResourceIdUrl(subscriptionId, resourceName);
-        this.azureVirtualMachineOperation.doDeleteInstance(instanceIdUrl, azureUser);
+        String instanceId = buildResourceId(subscriptionId, resourceName);
+        this.azureVirtualMachineOperation.doDeleteInstance(instanceId, azureUser);
     }
 
     @VisibleForTesting

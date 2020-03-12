@@ -294,11 +294,11 @@ public class AzureComputePluginTest extends AzureTestUtils {
         computeOrder.setInstanceId(resourceName);
         computeOrder.setName(orderName);
         
-        String resourceIdUrl = mockBuildResourceIdUrl(resourceName);
+        String resourceId = createResourceId(resourceName);
 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = Mockito.mock(AzureGetVirtualMachineRef.class);
         Mockito.when(this.azureVirtualMachineOperation
-                .doGetInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser)))
+                .doGetInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser)))
                 .thenReturn(azureGetVirtualMachineRef);
 
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
@@ -325,10 +325,10 @@ public class AzureComputePluginTest extends AzureTestUtils {
         computeOrder.setInstanceId(resourceName);
         computeOrder.setName(orderName);
         
-        String resourceIdUrl = mockBuildResourceIdUrl(resourceName);
+        String resourceId = createResourceId(resourceName);
 
         Mockito.when(this.azureVirtualMachineOperation
-                .doGetInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser)))
+                .doGetInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser)))
                 .thenThrow(new UnexpectedException());
 
         // verify
@@ -393,21 +393,21 @@ public class AzureComputePluginTest extends AzureTestUtils {
         computeOrder.setInstanceId(resourceName);
         computeOrder.setName(orderName);
         
-        String resourceIdUrl = mockBuildResourceIdUrl(resourceName);
+        String resourceId = createResourceId(resourceName);
 
         Mockito.doNothing()
                 .when(this.azureVirtualMachineOperation)
-                .doDeleteInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser));
+                .doDeleteInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser));
 
         // exercise
         this.azureComputePlugin.deleteInstance(computeOrder, this.azureUser);
 
         // verify
         Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
-                .doDeleteInstance(Mockito.eq(resourceIdUrl), Mockito.eq(this.azureUser));
+                .doDeleteInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser));
     }
 
-    private String mockBuildResourceIdUrl(String resourceName) {
+    private String createResourceId(String resourceName) {
         String subscriptionId = DEFAULT_SUBSCRIPTION_ID;
         String resourceGroupName = DEFAULT_RESOURCE_GROUP_NAME;
         return AzureResourceIdBuilder.virtualMachineId()
