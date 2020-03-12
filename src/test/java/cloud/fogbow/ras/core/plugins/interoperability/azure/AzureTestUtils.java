@@ -1,11 +1,17 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
+import cloud.fogbow.common.models.AzureUser;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import cloud.fogbow.common.models.AzureUser;
-
+/*
+ * This class is intended to reuse code components to assist other unit test classes
+ * but does not contemplate performing any tests. The @Ignore annotation is being used
+ * in this context to prevent it from being initialized as a test class.
+ */
+@Ignore
 @RunWith(PowerMockRunner.class)
 public class AzureTestUtils {
 
