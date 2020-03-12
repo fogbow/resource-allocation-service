@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
@@ -67,9 +68,9 @@ public class AzureVirtualMachineOperationSDK {
                 .getNetworkInterface(azure, networkInterfaceId)
                 .orElseThrow(InstanceNotFoundException::new);
         
-        String resourceGroupName = virtualMachineRef.getResourceGroupName();
+        String virtualMachineName = virtualMachineRef.getResourceName();
         String regionName = virtualMachineRef.getRegionName();
-        String virtualMachineName = virtualMachineRef.getVirtualMachineName();
+        String resourceGroupName = virtualMachineRef.getResourceGroupName();
         String osUserName = virtualMachineRef.getOsUserName();
         String osUserPassword = virtualMachineRef.getOsUserPassword();
         String osComputeName = virtualMachineRef.getOsComputeName();
@@ -81,11 +82,12 @@ public class AzureVirtualMachineOperationSDK {
         String imagePublished = azureImage.getPublisher();
         String imageOffer = azureImage.getOffer();
         String imageSku = azureImage.getSku();
+        Map tags = virtualMachineRef.getTags();
 
         return AzureVirtualMachineSDK.buildVirtualMachineObservable(
                 azure, virtualMachineName, region, resourceGroupName, networkInterface,
                 imagePublished, imageOffer, imageSku, osUserName, osUserPassword, osComputeName,
-                userData, diskSize, size);
+                userData, diskSize, size, tags);
     }
 
     /**
@@ -147,6 +149,7 @@ public class AzureVirtualMachineOperationSDK {
         String name = virtualMachine.name();
         String primaryPrivateIp = virtualMachine.getPrimaryNetworkInterface().primaryPrivateIP();
         List<String> ipAddresses = Arrays.asList(primaryPrivateIp);
+        Map tags = virtualMachine.tags();
 
         VirtualMachineSize virtualMachineSize = findVirtualMachineSize(virtualMachineSizeName, this.regionName, azure);
         int vCPU = virtualMachineSize.numberOfCores();
@@ -160,6 +163,7 @@ public class AzureVirtualMachineOperationSDK {
                 .memory(memory)
                 .name(name)
                 .vCPU(vCPU)
+                .tags(tags)
                 .build();
     }
 

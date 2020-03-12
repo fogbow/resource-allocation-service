@@ -2,11 +2,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
@@ -27,13 +30,15 @@ public class AzureVirtualNetworkOperationSDK {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
-    private final String regionName;
     private final Scheduler scheduler;
+    private final String resourceGroupName;
+    private final String regionName;
 
-    public AzureVirtualNetworkOperationSDK(String regionName) {
+    public AzureVirtualNetworkOperationSDK(String regionName, String defaultResourceGroupName) {
         ExecutorService virtualNetworkExecutor = AzureSchedulerManager.getVirtualNetworkExecutor();
         this.scheduler = Schedulers.from(virtualNetworkExecutor);
         this.regionName = regionName;
+        this.resourceGroupName = defaultResourceGroupName;
     }
 
     public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, AzureUser azureUser)
@@ -70,7 +75,7 @@ public class AzureVirtualNetworkOperationSDK {
     @VisibleForTesting
     Observable<Indexable> buildCreateSecurityGroupObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Azure azure) {
         String name = azureCreateVirtualNetworkRef.getName();
-        String resourceGroupName = azureCreateVirtualNetworkRef.getResourceGroupName();
+        String resourceGroupName = this.resourceGroupName;
         String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
 
@@ -85,7 +90,7 @@ public class AzureVirtualNetworkOperationSDK {
 
         NetworkSecurityGroup networkSecurityGroup = (NetworkSecurityGroup) indexableSecurityGroup;
         String name = azureCreateVirtualNetworkRef.getName();
-        String resourceGroupName = azureCreateVirtualNetworkRef.getResourceGroupName();
+        String resourceGroupName = this.resourceGroupName;
         String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
 
@@ -99,27 +104,40 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     // TODO(chico) - Implement tests
-    public AzureGetVirtualNetworkRef doGetInstance(String azureVirtualNetworkId, AzureUser azureUser)
+    public AzureGetVirtualNetworkRef doGetInstance(String resourceName, AzureUser azureUser)
             throws FogbowException {
 
-        Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Network network = AzureNetworkSDK
-                .getNetwork(azure, azureVirtualNetworkId)
-                .orElseThrow(InstanceNotFoundException::new);
+        Network network = getNetwork(resourceName, azureUser);
 
         VirtualNetworkInner virtualNetworkInner = network.inner();
-        String id = virtualNetworkInner.id();
         String provisioningState = virtualNetworkInner.provisioningState();
+        String id = virtualNetworkInner.id();
         String name = network.name();
-        // TODO(chico) - refactor this
         String cird = network.addressSpaces().listIterator().next();
 
         return AzureGetVirtualNetworkRef.builder()
-                .id(id)
+                .state(provisioningState)
                 .cidr(cird)
                 .name(name)
-                .state(provisioningState)
+                .id(id)
                 .build();
+    }
+
+    @VisibleForTesting
+    Network getNetwork(String resourceName, AzureUser azureUser)
+            throws UnauthenticatedUserException, InstanceNotFoundException, UnexpectedException {
+
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+
+        String subscriptionId = azureUser.getSubscriptionId();
+        String azureVirtualNetworkId = AzureResourceIdBuilder.virtualNetworkId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        return AzureNetworkSDK
+                .getNetwork(azure, azureVirtualNetworkId)
+                .orElseThrow(InstanceNotFoundException::new);
     }
 
     // TODO(chico) - Finish the implementation

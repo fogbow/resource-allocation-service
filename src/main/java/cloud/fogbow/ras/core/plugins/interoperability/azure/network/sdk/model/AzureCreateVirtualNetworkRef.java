@@ -10,8 +10,6 @@ public class AzureCreateVirtualNetworkRef {
     @GenericBuilder.Required
     private String name;
     @GenericBuilder.Required
-    private String resourceGroupName;
-    @GenericBuilder.Required
     private String cidr;
 
     public static AzureCreateVirtualNetworkRef.Builder builder() {
@@ -24,14 +22,6 @@ public class AzureCreateVirtualNetworkRef {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getResourceGroupName() {
-        return resourceGroupName;
-    }
-
-    public void setResourceGroupName(String resourceGroupName) {
-        this.resourceGroupName = resourceGroupName;
     }
 
     public String getCidr() {
@@ -48,13 +38,12 @@ public class AzureCreateVirtualNetworkRef {
         if (o == null || getClass() != o.getClass()) return false;
         AzureCreateVirtualNetworkRef that = (AzureCreateVirtualNetworkRef) o;
         return Objects.equals(name, that.name) &&
-                Objects.equals(resourceGroupName, that.resourceGroupName) &&
                 Objects.equals(cidr, that.cidr);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, resourceGroupName, cidr);
+        return Objects.hash(name, cidr);
     }
 
     public static class Builder extends GenericBuilder<AzureCreateVirtualNetworkRef> {
@@ -65,11 +54,6 @@ public class AzureCreateVirtualNetworkRef {
 
         public AzureCreateVirtualNetworkRef.Builder name(String name) {
             with(AzureCreateVirtualNetworkRef::setName, name);
-            return this;
-        }
-
-        public AzureCreateVirtualNetworkRef.Builder resourceGroupName(String resourceGroupName) {
-            with(AzureCreateVirtualNetworkRef::setResourceGroupName, resourceGroupName);
             return this;
         }
 

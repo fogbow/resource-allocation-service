@@ -12,7 +12,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -25,13 +25,12 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     private static final String NO_INFORMATION = null;
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
-    private final String defaultResourceGroupName;
 
     public AzureNetworkPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         String defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
-        this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
-        this.azureVirtualNetworkOperationSDK = new AzureVirtualNetworkOperationSDK(defaultRegionName);
+        String defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
+        this.azureVirtualNetworkOperationSDK = new AzureVirtualNetworkOperationSDK(defaultRegionName, defaultResourceGroupName);
     }
 
     @Override
@@ -48,17 +47,16 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     public String requestInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
 
-        String name = networkOrder.getName();
+        String resourceName = AzureGeneralUtil.generateResourceName();
         String cidr = networkOrder.getCidr();
 
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
-                .name(name)
+                .name(resourceName)
                 .cidr(cidr)
-                .resourceGroupName(this.defaultResourceGroupName)
                 .checkAndBuild();
         this.azureVirtualNetworkOperationSDK.doCreateInstance(azureCreateVirtualNetworkRef, azureUser);
 
-        return AzureInstancePolicy.generateFogbowInstanceId(networkOrder, azureUser, this.defaultResourceGroupName);
+        return AzureGeneralUtil.defineInstanceId(resourceName);
     }
 
     // TODO(chico) - Implement tests
@@ -66,10 +64,11 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     public NetworkInstance getInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
 
-        String azureVirtualNetworkId = networkOrder.getInstanceId();
+        String instanceId = networkOrder.getInstanceId();
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
 
         AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
-                .doGetInstance(azureVirtualNetworkId, azureUser);
+                .doGetInstance(resourceName, azureUser);
 
         return buildNetworkInstance(azureGetVirtualNetworkRef);
     }

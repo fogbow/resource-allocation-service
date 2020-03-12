@@ -14,22 +14,23 @@ import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Completable;
 import rx.Observable;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AzureVirtualMachineSDK {
 
-    static Observable<Indexable> buildVirtualMachineObservable(Azure azure, String virtualMachineName, Region region,
+    static Observable<Indexable> buildVirtualMachineObservable(Azure azure, String resourceName, Region region,
                                                                String resourceGroupName, NetworkInterface networkInterface,
                                                                String imagePublished, String imageOffer, String imageSku,
                                                                String osUserName, String osUserPassword, String osComputeName,
-                                                               String userData, int diskSize, String size) {
+                                                               String userData, int diskSize, String size, Map tags) {
 
         VirtualMachines virtualMachine = getVirtualMachinesSDK(azure);
 
         VirtualMachine.DefinitionStages.WithOS osChoosen = virtualMachine
-                .define(virtualMachineName)
+                .define(resourceName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
                 .withExistingPrimaryNetworkInterface(networkInterface);
@@ -50,6 +51,7 @@ public class AzureVirtualMachineSDK {
                 .withCustomData(userData)
                 .withOSDiskSizeInGB(diskSize)
                 .withSize(size)
+                .withTags(tags)
                 .createAsync();
     }
 
@@ -82,11 +84,11 @@ public class AzureVirtualMachineSDK {
 
     @VisibleForTesting
     static boolean isWindowsImage(String imageOffer, String imageSku) {
-        return constainsWindownsOn(imageOffer) || constainsWindownsOn(imageSku);
+        return containsWindownsOn(imageOffer) || containsWindownsOn(imageSku);
     }
 
     @VisibleForTesting
-    static boolean constainsWindownsOn(String text) {
+    static boolean containsWindownsOn(String text) {
         String regex = ".*windows.*";
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         Matcher matcherOffer = pattern.matcher(text);
