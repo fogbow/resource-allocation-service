@@ -84,11 +84,11 @@ public class AzureVirtualMachineSDK {
 
     @VisibleForTesting
     static boolean isWindowsImage(String imageOffer, String imageSku) {
-        return constainsWindownsOn(imageOffer) || constainsWindownsOn(imageSku);
+        return containsWindownsOn(imageOffer) || containsWindownsOn(imageSku);
     }
 
     @VisibleForTesting
-    static boolean constainsWindownsOn(String text) {
+    static boolean containsWindownsOn(String text) {
         String regex = ".*windows.*";
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         Matcher matcherOffer = pattern.matcher(text);

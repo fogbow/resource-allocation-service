@@ -1,10 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.common.constants.AzureConstants;
+import com.google.common.annotations.VisibleForTesting;
 
 public class AzureResourceIdBuilder {
 
+    @VisibleForTesting
     static final String VIRTUAL_MACHINE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+    
+    @VisibleForTesting
     static final String NETWORK_INTERFACE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s";
     
     public static AzureResourceIdConfigured virtualMachineId() {

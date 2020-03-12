@@ -32,7 +32,6 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;

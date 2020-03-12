@@ -108,10 +108,10 @@ public class AzureVirtualMachineSDKTest {
         checkBuildVirtualMachineObservable(imageReference , osUserName, osUserPassword, osComputeName, windowsMock);
     }
 
-    // test case: When calling the constainsWindownsOn method and imagesku has the windows in the text,
+    // test case: When calling the isWindowsImage method and imagesku has the windows in the text,
     // it must verify if It returns true.
     @Test
-    public void testTsWindowsImageSuccessfullyWhenImageSkuHasWindows() {
+    public void testIsWindowsImageSuccessfullyWhenImageSkuHasWindows() {
         // set up
         String imageSku = "windows";
         String imageOffer = "System";
@@ -122,7 +122,7 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertTrue(isWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and imageoffer has the windows in the text,
+    // test case: When calling the isWindowsImage method and imageoffer has the windows in the text,
     // it must verify if It returns true.
     @Test
     public void testIsWindowsImageSuccessfullyWhenImageOfferHasWindows() {
@@ -136,7 +136,7 @@ public class AzureVirtualMachineSDKTest {
         Assert.assertTrue(isWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and neither sku or offer has the
+    // test case: When calling the isWindowsImage method and neither sku or offer has the
     // windows in the text, it must verify if It returns false.
     @Test
     public void testIsWindowsImageSuccessfullyWhenItIsNotWindows() {
@@ -157,31 +157,31 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "windows";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it contains windows upper case,
+    // test case: When calling the containsWindownsOn method and it contains windows upper case,
     // it must verify if It returns true.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenContainsUpperCase() {
+    public void testContainsWindownsOnSuccessfullyWhenContainsUpperCase() {
         // set up
         String text = "WINDOWS";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it contains windows in a long text,
+    // test case: When calling the containsWindownsOn method and it contains windows in a long text,
     // it must verify if It returns true.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenContainsLongText() {
+    public void testContainsWindownsOnSuccessfullyWhenContainsLongText() {
         // set up
         String text = "abc - windows WINDOWS  1204.65.78.9.8.7.86 _()}Ç:,vm";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
@@ -193,19 +193,19 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "linux-v2";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertFalse(containsWindows);
     }
 
-    // test case: When calling the constainsWindownsOn method and it does not contains windows but
+    // test case: When calling the containsWindownsOn method and it does not contains windows but
     // the text is similar, it must verify if It returns false.
     @Test
-    public void testConstainsWindownsOnSuccessfullyWhenNotContainsWitSimilarText() {
+    public void testContainsWindownsOnSuccessfullyWhenNotContainsWitSimilarText() {
         // set up
         String text = "linux-wind.wos-WINDOW-S";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.constainsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
         // verify
         Assert.assertFalse(containsWindows);
     }

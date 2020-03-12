@@ -384,7 +384,7 @@ public class AzureVirtualMachineOperationSDKTest {
         String regionNameExpected = "regionNameExpected";
         String resourceGroupNameExpected = "resourceGroupNameExpected";
         String userDataExpected = "userDataExpected";
-        Map expectedTags = Collections.singletonMap("Name", "virtualMachineNameExpected");
+        Map expectedTags = Collections.singletonMap(AzureConstants.TAG_NAME, "virtualMachineNameExpected");
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .resourceName(resourceNameExpected)
