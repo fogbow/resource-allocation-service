@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.constants;
 
-import java.util.Locale;
-
 public class Messages {
 
     public static class Exception {
