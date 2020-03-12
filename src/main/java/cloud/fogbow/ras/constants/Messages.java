@@ -96,6 +96,7 @@ public class Messages {
         public static final String CONNECTING_UP_PACKET_SENDER = "Connecting XMPP packet sender.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
+        public static final String END_CREATE_DISK_ASYNC_BEHAVIOUR = "End asynchronous create disk";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
@@ -130,7 +131,6 @@ public class Messages {
         public static final String CREATING_AZURE_CLIENT = "Creating a new Azure client";
         public static final String SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME =
                 "Seek for the Virtual Machine Size by name %s at region %s";
-        public static final String END_CREATE_DISK_ASYNC_BEHAVIOUR = "End asynchronous create disk";
         public static final String END_CREATE_VM_ASYNC_BEHAVIOUR = "End asynchronous create virtual machine";
         public static final String SEEK_VIRTUAL_MACHINE_SIZE_NAME =
                 "Seek for the Virtual Machine Size that fits with memory(%s) and vCpu(%s) at region %s";
@@ -141,6 +141,7 @@ public class Messages {
     public static class Error {
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
+        public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_GENERAL = "Error while attaching volume with response: %s.";
@@ -202,7 +203,6 @@ public class Messages {
                 "The resource name exceeded %s characters of the limit";
         public static final String ERROR_DISK_PARAMETER_AZURE_POLICY = "The disk size must be greater than %sGB";;
         public static final String ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED = "Multiple networks not allowed";
-        public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously";
         public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously";
         public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchonously";
         public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously";
