@@ -11,18 +11,23 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureInstancePolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.Properties;
 
-public class AzureNetworkPluginTest {
+@PrepareForTest({AzureGeneralUtil.class})
+public class AzureNetworkPluginTest extends AzureTestUtils {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -57,7 +62,9 @@ public class AzureNetworkPluginTest {
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getCidr()).thenReturn(cidr);
         Mockito.when(networkOrder.getId()).thenReturn(orderId);
-        Mockito.when(networkOrder.getName()).thenReturn(name);
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.when(AzureGeneralUtil.generateResourceName()).thenReturn(name);
 
         Mockito.doNothing().when(this.azureVirtualNetworkOperation).doCreateInstance(Mockito.any(), Mockito.any());
 
@@ -66,7 +73,7 @@ public class AzureNetworkPluginTest {
                 .cidr(cidr)
                 .resourceGroupName(this.defaultResourceGroupName)
                 .checkAndBuild();
-        String instanceIdExpected = AzureInstancePolicy.generateFogbowInstanceId(networkOrder, this.azureUser, this.defaultResourceGroupName);
+        String instanceIdExpected = AzureGeneralUtil.defineInstanceId(name);
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);

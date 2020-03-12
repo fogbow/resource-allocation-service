@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model;
 
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.GenericBuilder;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -14,7 +15,7 @@ public class AzureCreateVirtualMachineRef {
     @GenericBuilder.Required
     private String resourceGroupName;
     @GenericBuilder.Required
-    private String virtualMachineName;
+    private String resourceName;
     @GenericBuilder.Required
     private String osUserPassword;
     @GenericBuilder.Required
@@ -23,11 +24,14 @@ public class AzureCreateVirtualMachineRef {
     private String osUserName;
     @GenericBuilder.Required
     private String regionName;
+    @GenericBuilder.Required
     private String userData;
     @GenericBuilder.Required
     private int diskSize;
     @GenericBuilder.Required
     private String size;
+    @GenericBuilder.Required
+    private Map tags;
 
     public static Builder builder() {
         return new Builder(AzureCreateVirtualMachineRef::new);
@@ -57,12 +61,15 @@ public class AzureCreateVirtualMachineRef {
         this.resourceGroupName = resourceGroupName;
     }
 
-    public String getVirtualMachineName() {
-        return this.virtualMachineName;
+    /* 
+     * Resource name refers to the resource's identifier in the Azure cloud.
+     */
+    public String getResourceName() {
+        return this.resourceName;
     }
 
-    private void setVirtualMachineName(String virtualMachineName) {
-        this.virtualMachineName = virtualMachineName;
+    private void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 
     public String getOsUserPassword() {
@@ -120,6 +127,14 @@ public class AzureCreateVirtualMachineRef {
     private void setSize(String size) {
         this.size = size;
     }
+    
+    public Map getTags() {
+        return this.tags;
+    }
+
+    public void setTags(Map tags) {
+        this.tags = tags;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -130,13 +145,14 @@ public class AzureCreateVirtualMachineRef {
                 Objects.equals(this.azureGetImageRef, that.azureGetImageRef) &&
                 Objects.equals(this.networkInterfaceId, that.networkInterfaceId) &&
                 Objects.equals(this.resourceGroupName, that.resourceGroupName) &&
-                Objects.equals(this.virtualMachineName, that.virtualMachineName) &&
+                Objects.equals(this.resourceName, that.resourceName) &&
                 Objects.equals(this.osUserPassword, that.osUserPassword) &&
                 Objects.equals(this.osComputeName, that.osComputeName) &&
                 Objects.equals(this.osUserName, that.osUserName) &&
                 Objects.equals(this.regionName, that.regionName) &&
                 Objects.equals(this.userData, that.userData) &&
-                Objects.equals(this.size, that.size);
+                Objects.equals(this.size, that.size) &&
+                Objects.equals(this.tags, that.tags);
     }
 
     public static class Builder extends GenericBuilder<AzureCreateVirtualMachineRef> {
@@ -160,8 +176,8 @@ public class AzureCreateVirtualMachineRef {
             return this;
         }
 
-        public Builder virtualMachineName(String virtualMachineName) {
-            with(AzureCreateVirtualMachineRef::setVirtualMachineName, virtualMachineName);
+        public Builder resourceName(String resourceName) {
+            with(AzureCreateVirtualMachineRef::setResourceName, resourceName);
             return this;
         }
 
@@ -197,6 +213,11 @@ public class AzureCreateVirtualMachineRef {
 
         public Builder size(String size) {
             with(AzureCreateVirtualMachineRef::setSize, size);
+            return this;
+        }
+        
+        public Builder tags(Map tags) {
+            with(AzureCreateVirtualMachineRef::setTags, tags);
             return this;
         }
     }

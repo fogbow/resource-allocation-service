@@ -1,11 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
 import ch.qos.logback.classic.Level;
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
@@ -40,7 +42,9 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RunWith(PowerMockRunner.class)
@@ -105,6 +109,9 @@ public class AzureVirtualMachineOperationSDKTest {
         Mockito.doReturn(virtualMachineSize).when(this.azureVirtualMachineOperationSDK)
                 .findVirtualMachineSize(Mockito.eq(virtualMachineSizeName),
                         Mockito.eq(regionName), Mockito.eq(this.azure));
+        
+        Map<String, String> tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
+        Mockito.when(virtualMachine.tags()).thenReturn(tags);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
         Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtualMachine);
@@ -119,6 +126,7 @@ public class AzureVirtualMachineOperationSDKTest {
                 .memory(memory)
                 .name(name)
                 .vCPU(vCPU)
+                .tags(tags)
                 .build();
 
         // exercise
@@ -366,7 +374,7 @@ public class AzureVirtualMachineOperationSDKTest {
         String imageOfferExpected = "offer";
         AzureGetImageRef azureVirtualMachineImageExpected =
                 new AzureGetImageRef(imagePublishedExpected, imageOfferExpected, imageSkuExpected);
-        String virtualMachineNameExpected = "virtualMachineNameExpected";
+        String resourceNameExpected = "resourceNameExpected";
         String networkInterfaceIdExpected = "networkInterfaceIdExpected";
         int diskSize = 1;
         String virtualMachineSizeNameExpected = "virtualMachineSizeNameExpected";
@@ -376,9 +384,10 @@ public class AzureVirtualMachineOperationSDKTest {
         String regionNameExpected = "regionNameExpected";
         String resourceGroupNameExpected = "resourceGroupNameExpected";
         String userDataExpected = "userDataExpected";
+        Map expectedTags = Collections.singletonMap(AzureConstants.TAG_NAME, "virtualMachineNameExpected");
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
-                .virtualMachineName(virtualMachineNameExpected)
+                .resourceName(resourceNameExpected)
                 .azureGetImageRef(azureVirtualMachineImageExpected)
                 .networkInterfaceId(networkInterfaceIdExpected)
                 .diskSize(diskSize)
@@ -389,6 +398,7 @@ public class AzureVirtualMachineOperationSDKTest {
                 .regionName(regionNameExpected)
                 .resourceGroupName(resourceGroupNameExpected)
                 .userData(userDataExpected)
+                .tags(expectedTags)
                 .checkAndBuild();
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
@@ -407,12 +417,13 @@ public class AzureVirtualMachineOperationSDKTest {
 
         // verify
         PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(1));
-        AzureVirtualMachineSDK.buildVirtualMachineObservable(
-                Mockito.eq(this.azure), Mockito.eq(virtualMachineNameExpected), Mockito.eq(regionExpected),
+        AzureVirtualMachineSDK.buildVirtualMachineObservable(Mockito.eq(this.azure),
+                Mockito.eq(resourceNameExpected), Mockito.eq(regionExpected),
                 Mockito.eq(resourceGroupNameExpected), Mockito.eq(networkInterfaceExcepted),
                 Mockito.eq(imagePublishedExpected), Mockito.eq(imageOfferExpected), Mockito.eq(imageSkuExpected),
                 Mockito.eq(osUserNameExpected), Mockito.eq(osUserPasswordExpected), Mockito.eq(osComputeNameExpected),
-                Mockito.eq(userDataExpected), Mockito.eq(diskSize), Mockito.eq(virtualMachineSizeNameExpected));
+                Mockito.eq(userDataExpected), Mockito.eq(diskSize), Mockito.eq(virtualMachineSizeNameExpected),
+                Mockito.eq(expectedTags));
     }
 
     // test case: When calling the doDeleteInstance method and the completable executes
