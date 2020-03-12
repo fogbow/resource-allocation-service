@@ -5,12 +5,15 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -108,6 +111,36 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
 
         // exercise
         this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
+    }
+
+    // test case: When calling the buildNetworkInstance method,
+    // it must verify if it returns the right networkInstance.
+    @Test
+    public void testBuildNetworkInstance() {
+        // set up
+        String cirdExpected = "cirdExpected";
+        String idExpected = "idExpected";
+        String nameExpeceted = "nameExpeceted";
+        String stateExpected = "stateExpected";
+
+        // exercise
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = AzureGetVirtualNetworkRef.builder()
+                .cidr(cirdExpected)
+                .id(idExpected)
+                .name(nameExpeceted)
+                .state(stateExpected)
+                .build();
+        NetworkInstance networkInstance = this.azureNetworkPlugin.buildNetworkInstance(azureGetVirtualNetworkRef);
+
+        // verify
+        Assert.assertEquals(cirdExpected, networkInstance.getCidr());
+        Assert.assertEquals(idExpected, networkInstance.getId());
+        Assert.assertEquals(stateExpected, networkInstance.getCloudState());
+        Assert.assertEquals(nameExpeceted, networkInstance.getName());
+        Assert.assertEquals(AzureNetworkPlugin.NO_INFORMATION, networkInstance.getGateway());
+        Assert.assertEquals(AzureNetworkPlugin.NO_INFORMATION, networkInstance.getInterfaceState());
+        Assert.assertEquals(AzureNetworkPlugin.NO_INFORMATION, networkInstance.getMACInterface());
+        Assert.assertEquals(NetworkAllocationMode.DYNAMIC, networkInstance.getAllocationMode());
     }
 
 }

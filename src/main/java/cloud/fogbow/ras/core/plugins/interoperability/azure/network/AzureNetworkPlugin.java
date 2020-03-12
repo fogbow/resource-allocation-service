@@ -22,7 +22,8 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
 
-    private static final String NO_INFORMATION = null;
+    @VisibleForTesting
+    static final String NO_INFORMATION = null;
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
 
@@ -73,7 +74,6 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         return buildNetworkInstance(azureGetVirtualNetworkRef);
     }
 
-    // TODO(chico) - Implement tests
     @VisibleForTesting
     NetworkInstance buildNetworkInstance(AzureGetVirtualNetworkRef azureGetVirtualNetworkRef) {
         String id = azureGetVirtualNetworkRef.getId();
@@ -86,8 +86,8 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         String networkInterface = NO_INFORMATION;
         String macInterface = NO_INFORMATION;
         String interfaceState = NO_INFORMATION;
-
         NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
+
         return new NetworkInstance(id, state, name, cidr, gateway,
                 vlan, allocationMode, networkInterface, macInterface, interfaceState);
     }
