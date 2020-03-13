@@ -9,13 +9,12 @@ import org.apache.log4j.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
-import com.microsoft.azure.management.compute.Disks;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -81,29 +80,37 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
     @Override
     public VolumeInstance getInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
         String subscriptionId = azureUser.getSubscriptionId();
         String resourceId = buildResourceId(subscriptionId, resourceName);
         
-        Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Disk disk = doGetInstance(azure, resourceId);
-        return buildVolumeInstance(disk);
+        return doGetInstance(azure, resourceId);
     }
     
     @Override
     public void deleteInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
         String subscriptionId = azureUser.getSubscriptionId();
-        String instanceId = buildResourceId(subscriptionId, resourceName);
+        String resourceId = buildResourceId(subscriptionId, resourceName);
         
-        Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        doDeleteInstance(azure, instanceId); 
+        doDeleteInstance(azure, resourceId); 
     }
 
     private void doDeleteInstance(Azure azure, String instanceId) {
         Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, instanceId);
         this.operation.subscribeDeleteDisk(completable);
+    }
+    
+
+    @VisibleForTesting
+    VolumeInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
+        Disk disk = AzureVolumeSDK.getDisk(azure, resourceId)
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
+
+        return buildVolumeInstance(disk);
     }
     
     @VisibleForTesting
@@ -113,16 +120,6 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         String name = disk.tags().get(AzureConstants.TAG_NAME);
         int size = disk.sizeInGB();
         return new VolumeInstance(id, cloudState, name , size);
-    }
-
-    @VisibleForTesting
-    Disk doGetInstance(Azure azure, String resourceId) throws UnexpectedException {
-        try {
-            Disks disks = azure.disks();
-            return disks.getById(resourceId);
-        } catch (Exception e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
-        }
     }
 
     @VisibleForTesting
