@@ -270,7 +270,6 @@ public class AzureVirtualNetworkOperationSDKTest {
         String provisioningState = "provisioningState";
         String id = "id";
         String name = "name";
-        String cird = "cird";
 
         VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
         Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
@@ -362,9 +361,10 @@ public class AzureVirtualNetworkOperationSDKTest {
         Assert.assertNull(cird);
     }
 
-    // TODO(chico) - add commentary
+    // test case: When calling the getNetwork method with mocked methods
+    // , it must verify if It returns the right Network.
     @Test
-    public void testGetNetworkSuccessfully() throws FogbowException {
+    public void getNetworkSuccessfully() throws FogbowException {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = "resourceName";
@@ -388,7 +388,8 @@ public class AzureVirtualNetworkOperationSDKTest {
         Assert.assertEquals(networkExpected, network);
     }
 
-    // TODO(chico) - add commentary
+    // test case: When calling the getNetwork method with mocked methods and network is not found
+    // , it must verify if It returns an exception.
     @Test
     public void testGetNetworkFail() throws FogbowException {
         // set up
