@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.apache.log4j.Logger;
 import rx.Completable;
 import rx.Observable;
 
@@ -54,8 +55,22 @@ public class AzureTestUtils {
         return Completable.complete();
     }
 
+    public static Completable createSimpleCompletableSuccess(Logger logger, String message) {
+        return Completable.create((completableSubscriber) -> {
+            logger.debug(message);
+            completableSubscriber.onCompleted();
+        });
+    }
+
     public static Completable createSimpleCompletableFail() {
         return Completable.error(new RuntimeException());
+    }
+
+    public static Completable createSimpleCompletableFail(Logger logger, String message) {
+        return Completable.create((completableSubscriber) -> {
+            logger.debug(message);
+            completableSubscriber.onError(new RuntimeException());
+        });
     }
 
     public static void mockGetAzureClient(AzureUser azureUser, Azure azure) throws UnauthenticatedUserException {

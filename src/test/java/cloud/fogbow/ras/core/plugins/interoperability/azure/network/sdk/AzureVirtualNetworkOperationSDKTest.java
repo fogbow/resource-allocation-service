@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
@@ -18,6 +19,7 @@ import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.implementation.VirtualNetworkInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,6 +33,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Completable;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +43,8 @@ import java.util.Optional;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureNetworkSDK.class, AzureNetworkSDK.class, AzureClientCacheManager.class})
 public class AzureVirtualNetworkOperationSDKTest {
+
+    private static final Logger LOGGER_CLASS_MOCK = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -57,6 +62,8 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.azureVirtualNetworkOperationSDK = Mockito.spy(new AzureVirtualNetworkOperationSDK(this.regionName, this.resourceGroupName));
         this.azureUser = AzureTestUtils.createAzureUser();
         this.azure = null;
+
+        makeTheObservablesSynchronous();
     }
 
     // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
@@ -459,6 +466,66 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         this.azureVirtualNetworkOperationSDK.getNetwork(resourceName, this.azureUser);
+    }
+
+    // test case: When calling the doDeleteInstance method with mocked methods
+    // , it must verify if It shows the right log.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
+        String resourceName = "resourceName";
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        String azureSecurityGroupIdExpected = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        String msgDeleteVirtualNetworkOk = "msgDeleteVirtualNetworkOk";
+        String msgDeleteNetworkSecurityGroupOk = "msgDeleteNetworkSecurityGroupOk";
+        Completable deleteVirtualNetworkCompletable = AzureTestUtils
+                .createSimpleCompletableSuccess(LOGGER_CLASS_MOCK, msgDeleteVirtualNetworkOk);
+        Completable completableTwo = AzureTestUtils
+                .createSimpleCompletableSuccess(LOGGER_CLASS_MOCK, msgDeleteNetworkSecurityGroupOk);
+        Mockito.doReturn(deleteVirtualNetworkCompletable).when(this.azureVirtualNetworkOperationSDK)
+                .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected));
+        Mockito.doReturn(completableTwo).when(this.azureVirtualNetworkOperationSDK)
+                .buildDeleteSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(azureSecurityGroupIdExpected));
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, this.azureUser);
+
+        // verify
+        this.loggerAssert.assertEqualsInOrder(Level.DEBUG, msgDeleteVirtualNetworkOk)
+                .assertEqualsInOrder(Level.DEBUG, msgDeleteNetworkSecurityGroupOk);
+    }
+
+    // test case: When calling the doDeleteInstance method with mocked methods and throws an exception
+    // , it must verify if It rethrows the same exception.
+    @Test
+    public void testDoDeleteInstanceFail() throws FogbowException {
+        // set up
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        UnauthenticatedUserException exceptionExpected = new UnauthenticatedUserException(TestUtils.ANY_VALUE);
+        PowerMockito.when(AzureClientCacheManager.getAzure(Mockito.eq(azureUser)))
+                .thenThrow(exceptionExpected);
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(TestUtils.ANY_VALUE, this.azureUser);
+    }
+
+    private void makeTheObservablesSynchronous() {
+        // The scheduler trampolime makes the subscriptions execute in the current thread
+        this.azureVirtualNetworkOperationSDK.setScheduler(Schedulers.trampoline());
     }
 
 }

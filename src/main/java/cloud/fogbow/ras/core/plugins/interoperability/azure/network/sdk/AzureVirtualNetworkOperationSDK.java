@@ -31,7 +31,7 @@ public class AzureVirtualNetworkOperationSDK {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
-    private final Scheduler scheduler;
+    private Scheduler scheduler;
     private final String resourceGroupName;
     private final String regionName;
 
@@ -151,15 +151,13 @@ public class AzureVirtualNetworkOperationSDK {
                 .orElseThrow(InstanceNotFoundException::new);
     }
 
-    // TODO(chico) - Finish the implementation
-    public void doDeleteInstance(String instanceId, AzureUser azureUser) throws FogbowException {
+    public void doDeleteInstance(String resourceName, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
 
-        // TODO(chico) - Build azureVirtualNetworkId by AzureBuilder; Note: Waiting another PR be accepted
-        String azureVirtualNetworkId = "" + instanceId;
+        String azureVirtualNetworkId = getAzureVirtualNetworkId(resourceName, azureUser);
         Completable firstDeleteVirtualNetwork = buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
-        // TODO(chico) - Build azureVirtualNetworkId by AzureBuilder; Note: Waiting another PR be accepted
-        String azureSecurityGroupId = "" + instanceId;
+
+        String azureSecurityGroupId = getAzureNetworkSecurityGroupId(resourceName, azureUser);
         Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, azureSecurityGroupId);
 
         Completable.concat(firstDeleteVirtualNetwork, secondDeleteSecurityGroup)
@@ -203,4 +201,26 @@ public class AzureVirtualNetworkOperationSDK {
                 });
     }
 
+    private String getAzureVirtualNetworkId(String resourceName, AzureUser azureUser) {
+        String subscriptionId = azureUser.getSubscriptionId();
+        return AzureResourceIdBuilder.virtualNetworkId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+    }
+
+    private String getAzureNetworkSecurityGroupId(String resourceName, AzureUser azureUser) {
+        String subscriptionId = azureUser.getSubscriptionId();
+        return AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+    }
+
+    @VisibleForTesting
+    void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
+    }
 }

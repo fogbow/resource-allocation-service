@@ -89,12 +89,14 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
                 vlan, allocationMode, networkInterface, macInterface, interfaceState);
     }
 
+    // TODO(chico) - Implement tests
     @Override
     public void deleteInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
-        this.azureVirtualNetworkOperationSDK.doDeleteInstance(instanceId, azureUser);
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
     }
 
     @VisibleForTesting
