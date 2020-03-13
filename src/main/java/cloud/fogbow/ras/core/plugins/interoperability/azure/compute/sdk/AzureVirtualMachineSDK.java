@@ -55,7 +55,7 @@ public class AzureVirtualMachineSDK {
                 .createAsync();
     }
 
-    static Optional<VirtualMachine> getVirtualMachine(Azure azure, String virtualMachineId)
+    public static Optional<VirtualMachine> getVirtualMachine(Azure azure, String virtualMachineId)
             throws UnexpectedException {
 
         try {
