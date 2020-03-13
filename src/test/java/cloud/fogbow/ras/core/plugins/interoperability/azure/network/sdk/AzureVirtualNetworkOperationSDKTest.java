@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
@@ -10,6 +11,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -32,9 +35,10 @@ import rx.Observable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AzureNetworkSDK.class})
+@PrepareForTest({AzureNetworkSDK.class, AzureNetworkSDK.class, AzureClientCacheManager.class})
 public class AzureVirtualNetworkOperationSDKTest {
 
     @Rule
@@ -330,7 +334,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // , it must verify if It returns the right cird.
     @Test
     public void testGetCIRDSuccessfully() {
-        // ser up
+        // set up
         String cirdExpected = "cirdExpected";
         Network network = Mockito.mock(Network.class);
         List<String> addessSpaces = Arrays.asList(cirdExpected);
@@ -347,7 +351,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // , it must verify if It returns null.
     @Test
     public void testGetCIRDFail() {
-        // ser up
+        // set up
         Network network = Mockito.mock(Network.class);
         Mockito.when(network.addressSpaces()).thenReturn(new ArrayList<>());
 
@@ -356,6 +360,57 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         Assert.assertNull(cird);
+    }
+
+    // TODO(chico) - add commentary
+    @Test
+    public void testGetNetworkSuccessfully() throws FogbowException {
+        // set up
+        AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
+        String resourceName = "resourceName";
+
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        Network networkExpected = Mockito.mock(Network.class);
+        Optional<Network> optionalExpected = Optional.of(networkExpected);
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK.getNetwork(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected)))
+                .thenReturn(optionalExpected);
+
+        // exercise
+        Network network = this.azureVirtualNetworkOperationSDK.getNetwork(resourceName, this.azureUser);
+
+        // verify
+        Assert.assertEquals(networkExpected, network);
+    }
+
+    // TODO(chico) - add commentary
+    @Test
+    public void testGetNetworkFail() throws FogbowException {
+        // set up
+        AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
+        String resourceName = "resourceName";
+
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        Optional<Network> optionalNetwork = Optional.empty();
+        PowerMockito.when(AzureNetworkSDK.getNetwork(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected)))
+                .thenReturn(optionalNetwork);
+
+        // verify
+        this.expectedException.expect(InstanceNotFoundException.class);
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.getNetwork(resourceName, this.azureUser);
     }
 
 }
