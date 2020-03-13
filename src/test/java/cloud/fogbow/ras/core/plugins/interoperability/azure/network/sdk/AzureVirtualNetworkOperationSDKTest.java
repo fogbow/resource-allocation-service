@@ -29,6 +29,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Observable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureNetworkSDK.class})
 public class AzureVirtualNetworkOperationSDKTest {
@@ -301,7 +305,6 @@ public class AzureVirtualNetworkOperationSDKTest {
         String provisioningState = "provisioningState";
         String id = "id";
         String name = "name";
-        String cird = "cird";
 
         VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
         Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
@@ -321,6 +324,38 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+    }
+
+    // test case: When calling the getCIRD method with mocked methods
+    // , it must verify if It returns the right cird.
+    @Test
+    public void testGetCIRDSuccessfully() {
+        // ser up
+        String cirdExpected = "cirdExpected";
+        Network network = Mockito.mock(Network.class);
+        List<String> addessSpaces = Arrays.asList(cirdExpected);
+        Mockito.when(network.addressSpaces()).thenReturn(addessSpaces);
+
+        // exercise
+        String cird = this.azureVirtualNetworkOperationSDK.getCIRD(network);
+
+        // verify
+        Assert.assertEquals(cirdExpected, cird);
+    }
+
+    // test case: When calling the getCIRD method with mocked methods and empty list
+    // , it must verify if It returns null.
+    @Test
+    public void testGetCIRDFail() {
+        // ser up
+        Network network = Mockito.mock(Network.class);
+        Mockito.when(network.addressSpaces()).thenReturn(new ArrayList<>());
+
+        // exercise
+        String cird = this.azureVirtualNetworkOperationSDK.getCIRD(network);
+
+        // verify
+        Assert.assertNull(cird);
     }
 
 }
