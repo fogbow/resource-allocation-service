@@ -275,6 +275,51 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
+    // test case: When calling the buildDeleteSecurityGroupCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteSecurityGroupCompletableSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+        Completable networkSecurityGroupCompletableSuccess = AzureTestUtils.createSimpleCompletableSuccess();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteNetworkSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(networkSecurityGroupCompletableSuccess);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteSecurityGroupCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteSecurityGroupCompletable method and the completable executes
+    // with error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteSecurityGroupCompletableFail() {
+        // set up
+        String instanceId = "instanceId";
+        Completable networkSecurityGroupCompletableFail = AzureTestUtils.createSimpleCompletableFail();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteNetworkSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(networkSecurityGroupCompletableFail);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteSecurityGroupCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+    }
 
     // test case: When calling the doGetInstance method with mocked methods
     // , it must verify if It execute the right AzureGetVirtualNetworkRef.
