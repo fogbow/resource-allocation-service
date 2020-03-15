@@ -61,7 +61,6 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         return AzureGeneralUtil.defineInstanceId(resourceName);
     }
 
-    // TODO(chico) - Implement tests
     @Override
     public NetworkInstance getInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));

@@ -227,4 +227,48 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
         this.azureNetworkPlugin.getInstance(networkOrder, this.azureUser);
     }
 
+    // test case: When calling the deleteInstance method with mocked method,
+    // it must verify if it executes all methods with right values.
+    @Test
+    public void testDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
+
+        String resourceNameExpected = AzureGeneralUtil.defineResourceName(instanceId);
+
+        Mockito.doNothing().when(this.azureVirtualNetworkOperation)
+                .doDeleteInstance(Mockito.anyString(), Mockito.any());
+
+        // exercise
+        this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
+
+        // verify
+        Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.eq(resourceNameExpected), Mockito.eq(this.azureUser));
+    }
+
+    // test case: When calling the deleteInstance method with mocked methods and throws an exception,
+    // it must verify if it rethrows the same exception.
+    @Test
+    public void testDeleteInstanceFail() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
+        String resourceNameExpected = AzureGeneralUtil.defineResourceName(instanceId);
+
+        FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
+        Mockito.doThrow(exceptionExpected).when(this.azureVirtualNetworkOperation)
+                .doDeleteInstance(Mockito.eq(resourceNameExpected), Mockito.eq(this.azureUser));
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
+    }
+
 }
