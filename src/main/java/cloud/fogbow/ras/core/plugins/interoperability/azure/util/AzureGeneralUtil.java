@@ -7,8 +7,7 @@ import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
 
 public interface AzureGeneralUtil {
 
-    @VisibleForTesting
-    static final String NO_INFORMATION = null;
+    @VisibleForTesting String NO_INFORMATION = null;
 
     // Generate a pattern name to all Resources that it will be created in the cloud
     static String generateResourceName() {
