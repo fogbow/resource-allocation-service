@@ -19,6 +19,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMappe
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
@@ -51,10 +53,13 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
 
         String resourceName = AzureGeneralUtil.generateResourceName();
         String cidr = networkOrder.getCidr();
+        String name = networkOrder.getName();
+        Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
-                .name(resourceName)
+                .resourceName(resourceName)
                 .cidr(cidr)
+                .tags(tags)
                 .checkAndBuild();
         this.azureVirtualNetworkOperationSDK.doCreateInstance(azureCreateVirtualNetworkRef, azureUser);
 

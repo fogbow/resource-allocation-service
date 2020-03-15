@@ -24,6 +24,7 @@ import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 
@@ -75,12 +76,13 @@ public class AzureVirtualNetworkOperationSDK {
 
     @VisibleForTesting
     Observable<Indexable> buildCreateSecurityGroupObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Azure azure) {
-        String name = azureCreateVirtualNetworkRef.getName();
+        String name = azureCreateVirtualNetworkRef.getResourceName();
         String resourceGroupName = this.resourceGroupName;
         String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
+        Map tags = azureCreateVirtualNetworkRef.getTags();
 
-        return AzureNetworkSDK.createSecurityGroupAsync(azure, name, region, resourceGroupName, cidr);
+        return AzureNetworkSDK.createSecurityGroupAsync(azure, name, region, resourceGroupName, cidr, tags);
     }
 
 
@@ -90,12 +92,14 @@ public class AzureVirtualNetworkOperationSDK {
                                            Azure azure) {
 
         NetworkSecurityGroup networkSecurityGroup = (NetworkSecurityGroup) indexableSecurityGroup;
-        String name = azureCreateVirtualNetworkRef.getName();
+        String name = azureCreateVirtualNetworkRef.getResourceName();
         String resourceGroupName = this.resourceGroupName;
         String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.fromName(this.regionName);
+        Map tags = azureCreateVirtualNetworkRef.getTags();
 
-        AzureNetworkSDK.createNetworkSync(azure, name, region, resourceGroupName, cidr, networkSecurityGroup);
+        AzureNetworkSDK.createNetworkSync(
+                azure, name, region, resourceGroupName, cidr, networkSecurityGroup, tags);
     }
 
     private void subscribeVirtualNetworkCreation(Observable<Indexable> virtualNetworkObservable) {

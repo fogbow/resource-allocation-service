@@ -26,6 +26,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 @PrepareForTest({AzureGeneralUtil.class})
@@ -96,22 +98,26 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testRequestInstanceSuccessfully() throws FogbowException {
         // set up
         String cidr = "10.10.10.10/24";
-        String name = "name";
+        String resourceName = "resourceName";
         String orderId = "orderId";
+        String name = "name";
+        Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getCidr()).thenReturn(cidr);
         Mockito.when(networkOrder.getId()).thenReturn(orderId);
+        Mockito.when(networkOrder.getName()).thenReturn(name);
 
         PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.when(AzureGeneralUtil.generateResourceName()).thenReturn(name);
+        PowerMockito.when(AzureGeneralUtil.generateResourceName()).thenReturn(resourceName);
 
         Mockito.doNothing().when(this.azureVirtualNetworkOperation).doCreateInstance(Mockito.any(), Mockito.any());
 
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRefExpected = AzureCreateVirtualNetworkRef.builder()
-                .name(name)
+                .resourceName(resourceName)
                 .cidr(cidr)
+                .tags(tags)
                 .checkAndBuild();
-        String instanceIdExpected = AzureGeneralUtil.defineInstanceId(name);
+        String instanceIdExpected = AzureGeneralUtil.defineInstanceId(resourceName);
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);

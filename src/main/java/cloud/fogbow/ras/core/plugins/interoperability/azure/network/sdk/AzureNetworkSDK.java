@@ -8,6 +8,7 @@ import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Completable;
 import rx.Observable;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class AzureNetworkSDK {
@@ -41,11 +42,12 @@ public class AzureNetworkSDK {
     }
 
     public static Observable<Indexable> createSecurityGroupAsync(Azure azure, String securityGroupName, Region region,
-                                                                 String resourceGroupName, String cidr) {
+                                                                 String resourceGroupName, String cidr, Map tags) {
         return azure.networkSecurityGroups()
                 .define(securityGroupName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
+                .withTags(tags)
                 .defineRule(DEFAULT_SECURITY_GROUPS_RULES_NAME)
                     .allowInbound()
                     .fromAddress(cidr)
@@ -58,11 +60,12 @@ public class AzureNetworkSDK {
     }
 
     public static Network createNetworkSync(Azure azure, String networkName, Region region, String resourceGroupName,
-                                            String cidr, NetworkSecurityGroup networkSecurityGroup) {
+                                            String cidr, NetworkSecurityGroup networkSecurityGroup, Map tags) {
         return azure.networks()
                 .define(networkName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
+                .withTags(tags)
                 .withAddressSpace(cidr)
                 .defineSubnet(DEFAULT_SUBNET_NAME)
                     .withAddressPrefix(cidr)
