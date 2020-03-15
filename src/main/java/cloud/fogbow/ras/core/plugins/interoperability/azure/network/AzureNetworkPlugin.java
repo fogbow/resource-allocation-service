@@ -4,15 +4,18 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -33,9 +36,10 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return false;
+        return AzureStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.READY);
     }
 
+    // This method always must return false, because there is no state failed in the Azure context.
     @Override
     public boolean hasFailed(String instanceState) {
         return false;

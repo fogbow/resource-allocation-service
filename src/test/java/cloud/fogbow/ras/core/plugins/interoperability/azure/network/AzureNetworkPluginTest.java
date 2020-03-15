@@ -15,6 +15,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,6 +55,39 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
         this.azureVirtualNetworkOperation = Mockito.spy(azureVirtualNetworkOperationSDK);
         this.azureNetworkPlugin.setAzureVirtualNetworkOperationSDK(this.azureVirtualNetworkOperation);
         this.azureUser = AzureTestUtils.createAzureUser();
+    }
+
+    // test case: When calling the isReady method and the instance state is ready,
+    // it must verify if It returns true value.
+    @Test
+    public void testIsReadySuccessfullyWhenIsReady() {
+        // set up
+        String instanceState = AzureStateMapper.SUCCEEDED_STATE;
+
+        // exercise and verify
+        Assert.assertTrue(this.azureNetworkPlugin.isReady(instanceState));
+    }
+
+    // test case: When calling the isReady method and the instance state is not ready,
+    // it must verify if It returns false value.
+    @Test
+    public void testIsReadySuccessfullyWhenNotReady() {
+        // set up
+        String instanceState = TestUtils.ANY_VALUE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureNetworkPlugin.isReady(instanceState));
+    }
+
+    // test case: When calling the hasFailed method with any value,
+    // it must verify if It returns false.
+    @Test
+    public void testHasFailedSuccessfullyWhenIsFailed() {
+        // set up
+        String instanceState = TestUtils.ANY_VALUE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureNetworkPlugin.hasFailed(instanceState));
     }
 
     // test case: When calling the requestInstance method with mocked methods,
