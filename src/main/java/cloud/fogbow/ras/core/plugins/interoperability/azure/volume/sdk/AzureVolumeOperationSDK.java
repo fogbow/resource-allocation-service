@@ -42,7 +42,7 @@ public class AzureVolumeOperationSDK {
         .doOnCompleted(() -> {
             LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
         })
-        .subscribeOn(Schedulers.from(AzureSchedulerManager.getVolumeExecutor()))
+        .subscribeOn(this.scheduler)
         .subscribe();
     }
     
