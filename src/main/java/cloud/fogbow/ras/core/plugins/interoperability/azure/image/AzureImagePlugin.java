@@ -28,6 +28,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     private final AzureImageOperation operation;
     private static Map<String, ImageSummary> images = new HashMap<>();
     private static final int NO_VALUE_FLAG = -1;
+    public static final String ACTIVE_STATE = "active";
 
     public AzureImagePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
@@ -37,55 +38,39 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
         this.publishers = this.loadPublishers(properties);
     }
 
-    @VisibleForTesting
-    List<String> loadPublishers(Properties properties) {
-        List<String> publishers = new ArrayList<>();
-        String publisherList = properties.getProperty(AzureConstants.IMAGES_PUBLISHERS_KEY);
-
-        if (publisherList == null || publisherList.isEmpty()) {
-            throw new FatalErrorException(Messages.Exception.NO_IMAGES_PUBLISHER);
-        }
-
-        for (String publisher : publisherList.split(",")) {
-            publisher = publisher.trim();
-            publishers.add(publisher);
-        }
-
-        return publishers;
-    }
-
     @Override
     public List<ImageSummary> getAllImages(AzureUser cloudUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
+        List<ImageSummary> imageSummaryList = new ArrayList<>();
 
-        if (images.isEmpty()) {
-            images = this.loadImages(azure);
+        for (Map.Entry<String, ImageSummary> entry : this.getImageMap(azure).entrySet()) {
+            ImageSummary imageSummary = entry.getValue();
+            String name = imageSummary.getName();
+            String id = entry.getKey();
+            imageSummaryList.add(new ImageSummary(id, name));
         }
 
-        List<ImageSummary> imageSummaryList = new ArrayList<>();
-        images.forEach((id, imageSummary) -> imageSummaryList.add(new ImageSummary(id, imageSummary.getName())) );
         return imageSummaryList;
     }
 
     @Override
     public ImageInstance getImage(String imageId, AzureUser cloudUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
+        Map<String, ImageSummary> imageMap = getImageMap(azure);
 
-        if (images.isEmpty()) {
-            images = this.loadImages(azure);
+        if (!this.images.containsKey(imageId)) {
+            throw new InstanceNotFoundException();
         }
 
-        if (!this.images.containsKey(imageId))
-            throw new InstanceNotFoundException();
-
-        ImageSummary imageSummary = this.images.get(imageId);
+        ImageSummary imageSummary = imageMap.get(imageId);
         String imageName = imageSummary.getName();
+
         return this.buildImageInstance(imageId, imageName);
     }
 
     @VisibleForTesting
     ImageInstance buildImageInstance(String id, String name) {
-        String status = "active";
+        String status = ACTIVE_STATE;
         long size = NO_VALUE_FLAG;
         long minDisk = NO_VALUE_FLAG;
         long minRam = NO_VALUE_FLAG;
@@ -112,5 +97,31 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
         }
 
         return imageMap;
+    }
+
+    @VisibleForTesting
+    List<String> loadPublishers(Properties properties) {
+        List<String> publishers = new ArrayList<>();
+        String publisherList = properties.getProperty(AzureConstants.IMAGES_PUBLISHERS_KEY);
+
+        if (publisherList == null || publisherList.isEmpty()) {
+            throw new FatalErrorException(Messages.Exception.NO_IMAGES_PUBLISHER);
+        }
+
+        for (String publisher : publisherList.split(",")) {
+            publisher = publisher.trim();
+            publishers.add(publisher);
+        }
+
+        return publishers;
+    }
+
+    @VisibleForTesting
+    Map<String, ImageSummary> getImageMap(Azure azure) {
+        if (images.isEmpty()) {
+            images = this.loadImages(azure);
+        }
+
+        return images;
     }
 }
