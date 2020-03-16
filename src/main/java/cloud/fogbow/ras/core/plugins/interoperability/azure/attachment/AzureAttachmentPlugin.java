@@ -21,22 +21,28 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentOperationSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import rx.Observable;
 
 public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
 
-private static final Logger LOGGER = Logger.getLogger(AzureAttachmentPlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AzureAttachmentPlugin.class);
     
     private final String defaultResourceGroupName;
+
+    private AzureAttachmentOperationSDK operation;
     
     public AzureAttachmentPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
+        this.operation = new AzureAttachmentOperationSDK();
     }
 
     @Override
@@ -60,19 +66,88 @@ private static final Logger LOGGER = Logger.getLogger(AzureAttachmentPlugin.clas
         return doRequestInstance(azure, virtualMachineId, diskId);
     }
 
+    @Override
+    public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        String subscriptionId = azureUser.getSubscriptionId();
+        String resourceId = buildResourceId(subscriptionId, attachmentOrder.getInstanceId());
+        
+        return doGetInstance(azure, resourceId);
+    }
+    
+    @Override
+    public void deleteInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        String subscriptionId = azureUser.getSubscriptionId();
+        String virtualMachineId = buildResourceId(subscriptionId, attachmentOrder.getComputeId());
+        String diskId = buildResourceId(subscriptionId, attachmentOrder.getVolumeId());
+        
+        doDeleteInstance(azure, virtualMachineId, diskId);
+    }
+    
     @VisibleForTesting
-    String doRequestInstance(Azure azure, String virtualMachineId, String diskId)
+    void doDeleteInstance(Azure azure, String virtualMachineId, String diskId) throws FogbowException {
+        VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
+        VirtualMachineDataDisk virtualMachineDataDisk = findVirtualMachineDataDisk(virtualMachine, diskId);
+        int lun = virtualMachineDataDisk.lun();
+        
+        Observable<VirtualMachine> observable = AzureAttachmentSDK.detachDisk(virtualMachine, lun);
+        this.operation.subscribeDetachDiskFrom(observable);
+    }
+
+    @VisibleForTesting
+    VirtualMachineDataDisk findVirtualMachineDataDisk(VirtualMachine virtualMachine, String diskId)
             throws FogbowException {
         
-        VirtualMachine virtualMachine = AzureVirtualMachineSDK
+        return virtualMachine.dataDisks().values().stream()
+                .filter(dataDisk -> diskId.equals(dataDisk.id()))
+                .findFirst()
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
+    }
+    
+    @VisibleForTesting
+    AttachmentInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
+        Disk disk = doGetDiskSDK(azure, resourceId);
+        return buildAttachmentInstance(disk);
+    }
+    
+    @VisibleForTesting
+    AttachmentInstance buildAttachmentInstance(Disk disk) {
+        String id = AzureGeneralUtil.defineInstanceId(disk.name());
+        String cloudState = disk.isAttachedToVirtualMachine() 
+                ? AzureStateMapper.ATTACHED_STATE
+                        : AzureStateMapper.UNATTACHED_STATE;
+        
+        String computeId = disk.virtualMachineId();
+        String volumeId = disk.id();
+        String device = disk.source().sourceId();
+        return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
+    }
+    
+    @VisibleForTesting
+    String doRequestInstance(Azure azure, String virtualMachineId, String diskId) throws FogbowException {
+        VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
+        Disk disk = doGetDiskSDK(azure, diskId);
+        
+        Observable<VirtualMachine> observable = AzureAttachmentSDK.attachDisk(virtualMachine, disk);
+        this.operation.subscribeAttachDiskFrom(observable);
+        return AzureGeneralUtil.defineInstanceId(disk.name());
+    }
+
+    @VisibleForTesting
+    Disk doGetDiskSDK(Azure azure, String diskId) throws FogbowException {
+        return AzureVolumeSDK
+                .getDisk(azure, diskId)
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
+    }
+
+    @VisibleForTesting
+    VirtualMachine doGetVirtualMachineSDK(Azure azure, String virtualMachineId) throws FogbowException {
+        return AzureVirtualMachineSDK
                 .getVirtualMachine(azure, virtualMachineId)
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
-        
-        Disk disk = AzureVolumeSDK.getDisk(azure, diskId)
-                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
-        
-        virtualMachine.update().withExistingDataDisk(disk).applyAsync(); // FIXME
-        return AzureGeneralUtil.defineInstanceId(disk.name());
     }
 
     @VisibleForTesting
@@ -84,58 +159,6 @@ private static final Logger LOGGER = Logger.getLogger(AzureAttachmentPlugin.clas
                 .build();
         
         return resourceIdUrl;
-    }
-
-    @Override
-    public void deleteInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
-        String subscriptionId = azureUser.getSubscriptionId();
-        String virtualMachineId = buildResourceId(subscriptionId, attachmentOrder.getComputeId());
-        String diskId = buildResourceId(subscriptionId, attachmentOrder.getVolumeId());
-        
-        Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        VirtualMachine virtualMachine = AzureVirtualMachineSDK
-                .getVirtualMachine(azure, virtualMachineId)
-                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
-        
-        VirtualMachineDataDisk virtualMachineDataDisk = virtualMachine.dataDisks().values().stream()
-                .filter(dataDisk -> diskId.equals(dataDisk.id()))
-                .findFirst()
-                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
-        
-        int lun = virtualMachineDataDisk.lun();
-        virtualMachine.update().withoutDataDisk(lun).applyAsync(); // FIXME
-    }
-
-    @Override
-    public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
-        Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, attachmentOrder.getInstanceId());
-        
-        return doGetInstance(azure, resourceId);
-    }
-
-    @VisibleForTesting
-    AttachmentInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
-        Disk disk = AzureVolumeSDK.getDisk(azure, resourceId)
-                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
-
-        return buildAttachmentInstance(disk);
-    }
-
-    @VisibleForTesting
-    AttachmentInstance buildAttachmentInstance(Disk disk) {
-        String id = AzureGeneralUtil.defineInstanceId(disk.name());
-        String cloudState = disk.isAttachedToVirtualMachine() 
-                ? AzureStateMapper.ATTACHED_STATE
-                : AzureStateMapper.UNATTACHED_STATE;
-        
-        String computeId = disk.virtualMachineId();
-        String volumeId = disk.id();
-        String device = disk.source().sourceId();
-        return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
     }
 
 }
