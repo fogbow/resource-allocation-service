@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.image;
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -17,7 +18,6 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineOffer;
 import com.microsoft.azure.management.compute.VirtualMachinePublisher;
 import com.microsoft.azure.management.compute.VirtualMachineSku;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.util.*;
 
@@ -27,6 +27,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     private final List<String> publishers;
     private final AzureImageOperation operation;
     private static Map<String, ImageSummary> images = new HashMap<>();
+    private static final int NO_VALUE_FLAG = -1;
 
     public AzureImagePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
@@ -57,17 +58,38 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     public List<ImageSummary> getAllImages(AzureUser cloudUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
 
-        if (this.images.isEmpty()) {
-            this.images = this.loadImages(azure);
+        if (images.isEmpty()) {
+            images = this.loadImages(azure);
         }
 
-        return new ArrayList<>(this.images.values());
+        List<ImageSummary> imageSummaryList = new ArrayList<>();
+        images.forEach((id, imageSummary) -> imageSummaryList.add(new ImageSummary(id, imageSummary.getName())) );
+        return imageSummaryList;
     }
 
     @Override
     public ImageInstance getImage(String imageId, AzureUser cloudUser) throws FogbowException {
-        // TODO(jadsonluan): Implement this method
-        throw new NotImplementedException("getImage is not implemented yet");
+        Azure azure = AzureClientCacheManager.getAzure(cloudUser);
+
+        if (images.isEmpty()) {
+            images = this.loadImages(azure);
+        }
+
+        if (!this.images.containsKey(imageId))
+            throw new InstanceNotFoundException();
+
+        ImageSummary imageSummary = this.images.get(imageId);
+        String imageName = imageSummary.getName();
+        return this.buildImageInstance(imageId, imageName);
+    }
+
+    @VisibleForTesting
+    ImageInstance buildImageInstance(String id, String name) {
+        String status = "active";
+        long size = NO_VALUE_FLAG;
+        long minDisk = NO_VALUE_FLAG;
+        long minRam = NO_VALUE_FLAG;
+        return new ImageInstance(id, name, size, minDisk, minRam, status);
     }
 
     @VisibleForTesting
@@ -82,7 +104,8 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
                         String offerName = offer.name();
                         String skuName = sku.name();
                         ImageSummary imageSummary = AzureImageOperationUtil.buildImageSummaryBy(publisherName, offerName, skuName);
-                        imageMap.put(imageSummary.getId(), imageSummary);
+                        String id = UUID.randomUUID().toString();
+                        imageMap.put(id, imageSummary);
                     }
                 }
             }
