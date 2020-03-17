@@ -5,22 +5,22 @@ import java.util.Collections;
 import java.util.List;
 
 /*
-This class manager resources(instances) not ready in the cloud. It happen in the asynchronous operation.
+This class deals with instances(resources) not ready in the cloud. It happen in the asynchronous operation.
  */
-public class AsyncInstanceManager {
+public class PendingInstanceManager {
 
-    private static AsyncInstanceManager asyncInstanceManager;
+    private static PendingInstanceManager pendingInstanceManager;
     private List<String> pending;
 
-    private AsyncInstanceManager() {
+    private PendingInstanceManager() {
         this.pending = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public static AsyncInstanceManager getInstance() {
-        if (asyncInstanceManager == null) {
-            asyncInstanceManager = new AsyncInstanceManager();
+    public static PendingInstanceManager getSingleton() {
+        if (pendingInstanceManager == null) {
+            pendingInstanceManager = new PendingInstanceManager();
         }
-        return asyncInstanceManager;
+        return pendingInstanceManager;
     }
 
     /*

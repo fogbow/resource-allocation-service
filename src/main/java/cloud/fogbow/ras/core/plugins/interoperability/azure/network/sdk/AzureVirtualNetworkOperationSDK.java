@@ -6,7 +6,9 @@ import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
@@ -18,35 +20,30 @@ import org.apache.log4j.Logger;
 import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualNetworkOperationSDK {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
-    private final AsyncInstanceManager asyncInstanceManager;
     private final String resourceGroupName;
     private Scheduler scheduler;
     private final String regionName;
 
     public AzureVirtualNetworkOperationSDK(String regionName, String defaultResourceGroupName) {
-        ExecutorService virtualNetworkExecutor = AzureSchedulerManager.getVirtualNetworkExecutor();
-        this.scheduler = Schedulers.from(virtualNetworkExecutor);
         this.regionName = regionName;
         this.resourceGroupName = defaultResourceGroupName;
-        this.asyncInstanceManager = AsyncInstanceManager.getInstance();
     }
 
-    public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, AzureUser azureUser)
+    public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
+                                 AzureUser azureUser, Runnable defineAsReadyInstanceCallback)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, azure);
+        Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, azure, defineAsReadyInstanceCallback);
         subscribeVirtualNetworkCreation(virtualNetworkCreationObservable);
     }
 
@@ -56,7 +53,8 @@ public class AzureVirtualNetworkOperationSDK {
      * 2 - Create Virtual Network based on security group created previously
      */
     @VisibleForTesting
-    Observable<Indexable> buildVirtualNetworkCreationObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Azure azure) {
+    Observable<Indexable> buildVirtualNetworkCreationObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
+                                                                Azure azure, Runnable defineAsReadyInstanceCallback) {
         Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, azure);
         return securityGroupObservable
                 .doOnNext(indexableSecurityGroup -> {
@@ -69,9 +67,7 @@ public class AzureVirtualNetworkOperationSDK {
                     return null;
                 })
                 .doOnCompleted(() -> {
-                    String resourceName = azureCreateVirtualNetworkRef.getResourceName();
-                    String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
-                    this.asyncInstanceManager.defineAsReady(instanceId);
+                    defineAsReadyInstanceCallback.run();
                     LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
