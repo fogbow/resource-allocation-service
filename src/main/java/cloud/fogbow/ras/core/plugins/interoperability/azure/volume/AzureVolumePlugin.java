@@ -104,7 +104,6 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, resourceId);
         this.operation.subscribeDeleteDisk(completable);
     }
-    
 
     @VisibleForTesting
     VolumeInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
