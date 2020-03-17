@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
@@ -14,6 +15,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import org.junit.Assert;
@@ -30,7 +32,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-@PrepareForTest({AzureGeneralUtil.class})
+@PrepareForTest({AzureGeneralUtil.class, AsyncInstanceManager.class, AsyncInstanceManager.class})
 public class AzureNetworkPluginTest extends AzureTestUtils {
 
     @Rule
@@ -39,11 +41,17 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     private AzureUser azureUser;
     private String defaultResourceGroupName;
     private String defaultRegionName;
+    private AsyncInstanceManager asyncInstanceManager;
     private AzureNetworkPlugin azureNetworkPlugin;
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperation;
 
     @Before
     public void setUp() {
+        this.asyncInstanceManager = Mockito.spy(AsyncInstanceManager.getInstance());
+
+        PowerMockito.mockStatic(AsyncInstanceManager.class);
+        PowerMockito.when(AsyncInstanceManager.getInstance()).thenReturn(asyncInstanceManager);
+
         String azureConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
@@ -125,6 +133,8 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
         // verify
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser));
+        Mockito.verify(this.asyncInstanceManager, Mockito.times(TestUtils.RUN_ONCE))
+                .defineAsPending(Mockito.eq(instanceId));
         Assert.assertEquals(instanceIdExpected, instanceId);
     }
 
@@ -208,6 +218,25 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
 
         // verify
         Assert.assertEquals(networkInstanceExpected, networkInstance);
+    }
+
+    // test case: When calling the getInstance method with mocked methods and the instance is pending,
+    // it must verify if it returns the right networkInstance with state creating.
+    @Test
+    public void testGetInstanceWhenInstanceIsPending() throws FogbowException {
+        // set up
+        String instanceId = "instanceId";
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
+
+        Mockito.when(this.asyncInstanceManager.isPending(Mockito.eq(instanceId))).thenReturn(true);
+
+        // exercise
+        NetworkInstance networkInstance = this.azureNetworkPlugin.getInstance(networkOrder, this.azureUser);
+
+        // verify
+        Assert.assertEquals(instanceId, networkInstance.getId());
+        Assert.assertEquals(InstanceState.CREATING.getValue(), networkInstance.getCloudState());
     }
 
     // test case: When calling the getInstance method with mocked methods and throws an exception,

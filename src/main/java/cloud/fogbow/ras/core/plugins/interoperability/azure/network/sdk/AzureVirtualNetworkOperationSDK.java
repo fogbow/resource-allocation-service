@@ -6,10 +6,7 @@ import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
@@ -32,8 +29,9 @@ public class AzureVirtualNetworkOperationSDK {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
-    private Scheduler scheduler;
+    private final AsyncInstanceManager asyncInstanceManager;
     private final String resourceGroupName;
+    private Scheduler scheduler;
     private final String regionName;
 
     public AzureVirtualNetworkOperationSDK(String regionName, String defaultResourceGroupName) {
@@ -41,6 +39,7 @@ public class AzureVirtualNetworkOperationSDK {
         this.scheduler = Schedulers.from(virtualNetworkExecutor);
         this.regionName = regionName;
         this.resourceGroupName = defaultResourceGroupName;
+        this.asyncInstanceManager = AsyncInstanceManager.getInstance();
     }
 
     public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, AzureUser azureUser)
@@ -70,6 +69,9 @@ public class AzureVirtualNetworkOperationSDK {
                     return null;
                 })
                 .doOnCompleted(() -> {
+                    String resourceName = azureCreateVirtualNetworkRef.getResourceName();
+                    String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+                    this.asyncInstanceManager.defineAsReady(instanceId);
                     LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
