@@ -66,5 +66,28 @@ public class AzureResourceIdBuilderTest extends AzureTestUtils {
         // verify
         Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
     }
+    
+    // test case: When calling the diskId constructor to build a disk resource ID,
+    // it must verify that it returns a valid disk ID.
+    @Test
+    public void testBuildDiskIdSuccessfully() {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+
+        String expected = String.format(AzureResourceIdBuilder.DISK_STRUCTURE,
+                this.azureUser.getSubscriptionId(), 
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME, 
+                resourceName);
+
+        // exercise
+        String diskId = AzureResourceIdBuilder.diskId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceName)
+                .build();
+
+        // verify
+        Assert.assertEquals(expected, diskId);
+    }
 
 }
