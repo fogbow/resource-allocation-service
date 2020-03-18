@@ -298,18 +298,19 @@ public class AzureVolumePluginTest {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVolumeInstance(Mockito.eq(disk));
     }
     
-    // test case: When calling the doGetInstance method, and an unexpected error
-    // occurs, it must verify if an InstanceNotFoundException has been thrown.
+    // test case: When calling the doGetInstance method with an invalid resource ID,
+    // it must verify if an InstanceNotFoundException has been thrown.
     @Test
     public void testDoGetInstanceFail() throws Exception {
         // set up
         Azure azure = PowerMockito.mock(Azure.class);
-        String resourceId = createResourceId();
+        String resourceId = TestUtils.ANY_VALUE;
 
         Optional<Disk> diskOptional = Optional.ofNullable(null);
         PowerMockito.mockStatic(AzureVolumeSDK.class);
-        PowerMockito.doReturn(diskOptional).when(AzureVolumeSDK.class, "getDisk", Mockito.eq(azure), Mockito.anyString());
-        
+        PowerMockito.doReturn(diskOptional).when(AzureVolumeSDK.class, "getDisk", Mockito.eq(azure),
+                Mockito.eq(resourceId));
+
         String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
