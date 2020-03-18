@@ -9,10 +9,10 @@ import org.junit.Test;
 
 public class AzureStateMapperTest {
 
-    // test case: When calling the map method with compute type and creating state,
-    // it must verify if It returns the instance creating state.
+    // test case: When calling the map method with a compute resource type and
+    // creating state, it must verify than it returns the same instance state.
     @Test
-    public void testMapSuccessfullyWhenCreatingState() {
+    public void testMapWithComputeResourceTypeWhenStateIsCreating() {
         // set up
         ResourceType resourceType = ResourceType.COMPUTE;
 
@@ -23,10 +23,10 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.CREATING, instanceState);
     }
 
-    // test case: When calling the map method with compute type and creating state,
-    // it must verify if It returns the instance ready state.
+    // test case: When calling the map method with a compute resource type and
+    // succeeded state, it must verify than it returns the ready instance state.
     @Test
-    public void testMapSuccessfullyWhenSucceededState() {
+    public void testMapWithComputeResourceTypeWhenStateIsSucceeded() {
         // set up
         ResourceType resourceType = ResourceType.COMPUTE;
 
@@ -37,10 +37,10 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.READY, instanceState);
     }
 
-    // test case: When calling the map method with compute type and failed state,
-    // it must verify if It returns the instance failed state.
+    // test case: When calling the map method with a compute resource type and
+    // failed state, it must verify than it returns the failed instance state.
     @Test
-    public void testMapSuccessfullyWhenFailedState() {
+    public void testMapWithComputeResourceTypeWhenStateIsFailed() {
         // set up
         ResourceType resourceType = ResourceType.COMPUTE;
 
@@ -51,15 +51,16 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
-    // test case: When calling the map method with compute type and creating state,
-    // it must verify if It returns the instance inconsistent state.
+    // test case: When calling the map method with a compute resource type and
+    // undefined state, it must verify if It returns the inconsistent instance
+    // state.
     @Test
-    public void testMapSuccessfullyWhenUndefinedState() {
+    public void testMapWithComputeResourceTypeWhenStateIsUndefined() {
         // set up
         ResourceType resourceType = ResourceType.COMPUTE;
 
         // exercise
-        InstanceState instanceState = AzureStateMapper.map(resourceType, "undefined");
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureTestUtils.UNDEFINED_STATE);
 
         // verify
         Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
