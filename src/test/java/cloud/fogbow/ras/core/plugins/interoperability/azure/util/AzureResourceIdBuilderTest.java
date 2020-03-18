@@ -9,7 +9,7 @@ import org.junit.rules.ExpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
-public class AzureResourceIdBuilderTest extends AzureTestUtils {
+public class AzureResourceIdBuilderTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
