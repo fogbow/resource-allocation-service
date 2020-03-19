@@ -1,10 +1,14 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
 import cloud.fogbow.common.models.AzureUser;
+import rx.Observable;
+
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
 /*
  * This class is intended to reuse code components to assist other unit test classes
@@ -29,5 +33,18 @@ public class AzureTestUtils {
         Mockito.when(azureUser.getSubscriptionId()).thenReturn(DEFAULT_SUBSCRIPTION_ID);
         return azureUser;
     }
+    
+    public static Observable<Indexable> createSimpleObservableSuccess() {
+        return Observable.defer(() -> {
+            Indexable indexable = Mockito.mock(Indexable.class);
+            return Observable.just(indexable);
+        });
+    }
 
+    public static Observable<Indexable> createSimpleObservableFail() {
+        return Observable.defer(() -> {
+            throw new RuntimeException();
+        });
+    }
+    
 }
