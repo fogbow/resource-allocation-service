@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
 import cloud.fogbow.ras.constants.Messages;
@@ -25,25 +26,39 @@ public class AzureVolumeOperationSDK {
     }
     
     public void subscribeCreateDisk(Observable<Indexable> observable) {
-        observable.doOnError((error -> {
-            LOGGER.error(Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
-        }))
-        .doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
-        })
+        setCreateDiskBehaviour(observable)
         .subscribeOn(this.scheduler)
         .subscribe();
     }
+
+    @VisibleForTesting
+    Observable<Indexable> setCreateDiskBehaviour(Observable<Indexable> observable) {
+        return observable.onErrorReturn((error -> {
+            LOGGER.error(Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
+            return null;
+        })).doOnCompleted(() -> {
+            LOGGER.info(Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
+        });
+    }
     
     public void subscribeDeleteDisk(Completable completable) {
-        completable.doOnError((error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
-        }))
-        .doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
-        })
+        setDeleteDiskBehaviour(completable)
         .subscribeOn(this.scheduler)
         .subscribe();
+    }
+
+    @VisibleForTesting
+    Completable setDeleteDiskBehaviour(Completable completable) {
+        return completable.doOnError((error -> {
+            LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+        })).doOnCompleted(() -> {
+            LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+        });
+    }
+	
+    @VisibleForTesting
+    void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
     }
     
 }
