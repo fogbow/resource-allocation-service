@@ -9,6 +9,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
@@ -20,10 +21,12 @@ import org.apache.log4j.Logger;
 import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
+import rx.schedulers.Schedulers;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualNetworkOperationSDK {
 
@@ -34,16 +37,20 @@ public class AzureVirtualNetworkOperationSDK {
     private final String regionName;
 
     public AzureVirtualNetworkOperationSDK(String regionName, String defaultResourceGroupName) {
+        ExecutorService virtualMachineExecutor = AzureSchedulerManager.getVirtualNetworkExecutor();
+        this.scheduler = Schedulers.from(virtualMachineExecutor);
+
         this.regionName = regionName;
         this.resourceGroupName = defaultResourceGroupName;
     }
 
     public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
-                                 AzureUser azureUser, Runnable defineAsReadyInstanceCallback)
+                                 AzureUser azureUser, Runnable defineAsCreatedInstanceCallback)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, azure, defineAsReadyInstanceCallback);
+        Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(
+                azureCreateVirtualNetworkRef, azure, defineAsCreatedInstanceCallback);
         subscribeVirtualNetworkCreation(virtualNetworkCreationObservable);
     }
 
@@ -54,7 +61,7 @@ public class AzureVirtualNetworkOperationSDK {
      */
     @VisibleForTesting
     Observable<Indexable> buildVirtualNetworkCreationObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
-                                                                Azure azure, Runnable defineAsReadyInstanceCallback) {
+                                                                Azure azure, Runnable defineAsCreatedInstanceCallback) {
         Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, azure);
         return securityGroupObservable
                 .doOnNext(indexableSecurityGroup -> {
@@ -67,7 +74,7 @@ public class AzureVirtualNetworkOperationSDK {
                     return null;
                 })
                 .doOnCompleted(() -> {
-                    defineAsReadyInstanceCallback.run();
+                    defineAsCreatedInstanceCallback.run();
                     LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }

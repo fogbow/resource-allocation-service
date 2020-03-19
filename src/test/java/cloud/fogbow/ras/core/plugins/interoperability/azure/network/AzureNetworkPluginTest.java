@@ -15,7 +15,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.PendingInstanceManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import org.junit.Assert;
@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-@PrepareForTest({AzureGeneralUtil.class, PendingInstanceManager.class, PendingInstanceManager.class})
+@PrepareForTest({AzureGeneralUtil.class, CreatingInstanceManager.class, CreatingInstanceManager.class})
 public class AzureNetworkPluginTest extends AzureTestUtils {
 
     @Rule
@@ -41,16 +41,16 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     private AzureUser azureUser;
     private String defaultResourceGroupName;
     private String defaultRegionName;
-    private PendingInstanceManager pendingInstanceManager;
+    private CreatingInstanceManager creatingInstanceManager;
     private AzureNetworkPlugin azureNetworkPlugin;
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperation;
 
     @Before
     public void setUp() {
-        this.pendingInstanceManager = Mockito.spy(PendingInstanceManager.getSingleton());
+        this.creatingInstanceManager = Mockito.spy(CreatingInstanceManager.getSingleton());
 
-        PowerMockito.mockStatic(PendingInstanceManager.class);
-        PowerMockito.when(PendingInstanceManager.getSingleton()).thenReturn(pendingInstanceManager);
+        PowerMockito.mockStatic(CreatingInstanceManager.class);
+        PowerMockito.when(CreatingInstanceManager.getSingleton()).thenReturn(creatingInstanceManager);
 
         String azureConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
@@ -130,7 +130,7 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
 
         Runnable callback = Mockito.mock(Runnable.class);
         Mockito.doReturn(callback)
-                .when(this.azureNetworkPlugin).createDefinePendingInstanceCallback(Mockito.eq(instanceIdExpected));
+                .when(this.azureNetworkPlugin).createDefineCreatedInstanceCallback(Mockito.eq(instanceIdExpected));
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
@@ -138,8 +138,8 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
         // verify
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser), Mockito.eq(callback));
-        Mockito.verify(this.pendingInstanceManager, Mockito.times(TestUtils.RUN_ONCE))
-                .defineAsPending(Mockito.eq(instanceId));
+        Mockito.verify(this.creatingInstanceManager, Mockito.times(TestUtils.RUN_ONCE))
+                .defineAsCreating(Mockito.eq(instanceId));
         Assert.assertEquals(instanceIdExpected, instanceId);
     }
 
@@ -234,7 +234,7 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
 
-        Mockito.when(this.pendingInstanceManager.isPending(Mockito.eq(instanceId))).thenReturn(true);
+        Mockito.when(this.creatingInstanceManager.isCreating(Mockito.eq(instanceId))).thenReturn(true);
 
         // exercise
         NetworkInstance networkInstance = this.azureNetworkPlugin.getInstance(networkOrder, this.azureUser);
@@ -309,6 +309,22 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
 
         // exercise
         this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
+    }
+
+    // test case: When calling the createDefineCreatedInstanceCallback method,
+    // it must verify if it calls the method with right parameters.
+    @Test
+    public void testCreateDefineCreatedInstanceCallbackSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+
+        // exercise
+        Runnable defineCreatedInstanceCallback = this.azureNetworkPlugin.createDefineCreatedInstanceCallback(instanceId);
+        defineCreatedInstanceCallback.run();
+
+        // verify
+        Mockito.verify(this.creatingInstanceManager, Mockito.times(TestUtils.RUN_ONCE))
+                .defineAsCreated(Mockito.eq(instanceId));
     }
 
 }

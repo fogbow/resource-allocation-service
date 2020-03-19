@@ -14,9 +14,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.PendingInstanceManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -27,7 +27,7 @@ import java.util.Properties;
 public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
-    private final PendingInstanceManager pendingInstanceManager;
+    private final CreatingInstanceManager creatingInstanceManager;
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
 
@@ -36,7 +36,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         String defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         String defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.azureVirtualNetworkOperationSDK = new AzureVirtualNetworkOperationSDK(defaultRegionName, defaultResourceGroupName);
-        this.pendingInstanceManager = PendingInstanceManager.getSingleton();
+        this.creatingInstanceManager = CreatingInstanceManager.getSingleton();
     }
 
     @Override
@@ -60,28 +60,24 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
-        Runnable defineAsReadyInstanceCallback = createDefinePendingInstanceCallback(instanceId);
+        Runnable defineAsCreatedInstanceCallback = createDefineCreatedInstanceCallback(instanceId);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .cidr(cidr)
                 .tags(tags)
                 .checkAndBuild();
 
+        this.creatingInstanceManager.defineAsCreating(instanceId);
         this.azureVirtualNetworkOperationSDK
-                .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, defineAsReadyInstanceCallback);
+                .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, defineAsCreatedInstanceCallback);
 
-        try {
-            return instanceId;
-        } finally {
-            this.pendingInstanceManager.defineAsPending(instanceId);
-        }
+        return instanceId;
     }
 
-    // TODO(chico) - implement tests
     @VisibleForTesting
-    Runnable createDefinePendingInstanceCallback(String instanceId) {
+    Runnable createDefineCreatedInstanceCallback(String instanceId) {
         return () -> {
-            pendingInstanceManager.defineAsReady(instanceId);
+            creatingInstanceManager.defineAsCreated(instanceId);
         };
     }
 
@@ -90,7 +86,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
-        if (this.pendingInstanceManager.isPending(instanceId)) {
+        if (this.creatingInstanceManager.isCreating(instanceId)) {
             return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
         }
 
@@ -132,32 +128,5 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
     void setAzureVirtualNetworkOperationSDK(AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK) {
         this.azureVirtualNetworkOperationSDK = azureVirtualNetworkOperationSDK;
     }
-
-    public static void main(String[] args) throws FogbowException, InterruptedException {
-        AzureNetworkPlugin azureNetworkPlugin = new AzureNetworkPlugin("/tmp/conf");
-
-        String clientId = "b748143d-5fc3-4647-bd2a-48102773ceeb";
-        String tenantId = "cc095374-2a13-44aa-8457-70febcad5d14";
-        String clientKey = "cad7d89d-fe95-4464-b6dc-f033c654c8d5";
-        String subscriptionId = "0737f218-972a-44dd-9466-06b40a4f7b58";
-        AzureUser azureUser = new AzureUser("1", "2", clientId , tenantId, clientKey, subscriptionId);
-
-        String name = "vnet";
-        NetworkOrder orderNetwork = new NetworkOrder("", "", name, "", "10.1.3.0/24", null);
-
-        String instanceId = azureNetworkPlugin.requestInstance(orderNetwork, azureUser);
-        orderNetwork.setInstanceId(instanceId);
-        boolean stopLoop = false;
-        while (!stopLoop) {
-            try {
-                NetworkInstance instance = azureNetworkPlugin.getInstance(orderNetwork, azureUser);
-                System.out.println("------------>" + instance.getCloudState());
-            } catch (Exception e) { e.printStackTrace(); }
-            Thread.sleep(5000);
-        }
-        azureNetworkPlugin.deleteInstance(orderNetwork, azureUser);
-        Thread.sleep(600000);
-    }
-
 
 }
