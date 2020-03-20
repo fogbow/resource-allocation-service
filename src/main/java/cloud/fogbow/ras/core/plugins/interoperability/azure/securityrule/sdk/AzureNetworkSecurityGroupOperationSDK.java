@@ -14,6 +14,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
     public AzureNetworkSecurityGroupOperationSDK() { }
 
+    // TODO (chico) - Implement tests
     public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
             throws FogbowException {
 
@@ -27,13 +28,33 @@ public class AzureNetworkSecurityGroupOperationSDK {
         int portTo = azureUpdateNetworkSecurityRef.getPortTo();
         String ruleName = azureUpdateNetworkSecurityRef.getRuleResourceName();
         SecurityRuleProtocol securityRuleProtocol = getProtocol(azureUpdateNetworkSecurityRef.getProtocol());
+        AzureNetworkSecurityGroupSDK.Direction direction = getDirection(azureUpdateNetworkSecurityRef.getDirection());
 
-        AzureNetworkSecurityGroupSDK.updateNetworkSecurityGroup(networkSecurityGroup, cidr, portFrom, portTo, ruleName, securityRuleProtocol);
+        AzureNetworkSecurityGroupSDK.updateNetworkSecurityGroup(networkSecurityGroup, cidr, portFrom,
+                portTo, ruleName, securityRuleProtocol, direction);
     }
 
-    // TODO (chico) - Implement
+    // TODO (chico) - Implement tests
+    private AzureNetworkSecurityGroupSDK.Direction getDirection(SecurityRule.Direction direction) {
+        if (direction.equals(SecurityRule.Direction.IN)) {
+            return AzureNetworkSecurityGroupSDK.Direction.IN_BOUND;
+        }
+        return AzureNetworkSecurityGroupSDK.Direction.OUT_BOUND;
+    }
+
+    // TODO (chico) - Implement tests
     public SecurityRuleProtocol getProtocol(SecurityRule.Protocol protocol) throws FogbowException {
-        return null;
+        switch (protocol) {
+            case ANY:
+                return SecurityRuleProtocol.ASTERISK;
+            case TCP:
+                return SecurityRuleProtocol.TCP;
+            case UDP:
+                return SecurityRuleProtocol.UDP;
+            default:
+                // TODO (chico) - review it
+                throw new FogbowException();
+        }
     }
 
 }
