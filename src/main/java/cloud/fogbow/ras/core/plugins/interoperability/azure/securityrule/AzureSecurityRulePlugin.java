@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -36,6 +37,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        checkOrderType(majorOrder);
 
         String networkSecurityGroupName = AzureGeneralUtil.defineInstanceId(majorOrder.getInstanceId());
         String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
@@ -63,6 +65,16 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
         this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(azureUpdateNetworkSecurityRef, azureUser);
 
         return AzureGeneralUtil.defineInstanceId(ruleResourceName);
+    }
+
+    private void checkOrderType(Order majorOrder) throws FogbowException {
+        switch (majorOrder.getType()) {
+            case PUBLIC_IP:
+                return;
+            case NETWORK:
+            default:
+                throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
+        }
     }
 
     @Override

@@ -43,7 +43,7 @@ public class AzureNetworkSecurityGroupSDK {
         updateWithSourceAddress
                 .fromAddress(cidr)
                 .fromAnyPort()
-                .toAddress(cidr)
+                .toAnyAddress()
                 .toPortRange(portFrom, portTo)
                 .withProtocol(securityRuleProtocol)
                 .attach()
