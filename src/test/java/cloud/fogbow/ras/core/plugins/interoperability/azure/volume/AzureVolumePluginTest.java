@@ -68,48 +68,64 @@ public class AzureVolumePluginTest {
         this.azureUser = AzureTestUtils.createAzureUser();
     }
     
-    // test case: When calling the isReady method and the instance state is ready,
-    // it must verify if It returns true value.
+    // test case: When calling the isReady method and the instance state is
+    // succeeded, it must verify than returns true value.
     @Test
-    public void testIsReadySuccessfullyWhenIsReady() {
+    public void testIsReadyWhenInstanceStateIsSucceeded() {
         // set up
         String instanceState = AzureStateMapper.SUCCEEDED_STATE;
 
-        // exercise and verify
-        Assert.assertTrue(this.plugin.isReady(instanceState));
+        // exercise
+        boolean status = this.plugin.isReady(instanceState);
+
+        // verify
+        Assert.assertTrue(status);
     }
 
     // test case: When calling the isReady method and the instance state is not
-    // ready, it must verify if It returns false value.
+    // succeeded, it must verify than returns false value.
     @Test
-    public void testIsReadySuccessfullyWhenNotReady() {
+    public void testIsReadyWhenInstanceStateIsNotSucceeded() {
         // set up
-        String instanceState = AzureStateMapper.CREATING_STATE;
+        String[] instanceStates = { AzureStateMapper.CREATING_STATE, AzureStateMapper.FAILED_STATE };
 
-        // exercise and verify
-        Assert.assertFalse(this.plugin.isReady(instanceState));
+        for (String instanceState : instanceStates) {
+            // exercise
+            boolean status = this.plugin.isReady(instanceState);
+
+            // verify
+            Assert.assertFalse(status);
+        }
     }
 
     // test case: When calling the hasFailed method and the instance state is
-    // failed, it must verify if It returns true value.
+    // failed, it must verify than returns true value.
     @Test
-    public void testHasFailedSuccessfullyWhenIsFailed() {
+    public void testHasFailedWhenInstanceStateIsFailed() {
         // set up
         String instanceState = AzureStateMapper.FAILED_STATE;
+        
+        // exercise
+        boolean status = this.plugin.hasFailed(instanceState);
 
         // exercise and verify
-        Assert.assertTrue(this.plugin.hasFailed(instanceState));
+        Assert.assertTrue(status);
     }
 
     // test case: When calling the hasFailed method and the instance state is not
-    // failed, it must verify if It returns false value.
+    // failed, it must verify than returns false value.
     @Test
-    public void testHasFailedSuccessfullyWhenIsNotFailed() {
+    public void testHasFailedWhenInstanceStateIsNotFailed() {
         // set up
-        String instanceState = AzureStateMapper.SUCCEEDED_STATE;
+        String[] instanceStates = { AzureStateMapper.CREATING_STATE, AzureStateMapper.SUCCEEDED_STATE };
 
-        // exercise and verify
-        Assert.assertFalse(this.plugin.hasFailed(instanceState));
+        for (String instanceState : instanceStates) {
+            // exercise
+            boolean status = this.plugin.hasFailed(instanceState);
+
+            // verify
+            Assert.assertFalse(status);
+        }
     }
     
     // test case: When calling the requestInstance method, it must verify that is
