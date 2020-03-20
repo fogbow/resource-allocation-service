@@ -162,8 +162,8 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-	void setOperation(AzureAttachmentOperationSDK operation) {
-		this.operation = operation;
-	}
+    void setOperation(AzureAttachmentOperationSDK operation) {
+        this.operation = operation;
+    }
 
 }
