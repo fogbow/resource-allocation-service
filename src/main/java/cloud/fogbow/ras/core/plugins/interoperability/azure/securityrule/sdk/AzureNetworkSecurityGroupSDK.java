@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.NetworkSecurityGroups;
+import com.microsoft.azure.management.network.SecurityRuleProtocol;
 
 import java.util.Optional;
 
@@ -23,15 +24,16 @@ public class AzureNetworkSecurityGroupSDK {
     }
 
     // TODO (chico) - Finish implementation; Implement tests
-    public void updateNetworkSecurityGroup(NetworkSecurityGroup networkSecurityGroup, String cidr) {
+    public static void updateNetworkSecurityGroup(NetworkSecurityGroup networkSecurityGroup, String cidr,
+                                                  int portFrom, int portTo, String ruleName, SecurityRuleProtocol securityRuleProtocol) {
         networkSecurityGroup.update()
-                .defineRule("Name")
+                .defineRule(ruleName)
                 .allowInbound()
                 .fromAddress(cidr)
                 .fromAnyPort()
-                .toAnyAddress()
-                .toAnyPort()
-                .withAnyProtocol()
+                .toAddress(cidr)
+                .toPortRange(portFrom, portTo)
+                .withProtocol(securityRuleProtocol)
                 .attach();
     }
 
