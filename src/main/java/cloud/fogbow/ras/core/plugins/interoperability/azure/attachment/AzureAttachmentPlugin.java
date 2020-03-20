@@ -122,7 +122,7 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         
         String computeId = disk.virtualMachineId();
         String volumeId = disk.id();
-        String device = disk.source().sourceId();
+        String device = null;
         return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
     }
     
@@ -160,5 +160,10 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         
         return resourceIdUrl;
     }
+
+    @VisibleForTesting
+	void setOperation(AzureAttachmentOperationSDK operation) {
+		this.operation = operation;
+	}
 
 }
