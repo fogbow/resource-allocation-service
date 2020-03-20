@@ -99,11 +99,11 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         doDeleteInstance(azure, resourceId); 
     }
 
-    private void doDeleteInstance(Azure azure, String instanceId) {
-        Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, instanceId);
+    @VisibleForTesting
+    void doDeleteInstance(Azure azure, String resourceId) throws FogbowException {
+        Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, resourceId);
         this.operation.subscribeDeleteDisk(completable);
     }
-    
 
     @VisibleForTesting
     VolumeInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
@@ -124,13 +124,13 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
 
     @VisibleForTesting
     String buildResourceId(String subscriptionId, String resourceName) {
-        String resourceIdUrl = AzureResourceIdBuilder.diskId()
+        String resourceId = AzureResourceIdBuilder.diskId()
                 .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(resourceName)
                 .build();
         
-        return resourceIdUrl;
+        return resourceId;
     }
     
     @VisibleForTesting
@@ -148,6 +148,11 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
             VolumeAllocation actualAllocation = new VolumeAllocation(sizeInGB);
             volumeOrder.setActualAllocation(actualAllocation);
         }
+    }
+    
+    @VisibleForTesting
+    void setOperation(AzureVolumeOperationSDK operation) {
+        this.operation = operation;
     }
 
 }

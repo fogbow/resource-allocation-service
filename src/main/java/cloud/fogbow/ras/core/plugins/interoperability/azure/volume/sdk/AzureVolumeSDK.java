@@ -20,15 +20,22 @@ public class AzureVolumeSDK {
         return diskCreatable.createAsync();
     }
     
-    public static Completable buildDeleteDiskCompletable(Azure azure, String resourceId) {
-        Disks disks = getDisksSDK(azure);
-        return disks.deleteByIdAsync(resourceId);
-    }
-    
-    public static Optional<Disk> getDisk(Azure azure, String diskId) throws UnexpectedException {
+    public static Completable buildDeleteDiskCompletable(Azure azure, String resourceId) 
+            throws UnexpectedException {
         try {
             Disks disks = getDisksSDK(azure);
-            return Optional.ofNullable(disks.getById(diskId));
+            return disks.deleteByIdAsync(resourceId);
+        } catch (Exception e) {
+            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
+            throw new UnexpectedException(message, e);
+        }
+    }
+    
+    public static Optional<Disk> getDisk(Azure azure, String resourceId) 
+            throws UnexpectedException {
+        try {
+            Disks disks = getDisksSDK(azure);
+            return Optional.ofNullable(disks.getById(resourceId));
         } catch (Exception e) {
             String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
             throw new UnexpectedException(message, e);
@@ -38,7 +45,7 @@ public class AzureVolumeSDK {
     // This class is used only for test proposes.
     // It is necessary because was not possible mock the Azure(final class)
     @VisibleForTesting
-    private static Disks getDisksSDK(Azure azure) {
+    static Disks getDisksSDK(Azure azure) {
         return azure.disks();
     }
 
