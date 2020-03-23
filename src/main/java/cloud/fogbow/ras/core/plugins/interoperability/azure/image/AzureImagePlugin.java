@@ -12,12 +12,8 @@ import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.VirtualMachineOffer;
-import com.microsoft.azure.management.compute.VirtualMachinePublisher;
-import com.microsoft.azure.management.compute.VirtualMachineSku;
 
 import java.util.*;
 
@@ -58,7 +54,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
         Map<String, ImageSummary> imageMap = getImageMap(azure);
 
-        if (!this.images.containsKey(imageId)) {
+        if (!imageMap.containsKey(imageId)) {
             throw new InstanceNotFoundException();
         }
 
@@ -75,28 +71,6 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
         long minDisk = NO_VALUE_FLAG;
         long minRam = NO_VALUE_FLAG;
         return new ImageInstance(id, name, size, minDisk, minRam, status);
-    }
-
-    @VisibleForTesting
-    Map<String, ImageSummary> loadImages(Azure azure) {
-        Map<String, ImageSummary> imageMap = new HashMap<>();
-
-        for (VirtualMachinePublisher publisher : this.operation.getPublishers(azure)) {
-            if (this.publishers.contains(publisher.name())) {
-                for (VirtualMachineOffer offer : this.operation.getOffersFrom(publisher)) {
-                    for (VirtualMachineSku sku : this.operation.getSkusFrom(offer)) {
-                        String publisherName = publisher.name();
-                        String offerName = offer.name();
-                        String skuName = sku.name();
-                        ImageSummary imageSummary = AzureImageOperationUtil.buildImageSummaryBy(publisherName, offerName, skuName);
-                        String id = UUID.randomUUID().toString();
-                        imageMap.put(id, imageSummary);
-                    }
-                }
-            }
-        }
-
-        return imageMap;
     }
 
     @VisibleForTesting
@@ -119,7 +93,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     @VisibleForTesting
     Map<String, ImageSummary> getImageMap(Azure azure) {
         if (images.isEmpty()) {
-            images = this.loadImages(azure);
+            images = this.operation.getImages(azure, this.publishers);
         }
 
         return images;
