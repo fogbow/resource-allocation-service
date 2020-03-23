@@ -12,12 +12,8 @@ import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.VirtualMachineOffer;
-import com.microsoft.azure.management.compute.VirtualMachinePublisher;
-import com.microsoft.azure.management.compute.VirtualMachineSku;
 
 import java.util.*;
 
@@ -78,28 +74,6 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    Map<String, ImageSummary> loadImages(Azure azure) {
-        Map<String, ImageSummary> imageMap = new HashMap<>();
-
-        for (VirtualMachinePublisher publisher : this.operation.getPublishers(azure)) {
-            if (this.publishers.contains(publisher.name())) {
-                for (VirtualMachineOffer offer : this.operation.getOffersFrom(publisher)) {
-                    for (VirtualMachineSku sku : this.operation.getSkusFrom(offer)) {
-                        String publisherName = publisher.name();
-                        String offerName = offer.name();
-                        String skuName = sku.name();
-                        ImageSummary imageSummary = AzureImageOperationUtil.buildImageSummaryBy(publisherName, offerName, skuName);
-                        String id = UUID.randomUUID().toString();
-                        imageMap.put(id, imageSummary);
-                    }
-                }
-            }
-        }
-
-        return imageMap;
-    }
-
-    @VisibleForTesting
     List<String> loadPublishers(Properties properties) {
         List<String> publishers = new ArrayList<>();
         String publisherList = properties.getProperty(AzureConstants.IMAGES_PUBLISHERS_KEY);
@@ -119,7 +93,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     @VisibleForTesting
     Map<String, ImageSummary> getImageMap(Azure azure) {
         if (images.isEmpty()) {
-            images = this.loadImages(azure);
+            images = this.operation.getImages(azure, this.publishers);
         }
 
         return images;
