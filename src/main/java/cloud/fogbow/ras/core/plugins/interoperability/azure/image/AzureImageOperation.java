@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.image;
 
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineOffer;
