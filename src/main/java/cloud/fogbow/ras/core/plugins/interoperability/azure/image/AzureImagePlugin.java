@@ -27,7 +27,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     private final List<String> publishers;
     private AzureImageOperation operation;
     private static Map<String, ImageSummary> images = new HashMap<>();
-    private static final int NO_VALUE_FLAG = -1;
+    static final int NO_VALUE_FLAG = -1;
     public static final String ACTIVE_STATE = "active";
 
     public AzureImagePlugin(String confFilePath) {
@@ -58,7 +58,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
         Map<String, ImageSummary> imageMap = getImageMap(azure);
 
-        if (!this.images.containsKey(imageId)) {
+        if (!imageMap.containsKey(imageId)) {
             throw new InstanceNotFoundException();
         }
 
