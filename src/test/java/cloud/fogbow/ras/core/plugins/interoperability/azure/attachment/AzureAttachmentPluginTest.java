@@ -50,7 +50,6 @@ import rx.Observable;
 })
 public class AzureAttachmentPluginTest {
 
-//    private String defaultResourceGroupName;
     private AzureAttachmentOperationSDK operation;
     private AzureAttachmentPlugin plugin;
     private AzureUser azureUser;
