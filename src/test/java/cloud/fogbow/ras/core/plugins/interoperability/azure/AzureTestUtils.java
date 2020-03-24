@@ -41,7 +41,7 @@ public class AzureTestUtils {
         });
     }
 
-    public static Observable<Indexable> createSimpleObservableFail() {
+    public static Observable createSimpleObservableFail() {
         return Observable.defer(() -> {
             throw new RuntimeException();
         });

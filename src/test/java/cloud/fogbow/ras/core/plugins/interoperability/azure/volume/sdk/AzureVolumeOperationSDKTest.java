@@ -51,7 +51,7 @@ public class AzureVolumeOperationSDKTest {
     @Test
     public void testSubscribeCreateDiskFail() {
         // set up
-        Observable<Indexable> observable = AzureTestUtils.createSimpleObservableFail();
+        Observable observable = AzureTestUtils.createSimpleObservableFail();
 
         // exercise
         this.operation.subscribeCreateDisk(observable);
