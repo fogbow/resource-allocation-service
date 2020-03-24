@@ -3,12 +3,18 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AzureNetworkSecurityGroupOperationSDK {
 
@@ -20,7 +26,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String networkSecurityGroupId = azureUpdateNetworkSecurityRef.getNetworkSecurityGroupId();
-        NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(azure, networkSecurityGroupId)
+        NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
+                .getNetworkSecurityGroup(azure, networkSecurityGroupId)
                 .orElseThrow(InstanceNotFoundException::new);
 
         String cidr = azureUpdateNetworkSecurityRef.getCidr();
@@ -54,6 +61,41 @@ public class AzureNetworkSecurityGroupOperationSDK {
             default:
                 // TODO (chico) - review it
                 throw new FogbowException();
+        }
+    }
+
+    // TODO (chico) - Finish implementation and Implement tests
+    public List<SecurityRuleInstance> getNetworkSecurityRules(AzureUser azureUser, String networkSecurityGroupId) throws FogbowException {
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
+                .getNetworkSecurityGroup(azure, networkSecurityGroupId)
+                .orElseThrow(InstanceNotFoundException::new);
+
+        return networkSecurityGroup.securityRules().values().stream()
+                .map(networkSecurityRule -> {
+                    String cidr = networkSecurityRule.sourceAddressPrefix();
+//                    SecurityRuleDirection direction = networkSecurityRule.direction();
+                    SecurityRule.Direction direction = SecurityRule.Direction.IN;
+                    int portFrom = 0;
+                    int portTo = 0;
+                    String ipAddress = "";
+                    SecurityRule.EtherType etherType = inferEtherType(ipAddress);
+                    SecurityRule.Protocol protocol = null;
+                    String instanceId = "";
+
+                    return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
+                }).collect(Collectors.toList());
+    }
+
+    // TODO (chico) - Move it to the Util class
+    @VisibleForTesting
+    SecurityRule.EtherType inferEtherType(String ipAddress) {
+        if (CidrUtils.isIpv4(ipAddress)) {
+            return SecurityRule.EtherType.IPv4;
+        } else if (CidrUtils.isIpv6(ipAddress)) {
+            return SecurityRule.EtherType.IPv6;
+        } else {
+            return null;
         }
     }
 

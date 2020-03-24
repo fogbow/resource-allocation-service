@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule;
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -14,8 +15,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.Azu
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -79,12 +82,37 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AzureUser azureUser) throws FogbowException {
-        return null;
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
+
+        return doGetSecurityRules(majorOrder, azureUser);
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
 
+    }
+
+    @VisibleForTesting
+    List<SecurityRuleInstance> doGetSecurityRules(Order majorOrder, AzureUser azureUser)
+            throws FogbowException {
+
+        switch (majorOrder.getType()) {
+            case PUBLIC_IP:
+
+                String networkSecurityGroupName = AzureGeneralUtil.defineInstanceId(majorOrder.getInstanceId());
+                String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
+                        .withSubscriptionId(azureUser.getSubscriptionId())
+                        .withResourceGroupName(this.defaultResourceGroupName)
+                        .withResourceName(networkSecurityGroupName)
+                        .build();
+
+                return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(azureUser, networkSecurityGroupId);
+            case NETWORK:
+                return new ArrayList<>();
+            default:
+                String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
+                throw new UnexpectedException(errorMsg);
+        }
     }
 
 }
