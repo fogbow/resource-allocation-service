@@ -1,10 +1,14 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
 import cloud.fogbow.common.models.AzureUser;
+import rx.Observable;
+
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.microsoft.azure.management.compute.VirtualMachine;
 
 /*
  * This class is intended to reuse code components to assist other unit test classes
@@ -30,4 +34,16 @@ public class AzureTestUtils {
         return azureUser;
     }
 
+    public static Observable createSimpleObservableFail() {
+        return Observable.defer(() -> {
+            throw new RuntimeException();
+        });
+    }
+
+    public static Observable<VirtualMachine> createVirtualMachineObservableSuccess() {
+        return Observable.defer(() -> {
+            VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+            return Observable.just(virtualMachine);
+        });
+    }
 }
