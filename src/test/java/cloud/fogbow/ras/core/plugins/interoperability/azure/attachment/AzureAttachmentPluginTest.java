@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,12 +21,11 @@ import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineDataDisk;
 
-import cloud.fogbow.common.constants.AzureConstants;
+import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
@@ -34,15 +33,24 @@ import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import rx.Observable;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Azure.class, AzureAttachmentSDK.class, AzureClientCacheManager.class, AzureGeneralUtil.class })
+@PrepareForTest({ 
+    Azure.class, 
+    AzureAttachmentSDK.class, 
+    AzureClientCacheManager.class, 
+    AzureGeneralUtil.class, 
+    AzureVirtualMachineSDK.class, 
+    AzureVolumeSDK.class 
+})
 public class AzureAttachmentPluginTest {
 
-    private String defaultResourceGroupName;
+//    private String defaultResourceGroupName;
     private AzureAttachmentOperationSDK operation;
     private AzureAttachmentPlugin plugin;
     private AzureUser azureUser;
@@ -52,12 +60,11 @@ public class AzureAttachmentPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        String azureConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME
-                + File.separator + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
+        String azureConfFilePath = HomeDir.getPath() 
+                + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator 
+                + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        Properties properties = PropertiesUtil.readProperties(azureConfFilePath);
-        this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.operation = Mockito.mock(AzureAttachmentOperationSDK.class);
         this.plugin = Mockito.spy(new AzureAttachmentPlugin(azureConfFilePath));
         this.plugin.setOperation(this.operation);
@@ -385,6 +392,152 @@ public class AzureAttachmentPluginTest {
 
         // verify
         Assert.assertEquals(expected, attachmentInstance);
+    }
+    
+    // test case: When calling the doRequestInstance method, it must verify that is
+    // call was successful.
+    @Test
+    public void testDoRequestInstanceSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String virtualMachineId = "virtual-machine-id";
+        String diskId = "disk-id";
+
+        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+        Mockito.doReturn(virtualMachine).when(this.plugin).doGetVirtualMachineSDK(Mockito.eq(azure),
+                Mockito.eq(virtualMachineId));
+
+        Disk disk = Mockito.mock(Disk.class);
+        Mockito.doReturn(disk).when(this.plugin).doGetDiskSDK(Mockito.eq(azure), Mockito.eq(diskId));
+
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        Mockito.when(disk.name()).thenReturn(resourceName);
+
+        Observable<VirtualMachine> observable = Mockito.mock(Observable.class);
+        PowerMockito.mockStatic(AzureAttachmentSDK.class);
+        PowerMockito.doReturn(observable).when(AzureAttachmentSDK.class, "attachDisk", Mockito.eq(virtualMachine),
+                Mockito.eq(disk));
+
+        Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable));
+
+        String instanceId = "instance-id";
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(instanceId).when(AzureGeneralUtil.class, "defineInstanceId", Mockito.anyString());
+
+        // exercise
+        this.plugin.doRequestInstance(azure, virtualMachineId, diskId);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetVirtualMachineSDK(Mockito.eq(azure),
+                Mockito.eq(virtualMachineId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetDiskSDK(Mockito.eq(azure),
+                Mockito.eq(diskId));
+
+        PowerMockito.verifyStatic(AzureAttachmentSDK.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureAttachmentSDK.attachDisk(Mockito.eq(virtualMachine), Mockito.eq(disk));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .subscribeAttachDiskFrom(Mockito.eq(observable));
+
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.defineInstanceId(Mockito.eq(resourceName));
+    }
+    
+    // test case: When calling the doGetDiskSDK method, it must verify that is
+    // call was successful.
+    @Test
+    public void testDoGetDiskSDKSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String diskId = "disk-id";
+
+        Disk disk = Mockito.mock(Disk.class);
+        Optional<Disk> diskOptional = Optional.ofNullable(disk);
+
+        PowerMockito.mockStatic(AzureVolumeSDK.class);
+        PowerMockito.doReturn(diskOptional).when(AzureVolumeSDK.class, "getDisk", Mockito.eq(azure),
+                Mockito.eq(diskId));
+
+        // exercise
+        this.plugin.doGetDiskSDK(azure, diskId);
+
+        // verify
+        PowerMockito.verifyStatic(AzureVolumeSDK.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureVolumeSDK.getDisk(Mockito.eq(azure), Mockito.eq(diskId));
+    }
+    
+    // test case: When calling the doGetDiskSDK method with an invalid disk ID,
+    // it must verify than an InstanceNotFoundException has been thrown.
+    @Test
+    public void testDoGetDiskSDKFail() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String diskId = TestUtils.ANY_VALUE;
+
+        Optional<Disk> diskOptional = Optional.ofNullable(null);
+        PowerMockito.mockStatic(AzureVolumeSDK.class);
+        PowerMockito.doReturn(diskOptional).when(AzureVolumeSDK.class, "getDisk", Mockito.eq(azure),
+                Mockito.eq(diskId));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.doGetDiskSDK(azure, diskId);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+    
+    // test case: When calling the doGetVirtualMachineSDK method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoGetVirtualMachineSDKSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String virtualMachineId = "virtual-machine-id";
+
+        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtualMachine);
+
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        PowerMockito.doReturn(virtualMachineOptional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
+                Mockito.eq(azure), Mockito.eq(virtualMachineId));
+
+        // exercise
+        this.plugin.doGetVirtualMachineSDK(azure, virtualMachineId);
+
+        // verify
+        PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureVirtualMachineSDK.getVirtualMachine(Mockito.eq(azure), Mockito.eq(virtualMachineId));
+    }
+    
+    // test case: When calling the doGetVirtualMachineSDK method with an invalid
+    // virtual machine ID, it must verify than an InstanceNotFoundException has been
+    // thrown.
+    @Test
+    public void testDoGetVirtualMachineSDKFail() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String virtualMachineId = TestUtils.ANY_VALUE;
+
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(null);
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        PowerMockito.doReturn(virtualMachineOptional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
+                Mockito.eq(azure), Mockito.eq(virtualMachineId));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.doGetVirtualMachineSDK(azure, virtualMachineId);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
     private AttachmentInstance createAttachmentInstance(boolean attached) {
