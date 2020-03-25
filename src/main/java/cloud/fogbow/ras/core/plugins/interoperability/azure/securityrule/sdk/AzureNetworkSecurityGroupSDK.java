@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.NetworkSecurityGroups;
@@ -53,6 +52,11 @@ public class AzureNetworkSecurityGroupSDK {
 
     public static NetworkSecurityGroups getNetworkSecurityGroupsSDK(Azure azure) {
         return azure.networkSecurityGroups();
+    }
+
+    // TODO (chico) - Implement tests
+    public static void deleteNetworkSecurityRule(Azure azure, String securityRuleId) {
+        azure.networkSecurityGroups().deleteById(securityRuleId);
     }
 
     enum Direction {

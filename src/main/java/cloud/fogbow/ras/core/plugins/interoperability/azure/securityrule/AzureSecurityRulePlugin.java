@@ -89,7 +89,9 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
 
+        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(azureUser, securityRuleId);
     }
 
     @VisibleForTesting

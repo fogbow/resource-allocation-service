@@ -99,4 +99,9 @@ public class AzureNetworkSecurityGroupOperationSDK {
         }
     }
 
+    // TODO (chico) - Finish implementation and Implement tests
+    public void deleteNetworkSecurityRule(AzureUser azureUser, String securityRuleId) throws FogbowException {
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(azure, securityRuleId);
+    }
 }
