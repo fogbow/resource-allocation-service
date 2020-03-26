@@ -69,6 +69,10 @@ public interface AzureSecurityRuleUtil {
         return SecurityRule.Protocol.ANY;
     }
 
+    static SecurityRuleIdContext buildSecurityRuleId(String majorOrderInstanceId, String securityRuleName) {
+        return new SecurityRuleIdContext(majorOrderInstanceId, securityRuleName);
+    }
+
     class Ports {
         private int from;
         private int to;

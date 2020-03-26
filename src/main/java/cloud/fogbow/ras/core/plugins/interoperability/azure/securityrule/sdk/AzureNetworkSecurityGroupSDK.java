@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.NetworkSecurityGroups;
+import com.microsoft.azure.management.network.NetworkSecurityRule;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 
 import java.util.Optional;
@@ -46,6 +47,8 @@ public class AzureNetworkSecurityGroupSDK {
                 .toAnyAddress()
                 .toPortRange(portFrom, portTo)
                 .withProtocol(securityRuleProtocol)
+                // TODO(chico) - Check this bug
+                .withPriority(104)
                 .attach()
                 .apply();
     }
@@ -54,9 +57,9 @@ public class AzureNetworkSecurityGroupSDK {
         return azure.networkSecurityGroups();
     }
 
-    // TODO (chico) - Implement tests
-    public static void deleteNetworkSecurityRule(Azure azure, String securityRuleId) {
-        azure.networkSecurityGroups().deleteById(securityRuleId);
+    // TODO (chico) - Implement tests and check the bug
+    public static void deleteNetworkSecurityRule(NetworkSecurityGroup networkSecurityGroup, NetworkSecurityRule networkSecurityRuleFound) {
+        networkSecurityGroup.securityRules().remove(networkSecurityRuleFound.inner().name());
     }
 
     enum Direction {

@@ -14,6 +14,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import com.google.common.annotations.VisibleForTesting;
@@ -68,7 +69,8 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(azureUpdateNetworkSecurityRef, azureUser);
 
-        return AzureGeneralUtil.defineInstanceId(ruleResourceName);
+        SecurityRuleIdContext securityRuleId = new SecurityRuleIdContext(networkSecurityGroupName, ruleResourceName);
+        return securityRuleId.buildInstanceId();
     }
 
     private void checkOrderType(Order majorOrder) throws FogbowException {
@@ -92,7 +94,17 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
 
-        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(azureUser, securityRuleId);
+        SecurityRuleIdContext securityRuleIdContext = new SecurityRuleIdContext(securityRuleId);
+
+        String networkSecurityGroupName = securityRuleIdContext.getNetworkSecurityGroupName();
+        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+
+        String securityRuleName = securityRuleIdContext.getSecurityRuleName();
+        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(azureUser, networkSecurityGroupId, securityRuleName);
     }
 
     @VisibleForTesting
@@ -102,7 +114,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
         switch (majorOrder.getType()) {
             case PUBLIC_IP:
 
-                String networkSecurityGroupName = AzureGeneralUtil.defineInstanceId(majorOrder.getInstanceId());
+                String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
                 String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
                         .withSubscriptionId(azureUser.getSubscriptionId())
                         .withResourceGroupName(this.defaultResourceGroupName)

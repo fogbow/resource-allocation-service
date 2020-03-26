@@ -9,9 +9,9 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.NetworkSecurityRule;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 
@@ -94,8 +94,18 @@ public class AzureNetworkSecurityGroupOperationSDK {
     }
 
     // TODO (chico) - Finish implementation and Implement tests
-    public void deleteNetworkSecurityRule(AzureUser azureUser, String securityRuleId) throws FogbowException {
+    public void deleteNetworkSecurityRule(AzureUser azureUser, String networkSecurityGroupId, String securityRuleName) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(azure, securityRuleId);
+
+        NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
+                .getNetworkSecurityGroup(azure, networkSecurityGroupId)
+                .orElseThrow(InstanceNotFoundException::new);
+
+        NetworkSecurityRule networkSecurityRuleFound = networkSecurityGroup.securityRules().values().stream()
+                .filter(networkSecurityRule -> networkSecurityRule.name().equals(securityRuleName))
+                .findFirst()
+                .orElseThrow(InstanceNotFoundException::new);
+
+        AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, networkSecurityRuleFound);
     }
 }
