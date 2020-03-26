@@ -5,12 +5,14 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
-import com.google.common.annotations.VisibleForTesting;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 
 import java.util.List;
@@ -72,31 +74,23 @@ public class AzureNetworkSecurityGroupOperationSDK {
                 .orElseThrow(InstanceNotFoundException::new);
 
         return networkSecurityGroup.securityRules().values().stream()
+                .filter(networkSecurityRule -> networkSecurityRule.name().startsWith(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX))
                 .map(networkSecurityRule -> {
                     String cidr = networkSecurityRule.sourceAddressPrefix();
-//                    SecurityRuleDirection direction = networkSecurityRule.direction();
-                    SecurityRule.Direction direction = SecurityRule.Direction.IN;
-                    int portFrom = 0;
-                    int portTo = 0;
-                    String ipAddress = "";
-                    SecurityRule.EtherType etherType = inferEtherType(ipAddress);
-                    SecurityRule.Protocol protocol = null;
-                    String instanceId = "";
+                    SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
+                    SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+                    String portRange = networkSecurityRule.destinationPortRange();
+                    AzureSecurityRuleUtil.Ports ports = AzureSecurityRuleUtil.getPorts(portRange);
+                    int portFrom = ports.getFrom();
+                    int portTo = ports.getTo();
+                    String ipAddress = AzureSecurityRuleUtil.getIpAddress(cidr);
+                    SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
+                    SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
+                    SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
+                    String instanceId = networkSecurityRule.inner().id();
 
                     return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
                 }).collect(Collectors.toList());
-    }
-
-    // TODO (chico) - Move it to the Util class
-    @VisibleForTesting
-    SecurityRule.EtherType inferEtherType(String ipAddress) {
-        if (CidrUtils.isIpv4(ipAddress)) {
-            return SecurityRule.EtherType.IPv4;
-        } else if (CidrUtils.isIpv6(ipAddress)) {
-            return SecurityRule.EtherType.IPv6;
-        } else {
-            return null;
-        }
     }
 
     // TODO (chico) - Finish implementation and Implement tests
