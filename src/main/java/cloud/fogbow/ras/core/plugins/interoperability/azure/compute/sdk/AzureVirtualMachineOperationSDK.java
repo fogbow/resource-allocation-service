@@ -13,7 +13,7 @@ import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
-import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
@@ -63,11 +63,11 @@ public class AzureVirtualMachineOperationSDK {
             AzureCreateVirtualMachineRef virtualMachineRef,
             Azure azure) throws FogbowException {
 
-        String networkInterfaceId = virtualMachineRef.getNetworkInterfaceId();
-        NetworkInterface networkInterface = AzureNetworkSDK
-                .getNetworkInterface(azure, networkInterfaceId)
-                .orElseThrow(InstanceNotFoundException::new);
+        String virtualNetworkId = virtualMachineRef.getVirtualNetworkId();
+        Network network = AzureNetworkSDK.getNetwork(azure, virtualNetworkId)
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
+        String subnetName = network.subnets().values().iterator().next().name();
         String virtualMachineName = virtualMachineRef.getResourceName();
         String regionName = virtualMachineRef.getRegionName();
         String resourceGroupName = virtualMachineRef.getResourceGroupName();
@@ -85,7 +85,7 @@ public class AzureVirtualMachineOperationSDK {
         Map tags = virtualMachineRef.getTags();
 
         return AzureVirtualMachineSDK.buildVirtualMachineObservable(
-                azure, virtualMachineName, region, resourceGroupName, networkInterface,
+                azure, virtualMachineName, region, resourceGroupName, network, subnetName,
                 imagePublished, imageOffer, imageSku, osUserName, osUserPassword, osComputeName,
                 userData, diskSize, size, tags);
     }
@@ -186,23 +186,31 @@ public class AzureVirtualMachineOperationSDK {
      */
     public void doDeleteInstance(String azureInstanceId, AzureUser azureCloudUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
-        Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
-        Completable secondDeleteVirtualMachineDisk = buildDeleteVirtualMachineDiskCompletable(azure, azureInstanceId);
-        Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk)
-                .subscribeOn(this.scheduler)
-                .subscribe();
-    }
-
-    @VisibleForTesting
-    Completable buildDeleteVirtualMachineDiskCompletable(Azure azure, String azureInstanceId) throws FogbowException {
-
+        
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
                 .getVirtualMachine(azure, azureInstanceId)
                 .orElseThrow(InstanceNotFoundException::new);
         
+        Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
+        
+        // TODO refactor next codes blocks...
         String osDiskId = virtualMachine.osDiskId();
         Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);
-        return setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
+        Completable secondDeleteVirtualMachineDisk = setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
+        
+        String networkInterfaceId = virtualMachine.primaryNetworkInterfaceId();
+        Completable deleteVirtualMachineNetworkInterface = azure.networkInterfaces().deleteByIdAsync(networkInterfaceId);
+        Completable thirdDeleteVirtualNetworkInterface = deleteVirtualMachineNetworkInterface
+                .doOnError((error -> {
+                    LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+                }))
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+                });
+        
+        Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk, thirdDeleteVirtualNetworkInterface)
+                .subscribeOn(this.scheduler)
+                .subscribe();
     }
 
     @VisibleForTesting
