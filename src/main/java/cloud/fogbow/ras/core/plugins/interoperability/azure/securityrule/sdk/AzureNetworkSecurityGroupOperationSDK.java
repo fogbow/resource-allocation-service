@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -11,16 +12,16 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
-import com.microsoft.azure.management.network.NetworkSecurityRule;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public class AzureNetworkSecurityGroupOperationSDK {
 
-    public AzureNetworkSecurityGroupOperationSDK() { }
+    private final int FIRST_PRIORITY_VALUE = 1;
 
     // TODO (chico) - Implement tests
     public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
@@ -38,9 +39,11 @@ public class AzureNetworkSecurityGroupOperationSDK {
         String ruleName = azureUpdateNetworkSecurityRef.getRuleResourceName();
         SecurityRuleProtocol securityRuleProtocol = getProtocol(azureUpdateNetworkSecurityRef.getProtocol());
         AzureNetworkSecurityGroupSDK.Direction direction = getDirection(azureUpdateNetworkSecurityRef.getDirection());
+        // TODO(chico) - Improve it because it may cause performance problems
+        int priority = getLastPriority(networkSecurityGroup) + 1;
 
         AzureNetworkSecurityGroupSDK.updateNetworkSecurityGroup(networkSecurityGroup, cidr, portFrom,
-                portTo, ruleName, securityRuleProtocol, direction);
+                portTo, ruleName, securityRuleProtocol, direction, priority);
     }
 
     // TODO (chico) - Implement tests
@@ -61,8 +64,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
             case UDP:
                 return SecurityRuleProtocol.UDP;
             default:
-                // TODO (chico) - review it
-                throw new FogbowException();
+                throw new UnexpectedException();
         }
     }
 
@@ -103,4 +105,18 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
         AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, securityRuleName);
     }
+
+    // TODO (chico) - Implement tests
+    private int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
+        try {
+            return networkSecurityGroup.securityRules().values().stream()
+                    .filter(networkSecurityRule -> networkSecurityRule.name().startsWith(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX))
+                    .map(networkSecurityRule -> networkSecurityRule.priority())
+                    .reduce((priorityOne, priorityTwo) -> priorityOne >= priorityTwo ? priorityOne : priorityTwo)
+                    .get();
+        } catch (NoSuchElementException e) {
+            return FIRST_PRIORITY_VALUE;
+        }
+    }
+
 }

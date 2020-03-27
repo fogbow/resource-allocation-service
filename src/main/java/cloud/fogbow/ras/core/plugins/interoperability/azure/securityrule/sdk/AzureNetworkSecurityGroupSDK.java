@@ -30,7 +30,8 @@ public class AzureNetworkSecurityGroupSDK {
     // TODO (chico) - Finish implementation; Implement tests
     public static void updateNetworkSecurityGroup(NetworkSecurityGroup networkSecurityGroup, String cidr,
                                                   int portFrom, int portTo, String ruleName,
-                                                  SecurityRuleProtocol securityRuleProtocol, Direction direction) {
+                                                  SecurityRuleProtocol securityRuleProtocol,
+                                                  Direction direction, int priority) {
 
         Blank<NetworkSecurityGroup.Update> updateBlank = networkSecurityGroup
                 .update()
@@ -47,8 +48,7 @@ public class AzureNetworkSecurityGroupSDK {
                 .toAnyAddress()
                 .toPortRange(portFrom, portTo)
                 .withProtocol(securityRuleProtocol)
-                // TODO(chico) - Check this bug
-                .withPriority(104)
+                .withPriority(priority)
                 .attach()
                 .apply();
     }

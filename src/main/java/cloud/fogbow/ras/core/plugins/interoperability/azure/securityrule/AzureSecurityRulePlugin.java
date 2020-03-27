@@ -68,8 +68,8 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(azureUpdateNetworkSecurityRef, azureUser);
 
-        SecurityRuleIdContext securityRuleId = new SecurityRuleIdContext(networkSecurityGroupName, ruleResourceName);
-        return securityRuleId.buildInstanceId();
+        SecurityRuleIdContext securityRuleContext = new SecurityRuleIdContext(networkSecurityGroupName, ruleResourceName);
+        return securityRuleContext.buildInstanceId();
     }
 
     private void checkOrderType(Order majorOrder) throws FogbowException {
