@@ -1,26 +1,28 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util;
 
+import org.apache.commons.lang.StringUtils;
+
 public class SecurityRuleIdContext {
 
-    // TODO (chico) - Use the Fogbow pattern.
-    private static final String SEPARATOR = "@-@";
+    private static final int NETWORK_SECURITY_GROUP_NAME_POSITION = 0;
+    private static final int SECURITY_RULE_NAME_POSITION = 1;
+    private static final int INSTANCE_ID_ARRAY_SIZE = 2;
+    private static final String SEPARATOR = "@#";
 
     private String networkSecurityGroupName;
     private String securityRuleName;
 
-    public SecurityRuleIdContext(String networkSecurityGroupName, String securityRuleName) {
-        this.networkSecurityGroupName = networkSecurityGroupName;
-        this.securityRuleName = securityRuleName;
+    public SecurityRuleIdContext(String instanceId) {
+        String[] securityRuleInstanceIdChucks = instanceId.split(SEPARATOR);
+        this.networkSecurityGroupName = securityRuleInstanceIdChucks[NETWORK_SECURITY_GROUP_NAME_POSITION];
+        this.securityRuleName = securityRuleInstanceIdChucks[SECURITY_RULE_NAME_POSITION];
     }
 
-    public SecurityRuleIdContext(String securityRuleInstanceId) {
-        String[] securityRuleInstanceIdChucks = securityRuleInstanceId.split(SEPARATOR);
-        this.networkSecurityGroupName = securityRuleInstanceIdChucks[0];
-        this.securityRuleName = securityRuleInstanceIdChucks[1];
-    }
-
-    public String buildInstanceId() {
-        return this.networkSecurityGroupName + SEPARATOR + this.securityRuleName;
+    public static String buildInstanceId(String networkSecurityGroupName, String securityRuleName) {
+        String[] instanceIdArray = new String[INSTANCE_ID_ARRAY_SIZE];
+        instanceIdArray[NETWORK_SECURITY_GROUP_NAME_POSITION] = networkSecurityGroupName;
+        instanceIdArray[SECURITY_RULE_NAME_POSITION] = securityRuleName;
+        return StringUtils.join(instanceIdArray, SEPARATOR);
     }
 
     public String getNetworkSecurityGroupName() {

@@ -26,8 +26,8 @@ import java.util.Properties;
 public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureSecurityRulePlugin.class);
-    private final String defaultResourceGroupName;
 
+    private final String defaultResourceGroupName;
     private AzureNetworkSecurityGroupOperationSDK azureNetworkSecurityGroupOperationSDK;
 
     public AzureSecurityRulePlugin(String confFilePath) {
@@ -68,11 +68,11 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(azureUpdateNetworkSecurityRef, azureUser);
 
-        SecurityRuleIdContext securityRuleContext = new SecurityRuleIdContext(networkSecurityGroupName, ruleResourceName);
-        return securityRuleContext.buildInstanceId();
+        return SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, ruleResourceName);
     }
 
-    private void checkOrderType(Order majorOrder) throws FogbowException {
+    @VisibleForTesting
+    void checkOrderType(Order majorOrder) throws FogbowException {
         switch (majorOrder.getType()) {
             case PUBLIC_IP:
                 return;
