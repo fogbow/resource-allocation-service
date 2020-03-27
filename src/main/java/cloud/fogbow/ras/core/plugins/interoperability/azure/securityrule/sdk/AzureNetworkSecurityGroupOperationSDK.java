@@ -101,11 +101,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
                 .orElseThrow(InstanceNotFoundException::new);
 
-        NetworkSecurityRule networkSecurityRuleFound = networkSecurityGroup.securityRules().values().stream()
-                .filter(networkSecurityRule -> networkSecurityRule.name().equals(securityRuleName))
-                .findFirst()
-                .orElseThrow(InstanceNotFoundException::new);
-
-        AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, networkSecurityRuleFound);
+        AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, securityRuleName);
     }
 }

@@ -9,7 +9,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupOperationSDK;

@@ -57,9 +57,15 @@ public class AzureNetworkSecurityGroupSDK {
         return azure.networkSecurityGroups();
     }
 
-    // TODO (chico) - Implement tests and check the bug
-    public static void deleteNetworkSecurityRule(NetworkSecurityGroup networkSecurityGroup, NetworkSecurityRule networkSecurityRuleFound) {
-        networkSecurityGroup.securityRules().remove(networkSecurityRuleFound.inner().name());
+    // TODO (chico) - Implement tests
+    public static void deleteNetworkSecurityRule(NetworkSecurityGroup networkSecurityGroup, String securityRuleName)
+            throws UnexpectedException {
+
+        try {
+            networkSecurityGroup.update().withoutRule(securityRuleName).apply();
+        } catch (RuntimeException e) {
+            throw new UnexpectedException(e.getMessage(), e);
+        }
     }
 
     enum Direction {
