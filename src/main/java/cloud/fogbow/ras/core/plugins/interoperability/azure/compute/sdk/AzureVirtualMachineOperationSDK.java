@@ -189,28 +189,28 @@ public class AzureVirtualMachineOperationSDK {
         
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
                 .getVirtualMachine(azure, azureInstanceId)
-                .orElseThrow(InstanceNotFoundException::new);
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
         Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
-        
-        // TODO refactor next codes blocks...
-        String osDiskId = virtualMachine.osDiskId();
-        Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);
-        Completable secondDeleteVirtualMachineDisk = setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
-        
-        String networkInterfaceId = virtualMachine.primaryNetworkInterfaceId();
-        Completable deleteVirtualMachineNetworkInterface = azure.networkInterfaces().deleteByIdAsync(networkInterfaceId);
-        Completable thirdDeleteVirtualNetworkInterface = deleteVirtualMachineNetworkInterface
-                .doOnError((error -> {
-                    LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
-                }))
-                .doOnCompleted(() -> {
-                    LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
-                });
-        
-        Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk, thirdDeleteVirtualNetworkInterface)
+        Completable secondDeleteVirtualMachineDisk = buildDeleteDiskCompletable(azure, virtualMachine);
+        Completable thirdDeleteVirtualMachineNic = buildDeleteNicCompletable(azure, virtualMachine);
+        Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk, thirdDeleteVirtualMachineNic)
                 .subscribeOn(this.scheduler)
                 .subscribe();
+    }
+
+    @VisibleForTesting
+    Completable buildDeleteNicCompletable(Azure azure, VirtualMachine virtualMachine) {
+        String networkInterfaceId = virtualMachine.primaryNetworkInterfaceId();
+        Completable deleteVirtualMachineNic = azure.networkInterfaces().deleteByIdAsync(networkInterfaceId);
+        return setDeleteVirtualMachineNicBehaviour(deleteVirtualMachineNic);
+    }
+
+    @VisibleForTesting
+    Completable buildDeleteDiskCompletable(Azure azure, VirtualMachine virtualMachine) {
+        String osDiskId = virtualMachine.osDiskId();
+        Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);
+        return setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
     }
 
     @VisibleForTesting
@@ -219,6 +219,16 @@ public class AzureVirtualMachineOperationSDK {
                 .buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
         
         return setDeleteVirtualMachineBehaviour(deleteVirtualMachine);
+    }
+
+    private Completable setDeleteVirtualMachineNicBehaviour(Completable deleteVirtualMachineNic) {
+        return deleteVirtualMachineNic
+                .doOnError((error -> {
+                    LOGGER.error(Messages.Error.ERROR_DELETE_NIC_ASYNC_BEHAVIOUR);
+                }))
+                .doOnCompleted(() -> {
+                    LOGGER.info(Messages.Info.END_DELETE_NIC_ASYNC_BEHAVIOUR);
+                });
     }
 
     private Completable setDeleteVirtualMachineDiskBehaviour(Completable deleteVirutalMachineDisk) {
