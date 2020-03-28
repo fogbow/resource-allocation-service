@@ -69,7 +69,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
     }
 
     // TODO (chico) - Finish implementation and Implement tests
-    public List<SecurityRuleInstance> getNetworkSecurityRules(AzureUser azureUser, String networkSecurityGroupId) throws FogbowException {
+    public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupId, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
@@ -96,7 +96,9 @@ public class AzureNetworkSecurityGroupOperationSDK {
     }
 
     // TODO (chico) - Finish implementation and Implement tests
-    public void deleteNetworkSecurityRule(AzureUser azureUser, String networkSecurityGroupId, String securityRuleName) throws FogbowException {
+    public void deleteNetworkSecurityRule(String networkSecurityGroupId, String securityRuleName, AzureUser azureUser)
+            throws FogbowException {
+
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
 
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK

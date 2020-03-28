@@ -54,10 +54,10 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
         int portTo = securityRule.getPortTo();
         SecurityRule.Direction direction = securityRule.getDirection();
         SecurityRule.Protocol protocol = securityRule.getProtocol();
-        String ruleResourceName = AzureGeneralUtil.generateResourceName();
+        String securityRuleName = AzureGeneralUtil.generateResourceName();
 
         AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef = AzureUpdateNetworkSecurityGroupRef.builder()
-                .ruleResourceName(ruleResourceName)
+                .ruleResourceName(securityRuleName)
                 .networkSecurityGroupId(networkSecurityGroupId)
                 .protocol(protocol)
                 .cidr(cidr)
@@ -68,18 +68,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(azureUpdateNetworkSecurityRef, azureUser);
 
-        return SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, ruleResourceName);
-    }
-
-    @VisibleForTesting
-    void checkOrderType(Order majorOrder) throws FogbowException {
-        switch (majorOrder.getType()) {
-            case PUBLIC_IP:
-                return;
-            case NETWORK:
-            default:
-                throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
-        }
+        return SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, securityRuleName);
     }
 
     @Override
@@ -103,7 +92,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                 .build();
 
         String securityRuleName = securityRuleIdContext.getSecurityRuleName();
-        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(azureUser, networkSecurityGroupId, securityRuleName);
+        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(networkSecurityGroupId, securityRuleName, azureUser);
     }
 
     @VisibleForTesting
@@ -120,12 +109,23 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                         .withResourceName(networkSecurityGroupName)
                         .build();
 
-                return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(azureUser, networkSecurityGroupId);
+                return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
             case NETWORK:
                 return new ArrayList<>();
             default:
                 String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
                 throw new UnexpectedException(errorMsg);
+        }
+    }
+
+    @VisibleForTesting
+    void checkOrderType(Order majorOrder) throws FogbowException {
+        switch (majorOrder.getType()) {
+            case PUBLIC_IP:
+                return;
+            case NETWORK:
+            default:
+                throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }
     }
 
