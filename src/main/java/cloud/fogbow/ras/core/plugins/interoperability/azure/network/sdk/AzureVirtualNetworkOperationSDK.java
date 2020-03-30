@@ -84,7 +84,7 @@ public class AzureVirtualNetworkOperationSDK {
         String name = azureCreateVirtualNetworkRef.getResourceName();
         String resourceGroupName = this.resourceGroupName;
         String cidr = azureCreateVirtualNetworkRef.getCidr();
-        Region region = Region.fromName(this.regionName);
+        Region region = Region.findByLabelOrName(this.regionName);
         Map tags = azureCreateVirtualNetworkRef.getTags();
 
         return AzureNetworkSDK.createSecurityGroupAsync(azure, name, region, resourceGroupName, cidr, tags);
@@ -100,7 +100,7 @@ public class AzureVirtualNetworkOperationSDK {
         String name = azureCreateVirtualNetworkRef.getResourceName();
         String resourceGroupName = this.resourceGroupName;
         String cidr = azureCreateVirtualNetworkRef.getCidr();
-        Region region = Region.fromName(this.regionName);
+        Region region = Region.findByLabelOrName(this.regionName);
         Map tags = azureCreateVirtualNetworkRef.getTags();
 
         AzureNetworkSDK.createNetworkSync(

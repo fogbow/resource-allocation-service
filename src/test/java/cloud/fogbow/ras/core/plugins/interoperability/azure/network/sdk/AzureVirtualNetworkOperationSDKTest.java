@@ -144,7 +144,7 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .cidr(cidrExpected)
                 .tags(tagsExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
+        Region regionExpected = Region.findByLabelOrName(this.regionName);
 
         Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
@@ -173,7 +173,7 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .cidr(cidrExpected)
                 .tags(tagsExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
+        Region regionExpected = Region.findByLabelOrName(this.regionName);
 
         RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
@@ -203,7 +203,7 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .cidr(cidrExpected)
                 .tags(tagsExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
+        Region regionExpected = Region.findByLabelOrName(this.regionName);
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
 
