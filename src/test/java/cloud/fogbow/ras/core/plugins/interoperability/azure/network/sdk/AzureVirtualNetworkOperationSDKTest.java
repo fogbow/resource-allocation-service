@@ -131,7 +131,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.verify(callback, Mockito.times(TestUtils.RUN_ONCE)).run();
     }
 
-    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // test case: When calling the buildCreateSecurityGroupObservable method and the observables execute
     // without any error, it must verify if It returns the right observable.
     @Test
     public void testBuildCreateSecurityGroupObservableSuccessfully() {
@@ -160,7 +160,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         Assert.assertEquals(observableExpected, observable);
     }
 
-    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // test case: When calling the buildCreateSecurityGroupObservable method and the observables execute
     // with an error, it must verify if It rethrows the same error.
     @Test
     public void testBuildCreateSecurityGroupObservableFail() {
