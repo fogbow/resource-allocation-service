@@ -381,7 +381,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
     }
 
-    // test case: When calling the doGetInstance method with mocked methods and cird beeing null
+    // test case: When calling the doGetInstance method with mocked methods and cird being null
     // , it must verify if It execute the right AzureGetVirtualNetworkRef.
     @Test
     public void testDoGetInstanceSuccessfullyWithCIRDNull() throws FogbowException {
