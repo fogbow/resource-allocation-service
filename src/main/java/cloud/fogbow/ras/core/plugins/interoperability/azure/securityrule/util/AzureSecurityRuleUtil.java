@@ -24,7 +24,6 @@ public interface AzureSecurityRuleUtil {
     int TO_PORT_ARRAY_POSITION = 1;
     int SINGLE_PORT_SIZE = 1;
 
-    // TODO (chico) - Implement tests
     static SecurityRule.Direction getDirection(SecurityRuleDirection direction) {
         if (direction.toString().equals(DIRECTION_INBOUND)) {
             return SecurityRule.Direction.IN;
