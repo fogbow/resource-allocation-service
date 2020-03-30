@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
@@ -59,6 +62,28 @@ public interface AzureSecurityRuleUtil {
     }
 
     // TODO (chico) - Implement tests
+    static AzureNetworkSecurityGroupSDK.Direction getDirection(SecurityRule.Direction direction) {
+        if (direction.equals(SecurityRule.Direction.IN)) {
+            return AzureNetworkSecurityGroupSDK.Direction.IN_BOUND;
+        }
+        return AzureNetworkSecurityGroupSDK.Direction.OUT_BOUND;
+    }
+
+    // TODO (chico) - Implement tests
+    static SecurityRuleProtocol getProtocol(SecurityRule.Protocol protocol) throws FogbowException {
+        switch (protocol) {
+            case ANY:
+                return SecurityRuleProtocol.ASTERISK;
+            case TCP:
+                return SecurityRuleProtocol.TCP;
+            case UDP:
+                return SecurityRuleProtocol.UDP;
+            default:
+                throw new UnexpectedException();
+        }
+    }
+
+    // TODO (chico) - Implement tests
     static SecurityRule.Protocol getProtocol(SecurityRuleProtocol securityRuleProtocol) {
         String securityRuleProtocolStr = securityRuleProtocol.toString();
         if (securityRuleProtocolStr.equals(TCP_VALUE)) {
@@ -67,10 +92,6 @@ public interface AzureSecurityRuleUtil {
             return SecurityRule.Protocol.UDP;
         }
         return SecurityRule.Protocol.ANY;
-    }
-
-    static SecurityRuleIdContext buildSecurityRuleId(String majorOrderInstanceId, String securityRuleName) {
-        return new SecurityRuleIdContext(majorOrderInstanceId, securityRuleName);
     }
 
     class Ports {

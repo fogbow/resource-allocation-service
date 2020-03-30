@@ -68,7 +68,7 @@ public class AzureNetworkSecurityGroupSDK {
         }
     }
 
-    enum Direction {
+    public enum Direction {
         IN_BOUND, OUT_BOUND
     }
 
