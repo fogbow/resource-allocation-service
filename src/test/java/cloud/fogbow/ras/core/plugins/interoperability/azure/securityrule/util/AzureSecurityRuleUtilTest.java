@@ -17,7 +17,6 @@ public class AzureSecurityRuleUtilTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-
     // test case: When calling the getDirection method with IN BOUND value,
     // it must verify if It returns a IN BOUND value.
     @Test
@@ -115,10 +114,10 @@ public class AzureSecurityRuleUtilTest {
         // set up
         String ip = "2001:cdba:0000:0000:0000:0000:3257:9652";
 
-        // verify
+        // exercise
         SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ip);
 
-        // exercise
+        // verify
         Assert.assertEquals(SecurityRule.EtherType.IPv6, etherType);
     }
 
@@ -129,10 +128,10 @@ public class AzureSecurityRuleUtilTest {
         // set up
         String ip = TestUtils.ANY_VALUE;
 
-        // verify
+        // exercise
         SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ip);
 
-        // exercise
+        // verify
         Assert.assertNull(etherType);
     }
 
@@ -144,10 +143,10 @@ public class AzureSecurityRuleUtilTest {
         String ip = "10.10.10.0";
         String cird = ip + "/24";
 
-        // verify
+        // exercise
         String ipAddress = AzureSecurityRuleUtil.getIpAddress(cird);
 
-        // exercise
+        // verify
         Assert.assertEquals(ip, ipAddress);
     }
 
@@ -159,10 +158,10 @@ public class AzureSecurityRuleUtilTest {
         String ip = "2001:cdba:0000:0000:0000:0000:3257:9652";
         String cird = ip + "/24";
 
-        // verify
+        // exercise
         String ipAddress = AzureSecurityRuleUtil.getIpAddress(cird);
 
-        // exercise
+        // verify
         Assert.assertEquals(ip, ipAddress);
     }
 
@@ -173,10 +172,10 @@ public class AzureSecurityRuleUtilTest {
         // set up
         String cird = TestUtils.ANY_VALUE;
 
-        // verify
+        // exercise
         String ipAddress = AzureSecurityRuleUtil.getIpAddress(cird);
 
-        // exercise
+        // verify
         Assert.assertNull(ipAddress);
     }
 
@@ -188,10 +187,10 @@ public class AzureSecurityRuleUtilTest {
         SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.INBOUND;
         SecurityRule.Direction directionExpeceted = SecurityRule.Direction.IN;
 
-        // verify
+        // exercise
         SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
 
-        // exercise
+        // verify
         Assert.assertEquals(directionExpeceted, direction);
     }
 
@@ -203,10 +202,10 @@ public class AzureSecurityRuleUtilTest {
         SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.OUTBOUND;
         SecurityRule.Direction directionExpeceted = SecurityRule.Direction.OUT;
 
-        // verify
+        // exercise
         SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
 
-        // exercise
+        // verify
         Assert.assertEquals(directionExpeceted, direction);
     }
 
@@ -218,10 +217,10 @@ public class AzureSecurityRuleUtilTest {
         SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.ANY;
         SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.ASTERISK;
 
-        // verify
+        // exercise
         SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
 
-        // exercise
+        // verify
         Assert.assertEquals(securityRuleProtocolExpected, protocol);
     }
 
@@ -233,10 +232,10 @@ public class AzureSecurityRuleUtilTest {
         SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.TCP;
         SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.TCP;
 
-        // verify
+        // exercise
         SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
 
-        // exercise
+        // verify
         Assert.assertEquals(securityRuleProtocolExpected, protocol);
     }
 
@@ -248,10 +247,10 @@ public class AzureSecurityRuleUtilTest {
         SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.UDP;
         SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.UDP;
 
-        // verify
+        // exercise
         SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
 
-        // exercise
+        // verify
         Assert.assertEquals(securityRuleProtocolExpected, protocol);
     }
 
