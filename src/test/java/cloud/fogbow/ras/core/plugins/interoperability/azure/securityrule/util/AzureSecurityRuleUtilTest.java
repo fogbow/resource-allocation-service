@@ -42,10 +42,10 @@ public class AzureSecurityRuleUtilTest {
         Assert.assertEquals(directionExpected, direction);
     }
 
-    // test case: When calling the getPorts method and with range port,
+    // test case: When calling the getPorts method with range port,
     // it must verify if It returns right values.
     @Test
-    public void testGetPortsSuccessfullyWhenRangePort() {
+    public void testGetPortsWhenRangePort() {
         // set up
         int fromExpected = 22;
         int toExpected = 30;
@@ -59,10 +59,10 @@ public class AzureSecurityRuleUtilTest {
         Assert.assertEquals(toExpected, ports.getTo());
     }
 
-    // test case: When calling the getPorts method and with single port,
+    // test case: When calling the getPorts method with single port,
     // it must verify if It returns same and right values.
     @Test
-    public void testGetPortsSuccessfullyWhenSinglePort() {
+    public void testGetPortsWhenSinglePort() {
         // set up
         int fromExpected = 22;
         int toExpected = fromExpected;
