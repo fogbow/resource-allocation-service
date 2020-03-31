@@ -90,4 +90,46 @@ public class AzureSecurityRuleUtilTest {
         AzureSecurityRuleUtil.getPorts(portRange);
     }
 
+    // test case: When calling the inferEtherType method with ipv4,
+    // it must verify if It returns etherType ipv4.
+    @Test
+    public void testInferEtherTypeWithIpv4() {
+        // set up
+        String ip = "10.10.10.10";
+
+        // verify
+        SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ip);
+
+        // exercise
+        Assert.assertEquals(SecurityRule.EtherType.IPv4, etherType);
+    }
+
+    // test case: When calling the inferEtherType method with ipv6,
+    // it must verify if It returns etherType ipv6.
+    @Test
+    public void testInferEtherTypeWithIpv6() {
+        // set up
+        String ip = "2001:cdba:0000:0000:0000:0000:3257:9652";
+
+        // verify
+        SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ip);
+
+        // exercise
+        Assert.assertEquals(SecurityRule.EtherType.IPv6, etherType);
+    }
+
+    // test case: When calling the inferEtherType method with unknown value,
+    // it must verify if It returns null.
+    @Test
+    public void testInferEtherTypeWithUnknownValue() {
+        // set up
+        String ip = TestUtils.ANY_VALUE;
+
+        // verify
+        SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ip);
+
+        // exercise
+        Assert.assertNull(etherType);
+    }
+
 }

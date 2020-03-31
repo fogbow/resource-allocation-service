@@ -39,7 +39,6 @@ public interface AzureSecurityRuleUtil {
         return new Ports(ports[FROM_PORT_ARRAY_POSITION], ports[TO_PORT_ARRAY_POSITION]);
     }
 
-    // TODO (chico) - Implement tests
     @Nullable
     static SecurityRule.EtherType inferEtherType(String ipAddress) {
         if (CidrUtils.isIpv4(ipAddress)) {
