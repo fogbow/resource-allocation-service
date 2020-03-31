@@ -142,7 +142,7 @@ public class AzureVirtualMachineOperationSDK {
 
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
                 .getVirtualMachine(azure, azureInstanceId)
-                .orElseThrow(InstanceNotFoundException::new);
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
         String virtualMachineSizeName = virtualMachine.size().toString();
         String cloudState = virtualMachine.provisioningState();
@@ -200,16 +200,20 @@ public class AzureVirtualMachineOperationSDK {
     }
 
     @VisibleForTesting
-    Completable buildDeleteNicCompletable(Azure azure, VirtualMachine virtualMachine) {
+    Completable buildDeleteNicCompletable(Azure azure, VirtualMachine virtualMachine) throws FogbowException {
         String networkInterfaceId = virtualMachine.primaryNetworkInterfaceId();
-        Completable deleteVirtualMachineNic = azure.networkInterfaces().deleteByIdAsync(networkInterfaceId);
+        Completable deleteVirtualMachineNic = AzureNetworkSDK
+                .buildDeleteNetworkInterfaceCompletable(azure, networkInterfaceId);
+
         return setDeleteVirtualMachineNicBehaviour(deleteVirtualMachineNic);
     }
 
     @VisibleForTesting
     Completable buildDeleteDiskCompletable(Azure azure, VirtualMachine virtualMachine) {
         String osDiskId = virtualMachine.osDiskId();
-        Completable deleteVirutalMachineDisk = AzureVolumeSDK.buildDeleteDiskCompletable(azure, osDiskId);
+        Completable deleteVirutalMachineDisk = AzureVolumeSDK
+                .buildDeleteDiskCompletable(azure, osDiskId);
+
         return setDeleteVirtualMachineDiskBehaviour(deleteVirutalMachineDisk);
     }
 
