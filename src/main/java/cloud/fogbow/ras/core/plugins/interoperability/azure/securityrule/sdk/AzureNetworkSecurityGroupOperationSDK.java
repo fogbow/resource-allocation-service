@@ -41,7 +41,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
         int portTo = azureUpdateNetworkSecurityRef.getPortTo();
         String ruleName = azureUpdateNetworkSecurityRef.getRuleResourceName();
         SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil.getFogbowProtocol(azureUpdateNetworkSecurityRef.getProtocol());
-        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getDirection(azureUpdateNetworkSecurityRef.getDirection());
+        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(azureUpdateNetworkSecurityRef.getDirection());
         int priority = getPriority(networkSecurityGroup);
 
         AzureNetworkSecurityGroupSDK.updateNetworkSecurityGroup(networkSecurityGroup, cidr, portFrom,
@@ -70,7 +70,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
                 .map(networkSecurityRule -> {
                     String cidr = networkSecurityRule.sourceAddressPrefix();
                     SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
-                    SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+                    SecurityRule.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(securityRuleDirection);
                     String portRange = networkSecurityRule.destinationPortRange();
                     AzureSecurityRuleUtil.Ports ports = AzureSecurityRuleUtil.getPorts(portRange);
                     int portFrom = ports.getFrom();

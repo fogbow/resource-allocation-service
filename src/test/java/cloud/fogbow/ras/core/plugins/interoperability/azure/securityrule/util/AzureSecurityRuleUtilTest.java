@@ -25,7 +25,7 @@ public class AzureSecurityRuleUtilTest {
         AzureNetworkSecurityGroupSDK.Direction directionExpected = AzureNetworkSecurityGroupSDK.Direction.IN_BOUND;
 
         // exercise
-        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getDirection(SecurityRule.Direction.IN);
+        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(SecurityRule.Direction.IN);
 
         // verify
         Assert.assertEquals(directionExpected, direction);
@@ -39,7 +39,7 @@ public class AzureSecurityRuleUtilTest {
         AzureNetworkSecurityGroupSDK.Direction directionExpected = AzureNetworkSecurityGroupSDK.Direction.OUT_BOUND;
 
         // exercise
-        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getDirection(SecurityRule.Direction.OUT);
+        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(SecurityRule.Direction.OUT);
 
         // verify
         Assert.assertEquals(directionExpected, direction);
@@ -179,31 +179,31 @@ public class AzureSecurityRuleUtilTest {
         Assert.assertNull(ipAddress);
     }
 
-    // test case: When calling the getDirection method with inbound value,
+    // test case: When calling the getFogbowDirection method with inbound value,
     // it must verify if It returns Direction In.
     @Test
-    public void testGetDirectionWhenInboundValue() {
+    public void testGetFogbowDirectionWhenInboundValue() {
         // set up
         SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.INBOUND;
         SecurityRule.Direction directionExpeceted = SecurityRule.Direction.IN;
 
         // exercise
-        SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+        SecurityRule.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(securityRuleDirection);
 
         // verify
         Assert.assertEquals(directionExpeceted, direction);
     }
 
-    // test case: When calling the getDirection method with outbound value,
+    // test case: When calling the getFogbowDirection method with outbound value,
     // it must verify if It returns Direction In.
     @Test
-    public void testGetDirectionWhenOutboundValue() {
+    public void testGetFogbowDirectionWhenOutboundValue() {
         // set up
         SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.OUTBOUND;
         SecurityRule.Direction directionExpeceted = SecurityRule.Direction.OUT;
 
         // exercise
-        SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+        SecurityRule.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(securityRuleDirection);
 
         // verify
         Assert.assertEquals(directionExpeceted, direction);

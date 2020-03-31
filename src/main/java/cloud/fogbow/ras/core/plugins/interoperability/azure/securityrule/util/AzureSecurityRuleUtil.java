@@ -24,7 +24,7 @@ public interface AzureSecurityRuleUtil {
     int TO_PORT_ARRAY_POSITION = 1;
     int SINGLE_PORT_SIZE = 1;
 
-    static SecurityRule.Direction getDirection(SecurityRuleDirection direction) {
+    static SecurityRule.Direction getFogbowDirection(SecurityRuleDirection direction) {
         if (direction.toString().equals(DIRECTION_INBOUND)) {
             return SecurityRule.Direction.IN;
         }
@@ -57,7 +57,7 @@ public interface AzureSecurityRuleUtil {
         return CidrUtils.isIpv4(ip) || CidrUtils.isIpv6(ip) ? ip : null;
     }
 
-    static AzureNetworkSecurityGroupSDK.Direction getDirection(SecurityRule.Direction direction) {
+    static AzureNetworkSecurityGroupSDK.Direction getFogbowDirection(SecurityRule.Direction direction) {
         if (direction.equals(SecurityRule.Direction.IN)) {
             return AzureNetworkSecurityGroupSDK.Direction.IN_BOUND;
         }
