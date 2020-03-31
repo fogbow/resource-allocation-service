@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupSDK;
@@ -64,7 +65,6 @@ public interface AzureSecurityRuleUtil {
         return AzureNetworkSecurityGroupSDK.Direction.OUT_BOUND;
     }
 
-    // TODO (chico) - Implement tests
     static SecurityRuleProtocol getProtocol(SecurityRule.Protocol protocol) throws FogbowException {
         switch (protocol) {
             case ANY:
@@ -74,7 +74,7 @@ public interface AzureSecurityRuleUtil {
             case UDP:
                 return SecurityRuleProtocol.UDP;
             default:
-                throw new UnexpectedException();
+                throw new InvalidParameterException();
         }
     }
 

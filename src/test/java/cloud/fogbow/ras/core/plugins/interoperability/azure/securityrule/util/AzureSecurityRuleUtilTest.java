@@ -1,9 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util;
 
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupSDK;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
+import com.microsoft.azure.management.network.SecurityRuleProtocol;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -205,6 +208,65 @@ public class AzureSecurityRuleUtilTest {
 
         // exercise
         Assert.assertEquals(directionExpeceted, direction);
+    }
+
+    // test case: When calling the getProtocol method with ANY value,
+    // it must verify if It returns protocol ASTERISK.
+    @Test
+    public void testGetProtocolWhenAnyValue() throws FogbowException {
+        // set up
+        SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.ANY;
+        SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.ASTERISK;
+
+        // verify
+        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+
+        // exercise
+        Assert.assertEquals(securityRuleProtocolExpected, protocol);
+    }
+
+    // test case: When calling the getProtocol method with TCP value,
+    // it must verify if It returns protocol TCP.
+    @Test
+    public void testGetProtocolWhenTCPValue() throws FogbowException {
+        // set up
+        SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.TCP;
+        SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.TCP;
+
+        // verify
+        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+
+        // exercise
+        Assert.assertEquals(securityRuleProtocolExpected, protocol);
+    }
+
+    // test case: When calling the getProtocol method with UDP value,
+    // it must verify if It returns protocol UDP.
+    @Test
+    public void testGetProtocolWhenUDPValue() throws FogbowException {
+        // set up
+        SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.UDP;
+        SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.UDP;
+
+        // verify
+        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+
+        // exercise
+        Assert.assertEquals(securityRuleProtocolExpected, protocol);
+    }
+
+    // test case: When calling the getProtocol method with ICMP value,
+    // it must verify if It throws an InvalidParameterException.
+    @Test
+    public void testGetProtocolWhenICMPValue() throws FogbowException {
+        // set up
+        SecurityRule.Protocol securityRuleFogbow = SecurityRule.Protocol.ICMP;
+
+        // verify
+        this.expectedException.expect(InvalidParameterException.class);
+
+        // exercise
+        AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
     }
 
 }
