@@ -76,8 +76,8 @@ public class AzureSecurityRuleUtilTest {
         Assert.assertEquals(toExpected, ports.getTo());
     }
 
-    // test case: When calling the getPorts method and with single port,
-    // it must verify if It returns same and right values.
+    // test case: When calling the getPorts method with wrong values,
+    // it must verify if It throws an NumberFormatException.
     @Test
     public void testGetPortsFailed() {
         // set up
