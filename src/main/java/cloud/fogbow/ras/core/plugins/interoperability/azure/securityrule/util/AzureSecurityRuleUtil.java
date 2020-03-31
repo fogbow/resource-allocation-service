@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
@@ -65,7 +64,7 @@ public interface AzureSecurityRuleUtil {
         return AzureNetworkSecurityGroupSDK.Direction.OUT_BOUND;
     }
 
-    static SecurityRuleProtocol getProtocol(SecurityRule.Protocol protocol) throws FogbowException {
+    static SecurityRuleProtocol getFogbowProtocol(SecurityRule.Protocol protocol) throws FogbowException {
         switch (protocol) {
             case ANY:
                 return SecurityRuleProtocol.ASTERISK;
@@ -78,15 +77,16 @@ public interface AzureSecurityRuleUtil {
         }
     }
 
-    // TODO (chico) - Implement tests
-    static SecurityRule.Protocol getProtocol(SecurityRuleProtocol securityRuleProtocol) {
-        String securityRuleProtocolStr = securityRuleProtocol.toString();
-        if (securityRuleProtocolStr.equals(TCP_VALUE)) {
-            return SecurityRule.Protocol.TCP;
-        } else if (securityRuleProtocolStr.equals(UDP_VALUE)) {
-            return SecurityRule.Protocol.UDP;
+    // TODO(chico) - review this method
+    static SecurityRule.Protocol getFogbowProtocol(String securityRuleProtocol) {
+        switch (securityRuleProtocol) {
+            case TCP_VALUE:
+                return SecurityRule.Protocol.TCP;
+            case UDP_VALUE:
+                return SecurityRule.Protocol.UDP;
+            default:
+                return SecurityRule.Protocol.ANY;
         }
-        return SecurityRule.Protocol.ANY;
     }
 
     class Ports {

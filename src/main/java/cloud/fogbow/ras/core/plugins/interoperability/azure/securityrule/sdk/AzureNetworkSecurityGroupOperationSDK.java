@@ -40,7 +40,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
         int portFrom = azureUpdateNetworkSecurityRef.getPortFrom();
         int portTo = azureUpdateNetworkSecurityRef.getPortTo();
         String ruleName = azureUpdateNetworkSecurityRef.getRuleResourceName();
-        SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil.getProtocol(azureUpdateNetworkSecurityRef.getProtocol());
+        SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil.getFogbowProtocol(azureUpdateNetworkSecurityRef.getProtocol());
         AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getDirection(azureUpdateNetworkSecurityRef.getDirection());
         int priority = getPriority(networkSecurityGroup);
 
@@ -78,7 +78,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
                     String ipAddress = AzureSecurityRuleUtil.getIpAddress(cidr);
                     SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
                     SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
-                    SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
+                    SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleProtocol.toString());
                     String instanceId = networkSecurityRule.inner().id();
 
                     return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);

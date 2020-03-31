@@ -218,7 +218,7 @@ public class AzureSecurityRuleUtilTest {
         SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.ASTERISK;
 
         // exercise
-        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleFogbow);
 
         // verify
         Assert.assertEquals(securityRuleProtocolExpected, protocol);
@@ -233,7 +233,7 @@ public class AzureSecurityRuleUtilTest {
         SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.TCP;
 
         // exercise
-        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleFogbow);
 
         // verify
         Assert.assertEquals(securityRuleProtocolExpected, protocol);
@@ -248,7 +248,7 @@ public class AzureSecurityRuleUtilTest {
         SecurityRuleProtocol securityRuleProtocolExpected = SecurityRuleProtocol.UDP;
 
         // exercise
-        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+        SecurityRuleProtocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleFogbow);
 
         // verify
         Assert.assertEquals(securityRuleProtocolExpected, protocol);
@@ -265,7 +265,52 @@ public class AzureSecurityRuleUtilTest {
         this.expectedException.expect(InvalidParameterException.class);
 
         // exercise
-        AzureSecurityRuleUtil.getProtocol(securityRuleFogbow);
+        AzureSecurityRuleUtil.getFogbowProtocol(securityRuleFogbow);
+    }
+
+    // test case: When calling the getFogbowProtocol method with TCP value,
+    // it must verify if It returns protocol TCP.
+    @Test
+    public void testGetFogbowProtocolWhenTCPValue() {
+        // set up
+        String securityRuleProtocol = AzureSecurityRuleUtil.TCP_VALUE;
+        SecurityRule.Protocol protocolExpected = SecurityRule.Protocol.TCP;
+
+        // exercise
+        SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleProtocol);
+
+        // verify
+        Assert.assertEquals(protocolExpected, protocol);
+    }
+
+    // test case: When calling the getFogbowProtocol method with UDP value,
+    // it must verify if It returns protocol UDP.
+    @Test
+    public void testGetFogbowProtocolWhenUDPValue() {
+        // set up
+        String securityRuleProtocol = AzureSecurityRuleUtil.UDP_VALUE;
+        SecurityRule.Protocol protocolExpected = SecurityRule.Protocol.UDP;
+
+        // exercise
+        SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleProtocol);
+
+        // verify
+        Assert.assertEquals(protocolExpected, protocol);
+    }
+
+    // test case: When calling the getFogbowProtocol method with any other value,
+    // it must verify if It returns protocol ANY.
+    @Test
+    public void testGetFogbowProtocolWhenAnyValue() {
+        // set up
+        String securityRuleProtocol = TestUtils.ANY_VALUE;
+        SecurityRule.Protocol protocolExpected = SecurityRule.Protocol.ANY;
+
+        // exercise
+        SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleProtocol);
+
+        // verify
+        Assert.assertEquals(protocolExpected, protocol);
     }
 
 }
