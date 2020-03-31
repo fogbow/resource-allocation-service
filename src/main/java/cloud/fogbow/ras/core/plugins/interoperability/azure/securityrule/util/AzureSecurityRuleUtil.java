@@ -31,8 +31,7 @@ public interface AzureSecurityRuleUtil {
         return SecurityRule.Direction.OUT;
     }
 
-    // TODO (chico) - Implement tests
-    static Ports getPorts(String portRange) {
+    static Ports getPorts(String portRange) throws NumberFormatException {
         String[] ports = portRange.split(PORTS_SEPARATOR);
         if (ports.length == SINGLE_PORT_SIZE) {
             return new Ports(ports[FROM_PORT_ARRAY_POSITION], ports[FROM_PORT_ARRAY_POSITION]);
