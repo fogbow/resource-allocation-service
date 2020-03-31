@@ -50,7 +50,6 @@ public interface AzureSecurityRuleUtil {
         }
     }
 
-    // TODO (chico) - Implement tests
     @Nullable
     static String getIpAddress(String cird) {
         String[] cirdChunks = cird.split(CIRD_SEPARATOR);

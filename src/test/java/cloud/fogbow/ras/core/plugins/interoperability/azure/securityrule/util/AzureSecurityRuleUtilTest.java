@@ -132,4 +132,48 @@ public class AzureSecurityRuleUtilTest {
         Assert.assertNull(etherType);
     }
 
+    // test case: When calling the getIpAddress method with ipv4,
+    // it must verify if It returns ip ipv4.
+    @Test
+    public void testGetIpAddressWhenIpv4() {
+        // set up
+        String ip = "10.10.10.0";
+        String cird = ip + "/24";
+
+        // verify
+        String ipAddress = AzureSecurityRuleUtil.getIpAddress(cird);
+
+        // exercise
+        Assert.assertEquals(ip, ipAddress);
+    }
+
+    // test case: When calling the getIpAddress method with ipv6,
+    // it must verify if It returns ip ipv6.
+    @Test
+    public void testGetIpAddressWhenIpv6() {
+        // set up
+        String ip = "2001:cdba:0000:0000:0000:0000:3257:9652";
+        String cird = ip + "/24";
+
+        // verify
+        String ipAddress = AzureSecurityRuleUtil.getIpAddress(cird);
+
+        // exercise
+        Assert.assertEquals(ip, ipAddress);
+    }
+
+    // test case: When calling the getIpAddress method with non ip value,
+    // it must verify if It returns null.
+    @Test
+    public void testGetIpAddressWhenNonIpValue() {
+        // set up
+        String cird = TestUtils.ANY_VALUE;
+
+        // verify
+        String ipAddress = AzureSecurityRuleUtil.getIpAddress(cird);
+
+        // exercise
+        Assert.assertNull(ipAddress);
+    }
+
 }
