@@ -57,7 +57,6 @@ public interface AzureSecurityRuleUtil {
         return CidrUtils.isIpv4(ip) || CidrUtils.isIpv6(ip) ? ip : null;
     }
 
-    // TODO (chico) - Implement tests
     static AzureNetworkSecurityGroupSDK.Direction getDirection(SecurityRule.Direction direction) {
         if (direction.equals(SecurityRule.Direction.IN)) {
             return AzureNetworkSecurityGroupSDK.Direction.IN_BOUND;

@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupSDK;
+import com.microsoft.azure.management.network.SecurityRuleDirection;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -174,6 +175,36 @@ public class AzureSecurityRuleUtilTest {
 
         // exercise
         Assert.assertNull(ipAddress);
+    }
+
+    // test case: When calling the getDirection method with inbound value,
+    // it must verify if It returns Direction In.
+    @Test
+    public void testGetDirectionWhenInboundValue() {
+        // set up
+        SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.INBOUND;
+        SecurityRule.Direction directionExpeceted = SecurityRule.Direction.IN;
+
+        // verify
+        SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+
+        // exercise
+        Assert.assertEquals(directionExpeceted, direction);
+    }
+
+    // test case: When calling the getDirection method with outbound value,
+    // it must verify if It returns Direction In.
+    @Test
+    public void testGetDirectionWhenOutboundValue() {
+        // set up
+        SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.OUTBOUND;
+        SecurityRule.Direction directionExpeceted = SecurityRule.Direction.OUT;
+
+        // verify
+        SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+
+        // exercise
+        Assert.assertEquals(directionExpeceted, direction);
     }
 
 }
