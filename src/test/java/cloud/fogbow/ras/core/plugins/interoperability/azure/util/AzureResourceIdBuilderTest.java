@@ -67,4 +67,27 @@ public class AzureResourceIdBuilderTest extends AzureTestUtils {
         Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
     }
 
+    // test case: When calling the networkId constructor to build a network resource
+    // ID, it must verify that it returns a valid network ID.
+    @Test
+    public void testBuildNetworkIdSuccessfully() {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+
+        String expected = String.format(AzureResourceIdBuilder.NETWORK_STRUCTURE,
+                this.azureUser.getSubscriptionId(),
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
+                resourceName);
+
+        // exercise
+        String networkId = AzureResourceIdBuilder.networkId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceName)
+                .build();
+
+        // verify
+        Assert.assertEquals(expected, networkId);
+    }
+
 }
