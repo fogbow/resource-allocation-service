@@ -621,8 +621,8 @@ public class AzureVirtualMachineOperationSDKTest {
                 .thenReturn(deleteNicCompletableSuccess);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK.buildDeleteNicCompletable(this.azure,
-                virtualMachine);
+        Completable completable = this.azureVirtualMachineOperationSDK
+                .buildDeleteNicCompletable(this.azure, virtualMachine);
 
         completable.subscribe();
 
