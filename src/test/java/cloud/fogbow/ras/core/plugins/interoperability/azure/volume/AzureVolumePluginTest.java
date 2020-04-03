@@ -348,11 +348,10 @@ public class AzureVolumePluginTest {
         Disk disk = Mockito.mock(Disk.class);
         Mockito.when(disk.name()).thenReturn(resourceName);
 
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.doReturn(resourceName).when(AzureGeneralUtil.class, "defineInstanceId", Mockito.anyString());
-
+        String resourceId = createResourceId();
         String state = AzureStateMapper.SUCCEEDED_STATE;
         DiskInner diskInner = Mockito.mock(DiskInner.class);
+        Mockito.when(diskInner.id()).thenReturn(resourceId);
         Mockito.when(diskInner.provisioningState()).thenReturn(state);
         Mockito.when(disk.inner()).thenReturn(diskInner);
 
@@ -369,10 +368,8 @@ public class AzureVolumePluginTest {
         VolumeInstance volumeInstance = this.plugin.buildVolumeInstance(disk);
 
         // verify
-        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureGeneralUtil.defineInstanceId(Mockito.eq(resourceName));
-
-        Mockito.verify(disk, Mockito.times(TestUtils.RUN_ONCE)).name();
+        Mockito.verify(disk, Mockito.times(TestUtils.RUN_ONCE)).inner();
+        Mockito.verify(diskInner, Mockito.times(TestUtils.RUN_ONCE)).id();
         Mockito.verify(diskInner, Mockito.times(TestUtils.RUN_ONCE)).provisioningState();
         Mockito.verify(disk, Mockito.times(TestUtils.RUN_ONCE)).tags();
         Mockito.verify(disk, Mockito.times(TestUtils.RUN_ONCE)).sizeInGB();
@@ -450,8 +447,9 @@ public class AzureVolumePluginTest {
     }
 
     private VolumeInstance createVolumeInstance() {
+        String resourceId = createResourceId();
         return new VolumeInstance(
-                AzureTestUtils.RESOURCE_NAME, 
+                resourceId,
                 AzureStateMapper.SUCCEEDED_STATE, 
                 AzureTestUtils.ORDER_NAME, 
                 TestUtils.DISK_VALUE);
