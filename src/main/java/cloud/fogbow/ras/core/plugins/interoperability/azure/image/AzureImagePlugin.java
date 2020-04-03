@@ -21,9 +21,9 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
 
     private final String defaultRegionName;
     private final List<String> publishers;
-    private final AzureImageOperation operation;
+    private AzureImageOperation operation;
     private static Map<String, ImageSummary> images = new HashMap<>();
-    private static final int NO_VALUE_FLAG = -1;
+    static final int NO_VALUE_FLAG = -1;
     public static final String ACTIVE_STATE = "active";
 
     public AzureImagePlugin(String confFilePath) {
@@ -97,5 +97,10 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
         }
 
         return images;
+    }
+
+    @VisibleForTesting
+    void setAzureImageOperation(AzureImageOperation azureImageOperation) {
+        this.operation = azureImageOperation;
     }
 }
