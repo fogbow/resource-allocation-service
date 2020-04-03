@@ -96,7 +96,7 @@ public class Messages {
         public static final String CONNECTING_UP_PACKET_SENDER = "Connecting XMPP packet sender.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
-        public static final String END_CREATE_DISK_ASYNC_BEHAVIOUR = "End asynchronous create disk";
+        public static final String END_CREATE_DISK_ASYNC_BEHAVIOUR = "End asynchronous create disk.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
@@ -141,7 +141,7 @@ public class Messages {
     public static class Error {
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
-        public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously";
+        public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_GENERAL = "Error while attaching volume with response: %s.";
