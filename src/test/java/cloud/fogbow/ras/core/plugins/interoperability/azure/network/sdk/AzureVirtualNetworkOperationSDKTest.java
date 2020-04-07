@@ -358,7 +358,6 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
-        Mockito.when(network.name()).thenReturn(name);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         Mockito.doReturn(network)
@@ -375,7 +374,8 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .when(this.azureVirtualNetworkOperationSDK).getCIRD(Mockito.eq(network));
 
         // exercise
-        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
+                .doGetInstance(resourceName, name, this.azureUser);
 
         // verify
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
@@ -413,7 +413,8 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .when(this.azureVirtualNetworkOperationSDK).getCIRD(Mockito.eq(network));
 
         // exercise
-        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
+                .doGetInstance(resourceName, name, this.azureUser);
 
         // verify
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
@@ -446,7 +447,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.expectedException.expectMessage(exceptionExpected.getMessage());
 
         // exercise
-        this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+        this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, name, this.azureUser);
     }
 
     // test case: When calling the getCIRD method with mocked methods

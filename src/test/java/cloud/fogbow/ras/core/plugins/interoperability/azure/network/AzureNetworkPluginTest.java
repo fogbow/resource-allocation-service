@@ -204,15 +204,17 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
         String instanceId = "instanceId";
+        String orderName = "orderName";
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
+        Mockito.when(networkOrder.getName()).thenReturn(orderName);
 
         String resourceNameExpected = AzureGeneralUtil.defineResourceName(instanceId);
 
         AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = Mockito.mock(AzureGetVirtualNetworkRef.class);
         Mockito.doReturn(azureGetVirtualNetworkRef)
                 .when(this.azureVirtualNetworkOperation).doGetInstance(
-                        Mockito.eq(resourceNameExpected), Mockito.eq(this.azureUser));
+                        Mockito.eq(resourceNameExpected), Mockito.eq(orderName), Mockito.eq(this.azureUser));
 
         NetworkInstance networkInstanceExpected = Mockito.mock(NetworkInstance.class);
         Mockito.doReturn(networkInstanceExpected)
@@ -250,14 +252,16 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testGetInstanceFail() throws FogbowException {
         // set up
         String instanceId = "instanceId";
+        String orderName = "orderName";
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
+        Mockito.when(networkOrder.getName()).thenReturn(orderName);
         String resourceNameExpected = AzureGeneralUtil.defineResourceName(instanceId);
 
         FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
         Mockito.doThrow(exceptionExpected)
                 .when(this.azureVirtualNetworkOperation).doGetInstance(
-                Mockito.eq(resourceNameExpected), Mockito.eq(this.azureUser));
+                Mockito.eq(resourceNameExpected), Mockito.eq(orderName), Mockito.eq(this.azureUser));
 
         // verify
         this.expectedException.expect(exceptionExpected.getClass());
