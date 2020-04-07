@@ -106,9 +106,9 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testRequestInstanceSuccessfully() throws FogbowException {
         // set up
         String cidr = "10.10.10.10/24";
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         String orderId = "orderId";
-        String name = "name";
+        String name = AzureTestUtils.ORDER_NAME;
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getCidr()).thenReturn(cidr);
@@ -149,7 +149,7 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testRequestInstanceFail() throws FogbowException {
         // set up
         String cidr = "10.10.10.10/24";
-        String name = "name";
+        String name = AzureTestUtils.ORDER_NAME;
         String orderId = "orderId";
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getCidr()).thenReturn(cidr);
@@ -204,7 +204,7 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
         String instanceId = "instanceId";
-        String orderName = "orderName";
+        String orderName = AzureTestUtils.ORDER_NAME;
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
         Mockito.when(networkOrder.getName()).thenReturn(orderName);
@@ -252,7 +252,7 @@ public class AzureNetworkPluginTest extends AzureTestUtils {
     public void testGetInstanceFail() throws FogbowException {
         // set up
         String instanceId = "instanceId";
-        String orderName = "orderName";
+        String orderName = AzureTestUtils.ORDER_NAME;
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
         Mockito.when(networkOrder.getName()).thenReturn(orderName);

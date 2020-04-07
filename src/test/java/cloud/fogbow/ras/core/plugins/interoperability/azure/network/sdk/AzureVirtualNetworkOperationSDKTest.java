@@ -69,7 +69,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testBuildVirtualNetworkCreationObservableSuccessfully() {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .build();
@@ -103,7 +103,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testBuildVirtualNetworkCreationObservableFail() {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .build();
@@ -386,10 +386,10 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testDoGetInstanceSuccessfullyWithCIRDNull() throws FogbowException {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         String provisioningState = "provisioningState";
         String id = "id";
-        String name = "name";
+        String name = AzureTestUtils.ORDER_NAME;
 
         VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
         Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
@@ -425,10 +425,10 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testDoGetInstanceFail() throws FogbowException {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         String provisioningState = "provisioningState";
         String id = "id";
-        String name = "name";
+        String name = AzureTestUtils.ORDER_NAME;
 
         VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
         Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
@@ -488,7 +488,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     public void getNetworkSuccessfully() throws FogbowException {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
         String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
@@ -515,7 +515,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     public void testGetNetworkFail() throws FogbowException {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
         String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
@@ -541,7 +541,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     public void testDoDeleteInstanceSuccessfully() throws FogbowException {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(this.resourceGroupName)
