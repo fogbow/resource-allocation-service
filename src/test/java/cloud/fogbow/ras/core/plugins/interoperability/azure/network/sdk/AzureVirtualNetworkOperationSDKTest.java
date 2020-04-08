@@ -358,6 +358,9 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
+        Map<String, String> tags = new HashMap<>();
+        tags.put(AzureConstants.TAG_NAME, name);
+        Mockito.when(network.tags()).thenReturn(tags);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         Mockito.doReturn(network)
@@ -375,7 +378,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
-                .doGetInstance(resourceName, name, this.azureUser);
+                .doGetInstance(resourceName, this.azureUser);
 
         // verify
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
@@ -396,7 +399,9 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
-        Mockito.when(network.name()).thenReturn(name);
+        Map<String, String> tags = new HashMap<>();
+        tags.put(AzureConstants.TAG_NAME, name);
+        Mockito.when(network.tags()).thenReturn(tags);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         Mockito.doReturn(network)
@@ -414,7 +419,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
-                .doGetInstance(resourceName, name, this.azureUser);
+                .doGetInstance(resourceName, this.azureUser);
 
         // verify
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
@@ -435,7 +440,9 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
-        Mockito.when(network.name()).thenReturn(name);
+        Map<String, String> tags = new HashMap<>();
+        tags.put(AzureConstants.TAG_NAME, name);
+        Mockito.when(network.tags()).thenReturn(tags);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
@@ -447,7 +454,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.expectedException.expectMessage(exceptionExpected.getMessage());
 
         // exercise
-        this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, name, this.azureUser);
+        this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
     }
 
     // test case: When calling the getCIRD method with mocked methods

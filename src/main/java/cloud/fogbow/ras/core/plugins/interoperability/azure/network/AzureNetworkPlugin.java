@@ -90,10 +90,9 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
             return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
         }
 
-        String name = networkOrder.getName();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
-                .doGetInstance(resourceName, name, azureUser);
+                .doGetInstance(resourceName, azureUser);
 
         return buildNetworkInstance(azureGetVirtualNetworkRef);
     }

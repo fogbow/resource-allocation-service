@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
@@ -113,7 +114,7 @@ public class AzureVirtualNetworkOperationSDK {
                 .subscribe();
     }
 
-    public AzureGetVirtualNetworkRef doGetInstance(String resourceName, String orderName, AzureUser azureUser)
+    public AzureGetVirtualNetworkRef doGetInstance(String resourceName, AzureUser azureUser)
             throws FogbowException {
 
         Network network = getNetwork(resourceName, azureUser);
@@ -121,7 +122,7 @@ public class AzureVirtualNetworkOperationSDK {
         VirtualNetworkInner virtualNetworkInner = network.inner();
         String provisioningState = virtualNetworkInner.provisioningState();
         String id = virtualNetworkInner.id();
-        String name = orderName;
+        String name = network.tags().get(AzureConstants.TAG_NAME);
         String cird = getCIRD(network);
 
         return AzureGetVirtualNetworkRef.builder()
