@@ -112,7 +112,6 @@ public class AzureImagePluginTest extends AzureTestUtils {
 
         // verify
         this.expectedException.expect(InstanceNotFoundException.class);
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getImageMap(Mockito.eq(this.azure));
 
         // exercise
         this.plugin.getImage(imageId, this.azureUser);
