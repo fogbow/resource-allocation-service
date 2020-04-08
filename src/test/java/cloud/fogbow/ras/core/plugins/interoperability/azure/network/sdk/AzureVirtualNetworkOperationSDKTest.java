@@ -1,14 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import ch.qos.logback.classic.Level;
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
@@ -19,6 +20,7 @@ import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.implementation.VirtualNetworkInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,16 +32,17 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import rx.Completable;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AzureNetworkSDK.class, AzureNetworkSDK.class, AzureClientCacheManager.class})
+@PrepareForTest({AzureNetworkSDK.class, AzureClientCacheManager.class})
 public class AzureVirtualNetworkOperationSDKTest {
+
+    private static final Logger LOGGER_CLASS_MOCK = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -57,14 +60,20 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.azureVirtualNetworkOperationSDK = Mockito.spy(new AzureVirtualNetworkOperationSDK(this.regionName, this.resourceGroupName));
         this.azureUser = AzureTestUtils.createAzureUser();
         this.azure = null;
+
+        makeTheObservablesSynchronous();
     }
 
     // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
-    // without any error, it must verify if It returns the right logs.
+    // without any error, it must verify if It returns the right logs and define instance as ready.
     @Test
     public void testBuildVirtualNetworkCreationObservableSuccessfully() {
         // set up
-        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
+                .resourceName(resourceName)
+                .build();
+        Runnable callback = Mockito.mock(Runnable.class);
 
         Indexable securityGroupIndexable = Mockito.mock(Indexable.class);
         Observable<Indexable> observableSecurityGroupSuccess = AzureTestUtils.createSimpleObservableSuccess(securityGroupIndexable);
@@ -76,8 +85,9 @@ public class AzureVirtualNetworkOperationSDKTest {
                         Mockito.eq(azureCreateVirtualNetworkRef), Mockito.eq(this.azure));
 
         // exercise
+
         Observable<Indexable> virtualNetworkCreationObservable = this.azureVirtualNetworkOperationSDK
-                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure);
+                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure, callback);
         virtualNetworkCreationObservable.subscribe();
 
         // verify
@@ -85,6 +95,7 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
+        Mockito.verify(callback, Mockito.times(TestUtils.RUN_ONCE)).run();
     }
 
     // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
@@ -92,7 +103,11 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testBuildVirtualNetworkCreationObservableFail() {
         // set up
-        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
+                .resourceName(resourceName)
+                .build();
+        Runnable callback = Mockito.mock(Runnable.class);
 
         Indexable securityGroupIndexable = Mockito.mock(Indexable.class);
         Observable<Indexable> observableSecurityGroupSuccess = AzureTestUtils.createSimpleObservableSuccess(securityGroupIndexable);
@@ -105,7 +120,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         Observable<Indexable> virtualNetworkCreationObservable = this.azureVirtualNetworkOperationSDK
-                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure);
+                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure, callback);
         virtualNetworkCreationObservable.subscribe();
 
         // verify
@@ -113,25 +128,29 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
+        Mockito.verify(callback, Mockito.times(TestUtils.RUN_ONCE)).run();
     }
 
-    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // test case: When calling the buildCreateSecurityGroupObservable method and the observables execute
     // without any error, it must verify if It returns the right observable.
     @Test
     public void testBuildCreateSecurityGroupObservableSuccessfully() {
         // set up
-        String nameExpected = TestUtils.ANY_VALUE;
+        String resourceNameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
+        Map tagsExpected = Collections.singletonMap(AzureConstants.TAG_NAME, TestUtils.ANY_VALUE);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
-                .name(nameExpected)
+                .resourceName(resourceNameExpected)
                 .cidr(cidrExpected)
+                .tags(tagsExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
+        Region regionExpected = Region.findByLabelOrName(this.regionName);
 
         Observable<Indexable> observableExpected = Mockito.mock(Observable.class);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
-        PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure), Mockito.eq(nameExpected)
-                , Mockito.eq(regionExpected), Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected)))
+        PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure),
+                Mockito.eq(resourceNameExpected), Mockito.eq(regionExpected),
+                Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected), Mockito.eq(tagsExpected)))
                 .thenReturn(observableExpected);
 
         // exercise
@@ -141,23 +160,26 @@ public class AzureVirtualNetworkOperationSDKTest {
         Assert.assertEquals(observableExpected, observable);
     }
 
-    // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
+    // test case: When calling the buildCreateSecurityGroupObservable method and the observables execute
     // with an error, it must verify if It rethrows the same error.
     @Test
     public void testBuildCreateSecurityGroupObservableFail() {
         // set up
-        String nameExpected = TestUtils.ANY_VALUE;
+        String resouceNameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
+        Map tagsExpected = Collections.singletonMap(AzureConstants.TAG_NAME, TestUtils.ANY_VALUE);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
-                .name(nameExpected)
+                .resourceName(resouceNameExpected)
                 .cidr(cidrExpected)
+                .tags(tagsExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
+        Region regionExpected = Region.findByLabelOrName(this.regionName);
 
         RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
-        PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure), Mockito.eq(nameExpected)
-                , Mockito.eq(regionExpected), Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected)))
+        PowerMockito.when(AzureNetworkSDK.createSecurityGroupAsync(Mockito.eq(this.azure),
+                Mockito.eq(resouceNameExpected), Mockito.eq(regionExpected), Mockito.eq(this.resourceGroupName),
+                Mockito.eq(cidrExpected), Mockito.eq(tagsExpected)))
                 .thenThrow(exceptionExpected);
 
         // verify
@@ -173,13 +195,15 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testDoNetworkCreationStepTwoSyncSuccessfully() {
         // set up
-        String nameExpected = TestUtils.ANY_VALUE;
+        String resourceNameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
+        Map tagsExpected = Collections.singletonMap(AzureConstants.TAG_NAME, TestUtils.ANY_VALUE);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
-                .name(nameExpected)
+                .resourceName(resourceNameExpected)
                 .cidr(cidrExpected)
+                .tags(tagsExpected)
                 .build();
-        Region regionExpected = Region.fromName(this.regionName);
+        Region regionExpected = Region.findByLabelOrName(this.regionName);
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
 
@@ -189,9 +213,10 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
 
         // verify
-        PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AzureNetworkSDK.createNetworkSync(Mockito.eq(this.azure), Mockito.eq(nameExpected), Mockito.eq(regionExpected)
-                , Mockito.eq(this.resourceGroupName), Mockito.eq(cidrExpected), Mockito.eq(indexableExpected));
+        PowerMockito.verifyStatic(AzureNetworkSDK.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AzureNetworkSDK.createNetworkSync(Mockito.eq(this.azure), Mockito.eq(resourceNameExpected),
+                Mockito.eq(regionExpected), Mockito.eq(this.resourceGroupName),
+                Mockito.eq(cidrExpected), Mockito.eq(indexableExpected), Mockito.eq(tagsExpected));
     }
 
     // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
@@ -199,17 +224,19 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testDoNetworkCreationStepTwoSyncFail() {
         // set up
-        String nameExpected = TestUtils.ANY_VALUE;
+        String resourceNameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
+        Map tagsExpected = Collections.singletonMap(AzureConstants.TAG_NAME, TestUtils.ANY_VALUE);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
-                .name(nameExpected)
+                .resourceName(resourceNameExpected)
                 .cidr(cidrExpected)
+                .tags(tagsExpected)
                 .build();
 
         RuntimeException exceptionExpected = new RuntimeException(TestUtils.ANY_VALUE);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
         PowerMockito.when(AzureNetworkSDK.createNetworkSync(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyMap()))
                 .thenThrow(exceptionExpected);
 
         NetworkSecurityGroup indexableExpected = Mockito.mock(NetworkSecurityGroup.class);
@@ -219,7 +246,100 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.expectedException.expectMessage(exceptionExpected.getMessage());
 
         // exercise
-        this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
+        this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(
+                indexableExpected, azureCreateVirtualNetworkRef, this.azure);
+    }
+
+    // test case: When calling the buildDeleteVirtualNetworkCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualNetworkCompletableSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+        Completable virtualNetworkCompletableSuccess = AzureTestUtils.createSimpleCompletableSuccess();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualNetworkCompletableSuccess);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteVirtualNetworkCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteVirtualNetworkCompletable method and the completable executes
+    // with error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteVirtualNetworkCompletableFail() {
+        // set up
+        String instanceId = "instanceId";
+        Completable virtualNetworkCompletableFail = AzureTestUtils.createSimpleCompletableFail();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(virtualNetworkCompletableFail);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteVirtualNetworkCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteSecurityGroupCompletable method and the completable executes
+    // without any error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteSecurityGroupCompletableSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+        Completable networkSecurityGroupCompletableSuccess = AzureTestUtils.createSimpleCompletableSuccess();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteNetworkSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(networkSecurityGroupCompletableSuccess);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteSecurityGroupCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the buildDeleteSecurityGroupCompletable method and the completable executes
+    // with error, it must verify if It returns the right logs.
+    @Test
+    public void testBuildDeleteSecurityGroupCompletableFail() {
+        // set up
+        String instanceId = "instanceId";
+        Completable networkSecurityGroupCompletableFail = AzureTestUtils.createSimpleCompletableFail();
+
+        PowerMockito.mockStatic(AzureNetworkSDK.class);
+        PowerMockito.when(AzureNetworkSDK
+                .buildDeleteNetworkSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+                .thenReturn(networkSecurityGroupCompletableFail);
+
+        // exercise
+        Completable completable = this.azureVirtualNetworkOperationSDK
+                .buildDeleteSecurityGroupCompletable(this.azure, instanceId);
+        completable.subscribe();
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the doGetInstance method with mocked methods
@@ -238,7 +358,9 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
-        Mockito.when(network.name()).thenReturn(name);
+        Map<String, String> tags = new HashMap<>();
+        tags.put(AzureConstants.TAG_NAME, name);
+        Mockito.when(network.tags()).thenReturn(tags);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         Mockito.doReturn(network)
@@ -255,28 +377,31 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .when(this.azureVirtualNetworkOperationSDK).getCIRD(Mockito.eq(network));
 
         // exercise
-        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
+                .doGetInstance(resourceName, this.azureUser);
 
         // verify
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
     }
 
-    // test case: When calling the doGetInstance method with mocked methods and cird beeing null
+    // test case: When calling the doGetInstance method with mocked methods and cird being null
     // , it must verify if It execute the right AzureGetVirtualNetworkRef.
     @Test
     public void testDoGetInstanceSuccessfullyWithCIRDNull() throws FogbowException {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         String provisioningState = "provisioningState";
         String id = "id";
-        String name = "name";
+        String name = AzureTestUtils.ORDER_NAME;
 
         VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
         Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
-        Mockito.when(network.name()).thenReturn(name);
+        Map<String, String> tags = new HashMap<>();
+        tags.put(AzureConstants.TAG_NAME, name);
+        Mockito.when(network.tags()).thenReturn(tags);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         Mockito.doReturn(network)
@@ -293,7 +418,8 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .when(this.azureVirtualNetworkOperationSDK).getCIRD(Mockito.eq(network));
 
         // exercise
-        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK.doGetInstance(resourceName, this.azureUser);
+        AzureGetVirtualNetworkRef azureGetVirtualNetworkRef = this.azureVirtualNetworkOperationSDK
+                .doGetInstance(resourceName, this.azureUser);
 
         // verify
         Assert.assertEquals(azureGetVirtualNetworkRefExpected, azureGetVirtualNetworkRef);
@@ -304,17 +430,19 @@ public class AzureVirtualNetworkOperationSDKTest {
     @Test
     public void testDoGetInstanceFail() throws FogbowException {
         // set up
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         String provisioningState = "provisioningState";
         String id = "id";
-        String name = "name";
+        String name = AzureTestUtils.ORDER_NAME;
 
         VirtualNetworkInner virtualNetworkInner = Mockito.mock(VirtualNetworkInner.class);
         Mockito.when(virtualNetworkInner.provisioningState()).thenReturn(provisioningState);
         Mockito.when(virtualNetworkInner.id()).thenReturn(id);
 
         Network network = Mockito.mock(Network.class);
-        Mockito.when(network.name()).thenReturn(name);
+        Map<String, String> tags = new HashMap<>();
+        tags.put(AzureConstants.TAG_NAME, name);
+        Mockito.when(network.tags()).thenReturn(tags);
         Mockito.when(network.inner()).thenReturn(virtualNetworkInner);
 
         FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
@@ -367,7 +495,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     public void getNetworkSuccessfully() throws FogbowException {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
         String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
@@ -394,7 +522,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     public void testGetNetworkFail() throws FogbowException {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
-        String resourceName = "resourceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
         String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
@@ -412,6 +540,66 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         this.azureVirtualNetworkOperationSDK.getNetwork(resourceName, this.azureUser);
+    }
+
+    // test case: When calling the doDeleteInstance method with mocked methods
+    // , it must verify if It shows the right log.
+    @Test
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException {
+        // set up
+        AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        String azureSecurityGroupIdExpected = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(this.resourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        String msgDeleteVirtualNetworkOk = "msgDeleteVirtualNetworkOk";
+        String msgDeleteNetworkSecurityGroupOk = "msgDeleteNetworkSecurityGroupOk";
+        Completable deleteVirtualNetworkCompletable = AzureTestUtils
+                .createSimpleCompletableSuccess(LOGGER_CLASS_MOCK, msgDeleteVirtualNetworkOk);
+        Completable completableTwo = AzureTestUtils
+                .createSimpleCompletableSuccess(LOGGER_CLASS_MOCK, msgDeleteNetworkSecurityGroupOk);
+        Mockito.doReturn(deleteVirtualNetworkCompletable).when(this.azureVirtualNetworkOperationSDK)
+                .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected));
+        Mockito.doReturn(completableTwo).when(this.azureVirtualNetworkOperationSDK)
+                .buildDeleteSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(azureSecurityGroupIdExpected));
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, this.azureUser);
+
+        // verify
+        this.loggerAssert.assertEqualsInOrder(Level.DEBUG, msgDeleteVirtualNetworkOk)
+                .assertEqualsInOrder(Level.DEBUG, msgDeleteNetworkSecurityGroupOk);
+    }
+
+    // test case: When calling the doDeleteInstance method with mocked methods and throws an exception
+    // , it must verify if It rethrows the same exception.
+    @Test
+    public void testDoDeleteInstanceFail() throws FogbowException {
+        // set up
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        UnauthenticatedUserException exceptionExpected = new UnauthenticatedUserException(TestUtils.ANY_VALUE);
+        PowerMockito.when(AzureClientCacheManager.getAzure(Mockito.eq(azureUser)))
+                .thenThrow(exceptionExpected);
+
+        // verify
+        this.expectedException.expect(exceptionExpected.getClass());
+        this.expectedException.expectMessage(exceptionExpected.getMessage());
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(TestUtils.ANY_VALUE, this.azureUser);
+    }
+
+    private void makeTheObservablesSynchronous() {
+        // The scheduler trampolime makes the subscriptions execute in the current thread
+        this.azureVirtualNetworkOperationSDK.setScheduler(Schedulers.trampoline());
     }
 
 }
