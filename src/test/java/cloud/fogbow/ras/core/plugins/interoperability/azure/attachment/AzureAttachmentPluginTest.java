@@ -20,6 +20,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineDataDisk;
+import com.microsoft.azure.management.compute.implementation.DiskInner;
 
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -349,12 +350,16 @@ public class AzureAttachmentPluginTest {
     @Test
     public void testBuildAttachmentInstanceAttached() {
         // set up
-        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String resourceId = "resource-id";
         String virtualMachineId = "virtual-machine-id";
         String diskId = "disk-id";
         boolean attached = true;
+
+        DiskInner diskInner = Mockito.mock(DiskInner.class);
+        Mockito.when(diskInner.id()).thenReturn(resourceId);
+
         Disk disk = Mockito.mock(Disk.class);
-        Mockito.when(disk.name()).thenReturn(resourceName);
+        Mockito.when(disk.inner()).thenReturn(diskInner);
         Mockito.when(disk.isAttachedToVirtualMachine()).thenReturn(attached);
         Mockito.when(disk.virtualMachineId()).thenReturn(virtualMachineId);
         Mockito.when(disk.id()).thenReturn(diskId);
@@ -374,12 +379,16 @@ public class AzureAttachmentPluginTest {
     @Test
     public void testBuildAttachmentInstanceNotAttached() {
         // set up
-        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String resourceId = "resource-id";
         String virtualMachineId = "virtual-machine-id";
         String diskId = "disk-id";
         boolean attached = false;
+
+        DiskInner diskInner = Mockito.mock(DiskInner.class);
+        Mockito.when(diskInner.id()).thenReturn(resourceId);
+
         Disk disk = Mockito.mock(Disk.class);
-        Mockito.when(disk.name()).thenReturn(resourceName);
+        Mockito.when(disk.inner()).thenReturn(diskInner);
         Mockito.when(disk.isAttachedToVirtualMachine()).thenReturn(attached);
         Mockito.when(disk.virtualMachineId()).thenReturn(virtualMachineId);
         Mockito.when(disk.id()).thenReturn(diskId);
@@ -541,7 +550,7 @@ public class AzureAttachmentPluginTest {
     
     private AttachmentInstance createAttachmentInstance(boolean attached) {
         return new AttachmentInstance(
-                AzureTestUtils.RESOURCE_NAME, 
+                "resource-id",
                 attached ? AzureStateMapper.ATTACHED_STATE : AzureStateMapper.UNATTACHED_STATE, 
                 "virtual-machine-id", 
                 "disk-id", 
