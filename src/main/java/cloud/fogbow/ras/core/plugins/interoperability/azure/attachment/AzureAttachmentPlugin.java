@@ -9,6 +9,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineDataDisk;
+import com.microsoft.azure.management.compute.implementation.DiskInner;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -115,7 +116,8 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
     
     @VisibleForTesting
     AttachmentInstance buildAttachmentInstance(Disk disk) {
-        String id = AzureGeneralUtil.defineInstanceId(disk.name());
+        DiskInner diskInner = disk.inner();
+        String id = diskInner.id();
         String cloudState = disk.isAttachedToVirtualMachine() 
                 ? AzureStateMapper.ATTACHED_STATE
                         : AzureStateMapper.UNATTACHED_STATE;
