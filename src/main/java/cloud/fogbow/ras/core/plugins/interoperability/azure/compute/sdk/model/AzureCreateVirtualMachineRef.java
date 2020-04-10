@@ -11,7 +11,7 @@ public class AzureCreateVirtualMachineRef {
     @GenericBuilder.Required
     private AzureGetImageRef azureGetImageRef;
     @GenericBuilder.Required
-    private String networkInterfaceId;
+    private String virtualNetworkId;
     @GenericBuilder.Required
     private String resourceGroupName;
     @GenericBuilder.Required
@@ -45,12 +45,12 @@ public class AzureCreateVirtualMachineRef {
         this.azureGetImageRef = azureGetImageRef;
     }
 
-    public String getNetworkInterfaceId() {
-        return this.networkInterfaceId;
+    public String getVirtualNetworkId() {
+        return this.virtualNetworkId;
     }
-
-    private void setNetworkInterfaceId(String networkInterfaceId) {
-        this.networkInterfaceId = networkInterfaceId;
+    
+    private void setVirtualNetworkId(String virtualNetworkId) {
+        this.virtualNetworkId = virtualNetworkId;
     }
 
     public String getResourceGroupName() {
@@ -143,7 +143,7 @@ public class AzureCreateVirtualMachineRef {
         AzureCreateVirtualMachineRef that = (AzureCreateVirtualMachineRef) o;
         return this.diskSize == that.diskSize &&
                 Objects.equals(this.azureGetImageRef, that.azureGetImageRef) &&
-                Objects.equals(this.networkInterfaceId, that.networkInterfaceId) &&
+                Objects.equals(this.virtualNetworkId, that.virtualNetworkId) &&
                 Objects.equals(this.resourceGroupName, that.resourceGroupName) &&
                 Objects.equals(this.resourceName, that.resourceName) &&
                 Objects.equals(this.osUserPassword, that.osUserPassword) &&
@@ -166,13 +166,13 @@ public class AzureCreateVirtualMachineRef {
             return this;
         }
 
-        public Builder networkInterfaceId(String networkInterfaceId) {
-            with(AzureCreateVirtualMachineRef::setNetworkInterfaceId, networkInterfaceId);
-            return this;
-        }
-
         public Builder resourceGroupName(String resourceGroupName) {
             with(AzureCreateVirtualMachineRef::setResourceGroupName, resourceGroupName);
+            return this;
+        }
+        
+        public Builder virtualNetworkId(String virtualNetworkId) {
+            with(AzureCreateVirtualMachineRef::setVirtualNetworkId, virtualNetworkId);
             return this;
         }
 
@@ -220,6 +220,7 @@ public class AzureCreateVirtualMachineRef {
             with(AzureCreateVirtualMachineRef::setTags, tags);
             return this;
         }
+
     }
 
 }
