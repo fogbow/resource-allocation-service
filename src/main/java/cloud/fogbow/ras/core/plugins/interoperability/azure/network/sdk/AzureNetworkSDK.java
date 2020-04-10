@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.ras.constants.Messages;
+import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.*;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
@@ -85,6 +87,19 @@ public class AzureNetworkSDK {
         return azure.networkInterfaces();
     }
 
+    public static Completable buildDeleteNetworkInterfaceCompletable(Azure azure, String resourceId)
+            throws UnexpectedException {
+
+        try {
+            NetworkInterfaces networkInterfaces = getNetworkInterfacesSDK(azure);
+            return networkInterfaces.deleteByIdAsync(resourceId);
+        } catch (Exception e) {
+            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
+            throw new UnexpectedException(message, e);
+        }
+    }
+
+    @VisibleForTesting
     public static Networks getNetworksSDK(Azure azure) {
         return azure.networks();
     }

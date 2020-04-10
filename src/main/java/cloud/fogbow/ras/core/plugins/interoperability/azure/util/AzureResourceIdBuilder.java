@@ -12,7 +12,8 @@ public class AzureResourceIdBuilder {
     static final String VIRTUAL_NETWORK_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s";
     @VisibleForTesting
     static final String NETWORK_SECURITY_GROUP_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkSecurityGroups/%s";
-
+    @VisibleForTesting
+    static final String NETWORK_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networks/%s";
 
     public static AzureResourceIdConfigured virtualMachineId() {
         return new AzureResourceIdConfigured(VIRTUAL_MACHINE_STRUCTURE);
@@ -30,6 +31,10 @@ public class AzureResourceIdBuilder {
         return new AzureResourceIdConfigured(NETWORK_SECURITY_GROUP_STRUCTURE);
     }
     
+    public static AzureResourceIdConfigured networkId() {
+        return new AzureResourceIdConfigured(NETWORK_STRUCTURE);
+    }
+
     public static class AzureResourceIdConfigured {
         
         private String structure;

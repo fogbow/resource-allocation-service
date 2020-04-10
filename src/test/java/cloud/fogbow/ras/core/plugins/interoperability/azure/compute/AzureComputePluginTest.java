@@ -7,7 +7,6 @@ import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -37,7 +36,7 @@ import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureImageOperationUtil.class, AzureGeneralPolicy.class})
-public class AzureComputePluginTest extends AzureTestUtils {
+public class AzureComputePluginTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -45,7 +44,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
     private AzureComputePlugin azureComputePlugin;
     private AzureUser azureUser;
     private AzureVirtualMachineOperationSDK azureVirtualMachineOperation;
-    private String defaultNetworkInterfaceName;
+    private String defaultVirtualNetworkName;
     private String defaultResourceGroupName;
     private String defaultRegionName;
 
@@ -56,7 +55,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
                 + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         Properties properties = PropertiesUtil.readProperties(azureConfFilePath);
-        this.defaultNetworkInterfaceName = properties.getProperty(AzureConstants.DEFAULT_NETWORK_INTERFACE_NAME_KEY);
+        this.defaultVirtualNetworkName = properties.getProperty(AzureConstants.DEFAULT_VIRTUAL_NETWORK_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.azureComputePlugin = Mockito.spy(new AzureComputePlugin(azureConfFilePath));
@@ -108,64 +107,53 @@ public class AzureComputePluginTest extends AzureTestUtils {
         // exercise and verify
         Assert.assertFalse(this.azureComputePlugin.hasFailed(instanceState));
     }
-
-    // test case: When calling the getNetworkInterfaceId method without network in the order,
-    // it must verify if It returns the default networkInterfaceId.
+    
+    // test case: When calling the getVirtualNetworkId method with a non-empty list
+    // of network IDs, it must return the resource ID of the first item in the list.
     @Test
-    public void testGetNetworkInterfaceIdSuccessfullyWhenEmptyNetworkInOrder() throws FogbowException {
+    public void testGetVirtualNetworkIdWithNetworkIds() {
         // set up
+        String[] networkIds = { AzureTestUtils.RESOURCE_NAME };
+        List<String> networkIdList = Arrays.asList(networkIds);
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        List<String> networds = new ArrayList<>();
-        Mockito.when(computeOrder.getNetworkIds()).thenReturn(networds);
+        Mockito.when(computeOrder.getNetworkIds()).thenReturn(networkIdList);
 
-        String networkInsterfaceIdExpected = AzureResourceIdBuilder.networkInterfaceId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String expected = AzureResourceIdBuilder.networkId()
+                .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(this.defaultNetworkInterfaceName)
+                .withResourceName(networkIdList.listIterator().next())
                 .build();
 
         // exercise
-        String networkInterfaceId = this.azureComputePlugin.getNetworkInterfaceId(computeOrder, this.azureUser);
+        String virtualNetworkId = this.azureComputePlugin.getVirtualNetworkId(computeOrder, this.azureUser);
 
         // verify
-        Assert.assertEquals(networkInsterfaceIdExpected, networkInterfaceId);
+        Assert.assertEquals(expected, virtualNetworkId);
     }
-
-    // test case: When calling the getNetworkInterfaceId method with one network in the order,
-    // it must verify if It returns the network in the order.
+    
+    // test case: When calling the getVirtualNetworkId method with an empty list of
+    // network IDs, it must then return the resource Id of default virtual network.
     @Test
-    public void testGetNetworkInterfaceIdSuccessfullyWhenOneNetworkInOrder() throws FogbowException {
+    public void testGetVirtualNetworkIdWithoutNetworkIds() {
         // set up
-        String nertworkIdExpeceted = "networkId";
+        List<String> networkIdList = Collections.EMPTY_LIST;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        List<String> networds = new ArrayList<>();
-        networds.add(nertworkIdExpeceted);
-        Mockito.when(computeOrder.getNetworkIds()).thenReturn(networds);
+        Mockito.when(computeOrder.getNetworkIds()).thenReturn(networkIdList);
 
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceName = this.defaultVirtualNetworkName;
+        String expected = AzureResourceIdBuilder.networkId()
+              .withSubscriptionId(subscriptionId)
+              .withResourceGroupName(this.defaultResourceGroupName)
+              .withResourceName(resourceName)
+              .build();
+        
         // exercise
-        String networkInterfaceId = this.azureComputePlugin
-                .getNetworkInterfaceId(computeOrder, this.azureUser);
+        String virtualNetworkId = this.azureComputePlugin.getVirtualNetworkId(computeOrder, this.azureUser);
 
         // verify
-        Assert.assertEquals(nertworkIdExpeceted, networkInterfaceId);
-    }
-
-    // test case: When calling the getNetworkInterfaceId method with more than one network in the order,
-    // it must verify if It throws a FogbowException.
-    @Test
-    public void testGetNetworkInterfaceIdFailWhenMoreThanOneNetworkInOrder() throws FogbowException {
-        // set up
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        List<String> networds = Arrays.asList("one", "two");
-        Mockito.when(computeOrder.getNetworkIds()).thenReturn(networds);
-
-        // verify
-        this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(Messages.Error.ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED);
-
-        // exercise
-        this.azureComputePlugin.getNetworkInterfaceId(computeOrder, this.azureUser);
-
+        Assert.assertEquals(expected, virtualNetworkId);
     }
 
     // test case: When calling the requestInstance method with mocked methods,
@@ -180,9 +168,9 @@ public class AzureComputePluginTest extends AzureTestUtils {
         Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
         Mockito.when(computeOrder.getName()).thenReturn(orderName);
 
-        String networkInterfaceId = "networkInterfaceId";
-        Mockito.doReturn(networkInterfaceId).when(this.azureComputePlugin)
-                .getNetworkInterfaceId(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
+        String virtualNetworkId = "virtualNetworkId";
+        Mockito.doReturn(virtualNetworkId).when(this.azureComputePlugin)
+                .getVirtualNetworkId(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
         String virtualMachineSizeName = "virtualMachineSizeName";
         VirtualMachineSize virtualMachineSizeMock = Mockito.mock(VirtualMachineSize.class);
@@ -199,7 +187,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
         Mockito.when(AzureImageOperationUtil.buildAzureVirtualMachineImageBy(Mockito.eq(imageId)))
                 .thenReturn(azureGetImageRef);
 
-        String resourceName = RESOURCE_NAME;
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
         Mockito.doReturn(resourceName).when(this.azureComputePlugin).generateResourceName();
 
         String userData = "userData";
@@ -215,7 +203,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .resourceName(resourceName)
                 .azureGetImageRef(azureGetImageRef)
-                .networkInterfaceId(networkInterfaceId)
+                .virtualNetworkId(virtualNetworkId)
                 .diskSize(disk)
                 .size(virtualMachineSizeName)
                 .osComputeName(orderName)
@@ -245,7 +233,7 @@ public class AzureComputePluginTest extends AzureTestUtils {
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
 
         Mockito.doThrow(FogbowException.class).when(this.azureComputePlugin)
-                .getNetworkInterfaceId(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
+                .getVirtualNetworkId(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -277,22 +265,27 @@ public class AzureComputePluginTest extends AzureTestUtils {
     }
 
 
-    // test case: When calling the getInstance method, it must verify if It returns the right computeInstance.
+    // test case: When calling the getInstance method, it must verify if It returns
+    // the right computeInstance.
     @Test
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
-        String resourceName = RESOURCE_NAME;
-        String orderName = ORDER_NAME;
-        
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(resourceName);
-        computeOrder.setName(orderName);
-        
-        String resourceId = createResourceId(resourceName);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
+
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        Mockito.doReturn(resourceId).when(this.azureComputePlugin).buildResourceId(Mockito.eq(subscriptionId),
+                Mockito.eq(resourceName));
 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = Mockito.mock(AzureGetVirtualMachineRef.class);
-        Mockito.when(this.azureVirtualMachineOperation
-                .doGetInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser)))
+        Mockito.when(this.azureVirtualMachineOperation.doGetInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser)))
                 .thenReturn(azureGetVirtualMachineRef);
 
         ComputeInstance computeInstanceExpected = Mockito.mock(ComputeInstance.class);
@@ -312,17 +305,21 @@ public class AzureComputePluginTest extends AzureTestUtils {
     @Test
     public void testGetInstanceFail() throws FogbowException {
         // set up
-        String resourceName = RESOURCE_NAME;
-        String orderName = ORDER_NAME;
-        
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(resourceName);
-        computeOrder.setName(orderName);
-        
-        String resourceId = createResourceId(resourceName);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
 
-        Mockito.when(this.azureVirtualMachineOperation
-                .doGetInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser)))
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        Mockito.doReturn(resourceId).when(this.azureComputePlugin).buildResourceId(Mockito.eq(subscriptionId),
+                Mockito.eq(resourceName));
+
+        Mockito.when(this.azureVirtualMachineOperation.doGetInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser)))
                 .thenThrow(new UnexpectedException());
 
         // verify
@@ -380,18 +377,19 @@ public class AzureComputePluginTest extends AzureTestUtils {
     @Test
     public void testDeleteInstanceSuccessfully() throws FogbowException {
         // set up
-        String resourceName = RESOURCE_NAME;
-        String orderName = ORDER_NAME;
-        
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setInstanceId(resourceName);
-        computeOrder.setName(orderName);
-        
-        String resourceId = createResourceId(resourceName);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
 
-        Mockito.doNothing()
-                .when(this.azureVirtualMachineOperation)
-                .doDeleteInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser));
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId().withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName).withResourceName(resourceName).build();
+
+        Mockito.doReturn(resourceId).when(this.azureComputePlugin).buildResourceId(Mockito.eq(subscriptionId),
+                Mockito.eq(resourceName));
+
+        Mockito.doNothing().when(this.azureVirtualMachineOperation).doDeleteInstance(Mockito.eq(resourceId),
+                Mockito.eq(this.azureUser));
 
         // exercise
         this.azureComputePlugin.deleteInstance(computeOrder, this.azureUser);
@@ -399,16 +397,6 @@ public class AzureComputePluginTest extends AzureTestUtils {
         // verify
         Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
                 .doDeleteInstance(Mockito.eq(resourceId), Mockito.eq(this.azureUser));
-    }
-
-    private String createResourceId(String resourceName) {
-        String subscriptionId = DEFAULT_SUBSCRIPTION_ID;
-        String resourceGroupName = DEFAULT_RESOURCE_GROUP_NAME;
-        return AzureResourceIdBuilder.virtualMachineId()
-                .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(resourceGroupName)
-                .withResourceName(resourceName)
-                .build();
     }
 
 }
