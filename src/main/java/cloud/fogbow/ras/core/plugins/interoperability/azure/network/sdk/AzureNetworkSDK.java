@@ -28,7 +28,6 @@ public class AzureNetworkSDK {
         }
     }
 
-    // TODO(chico) - Implement tests
     public static Optional<Network> getNetwork(Azure azure, String azureNetworkId)
             throws UnexpectedException {
 
