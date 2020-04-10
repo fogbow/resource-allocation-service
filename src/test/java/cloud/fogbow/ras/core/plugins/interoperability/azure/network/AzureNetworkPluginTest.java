@@ -15,25 +15,28 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureGeneralUtil.class, CreatingInstanceManager.class, CreatingInstanceManager.class})
-public class AzureNetworkPluginTest extends AzureTestUtils {
+public class AzureNetworkPluginTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
