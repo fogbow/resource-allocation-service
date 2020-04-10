@@ -13,8 +13,8 @@ import java.util.Optional;
 
 public class AzureNetworkSDK {
 
-    private static final String DEFAULT_SECURITY_GROUPS_RULES_NAME = "default-security-group-rules-name";
-    private static final String DEFAULT_SUBNET_NAME = "default-subnet-name";
+    private static final String DEFAULT_SECURITY_GROUPS_RULES_NAME = "default-security-rule";
+    private static final String DEFAULT_SUBNET_NAME = "default-subnet";
 
     public static Optional<NetworkInterface> getNetworkInterface(Azure azure, String azureNetworkInterfaceId)
             throws UnexpectedException {
