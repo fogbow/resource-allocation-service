@@ -40,6 +40,10 @@ public class NetworkInstance extends OrderInstance {
         super(id);
     }
 
+    public NetworkInstance(String id, String cloudState) {
+        super(id, cloudState);
+    }
+
     public String getName() {
         return name;
     }
