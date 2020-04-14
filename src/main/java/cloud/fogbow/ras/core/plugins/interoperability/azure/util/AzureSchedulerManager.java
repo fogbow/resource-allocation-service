@@ -7,6 +7,7 @@ public class AzureSchedulerManager {
 
     private static final int VIRTUAL_MACHINE_POOL_SIZE = 2;
     private static final int VOLUME_POOL_SIZE = 2;
+    private static final int VIRTUAL_NETWORK_POOL_SIZE = 3;
 
     public static ExecutorService getVirtualMachineExecutor() {
         return Executors.newFixedThreadPool(VIRTUAL_MACHINE_POOL_SIZE);
@@ -16,4 +17,8 @@ public class AzureSchedulerManager {
         return Executors.newFixedThreadPool(VOLUME_POOL_SIZE);
     }
 
+    public static ExecutorService getVirtualNetworkExecutor() {
+        return Executors.newFixedThreadPool(VIRTUAL_NETWORK_POOL_SIZE);
+    }
+    
 }

@@ -24,6 +24,11 @@ public class AzureImageOperationUtil {
         return new ImageSummary(id, name);
     }
 
+    public static ImageSummary buildImageSummaryBy(String publisher, String offer, String sku) {
+        AzureGetImageRef imageRef = new AzureGetImageRef(publisher, offer, sku);
+        return buildImageSummaryBy(imageRef);
+    }
+
     public static AzureGetImageRef buildAzureVirtualMachineImageBy(String imageSummaryId) {
         String[] imageSummaryIdChunks = imageSummaryId.split(IMAGE_SUMMARY_ID_SEPARATOR);
         String published = imageSummaryIdChunks[PUBLISHER_ID_SUMMARY_POSITION];

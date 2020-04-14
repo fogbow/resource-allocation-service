@@ -51,9 +51,8 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
-    // test case: When calling the map method with a compute resource type and
-    // undefined state, it must verify if It returns the inconsistent instance
-    // state.
+    // test case: When calling the map method with compute type and undefined state,
+    // it must verify if It returns the instance inconsistent state.
     @Test
     public void testMapWithComputeResourceTypeWhenStateIsUndefined() {
         // set up
@@ -135,6 +134,34 @@ public class AzureStateMapperTest {
 
         // verify
         Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+    }
+
+    // test case: When calling the map method with network type and undefined state,
+    // it must verify if It returns the instance inconsistent state.
+    @Test
+    public void testMapSuccessfullyWhenNetworkAndUndefinedState() {
+        // set up
+        ResourceType resourceType = ResourceType.NETWORK;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, "undefined");
+
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+    }
+
+    // test case: When calling the map method with network type and creating state,
+    // it must verify if It returns the instance ready state.
+    @Test
+    public void testMapSuccessfullyWhenNetworkAndSucceededState() {
+        // set up
+        ResourceType resourceType = ResourceType.NETWORK;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.SUCCEEDED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.READY, instanceState);
     }
 
 }
