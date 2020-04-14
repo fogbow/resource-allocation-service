@@ -9,6 +9,8 @@ public class AzureResourceIdBuilder {
     @VisibleForTesting
     static final String NETWORK_INTERFACE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s";
     @VisibleForTesting
+    static final String DISK_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s";
+    @VisibleForTesting
     static final String VIRTUAL_NETWORK_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s";
     @VisibleForTesting
     static final String NETWORK_SECURITY_GROUP_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkSecurityGroups/%s";
@@ -29,6 +31,10 @@ public class AzureResourceIdBuilder {
 
     public static AzureResourceIdConfigured networkSecurityGroupId() {
         return new AzureResourceIdConfigured(NETWORK_SECURITY_GROUP_STRUCTURE);
+    }
+    
+    public static AzureResourceIdConfigured diskId() {
+        return new AzureResourceIdConfigured(DISK_STRUCTURE);
     }
     
     public static AzureResourceIdConfigured networkId() {

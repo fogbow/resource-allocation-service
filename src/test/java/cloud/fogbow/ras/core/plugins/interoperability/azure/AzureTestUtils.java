@@ -19,13 +19,27 @@ public class AzureTestUtils {
     public static final String DEFAULT_SUBSCRIPTION_ID = "default-subscription-id";
     public static final String ORDER_NAME = "order-name";
     public static final String RESOURCE_NAME = "resource-name";
-
+    public static final String UNDEFINED_STATE = "undefined";
+    
     public static AzureUser createAzureUser() {
         AzureUser azureUser = Mockito.mock(AzureUser.class);
         Mockito.when(azureUser.getSubscriptionId()).thenReturn(DEFAULT_SUBSCRIPTION_ID);
         return azureUser;
     }
+    
+    public static Observable<Indexable> createSimpleObservableSuccess() {
+        return Observable.defer(() -> {
+            Indexable indexable = Mockito.mock(Indexable.class);
+            return Observable.just(indexable);
+        });
+    }
 
+    public static Observable createSimpleObservableFail() {
+        return Observable.defer(() -> {
+            throw new RuntimeException();
+        });
+    }
+    
     public static Observable<Indexable> createSimpleObservableSuccess(Indexable indexable) {
         return Observable.defer(() -> Observable.just(indexable));
     }
