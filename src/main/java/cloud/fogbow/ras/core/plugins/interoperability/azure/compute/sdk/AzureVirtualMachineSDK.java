@@ -8,7 +8,7 @@ import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.compute.VirtualMachineSizes;
 import com.microsoft.azure.management.compute.VirtualMachines;
-import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import rx.Completable;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class AzureVirtualMachineSDK {
 
     static Observable<Indexable> buildVirtualMachineObservable(Azure azure, String resourceName, Region region,
-                                                               String resourceGroupName, NetworkInterface networkInterface,
+                                                               String resourceGroupName, Network network, String subnetName,
                                                                String imagePublished, String imageOffer, String imageSku,
                                                                String osUserName, String osUserPassword, String osComputeName,
                                                                String userData, int diskSize, String size, Map tags) {
@@ -33,7 +33,10 @@ public class AzureVirtualMachineSDK {
                 .define(resourceName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
-                .withExistingPrimaryNetworkInterface(networkInterface);
+                .withExistingPrimaryNetwork(network)
+                .withSubnet(subnetName)
+                .withPrimaryPrivateIPAddressDynamic()
+                .withoutPrimaryPublicIPAddress();
 
         VirtualMachine.DefinitionStages.WithFromImageCreateOptionsManaged optionsManaged;
         if (isWindowsImage(imageOffer, imageSku)) {
