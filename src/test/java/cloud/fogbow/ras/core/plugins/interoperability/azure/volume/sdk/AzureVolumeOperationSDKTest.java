@@ -34,7 +34,7 @@ public class AzureVolumeOperationSDKTest {
     // observable executes without any error, it must verify than returns the right
     // logs.
     @Test
-    public void testSubscribeCreateDiskSucessfully() {
+    public void testSubscribeCreateDiskSuccessfully() {
         // set up
         Observable<Indexable> observable = AzureTestUtils.createSimpleObservableSuccess();
 
