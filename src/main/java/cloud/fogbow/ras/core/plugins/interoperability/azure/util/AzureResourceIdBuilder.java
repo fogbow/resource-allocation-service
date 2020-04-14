@@ -9,7 +9,7 @@ public class AzureResourceIdBuilder {
     @VisibleForTesting
     static final String NETWORK_INTERFACE_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s";
     @VisibleForTesting
-    static final String PUBLIC_IP_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s";
+    static final String PUBLIC_IP_ADDRESS_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s";
     @VisibleForTesting
     static final String VIRTUAL_NETWORK_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s";
     @VisibleForTesting
@@ -37,8 +37,8 @@ public class AzureResourceIdBuilder {
         return new AzureResourceIdConfigured(NETWORK_STRUCTURE);
     }
     
-    public static AzureResourceIdConfigured publicIpId() {
-        return new AzureResourceIdConfigured(PUBLIC_IP_STRUCTURE);
+    public static AzureResourceIdConfigured publicIpAddressId() {
+        return new AzureResourceIdConfigured(PUBLIC_IP_ADDRESS_STRUCTURE);
     }
 
     public static class AzureResourceIdConfigured {
