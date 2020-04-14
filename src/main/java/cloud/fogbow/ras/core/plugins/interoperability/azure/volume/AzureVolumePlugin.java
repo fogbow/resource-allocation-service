@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
+import com.microsoft.azure.management.compute.implementation.DiskInner;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
@@ -115,8 +116,9 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
     
     @VisibleForTesting
     VolumeInstance buildVolumeInstance(Disk disk) {
-        String id = AzureGeneralUtil.defineInstanceId(disk.name());
-        String cloudState = disk.inner().provisioningState();
+        DiskInner diskInner = disk.inner();
+        String id = diskInner.id();
+        String cloudState = diskInner.provisioningState();
         String name = disk.tags().get(AzureConstants.TAG_NAME);
         int size = disk.sizeInGB();
         return new VolumeInstance(id, cloudState, name , size);
