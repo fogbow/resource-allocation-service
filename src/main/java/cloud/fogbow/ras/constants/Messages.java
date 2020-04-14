@@ -99,7 +99,7 @@ public class Messages {
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
         public static final String END_DELETE_NIC_ASYNC_BEHAVIOUR = "End asynchronous delete network interface.";
-        public static final String END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous delete public IP.";
+        public static final String END_DELETE_PUBLIC_ADDRRES_IP_ASYNC_BEHAVIOUR = "End asynchronous delete public IP address.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
@@ -152,7 +152,7 @@ public class Messages {
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String ERROR_DELETE_NIC_ASYNC_BEHAVIOUR = "Error while deleting network interface asynchonously.";
-        public static final String ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while deleting public IP asynchronously.";
+        public static final String ERROR_DELETE_PUBLIC_IP_ADDRRES_ASYNC_BEHAVIOUR = "Error while deleting public IP address asynchronously.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_GENERAL = "Error while attaching volume with response: %s.";
