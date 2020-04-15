@@ -150,6 +150,20 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
     }
 
+    // test case: When calling the map method with a attachment resource type and
+    // attached state, it must verify than it returns the ready instance state.
+    @Test
+	public void testMapWithAttachmentResourceTypeWhenStateIsAttached() {
+		// set up
+		ResourceType resourceType = ResourceType.ATTACHMENT;
+
+		// exercise
+		InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.ATTACHED_STATE);
+
+		// verify
+		Assert.assertEquals(InstanceState.READY, instanceState);
+	}
+
     // test case: When calling the map method with network type and creating state,
     // it must verify if It returns the instance ready state.
     @Test
@@ -163,5 +177,48 @@ public class AzureStateMapperTest {
         // verify
         Assert.assertEquals(InstanceState.READY, instanceState);
     }
+    
+    // test case: When calling the map method with a attachment resource type and
+    // unattached state, it must verify than it returns the failed instance state.
+    @Test
+    public void testMapWithAttachmentResourceTypeWhenStateIsUnattached() {
+        // set up
+        ResourceType resourceType = ResourceType.ATTACHMENT;
 
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.UNATTACHED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
+    }
+    
+    // test case: When calling the map method with a attachment resource type and
+    // failed state, it must verify than it returns this same instance state.
+    @Test
+    public void testMapWithAttachmentResourceTypeWhenStateIsFailed() {
+        // set up
+        ResourceType resourceType = ResourceType.ATTACHMENT;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.FAILED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
+    }
+    
+    // test case: When calling the map method with a attachment resource type and a
+    // undefined state, it must verify than it returns the inconsistent instance
+    // state.
+    @Test
+    public void testMapWithAttachmentResourceTypeWhenStateIsUndefined() {
+        // set up
+        ResourceType resourceType = ResourceType.ATTACHMENT;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureTestUtils.UNDEFINED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+    }
+    
 }
