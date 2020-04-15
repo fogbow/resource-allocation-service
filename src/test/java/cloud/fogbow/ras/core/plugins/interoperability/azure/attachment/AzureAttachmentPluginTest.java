@@ -156,11 +156,14 @@ public class AzureAttachmentPluginTest {
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_ONCE)).getComputeId();
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_ONCE)).getVolumeId();
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_TWICE)).buildResourceId(Mockito.anyString(),
-                Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+            .buildVirtualMachineId(Mockito.anyString(), Mockito.anyString());
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(azure),
-                Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+            .buildResourceId(Mockito.anyString(), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+            .doRequestInstance(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
     }
     
     // test case: When calling the getInstance method, it must verify that is
