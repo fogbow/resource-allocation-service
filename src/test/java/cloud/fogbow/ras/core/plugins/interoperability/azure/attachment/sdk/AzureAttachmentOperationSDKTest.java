@@ -20,7 +20,7 @@ public class AzureAttachmentOperationSDKTest {
     private LoggerAssert loggerAssert;
     
     @Before
-    public void setup() {
+    public void setUp() {
         // The scheduler trampoline makes the subscriptions execute 
         // in the current thread
         Scheduler scheduler = Schedulers.trampoline();
@@ -33,7 +33,7 @@ public class AzureAttachmentOperationSDKTest {
     // observable executes without any error, it must verify than returns the right
     // logs.
     @Test
-    public void testSubscribeAttachDiskFromObservableSucessfully() {
+    public void testSubscribeAttachDiskFromObservableSuccessfully() {
         // set up
         Observable<VirtualMachine> observable = AzureTestUtils.createVirtualMachineObservableSuccess();
 
@@ -63,7 +63,7 @@ public class AzureAttachmentOperationSDKTest {
     // observable executes without any error, it must verify than returns the right
     // logs.
     @Test
-    public void testSubscribeDetachDiskFromObservableSucessfully() {
+    public void testSubscribeDetachDiskFromObservableSuccessfully() {
         // set up
         Observable<VirtualMachine> observable = AzureTestUtils.createVirtualMachineObservableSuccess();
 

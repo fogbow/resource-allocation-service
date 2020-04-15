@@ -20,7 +20,7 @@ import rx.Observable;
 public class AzureAttachmentSDKTest {
 
     @Before
-    public void setup() {
+    public void setUp() {
         PowerMockito.mockStatic(AzureAttachmentSDK.class);
     }
     
