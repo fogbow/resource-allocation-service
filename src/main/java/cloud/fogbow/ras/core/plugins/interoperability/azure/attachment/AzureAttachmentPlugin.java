@@ -61,7 +61,7 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String virtualMachineId = buildResourceId(subscriptionId, attachmentOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(subscriptionId, attachmentOrder.getComputeId());
         String diskId = buildResourceId(subscriptionId, attachmentOrder.getVolumeId());
         
         return doRequestInstance(azure, virtualMachineId, diskId);
@@ -124,7 +124,7 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         
         String computeId = disk.virtualMachineId();
         String volumeId = disk.id();
-        String device = null;
+        String device = AzureGeneralUtil.NO_INFORMATION;
         return new AttachmentInstance(id, cloudState, computeId, volumeId, device);
     }
     
@@ -154,13 +154,24 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
 
     @VisibleForTesting
     String buildResourceId(String subscriptionId, String resourceName) {
-        String resourceIdUrl = AzureResourceIdBuilder.diskId()
+        String resourceId = AzureResourceIdBuilder.diskId()
                 .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(this.defaultResourceGroupName)
                 .withResourceName(resourceName)
                 .build();
         
-        return resourceIdUrl;
+        return resourceId;
+    }
+
+    @VisibleForTesting
+    String buildVirtualMachineId(String subscriptionId, String computeId) {
+        String virtualMachineId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(computeId)
+                .build();
+
+        return virtualMachineId;
     }
 
     @VisibleForTesting
