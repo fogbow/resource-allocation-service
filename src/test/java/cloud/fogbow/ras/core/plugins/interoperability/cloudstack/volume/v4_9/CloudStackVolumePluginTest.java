@@ -599,8 +599,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(requestExpected, request);
-        this.loggerTestChecking.assertEquals(LoggerAssert.FIRST_POSITION, Level.WARN,
-                Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
     }
 
     // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
@@ -632,11 +631,8 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);
-        this.loggerTestChecking.assertEquals(LoggerAssert.FIRST_POSITION, Level.WARN,
-                Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
-        this.loggerTestChecking.assertEquals(LoggerAssert.SECOND_POSITION, Level.WARN,
-                Messages.Warn.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
-
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND)
+                .assertEqualsInOrder(Level.WARN, Messages.Warn.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
     }
 
     // test case: When calling the doRequestInstance method with secondary methods mocked ,

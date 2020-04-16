@@ -394,8 +394,7 @@ public class CloudStackCloudUtilsTest {
         CloudStackCloudUtils.sleepThread();
 
         // verify
-        this.loggerTestChecking.assertEquals(
-                LoggerAssert.FIRST_POSITION, Level.WARN, Messages.Warn.SLEEP_THREAD_INTERRUPTED);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.SLEEP_THREAD_INTERRUPTED);
     }
 
     private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {

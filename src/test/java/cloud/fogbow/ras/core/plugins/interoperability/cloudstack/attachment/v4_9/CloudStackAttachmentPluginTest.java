@@ -372,7 +372,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         this.plugin.logFailure(response);
 
         // exercise
-        this.loggerTestChecking.assertEquals(1, Level.ERROR, msgError);
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, msgError);
     }
 
     // test case: When calling the logFailure method and occurs an UnexpectedException,

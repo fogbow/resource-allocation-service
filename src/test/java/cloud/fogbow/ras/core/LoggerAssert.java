@@ -14,9 +14,6 @@ import java.util.List;
 
 public class LoggerAssert {
 
-    public static final int SECOND_POSITION = 2;
-    public static final int FIRST_POSITION = 1;
-
     private List<LoggingEvent> list;
     private int globalPosition = 1;
 
@@ -28,15 +25,15 @@ public class LoggerAssert {
         this.list = memoryListAppender.getLoggingEvents();
     }
 
-    public void assertEquals(int logPosition, Level level, String message) {
-        LoggingEvent loggingEvent = this.list.get(getPositionList(logPosition));
-        Assert.assertEquals(loggingEvent.getMessage(), message);
-        Assert.assertEquals(loggingEvent.getLevel(), level);
-    }
-
     public LoggerAssert assertEqualsInOrder(Level level, String message) {
         assertEquals(this.globalPosition++, level, message);
         return this;
+    }
+
+    private void assertEquals(int logPosition, Level level, String message) {
+        LoggingEvent loggingEvent = this.list.get(getPositionList(logPosition));
+        Assert.assertEquals(loggingEvent.getMessage(), message);
+        Assert.assertEquals(loggingEvent.getLevel(), level);
     }
 
     private int getPositionList(int logPosition) {
@@ -52,9 +49,12 @@ public class LoggerAssert {
         }
 
         @Override
-        public void addFilter(Filter filter) {
-
+        public void doAppend(LoggingEvent loggingEvent) {
+            this.loggingEvents.add(loggingEvent);
         }
+
+        @Override
+        public void addFilter(Filter filter) {}
 
         @Override
         public Filter getFilter() {
@@ -62,19 +62,10 @@ public class LoggerAssert {
         }
 
         @Override
-        public void clearFilters() {
-
-        }
+        public void clearFilters() {}
 
         @Override
-        public void close() {
-
-        }
-
-        @Override
-        public void doAppend(LoggingEvent loggingEvent) {
-            this.loggingEvents.add(loggingEvent);
-        }
+        public void close() {}
 
         @Override
         public String getName() {
@@ -82,9 +73,7 @@ public class LoggerAssert {
         }
 
         @Override
-        public void setErrorHandler(ErrorHandler errorHandler) {
-
-        }
+        public void setErrorHandler(ErrorHandler errorHandler) {}
 
         @Override
         public ErrorHandler getErrorHandler() {
@@ -92,9 +81,7 @@ public class LoggerAssert {
         }
 
         @Override
-        public void setLayout(Layout layout) {
-
-        }
+        public void setLayout(Layout layout) {}
 
         @Override
         public Layout getLayout() {
@@ -102,9 +89,7 @@ public class LoggerAssert {
         }
 
         @Override
-        public void setName(String s) {
-
-        }
+        public void setName(String s) {}
 
         @Override
         public boolean requiresLayout() {
