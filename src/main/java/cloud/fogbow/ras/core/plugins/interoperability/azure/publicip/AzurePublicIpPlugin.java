@@ -113,9 +113,14 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    void doDeleteResources(Azure azure, String resourceId, String resourceName,
-            NetworkInterface networkInterface) {
+    void doDeleteResources(Azure azure, String resourceId, String resourceName, NetworkInterface networkInterface) {
+        Stack<Observable> observables = stackUpObservableResources(resourceName, networkInterface);
+        Completable completable = AzurePublicIPAddressSDK.deletePublicIpAddressAsync(azure, resourceId);
+        this.operation.subscribeDeleteResources(observables, completable);
+    }
 
+    @VisibleForTesting
+    Stack<Observable> stackUpObservableResources(String resourceName, NetworkInterface networkInterface) {
         NetworkSecurityGroup networkSecurityGroup = networkInterface.getNetworkSecurityGroup();
         Observable<NetworkSecurityGroup> deleteSecurityRule = AzurePublicIPAddressSDK
                 .deleteSecurityRuleAsync(networkSecurityGroup, resourceName);
@@ -130,14 +135,12 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         observables.push(disassociateSecurityGroup);
         observables.push(disassociatePublicIPAddress);
         observables.push(deleteSecurityRule);
-
-        Completable completable = AzurePublicIPAddressSDK.deletePublicIpAddressAsync(azure, resourceId);
-        this.operation.subscribeDeleteResources(observables, completable);
+        return observables;
     }
 
     @VisibleForTesting
-    PublicIpInstance doGetInstance(Azure azure, String publicIPAddressId) throws FogbowException {
-        PublicIPAddress publicIPAddress = doGetPublicIPAddressSDK(azure, publicIPAddressId);
+    PublicIpInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
+        PublicIPAddress publicIPAddress = doGetPublicIPAddressSDK(azure, resourceId);
         return buildPublicIpInstance(publicIPAddress);
     }
     
@@ -151,9 +154,9 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    PublicIPAddress doGetPublicIPAddressSDK(Azure azure, String publicIPAddressId) throws FogbowException {
+    PublicIPAddress doGetPublicIPAddressSDK(Azure azure, String resourceId) throws FogbowException {
         return AzurePublicIPAddressSDK
-                .getPublicIpAddress(azure, publicIPAddressId)
+                .getPublicIpAddress(azure, resourceId)
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
     }
 
@@ -201,6 +204,11 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
                 .build();
 
         return resourceIdUrl;
+    }
+
+    @VisibleForTesting
+    void setOperation(AzurePublicIpAddressOperationSDK operation) {
+        this.operation = operation;
     }
 
 }
