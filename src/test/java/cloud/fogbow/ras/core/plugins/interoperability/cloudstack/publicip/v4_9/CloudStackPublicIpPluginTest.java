@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
-import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -23,6 +22,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackState
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
 import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
