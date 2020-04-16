@@ -209,7 +209,7 @@ public class AzureVirtualMachineOperationSDK {
     }
 
     @VisibleForTesting
-    Completable buildDeleteDiskCompletable(Azure azure, VirtualMachine virtualMachine) {
+    Completable buildDeleteDiskCompletable(Azure azure, VirtualMachine virtualMachine) throws FogbowException {
         String osDiskId = virtualMachine.osDiskId();
         Completable deleteVirutalMachineDisk = AzureVolumeSDK
                 .buildDeleteDiskCompletable(azure, osDiskId);

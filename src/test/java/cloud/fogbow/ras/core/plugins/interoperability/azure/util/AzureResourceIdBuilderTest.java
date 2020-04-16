@@ -9,7 +9,7 @@ import org.junit.rules.ExpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
-public class AzureResourceIdBuilderTest extends AzureTestUtils {
+public class AzureResourceIdBuilderTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -20,51 +20,76 @@ public class AzureResourceIdBuilderTest extends AzureTestUtils {
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
-    // test case: When calling the buildNetworkInterfaceId method,
-    // it must verify if It return the right network interface id.
+    // test case: When calling the networkInterfaceId constructor to build a network
+    // interface resource ID, it must verify that it returns a valid network
+    // interface ID.
     @Test
     public void testBuildNetworkInterfaceIdSuccessfully() {
         // set up
-        String networkInterfaceName = "networkInterfaceName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
 
-        String networkInterfaceIdExpected = String.format(AzureResourceIdBuilder.NETWORK_INTERFACE_STRUCTURE,
+        String expected = String.format(AzureResourceIdBuilder.NETWORK_INTERFACE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
-                networkInterfaceName);
+                resourceName);
 
         // exercise
         String networkInterfaceId = AzureResourceIdBuilder.networkInterfaceId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(networkInterfaceName)
+                .withResourceName(resourceName)
                 .build();
 
         // verify
-        Assert.assertEquals(networkInterfaceIdExpected, networkInterfaceId);
+        Assert.assertEquals(expected, networkInterfaceId);
     }
 
-    // test case: When calling the buildVirtualMachineId method, it must verify if
-    // It returns the right virtual machine id.
+    // test case: When calling the virtualMachineId constructor to build a virtual
+    // machine resource ID, it must verify that it returns a valid virtual machine
+    // ID.
     @Test
     public void testBuildVirtualMachineIdSuccessfully() {
         // set up
-        String virtualMachineName = "virtualMachineName";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
-        String virtualMachineIdExpected = String.format(AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE,
+        String expected = String.format(AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE,
                 this.azureUser.getSubscriptionId(),
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
-                virtualMachineName);
+                resourceName);
 
         // exercise
-        String networkInterfaceId = AzureResourceIdBuilder.virtualMachineId()
+        String virtualMachineId = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(virtualMachineName)
+                .withResourceName(resourceName)
                 .build();
 
         // verify
-        Assert.assertEquals(virtualMachineIdExpected, networkInterfaceId);
+        Assert.assertEquals(expected, virtualMachineId);
+    }
+    
+    // test case: When calling the diskId constructor to build a disk resource ID,
+    // it must verify that it returns a valid disk ID.
+    @Test
+    public void testBuildDiskIdSuccessfully() {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+
+        String expected = String.format(AzureResourceIdBuilder.DISK_STRUCTURE,
+                this.azureUser.getSubscriptionId(), 
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME, 
+                resourceName);
+
+        // exercise
+        String diskId = AzureResourceIdBuilder.diskId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(resourceName)
+                .build();
+
+        // verify
+        Assert.assertEquals(expected, diskId);
     }
 
     // test case: When calling the networkId constructor to build a network resource
