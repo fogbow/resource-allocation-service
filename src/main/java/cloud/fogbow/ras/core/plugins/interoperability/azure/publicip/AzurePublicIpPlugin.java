@@ -27,8 +27,8 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIpAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
@@ -41,14 +41,17 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
 
     private final String defaultRegionName;
     private final String defaultResourceGroupName;
+    private final String defaultSecurityGroupName;
 
-    private AzurePublicIpAddressOperationSDK operation;
+    private AzurePublicIPAddressOperationSDK operation;
 
     public AzurePublicIpPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
-        this.operation = new AzurePublicIpAddressOperationSDK(this.defaultResourceGroupName);
+        this.defaultSecurityGroupName = properties.getProperty(AzureConstants.DEFAULT_SECURITY_GROUP_NAME_KEY);
+        this.operation = new AzurePublicIPAddressOperationSDK(this.defaultResourceGroupName,
+                this.defaultSecurityGroupName);
     }
     
     @Override
@@ -106,11 +109,10 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
             throws FogbowException {
 
         VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
-        NetworkInterface networkInterface = AzurePublicIPAddressSDK
-                .getPrimaryNetworkInterfaceFrom(virtualMachine);
-
+        NetworkInterface networkInterface = doGetPrimaryNetworkInterfaceFrom(virtualMachine);
         doDeleteResources(azure, resourceId, resourceName, networkInterface);
     }
+
 
     @VisibleForTesting
     void doDeleteResources(Azure azure, String resourceId, String resourceName, NetworkInterface networkInterface) {
@@ -136,6 +138,13 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         observables.push(disassociatePublicIPAddress);
         observables.push(deleteSecurityRule);
         return observables;
+    }
+
+    @VisibleForTesting
+    NetworkInterface doGetPrimaryNetworkInterfaceFrom(VirtualMachine virtualMachine) throws FogbowException {
+        return AzurePublicIPAddressSDK
+                .getPrimaryNetworkInterfaceFrom(virtualMachine)
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
     }
 
     @VisibleForTesting
@@ -176,8 +185,7 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
             Creatable<PublicIPAddress> publicIPAddressCreatable) throws FogbowException {
 
         VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
-        NetworkInterface networkInterface = AzurePublicIPAddressSDK
-                .getPrimaryNetworkInterfaceFrom(virtualMachine);
+        NetworkInterface networkInterface = doGetPrimaryNetworkInterfaceFrom(virtualMachine);
 
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associatePublicIPAddressAsync(networkInterface, publicIPAddressCreatable);
@@ -207,7 +215,7 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    void setOperation(AzurePublicIpAddressOperationSDK operation) {
+    void setOperation(AzurePublicIPAddressOperationSDK operation) {
         this.operation = operation;
     }
 
