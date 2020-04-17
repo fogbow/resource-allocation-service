@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
 import java.util.Optional;
 
+import org.apache.log4j.Logger;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -24,9 +26,11 @@ import rx.Observable;
 public class AzurePublicIPAddressSDK {
 
     @VisibleForTesting
-    static final int SSH_ACCESS_PORT = 22;
+    static final Logger LOGGER = Logger.getLogger(AzurePublicIPAddressSDK.class);
     @VisibleForTesting
     static final String SECURITY_RULE_NAME_SUFIX = "_security-rule";
+    @VisibleForTesting
+    static final int SSH_ACCESS_PORT = 22;
 
     public static Observable<NetworkInterface> associatePublicIPAddressAsync(
             NetworkInterface networkInterface, Creatable<PublicIPAddress> creatable) {
@@ -37,9 +41,8 @@ public class AzurePublicIPAddressSDK {
     }
     
     public static Creatable<NetworkSecurityGroup> buildSecurityRuleCreatable(Azure azure,
-            PublicIPAddress publicIPAddress, NetworkSecurityGroup networkSecurityGroup) {
+            PublicIPAddress publicIPAddress, String networkSecurityGroupName) {
 
-        String networkSecurityGroupName = networkSecurityGroup.name();
         String regionName = publicIPAddress.regionName();
         String resourceGroupName = publicIPAddress.resourceGroupName();
         String securityRuleName = publicIPAddress.name() + SECURITY_RULE_NAME_SUFIX;
@@ -97,18 +100,25 @@ public class AzurePublicIPAddressSDK {
         return publicIPAddresses.deleteByIdAsync(resourceId);
     }
 
-    public static NetworkSecurityGroup getNetworkSecurityGroupFrom(NetworkInterface networkInterface) {
-        NetworkManager networkManager = networkInterface.manager();
-        Networks networks = networkManager.networks();
-        Network network = networks.list().listIterator().next();
-        Subnet subnet = network.subnets().values().iterator().next();
-        return subnet.getNetworkSecurityGroup();
+    public static Optional<NetworkSecurityGroup> getNetworkSecurityGroupFrom(NetworkInterface networkInterface) {
+        NetworkSecurityGroup networkSecurityGroup = null;
+        try {
+            NetworkManager networkManager = networkInterface.manager();
+            Networks networks = networkManager.networks();
+            Network network = networks.list().listIterator().next();
+            Subnet subnet = network.subnets().values().iterator().next();
+            networkSecurityGroup = subnet.getNetworkSecurityGroup();
+        } catch (Exception e) {
+            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+        }
+        return Optional.ofNullable(networkSecurityGroup);
     }
 
-    public static NetworkInterface getPrimaryNetworkInterfaceFrom(VirtualMachine virtualMachine)
+    public static Optional<NetworkInterface> getPrimaryNetworkInterfaceFrom(VirtualMachine virtualMachine)
             throws UnexpectedException {
         try {
-            return virtualMachine.getPrimaryNetworkInterface();
+            NetworkInterface networkInterface = virtualMachine.getPrimaryNetworkInterface();
+            return Optional.ofNullable(networkInterface);
         } catch (Exception e) {
             String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
             throw new UnexpectedException(message, e);
