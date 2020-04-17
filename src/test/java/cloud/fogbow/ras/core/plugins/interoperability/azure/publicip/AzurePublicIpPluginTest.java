@@ -37,7 +37,7 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIpAddressOperationSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import rx.Completable;
@@ -55,7 +55,8 @@ public class AzurePublicIpPluginTest {
 
     private String defaultRegionName;
     private String defaultResourceGroupName;
-    private AzurePublicIpAddressOperationSDK operation;
+    private String defaultSecurityGroupName;
+    private AzurePublicIPAddressOperationSDK operation;
     private AzurePublicIpPlugin plugin;
     private AzureUser azureUser;
 
@@ -69,7 +70,8 @@ public class AzurePublicIpPluginTest {
         Properties properties = PropertiesUtil.readProperties(azureConfFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
-        this.operation = Mockito.mock(AzurePublicIpAddressOperationSDK.class);
+        this.defaultSecurityGroupName = properties.getProperty(AzureConstants.DEFAULT_SECURITY_GROUP_NAME_KEY);
+        this.operation = Mockito.spy(new AzurePublicIPAddressOperationSDK(this.defaultResourceGroupName, this.defaultSecurityGroupName));
         this.plugin = Mockito.spy(new AzurePublicIpPlugin(azureConfFilePath));
         this.plugin.setOperation(this.operation);
         this.azureUser = AzureTestUtils.createAzureUser();
@@ -288,9 +290,7 @@ public class AzurePublicIpPluginTest {
                 Mockito.eq(virtualMachineId));
 
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
-        PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
-        PowerMockito.doReturn(networkInterface).when(AzurePublicIPAddressSDK.class, "getPrimaryNetworkInterfaceFrom",
-                Mockito.eq(virtualMachine));
+        Mockito.doReturn(networkInterface).when(this.plugin).doGetPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
 
         Mockito.doNothing().when(this.plugin).doDeleteResources(Mockito.eq(azure), Mockito.eq(resourceId),
                 Mockito.eq(resourceName), Mockito.eq(networkInterface));
@@ -301,10 +301,8 @@ public class AzurePublicIpPluginTest {
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetVirtualMachineSDK(Mockito.eq(azure),
                 Mockito.eq(virtualMachineId));
-
-        PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzurePublicIPAddressSDK.getPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
-
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResources(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(resourceName), Mockito.eq(networkInterface));
     }
@@ -381,6 +379,52 @@ public class AzurePublicIpPluginTest {
 
         PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzurePublicIPAddressSDK.disassociateNetworkSecurityGroupAsync(Mockito.eq(networkInterface));
+    }
+
+    // test case: When calling the doGetPrimaryNetworkInterfaceFrom method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoGetPrimaryNetworkInterfaceFromVirtualMachineSuccessfully() throws Exception {
+        // set up
+        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+
+        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
+        Optional<NetworkInterface> nicOptional = Optional.ofNullable(networkInterface);
+
+        PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
+        PowerMockito.doReturn(nicOptional).when(AzurePublicIPAddressSDK.class, "getPrimaryNetworkInterfaceFrom",
+                Mockito.eq(virtualMachine));
+
+        // exercise
+        this.plugin.doGetPrimaryNetworkInterfaceFrom(virtualMachine);
+
+        // verify
+        PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzurePublicIPAddressSDK.getPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
+    }
+
+    // test case: When calling the doGetPrimaryNetworkInterfaceFrom method with an invalid
+    // virtual machine, it must verify if an InstanceNotFoundException has been thrown.
+    @Test
+    public void testDoGetPrimaryNetworkInterfaceFromVirtualMachineFail() throws Exception {
+        // set up
+        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+
+        Optional<NetworkInterface> nicOptional = Optional.ofNullable(null);
+        PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
+        PowerMockito.doReturn(nicOptional).when(AzurePublicIPAddressSDK.class, "getPrimaryNetworkInterfaceFrom",
+                Mockito.eq(virtualMachine));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.doGetPrimaryNetworkInterfaceFrom(virtualMachine);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
 
     // test case: When calling the doGetInstance method, it must verify that is call
@@ -521,11 +565,10 @@ public class AzurePublicIpPluginTest {
                 Mockito.eq(virtualMachineId));
 
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
-        PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
-        PowerMockito.doReturn(networkInterface).when(AzurePublicIPAddressSDK.class, "getPrimaryNetworkInterfaceFrom",
-                Mockito.eq(virtualMachine));
+        Mockito.doReturn(networkInterface).when(this.plugin).doGetPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
 
         Observable<NetworkInterface> observable = Mockito.mock(Observable.class);
+        PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
         PowerMockito.doReturn(observable).when(AzurePublicIPAddressSDK.class, "associatePublicIPAddressAsync",
                 Mockito.eq(networkInterface), Mockito.eq(publicIPAddressCreatable));
 
@@ -538,9 +581,8 @@ public class AzurePublicIpPluginTest {
         // verify
         Mockito.verify(this.plugin, Mockito.timeout(TestUtils.RUN_ONCE)).doGetVirtualMachineSDK(Mockito.eq(azure),
                 Mockito.eq(virtualMachineId));
-
-        PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzurePublicIPAddressSDK.getPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
 
         PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzurePublicIPAddressSDK.associatePublicIPAddressAsync(Mockito.eq(networkInterface),
