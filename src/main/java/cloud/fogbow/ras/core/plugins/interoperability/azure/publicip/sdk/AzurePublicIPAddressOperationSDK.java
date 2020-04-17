@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
+import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 
@@ -19,22 +20,22 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-public class AzurePublicIpAddressOperationSDK {
+public class AzurePublicIPAddressOperationSDK {
     
-    private static final Logger LOGGER = Logger.getLogger(AzurePublicIpAddressOperationSDK.class);
-
+    @VisibleForTesting
+    static final Logger LOGGER = Logger.getLogger(AzurePublicIPAddressOperationSDK.class);
     @VisibleForTesting
     static final int FULL_CAPACITY = 3;
-    @VisibleForTesting
-    static final String[] CARDINAL_NUMBERS = {"First", "Second", "Thrid"};
 
     private final String resourceGroupName;
+    private final String securityGroupName;
     private final Scheduler scheduler;
 
-    public AzurePublicIpAddressOperationSDK(String resourceGroupName) {
+    public AzurePublicIPAddressOperationSDK(String resourceGroupName, String securirtyGroupName) {
         ExecutorService executor = AzureSchedulerManager.getPublicIPAddressExecutor();
         this.scheduler = Schedulers.from(executor);
         this.resourceGroupName = resourceGroupName;
+        this.securityGroupName = securirtyGroupName;
     }
 
     public void subscribeAssociatePublicIPAddress(Azure azure, String instanceId,
@@ -50,14 +51,14 @@ public class AzurePublicIpAddressOperationSDK {
             Observable<NetworkInterface> observable) {
 
         return observable.doOnNext(nic -> {
-            LOGGER.info("First step: Public IP Address created and associated with the virtual machine."); // FIXME
+            LOGGER.info(Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
             handleSecurityIssues(azure, instanceId, nic);
-            LOGGER.info("Second step: Added rule into Security Group and associated with the network interface."); // FIXME
+            LOGGER.info(Messages.Info.SECOND_STEP_ATTACH_RULE_ASYNC_BEHAVIOUR);
         }).onErrorReturn(error -> {
-            LOGGER.error("Error while creating public IP address asynchronously.", error); // FIXME
+            LOGGER.error(Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {
-            LOGGER.info("End asynchronous create public IP address."); // FIXME
+            LOGGER.info(Messages.Info.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -66,16 +67,27 @@ public class AzurePublicIpAddressOperationSDK {
         PublicIPAddress publicIPAddress = azure.publicIPAddresses()
                 .getByResourceGroup(this.resourceGroupName, instanceId);
 
-        NetworkSecurityGroup networkSecurityGroup = AzurePublicIPAddressSDK
+        Optional<NetworkSecurityGroup> optional = AzurePublicIPAddressSDK
                 .getNetworkSecurityGroupFrom(networkInterface);
 
+        String networkSecurityGroupName = getNetworkSecurityGroupName(optional);
+
         Creatable<NetworkSecurityGroup> creatable = AzurePublicIPAddressSDK
-                .buildSecurityRuleCreatable(azure, publicIPAddress, networkSecurityGroup);
+                .buildSecurityRuleCreatable(azure, publicIPAddress, networkSecurityGroupName);
 
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associateNetworkSecurityGroupAsync(networkInterface, creatable);
 
         subscribeUpdateNetworkInterface(observable);
+    }
+
+    @VisibleForTesting
+    String getNetworkSecurityGroupName(Optional<NetworkSecurityGroup> optional) {
+        if (optional != null) {
+            NetworkSecurityGroup networkSecurityGroup = optional.get();
+            return networkSecurityGroup.name();
+        }
+        return this.securityGroupName;
     }
 
     @VisibleForTesting
@@ -88,10 +100,10 @@ public class AzurePublicIpAddressOperationSDK {
     @VisibleForTesting
     Observable<NetworkInterface> setUpdateNetworkInterfaceBehaviour(Observable<NetworkInterface> observable) {
         return observable.onErrorReturn(error -> {
-            LOGGER.error("Error while updating network interface asynchronously.", error); // FIXME
+            LOGGER.error(Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {
-            LOGGER.info("End asynchronous update network interface."); // FIXME
+            LOGGER.info(Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -115,38 +127,41 @@ public class AzurePublicIpAddressOperationSDK {
     @VisibleForTesting
     Completable setDeletePublicIPAddressBehaviour(Completable completable) {
         return completable.doOnError(error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_PUBLIC_IP_ADDRRES_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Error.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
         }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_PUBLIC_ADDRRES_IP_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Info.END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
 
     @VisibleForTesting
     Observable setDeleteResourcesBehaviour(Stack<Observable> observables, Completable completable) {
         return observables.pop().doOnNext(step -> {
-            String message = getStageMessage(observables);
-            LOGGER.info(message);
+            LOGGER.info(getStageMessage(observables));
             doDeleteResources(observables, completable);
         }).onErrorReturn(error -> {
-            LOGGER.error("Error while deleting resources asynchronously.", (Throwable) error); // FIXME
+            LOGGER.error(Messages.Error.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR, (Throwable) error);
             return null;
         }).doOnCompleted(() -> {
-            LOGGER.info("End asynchronous delete resources."); // FIXME
+            LOGGER.info(Messages.Info.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
         });
     }
 
     @VisibleForTesting
     String getStageMessage(Stack<Observable> observables) {
         int stage = FULL_CAPACITY - observables.size();
+        String message = null;
         switch (stage) {
         case 1:
-            return String.format("%s Step: Security rule deleted from network security group.", CARDINAL_NUMBERS[stage]); // FIXME
+            message = Messages.Info.FIRST_STEP_DELETE_RULE_ASYNC_BEHAVIOUR;
+            break;
         case 2:
-            return String.format("%s Step: Public IP addres disassociated from virtual machine.", CARDINAL_NUMBERS[stage]); // FIXME
+            message =  Messages.Info.SECOND_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR;
+            break;
         case 3:
-            return String.format("%s Step: Network Security Group disassociated from network interface.", CARDINAL_NUMBERS[stage]); // FIXME
+            message =  Messages.Info.THIRD_STEP_DETACH_SECURITY_GROUP_ASYNC_BEHAVIOUR;
+            break;
         }
-        return null;
+        return message;
     }
 
 }
