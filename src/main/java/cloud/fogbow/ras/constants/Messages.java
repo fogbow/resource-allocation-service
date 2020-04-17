@@ -100,9 +100,14 @@ public class Messages {
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
         public static final String END_ATTACH_DISK_ASYNC_BEHAVIOUR = "End asynchronous attach disk.";
         public static final String END_CREATE_DISK_ASYNC_BEHAVIOUR = "End asynchronous create disk.";
+        public static final String END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous create public IP address.";
         public static final String END_DETACH_DISK_ASYNC_BEHAVIOUR = "End asynchronous detach disk.";
         public static final String END_DELETE_NIC_ASYNC_BEHAVIOUR = "End asynchronous delete network interface.";
-        public static final String END_DELETE_PUBLIC_ADDRRES_IP_ASYNC_BEHAVIOUR = "End asynchronous delete public IP address.";
+        public static final String END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous delete public IP address.";
+        public static final String END_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous delete resources.";
+        public static final String END_UPDATE_NIC_ASYNC_BEHAVIOUR = "End asynchronous update network interface.";
+        public static final String FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "First step: Public IP Address created and associated with the virtual machine.";
+        public static final String FIRST_STEP_DELETE_RULE_ASYNC_BEHAVIOUR = "First step: Security rule deleted from network security group.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
@@ -127,11 +132,14 @@ public class Messages {
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_TO_CLOUD = "Requesting to the cloud by the user %s. URL: %s";
         public static final String RESPONSE_RECEIVED = "Received response: %s.";
+        public static final String SECOND_STEP_ATTACH_RULE_ASYNC_BEHAVIOUR = "Second step: Added rule into Security Group and associated with the network interface.";
+        public static final String SECOND_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "Second step: Public IP addres disassociated from virtual machine.";
         public static final String SENDING_MSG = "Sending remote request for request: %s.";
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SUCCESS = "Successfully executed operation.";
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
+        public static final String THIRD_STEP_DETACH_SECURITY_GROUP_ASYNC_BEHAVIOUR = "Third step: Network Security Group disassociated from network interface.";
         public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
                 "The asynchronous public ip request %s is in the state %s.";
         public static final String CREATING_AZURE_CLIENT = "Creating a new Azure client";
@@ -156,9 +164,11 @@ public class Messages {
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR = "Error while attaching disk asynchronously.";
         public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously.";
+        public static final String ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while creating public IP address asynchronously.";
         public static final String ERROR_DETACH_DISK_ASYNC_BEHAVIOUR = "Error while detaching disk asynchronously.";
         public static final String ERROR_DELETE_NIC_ASYNC_BEHAVIOUR = "Error while deleting network interface asynchonously.";
-        public static final String ERROR_DELETE_PUBLIC_IP_ADDRRES_ASYNC_BEHAVIOUR = "Error while deleting public IP address asynchronously.";
+        public static final String ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while deleting public IP address asynchronously.";
+        public static final String ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "Error while deleting resources asynchronously.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_GENERAL = "Error while attaching volume with response: %s.";
@@ -189,6 +199,7 @@ public class Messages {
         public static final String ERROR_WHILE_UPDATING_NETWORK = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
+        public static final String ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR = "Error while updating network interface asynchronously.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
