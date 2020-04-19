@@ -7,15 +7,12 @@ import org.apache.log4j.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
-import com.microsoft.azure.management.network.Networks;
+import com.microsoft.azure.management.network.NetworkSecurityGroups;
 import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.network.PublicIPAddresses;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
-import com.microsoft.azure.management.network.Subnet;
-import com.microsoft.azure.management.network.implementation.NetworkManager;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -40,16 +37,17 @@ public class AzurePublicIPAddressSDK {
                 .applyAsync();
     }
     
-    public static Creatable<NetworkSecurityGroup> buildSecurityRuleCreatable(Azure azure,
-            PublicIPAddress publicIPAddress, String networkSecurityGroupName) {
+    public static Creatable<NetworkSecurityGroup> buildNetworkSecurityGroupCreatable(
+            Azure azure, PublicIPAddress publicIPAddress) {
 
         String regionName = publicIPAddress.regionName();
         String resourceGroupName = publicIPAddress.resourceGroupName();
-        String securityRuleName = publicIPAddress.name() + SECURITY_RULE_NAME_SUFIX;
+        String securityGroupName = publicIPAddress.name();
+        String securityRuleName = securityGroupName + SECURITY_RULE_NAME_SUFIX;
         String ipAddress = publicIPAddress.ipAddress();
 
         return azure.networkSecurityGroups()
-                .define(networkSecurityGroupName)
+                .define(securityGroupName)
                 .withRegion(regionName)
                 .withExistingResourceGroup(resourceGroupName)
                 .defineRule(securityRuleName)
@@ -95,23 +93,32 @@ public class AzurePublicIPAddressSDK {
                 .applyAsync();
     }
 
+    public static Completable deleteNetworkSecurityGroupAsync(Azure azure, String resourceId) {
+        NetworkSecurityGroups networkSecurityGroups = getNetworkSecurityGroupsSDK(azure);
+        return networkSecurityGroups.deleteByIdAsync(resourceId);
+    }
+
+    // This class is used only for test proposes.
+    // It is necessary because was not possible mock the Azure(final class)
+    @VisibleForTesting
+    static NetworkSecurityGroups getNetworkSecurityGroupsSDK(Azure azure) {
+        return azure.networkSecurityGroups();
+    }
+
     public static Completable deletePublicIpAddressAsync(Azure azure, String resourceId) {
         PublicIPAddresses publicIPAddresses = getPublicIPAddressesSDK(azure);
         return publicIPAddresses.deleteByIdAsync(resourceId);
     }
 
-    public static Optional<NetworkSecurityGroup> getNetworkSecurityGroupFrom(NetworkInterface networkInterface) {
-        NetworkSecurityGroup networkSecurityGroup = null;
+    public static Optional<NetworkSecurityGroup> getNetworkSecurityGroupFrom(NetworkInterface networkInterface)
+            throws UnexpectedException {
         try {
-            NetworkManager networkManager = networkInterface.manager();
-            Networks networks = networkManager.networks();
-            Network network = networks.list().listIterator().next();
-            Subnet subnet = network.subnets().values().iterator().next();
-            networkSecurityGroup = subnet.getNetworkSecurityGroup();
+            NetworkSecurityGroup networkSecurityGroup = networkInterface.getNetworkSecurityGroup();
+            return Optional.ofNullable(networkSecurityGroup);
         } catch (Exception e) {
-            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
+            throw new UnexpectedException(message, e);
         }
-        return Optional.ofNullable(networkSecurityGroup);
     }
 
     public static Optional<NetworkInterface> getPrimaryNetworkInterfaceFrom(VirtualMachine virtualMachine)

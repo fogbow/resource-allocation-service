@@ -41,7 +41,6 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
 
     private final String defaultRegionName;
     private final String defaultResourceGroupName;
-    private final String defaultSecurityGroupName;
 
     private AzurePublicIPAddressOperationSDK operation;
 
@@ -49,9 +48,7 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
-        this.defaultSecurityGroupName = properties.getProperty(AzureConstants.DEFAULT_SECURITY_GROUP_NAME_KEY);
-        this.operation = new AzurePublicIPAddressOperationSDK(this.defaultResourceGroupName,
-                this.defaultSecurityGroupName);
+        this.operation = new AzurePublicIPAddressOperationSDK(this.defaultResourceGroupName);
     }
     
     @Override
@@ -96,48 +93,60 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String instanceId = publicIpOrder.getInstanceId();
-        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
-        String resourceId = buildResourceId(subscriptionId, instanceId);
+        String resourceId = buildResourceId(subscriptionId, publicIpOrder.getInstanceId());
         String virtualMachineId = buildVirtualMachineId(subscriptionId, publicIpOrder.getComputeId());
         
-        doDeleteInstance(azure, resourceId, resourceName, virtualMachineId);
+        doDeleteInstance(azure, resourceId, virtualMachineId);
     }
     
     @VisibleForTesting
-    void doDeleteInstance(Azure azure, String resourceId, String resourceName, String virtualMachineId)
-            throws FogbowException {
-
+    void doDeleteInstance(Azure azure, String resourceId, String virtualMachineId) throws FogbowException {
         VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
         NetworkInterface networkInterface = doGetPrimaryNetworkInterfaceFrom(virtualMachine);
-        doDeleteResources(azure, resourceId, resourceName, networkInterface);
+        doDeleteResources(azure, resourceId, networkInterface);
     }
 
-
     @VisibleForTesting
-    void doDeleteResources(Azure azure, String resourceId, String resourceName, NetworkInterface networkInterface) {
-        Stack<Observable> observables = stackUpObservableResources(resourceName, networkInterface);
-        Completable completable = AzurePublicIPAddressSDK.deletePublicIpAddressAsync(azure, resourceId);
+    void doDeleteResources(Azure azure, String publicIPAddressId, NetworkInterface networkInterface)
+            throws FogbowException {
+
+        NetworkSecurityGroup networkSecurityGroup = doGetNetworkSecurityGroup(networkInterface);
+        String networkSecurityGroupId = networkSecurityGroup.id();
+        Stack<Observable> observables = stackResourcesForDisassociation(networkInterface);
+        Completable completable = concatResourcesForDeletion(azure, publicIPAddressId, networkSecurityGroupId);
         this.operation.subscribeDeleteResources(observables, completable);
     }
 
     @VisibleForTesting
-    Stack<Observable> stackUpObservableResources(String resourceName, NetworkInterface networkInterface) {
-        NetworkSecurityGroup networkSecurityGroup = networkInterface.getNetworkSecurityGroup();
-        Observable<NetworkSecurityGroup> deleteSecurityRule = AzurePublicIPAddressSDK
-                .deleteSecurityRuleAsync(networkSecurityGroup, resourceName);
+    Completable concatResourcesForDeletion(Azure azure, String publicIPAddressId, String networkSecurityGroupId) {
+        Completable firstDeleteNetworkSecurityGroup = AzurePublicIPAddressSDK
+                .deleteNetworkSecurityGroupAsync(azure, networkSecurityGroupId);
+
+        Completable secondDeletePublicIPAddress = AzurePublicIPAddressSDK
+                .deletePublicIpAddressAsync(azure, publicIPAddressId);
+
+        return Completable.concat(firstDeleteNetworkSecurityGroup, secondDeletePublicIPAddress);
+    }
+
+    @VisibleForTesting
+    Stack<Observable> stackResourcesForDisassociation(NetworkInterface networkInterface) {
+        Observable<NetworkInterface> disassociateSecurityGroup = AzurePublicIPAddressSDK
+                .disassociateNetworkSecurityGroupAsync(networkInterface);
 
         Observable<NetworkInterface> disassociatePublicIPAddress = AzurePublicIPAddressSDK
                 .disassociatePublicIPAddressAsync(networkInterface);
 
-        Observable<NetworkInterface> disassociateSecurityGroup = AzurePublicIPAddressSDK
-                .disassociateNetworkSecurityGroupAsync(networkInterface);
-
         Stack<Observable> observables = new Stack<>();
-        observables.push(disassociateSecurityGroup);
         observables.push(disassociatePublicIPAddress);
-        observables.push(deleteSecurityRule);
+        observables.push(disassociateSecurityGroup);
         return observables;
+    }
+
+    @VisibleForTesting
+    NetworkSecurityGroup doGetNetworkSecurityGroup(NetworkInterface networkInterface) throws FogbowException {
+        return AzurePublicIPAddressSDK
+                .getNetworkSecurityGroupFrom(networkInterface)
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
     }
 
     @VisibleForTesting
@@ -190,7 +199,8 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associatePublicIPAddressAsync(networkInterface, publicIPAddressCreatable);
 
-        String instanceId = AzureGeneralUtil.defineInstanceId(publicIPAddressCreatable.name());
+        String resourceId = publicIPAddressCreatable.name();
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceId);
         this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable);
 
         return instanceId;
