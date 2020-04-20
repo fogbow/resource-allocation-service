@@ -8,7 +8,7 @@ import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.compute.VirtualMachineSizes;
 import com.microsoft.azure.management.compute.VirtualMachines;
-import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.junit.Assert;
@@ -332,10 +332,11 @@ public class AzureVirtualMachineSDKTest {
         String resourceName = "resourceName";
         Region region = Region.US_EAST;
         String resourceGroupName = "resourceGroupName";
-        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
+        Network network = Mockito.mock(Network.class);
         String imagePublished = imageReference;
         String imageSku = imageReference;
         String imageOffer = imageReference;
+        String subnetName = "subnet-name";
         String userData = "userData";
         int diskSize = 1;
         String size = "size";
@@ -351,17 +352,26 @@ public class AzureVirtualMachineSDKTest {
         VirtualMachine.DefinitionStages.WithGroup withRegion = Mockito.mock(VirtualMachine.DefinitionStages.WithGroup.class);
         Mockito.when(define.withRegion(Mockito.eq(region))).thenReturn(withRegion);
 
-        VirtualMachine.DefinitionStages.WithNetwork withExistingResourceGroup
-                = Mockito.mock(VirtualMachine.DefinitionStages.WithNetwork.class);
+        VirtualMachine.DefinitionStages.WithNetwork withExistingResourceGroup =
+                Mockito.mock(VirtualMachine.DefinitionStages.WithNetwork.class);
         Mockito.when(withRegion.withExistingResourceGroup(Mockito.eq(resourceGroupName))).thenReturn(withExistingResourceGroup);
 
-        VirtualMachine.DefinitionStages.WithOS withExistingPrimaryNetworkInterface
-                = Mockito.mock(VirtualMachine.DefinitionStages.WithOS.class);
-        Mockito.when(withExistingResourceGroup.withExistingPrimaryNetworkInterface(Mockito.eq(networkInterface)))
-                .thenReturn(withExistingPrimaryNetworkInterface);
+        VirtualMachine.DefinitionStages.WithSubnet withSubnet =
+                Mockito.mock(VirtualMachine.DefinitionStages.WithSubnet.class);
+        Mockito.when(withExistingResourceGroup.withExistingPrimaryNetwork(network)).thenReturn(withSubnet);
 
-        VirtualMachine.DefinitionStages.WithFromImageCreateOptionsManaged withComputerName
-                = function.apply(withExistingPrimaryNetworkInterface);
+        VirtualMachine.DefinitionStages.WithPrivateIP withPrivateIP =
+                Mockito.mock(VirtualMachine.DefinitionStages.WithPrivateIP.class);
+        Mockito.when(withSubnet.withSubnet(subnetName)).thenReturn(withPrivateIP);
+
+        VirtualMachine.DefinitionStages.WithPublicIPAddress withPublicIPAddress =
+                Mockito.mock(VirtualMachine.DefinitionStages.WithPublicIPAddress.class);
+        Mockito.when(withPrivateIP.withPrimaryPrivateIPAddressDynamic()).thenReturn(withPublicIPAddress);
+
+        VirtualMachine.DefinitionStages.WithOS withOS = Mockito.mock(VirtualMachine.DefinitionStages.WithOS.class);
+        Mockito.when(withPublicIPAddress.withoutPrimaryPublicIPAddress()).thenReturn(withOS);
+
+        VirtualMachine.DefinitionStages.WithFromImageCreateOptionsManaged withComputerName = function.apply(withOS);
 
         VirtualMachine.DefinitionStages.WithFromImageCreateOptionsManaged withCustomData
                 = Mockito.mock(VirtualMachine.DefinitionStages.WithFromImageCreateOptionsManaged.class);
@@ -388,13 +398,12 @@ public class AzureVirtualMachineSDKTest {
 
         // exercise
         Observable<Indexable> observable = AzureVirtualMachineSDK.buildVirtualMachineObservable(
-                azure, resourceName, region, resourceGroupName, networkInterface,
+                azure, resourceName, region, resourceGroupName, network, subnetName,
                 imagePublished, imageOffer, imageSku, osUserName, osUserPassword,
                 osComputeName, userData, diskSize, size, tags);
 
         // verify
         Assert.assertEquals(observableExpected, observable);
     }
-
 
 }
