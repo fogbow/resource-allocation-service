@@ -8,7 +8,7 @@ public class CreateVolumeRequest {
     	this.volumeImage = new VolumeImage();
     	this.volumeImage.setName(builder.name);
     	this.volumeImage.setImagePersistent(builder.imagePersistent);
-    	this.tvolumeImage.setImageType(builder.imageType);
+    	this.volumeImage.setImageType(builder.imageType);
     	this.volumeImage.setDriver(builder.driver);
     	this.volumeImage.setDiskType(builder.diskType);
     	this.volumeImage.setDevicePrefix(builder.devicePrefix);
