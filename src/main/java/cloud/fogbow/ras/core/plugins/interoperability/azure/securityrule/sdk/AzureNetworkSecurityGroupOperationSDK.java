@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class AzureNetworkSecurityGroupOperationSDK {
 
-    private final int FIRST_PRIORITY_VALUE = 1;
+    private final int FIRST_PRIORITY_VALUE = 100;
     private static final int UNKNOWN_PRIORITY_VALUE = -1;
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
 
