@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
-import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
@@ -90,37 +89,17 @@ public class AzurePublicIPAddressOperationSDK {
         });
     }
 
-    public void subscribeDeleteResources(Stack<Observable> observables, Completable completable) {
-        doDisassociateAndDeleteResources(observables, completable);
+    public void subscribeDeleteResources(Observable observable, Completable completable) {
+        setDisassociateResourcesBehaviour(observable, completable)
+            .subscribeOn(this.scheduler)
+            .subscribe();
     }
 
     @VisibleForTesting
-    void doDisassociateAndDeleteResources(Stack<Observable> observables, Completable completable) {
-        if (!observables.isEmpty()) {
-            setDisassociateResourcesBehaviour(observables, completable)
-                .subscribeOn(this.scheduler)
-                .subscribe();
-        } else {
-            setDeleteResourcesBehaviour(completable)
-                .subscribeOn(this.scheduler)
-                .subscribe();
-        }
-    }
-
-    @VisibleForTesting
-    Completable setDeleteResourcesBehaviour(Completable completable) {
-        return completable.doOnError(error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR, error);
-        }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
-        });
-    }
-
-    @VisibleForTesting
-    Observable setDisassociateResourcesBehaviour(Stack<Observable> observables, Completable completable) {
-        return observables.pop().doOnNext(step -> {
-            LOGGER.info(getStageMessage(observables));
-            doDisassociateAndDeleteResources(observables, completable);
+    Observable setDisassociateResourcesBehaviour(Observable observable, Completable completable) {
+        return observable.doOnNext(step -> {
+            LOGGER.info(Messages.Info.FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
+            subscribeDeleteResources(completable);
         }).onErrorReturn(error -> {
             LOGGER.error(Messages.Error.ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR, (Throwable) error);
             return null;
@@ -130,18 +109,19 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     @VisibleForTesting
-    String getStageMessage(Stack<Observable> observables) {
-        int stage = FULL_CAPACITY - observables.size();
-        String message = null;
-        switch (stage) {
-        case 1:
-            message = Messages.Info.FIRST_STEP_DETACH_NSG_ASYNC_BEHAVIOUR;
-            break;
-        case 2:
-            message =  Messages.Info.SECOND_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR;
-            break;
-        }
-        return message;
+    void subscribeDeleteResources(Completable completable) {
+        setDeleteResourcesBehaviour(completable)
+            .subscribeOn(this.scheduler)
+            .subscribe();
+    }
+
+    @VisibleForTesting
+    Completable setDeleteResourcesBehaviour(Completable completable) {
+        return completable.doOnError(error -> {
+            LOGGER.error(Messages.Error.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR, error);
+        }).doOnCompleted(() -> {
+            LOGGER.info(Messages.Info.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
+        });
     }
 
 }

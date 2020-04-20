@@ -2,8 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
 import java.util.Optional;
 
-import org.apache.log4j.Logger;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -22,8 +20,6 @@ import rx.Observable;
 
 public class AzurePublicIPAddressSDK {
 
-    @VisibleForTesting
-    static final Logger LOGGER = Logger.getLogger(AzurePublicIPAddressSDK.class);
     @VisibleForTesting
     static final String SECURITY_RULE_NAME_SUFIX = "_security-rule";
     @VisibleForTesting
@@ -65,15 +61,6 @@ public class AzurePublicIPAddressSDK {
 
         return networkInterface.update()
                 .withNewNetworkSecurityGroup(creatable)
-                .applyAsync();
-    }
-
-    public static Observable<NetworkSecurityGroup> deleteSecurityRuleAsync(
-            NetworkSecurityGroup networkSecurityGroup, String resourceName) {
-
-        String securityRuleName = resourceName + SECURITY_RULE_NAME_SUFIX;
-        return networkSecurityGroup.update()
-                .withoutRule(securityRuleName)
                 .applyAsync();
     }
 
