@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip;
 
 import java.util.Properties;
-import java.util.Stack;
 
 import org.apache.log4j.Logger;
 
@@ -100,50 +99,41 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
     
     @VisibleForTesting
-    void doDeleteInstance(Azure azure, String resourceId, String virtualMachineId) throws FogbowException {
+    void doDeleteInstance(Azure azure, String publicIPAddressId, String virtualMachineId) throws FogbowException {
         VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
         NetworkInterface networkInterface = doGetPrimaryNetworkInterfaceFrom(virtualMachine);
-        doDeleteResources(azure, resourceId, networkInterface);
-    }
-
-    @VisibleForTesting
-    void doDeleteResources(Azure azure, String publicIPAddressId, NetworkInterface networkInterface)
-            throws FogbowException {
-
-        NetworkSecurityGroup networkSecurityGroup = doGetNetworkSecurityGroup(networkInterface);
+        NetworkSecurityGroup networkSecurityGroup = doGetNetworkSecurityGroupFrom(networkInterface);
         String networkSecurityGroupId = networkSecurityGroup.id();
-        Stack<Observable> observables = stackResourcesForDisassociation(networkInterface);
-        Completable completable = concatResourcesForDeletion(azure, publicIPAddressId, networkSecurityGroupId);
-        this.operation.subscribeDeleteResources(observables, completable);
+
+        Observable observable = doDisassociateResourcesAsync(networkInterface);
+        Completable completable = doDeleteResourcesAsync(azure, publicIPAddressId, networkSecurityGroupId);
+        this.operation.subscribeDeleteResources(observable, completable);
     }
 
     @VisibleForTesting
-    Completable concatResourcesForDeletion(Azure azure, String publicIPAddressId, String networkSecurityGroupId) {
-        Completable firstDeleteNetworkSecurityGroup = AzurePublicIPAddressSDK
+    Completable doDeleteResourcesAsync(Azure azure, String publicIPAddressId, String networkSecurityGroupId) {
+        Completable deleteNetworkSecurityGroup = AzurePublicIPAddressSDK
                 .deleteNetworkSecurityGroupAsync(azure, networkSecurityGroupId);
 
-        Completable secondDeletePublicIPAddress = AzurePublicIPAddressSDK
+        Completable deletePublicIPAddress = AzurePublicIPAddressSDK
                 .deletePublicIpAddressAsync(azure, publicIPAddressId);
 
-        return Completable.concat(firstDeleteNetworkSecurityGroup, secondDeletePublicIPAddress);
+        return Completable.concat(deleteNetworkSecurityGroup, deletePublicIPAddress);
     }
 
     @VisibleForTesting
-    Stack<Observable> stackResourcesForDisassociation(NetworkInterface networkInterface) {
-        Observable<NetworkInterface> disassociateSecurityGroup = AzurePublicIPAddressSDK
+    Observable doDisassociateResourcesAsync(NetworkInterface networkInterface) {
+        Observable<NetworkInterface> disassociateNetworkSecurityGroup = AzurePublicIPAddressSDK
                 .disassociateNetworkSecurityGroupAsync(networkInterface);
 
         Observable<NetworkInterface> disassociatePublicIPAddress = AzurePublicIPAddressSDK
                 .disassociatePublicIPAddressAsync(networkInterface);
 
-        Stack<Observable> observables = new Stack<>();
-        observables.push(disassociatePublicIPAddress);
-        observables.push(disassociateSecurityGroup);
-        return observables;
+        return Observable.concat(disassociateNetworkSecurityGroup, disassociatePublicIPAddress);
     }
 
     @VisibleForTesting
-    NetworkSecurityGroup doGetNetworkSecurityGroup(NetworkInterface networkInterface) throws FogbowException {
+    NetworkSecurityGroup doGetNetworkSecurityGroupFrom(NetworkInterface networkInterface) throws FogbowException {
         return AzurePublicIPAddressSDK
                 .getNetworkSecurityGroupFrom(networkInterface)
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));

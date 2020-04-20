@@ -106,7 +106,7 @@ public class Messages {
         public static final String END_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous delete resources.";
         public static final String END_UPDATE_NIC_ASYNC_BEHAVIOUR = "End asynchronous update network interface.";
         public static final String FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "First step: Public IP Address created and associated with the virtual machine.";
-        public static final String FIRST_STEP_DETACH_NSG_ASYNC_BEHAVIOUR = "First step: Network security group disassociate from network instance.";
+        public static final String FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "First step: Public IP address and network security group disassociated from network instance.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
@@ -132,7 +132,6 @@ public class Messages {
         public static final String REQUESTING_TO_CLOUD = "Requesting to the cloud by the user %s. URL: %s";
         public static final String RESPONSE_RECEIVED = "Received response: %s.";
         public static final String SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR = "Second step: Create network security group and associated with the network interface.";
-        public static final String SECOND_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "Second step: Public IP addres disassociated from virtual machine.";
         public static final String SENDING_MSG = "Sending remote request for request: %s.";
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String STARTING_THREADS = "Starting processor threads.";
