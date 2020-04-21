@@ -107,7 +107,7 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
 
         Observable observable = doDisassociateResourcesAsync(networkInterface);
         Completable completable = doDeleteResourcesAsync(azure, publicIPAddressId, networkSecurityGroupId);
-        this.operation.subscribeDeleteResources(observable, completable);
+        this.operation.subscribeDisassociateAndDeleteResources(observable, completable);
     }
 
     @VisibleForTesting

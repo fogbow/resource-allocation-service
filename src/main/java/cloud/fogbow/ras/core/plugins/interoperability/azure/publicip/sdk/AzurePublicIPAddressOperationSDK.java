@@ -26,7 +26,8 @@ public class AzurePublicIPAddressOperationSDK {
     static final int FULL_CAPACITY = 2;
 
     private final String resourceGroupName;
-    private final Scheduler scheduler;
+
+    private Scheduler scheduler;
 
     public AzurePublicIPAddressOperationSDK(String resourceGroupName) {
         ExecutorService executor = AzureSchedulerManager.getPublicIPAddressExecutor();
@@ -89,14 +90,14 @@ public class AzurePublicIPAddressOperationSDK {
         });
     }
 
-    public void subscribeDeleteResources(Observable observable, Completable completable) {
-        setDisassociateResourcesBehaviour(observable, completable)
+    public void subscribeDisassociateAndDeleteResources(Observable observable, Completable completable) {
+        setDisassociateAndDeleteResourcesBehaviour(observable, completable)
             .subscribeOn(this.scheduler)
             .subscribe();
     }
 
     @VisibleForTesting
-    Observable setDisassociateResourcesBehaviour(Observable observable, Completable completable) {
+    Observable setDisassociateAndDeleteResourcesBehaviour(Observable observable, Completable completable) {
         return observable.doOnNext(step -> {
             LOGGER.info(Messages.Info.FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
             subscribeDeleteResources(completable);
@@ -122,6 +123,11 @@ public class AzurePublicIPAddressOperationSDK {
         }).doOnCompleted(() -> {
             LOGGER.info(Messages.Info.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
         });
+    }
+
+    @VisibleForTesting
+    void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
 }
