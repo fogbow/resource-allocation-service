@@ -1,15 +1,23 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.util.*;
-
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.models.HardwareRequirements;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
+import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -20,18 +28,8 @@ import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
-import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.HardwareRequirements;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-
 import javax.annotation.Nullable;
+import java.util.*;
 
 public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
@@ -47,6 +45,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected static final String NIC_IP_EXPRESSION = "//NIC/IP";
 
 	protected static final boolean SHUTS_DOWN_HARD = true;
+	private static final int DEFAULT_DISK_VALUE_UNKNOWN = 0;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
 	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
@@ -215,17 +214,34 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	@Nullable
-	protected HardwareRequirements getBestFlavor(Client client, ComputeOrder computeOrder) throws UnexpectedException {
+	protected HardwareRequirements getBestFlavor(Client client, ComputeOrder computeOrder) throws UnexpectedException, NoAvailableResourcesException {
 		this.updateHardwareRequirements(client);
 
 		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
-					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {
+					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()) {
+
+				String imageId = computeOrder.getImageId();
+				int minimumImageSize = getMinimumImageSize(client, imageId);
+				if (hardwareRequirements.getDisk() < minimumImageSize ||
+						hardwareRequirements.getDisk() == DEFAULT_DISK_VALUE_UNKNOWN) {
+					hardwareRequirements.setDisk(minimumImageSize);
+				}
 				return hardwareRequirements;
 			}
 		}
 		return null;
+	}
+
+	protected int getMinimumImageSize(Client client, String imageId)
+			throws UnexpectedException, NoAvailableResourcesException {
+
+		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
+		String minimumImageSizeStr = imagesSizeMap.get(imageId);
+		if (minimumImageSizeStr == null) {
+			throw new NoAvailableResourcesException(Messages.Exception.IMAGE_NOT_FOUND);
+		}
+		return Integer.parseInt(minimumImageSizeStr);
 	}
 
 	protected void updateHardwareRequirements(Client client) throws UnexpectedException {
@@ -307,7 +323,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			return this.convertToInteger(diskSize);
 		} else {
 			LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE);
-			return 0;
+			return DEFAULT_DISK_VALUE_UNKNOWN;
 		}
 	}
 

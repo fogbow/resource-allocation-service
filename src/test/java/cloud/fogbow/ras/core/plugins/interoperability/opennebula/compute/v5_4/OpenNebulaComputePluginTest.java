@@ -239,7 +239,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// should throw a NoAvailableResourcesException when no appropriate flavor fits the order
 	// hardware requirements
 	@Test
-	public void testFindSmallestFlavorFail() throws UnexpectedException {
+	public void testFindSmallestFlavorFail() throws UnexpectedException, NoAvailableResourcesException {
 		// set up
 		Mockito.doReturn(null).when(this.plugin).getBestFlavor(
 				Mockito.any(Client.class), Mockito.any(ComputeOrder.class));
@@ -261,7 +261,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// should return the first flavor in the flavors cache that fits the order hardware
 	// requirements
 	@Test
-	public void testGetBestFlavor() throws UnexpectedException {
+	public void testGetBestFlavor() throws UnexpectedException, NoAvailableResourcesException {
 		// set up
 		this.plugin.setFlavors(new TreeSet<>(Arrays.asList(this.hardwareRequirements)));
 		Mockito.doNothing().when(this.plugin).updateHardwareRequirements(Mockito.any(Client.class));
@@ -278,7 +278,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getBestFlavor with valid client and compute order, the plugin
 	// should return null when no flavor in the flavors cache fits the order hardware requirements
 	@Test
-	public void testGetBestFlavorNull() throws UnexpectedException {
+	public void testGetBestFlavorNull() throws UnexpectedException, NoAvailableResourcesException {
 		// set up
 		this.hardwareRequirements.setCpu(CPU_VALUE_1);
 		this.plugin.setFlavors(new TreeSet<>(Arrays.asList(this.hardwareRequirements)));
