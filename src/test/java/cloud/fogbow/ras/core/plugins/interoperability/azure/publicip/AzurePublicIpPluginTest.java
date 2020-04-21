@@ -297,7 +297,7 @@ public class AzurePublicIpPluginTest {
         Mockito.doReturn(completable).when(this.plugin).doDeleteResourcesAsync(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(networkSecurityGroupId));
 
-        Mockito.doNothing().when(this.operation).subscribeDeleteResources(Mockito.eq(observable),
+        Mockito.doNothing().when(this.operation).subscribeDisassociateAndDeleteResources(Mockito.eq(observable),
                 Mockito.eq(completable));
 
         // exercise
@@ -315,7 +315,7 @@ public class AzurePublicIpPluginTest {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourcesAsync(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(networkSecurityGroupId));
         Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
-                .subscribeDeleteResources(Mockito.eq(observable), Mockito.eq(completable));
+                .subscribeDisassociateAndDeleteResources(Mockito.eq(observable), Mockito.eq(completable));
     }
 
     // test case: When calling the doDeleteResourcesAsync method, it must
