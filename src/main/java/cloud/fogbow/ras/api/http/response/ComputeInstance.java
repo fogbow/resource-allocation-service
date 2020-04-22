@@ -15,7 +15,7 @@ public class ComputeInstance extends OrderInstance {
      * Memory attribute, must be set in MB.
      */
     @ApiModelProperty(position = 9, example = "1024", notes = ApiDocumentation.Model.VOLUME_SIZE_NOTE)
-    private int memory;
+    private int ram;
     /**
      * Disk attribute, must be set in GB.
      */
@@ -41,22 +41,22 @@ public class ComputeInstance extends OrderInstance {
         this.ipAddresses = ipAddresses;
     }
 
-    public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
                            List<String> ipAddresses) {
         super(id, cloudState);
         this.name = name;
         this.vCPU = vCPU;
-        this.memory = memory;
+        this.ram = ram;
         this.disk = disk;
         this.ipAddresses = ipAddresses;
     }
 
-    public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
                            List<String> ipAddresses, String imageId, String publicKey, List<UserData> userData) {
         super(id, cloudState);
         this.name = name;
         this.vCPU = vCPU;
-        this.memory = memory;
+        this.ram = ram;
         this.disk = disk;
         this.ipAddresses = ipAddresses;
         this.imageId = imageId;
@@ -84,12 +84,12 @@ public class ComputeInstance extends OrderInstance {
         return this.ipAddresses;
     }
 
-    public int getMemory() {
-        return this.memory;
+    public int getRam() {
+        return this.ram;
     }
 
-    public void setMemory(int memory) {
-        this.memory = memory;
+    public void setRam(int ram) {
+        this.ram = ram;
     }
 
     public int getvCPU() {
@@ -141,7 +141,7 @@ public class ComputeInstance extends OrderInstance {
         ComputeInstance that = (ComputeInstance) o;
 
         if (vCPU != that.vCPU) return false;
-        if (memory != that.memory) return false;
+        if (ram != that.ram) return false;
         if (disk != that.disk) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         return ipAddresses != null ? ipAddresses.equals(that.ipAddresses) : that.ipAddresses == null;

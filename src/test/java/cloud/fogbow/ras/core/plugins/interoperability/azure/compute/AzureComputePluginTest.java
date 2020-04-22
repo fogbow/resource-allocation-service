@@ -364,7 +364,7 @@ public class AzureComputePluginTest {
 
         // verify
         Assert.assertEquals(diskExpected, computeInstance.getDisk());
-        Assert.assertEquals(memoryExpected, computeInstance.getMemory());
+        Assert.assertEquals(memoryExpected, computeInstance.getRam());
         Assert.assertEquals(vcpuExpected, computeInstance.getvCPU());
         Assert.assertEquals(idExpected, computeInstance.getId());
         Assert.assertEquals(cloudStateExpected, computeInstance.getCloudState());

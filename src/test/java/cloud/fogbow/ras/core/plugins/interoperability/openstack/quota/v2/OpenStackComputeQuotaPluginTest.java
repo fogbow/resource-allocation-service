@@ -74,12 +74,12 @@ public class OpenStackComputeQuotaPluginTest extends BaseUnitTests {
         int maxTotalCores = getQuotaResponse.getMaxTotalCores();
         int maxTotalRamSize = getQuotaResponse.getMaxTotalRamSize();
         int maxTotalInstances = getQuotaResponse.getMaxTotalInstances();
-        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalCores, maxTotalRamSize, maxTotalInstances);
+        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalInstances, maxTotalCores, maxTotalRamSize);
 
         int totalCoresUsed = getQuotaResponse.getTotalCoresUsed();
         int totalRamUsed = getQuotaResponse.getTotalRamUsed();
         int totalInstancesUsed = getQuotaResponse.getTotalInstancesUsed();
-        ComputeAllocation usedQuota = new ComputeAllocation(totalCoresUsed, totalRamUsed, totalInstancesUsed);
+        ComputeAllocation usedQuota = new ComputeAllocation(totalInstancesUsed, totalCoresUsed, totalRamUsed);
 
         // exercise
         ComputeQuota quota = this.plugin.getUserQuota(this.cloudUser);

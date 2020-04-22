@@ -158,9 +158,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     protected void setAllocationToOrder(ComputeOrder computeOrder, HardwareRequirements hardwareRequirements) {
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
-                    hardwareRequirements.getCpu(),
+                    1, hardwareRequirements.getCpu(),
                     hardwareRequirements.getMemory(),
-                    1,
                     hardwareRequirements.getDisk());
             // When the ComputeOrder is remote, this field must be copied into its local counterpart
             // that is updated when the requestingProvider receives the reply from the providingProvider

@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.intercomponent;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -70,11 +69,11 @@ public class RemoteFacade {
         this.orderController.deleteOrder(order);
     }
 
-    public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+    public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_USER_QUOTA, resourceType, cloudName));
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_USER_QUOTA, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
-        return cloudConnector.getUserQuota(systemUser, resourceType);
+        return cloudConnector.getUserQuota(systemUser);
     }
 
     public ImageInstance getImage(String requestingProvider, String cloudName, String imageId, SystemUser systemUser) throws FogbowException {
@@ -89,14 +88,6 @@ public class RemoteFacade {
         this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
         return cloudConnector.getAllImages(systemUser);
-    }
-
-    public FogbowGenericResponse genericRequest(String requestingProvider, String cloudName, String genericRequest,
-                                                SystemUser systemUser) throws FogbowException {
-        // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GENERIC_REQUEST, ResourceType.GENERIC_RESOURCE, cloudName, genericRequest));
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
-        return cloudConnector.genericRequest(genericRequest, systemUser);
     }
 
     public List<String> getCloudNames(String requestingProvider, SystemUser systemUser) throws UnexpectedException, UnauthorizedRequestException {

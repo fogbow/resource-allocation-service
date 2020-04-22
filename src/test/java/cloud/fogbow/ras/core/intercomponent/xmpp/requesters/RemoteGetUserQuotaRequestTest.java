@@ -39,11 +39,11 @@ public class RemoteGetUserQuotaRequestTest {
 
         this.provider = "provider";
         this.resourceType = ResourceType.COMPUTE;
-        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.systemUser, this.resourceType);
+        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.systemUser);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
-        ComputeAllocation computeAllocation = new ComputeAllocation(10, 20, 30);
-        ComputeAllocation usedQuota = new ComputeAllocation(40, 50, 60);
+        ComputeAllocation computeAllocation = new ComputeAllocation(30, 10, 20);
+        ComputeAllocation usedQuota = new ComputeAllocation(60, 40, 50);
         this.quota = new ComputeQuota(computeAllocation, usedQuota);
     }
 
@@ -55,7 +55,7 @@ public class RemoteGetUserQuotaRequestTest {
         //set up
         IQ iqResponse = getQuotaIQResponse(this.quota);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
-        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.systemUser, this.resourceType);
+        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.systemUser);
 
         //exercise
         Quota responseQuota = this.remoteGetUserQuotaRequest.send();

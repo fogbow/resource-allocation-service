@@ -53,7 +53,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 		int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
 		int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
 
-		return new ComputeAllocation(maxCpu, maxMemory, maxInstances);
+		return new ComputeAllocation(maxInstances, maxCpu, maxMemory);
 	}
 
 	protected ComputeAllocation getUsedAllocation(User user) {
@@ -61,7 +61,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<CloudUse
 		int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
 		int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
 
-		return new ComputeAllocation(cpuInUse, memoryInUse, instancesInUse);
+		return new ComputeAllocation(instancesInUse, cpuInUse, memoryInUse);
 	}
 
 	protected int convertToInteger(String number) {

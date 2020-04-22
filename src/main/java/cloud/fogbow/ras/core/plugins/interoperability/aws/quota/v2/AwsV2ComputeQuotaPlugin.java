@@ -88,7 +88,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
             usedRam += instanceAllocated.getValue().getRam();
             usedDisk += instanceAllocated.getValue().getDisk();
         }
-        return new ComputeAllocation(usedVCPU, usedRam, usedInstances, usedDisk);
+        return new ComputeAllocation(usedInstances, usedVCPU, usedRam, usedDisk);
     }
 
     protected ComputeAllocation calculateTotalQuota() {
@@ -102,7 +102,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
             totalVCPU += availableAllocation.getValue().getvCPU();
             totalRam += availableAllocation.getValue().getRam();
         }
-        return new ComputeAllocation(totalVCPU, totalRam, totalInstances, totalDisk);
+        return new ComputeAllocation(totalInstances, totalVCPU, totalRam, totalDisk);
     }
 
     protected void loadInstancesAllocated(Ec2Client client) throws FogbowException {
@@ -127,7 +127,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
         int disk = allocatedInstance != null ? allocatedInstance.getDisk() : 0;
         List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
         disk += getAllDisksSize(volumes);
-        return new ComputeAllocation(vCPU, ram, instances, disk);
+        return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
     private int getAllDisksSize(List<Volume> volumes) {
@@ -167,7 +167,7 @@ public class AwsV2ComputeQuotaPlugin implements ComputeQuotaPlugin<AwsV2User> {
         int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
         Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
         int ram = memory.intValue();
-        return new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeAllocation(instances, vCPU, ram);
     }
 
     protected List<String> loadLinesFromFlavorFile() throws FogbowException {

@@ -33,6 +33,11 @@ public class RasOperation extends FogbowOperation {
         this.order = order;
     }
 
+    public RasOperation(Operation operationType, String cloudName) {
+        this.operationType = operationType;
+        this.cloudName = cloudName;
+    }
+
     public RasOperation(Operation operationType, ResourceType resourceType) {
         this.operationType = operationType;
         this.resourceType = resourceType;

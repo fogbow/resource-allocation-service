@@ -16,7 +16,7 @@ public class VolumeAllocation extends Allocation {
     private int instances;
     
     @ApiModelProperty(position = 1, example = "30")
-    @Column(name = "allocation_disk")
+    @Column(name = "disk_allocation")
     private int storage;
 
     public VolumeAllocation(int instances, int storage) {

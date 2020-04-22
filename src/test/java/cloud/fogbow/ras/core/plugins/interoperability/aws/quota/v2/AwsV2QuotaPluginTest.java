@@ -94,7 +94,7 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
         int instances = expectedQuota.getInstances();
         int ram = expectedQuota.getRam();
         int vCPUs = expectedQuota.getvCPU();
-        ComputeAllocation computeAllocation = new ComputeAllocation(vCPUs, ram, instances);
+        ComputeAllocation computeAllocation = new ComputeAllocation(instances, vCPUs, ram);
 
         Mockito.doReturn(expectedQuota.getPublicIps()).when(this.plugin).calculateUsedElasticIp(Mockito.eq(this.client));
         Mockito.doReturn(expectedQuota.getNetworks()).when(this.plugin).calculateUsedSubnets(Mockito.eq(this.client));
@@ -469,14 +469,14 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
         int vCPU = TestUtils.CPU_VALUE * 2;
         int ram = TestUtils.MEMORY_VALUE * 2;
         int instances = ONE_VALUE * 2;
-        return new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeAllocation(instances, vCPU, ram);
     }
 
     private ComputeAllocation createComputeAllocation() {
         int vCPU = TestUtils.CPU_VALUE;
         int ram = TestUtils.MEMORY_VALUE;
         int instances = ONE_VALUE;
-        return new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeAllocation(instances, vCPU, ram);
     }
 
     private String[] generateRequirements() {

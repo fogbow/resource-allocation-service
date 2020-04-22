@@ -186,7 +186,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
             int memory = virtualMachineSize.memoryInMB();
             int disk = computeOrder.getDisk();
             int instances = INSTANCES_LAUNCH_NUMBER;
-            ComputeAllocation actualAllocation = new ComputeAllocation(vCPU, memory, instances, disk);
+            ComputeAllocation actualAllocation = new ComputeAllocation(instances, vCPU, memory, disk);
             computeOrder.setActualAllocation(actualAllocation);
         }
     }

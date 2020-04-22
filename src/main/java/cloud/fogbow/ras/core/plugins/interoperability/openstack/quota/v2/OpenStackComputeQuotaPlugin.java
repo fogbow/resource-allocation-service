@@ -42,12 +42,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin<OpenStack
         int maxTotalCores = getQuotaResponse.getMaxTotalCores();
         int maxTotalRamSize = getQuotaResponse.getMaxTotalRamSize();
         int maxTotalInstances = getQuotaResponse.getMaxTotalInstances();
-        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalCores, maxTotalRamSize, maxTotalInstances);
+        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalInstances, maxTotalCores, maxTotalRamSize);
 
         int totalCoresUsed = getQuotaResponse.getTotalCoresUsed();
         int totalRamUsed = getQuotaResponse.getTotalRamUsed();
         int totalInstancesUsed = getQuotaResponse.getTotalInstancesUsed();
-        ComputeAllocation usedQuota = new ComputeAllocation(totalCoresUsed, totalRamUsed, totalInstancesUsed);
+        ComputeAllocation usedQuota = new ComputeAllocation(totalInstancesUsed, totalCoresUsed, totalRamUsed);
 
         return new ComputeQuota(totalQuota, usedQuota);
     }

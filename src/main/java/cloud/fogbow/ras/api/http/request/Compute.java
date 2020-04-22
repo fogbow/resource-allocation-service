@@ -5,7 +5,6 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -105,30 +104,6 @@ public class Compute {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
             ApplicationFacade.getInstance().deleteCompute(computeId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
-            throw e;
-        }
-    }
-
-    // TODO(pauloewerton): this endpoint is deprecated and should be removed soon. user should be using the /ras/quota
-    // endpoint. keeping it for now until the remaining quota plugins are implemented.
-    @Deprecated
-    @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
-    @RequestMapping(value = "/" + QUOTA_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
-    public ResponseEntity<ComputeQuota> getUserQuota(
-            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
-            @PathVariable String providerId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
-            @PathVariable String cloudName,
-            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
-            throws FogbowException {
-
-        try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_SUFFIX_ENDPOINT, providerId));
-            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(providerId, cloudName, systemUserToken);
-            return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;

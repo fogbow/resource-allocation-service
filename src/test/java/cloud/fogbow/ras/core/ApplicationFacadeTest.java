@@ -370,37 +370,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         ResourceQuota resourceQuota = Mockito.mock(ResourceQuota.class);
         Mockito.doReturn(resourceQuota).when(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName),
-                Mockito.eq(userToken), Mockito.eq(ResourceType.QUOTA));
+                Mockito.eq(userToken));
 
         // exercise
         this.facade.getResourceQuota(providerId, cloudName, userToken);
 
         // verify
-        Mockito.verify(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName), Mockito.eq(userToken),
-                Mockito.eq(ResourceType.QUOTA));
+        Mockito.verify(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName), Mockito.eq(userToken));
     }
-    
-    // test case: When calling the getComputeQuota method it must check that
-    // getUserQuota method was called.
-    @Test
-    public void testGetComputeQuota() throws FogbowException {
-        // set up
-        String providerId = TestUtils.LOCAL_MEMBER_ID;
-        String cloudName = TestUtils.DEFAULT_CLOUD_NAME;
-        String userToken = SYSTEM_USER_TOKEN_VALUE;
 
-        ComputeQuota computeQuota = Mockito.mock(ComputeQuota.class);
-        Mockito.doReturn(computeQuota).when(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName),
-                Mockito.eq(userToken), Mockito.eq(ResourceType.COMPUTE));
-
-        // exercise
-        this.facade.getComputeQuota(providerId, cloudName, userToken);
-
-        // verify
-        Mockito.verify(this.facade).getUserQuota(Mockito.eq(providerId), Mockito.eq(cloudName), Mockito.eq(userToken),
-                Mockito.eq(ResourceType.COMPUTE));
-    }
-    
     // test case: When calling the createVolume method it must check that
     // activateOrder method was called.
     @Test
@@ -1445,7 +1423,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
     
     // test case: When calling the getUserQuota method with null or empty cloud
-    // name, it must set as default cloud name and verify that this call was
+    // name, it must set the default cloud name and verify that this call was
     // successful.
     @Test
     public void testGetUserQuotaWithEmptyCloudName() throws FogbowException {
@@ -1458,11 +1436,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String providerId = TestUtils.LOCAL_MEMBER_ID;
         ResourceType resourceType = ResourceType.COMPUTE;
 
-        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_QUOTA, resourceType,
-                TestUtils.DEFAULT_CLOUD_NAME);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_QUOTA, TestUtils.DEFAULT_CLOUD_NAME);
 
         // exercise
-        this.facade.getUserQuota(providerId, cloudName, userToken, resourceType);
+        this.facade.getUserQuota(providerId, cloudName, userToken);
 
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
@@ -1470,8 +1447,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.cloudListController, Mockito.times(TestUtils.RUN_ONCE)).getDefaultCloudName();
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).getUserQuota(Mockito.eq(systemUser),
-                Mockito.eq(resourceType));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).getUserQuota(Mockito.eq(systemUser)
+        );
     }
     
     // test case: When calling the authorizeOrder method with resource type

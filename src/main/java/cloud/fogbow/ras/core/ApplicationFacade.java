@@ -33,7 +33,6 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -177,13 +176,7 @@ public class ApplicationFacade {
 
     public ResourceQuota getResourceQuota(String providerId, String cloudName, String userToken)
             throws FogbowException {
-        return (ResourceQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.QUOTA);
-    }
-    
-    @Deprecated
-    public ComputeQuota getComputeQuota(String providerId, String cloudName, String userToken)
-            throws FogbowException {
-        return (ComputeQuota) getUserQuota(providerId, cloudName, userToken, ResourceType.COMPUTE);
+        return (ResourceQuota) getUserQuota(providerId, cloudName, userToken);
     }
 
     public String createVolume(VolumeOrder volumeOrder, String userToken) throws FogbowException {
@@ -372,16 +365,16 @@ public class ApplicationFacade {
         return this.orderController.getUserAllocation(providerId, cloudName, requester, resourceType);
     }
 
-    protected Quota getUserQuota(String providerId, String cloudName, String userToken, ResourceType resourceType)
+    protected Quota getUserQuota(String providerId, String cloudName, String userToken)
             throws FogbowException {
         
         SystemUser requester = authenticate(userToken);
         if (cloudName == null || cloudName.isEmpty())
             cloudName = this.cloudListController.getDefaultCloudName();
-        RasOperation rasOperation = new RasOperation(Operation.GET_USER_QUOTA, resourceType, cloudName);
+        RasOperation rasOperation = new RasOperation(Operation.GET_USER_QUOTA, cloudName);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
-        return cloudConnector.getUserQuota(requester, resourceType);
+        return cloudConnector.getUserQuota(requester);
     }
 
     protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,

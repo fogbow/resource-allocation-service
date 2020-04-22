@@ -33,6 +33,6 @@ public class EmulatedCloudComputeQuotaPlugin implements ComputeQuotaPlugin<Cloud
         int disk = quota.getDisk();
         int instances = quota.getIntances();
 
-        return new ComputeAllocation(vcpu, memory, instances, disk);
+        return new ComputeAllocation(instances, vcpu, memory, disk);
     }
 }

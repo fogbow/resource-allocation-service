@@ -407,7 +407,7 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
         int ram = TestUtils.MEMORY_VALUE * 2;
         int instances = ONE_VALUE * 2;
         int disk = AwsV2ComputeQuotaPlugin.MAXIMUM_STORAGE_VALUE * AwsV2ComputeQuotaPlugin.ONE_TERABYTE;
-        return new ComputeAllocation(vCPU, ram, instances, disk);
+        return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
     private ComputeAllocation createComputeAllocation() {
@@ -415,7 +415,7 @@ public class AwsV2ComputeQuotaPluginTest extends BaseUnitTests {
         int ram = TestUtils.MEMORY_VALUE;
         int instances = ONE_VALUE;
         int disk = TestUtils.DISK_VALUE;
-        return new ComputeAllocation(vCPU, ram, instances, disk);
+        return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
 }

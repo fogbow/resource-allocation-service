@@ -255,7 +255,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
             Image image = getImageById(imageId, client);
             int disk = getImageSize(image);
             int instances = INSTANCES_LAUNCH_NUMBER;
-            ComputeAllocation actualAllocation = new ComputeAllocation(vCPU, memory, instances, disk);
+            ComputeAllocation actualAllocation = new ComputeAllocation(instances, vCPU, memory, disk);
             computeOrder.setActualAllocation(actualAllocation);
         }
     }

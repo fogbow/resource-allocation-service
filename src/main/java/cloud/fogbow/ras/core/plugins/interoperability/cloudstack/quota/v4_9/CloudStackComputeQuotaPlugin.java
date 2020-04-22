@@ -81,7 +81,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
             vCpu += vm.getCpuNumber();
             ram += vm.getMemory();
         }
-        return new ComputeAllocation(vCpu, ram, instances);
+        return new ComputeAllocation(instances, vCpu, ram);
     }
 
     private ComputeAllocation getTotalAllocation(List<ListResourceLimitsResponse.ResourceLimit> resourceLimits, CloudStackUser cloudUser) {
@@ -114,7 +114,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin<CloudSta
             }
         }
 
-        return new ComputeAllocation(vCpu, ram, instances);
+        return new ComputeAllocation(instances, vCpu, ram);
     }
 
     private ListResourceLimitsResponse.ResourceLimit getDomainResourceLimit(String resourceType, String domainId, CloudStackUser cloudUser)

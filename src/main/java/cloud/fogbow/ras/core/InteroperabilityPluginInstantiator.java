@@ -65,12 +65,6 @@ public class InteroperabilityPluginInstantiator {
         return (QuotaPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
     }
 
-    @Deprecated
-    public ComputeQuotaPlugin getComputeQuotaPlugin(String cloudName) {
-        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
-        return (ComputeQuotaPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
-    }
-
     public NetworkPlugin getNetworkPlugin(String cloudName) {
         String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.NETWORK_PLUGIN_CLASS_KEY);
         return (NetworkPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));

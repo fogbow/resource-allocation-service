@@ -11,7 +11,6 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -807,8 +806,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         }
     }
     
-    // test case: When invoking the getUserQuota method with the a valid resource
-    // type, it must call the doGetUserQuota method and confirm in auditRequest the
+    // test case: When invoking the getUserQuota method it must confirm in auditRequest the
     // GET_USER_QUOTA operation of the QUOTA resource type.
     @Test
     public void testGetUserQuota() throws FogbowException {
@@ -820,62 +818,14 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.doReturn(resourceQuota).when(this.quotaPlugin).getUserQuota(Mockito.any(CloudUser.class));
 
         // exercise
-        this.localCloudConnector.getUserQuota(this.testUtils.createSystemUser(), ResourceType.QUOTA);
+        this.localCloudConnector.getUserQuota(this.testUtils.createSystemUser());
 
         // verify
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
-                .doGetUserQuota(Mockito.any(CloudUser.class), Mockito.eq(ResourceType.QUOTA));
         Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
                 Mockito.eq(Operation.GET_USER_QUOTA), Mockito.eq(ResourceType.QUOTA), Mockito.any(SystemUser.class),
                 Mockito.anyString());
     }
-    
-    // test case: When invoking the getUserQuota method with the a valid resource
-    // type, it must call the doGetUserQuota method and confirm in auditRequest the
-    // GET_USER_QUOTA operation of the COMPUTE resource type.
-    @Test
-    public void testGetUserComputeQuota() throws FogbowException {
-        // set up
-        Mockito.doReturn(this.computePlugin).when(this.localCloudConnector).checkOrderCastingAndSetPlugin(Mockito.any(),
-                Mockito.any());
 
-        ComputeQuota computeQuota = Mockito.mock(ComputeQuota.class);
-        Mockito.doReturn(computeQuota).when(this.computeQuotaPlugin).getUserQuota(Mockito.any(CloudUser.class));
-
-        // exercise
-        this.localCloudConnector.getUserQuota(this.testUtils.createSystemUser(), ResourceType.COMPUTE);
-
-        // verify
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
-                .doGetUserQuota(Mockito.any(CloudUser.class), Mockito.eq(ResourceType.COMPUTE));
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
-                Mockito.eq(Operation.GET_USER_QUOTA), Mockito.eq(ResourceType.COMPUTE), Mockito.any(SystemUser.class),
-                Mockito.anyString());
-    }
-    
-    // test case: When invoking the getUserQuota method with a resource type other
-    // than COMPUTE or QUOTA, it must throw an exception and confirm in auditRequest
-    // the GET_USER_QUOTA operation and the resource type used.
-    @Test
-    public void testGetUserQuotaFail() throws FogbowException {
-        // set up
-        ResourceType resourceType = ResourceType.GENERIC_RESOURCE;
-        String expected = String.format(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED, resourceType);
-        try {
-            // exercise
-            this.localCloudConnector.getUserQuota(this.testUtils.createSystemUser(), resourceType);
-            Assert.fail();
-        } catch (Throwable e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-            Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
-                    .doGetUserQuota(Mockito.any(CloudUser.class), Mockito.eq(ResourceType.GENERIC_RESOURCE));
-            Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
-                    Mockito.eq(Operation.GET_USER_QUOTA), Mockito.eq(ResourceType.GENERIC_RESOURCE),
-                    Mockito.any(SystemUser.class), Mockito.anyString());
-        }
-    }
-    
     // test case: When invoking the getAllImages method with a valid system user, it
     // must call the doGetAllImages method and confirm in auditRequest the GET_ALL
     // operation of the IMAGE resource type.
@@ -956,52 +906,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
                     Mockito.anyString());
         }
     }
-    
-    // test case: When invoking the genericRequest method with a valid generic
-    // request and system user, it must call the doGenericRequest method to return a
-    // generic response and confirm in auditRequest the CREATE operation and the
-    // GENERIC_RESOURCE resource type.
-    @Test
-    public void testGenericRequest() throws FogbowException {
-        // set up
-        FogbowGenericResponse response = Mockito.mock(FogbowGenericResponse.class);
-        Mockito.doReturn(response).when(this.localCloudConnector).doGenericRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class));
 
-        // exercise
-        this.localCloudConnector.genericRequest(ANY_VALUE, this.testUtils.createSystemUser());
-
-        // verify
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
-                .doGenericRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
-        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
-                Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.GENERIC_RESOURCE), Mockito.any(SystemUser.class),
-                Mockito.anyString());
-    }
-    
-    // test case: When calling the genericRequest method and an error occurs while
-    // trying to make a generic request in the cloud, it must throw an exception and
-    // confirm in auditRequest the CREATE operation and the GENERIC_RESOURCE
-    // resource type.
-    @Test
-    public void testGenericRequestFail() throws FogbowException {
-        // set up
-        Mockito.doThrow(Throwable.class).when(this.localCloudConnector).doGenericRequest(Mockito.anyString(),
-                Mockito.any(CloudUser.class));
-        try {
-            // exercise
-            this.localCloudConnector.genericRequest(ANY_VALUE, this.testUtils.createSystemUser());
-            Assert.fail();
-        } catch (Throwable e) {
-            // verify
-            Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
-                    .doGenericRequest(Mockito.anyString(), Mockito.any(CloudUser.class));
-            Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
-                    Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.GENERIC_RESOURCE),
-                    Mockito.any(SystemUser.class), Mockito.anyString());
-        }
-    }
-    
     // test case: When invoking the getAllSecurityRules method with a valid network
     // order, it must call the doGetAllSecurityRules method and confirm in
     // auditRequest the GET_ALL operation of the NETWORK resource type.
@@ -1357,26 +1262,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(plugin, Mockito.times(TestUtils.RUN_ONCE)).getInstance(Mockito.eq(order),
                 Mockito.eq(cloudUser));
     }
-    
-    // test case: When invoking the doGetUserQuota method, it must execute the
-    // getUserQuota method of the compute quota plug-in to return the user quota.
-    @Test
-    public void testDoGetUserQuota() throws FogbowException {
-        // set up
-        CloudUser cloudUser = Mockito.mock(CloudUser.class);
-        Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
 
-        ComputeQuota quota = Mockito.mock(ComputeQuota.class);
-        Mockito.doReturn(quota).when(this.computeQuotaPlugin).getUserQuota(Mockito.eq(cloudUser));
-
-        // exercise
-        this.localCloudConnector.doGetUserQuota(cloudUser, ResourceType.COMPUTE);
-
-        // verify
-        Mockito.verify(this.computeQuotaPlugin, Mockito.times(TestUtils.RUN_ONCE))
-                .getUserQuota(Mockito.eq(cloudUser));
-    }
-    
     // test case: When invoking the doGetAllImages method, it must execute the
     // getAllImages method of the image plug-in.
     @Test
@@ -1465,7 +1351,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         InteroperabilityPluginInstantiator instantiator = Mockito.mock(InteroperabilityPluginInstantiator.class);
         Mockito.when(instantiator.getAttachmentPlugin(Mockito.anyString())).thenReturn(this.attachmentPlugin);
         Mockito.when(instantiator.getComputePlugin(Mockito.anyString())).thenReturn(this.computePlugin);
-        Mockito.when(instantiator.getComputeQuotaPlugin(Mockito.anyString())).thenReturn(this.computeQuotaPlugin);
         Mockito.when(instantiator.getImagePlugin(Mockito.anyString())).thenReturn(this.imagePlugin);
         Mockito.when(instantiator.getSystemToCloudMapperPlugin(Mockito.anyString())).thenReturn(this.mapperPlugin);
         Mockito.when(instantiator.getNetworkPlugin(Mockito.anyString())).thenReturn(this.networkPlugin);

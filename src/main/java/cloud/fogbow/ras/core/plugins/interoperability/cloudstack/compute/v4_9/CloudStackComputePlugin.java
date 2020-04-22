@@ -374,9 +374,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
-                    serviceOffering.getCpuNumber(),
+                    AMOUNT_INSTANCE, serviceOffering.getCpuNumber(),
                     serviceOffering.getMemory(),
-                    AMOUNT_INSTANCE,
                     diskOffering.getDiskSize());
             computeOrder.setActualAllocation(actualAllocation);
         }

@@ -160,7 +160,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
             usedVCPU += instanceAllocated.getValue().getvCPU();
             usedRam += instanceAllocated.getValue().getRam();
         }
-        return new ComputeAllocation(usedVCPU, usedRam, usedInstances);
+        return new ComputeAllocation(usedInstances, usedVCPU, usedRam);
     }
 
     @VisibleForTesting
@@ -174,7 +174,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
             totalVCPU += availableAllocation.getValue().getvCPU();
             totalRam += availableAllocation.getValue().getRam();
         }
-        return new ComputeAllocation(totalVCPU, totalRam, totalInstances);
+        return new ComputeAllocation(totalInstances, totalVCPU, totalRam);
     }
 
     @VisibleForTesting
@@ -198,7 +198,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
         int instances = allocatedInstance != null ? allocatedInstance.getInstances() + 1 : 1;
         int vCPU = totalAllocation.getvCPU() * instances;
         int ram = totalAllocation.getRam() * instances;
-        return new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeAllocation(instances, vCPU, ram);
     }
 
     @VisibleForTesting
@@ -242,7 +242,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
         int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
         Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
         int ram = memory.intValue();
-        return new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeAllocation(instances, vCPU, ram);
     }
 
     @VisibleForTesting

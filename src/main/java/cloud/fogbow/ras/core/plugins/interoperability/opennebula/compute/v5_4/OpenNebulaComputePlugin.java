@@ -181,10 +181,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		int sizeInMegabytes = Integer.parseInt(virtualMachine.getDisk().getSize());
 		int size = convertDiskSizeToGb(sizeInMegabytes);
 		ComputeAllocation actualAllocation = new ComputeAllocation(
-				Integer.parseInt(virtualMachine.getCpu()),
+                DEFAULT_NUMBER_OF_INSTANCES, Integer.parseInt(virtualMachine.getCpu()),
 				Integer.parseInt(virtualMachine.getMemory()),
-				DEFAULT_NUMBER_OF_INSTANCES,
-				size);
+                size);
 		computeOrder.setActualAllocation(actualAllocation);
 	}
 
