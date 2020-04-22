@@ -182,7 +182,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                     filterServicesOfferingByRequirements(serviceOfferings, computeOrder);
             for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferingsFiltered) {
                 if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
-                        serviceOffering.getMemory() >= computeOrder.getMemory()) {
+                        serviceOffering.getMemory() >= computeOrder.getRam()) {
                     return serviceOffering;
                 }
             }

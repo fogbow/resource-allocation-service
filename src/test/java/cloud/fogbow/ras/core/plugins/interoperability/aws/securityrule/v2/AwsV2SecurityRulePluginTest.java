@@ -765,7 +765,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     public void testgetSecurityGroupIdWithInvalidResourceType() throws FogbowException {
         // set up
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        ResourceType resourceType = ResourceType.GENERIC_RESOURCE;
+        ResourceType resourceType = ResourceType.INVALID_RESOURCE;
         
         String expected = String.format(Messages.Exception.INVALID_PARAMETER_S, resourceType);
 

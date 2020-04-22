@@ -29,7 +29,7 @@ import java.util.UUID;
 public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackNetworkPlugin.class);
 
-    public static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+    public static final String NETWORK_NEUTRON_URL_KEY = "openstack_neutron_url";
     protected static final String SUFFIX_ENDPOINT_NETWORK = "/networks";
     protected static final String SUFFIX_ENDPOINT_SUBNET = "/subnets";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
@@ -53,7 +53,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     public OpenStackNetworkPlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;
+        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_URL_KEY) + V2_API_ENDPOINT;
         setDNSList(properties);
         initClient();
     }

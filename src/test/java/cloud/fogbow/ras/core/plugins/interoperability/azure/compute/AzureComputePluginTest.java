@@ -250,7 +250,7 @@ public class AzureComputePluginTest {
         int memory = 1;
         int vcpu = 1;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        Mockito.when(computeOrder.getMemory()).thenReturn(memory);
+        Mockito.when(computeOrder.getRam()).thenReturn(memory);
         Mockito.when(computeOrder.getvCPU()).thenReturn(vcpu);
 
         String regionName = this.defaultRegionName;

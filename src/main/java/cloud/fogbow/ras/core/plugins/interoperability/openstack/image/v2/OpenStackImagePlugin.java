@@ -11,13 +11,12 @@ import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
 
 public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
-    public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
+    public static final String IMAGE_GLANCE_URL_KEY = "openstack_glance_url";
     public static final String ACTIVE_STATE = "active";
     public static final String PUBLIC_VISIBILITY = "public";
     private static final String PRIVATE_VISIBILITY = "private";
@@ -60,7 +59,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     protected GetImageResponse getImageResponse(String imageId, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
-            String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
+            String endpoint = this.properties.getProperty(IMAGE_GLANCE_URL_KEY)
                     + IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + File.separator + imageId;
             jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -73,7 +72,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     protected List<GetImageResponse> getImagesResponse(OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = null;
         try {
-            String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
+            String endpoint = this.properties.getProperty(IMAGE_GLANCE_URL_KEY)
                     + IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + QUERY_ACTIVE_IMAGES;
             jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         } catch (HttpResponseException e) {
@@ -91,7 +90,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         List<GetImageResponse> imagesJson) throws FogbowException {
         String next = getAllImagesResponse.getNext();
         if (next != null && !next.isEmpty()) {
-            String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) + next;
+            String endpoint = this.properties.getProperty(IMAGE_GLANCE_URL_KEY) + next;
             String jsonResponse = null;
             try {
                 jsonResponse = this.client.doGetRequest(endpoint, cloudUser);

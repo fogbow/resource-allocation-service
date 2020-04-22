@@ -17,13 +17,13 @@ public class OpenStackCloudUtils {
     private static final Logger LOGGER = Logger.getLogger(OpenStackCloudUtils.class);
     
     public static final String ACTION = "action";
-    public static final String COMPUTE_NOVA_V2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_NOVA_URL_KEY = "openstack_nova_url";
     public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
     public static final String ENDPOINT_SEPARATOR = "/";
     public static final String EXTERNAL_NETWORK_ID_KEY = "external_gateway_info";
     public static final String INGRESS_DIRECTION = "ingress";
-    public static final String NETWORK_NEUTRON_V2_URL_KEY = "openstack_neutron_v2_url";
+    public static final String NETWORK_NEUTRON_URL_KEY = "openstack_neutron_url";
     public static final String NETWORK_PORTS_RESOURCE = "Network Ports";
     public static final String NETWORK_V2_API_ENDPOINT = "/v2.0";
     public static final String SECURITY_GROUP_RESOURCE = "Security Group";

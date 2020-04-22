@@ -246,14 +246,13 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		RasOperation operation = new RasOperation(
-				Operation.GET_USER_QUOTA,
-				ResourceType.COMPUTE,
+				Operation.GET,
+				ResourceType.QUOTA,
 				DEFAULT_CLOUD_NAME
 		);
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		ResourceType resourceType = ResourceType.COMPUTE;
 
 		CloudConnectorFactory factory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(factory);
@@ -349,7 +348,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		RasOperation operation = new RasOperation(
 				Operation.GET,
-				ResourceType.CLOUD_NAMES
+				ResourceType.CLOUD_NAME
 		);
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);

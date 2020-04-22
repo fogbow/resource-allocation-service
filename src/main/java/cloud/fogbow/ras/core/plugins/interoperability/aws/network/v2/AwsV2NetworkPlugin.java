@@ -42,7 +42,6 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
     protected static final String LOCAL_GATEWAY_DESTINATION = "local";
     protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
     protected static final String SUBNET_RESOURCE = "Subnet";
-    protected static final int SUBNET_ALLOCATION_NUMBER = 1;
 
     private String defaultVpcId;
     private String region;

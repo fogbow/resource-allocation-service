@@ -155,7 +155,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
 		String cpu = String.valueOf(foundFlavor.getCpu());
-		String memory = String.valueOf(foundFlavor.getMemory());
+		String memory = String.valueOf(foundFlavor.getRam());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
@@ -219,7 +219,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
+					&& hardwareRequirements.getRam() >= computeOrder.getRam()
 					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {
 				return hardwareRequirements;
 			}

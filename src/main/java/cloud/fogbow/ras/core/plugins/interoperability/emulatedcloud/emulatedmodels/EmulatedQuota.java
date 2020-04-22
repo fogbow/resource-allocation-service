@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.*;
 
-public class EmulatedComputeQuota implements JsonSerializable {
+public class EmulatedQuota implements JsonSerializable {
 
     @SerializedName(TOTAL_QUOTA_KEY_JSON)
     private Quota totalQuota;
@@ -15,7 +15,7 @@ public class EmulatedComputeQuota implements JsonSerializable {
     @SerializedName(USED_QUOTA_KEY_JSON)
     private Quota usedQuota;
 
-    public EmulatedComputeQuota() {
+    public EmulatedQuota() {
         this.totalQuota = generateNewQuotaObject();
         this.usedQuota = generateNewQuotaObject();
     }

@@ -18,7 +18,6 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
@@ -32,8 +31,6 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.OrderPlugin;
@@ -51,8 +48,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private LocalCloudConnector localCloudConnector;
     private AttachmentPlugin attachmentPlugin;
     private ComputePlugin computePlugin;
-    private ComputeQuotaPlugin computeQuotaPlugin;
-    private GenericRequestPlugin genericRequestPlugin;
     private ImagePlugin imagePlugin;
     private SystemToCloudMapperPlugin mapperPlugin;
     private NetworkPlugin networkPlugin;
@@ -822,7 +817,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
-                Mockito.eq(Operation.GET_USER_QUOTA), Mockito.eq(ResourceType.QUOTA), Mockito.any(SystemUser.class),
+                Mockito.eq(Operation.GET), Mockito.eq(ResourceType.QUOTA), Mockito.any(SystemUser.class),
                 Mockito.anyString());
     }
 
@@ -1136,7 +1131,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     public void testCreateEmptyInstanceWithInvalidResource() {
         // set up
         Order order = Mockito.mock(Order.class);
-        Mockito.when(order.getType()).thenReturn(ResourceType.GENERIC_RESOURCE);
+        Mockito.when(order.getType()).thenReturn(ResourceType.INVALID_RESOURCE);
         
         String expected = Messages.Exception.UNSUPPORTED_REQUEST_TYPE;
 
@@ -1180,7 +1175,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         
         try {
             // exercise
-            this.localCloudConnector.checkOrderCastingAndSetPlugin(order, ResourceType.GENERIC_RESOURCE);
+            this.localCloudConnector.checkOrderCastingAndSetPlugin(order, ResourceType.INVALID_RESOURCE);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -1367,9 +1362,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.networkPlugin = Mockito.mock(NetworkPlugin.class);
         this.volumePlugin = Mockito.mock(VolumePlugin.class);
         this.imagePlugin = Mockito.mock(ImagePlugin.class);
-        this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
         this.publicIpPlugin = Mockito.mock(PublicIpPlugin.class);
-        this.genericRequestPlugin = Mockito.mock(GenericRequestPlugin.class);
         this.mapperPlugin = Mockito.mock(SystemToCloudMapperPlugin.class);
         this.securityRulePlugin = Mockito.mock(SecurityRulePlugin.class);
         this.quotaPlugin = Mockito.mock(QuotaPlugin.class);

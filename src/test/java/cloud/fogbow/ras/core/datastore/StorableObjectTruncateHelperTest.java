@@ -48,7 +48,7 @@ public class StorableObjectTruncateHelperTest {
         ComputeOrder truncated = objectTruncateHelper.truncate(order);
 
         Assert.assertEquals(order.getvCPU(), truncated.getvCPU());
-        Assert.assertEquals(order.getMemory(), truncated.getMemory());
+        Assert.assertEquals(order.getRam(), truncated.getRam());
         Assert.assertEquals(order.getDisk(), truncated.getDisk());
         Assert.assertEquals(order.getUserData(), truncated.getUserData());
         Assert.assertEquals(order.getName(), truncated.getName());

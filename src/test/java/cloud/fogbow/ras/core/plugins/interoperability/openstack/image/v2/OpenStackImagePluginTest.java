@@ -102,7 +102,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         String jsonResponse2 = getImagesJsonWithNext(generatedImages2, nextUrl2);
         String jsonResponse3 = getImagesJson(generatedImages3);
 
-        Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
+        Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCE_URL_KEY)).thenReturn(imageGlancev2UrlKey);
         Mockito.when(this.client.doGetRequest(endpoint1, localUserAttributes)).thenReturn(jsonResponse1);
         Mockito.when(this.client.doGetRequest(endpoint2, localUserAttributes)).thenReturn(jsonResponse2);
         Mockito.when(this.client.doGetRequest(endpoint3, localUserAttributes)).thenReturn(jsonResponse3);

@@ -71,7 +71,7 @@ public class RemoteFacade {
 
     public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_USER_QUOTA, cloudName));
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName));
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
         return cloudConnector.getUserQuota(systemUser);
     }
@@ -92,7 +92,7 @@ public class RemoteFacade {
 
     public List<String> getCloudNames(String requestingProvider, SystemUser systemUser) throws UnexpectedException, UnauthorizedRequestException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES));
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.CLOUD_NAME));
         return this.cloudListController.getCloudNames();
     }
 

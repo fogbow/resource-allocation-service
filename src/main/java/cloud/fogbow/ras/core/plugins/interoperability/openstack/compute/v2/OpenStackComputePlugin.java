@@ -27,7 +27,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
 
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-    public static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_NOVA_URL_KEY = "openstack_nova_url";
     public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     public static final String SERVERS = "/servers";
     public static final String ACTION = "action";
@@ -159,7 +159,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
                     1, hardwareRequirements.getCpu(),
-                    hardwareRequirements.getMemory(),
+                    hardwareRequirements.getRam(),
                     hardwareRequirements.getDisk());
             // When the ComputeOrder is remote, this field must be copied into its local counterpart
             // that is updated when the requestingProvider receives the reply from the providingProvider
@@ -204,7 +204,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     protected String getComputeEndpoint(String projectId, String suffix) {
-        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId + suffix;
+        return this.properties.getProperty(COMPUTE_NOVA_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId + suffix;
     }
 
     protected void deleteKeyName(String projectId, String keyName, OpenStackV3User cloudUser) throws FogbowException {
@@ -265,7 +265,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
         for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getMemory() >= computeOrder.getMemory()
+                    && hardwareRequirements.getRam() >= computeOrder.getRam()
                     && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
                 return hardwareRequirements;
             }

@@ -25,7 +25,6 @@ import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
@@ -136,7 +135,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
-        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
 
         // exercise
         this.facade.getCloudNames(localMember, userToken);
@@ -163,7 +162,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(cloudNamesRequest).when(this.facade).getCloudNamesFromRemoteRequest(Mockito.eq(remoteMember),
                 Mockito.eq(systemUser));
         
-        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
 
         // exercise
         this.facade.getCloudNames(remoteMember, userToken);
@@ -1436,7 +1435,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String providerId = TestUtils.LOCAL_MEMBER_ID;
         ResourceType resourceType = ResourceType.COMPUTE;
 
-        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_QUOTA, TestUtils.DEFAULT_CLOUD_NAME);
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, TestUtils.DEFAULT_CLOUD_NAME);
 
         // exercise
         this.facade.getUserQuota(providerId, cloudName, userToken);
@@ -1452,7 +1451,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
     
     // test case: When calling the authorizeOrder method with resource type
-    // different from order, it must throws an InstanceNotFoundException;
+    // different from COMPUTE, NETWORK, ATTACHMENT, VOLUME or PUBLIC_IP, it must
+    // throw an InstanceNotFoundException;
     @Test
     public void testAuthorizeOrderWithDifferentResourceType() throws FogbowException {
         // set up
@@ -1462,7 +1462,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         try {
             // exercise
-            this.facade.authorizeOrder(null, null, null, ResourceType.GENERIC_RESOURCE, order);
+            this.facade.authorizeOrder(null, null, null, ResourceType.INVALID_RESOURCE, order);
             Assert.fail();
         } catch (InstanceNotFoundException e) {
             // verify
@@ -1546,7 +1546,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     public void testCheckEmbeddedOrdersConsistencyWithUnsupportedResourceType() throws FogbowException {
         // set up
         Order order = Mockito.mock(Order.class);
-        Mockito.when(order.getType()).thenReturn(ResourceType.GENERIC_RESOURCE);
+        Mockito.when(order.getType()).thenReturn(ResourceType.INVALID_RESOURCE);
 
         String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType());
 

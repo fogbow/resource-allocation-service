@@ -219,7 +219,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
     protected int getMemoryValueFrom(InstanceType instanceType) {
         for (AwsHardwareRequirements flavor : getFlavors()) {
             if (flavor.getName().equals(instanceType.toString())) {
-                return flavor.getMemory();
+                return flavor.getRam();
             }
         }
         return 0;
@@ -250,7 +250,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
         synchronized (computeOrder) {
             int vCPU = flavor.getCpu();
-            int memory = flavor.getMemory();
+            int memory = flavor.getRam();
             String imageId = flavor.getImageId();
             Image image = getImageById(imageId, client);
             int disk = getImageSize(image);
@@ -326,10 +326,10 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
 
         updateHardwareRequirements(cloudUser);
         TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
-        int memoryInGB = computeOrder.getMemory()/ONE_GIGABYTE; 
+        int memoryInGB = computeOrder.getRam()/ONE_GIGABYTE; 
         for (AwsHardwareRequirements hardwareRequirements : resultset) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getMemory() >= memoryInGB
+                    && hardwareRequirements.getRam() >= memoryInGB
                     && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
                 return hardwareRequirements;
             }

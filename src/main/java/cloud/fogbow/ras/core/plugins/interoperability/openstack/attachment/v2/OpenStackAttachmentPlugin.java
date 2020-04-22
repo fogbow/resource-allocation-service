@@ -27,7 +27,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     
     private static final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
 
-    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    protected static final String COMPUTE_NOVA_URL_KEY = "openstack_nova_url";
     protected static final String V2_API_ENDPOINT = "/v2/";
     protected static final String EMPTY_STRING = "";
     protected static final String ENDPOINT_SEPARATOR = "/";
@@ -176,7 +176,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     }
     
     protected String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + V2_API_ENDPOINT + projectId;
+        return this.properties.getProperty(COMPUTE_NOVA_URL_KEY) + V2_API_ENDPOINT + projectId;
     }
 
     private void initClient() {

@@ -15,7 +15,6 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -112,7 +111,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 .getHardwareRequirementsList();
         Assert.assertTrue(testUtils.DISK_VALUE <= requirements.getDisk());
         Assert.assertTrue(testUtils.CPU_VALUE <= requirements.getCpu());
-        Assert.assertTrue(testUtils.MEMORY_VALUE <= requirements.getMemory());
+        Assert.assertTrue(testUtils.MEMORY_VALUE <= requirements.getRam());
     }
 
     // test case: when given and order with huge resources it should not be capable
@@ -738,7 +737,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     private Properties getPropertiesMock() {
         Properties properties = Mockito.mock(Properties.class);
 
-        Mockito.when(properties.getProperty(OpenStackComputePlugin.COMPUTE_NOVAV2_URL_KEY))
+        Mockito.when(properties.getProperty(OpenStackComputePlugin.COMPUTE_NOVA_URL_KEY))
                 .thenReturn(this.computeNovaV2UrlKey);
         Mockito.when(properties.getProperty(OpenStackComputePlugin.DEFAULT_NETWORK_ID_KEY))
                 .thenReturn(defaultNetworkId);

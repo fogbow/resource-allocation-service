@@ -114,7 +114,7 @@ public class ApplicationFacade {
 
     public List<String> getCloudNames(String providerId, String userToken) throws FogbowException {
         SystemUser requester = authenticate(userToken);
-        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAMES);
+        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         if (providerId.equals(this.providerId)) {
             return this.cloudListController.getCloudNames();
@@ -371,7 +371,7 @@ public class ApplicationFacade {
         SystemUser requester = authenticate(userToken);
         if (cloudName == null || cloudName.isEmpty())
             cloudName = this.cloudListController.getDefaultCloudName();
-        RasOperation rasOperation = new RasOperation(Operation.GET_USER_QUOTA, cloudName);
+        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.getUserQuota(requester);

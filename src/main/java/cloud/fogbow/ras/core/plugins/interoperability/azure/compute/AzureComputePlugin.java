@@ -149,7 +149,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     VirtualMachineSize getVirtualMachineSize(ComputeOrder computeOrder, AzureUser azureCloudUser)
             throws FogbowException {
 
-        return this.azureVirtualMachineOperation.findVirtualMachineSize(computeOrder.getMemory(),
+        return this.azureVirtualMachineOperation.findVirtualMachineSize(computeOrder.getRam(),
                 computeOrder.getvCPU(), this.defaultRegionName, azureCloudUser);
     }
 

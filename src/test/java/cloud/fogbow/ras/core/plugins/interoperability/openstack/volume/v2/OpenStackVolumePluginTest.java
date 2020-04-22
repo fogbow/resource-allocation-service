@@ -35,7 +35,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
     private static final String AVAILABLE_STATE = "available";
-    private static final String PREFIX_ENDPOINT = "https://cloud.lsd.ufcg.edu.br:8776";
+    private static final String PREFIX_ENDPOINT = "https://mycloud.domain:8776";
     private static final String FAKE_CAPABILITIES = "fake-capabilities";
     private static final String FAKE_NO_MATCH_CAPABILITIES = "fake-no-match-capabilities";
     private static final String FAKE_JSON_REQUEST = "{\"volume\":{\"name\":\"fake-order-name\",\"size\":\"30\"}}";

@@ -25,7 +25,7 @@ import java.util.Properties;
 public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackSecurityRulePlugin.class);
 
-    protected static final String NETWORK_NEUTRON_V2_URL_KEY = "openstack_neutron_v2_url";
+    protected static final String NETWORK_NEUTRON_URL_KEY = "openstack_neutron_url";
     protected static final String V2_API_ENDPOINT = "/v2.0";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
     protected static final String QUERY_PREFIX = "?";
@@ -39,7 +39,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
 
     public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_V2_URL_KEY) + V2_API_ENDPOINT;
+        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }
 

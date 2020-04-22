@@ -50,7 +50,6 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     protected static final int MEMORY_COLUMN = 2;
     protected static final int LIMITS_COLUMN = 11;
     protected static final int ONE_GIGABYTE = 1024;
-    protected static final int ONE_TERABYTE = 1000;
 
     public static int maximumStorage;
     public static int maximumSubnets;

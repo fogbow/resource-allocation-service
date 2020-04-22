@@ -209,7 +209,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     protected String getComputeAssociationEndpoint(String projectId, String computeId) {
-        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_V2_URL_KEY) 
+        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY)
                 + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT 
                 + projectId 
                 + OpenStackCloudUtils.SERVERS
@@ -396,7 +396,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
     
     protected String getNeutronPrefixEndpoint() {
-        return this.properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_V2_URL_KEY);
+        return this.properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY);
     }
     
     protected String getExternalNetworkId() {
