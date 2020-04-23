@@ -28,7 +28,6 @@ import java.util.List;
 public class Compute {
     public static final String COMPUTE_SUFFIX_ENDPOINT = "computes";
     public static final String STATUS_SUFFIX_ENDPOINT = "status";
-    public static final String QUOTA_SUFFIX_ENDPOINT = "quota";
     public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
     public static final String COMPUTE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + COMPUTE_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "compute";
