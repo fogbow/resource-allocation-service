@@ -24,11 +24,8 @@ import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
-import org.opennebula.client.template.Template;
-import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
@@ -46,6 +43,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	protected static final boolean SHUTS_DOWN_HARD = true;
 	private static final int DEFAULT_DISK_VALUE_UNKNOWN = 0;
+	private static final int VALUE_NOT_DEFINED_BY_USER = 0;
+	private static final int MINIMUM_VCPU_VALEU = 1;
+	private static final int MINIMUM_MEMORY_VALEU = 1;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
 	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
@@ -206,86 +206,48 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected HardwareRequirements findSmallestFlavor(Client client, ComputeOrder computeOrder)
 			throws NoAvailableResourcesException, UnexpectedException {
 
-		HardwareRequirements bestFlavor = this.getBestFlavor(client, computeOrder);
-		if (bestFlavor == null) {
-			throw new NoAvailableResourcesException();
-		}
-		return bestFlavor;
+		int disk = getDisk(client, computeOrder);
+		int cpu = getCpu(computeOrder);
+		int memory = getMemory(computeOrder);
+		return new HardwareRequirements.Opennebula(cpu, memory, disk);
 	}
 
-	@Nullable
-	protected HardwareRequirements getBestFlavor(Client client, ComputeOrder computeOrder) throws UnexpectedException, NoAvailableResourcesException {
-		this.updateHardwareRequirements(client);
+	// TODO(chico) - Implement tests
+	@VisibleForTesting
+	int getMemory(ComputeOrder computeOrder) {
+		return computeOrder.getMemory() != VALUE_NOT_DEFINED_BY_USER ?
+				computeOrder.getMemory() : MINIMUM_MEMORY_VALEU;
+	}
 
-		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
-			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()) {
+	// TODO(chico) - Implement tests
+	@VisibleForTesting
+	int getCpu(ComputeOrder computeOrder) {
+		return computeOrder.getvCPU() != VALUE_NOT_DEFINED_BY_USER ?
+				computeOrder.getvCPU() : MINIMUM_VCPU_VALEU;
+	}
 
-				String imageId = computeOrder.getImageId();
-				int minimumImageSize = getMinimumImageSize(client, imageId);
-				if (hardwareRequirements.getDisk() < minimumImageSize ||
-						hardwareRequirements.getDisk() == DEFAULT_DISK_VALUE_UNKNOWN) {
-					hardwareRequirements.setDisk(minimumImageSize);
-				}
-				return hardwareRequirements;
-			}
+	// TODO(chico) - Implement tests
+	@VisibleForTesting
+	int getDisk(Client client, ComputeOrder computeOrder) throws UnexpectedException, NoAvailableResourcesException {
+		String imageId = computeOrder.getImageId();
+		int minimumImageSize = getMinimumImageSize(client, imageId);
+		int disk = computeOrder.getDisk();
+		if (disk == VALUE_NOT_DEFINED_BY_USER) {
+			disk = minimumImageSize;
+		} else if (disk < minimumImageSize) {
+			throw new NoAvailableResourcesException();
 		}
-		return null;
+		return convertDiskSizeToMb(disk);
 	}
 
 	protected int getMinimumImageSize(Client client, String imageId)
 			throws UnexpectedException, NoAvailableResourcesException {
 
 		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
-		String minimumImageSizeStr = imagesSizeMap.get(imageId);
-		if (minimumImageSizeStr == null) {
-			throw new NoAvailableResourcesException(Messages.Exception.IMAGE_NOT_FOUND);
-		}
+		String minimumImageSizeStr = Optional.ofNullable(imagesSizeMap.get(imageId))
+				.orElseThrow(() -> new NoAvailableResourcesException(Messages.Exception.IMAGE_NOT_FOUND));
+
 		return Integer.parseInt(minimumImageSizeStr);
-	}
-
-	protected void updateHardwareRequirements(Client client) throws UnexpectedException {
-		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
-		TemplatePool templatePool = OpenNebulaClientUtil.getTemplatePool(client);
-		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
-
-		if (templatePool != null) {
-			HardwareRequirements flavor;
-			for (Template template : templatePool) {
-				String id = template.getId();
-				String name = template.getName();
-
-				// NOTE(jadsonluan): Some templates may have a decimal CPU number and it do not must convert it
-				// directly to Integer
-				String stringCPU = template.xpath(TEMPLATE_CPU_PATH);
-				double doubleCPU = Double.parseDouble(stringCPU);
-				int cpu = (int) doubleCPU;
-
-				int memory = this.convertToInteger(template.xpath(TEMPLATE_MEMORY_PATH));
-
-				// NOTE(jadsonluan): if template disk size is no set it will be a empty string. In order to work properly
-				// it should be mapped to zero disk size.
-				String stringDisk = template.xpath(TEMPLATE_DISK_SIZE_PATH);
-				int disk = stringDisk.isEmpty() ? 0 : this.convertToInteger(stringDisk);
-
-				// NOTE(pauloewerton): template disk size is not set, so fallback to image disk size
-				if (disk == 0) {
-					String imageId = template.xpath(TEMPLATE_IMAGE_ID_PATH);
-					disk = this.getDiskSizeFromImageSizeMap(imagesSizeMap, imageId);
-				}
-
-				if (cpu != 0 && memory != 0 && disk != 0) {
-					flavor = new HardwareRequirements(name, id, cpu, memory, disk);
-					if (!this.containsFlavor(flavor)) {
-						flavorsTemplate.add(flavor);
-					}
-				}
-			}
-		}
-
-		if (!flavorsTemplate.isEmpty()) {
-			this.flavors.addAll(flavorsTemplate);
-		}
 	}
 
 	protected TreeSet<HardwareRequirements> getFlavors() {
@@ -294,7 +256,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		}
 	}
 
-	protected long convertDiskSizeToMb(int diskSizeInGb) {
+	protected int convertDiskSizeToMb(int diskSizeInGb) {
 		return diskSizeInGb * ONE_GIGABYTE_IN_MEGABYTES;
 	}
 
@@ -308,6 +270,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return imagesSizeMap;
 	}
 
+	// TODO(chico) - It's deprecated; Remove it
 	protected int convertToInteger(String number) {
 		try {
 			return Integer.parseInt(number);
@@ -317,6 +280,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		}
 	}
 
+	// TODO(chico) - It's deprecated; Remove it
 	protected int getDiskSizeFromImageSizeMap(Map<String, String> imageSizeMap, String imageId) {
 		if (imageSizeMap != null && !imageSizeMap.isEmpty() && imageId != null) {
 			String diskSize = imageSizeMap.get(imageId);
