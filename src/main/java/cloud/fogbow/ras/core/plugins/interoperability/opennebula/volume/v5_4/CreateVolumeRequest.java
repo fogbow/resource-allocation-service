@@ -9,7 +9,7 @@ public class CreateVolumeRequest {
     	this.volumeImage.setName(builder.name);
     	this.volumeImage.setImagePersistent(builder.imagePersistent);
     	this.volumeImage.setImageType(builder.imageType);
-    	this.volumeImage.setFileSystemType(builder.fileSystemType);
+    	this.volumeImage.setDriver(builder.driver);
     	this.volumeImage.setDiskType(builder.diskType);
     	this.volumeImage.setDevicePrefix(builder.devicePrefix);
     	this.volumeImage.setSize(builder.size);
@@ -24,7 +24,7 @@ public class CreateVolumeRequest {
     	private String name;
         private String imagePersistent;
         private String imageType;
-        private String fileSystemType;
+        private String driver;
         private String diskType;
         private String devicePrefix;
         private long size;
@@ -44,8 +44,8 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder fileSystemType(String fileSystemType) {
-            this.fileSystemType = fileSystemType;
+        public Builder driver(String driver) {
+            this.driver = driver;
             return this;
         }
 

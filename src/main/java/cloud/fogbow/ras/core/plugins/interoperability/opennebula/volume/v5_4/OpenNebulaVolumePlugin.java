@@ -36,7 +36,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	protected static final String BLOCK_DISK_TYPE = "BLOCK";
 	protected static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
 	protected static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
-	protected static final String FILE_SYSTEM_TYPE_RAW = "raw";
+	protected static final String DRIVER_RAW = "raw";
 	protected static final String PERSISTENT_DISK_CONFIRMATION = "YES";
 	protected static final int CONVERT_DISK = 1024;
 
@@ -68,7 +68,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		String name = volumeName == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + this.getRandomUUID() : volumeName;
 		String imagePersistent = PERSISTENT_DISK_CONFIRMATION;
 		String imageType = DATABLOCK_IMAGE_TYPE;
-		String fileSystemType = FILE_SYSTEM_TYPE_RAW;
+		String driver = DRIVER_RAW;
 		String diskType = BLOCK_DISK_TYPE;
 		String devicePrefix = DEFAULT_DATASTORE_DEVICE_PREFIX;
 		long size = volumeOrder.getVolumeSize() * CONVERT_DISK;
@@ -78,7 +78,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 				.size(size)
 				.imagePersistent(imagePersistent)
 				.imageType(imageType)
-				.fileSystemType(fileSystemType)
+				.driver(driver)
 				.diskType(diskType)
 				.devicePrefix(devicePrefix)
 				.build();
