@@ -19,7 +19,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 
-public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
+public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
 
 	private static final int ONE_THOUSAND_BYTES = 1024;
 	
@@ -27,7 +27,7 @@ public class AwsV2ImagePlugin implements ImagePlugin<AwsV2User> {
 
     private String region;
 
-    public AwsV2ImagePlugin(String confFilePath) {
+    public AwsImagePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }

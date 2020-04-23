@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.ec2.model.Image;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class})
-public class AwsV2ImagePluginTest extends BaseUnitTests {
+public class AwsImagePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
     private static final String CLOUD_NAME = "amazon";
@@ -49,7 +49,7 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
 
     private static final long EXPECTED_IMAGE_SIZE = 8*(long)Math.pow(1024, 3);
 
-    private AwsV2ImagePlugin plugin;
+    private AwsImagePlugin plugin;
 
     @Before
     public void setUp() throws FogbowException{
@@ -61,7 +61,7 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
         testUtils.mockReadOrdersFromDataBase();
-        this.plugin = Mockito.spy(new AwsV2ImagePlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsImagePlugin(awsConfFilePath));
     }
 
     // test case: check if getAllImages returns all images expected in the expected
@@ -204,8 +204,8 @@ public class AwsV2ImagePluginTest extends BaseUnitTests {
                 FIRST_IMAGE_ID,
                 FIRST_IMAGE_NAME,
                 EXPECTED_IMAGE_SIZE,
-                AwsV2ImagePlugin.NO_VALUE_FLAG,
-                AwsV2ImagePlugin.NO_VALUE_FLAG, 
+                AwsImagePlugin.NO_VALUE_FLAG,
+                AwsImagePlugin.NO_VALUE_FLAG,
                 AwsV2StateMapper.AVAILABLE_STATE);
 	}
     

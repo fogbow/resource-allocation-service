@@ -54,7 +54,7 @@ import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
+public class AwsSecurityRulePluginTest extends BaseUnitTests {
 
     private static final String CLOUD_NAME = "amazon";
     private static final String DEFAULT_ADDRESS_RANGE = "24";
@@ -64,7 +64,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     private static final int DEFAULT_PORT_FROM = 0;
     private static final int DEFAULT_PORT_TO = 22;
 
-    private AwsV2SecurityRulePlugin plugin;
+    private AwsSecurityRulePlugin plugin;
     private Ec2Client client;
     
     @Before
@@ -77,7 +77,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
             + File.separator
             + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2SecurityRulePlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsSecurityRulePlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
     }
     
@@ -355,7 +355,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     public void testExtractFieldFromSecurityRuleIdFail() {
         // set up
         String securityRuleId = TestUtils.ANY_VALUE;
-        int position = AwsV2SecurityRulePlugin.FIRST_POSITION;
+        int position = AwsSecurityRulePlugin.FIRST_POSITION;
 
         String expected = String.format(Messages.Exception.INVALID_PARAMETER_S, securityRuleId);
 
@@ -397,8 +397,8 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
                 Mockito.eq(Direction.OUT), Mockito.eq(group.ipPermissionsEgress()));
 
         List<SecurityRuleInstance> expected = loadSecurityRuleInstancesCollection(
-                ingressInstances[AwsV2SecurityRulePlugin.FIRST_POSITION],
-                egressInstances[AwsV2SecurityRulePlugin.FIRST_POSITION]);
+                ingressInstances[AwsSecurityRulePlugin.FIRST_POSITION],
+                egressInstances[AwsSecurityRulePlugin.FIRST_POSITION]);
 
         // exercise
         List<SecurityRuleInstance> instancesList = this.plugin.doGetSecurityRules(instanceId, resourceType, this.client);
@@ -784,7 +784,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testGetProtocolFromAllProtocols() {
         // set up
-        String ipProtocol = AwsV2SecurityRulePlugin.ALL_PROTOCOLS;
+        String ipProtocol = AwsSecurityRulePlugin.ALL_PROTOCOLS;
 
         Protocol expected = Protocol.ANY;
 
@@ -818,7 +818,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testDefineIpProtocolFromAnyProtocol() {
         // set up
-        String expected = AwsV2SecurityRulePlugin.ALL_PROTOCOLS;
+        String expected = AwsSecurityRulePlugin.ALL_PROTOCOLS;
         
         // exercise
         String ipProtocol = this.plugin.defineIpProtocolFrom(Protocol.ANY);
@@ -929,7 +929,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         IpPermission ipPermission = IpPermission.builder()
                 .fromPort(DEFAULT_PORT_FROM)
                 .toPort(DEFAULT_PORT_TO)
-                .ipProtocol(AwsV2SecurityRulePlugin.ALL_PROTOCOLS)
+                .ipProtocol(AwsSecurityRulePlugin.ALL_PROTOCOLS)
                 .ipRanges(buildIpRange())
                 .build();
         
@@ -939,7 +939,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
     private IpRange buildIpRange() {
         IpRange ipRange = IpRange.builder()
                 .cidrIp(DEFAULT_IP_ADDRESS 
-                        + AwsV2SecurityRulePlugin.CIDR_SEPARATOR 
+                        + AwsSecurityRulePlugin.CIDR_SEPARATOR
                         + DEFAULT_ADDRESS_RANGE)
                 .build();
 
@@ -964,12 +964,12 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         int portFrom = DEFAULT_PORT_FROM;
         int portTo = DEFAULT_PORT_TO;
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        String cidr = DEFAULT_IP_ADDRESS + AwsV2SecurityRulePlugin.CIDR_SEPARATOR + DEFAULT_ADDRESS_RANGE;
+        String cidr = DEFAULT_IP_ADDRESS + AwsSecurityRulePlugin.CIDR_SEPARATOR + DEFAULT_ADDRESS_RANGE;
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
     private String defineSecurityRuleId(Direction direction, ResourceType resourceType) {
-        String securityRuleId = String.format(AwsV2SecurityRulePlugin.SECURITY_RULE_IDENTIFIER_FORMAT, 
+        String securityRuleId = String.format(AwsSecurityRulePlugin.SECURITY_RULE_IDENTIFIER_FORMAT,
                 TestUtils.FAKE_INSTANCE_ID,
                 DEFAULT_IP_ADDRESS,
                 DEFAULT_ADDRESS_RANGE,
@@ -987,7 +987,7 @@ public class AwsV2SecurityRulePluginTest extends BaseUnitTests {
         EtherType etherType = EtherType.IPv4;
         int portFrom = DEFAULT_PORT_FROM;
         int portTo = DEFAULT_PORT_TO;
-        String cidr = DEFAULT_IP_ADDRESS + AwsV2SecurityRulePlugin.CIDR_SEPARATOR + DEFAULT_ADDRESS_RANGE;
+        String cidr = DEFAULT_IP_ADDRESS + AwsSecurityRulePlugin.CIDR_SEPARATOR + DEFAULT_ADDRESS_RANGE;
         return new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
     }
     

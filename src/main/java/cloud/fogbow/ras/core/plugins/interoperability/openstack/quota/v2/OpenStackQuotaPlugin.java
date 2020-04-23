@@ -5,6 +5,7 @@ import java.util.Properties;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -25,17 +26,6 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackQuotaPlugin.class);
 
-    protected static final String CINDER_V3_API_ENDPOINT = "/v3";
-    protected static final String VOLUME_CINDER_URL_KEY = "openstack_cinder_url";
-    protected static final String LIMITS_ENDPOINT = "/limits";
-    protected static final String NEUTRON_V2_API_ENDPOINT = "/v2.0";
-    protected static final String NETWORK_NEUTRON_URL_KEY = "openstack_neutron_url";
-    protected static final String NOVA_V2_API_ENDPOINT = "/v2";
-    protected static final String COMPUTE_NOVA_URL_KEY = "openstack_nova_url";
-    protected static final String QUOTAS_ENDPOINT = "/quotas";
-    protected static final String SUFFIX_ENDPOINT = "/details.json";
-    protected static final String URL_SEPARATOR = "/";
-    
     private Properties properties;
     private OpenStackHttpClient client;
     
@@ -127,11 +117,11 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     String getVolumeQuotaEndpoint(@NotBlank String tenantId) {
-        return this.properties.getProperty(VOLUME_CINDER_URL_KEY)
-                .concat(CINDER_V3_API_ENDPOINT)
-                .concat(URL_SEPARATOR)
+        return this.properties.getProperty(OpenStackCloudUtils.VOLUME_CINDER_URL_KEY)
+                .concat(OpenStackConstants.CINDER_V3_API_ENDPOINT)
+                .concat(OpenStackConstants.ENDPOINT_SEPARATOR)
                 .concat(tenantId)
-                .concat(LIMITS_ENDPOINT);
+                .concat(OpenStackConstants.LIMITS_ENDPOINT);
     }
 
     @VisibleForTesting
@@ -144,12 +134,12 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     String getNetworkQuotaEndpoint(@NotBlank String tenantId) {
-        return this.properties.getProperty(NETWORK_NEUTRON_URL_KEY)
-                .concat(NEUTRON_V2_API_ENDPOINT)
-                .concat(QUOTAS_ENDPOINT)
-                .concat(URL_SEPARATOR)
+        return this.properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY)
+                .concat(OpenStackConstants.NEUTRON_V2_API_ENDPOINT)
+                .concat(OpenStackConstants.QUOTAS_ENDPOINT)
+                .concat(OpenStackConstants.ENDPOINT_SEPARATOR)
                 .concat(tenantId)
-                .concat(SUFFIX_ENDPOINT);
+                .concat(OpenStackConstants.SUFFIX_ENDPOINT);
     }
     
     @VisibleForTesting
@@ -166,9 +156,9 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @VisibleForTesting
     String getComputeQuotaEndpoint() {
-        return this.properties.getProperty(COMPUTE_NOVA_URL_KEY)
-                .concat(NOVA_V2_API_ENDPOINT)
-                .concat(LIMITS_ENDPOINT);
+        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY)
+                .concat(OpenStackConstants.NOVA_V2_API_ENDPOINT)
+                .concat(OpenStackConstants.LIMITS_ENDPOINT);
     }
 
     @VisibleForTesting

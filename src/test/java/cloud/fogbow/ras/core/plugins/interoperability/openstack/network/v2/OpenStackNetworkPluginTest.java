@@ -68,7 +68,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
         testUtils.mockReadOrdersFromDataBase();
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
-        this.properties.put(OpenStackNetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
+        this.properties.put(OpenStackCloudUtils.EXTERNAL_NETWORK_ID_KEY, DEFAULT_GATEWAY_INFO);
         this.properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;

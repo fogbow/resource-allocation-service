@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
 import java.util.Properties;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -27,13 +28,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     
     private static final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
 
-    protected static final String COMPUTE_NOVA_URL_KEY = "openstack_nova_url";
-    protected static final String V2_API_ENDPOINT = "/v2/";
     protected static final String EMPTY_STRING = "";
-    protected static final String ENDPOINT_SEPARATOR = "/";
-    protected static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    protected static final String SERVERS = "/servers/";
-    
+
     private Properties properties;
     private OpenStackHttpClient client;
 
@@ -57,9 +53,10 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String endpoint = getPrefixEndpoint(projectId) 
-                + SERVERS 
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + serverId 
-                + OS_VOLUME_ATTACHMENTS;
+                + OpenStackConstants.OS_VOLUME_ATTACHMENTS;
 
         String volumeId = attachmentOrder.getVolumeId();
         String device = attachmentOrder.getDevice();
@@ -75,10 +72,11 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId) 
-                + SERVERS 
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + serverId 
-                + OS_VOLUME_ATTACHMENTS 
-                + ENDPOINT_SEPARATOR
+                + OpenStackConstants.OS_VOLUME_ATTACHMENTS
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + volumeId;
         
         doDeleteInstance(endpoint, cloudUser);
@@ -90,10 +88,11 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId) 
-                + SERVERS 
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + serverId 
-                + OS_VOLUME_ATTACHMENTS 
-                + ENDPOINT_SEPARATOR 
+                + OpenStackConstants.OS_VOLUME_ATTACHMENTS
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + volumeId;
         
         GetAttachmentResponse response = doGetInstance(endpoint, cloudUser);
@@ -176,7 +175,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     }
     
     protected String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(COMPUTE_NOVA_URL_KEY) + V2_API_ENDPOINT + projectId;
+        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY) +
+                OpenStackConstants.NOVA_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId;
     }
 
     private void initClient() {

@@ -39,9 +39,9 @@ import software.amazon.awssdk.services.ec2.model.ReleaseAddressRequest;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
-public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
+public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
-    private static final Logger LOGGER = Logger.getLogger(AwsV2PublicIpPlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AwsPublicIpPlugin.class);
 
     protected static final String AWS_TAG_ASSOCIATION_ID = "associationId";
     protected static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
@@ -55,7 +55,7 @@ public class AwsV2PublicIpPlugin implements PublicIpPlugin<AwsV2User> {
     private String defaultVpcId;
     private String region;
 
-    public AwsV2PublicIpPlugin(String confFilePath) {
+    public AwsPublicIpPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
         this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);

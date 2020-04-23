@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 
-import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -8,28 +7,19 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.GetSecurityGroupsResponse;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 public class OpenStackCloudUtils {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackCloudUtils.class);
-    
-    public static final String ACTION = "action";
+
     public static final String COMPUTE_NOVA_URL_KEY = "openstack_nova_url";
-    public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-    public static final String ENDPOINT_SEPARATOR = "/";
-    public static final String EXTERNAL_NETWORK_ID_KEY = "external_gateway_info";
-    public static final String INGRESS_DIRECTION = "ingress";
     public static final String NETWORK_NEUTRON_URL_KEY = "openstack_neutron_url";
-    public static final String NETWORK_PORTS_RESOURCE = "Network Ports";
-    public static final String NETWORK_V2_API_ENDPOINT = "/v2.0";
-    public static final String SECURITY_GROUP_RESOURCE = "Security Group";
-    public static final String SECURITY_GROUP_RULES = "/security-group-rules";
-    public static final String SECURITY_GROUPS = "/security-groups";
-    public static final String SERVERS = "/servers";
+    public static final String VOLUME_NOVA_URL_KEY = "openstack_cinder_url";
+    public static final String VOLUME_CINDER_URL_KEY = "openstack_cinder_url";
+    public static final String IMAGE_GLANCE_URL_KEY = "openstack_glance_url";
+    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    public static final String EXTERNAL_NETWORK_ID_KEY = "external_gateway_info";
 
     public static String getProjectIdFrom(OpenStackV3User cloudUser) throws InvalidParameterException {
         String projectId = cloudUser.getProjectId();

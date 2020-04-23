@@ -38,9 +38,9 @@ import javax.validation.constraints.NotNull;
  * flavors.csv file, and the amount of resource for each instance used by the
  * user.
  */
-public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
+public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
 
-    private static final Logger LOGGER = Logger.getLogger(AwsV2QuotaPlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AwsQuotaPlugin.class);
 
     protected static final String COMMENTED_LINE_PREFIX = "#";
     protected static final String CSV_COLUMN_SEPARATOR = ",";
@@ -60,7 +60,7 @@ public class AwsV2QuotaPlugin implements QuotaPlugin<AwsV2User> {
     private String flavorsFilePath;
     private String region;
 
-    public AwsV2QuotaPlugin(@NotNull String confFilePath) {
+    public AwsQuotaPlugin(@NotNull String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
         this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);

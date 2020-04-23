@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2VolumePluginTest extends BaseUnitTests {
+public class AwsVolumePluginTest extends BaseUnitTests {
 
     private static final String AWS_TAG_NAME = "Name";
     private static final String CLOUD_NAME = "amazon";
@@ -46,7 +46,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
 	
     private static final int ONE_GIGABYTE = 1;
 
-    private AwsV2VolumePlugin plugin;
+    private AwsVolumePlugin plugin;
     private Ec2Client client;
 	
     @Before
@@ -59,7 +59,7 @@ public class AwsV2VolumePluginTest extends BaseUnitTests {
                 + File.separator 
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2VolumePlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsVolumePlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
     }
 	

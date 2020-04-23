@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2;
 
-import static org.assertj.core.api.Assertions.in;
-
 import java.io.File;
 
 import org.junit.Assert;
@@ -44,13 +42,13 @@ import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 import software.amazon.awssdk.services.ec2.model.VolumeAttachmentState;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2AttachmentPluginTest extends BaseUnitTests {
+public class AwsAttachmentPluginTest extends BaseUnitTests {
 
     private static final String ANOTHER_DEVICE_NAME = "/dev/xvda";
     private static final String ANY_VALUE = "anything";
     private static final String CLOUD_NAME = "amazon";
 
-    private AwsV2AttachmentPlugin plugin;
+    private AwsAttachmentPlugin plugin;
     private Ec2Client client;
 
     @Before
@@ -63,7 +61,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
                 + File.separator 
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2AttachmentPlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsAttachmentPlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
     }
 
@@ -255,7 +253,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
         Mockito.when(this.client.detachVolume(Mockito.eq(request))).thenThrow(SdkClientException.class);
 
         String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
-                AwsV2AttachmentPlugin.RESOURCE_NAME, volumeId);
+                AwsAttachmentPlugin.RESOURCE_NAME, volumeId);
         try {
             // exercise
             this.plugin.doDeleteInstance(volumeId, this.client);
@@ -362,7 +360,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testGetDeviceNameAttachedWithNullValue() {
         // set up
-        String expected = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
+        String expected = AwsAttachmentPlugin.DEFAULT_DEVICE_NAME;
 
         // exercise
         String actual = this.plugin.getAttachedDeviceName(null);
@@ -376,7 +374,7 @@ public class AwsV2AttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testGetDeviceNameAttachedWithEmptyString() {
         // set up
-        String expected = AwsV2AttachmentPlugin.DEFAULT_DEVICE_NAME;
+        String expected = AwsAttachmentPlugin.DEFAULT_DEVICE_NAME;
 
         // exercise
         String device = this.plugin.getAttachedDeviceName(TestUtils.EMPTY_STRING);

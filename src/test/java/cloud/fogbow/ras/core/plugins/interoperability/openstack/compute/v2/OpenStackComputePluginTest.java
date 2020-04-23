@@ -737,9 +737,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     private Properties getPropertiesMock() {
         Properties properties = Mockito.mock(Properties.class);
 
-        Mockito.when(properties.getProperty(OpenStackComputePlugin.COMPUTE_NOVA_URL_KEY))
+        Mockito.when(properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY))
                 .thenReturn(this.computeNovaV2UrlKey);
-        Mockito.when(properties.getProperty(OpenStackComputePlugin.DEFAULT_NETWORK_ID_KEY))
+        Mockito.when(properties.getProperty(OpenStackCloudUtils.DEFAULT_NETWORK_ID_KEY))
                 .thenReturn(defaultNetworkId);
 
         return properties;

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.HttpResponseException;
@@ -34,12 +35,6 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     
     private static final Logger LOGGER = Logger.getLogger(OpenStackVolumePlugin.class);
 
-    protected static final String ENDPOINT_SEPARATOR = "/";
-    protected static final String V2_API_ENDPOINT = "/v2/";
-    protected static final String VOLUMES = "/volumes";
-    protected static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
-    protected static final String TYPES = "/types";
-    
     private Properties properties;
     private OpenStackHttpClient client;
 
@@ -65,7 +60,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         String name = order.getName();
         String volumeTypeId = findVolumeTypeId(order.getRequirements(), projectId, cloudUser);
         String jsonRequest = generateJsonRequest(size, name, volumeTypeId);
-        String endpoint = getPrefixEndpoint(projectId) + VOLUMES;
+        String endpoint = getPrefixEndpoint(projectId) + OpenStackConstants.VOLUMES_ENDPOINT;
         
         GetVolumeResponse volumeResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
         setAllocationToOrder(order);
@@ -85,8 +80,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     public VolumeInstance getInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
-                + VOLUMES 
-                + ENDPOINT_SEPARATOR 
+                + OpenStackConstants.VOLUMES_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + order.getInstanceId();
 
         return doGetInstance(endpoint, cloudUser);
@@ -96,8 +91,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     public void deleteInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
-                + VOLUMES 
-                + ENDPOINT_SEPARATOR 
+                + OpenStackConstants.VOLUMES_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + order.getInstanceId();
         
         doDeleteInstance(endpoint, cloudUser);
@@ -148,7 +143,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     }
     
     protected String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT + projectId;
+        return this.properties.getProperty(OpenStackCloudUtils.VOLUME_NOVA_URL_KEY) +
+                OpenStackConstants.CINDER_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId;
     }
     
     protected String generateJsonRequest(String size, String name, String volumeTypeId) throws JSONException {
@@ -168,7 +164,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
             return null;
         }
         
-        String endpoint = getPrefixEndpoint(projectId) + TYPES;
+        String endpoint = getPrefixEndpoint(projectId) + OpenStackConstants.TYPES_ENDPOINT;
         String json = doGetResponseFromCloud(endpoint, cloudUser);
         GetAllTypesResponse response = doGetAllTypesResponseFrom(json);
         List<Type> types = response.getTypes();

@@ -34,9 +34,9 @@ import software.amazon.awssdk.services.ec2.model.Route;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 
-public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
+public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
 
-    private static final Logger LOGGER = Logger.getLogger(AwsV2NetworkPlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AwsNetworkPlugin.class);
 
     protected static final String ALL_PROTOCOLS = "-1";
     protected static final String LOCAL_GATEWAY_DESTINATION = "local";
@@ -47,7 +47,7 @@ public class AwsV2NetworkPlugin implements NetworkPlugin<AwsV2User> {
     private String region;
     private String zone;
 
-    public AwsV2NetworkPlugin(String confFilePath) {
+    public AwsNetworkPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultVpcId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_ID_KEY);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);

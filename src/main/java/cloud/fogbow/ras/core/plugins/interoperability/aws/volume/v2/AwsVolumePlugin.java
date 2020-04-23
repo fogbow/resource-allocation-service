@@ -28,15 +28,15 @@ import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
-public class AwsV2VolumePlugin implements VolumePlugin<AwsV2User> {
+public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
 
-	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
+	private static final Logger LOGGER = Logger.getLogger(AwsVolumePlugin.class);
 	private static final String RESOURCE_NAME = "Volume";
 	
 	private String region;
 	private String zone;
 	
-	public AwsV2VolumePlugin(String confFilePath) {
+	public AwsVolumePlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 		this.zone = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);

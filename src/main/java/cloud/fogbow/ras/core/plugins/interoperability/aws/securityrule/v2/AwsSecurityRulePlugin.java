@@ -41,9 +41,9 @@ import software.amazon.awssdk.services.ec2.model.RevokeSecurityGroupIngressReque
 import software.amazon.awssdk.services.ec2.model.SecurityGroup;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 
-public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
+public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
-    private static final Logger LOGGER = Logger.getLogger(AwsV2SecurityRulePlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AwsSecurityRulePlugin.class);
     
     private static final String EGRESS_DIRECTION = "OUT";
     private static final String INGRESS_DIRECTION = "IN";
@@ -66,7 +66,7 @@ public class AwsV2SecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     
     private String region;
 
-    public AwsV2SecurityRulePlugin(String confFilePath) {
+    public AwsSecurityRulePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
     }

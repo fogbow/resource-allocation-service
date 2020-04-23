@@ -51,7 +51,7 @@ import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2PublicIpPluginTest extends BaseUnitTests {
+public class AwsPublicIpPluginTest extends BaseUnitTests {
 
     private static final String CLOUD_NAME = "amazon";
     private static final String FAKE_ALLOCATION_ID = "fake-allocation-id";
@@ -63,7 +63,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
     private static final String FAKE_NETWORK_INTERFACE_ID = "fake-network-interface-id";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
 	
-    private AwsV2PublicIpPlugin plugin;
+    private AwsPublicIpPlugin plugin;
     private Ec2Client client;
 
     @Before
@@ -76,7 +76,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
                 + File.separator 
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2PublicIpPlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsPublicIpPlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
     }
 	
@@ -489,7 +489,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
         PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.CREATE_TAGS_REQUEST_METHOD,
-                Mockito.eq(allocationId), Mockito.eq(AwsV2PublicIpPlugin.AWS_TAG_ASSOCIATION_ID),
+                Mockito.eq(allocationId), Mockito.eq(AwsPublicIpPlugin.AWS_TAG_ASSOCIATION_ID),
                 Mockito.eq(associationId), Mockito.eq(this.client));
 
         // exercise
@@ -500,7 +500,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         
         PowerMockito.verifyStatic(AwsV2CloudUtil.class);
         AwsV2CloudUtil.createTagsRequest(Mockito.eq(allocationId),
-                Mockito.eq(AwsV2PublicIpPlugin.AWS_TAG_ASSOCIATION_ID), Mockito.eq(associationId),
+                Mockito.eq(AwsPublicIpPlugin.AWS_TAG_ASSOCIATION_ID), Mockito.eq(associationId),
                 Mockito.eq(this.client));
     }
     
@@ -775,17 +775,17 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         // set up
         String allocationId = FAKE_ALLOCATION_ID;
         String defaultVpcId = FAKE_DEFAULT_VPC_ID;
-        String description = AwsV2PublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
+        String description = AwsPublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
         String groupId = FAKE_GROUP_ID;
         String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
         String tagKey = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
 
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
-                .cidrIp(AwsV2PublicIpPlugin.DEFAULT_DESTINATION_CIDR)
-                .fromPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
-                .toPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
+                .cidrIp(AwsPublicIpPlugin.DEFAULT_DESTINATION_CIDR)
+                .fromPort(AwsPublicIpPlugin.SSH_DEFAULT_PORT)
+                .toPort(AwsPublicIpPlugin.SSH_DEFAULT_PORT)
                 .groupId(groupId)
-                .ipProtocol(AwsV2PublicIpPlugin.TCP_PROTOCOL)
+                .ipProtocol(AwsPublicIpPlugin.TCP_PROTOCOL)
                 .build();
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
@@ -822,16 +822,16 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
         // set up
         String allocationId = FAKE_ALLOCATION_ID;
         String defaultVpcId = FAKE_DEFAULT_VPC_ID;
-        String description = AwsV2PublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
+        String description = AwsPublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
         String groupId = FAKE_GROUP_ID;
         String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
 
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
-                .cidrIp(AwsV2PublicIpPlugin.DEFAULT_DESTINATION_CIDR)
-                .fromPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
-                .toPort(AwsV2PublicIpPlugin.SSH_DEFAULT_PORT)
+                .cidrIp(AwsPublicIpPlugin.DEFAULT_DESTINATION_CIDR)
+                .fromPort(AwsPublicIpPlugin.SSH_DEFAULT_PORT)
+                .toPort(AwsPublicIpPlugin.SSH_DEFAULT_PORT)
                 .groupId(groupId)
-                .ipProtocol(AwsV2PublicIpPlugin.TCP_PROTOCOL)
+                .ipProtocol(AwsPublicIpPlugin.TCP_PROTOCOL)
                 .build();
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
@@ -949,7 +949,7 @@ public class AwsV2PublicIpPluginTest extends BaseUnitTests {
     }
     
     private Address buildAddress() {
-        Tag tagAssociationId = buildTag(AwsV2PublicIpPlugin.AWS_TAG_ASSOCIATION_ID, FAKE_ASSOCIATION_ID);
+        Tag tagAssociationId = buildTag(AwsPublicIpPlugin.AWS_TAG_ASSOCIATION_ID, FAKE_ASSOCIATION_ID);
         Tag tagGroupId = buildTag(AwsV2CloudUtil.AWS_TAG_GROUP_ID, FAKE_GROUP_ID);
 
         Address address = Address.builder()

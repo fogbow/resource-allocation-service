@@ -5,7 +5,7 @@ import cloud.fogbow.as.core.systemidp.plugins.cloudstack.CloudStackSystemIdentit
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.plugins.cloudidp.cloudstack.CloudStackIdentityProviderPlugin;
+import cloud.fogbow.common.plugins.cloudidp.cloudstack.v4_9.CloudStackIdentityProviderPlugin;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;

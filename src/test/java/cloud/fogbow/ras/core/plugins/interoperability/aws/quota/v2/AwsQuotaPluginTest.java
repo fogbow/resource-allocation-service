@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @PrepareForTest({AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2QuotaPluginTest extends BaseUnitTests {
+public class AwsQuotaPluginTest extends BaseUnitTests {
     private static final String CLOUD_NAME = "amazon";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
@@ -39,7 +39,7 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
     private static final int ONE_VALUE = 1;
     private static final String FAKE_PUBLIC_ID = "173.4.1.2";
 
-    private AwsV2QuotaPlugin plugin;
+    private AwsQuotaPlugin plugin;
     private Ec2Client client;
 
     @Before
@@ -52,7 +52,7 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
                 + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2QuotaPlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsQuotaPlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
     }
 
@@ -226,9 +226,9 @@ public class AwsV2QuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(computeAllocation.getvCPU(), totalQuota.getvCPU());
         Assert.assertEquals(computeAllocation.getRam(), totalQuota.getRam());
         Assert.assertEquals(computeAllocation.getInstances(), totalQuota.getInstances());
-        Assert.assertEquals(AwsV2QuotaPlugin.maximumStorage, totalQuota.getStorage());
-        Assert.assertEquals(AwsV2QuotaPlugin.maximumSubnets, totalQuota.getNetworks());
-        Assert.assertEquals(AwsV2QuotaPlugin.maximumPublicIpAddresses, totalQuota.getPublicIps());
+        Assert.assertEquals(AwsQuotaPlugin.maximumStorage, totalQuota.getStorage());
+        Assert.assertEquals(AwsQuotaPlugin.maximumSubnets, totalQuota.getNetworks());
+        Assert.assertEquals(AwsQuotaPlugin.maximumPublicIpAddresses, totalQuota.getPublicIps());
     }
 
     // test case: When calling the getAllVolumesSize method, it must verify that

@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2NetworkPluginTest extends BaseUnitTests {
+public class AwsNetworkPluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
     private static final String CLOUD_NAME = "amazon";
@@ -56,7 +56,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
     private static final String FAKE_VPC_ID = "fake-vpc-id";
 	
-    private AwsV2NetworkPlugin plugin;
+    private AwsNetworkPlugin plugin;
     private Ec2Client client;
 
     @Before
@@ -69,7 +69,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
                 + File.separator 
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2NetworkPlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsNetworkPlugin(awsConfFilePath));
         this.client = this.testUtils.getAwsMockedClient();
     }
 	
@@ -316,7 +316,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         // set up
         String subnetId = FAKE_SUBNET_ID;
         String cidr = FAKE_CIDR_ADDRESS;
-        String descrition = AwsV2NetworkPlugin.SECURITY_GROUP_DESCRIPTION;
+        String descrition = AwsNetworkPlugin.SECURITY_GROUP_DESCRIPTION;
         String groupId = FAKE_GROUP_ID;
         String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
         String tagKey = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
@@ -332,7 +332,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
                 .cidrIp(cidr)
                 .groupId(groupId)
-                .ipProtocol(AwsV2NetworkPlugin.ALL_PROTOCOLS)
+                .ipProtocol(AwsNetworkPlugin.ALL_PROTOCOLS)
                 .build();
 
         PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD, Mockito.eq(request),
@@ -363,7 +363,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         // set up
         String subnetId = FAKE_SUBNET_ID;
         String cidr = FAKE_CIDR_ADDRESS;
-        String descrition = AwsV2NetworkPlugin.SECURITY_GROUP_DESCRIPTION;
+        String descrition = AwsNetworkPlugin.SECURITY_GROUP_DESCRIPTION;
         String groupId = FAKE_GROUP_ID;
         String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
         String tagKey = AwsV2CloudUtil.AWS_TAG_GROUP_ID;
@@ -379,7 +379,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
                 .cidrIp(cidr)
                 .groupId(groupId)
-                .ipProtocol(AwsV2NetworkPlugin.ALL_PROTOCOLS)
+                .ipProtocol(AwsNetworkPlugin.ALL_PROTOCOLS)
                 .build();
 
         UnexpectedException exception = new UnexpectedException();
@@ -483,7 +483,7 @@ public class AwsV2NetworkPluginTest extends BaseUnitTests {
 
         String subnetId = FAKE_SUBNET_ID;
         String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
-                AwsV2NetworkPlugin.SUBNET_RESOURCE, subnetId);
+                AwsNetworkPlugin.SUBNET_RESOURCE, subnetId);
         try {
             // exercise
             this.plugin.doDeleteSubnet(subnetId, this.client);

@@ -53,9 +53,9 @@ import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
-public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
+public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
-    private static final Logger LOGGER = Logger.getLogger(AwsV2ComputePlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AwsComputePlugin.class);
 	
     private static final String COMMENTED_LINE_PREFIX = "#";
     private static final String CSV_COLUMN_SEPARATOR = ",";
@@ -92,7 +92,7 @@ public class AwsV2ComputePlugin implements ComputePlugin<AwsV2User> {
     private TreeSet<AwsHardwareRequirements> flavors;
     private LaunchCommandGenerator launchCommandGenerator;
 
-    public AwsV2ComputePlugin(String confFilePath) {
+    public AwsComputePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
         this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);

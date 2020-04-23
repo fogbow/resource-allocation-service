@@ -62,7 +62,7 @@ import software.amazon.awssdk.services.ec2.model.TerminateInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
-public class AwsV2ComputePluginTest extends BaseUnitTests {
+public class AwsComputePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
     private static final String AWS_TAG_NAME = "Name";
@@ -83,7 +83,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     private static final int INSTANCE_TYPE_LIMIT_VALUE = 5;
     private static final int ZERO_VALUE = 0;
 	
-    private AwsV2ComputePlugin plugin;
+    private AwsComputePlugin plugin;
     private Ec2Client client;
     private LaunchCommandGenerator launchCommandGenerator;
 
@@ -98,7 +98,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
                 + File.separator 
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
 
-        this.plugin = Mockito.spy(new AwsV2ComputePlugin(awsConfFilePath));
+        this.plugin = Mockito.spy(new AwsComputePlugin(awsConfFilePath));
         this.plugin.setLaunchCommandGenerator(launchCommandGenerator);
         this.client = this.testUtils.getAwsMockedClient();
     }
@@ -276,7 +276,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.when(this.client.terminateInstances(Mockito.any(TerminateInstancesRequest.class)))
                 .thenThrow(SdkClientException.builder().build());
 
-        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, AwsV2ComputePlugin.RESOURCE_NAME,
+        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, AwsComputePlugin.RESOURCE_NAME,
                 instanceId);
 
         try {
@@ -338,7 +338,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(FLAVOR_MEMORY_VALUE).when(this.plugin).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
 
         List<Volume> volumes = createVolumesCollection();
-        Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
+        Mockito.doReturn(AwsComputePlugin.ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
 
         List<String> ipAddresses = buildIpAdressesCollection();
         Mockito.doReturn(ipAddresses).when(this.plugin).getIpAddresses(Mockito.eq(instance));
@@ -415,7 +415,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     public void testGetAllDisksSize() {
         // set up
         List volumes = createVolumesCollection();
-        int expected = AwsV2ComputePlugin.ONE_GIGABYTE;
+        int expected = AwsComputePlugin.ONE_GIGABYTE;
         
         // exercise
         int size = this.plugin.getAllDisksSize(volumes);
@@ -513,7 +513,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Image image = buildImage();
 
         Mockito.doReturn(image).when(this.plugin).getImageById(Mockito.eq(imageId), Mockito.eq(client));
-        Mockito.doReturn(AwsV2ComputePlugin.ONE_GIGABYTE).when(this.plugin).getImageSize(Mockito.eq(image));
+        Mockito.doReturn(AwsComputePlugin.ONE_GIGABYTE).when(this.plugin).getImageSize(Mockito.eq(image));
 
         // exercise
         this.plugin.updateInstanceAllocation(order, flavor, instance, client);
@@ -723,7 +723,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     public void testGetFlavorsByRequirements() {
         // set up
         Map<String, String> requirements = new HashMap<String, String>();
-        requirements.put(AwsV2ComputePlugin.STORAGE_REQUIREMENT, STORAGE_REQUIREMENT_VALUE);
+        requirements.put(AwsComputePlugin.STORAGE_REQUIREMENT, STORAGE_REQUIREMENT_VALUE);
 
         AwsHardwareRequirements flavor = createFlavor(null);
         AwsHardwareRequirements flavorWithRequirements = createFlavor(requirements);
@@ -787,8 +787,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
     public void testFilterFlavors() {
         // set up
         Map<String, String> requirements = new HashMap<String, String>();
-        requirements.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, PROCESSOR_REQUIREMENT_VALUE);
-        requirements.put(AwsV2ComputePlugin.GRAPHIC_PROCESSOR_REQUIREMENT, String.valueOf(TestUtils.CPU_VALUE));
+        requirements.put(AwsComputePlugin.PROCESSOR_REQUIREMENT, PROCESSOR_REQUIREMENT_VALUE);
+        requirements.put(AwsComputePlugin.GRAPHIC_PROCESSOR_REQUIREMENT, String.valueOf(TestUtils.CPU_VALUE));
 
         AwsHardwareRequirements flavor = createFlavor(new HashMap<String, String>());
         AwsHardwareRequirements flavorWithRequirements = createFlavor(requirements);
@@ -865,14 +865,14 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(TestUtils.FAKE_FLAVOR_ID).when(this.plugin).generateFlavorId();
 
         Map<String, String> requirementMap = new HashMap<String, String>();
-        requirementMap.put(AwsV2ComputePlugin.BANDWIDTH_REQUIREMENT, BANDWIDTH_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.GRAPHIC_EMULATION_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.GRAPHIC_MEMORY_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.GRAPHIC_PROCESSOR_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.GRAPHIC_SHARING_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.PERFORMANCE_REQUIREMENT, NETWORK_PERFORMANCE_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.PROCESSOR_REQUIREMENT, PROCESSOR_REQUIREMENT_VALUE);
-        requirementMap.put(AwsV2ComputePlugin.STORAGE_REQUIREMENT, STORAGE_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.BANDWIDTH_REQUIREMENT, BANDWIDTH_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.GRAPHIC_EMULATION_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.GRAPHIC_MEMORY_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.GRAPHIC_PROCESSOR_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.GRAPHIC_SHARING_REQUIREMENT, NO_SUPPORT_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.PERFORMANCE_REQUIREMENT, NETWORK_PERFORMANCE_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.PROCESSOR_REQUIREMENT, PROCESSOR_REQUIREMENT_VALUE);
+        requirementMap.put(AwsComputePlugin.STORAGE_REQUIREMENT, STORAGE_REQUIREMENT_VALUE);
         AwsHardwareRequirements expected = createFlavor(requirementMap);
 
         AwsHardwareRequirements flavor = null;
@@ -968,7 +968,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
 
     private EbsBlockDevice buildEbsBlockDevice() {
         EbsBlockDevice ebsBlockDevice = EbsBlockDevice.builder()
-                .volumeSize(AwsV2ComputePlugin.ONE_GIGABYTE)
+                .volumeSize(AwsComputePlugin.ONE_GIGABYTE)
                 .build();
         
         return ebsBlockDevice;
@@ -1005,7 +1005,7 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         Volume[] volumes = { 
                 Volume.builder()
                     .volumeId(TestUtils.FAKE_VOLUME_ID)
-                    .size(AwsV2ComputePlugin.ONE_GIGABYTE)
+                    .size(AwsComputePlugin.ONE_GIGABYTE)
                     .build() 
                 };
         return Arrays.asList(volumes);
@@ -1078,8 +1078,8 @@ public class AwsV2ComputePluginTest extends BaseUnitTests {
         RunInstancesRequest request = RunInstancesRequest.builder()
                 .imageId(flavor.getImageId())
                 .instanceType(InstanceType.T2_MICRO)
-                .maxCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
-                .minCount(AwsV2ComputePlugin.INSTANCES_LAUNCH_NUMBER)
+                .maxCount(AwsComputePlugin.INSTANCES_LAUNCH_NUMBER)
+                .minCount(AwsComputePlugin.INSTANCES_LAUNCH_NUMBER)
                 .networkInterfaces(createNetworkInterfaceCollection())
                 .userData(this.launchCommandGenerator.createLaunchCommand(order))
                 .build();

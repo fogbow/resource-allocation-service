@@ -19,7 +19,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2.AwsV2VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2.AwsVolumePlugin;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttachVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
@@ -28,16 +28,16 @@ import software.amazon.awssdk.services.ec2.model.DetachVolumeRequest;
 import software.amazon.awssdk.services.ec2.model.Volume;
 import software.amazon.awssdk.services.ec2.model.VolumeAttachment;
 
-public class AwsV2AttachmentPlugin implements AttachmentPlugin<AwsV2User> {
+public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
-	private static final Logger LOGGER = Logger.getLogger(AwsV2VolumePlugin.class);
+	private static final Logger LOGGER = Logger.getLogger(AwsVolumePlugin.class);
 	
 	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
 	protected static final String RESOURCE_NAME = "Attachment";
 
 	private String region;
 
-	public AwsV2AttachmentPlugin(String confFilePath) {
+	public AwsAttachmentPlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
 	}
