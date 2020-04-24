@@ -235,6 +235,38 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertEquals(diskExpected, flavorDisk);
 	}
 
+	// test case: when invoking getFlavorVcpu with valid compute order and vcpu was specified
+	// , the plugin should return the same vcpu specified by user.
+	@Test
+	public void testGetFlavorVcpuSuccessfully() {
+		// set up
+		int vcpuExpected = 3;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getvCPU()).thenReturn(vcpuExpected);
+
+		// exercise
+		int flavorVcpu = this.plugin.getFlavorVcpu(computeOrder);
+
+		// verify
+		Assert.assertEquals(vcpuExpected, flavorVcpu);
+	}
+
+	// test case: when invoking getFlavorVcpu with valid compute order and vcpu was not specified
+	// , the plugin should return the default vcpu value.
+	@Test
+	public void testGetFlavorVcpuSuccessfullyDefaultValue() {
+		// set up
+		int vcpuExpected = VALUE_NOT_DEFINED_BY_USER;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getvCPU()).thenReturn(vcpuExpected);
+
+		// exercise
+		int flavorVcpu = this.plugin.getFlavorVcpu(computeOrder);
+
+		// verify
+		Assert.assertEquals(OpenNebulaComputePlugin.MINIMUM_VCPU_VALUE, flavorVcpu);
+	}
+
 	// test case: when invoking getFlavorDisk with valid compute order and disk comes empty
 	// , the plugin should return the disk with disk value based on minimum disk required by ONE image.
 	@Test
@@ -292,7 +324,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.doReturn(diskExpected).when(this.plugin).getFlavorDisk(
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 		Mockito.doReturn(memoryExpected).when(this.plugin).getFlavorMemory(Mockito.eq(this.computeOrder));
-		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorCpu(Mockito.eq(this.computeOrder));
+		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorVcpu(Mockito.eq(this.computeOrder));
 
 		// exercise
 		HardwareRequirements flavor = this.plugin.getFlavor(this.client, this.computeOrder);
@@ -311,7 +343,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		int cpuExpected = 2;
 		int memoryExpected = 3;
 		Mockito.doReturn(memoryExpected).when(this.plugin).getFlavorMemory(Mockito.eq(this.computeOrder));
-		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorCpu(Mockito.eq(this.computeOrder));
+		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorVcpu(Mockito.eq(this.computeOrder));
 		Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getFlavorDisk(
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 

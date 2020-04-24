@@ -44,8 +44,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected static final boolean SHUTS_DOWN_HARD = true;
 	private static final int DEFAULT_DISK_VALUE_UNKNOWN = 0;
 	protected static final int VALUE_NOT_DEFINED_BY_USER = 0;
-	private static final int MINIMUM_VCPU_VALEU = 1;
-	private static final int MINIMUM_MEMORY_VALEU = 1;
+	protected static final int MINIMUM_VCPU_VALUE = 1;
+	private static final int MINIMUM_MEMORY_VALUE = 1;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
 	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
@@ -207,7 +207,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			throws NoAvailableResourcesException, UnexpectedException {
 
 		int disk = getFlavorDisk(client, computeOrder);
-		int cpu = getFlavorCpu(computeOrder);
+		int cpu = getFlavorVcpu(computeOrder);
 		int memory = getFlavorMemory(computeOrder);
 
 		return new HardwareRequirements.Opennebula(cpu, memory, disk);
@@ -217,14 +217,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	@VisibleForTesting
 	int getFlavorMemory(ComputeOrder computeOrder) {
 		return computeOrder.getMemory() != VALUE_NOT_DEFINED_BY_USER ?
-				computeOrder.getMemory() : MINIMUM_MEMORY_VALEU;
+				computeOrder.getMemory() : MINIMUM_MEMORY_VALUE;
 	}
 
 	// TODO(chico) - Implement tests
 	@VisibleForTesting
-	int getFlavorCpu(ComputeOrder computeOrder) {
+	int getFlavorVcpu(ComputeOrder computeOrder) {
 		return computeOrder.getvCPU() != VALUE_NOT_DEFINED_BY_USER ?
-				computeOrder.getvCPU() : MINIMUM_VCPU_VALEU;
+				computeOrder.getvCPU() : MINIMUM_VCPU_VALUE;
 	}
 
 	@VisibleForTesting
