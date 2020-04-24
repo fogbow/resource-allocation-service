@@ -152,7 +152,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		List<String> networks = this.getNetworkIds(computeOrder.getNetworkIds());
 		String startScriptBase64 = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
-		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
+		HardwareRequirements foundFlavor = this.getFlavor(client, computeOrder);
 		String cpu = String.valueOf(foundFlavor.getCpu());
 		String memory = String.valueOf(foundFlavor.getMemory());
 		String disk = String.valueOf(foundFlavor.getDisk());
@@ -203,12 +203,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return networks;
 	}
 
-	protected HardwareRequirements findSmallestFlavor(Client client, ComputeOrder computeOrder)
+	@VisibleForTesting
+	HardwareRequirements getFlavor(Client client, ComputeOrder computeOrder)
 			throws NoAvailableResourcesException, UnexpectedException {
 
 		int disk = getDisk(client, computeOrder);
 		int cpu = getCpu(computeOrder);
 		int memory = getMemory(computeOrder);
+
 		return new HardwareRequirements.Opennebula(cpu, memory, disk);
 	}
 
