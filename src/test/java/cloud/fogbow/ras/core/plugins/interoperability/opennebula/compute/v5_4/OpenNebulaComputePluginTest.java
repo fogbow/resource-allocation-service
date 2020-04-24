@@ -212,6 +212,75 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertEquals(ZERO_STRING_VALUE, networkIds.get(ZERO_VALUE));
 	}
 
+
+	// test case: when invoking getFlavorDisk with valid compute order and disk bigger than minimum
+	// disk required by ONE image, the plugin should return the disk required by user in MegaBytes.
+	@Test
+	public void testGetFlavorDiskSuccessfully() throws UnexpectedException, NoAvailableResourcesException {
+		// set up
+		int diskInGb = 2;
+		int diskExpected = diskInGb * OpenNebulaComputePlugin.ONE_GIGABYTE_IN_MEGABYTES;
+		int minimumDisk = diskExpected - 1;
+		String imageId = TestUtils.ANY_VALUE;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getDisk()).thenReturn(diskInGb);
+		Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
+		Mockito.doReturn(minimumDisk).when(this.plugin).getMinimumImageSize(
+				Mockito.eq(this.client), Mockito.eq(imageId));
+
+		// exercise
+		int flavorDisk = this.plugin.getFlavorDisk(this.client, computeOrder);
+
+		// verify
+		Assert.assertEquals(diskExpected, flavorDisk);
+	}
+
+	// test case: when invoking getFlavorDisk with valid compute order and disk comes empty
+	// , the plugin should return the disk with disk value based on minimum disk required by ONE image.
+	@Test
+	public void testGetFlavorDiskSuccessfullyWhenNotUserNotSpecifyDisk()
+			throws UnexpectedException, NoAvailableResourcesException {
+
+		// set up
+		int diskInGb = OpenNebulaComputePlugin.VALUE_NOT_DEFINED_BY_USER;
+		int minimumDisk = 1024;
+		String imageId = TestUtils.ANY_VALUE;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getDisk()).thenReturn(diskInGb);
+		Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
+		Mockito.doReturn(minimumDisk).when(this.plugin).getMinimumImageSize(
+				Mockito.eq(this.client), Mockito.eq(imageId));
+
+		// exercise
+		int flavorDisk = this.plugin.getFlavorDisk(this.client, computeOrder);
+
+		// verify
+		Assert.assertEquals(minimumDisk, flavorDisk);
+	}
+
+	// test case: when invoking getFlavorDisk with valid compute order and disk smaller than minimum
+	// disk required by ONE image, the plugin should throws a NoAvailableResourcesException.
+	@Test
+	public void testGetFlavorDiskFail() throws UnexpectedException, NoAvailableResourcesException {
+		// set up
+		int diskInGb = 2;
+		int diskExpected = diskInGb * OpenNebulaComputePlugin.ONE_GIGABYTE_IN_MEGABYTES;
+		int minimumDisk = diskExpected + 1;
+		String imageId = TestUtils.ANY_VALUE;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getDisk()).thenReturn(diskInGb);
+		Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
+		Mockito.doReturn(minimumDisk).when(this.plugin).getMinimumImageSize(
+				Mockito.eq(this.client), Mockito.eq(imageId));
+
+		// verify
+		this.expectedException.expect(NoAvailableResourcesException.class);
+
+		// exercise
+		this.plugin.getFlavorDisk(this.client, computeOrder);
+	}
+
+
 	// test case: when invoking getValue with valid compute order, the plugin
 	// should return an appropriate flavor.
 	@Test
@@ -220,10 +289,10 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		int diskExpected = 1;
 		int cpuExpected = 2;
 		int memoryExpected = 3;
-		Mockito.doReturn(diskExpected).when(this.plugin).getDisk(
+		Mockito.doReturn(diskExpected).when(this.plugin).getFlavorDisk(
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
-		Mockito.doReturn(memoryExpected).when(this.plugin).getMemory(Mockito.eq(this.computeOrder));
-		Mockito.doReturn(cpuExpected).when(this.plugin).getCpu(Mockito.eq(this.computeOrder));
+		Mockito.doReturn(memoryExpected).when(this.plugin).getFlavorMemory(Mockito.eq(this.computeOrder));
+		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorCpu(Mockito.eq(this.computeOrder));
 
 		// exercise
 		HardwareRequirements flavor = this.plugin.getFlavor(this.client, this.computeOrder);
@@ -241,9 +310,9 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		// set up
 		int cpuExpected = 2;
 		int memoryExpected = 3;
-		Mockito.doReturn(memoryExpected).when(this.plugin).getMemory(Mockito.eq(this.computeOrder));
-		Mockito.doReturn(cpuExpected).when(this.plugin).getCpu(Mockito.eq(this.computeOrder));
-		Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getDisk(
+		Mockito.doReturn(memoryExpected).when(this.plugin).getFlavorMemory(Mockito.eq(this.computeOrder));
+		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorCpu(Mockito.eq(this.computeOrder));
+		Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getFlavorDisk(
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 
 		// verify

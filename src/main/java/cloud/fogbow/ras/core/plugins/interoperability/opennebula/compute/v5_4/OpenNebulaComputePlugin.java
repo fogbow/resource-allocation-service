@@ -43,14 +43,13 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	protected static final boolean SHUTS_DOWN_HARD = true;
 	private static final int DEFAULT_DISK_VALUE_UNKNOWN = 0;
-	private static final int VALUE_NOT_DEFINED_BY_USER = 0;
+	protected static final int VALUE_NOT_DEFINED_BY_USER = 0;
 	private static final int MINIMUM_VCPU_VALEU = 1;
 	private static final int MINIMUM_MEMORY_VALEU = 1;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
 	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
 	protected static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
-	protected static final String TEMPLATE_IMAGE_ID_PATH = "TEMPLATE/DISK/IMAGE_ID";
 	protected static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 
 	private String endpoint;
@@ -207,42 +206,45 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	HardwareRequirements getFlavor(Client client, ComputeOrder computeOrder)
 			throws NoAvailableResourcesException, UnexpectedException {
 
-		int disk = getDisk(client, computeOrder);
-		int cpu = getCpu(computeOrder);
-		int memory = getMemory(computeOrder);
+		int disk = getFlavorDisk(client, computeOrder);
+		int cpu = getFlavorCpu(computeOrder);
+		int memory = getFlavorMemory(computeOrder);
 
 		return new HardwareRequirements.Opennebula(cpu, memory, disk);
 	}
 
 	// TODO(chico) - Implement tests
 	@VisibleForTesting
-	int getMemory(ComputeOrder computeOrder) {
+	int getFlavorMemory(ComputeOrder computeOrder) {
 		return computeOrder.getMemory() != VALUE_NOT_DEFINED_BY_USER ?
 				computeOrder.getMemory() : MINIMUM_MEMORY_VALEU;
 	}
 
 	// TODO(chico) - Implement tests
 	@VisibleForTesting
-	int getCpu(ComputeOrder computeOrder) {
+	int getFlavorCpu(ComputeOrder computeOrder) {
 		return computeOrder.getvCPU() != VALUE_NOT_DEFINED_BY_USER ?
 				computeOrder.getvCPU() : MINIMUM_VCPU_VALEU;
 	}
 
-	// TODO(chico) - Implement tests
 	@VisibleForTesting
-	int getDisk(Client client, ComputeOrder computeOrder) throws UnexpectedException, NoAvailableResourcesException {
+	int getFlavorDisk(Client client, ComputeOrder computeOrder) throws UnexpectedException, NoAvailableResourcesException {
 		String imageId = computeOrder.getImageId();
 		int minimumImageSize = getMinimumImageSize(client, imageId);
-		int disk = computeOrder.getDisk();
-		if (disk == VALUE_NOT_DEFINED_BY_USER) {
-			disk = minimumImageSize;
-		} else if (disk < minimumImageSize) {
+		int diskInGb = computeOrder.getDisk();
+		if (diskInGb == VALUE_NOT_DEFINED_BY_USER) {
+			return minimumImageSize;
+		}
+
+		int disk = convertDiskSizeToMb(diskInGb);
+		if (disk < minimumImageSize) {
 			throw new NoAvailableResourcesException();
 		}
-		return convertDiskSizeToMb(disk);
+		return disk;
 	}
 
-	protected int getMinimumImageSize(Client client, String imageId)
+	@VisibleForTesting
+	int getMinimumImageSize(Client client, String imageId)
 			throws UnexpectedException, NoAvailableResourcesException {
 
 		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
