@@ -209,18 +209,15 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		int disk = getFlavorDisk(client, computeOrder);
 		int cpu = getFlavorVcpu(computeOrder);
 		int memory = getFlavorMemory(computeOrder);
-
 		return new HardwareRequirements.Opennebula(cpu, memory, disk);
 	}
 
-	// TODO(chico) - Implement tests
 	@VisibleForTesting
 	int getFlavorMemory(ComputeOrder computeOrder) {
 		return computeOrder.getMemory() != VALUE_NOT_DEFINED_BY_USER ?
 				computeOrder.getMemory() : MINIMUM_MEMORY_VALUE;
 	}
 
-	// TODO(chico) - Implement tests
 	@VisibleForTesting
 	int getFlavorVcpu(ComputeOrder computeOrder) {
 		return computeOrder.getvCPU() != VALUE_NOT_DEFINED_BY_USER ?

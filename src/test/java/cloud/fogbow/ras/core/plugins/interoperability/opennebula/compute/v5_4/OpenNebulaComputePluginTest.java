@@ -386,6 +386,49 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		this.plugin.getFlavor(this.client, this.computeOrder);
 	}
 
+	// test case: when invoking getMinimumImageSize and it can find an image in the list, the plugin
+	@Test
+	public void testGetMinimumImageSizeSuccessfully()
+			throws UnexpectedException, NoAvailableResourcesException {
+
+		// set up
+		String image = "image";
+		int imageValueRequired = 1024;
+
+		Map<String, String> images = new HashMap<>();
+		images.put("one", "1");
+		images.put(image, String.valueOf(imageValueRequired));
+		images.put("two", "2");
+		Mockito.doReturn(images).when(this.plugin).getImagesSizes(Mockito.eq(this.client));
+
+		// exercise
+		int minimumImageSize = this.plugin.getMinimumImageSize(this.client, image);
+
+		// verify
+		Assert.assertEquals(imageValueRequired, minimumImageSize);
+	}
+	// should return the minimum size required by this specific image.
+
+	// test case: when invoking getMinimumImageSize and it can't find an image in the list, the plugin
+	// should throw a NoAvailableResourceException.
+	@Test
+	public void testGetMinimumImageSizeFail()
+			throws UnexpectedException, NoAvailableResourcesException {
+
+		// set up
+		Map<String, String> images = new HashMap<>();
+		images.put("one", "1");
+		images.put("two", "2");
+		Mockito.doReturn(images).when(this.plugin).getImagesSizes(Mockito.eq(this.client));
+
+		// verify
+		this.expectedException.expect(NoAvailableResourcesException.class);
+		this.expectedException.expectMessage(Messages.Exception.IMAGE_NOT_FOUND);
+
+		// exercise
+		this.plugin.getMinimumImageSize(this.client, "unknownImage");
+	}
+
 	// test case: when invoking getImagesSizes with a valid client, a map of all image ids and respective sizes
 	// should be returned
 	@Test
