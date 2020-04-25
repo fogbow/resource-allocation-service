@@ -42,7 +42,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected static final String NIC_IP_EXPRESSION = "//NIC/IP";
 
 	protected static final boolean SHUTS_DOWN_HARD = true;
-	private static final int DEFAULT_DISK_VALUE_UNKNOWN = 0;
 	protected static final int VALUE_NOT_DEFINED_BY_USER = 0;
 	protected static final int MINIMUM_VCPU_VALUE = 1;
 	protected static final int MINIMUM_MEMORY_VALUE = 1;
@@ -269,27 +268,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			imagesSizeMap.put(image.getId(), imageSize);
 		}
 		return imagesSizeMap;
-	}
-
-	// TODO(chico) - It's deprecated; Remove it
-	protected int convertToInteger(String number) {
-		try {
-			return Integer.parseInt(number);
-		} catch (NumberFormatException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
-			return 0;
-		}
-	}
-
-	// TODO(chico) - It's deprecated; Remove it
-	protected int getDiskSizeFromImageSizeMap(Map<String, String> imageSizeMap, String imageId) {
-		if (imageSizeMap != null && !imageSizeMap.isEmpty() && imageId != null) {
-			String diskSize = imageSizeMap.get(imageId);
-			return this.convertToInteger(diskSize);
-		} else {
-			LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE);
-			return DEFAULT_DISK_VALUE_UNKNOWN;
-		}
 	}
 
 	protected boolean containsFlavor(HardwareRequirements flavor) {

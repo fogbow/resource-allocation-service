@@ -41,9 +41,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	private static final String FAKE_BASE64_SCRIPT = "fake-base64-script";
 
 	private static final String ZERO_STRING_VALUE = "0";
-	private static final String EMPTY_STRING = "";
 	private static final String FAKE_ID = "fake-id";
-	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_PRIVATE_NETWORK_ID = "fake-private-network-id";
 	private static final String FLAVOR_KIND_NAME = "smallest-flavor";
 	private static final String IMAGE_SIZE_PATH = OpenNebulaComputePlugin.IMAGE_SIZE_PATH;
@@ -256,9 +254,8 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetFlavorVcpuSuccessfullyDefaultValue() {
 		// set up
-		int vcpuExpected = VALUE_NOT_DEFINED_BY_USER;
 		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
-		Mockito.when(computeOrder.getvCPU()).thenReturn(vcpuExpected);
+		Mockito.when(computeOrder.getvCPU()).thenReturn(VALUE_NOT_DEFINED_BY_USER);
 
 		// exercise
 		int flavorVcpu = this.plugin.getFlavorVcpu(computeOrder);
@@ -288,9 +285,8 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetFlavorMemorySuccessfullyDefaultValue() {
 		// set up
-		int memoryExpected = VALUE_NOT_DEFINED_BY_USER;
 		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
-		Mockito.when(computeOrder.getMemory()).thenReturn(memoryExpected);
+		Mockito.when(computeOrder.getMemory()).thenReturn(VALUE_NOT_DEFINED_BY_USER);
 
 		// exercise
 		int flavorMemory = this.plugin.getFlavorMemory(computeOrder);
@@ -306,11 +302,10 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 			throws UnexpectedException, NoAvailableResourcesException {
 
 		// set up
-		int diskInGb = OpenNebulaComputePlugin.VALUE_NOT_DEFINED_BY_USER;
 		int minimumDisk = 1024;
 		String imageId = TestUtils.ANY_VALUE;
 		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
-		Mockito.when(computeOrder.getDisk()).thenReturn(diskInGb);
+		Mockito.when(computeOrder.getDisk()).thenReturn(OpenNebulaComputePlugin.VALUE_NOT_DEFINED_BY_USER);
 		Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
 		Mockito.doReturn(minimumDisk).when(this.plugin).getMinimumImageSize(
 				Mockito.eq(this.client), Mockito.eq(imageId));
@@ -455,40 +450,6 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 
         Assert.assertEquals(ONE_VALUE, imagesSizes.size());
         Assert.assertEquals(fakeImageSize, imagesSizes.get(this.computeOrder.getImageId()));
-	}
-
-	// test case: when invoking convertToInteger with a parsable string, its respective int value should
-	// be returned; otherwise 0 should be returned.
-	@Test
-	public void testConvertToInteger() {
-	    // set up
-		int expectedConvertedFail = 0;
-
-		// exercise
-		int converted = this.plugin.convertToInteger(String.valueOf(DISK_VALUE_6GB));
-		int convertedFail = this.plugin.convertToInteger(EMPTY_STRING);
-
-		// verify
-		Assert.assertEquals(DISK_VALUE_6GB, converted);
-		Assert.assertEquals(expectedConvertedFail, convertedFail);
-	}
-
-	// test case: when invoking getDiskSizeFromImageSizeMap with a valid disk sizes map and
-	// image id, return the respective disk int-converted disk size; otherwise, return 0
-	@Test
-	public void testGetDiskSizeFromImageSizeMap() {
-		// set up
-		Map<String, String> diskSizeMap = new HashMap<>();
-		diskSizeMap.put(FAKE_IMAGE_ID, String.valueOf(DISK_VALUE_6GB));
-		int expectedDiskSizeFail = 0;
-
-		// exercise
-		int diskSize = this.plugin.getDiskSizeFromImageSizeMap(diskSizeMap, FAKE_IMAGE_ID);
-		int diskSizeFail = this.plugin.getDiskSizeFromImageSizeMap(diskSizeMap, FAKE_ID);
-
-		// verify
-		Assert.assertEquals(DISK_VALUE_6GB, diskSize);
-		Assert.assertEquals(expectedDiskSizeFail, diskSizeFail);
 	}
 
 	// test case: when invoking containsFlavor with a valid hardware requirements object, return
