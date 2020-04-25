@@ -267,6 +267,38 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Assert.assertEquals(OpenNebulaComputePlugin.MINIMUM_VCPU_VALUE, flavorVcpu);
 	}
 
+	// test case: when invoking getFlavorMemory with valid compute order and memory was specified
+	// , the plugin should return the same memory specified by user.
+	@Test
+	public void testGetFlavorMemorySuccessfully() {
+		// set up
+		int memoryExpected = 3;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getMemory()).thenReturn(memoryExpected);
+
+		// exercise
+		int flavorMemory = this.plugin.getFlavorMemory(computeOrder);
+
+		// verify
+		Assert.assertEquals(memoryExpected, flavorMemory);
+	}
+
+	// test case: when invoking getFlavorMemory with valid compute order and memory was not specified
+	// , the plugin should return the default memory value.
+	@Test
+	public void testGetFlavorMemorySuccessfullyDefaultValue() {
+		// set up
+		int memoryExpected = VALUE_NOT_DEFINED_BY_USER;
+		ComputeOrder computeOrder =  Mockito.mock(ComputeOrder.class);
+		Mockito.when(computeOrder.getMemory()).thenReturn(memoryExpected);
+
+		// exercise
+		int flavorMemory = this.plugin.getFlavorMemory(computeOrder);
+
+		// verify
+		Assert.assertEquals(OpenNebulaComputePlugin.MINIMUM_MEMORY_VALUE, flavorMemory);
+	}
+
 	// test case: when invoking getFlavorDisk with valid compute order and disk comes empty
 	// , the plugin should return the disk with disk value based on minimum disk required by ONE image.
 	@Test
