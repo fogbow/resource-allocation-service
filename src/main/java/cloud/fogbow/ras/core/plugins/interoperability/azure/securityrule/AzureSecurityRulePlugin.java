@@ -100,8 +100,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
             throws FogbowException {
 
         switch (majorOrder.getType()) {
-            case PUBLIC_IP:
-
+            case NETWORK:
                 String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
                 String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
                         .withSubscriptionId(azureUser.getSubscriptionId())
@@ -110,8 +109,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                         .build();
 
                 return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
-            case NETWORK:
-                return new ArrayList<>();
+            case PUBLIC_IP:
             default:
                 String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
                 throw new UnexpectedException(errorMsg);
@@ -121,9 +119,9 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     @VisibleForTesting
     void checkOrderType(Order majorOrder) throws FogbowException {
         switch (majorOrder.getType()) {
+            case NETWORK:
             case PUBLIC_IP:
                 return;
-            case NETWORK:
             default:
                 throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }
