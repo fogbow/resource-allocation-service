@@ -10,7 +10,6 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -21,9 +20,7 @@ import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.InteroperabilityPluginInstantiator;
@@ -39,8 +36,6 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.OrderPlugin;
@@ -69,12 +64,10 @@ public class LocalCloudConnector implements CloudConnector {
     private PublicIpPlugin publicIpPlugin;
     private AttachmentPlugin attachmentPlugin;
     private ComputePlugin computePlugin;
-    private ComputeQuotaPlugin computeQuotaPlugin;
     private NetworkPlugin networkPlugin;
     private VolumePlugin volumePlugin;
     private ImagePlugin imagePlugin;
     private SecurityRulePlugin securityRulePlugin;
-    private GenericRequestPlugin genericRequestPlugin;
     private QuotaPlugin quotaPlugin;
 
     private boolean auditRequestsOn = true;
@@ -82,7 +75,6 @@ public class LocalCloudConnector implements CloudConnector {
     public LocalCloudConnector(InteroperabilityPluginInstantiator instantiator, String cloudName) {
         this.attachmentPlugin = instantiator.getAttachmentPlugin(cloudName);
         this.computePlugin = instantiator.getComputePlugin(cloudName);
-        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin(cloudName);
         this.networkPlugin = instantiator.getNetworkPlugin(cloudName);
         this.volumePlugin = instantiator.getVolumePlugin(cloudName);
         this.imagePlugin = instantiator.getImagePlugin(cloudName);
@@ -157,7 +149,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+    public Quota getUserQuota(SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_QUOTA_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
         LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
@@ -165,7 +157,7 @@ public class LocalCloudConnector implements CloudConnector {
         String auditableResponse = null;
         Quota quota = null;
         try {
-            quota = doGetUserQuota(cloudUser, resourceType);
+            quota = this.quotaPlugin.getUserQuota(cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, quota));
             auditableResponse = quota.toString();
         } catch (Throwable e) {
@@ -173,7 +165,7 @@ public class LocalCloudConnector implements CloudConnector {
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.GET_USER_QUOTA, resourceType, systemUser, auditableResponse);
+            auditRequest(Operation.GET, ResourceType.QUOTA, systemUser, auditableResponse);
         }
 
         return quota;
@@ -223,29 +215,6 @@ public class LocalCloudConnector implements CloudConnector {
         }
 
         return imageInstance;
-    }
-
-    @Override
-    public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GENERIC_REQUEST_OPERATION, genericRequest));
-        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
-
-        FogbowGenericResponse fogbowGenericResponse = null;
-        String auditableResponse = null;
-        try {
-            fogbowGenericResponse = doGenericRequest(genericRequest, cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, fogbowGenericResponse));
-            auditableResponse = fogbowGenericResponse.toString();
-        } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
-            auditableResponse = e.getClass().getName();
-            throw e;
-        } finally {
-            auditRequest(Operation.CREATE, ResourceType.GENERIC_RESOURCE, systemUser, auditableResponse);
-        }
-
-        return fogbowGenericResponse;
     }
 
     @Override
@@ -385,32 +354,12 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    protected Quota doGetUserQuota(CloudUser token, ResourceType resourceType) throws FogbowException {
-        switch (resourceType) {
-            // FIXME(pauloewerton): this test is going to be obsolete as soon as we finish implementing the new quota
-            // plugins and should it be removed in the future.
-            case COMPUTE:
-                ComputeQuota userQuota = this.computeQuotaPlugin.getUserQuota(token);
-                return userQuota;
-            case QUOTA:
-                ResourceQuota resourceQuota = this.quotaPlugin.getUserQuota(token);
-                return resourceQuota;
-            default:
-                throw new UnexpectedException(String.format(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED, resourceType));
-        }
-    }
-
     protected List<ImageSummary> doGetAllImages(CloudUser token) throws FogbowException {
         return this.imagePlugin.getAllImages(token);
     }
 
     protected ImageInstance doGetImage(String imageId, CloudUser token) throws FogbowException {
         return this.imagePlugin.getImage(imageId, token);
-    }
-
-    protected FogbowGenericResponse doGenericRequest(String genericRequest, CloudUser token)
-            throws FogbowException {
-        return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }
 
     protected List<SecurityRuleInstance> doGetAllSecurityRules(Order order, CloudUser token)

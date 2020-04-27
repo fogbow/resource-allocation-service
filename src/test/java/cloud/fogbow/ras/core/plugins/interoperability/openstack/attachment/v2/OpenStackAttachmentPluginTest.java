@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 
 import java.io.File;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -337,12 +338,12 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
     }
     
     private String generateEndpoint(String projectId, String serverId, String volumeId) {
-        String endpoint = PREFIX_ENDPOINT + OpenStackAttachmentPlugin.V2_API_ENDPOINT + projectId
-                + OpenStackAttachmentPlugin.SERVERS + serverId 
-                + OpenStackAttachmentPlugin.OS_VOLUME_ATTACHMENTS;
+        String endpoint = PREFIX_ENDPOINT + OpenStackConstants.NOVA_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR
+                + projectId + OpenStackConstants.SERVERS_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + serverId
+                + OpenStackConstants.OS_VOLUME_ATTACHMENTS;
         
         if (volumeId != null) {
-            return endpoint + OpenStackAttachmentPlugin.ENDPOINT_SEPARATOR + volumeId; 
+            return endpoint + OpenStackConstants.ENDPOINT_SEPARATOR + volumeId;
         }
         return endpoint;
     }

@@ -44,7 +44,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	protected static final boolean SHUTS_DOWN_HARD = true;
 	protected static final int VALUE_NOT_DEFINED_BY_USER = 0;
 	protected static final int MINIMUM_VCPU_VALUE = 1;
-	protected static final int MINIMUM_MEMORY_VALUE = 1;
+	protected static final int MINIMUM_RAM_VALUE = 1;
 
 	protected static final String IMAGE_SIZE_PATH = "SIZE";
 	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
@@ -120,14 +120,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		String state = virtualMachine.lcmStateStr();
 
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
-		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
+		int memoryRam = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
 		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)) / ONE_GIGABYTE_IN_MEGABYTES;
 
 		String xml = response.getMessage();
 		XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller(xml);
 		List<String> ipAddresses = xmlUnmarshaller.getContextListOf(NIC_IP_EXPRESSION);
 
-		ComputeInstance computeInstance = new ComputeInstance(id, state, name, cpu, memory, disk, ipAddresses);
+		ComputeInstance computeInstance = new ComputeInstance(id, state, name, cpu, memoryRam, disk, ipAddresses);
 		this.setComputeInstanceNetworks(computeInstance);
 
 		return computeInstance;
@@ -152,7 +152,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		HardwareRequirements foundFlavor = this.getFlavor(client, computeOrder);
 		String cpu = String.valueOf(foundFlavor.getCpu());
-		String memory = String.valueOf(foundFlavor.getMemory());
+		String memoryRam = String.valueOf(foundFlavor.getRam());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
@@ -166,7 +166,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 				.graphicsType(graphicsType)
 				.imageId(imageId)
 				.diskSize(disk)
-				.memory(memory)
+				.memory(memoryRam)
 				.networks(networks)
 				.architecture(architecture)
 				.build();
@@ -178,10 +178,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		int sizeInMegabytes = Integer.parseInt(virtualMachine.getDisk().getSize());
 		int size = convertDiskSizeToGb(sizeInMegabytes);
 		ComputeAllocation actualAllocation = new ComputeAllocation(
-				Integer.parseInt(virtualMachine.getCpu()),
+                DEFAULT_NUMBER_OF_INSTANCES, Integer.parseInt(virtualMachine.getCpu()),
 				Integer.parseInt(virtualMachine.getMemory()),
-				DEFAULT_NUMBER_OF_INSTANCES,
-				size);
+                size);
 		computeOrder.setActualAllocation(actualAllocation);
 	}
 
@@ -207,14 +206,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		int disk = getFlavorDisk(client, computeOrder);
 		int cpu = getFlavorVcpu(computeOrder);
-		int memory = getFlavorMemory(computeOrder);
-		return new HardwareRequirements.Opennebula(cpu, memory, disk);
+		int ram = getFlavorRam(computeOrder);
+		return new HardwareRequirements.Opennebula(cpu, ram, disk);
 	}
 
 	@VisibleForTesting
-	int getFlavorMemory(ComputeOrder computeOrder) {
-		return computeOrder.getMemory() != VALUE_NOT_DEFINED_BY_USER ?
-				computeOrder.getMemory() : MINIMUM_MEMORY_VALUE;
+	int getFlavorRam(ComputeOrder computeOrder) {
+		return computeOrder.getRam() != VALUE_NOT_DEFINED_BY_USER ?
+				computeOrder.getRam(): MINIMUM_RAM_VALUE;
 	}
 
 	@VisibleForTesting

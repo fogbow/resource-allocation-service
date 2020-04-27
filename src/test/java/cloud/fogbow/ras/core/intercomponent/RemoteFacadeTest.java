@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.jamppa.component.PacketSender;
@@ -13,7 +12,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.xmpp.packet.IQ;
 
-import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -22,10 +20,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.connectivity.FogbowGenericRequest;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
-import cloud.fogbow.common.util.connectivity.HttpRequest;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
@@ -252,79 +246,31 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		RasOperation operation = new RasOperation(
-				Operation.GET_USER_QUOTA,
-				ResourceType.COMPUTE,
+				Operation.GET,
+				ResourceType.QUOTA,
 				DEFAULT_CLOUD_NAME
 		);
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
 		String cloudName = DEFAULT_CLOUD_NAME;
-		ResourceType resourceType = ResourceType.COMPUTE;
 
 		CloudConnectorFactory factory = mockCloudConnectorFactory();
 		CloudConnector cloudConnector = mockCloudConnector(factory);
 
 		Quota expectedQuota = createComputeQuota();
-		Mockito.doReturn(expectedQuota).when(cloudConnector).getUserQuota(systemUser, resourceType);
+		Mockito.doReturn(expectedQuota).when(cloudConnector).getUserQuota(systemUser);
 
 		// exercise
-		Quota quota = this.facade.getUserQuota(FAKE_REQUESTER_ID, cloudName, systemUser, resourceType);
+		Quota quota = this.facade.getUserQuota(FAKE_REQUESTER_ID, cloudName, systemUser);
 
 		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
 
-		Mockito.verify(cloudConnector, Mockito.times(1)).getUserQuota(Mockito.eq(systemUser),
-				Mockito.eq(resourceType));
+		Mockito.verify(cloudConnector, Mockito.times(1)).getUserQuota(Mockito.eq(systemUser)
+		);
 
 		Assert.assertSame(expectedQuota, quota);
 		Assert.assertEquals(expectedQuota.getTotalQuota(), quota.getTotalQuota());
 		Assert.assertEquals(expectedQuota.getUsedQuota(), quota.getUsedQuota());
-	}
-
-	// test case: Verifies generic request behavior inside Remote Facade, i.e. it
-	// needs to isAuthorized the request, and also get the correct cloud connector,
-	// before passing a generic request.
-	@Test
-	public void testGenericRequestSuccessfully() throws Exception {
-		// set up
-		SystemUser systemUser = createFederationUser();
-
-		HttpMethod method = HttpMethod.GET;
-		String url = FAKE_URL;
-		HashMap<String, String> headers = new HashMap<>();
-		HashMap<String, String> body = new HashMap<>();
-		FogbowGenericRequest fogbowGenericRequest = new HttpRequest(method, url, body, headers);
-		String serializedGenericRequest = GsonHolder.getInstance().toJson(fogbowGenericRequest);
-
-		String responseContent = FAKE_CONTENT;
-		FogbowGenericResponse expectedResponse = new FogbowGenericResponse(responseContent);
-
-		RasOperation operation = new RasOperation(
-				Operation.GENERIC_REQUEST,
-				ResourceType.GENERIC_RESOURCE,
-				DEFAULT_CLOUD_NAME,
-				serializedGenericRequest
-		);
-
-		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
-
-		CloudConnectorFactory factory = mockCloudConnectorFactory();
-		CloudConnector cloudConnector = mockCloudConnector(factory);
-
-		Mockito.when(cloudConnector.genericRequest(Mockito.eq(serializedGenericRequest), Mockito.eq(systemUser)))
-				.thenReturn(expectedResponse);
-
-		String cloudName = DEFAULT_CLOUD_NAME;
-
-		// exercise
-		FogbowGenericResponse fogbowGenericResponse = facade.genericRequest(FAKE_REQUESTER_ID, cloudName,
-                serializedGenericRequest, systemUser);
-
-		Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
-
-		Mockito.verify(cloudConnector, Mockito.times(1)).genericRequest(Mockito.eq(serializedGenericRequest),
-				Mockito.eq(systemUser));
-
-		Assert.assertEquals(expectedResponse, fogbowGenericResponse);
 	}
 
 	// test case: Verifies getImage method behavior inside Remote Facade, i.e. it
@@ -402,7 +348,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		RasOperation operation = new RasOperation(
 				Operation.GET,
-				ResourceType.CLOUD_NAMES
+				ResourceType.CLOUD_NAME
 		);
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
@@ -717,8 +663,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 	
 	private Quota createComputeQuota() {
-		ComputeAllocation totalQuota = new ComputeAllocation(8, 2048, 2);
-        ComputeAllocation usedQuota = new ComputeAllocation(4, 1024, 1);
+		ComputeAllocation totalQuota = new ComputeAllocation(2, 8, 2048);
+        ComputeAllocation usedQuota = new ComputeAllocation(1, 4, 1024);
 
         Quota quota = new ComputeQuota(totalQuota, usedQuota);
 		return quota;

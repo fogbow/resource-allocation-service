@@ -2,10 +2,8 @@ package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
@@ -45,11 +43,10 @@ public interface CloudConnector {
      * Gets the quota of the system user for resourceType.
      *
      * @param systemUser the attributes that identify the user
-     * @param resourceType the type of instance for which the quota was requested
      * @return the quota associated to the user
      * @throws FogbowException
      */
-    Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException;
+    Quota getUserQuota(SystemUser systemUser) throws FogbowException;
 
     /**
      * Gets the list of images that the system user can see in the target cloud.
@@ -70,16 +67,6 @@ public interface CloudConnector {
      */
 
     ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException;
-
-    /**
-     * Submits a generic request to the cloud.
-     *
-     * @param genericRequest a json representation of the request to be sent.
-     * @param systemUser the attributes that identify the user
-     * @return the response received from the cloud
-     * @throws FogbowException
-     */
-    FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUser) throws FogbowException;
 
     /**
      * Gets all security rules associated to an Order (must be either a publicIp or a network order)

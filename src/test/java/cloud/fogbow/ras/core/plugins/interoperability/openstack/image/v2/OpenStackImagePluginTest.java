@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
@@ -13,6 +14,7 @@ import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -82,9 +84,10 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
 
         String endpoint1 =
                 imageGlancev2UrlKey
-                        + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
-                        + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
-                        + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
+                        + OpenStackConstants.GLANCE_V2_API_ENDPOINT
+                        + OpenStackConstants.ENDPOINT_SEPARATOR
+                        + OpenStackConstants.IMAGE_ENDPOINT
+                        + OpenStackConstants.QUERY_ACTIVE_IMAGES;
 
         String endpoint2 =
                 imageGlancev2UrlKey
@@ -102,7 +105,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         String jsonResponse2 = getImagesJsonWithNext(generatedImages2, nextUrl2);
         String jsonResponse3 = getImagesJson(generatedImages3);
 
-        Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
+        Mockito.when(this.properties.getProperty(OpenStackCloudUtils.IMAGE_GLANCE_URL_KEY)).thenReturn(imageGlancev2UrlKey);
         Mockito.when(this.client.doGetRequest(endpoint1, localUserAttributes)).thenReturn(jsonResponse1);
         Mockito.when(this.client.doGetRequest(endpoint2, localUserAttributes)).thenReturn(jsonResponse2);
         Mockito.when(this.client.doGetRequest(endpoint3, localUserAttributes)).thenReturn(jsonResponse3);

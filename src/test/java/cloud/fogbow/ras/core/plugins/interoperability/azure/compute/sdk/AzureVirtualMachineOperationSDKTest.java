@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
-import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.AzureUser;
@@ -27,6 +26,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import com.microsoft.rest.RestException;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
