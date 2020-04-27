@@ -30,13 +30,12 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         SystemUser systemUser = unmarshalFederatedUser(iq);
-        ResourceType resourceType = unmarshalInstanceType(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
             String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(senderId, cloudName, systemUser, resourceType);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(senderId, cloudName, systemUser);
             updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -58,14 +57,6 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         Element systemUserElement = queryElement.element(IqElement.SYSTEM_USER.toString());
         SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
         return systemUser;
-    }
-
-    private ResourceType unmarshalInstanceType(IQ iq) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-
-        Element instanceTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
-        ResourceType resourceType = new Gson().fromJson(instanceTypeElementRequest.getText(), ResourceType.class);
-        return resourceType;
     }
 
     private void updateResponse(IQ iq, Quota quota) {

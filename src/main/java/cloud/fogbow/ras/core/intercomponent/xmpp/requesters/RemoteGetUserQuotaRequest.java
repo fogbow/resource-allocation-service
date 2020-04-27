@@ -8,7 +8,6 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
@@ -21,19 +20,16 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
     private String provider;
     private String cloudName;
     private SystemUser systemUser;
-    private ResourceType resourceType;
 
-    public RemoteGetUserQuotaRequest(String provider, String cloudName, SystemUser systemUser,
-                                     ResourceType resourceType) {
+    public RemoteGetUserQuotaRequest(String provider, String cloudName, SystemUser systemUser) {
         this.provider = provider;
         this.cloudName = cloudName;
         this.systemUser = systemUser;
-        this.resourceType = resourceType;
     }
 
     @Override
     public Quota send() throws Exception {
-        IQ iq = marshal(this.provider, this.cloudName, this.systemUser, this.resourceType);
+        IQ iq = marshal(this.provider, this.cloudName, this.systemUser);
         LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
@@ -43,7 +39,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return quota;
     }
 
-    public static IQ marshal(String provider, String cloudName, SystemUser systemUser, ResourceType resourceType) {
+    public static IQ marshal(String provider, String cloudName, SystemUser systemUser) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + provider);
 
@@ -55,9 +51,6 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
         Element userElement = queryElement.addElement(IqElement.SYSTEM_USER.toString());
         userElement.setText(new Gson().toJson(systemUser));
-
-        Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
-        orderTypeElement.setText(resourceType.toString());
 
         return iq;
     }

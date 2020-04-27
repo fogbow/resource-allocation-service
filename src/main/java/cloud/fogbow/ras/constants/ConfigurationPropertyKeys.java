@@ -23,11 +23,9 @@ public class ConfigurationPropertyKeys {
     public static final String PUBLIC_IP_PLUGIN_CLASS_KEY = "public_ip_plugin_class";
     public static final String ATTACHMENT_PLUGIN_CLASS_KEY = "attachment_plugin_class";
     public static final String COMPUTE_PLUGIN_CLASS_KEY = "compute_plugin_class";
-    public static final String COMPUTE_QUOTA_PLUGIN_CLASS_KEY = "compute_quota_plugin_class";
     public static final String NETWORK_PLUGIN_CLASS_KEY = "network_plugin_class";
     public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
     public static final String IMAGE_PLUGIN_CLASS_KEY = "image_plugin_class";
-    public static final String GENERIC_PLUGIN_CLASS_KEY = "generic_plugin_class";
     public static final String SECURITY_RULE_PLUGIN_CLASS_KEY = "security_rule_plugin_class";
     public static final String SYSTEM_TO_CLOUD_MAPPER_PLUGIN_CLASS_KEY = "system_to_cloud_mapper_plugin_class";
     public static final String CLOUD_IDENTITY_PROVIDER_URL_KEY = "cloud_identity_provider_url";
