@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
 import cloud.fogbow.as.core.models.CloudStackSystemUser;
-import cloud.fogbow.as.core.systemidp.plugins.cloudstack.CloudStackSystemIdentityProviderPlugin;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.models.CloudUser;
@@ -13,17 +12,12 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CloudStackSystemIdentityProviderPlugin.class})
 public class CloudStackAllToOneMapperTest {
     private static final String FAKE_LOGIN1 = "fake-login1";
     private static final String FAKE_LOGIN2 = "fake-login2";
