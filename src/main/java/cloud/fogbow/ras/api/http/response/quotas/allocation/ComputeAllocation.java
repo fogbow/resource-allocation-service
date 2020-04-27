@@ -14,23 +14,23 @@ public class ComputeAllocation extends Allocation {
     @Transient
     private int instances;
     @ApiModelProperty(position = 1, example = "4")
-    @Column(name = "allocation_vcpu")
+    @Column(name = "vcpu_allocation")
     private int vCPU;
     @ApiModelProperty(position = 2, example = "8192")
-    @Column(name = "allocation_ram")
+    @Column(name = "ram_allocation")
     private int ram;
     @ApiModelProperty(position = 3, example = "30")
-    @Column(name = "allocation_disk")
+    @Column(name = "disk_allocation")
     private int disk;
 
-    public ComputeAllocation(int vCPU, int ram, int instances, int disk) {
+    public ComputeAllocation(int instances, int vCPU, int ram, int disk) {
+        this.instances = instances;
         this.vCPU = vCPU;
         this.ram = ram;
-        this.instances = instances;
         this.disk = disk;
     }
 
-    public ComputeAllocation(int vCPU, int ram, int instances) {
+    public ComputeAllocation(int instances, int vCPU, int ram) {
         this.vCPU = vCPU;
         this.ram = ram;
         this.instances = instances;
@@ -39,16 +39,15 @@ public class ComputeAllocation extends Allocation {
     public ComputeAllocation() {
     }
 
+    public int getInstances() {
+        return this.instances;
+    }
     public int getvCPU() {
         return this.vCPU;
     }
 
     public int getRam() {
         return this.ram;
-    }
-
-    public int getInstances() {
-        return this.instances;
     }
 
     public int getDisk() {

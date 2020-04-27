@@ -25,8 +25,8 @@ public class Compute implements OrderApiParameter {
     private String name;
     @ApiModelProperty(position = 3, example = "2", notes = ApiDocumentation.Model.VCPU_NOTE)
     private int vCPU;
-    @ApiModelProperty(position = 4, example = "1", notes = ApiDocumentation.Model.MEMORY_NOTE)
-    private int memory;
+    @ApiModelProperty(position = 4, example = "1", notes = ApiDocumentation.Model.RAM_NOTE)
+    private int ram;
     @ApiModelProperty(position = 5, example = "1", notes = ApiDocumentation.Model.DISK_NOTE)
     private int disk;
     @ApiModelProperty(position = 6, required = true, example = ApiDocumentation.Model.IMAGE_ID, notes = ApiDocumentation.Model.IMAGE_ID_NOTE)
@@ -56,8 +56,8 @@ public class Compute implements OrderApiParameter {
         return vCPU;
     }
 
-    public int getMemory() {
-        return memory;
+    public int getRam() {
+        return ram;
     }
 
     public int getDisk() {
@@ -95,7 +95,7 @@ public class Compute implements OrderApiParameter {
         if (this.provider == null) this.provider = localProviderId;
         if (this.cloudName == null) this.cloudName = defaultCloudName;
         if (this.name == null) this.name = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + UUID.randomUUID();
-        ComputeOrder order = new ComputeOrder(provider, cloudName, name, vCPU, memory, disk, imageId, userData,
+        ComputeOrder order = new ComputeOrder(provider, cloudName, name, vCPU, ram, disk, imageId, userData,
                 publicKey, networkIds);
         order.setRequester(localProviderId);
         order.setRequirements(requirements);

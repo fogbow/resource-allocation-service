@@ -9,31 +9,31 @@ import io.swagger.annotations.ApiModelProperty;
 public class ResourceAllocation extends Allocation {
 
     @ApiModelProperty(position = 0, example = "2")
-    @Column(name = "allocation_instances")
+    @Column(name = "instances_allocation")
     private int instances;
 
     @ApiModelProperty(position = 1, example = "4")
-    @Column(name = "allocation_vcpu")
+    @Column(name = "vcpu_allocation")
     private int vCPU;
 
     @ApiModelProperty(position = 2, example = "8192")
-    @Column(name = "allocation_ram")
+    @Column(name = "ram_allocation")
     private int ram;
 
     @ApiModelProperty(position = 3, example = "30")
-    @Column(name = "allocation_disk")
+    @Column(name = "disk_allocation")
     private int storage;
 
     @ApiModelProperty(position = 4, example = "3")
-    @Column(name = "allocation_volumes")
+    @Column(name = "volumes_allocation")
     private int volumes;
     
     @ApiModelProperty(position = 5, example = "15")
-    @Column(name = "allocation_networks")
+    @Column(name = "networks_allocation")
     private int networks;
     
     @ApiModelProperty(position = 6, example = "5")
-    @Column(name = "allocation_public_ips")
+    @Column(name = "public_ips_allocation")
     private int publicIps;
 
     public ResourceAllocation() {}

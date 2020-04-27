@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.mapper.all2one;
 import cloud.fogbow.as.core.models.CloudStackSystemUser;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudStackUser;
-import cloud.fogbow.common.plugins.cloudidp.cloudstack.CloudStackIdentityProviderPlugin;
+import cloud.fogbow.common.plugins.cloudidp.cloudstack.v4_9.CloudStackIdentityProviderPlugin;
 
 import java.util.Map;
 

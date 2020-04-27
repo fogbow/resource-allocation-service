@@ -108,7 +108,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     protected EmulatedCompute createCompute(ComputeOrder computeOrder) {
         int disk = computeOrder.getDisk();
         int vcpu = computeOrder.getvCPU();
-        int memory = computeOrder.getMemory();
+        int memory = computeOrder.getRam();
         String imageId = computeOrder.getImageId();
 
         String name = EmulatedCloudUtils.getName(computeOrder.getName());

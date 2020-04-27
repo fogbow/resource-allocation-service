@@ -123,11 +123,11 @@ public class AzureStateMapperTest {
     }
     
     // test case: When calling the map method with an unmapped resource type, it
-    // must verify than it returns the inconsistent instance no matter your state.
+    // must verify than it returns the inconsistent instance no matter its state.
     @Test
     public void testMapWithUnmappedResourceType() {
         // set up
-        ResourceType resourceType = ResourceType.GENERIC_RESOURCE;
+        ResourceType resourceType = ResourceType.INVALID_RESOURCE;
 
         // exercise
         InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.SUCCEEDED_STATE);

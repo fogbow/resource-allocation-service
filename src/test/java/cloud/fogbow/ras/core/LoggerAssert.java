@@ -1,36 +1,28 @@
 package cloud.fogbow.ras.core;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
+import org.apache.log4j.Appender;
+import org.apache.log4j.Layout;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.ErrorHandler;
+import org.apache.log4j.spi.Filter;
+import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Assert;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LoggerAssert {
 
-    public static final int SECOND_POSITION = 2;
-    public static final int FIRST_POSITION = 1;
-
-    private Logger fooLogger;
-    private ListAppender<ILoggingEvent> listAppender;
+    private List<LoggingEvent> list;
     private int globalPosition = 1;
 
     public LoggerAssert(Class classToTest) {
-        this.fooLogger = (Logger) LoggerFactory.getLogger(classToTest);
-        this.listAppender = new ListAppender<>();
-        this.listAppender.start();
+        Logger logger = Logger.getLogger(classToTest);
+        MemoryListAppender memoryListAppender = new MemoryListAppender();
+        logger.addAppender(memoryListAppender);
 
-        this.fooLogger.addAppender(this.listAppender);
-    }
-
-    public void assertEquals(int logPosition, Level level, String message) {
-        List<ILoggingEvent> list = this.listAppender.list;
-        ILoggingEvent iLoggingEvent = list.get(getPositionList(logPosition));
-        Assert.assertEquals(iLoggingEvent.getMessage(), message);
-        Assert.assertEquals(iLoggingEvent.getLevel(), level);
+        this.list = memoryListAppender.getLoggingEvents();
     }
 
     public LoggerAssert assertEqualsInOrder(Level level, String message) {
@@ -38,14 +30,71 @@ public class LoggerAssert {
         return this;
     }
 
-    public void verifyLogEnd() {
-        if (this.globalPosition <= this.listAppender.list.size()) {
-            Assert.fail("The log is not on the end");
-        }
+    private void assertEquals(int logPosition, Level level, String message) {
+        LoggingEvent loggingEvent = this.list.get(getPositionList(logPosition));
+        Assert.assertEquals(loggingEvent.getMessage(), message);
+        Assert.assertEquals(loggingEvent.getLevel(), level);
     }
 
     private int getPositionList(int logPosition) {
         return logPosition - 1;
+    }
+
+    class MemoryListAppender implements Appender {
+
+        private List<LoggingEvent> loggingEvents = new ArrayList<>();
+
+        public List<LoggingEvent> getLoggingEvents() {
+            return this.loggingEvents;
+        }
+
+        @Override
+        public void doAppend(LoggingEvent loggingEvent) {
+            this.loggingEvents.add(loggingEvent);
+        }
+
+        @Override
+        public void addFilter(Filter filter) {}
+
+        @Override
+        public Filter getFilter() {
+            return null;
+        }
+
+        @Override
+        public void clearFilters() {}
+
+        @Override
+        public void close() {}
+
+        @Override
+        public String getName() {
+            return null;
+        }
+
+        @Override
+        public void setErrorHandler(ErrorHandler errorHandler) {}
+
+        @Override
+        public ErrorHandler getErrorHandler() {
+            return null;
+        }
+
+        @Override
+        public void setLayout(Layout layout) {}
+
+        @Override
+        public Layout getLayout() {
+            return null;
+        }
+
+        @Override
+        public void setName(String s) {}
+
+        @Override
+        public boolean requiresLayout() {
+            return false;
+        }
     }
 
 }

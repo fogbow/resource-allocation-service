@@ -464,10 +464,10 @@ public class OrderControllerTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
 
         ComputeOrder computeOrder1 = createFulfilledComputeOrder(systemUser);
-        computeOrder1.setActualAllocation(new ComputeAllocation(2, 2048, 1, 4));
+        computeOrder1.setActualAllocation(new ComputeAllocation(1, 2, 2048, 4));
 
         ComputeOrder computeOrder2 = createFulfilledComputeOrder(systemUser);
-        computeOrder2.setActualAllocation(new ComputeAllocation(4, 4096, 1, 8));
+        computeOrder2.setActualAllocation(new ComputeAllocation(1, 4, 4096, 8));
 
         this.activeOrdersMap.put(computeOrder1.getId(), computeOrder1);
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
@@ -484,7 +484,7 @@ public class OrderControllerTest extends BaseUnitTests {
         orders.add(computeOrder1);
         orders.add(computeOrder2);
 
-        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedCpuValue, expectedMemoryValue, expectedInstancesValue, expectedDiskValue);
+        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedInstancesValue, expectedCpuValue, expectedMemoryValue, expectedDiskValue);
         Mockito.doReturn(expectedAllocation).when(this.ordersController).getUserComputeAllocation(Mockito.eq(orders));
         Mockito.doReturn(orders).when(this.ordersController).castOrders(Mockito.anyListOf(Order.class));
         // exercise
@@ -629,7 +629,8 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser, ResourceType.GENERIC_RESOURCE);
+        this.ordersController.getUserAllocation(TestUtils.LOCAL_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME, systemUser,
+                ResourceType.INVALID_RESOURCE);
     }
 
     // test case: Tests if the castOrders method casts a list of orders (Order.class) to
@@ -947,7 +948,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private ComputeOrder createFulfilledComputeOrderWithAllocation(SystemUser systemUser) throws UnexpectedException {
         ComputeOrder order = createFulfilledComputeOrder(systemUser);
         ComputeAllocation computeAllocation = new ComputeAllocation(
-                TestUtils.CPU_VALUE, TestUtils.MEMORY_VALUE, INSTANCES_LAUNCH_NUMBER, TestUtils.DISK_VALUE);
+                INSTANCES_LAUNCH_NUMBER, TestUtils.CPU_VALUE, TestUtils.MEMORY_VALUE, TestUtils.DISK_VALUE);
         order.setActualAllocation(computeAllocation);
         return order;
     }

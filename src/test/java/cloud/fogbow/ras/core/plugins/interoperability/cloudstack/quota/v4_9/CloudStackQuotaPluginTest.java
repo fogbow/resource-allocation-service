@@ -584,7 +584,7 @@ public class CloudStackQuotaPluginTest {
         ArrayList<Network> networks= new ArrayList<>();
         ArrayList<PublicIpAddress> publicIps = new ArrayList<>();
 
-        ComputeAllocation computeAllocation = new ComputeAllocation(USED_CORES, USED_RAM, USED_INSTANCES);
+        ComputeAllocation computeAllocation = new ComputeAllocation(USED_INSTANCES, USED_CORES, USED_RAM);
 
         Mockito.doReturn(computeAllocation).when(this.plugin).buildComputeAllocation(Mockito.anyListOf(VirtualMachine.class));
         Mockito.doReturn(USED_DISK).when(this.plugin).getVolumeAllocation(Mockito.anyListOf(Volume.class));

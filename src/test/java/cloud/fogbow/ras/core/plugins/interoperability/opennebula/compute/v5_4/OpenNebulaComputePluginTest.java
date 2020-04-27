@@ -314,7 +314,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.when(template.getId()).thenReturn(this.hardwareRequirements.getFlavorId());
 		Mockito.when(template.getName()).thenReturn(this.hardwareRequirements.getName());
 		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getCpu()));
-		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getMemory()));
+		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getRam()));
 		Mockito.when(template.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getDisk()));
 
 		TreeSet<HardwareRequirements> expected = new TreeSet<>(Arrays.asList(this.hardwareRequirements));
@@ -356,7 +356,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.when(template.getId()).thenReturn(flavorId);
 		Mockito.when(template.getName()).thenReturn(this.hardwareRequirements.getName());
 		Mockito.when(template.xpath(TEMPLATE_CPU_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getCpu()));
-		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getMemory()));
+		Mockito.when(template.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.hardwareRequirements.getRam()));
 		Mockito.when(template.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(ZERO_STRING_VALUE);
 		Mockito.when(template.xpath(TEMPLATE_IMAGE_ID_PATH)).thenReturn(flavorId);
 
@@ -505,7 +505,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.when(virtualMachine.getName()).thenReturn(this.computeOrder.getName());
 		Mockito.when(virtualMachine.lcmStateStr()).thenReturn(OrderState.FULFILLED.toString());
 		Mockito.when(virtualMachine.xpath(TEMPLATE_CPU_PATH)).thenReturn(String.valueOf(this.computeOrder.getvCPU()));
-		Mockito.when(virtualMachine.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.computeOrder.getMemory()));
+		Mockito.when(virtualMachine.xpath(TEMPLATE_MEMORY_PATH)).thenReturn(String.valueOf(this.computeOrder.getRam()));
 		Mockito.when(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH)).thenReturn(String.valueOf(this.computeOrder.getDisk()));
 		Mockito.when(response.getMessage()).thenReturn(this.getVirtualMachineResponse());
 
@@ -644,7 +644,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 				.graphicsType(DEFAULT_GRAPHIC_TYPE)
 				.imageId(this.computeOrder.getImageId())
 				.diskSize(String.valueOf(this.hardwareRequirements.getDisk()))
-				.memory(String.valueOf(this.hardwareRequirements.getMemory()))
+				.memory(String.valueOf(this.hardwareRequirements.getRam()))
 				.networks(this.networkIds)
 				.architecture(DEFAULT_ARCHITECTURE)
 				.build();

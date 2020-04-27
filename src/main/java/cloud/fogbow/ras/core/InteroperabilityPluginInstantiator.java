@@ -11,7 +11,6 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
@@ -63,12 +62,6 @@ public class InteroperabilityPluginInstantiator {
     public QuotaPlugin getQuotaPlugin(String cloudName) {
         String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.QUOTA_PLUGIN_CLASS_KEY);
         return (QuotaPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
-    }
-
-    @Deprecated
-    public ComputeQuotaPlugin getComputeQuotaPlugin(String cloudName) {
-        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
-        return (ComputeQuotaPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
     }
 
     public NetworkPlugin getNetworkPlugin(String cloudName) {
