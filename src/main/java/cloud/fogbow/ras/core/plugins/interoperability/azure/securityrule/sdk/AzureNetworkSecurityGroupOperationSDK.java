@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 public class AzureNetworkSecurityGroupOperationSDK {
 
     private final int FIRST_PRIORITY_VALUE = 100;
-    private static final int UNKNOWN_PRIORITY_VALUE = -1;
+    @VisibleForTesting
+    static final int UNKNOWN_PRIORITY_VALUE = -1;
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
 
 
@@ -104,7 +105,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
     }
 
     // TODO (chico) - Implement tests
-    private int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
+    @VisibleForTesting
+    int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
         try {
             return networkSecurityGroup.securityRules().values().stream()
                     .filter(networkSecurityRule -> networkSecurityRule.name().startsWith(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX))
