@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -13,6 +14,7 @@ import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -25,21 +27,13 @@ import java.util.Properties;
 public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackSecurityRulePlugin.class);
 
-    protected static final String NETWORK_NEUTRON_V2_URL_KEY = "openstack_neutron_v2_url";
-    protected static final String V2_API_ENDPOINT = "/v2.0";
-    protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
-    protected static final String QUERY_PREFIX = "?";
-    protected static final String VALUE_QUERY_PREFIX = "=";
-    protected static final String SECURITY_GROUP_ID_PARAM = "security_group_id";
-    protected static final String NAME_PARAM_KEY = "name";
-    protected static final String SECURITY_GROUPS_ENDPOINT = "security-groups";
-
     private String networkV2APIEndpoint;
     private OpenStackHttpClient client;
 
     public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_V2_URL_KEY) + V2_API_ENDPOINT;
+        this.networkV2APIEndpoint = properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY) +
+                OpenStackConstants.NEUTRON_V2_API_ENDPOINT;
         initClient();
     }
 
@@ -68,7 +62,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
                 .protocol(protocol)
                 .build();
 
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
+        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT;
         String response = doPostRequest(endpoint, createSecurityRuleRequest.toJson(), cloudUser);
         createSecurityRuleResponse = CreateSecurityRuleResponse.fromJson(response);
 
@@ -80,8 +74,9 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
         String securityGroupName = retrieveSecurityGroupName(majorOrder);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
 
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + QUERY_PREFIX +
-                SECURITY_GROUP_ID_PARAM + VALUE_QUERY_PREFIX + securityGroupId;
+        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT +
+                "?" + OpenStackConstants.SecurityRule.SECURITY_GROUP_ID_KEY_JSON +
+                "=" + securityGroupId;
 
         String responseStr = doGetRequest(endpoint, cloudUser);
         return getSecurityRulesFromJson(responseStr);
@@ -89,7 +84,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
 
     @Override
     public void deleteSecurityRule(String securityRuleId, OpenStackV3User cloudUser) throws FogbowException {
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityRuleId;
+        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT + "/" + securityRuleId;
         doDeleteRequest(endpoint, cloudUser);
     }
 
@@ -139,8 +134,8 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         URI uri = UriBuilder
                 .fromPath(this.networkV2APIEndpoint)
-                .path(SECURITY_GROUPS_ENDPOINT)
-                .queryParam(NAME_PARAM_KEY, securityGroupName)
+                .path(OpenStackConstants.SECURITY_GROUPS_ENDPOINT)
+                .queryParam(OpenStackConstants.SecurityRule.NAME_KEY_JSON, securityGroupName)
                 .build();
 
         String endpoint = uri.toString();

@@ -182,7 +182,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                     filterServicesOfferingByRequirements(serviceOfferings, computeOrder);
             for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferingsFiltered) {
                 if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
-                        serviceOffering.getMemory() >= computeOrder.getMemory()) {
+                        serviceOffering.getMemory() >= computeOrder.getRam()) {
                     return serviceOffering;
                 }
             }
@@ -374,9 +374,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
-                    serviceOffering.getCpuNumber(),
+                    AMOUNT_INSTANCE, serviceOffering.getCpuNumber(),
                     serviceOffering.getMemory(),
-                    AMOUNT_INSTANCE,
                     diskOffering.getDiskSize());
             computeOrder.setActualAllocation(actualAllocation);
         }

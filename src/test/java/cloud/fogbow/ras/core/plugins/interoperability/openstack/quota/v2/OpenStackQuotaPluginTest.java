@@ -49,7 +49,7 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
     private static final int USED_PUBLIC_IP_VALUE = 1;
     
     private static final String FAKE_TENANT_ID = "fake-tenant-id";
-    private static final String FAKE_VOLUME_ENDPOINT = "https://mycloud.mydomain:8776/v3/fake-tenant-id/limits";
+    private static final String FAKE_VOLUME_ENDPOINT = "https://mycloud.domain:8776/v3/fake-tenant-id/limits";
     private static final String FAKE_NETWORK_ENDPOINT = "https://mycloud.domain:9696/v2.0/quotas/fake-tenant-id/details.json";
     private static final String FAKE_COMPUTE_ENDPOINT = "https://mycloud.domain:8774/v2/limits";
     private static final String METHOD_FROM_JSON = "fromJson";

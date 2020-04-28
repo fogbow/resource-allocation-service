@@ -155,7 +155,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		HardwareRequirements foundFlavor = this.findSmallestFlavor(client, computeOrder);
 		String cpu = String.valueOf(foundFlavor.getCpu());
-		String memory = String.valueOf(foundFlavor.getMemory());
+		String memory = String.valueOf(foundFlavor.getRam());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
@@ -181,10 +181,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		int sizeInMegabytes = Integer.parseInt(virtualMachine.getDisk().getSize());
 		int size = convertDiskSizeToGb(sizeInMegabytes);
 		ComputeAllocation actualAllocation = new ComputeAllocation(
-				Integer.parseInt(virtualMachine.getCpu()),
+                DEFAULT_NUMBER_OF_INSTANCES, Integer.parseInt(virtualMachine.getCpu()),
 				Integer.parseInt(virtualMachine.getMemory()),
-				DEFAULT_NUMBER_OF_INSTANCES,
-				size);
+                size);
 		computeOrder.setActualAllocation(actualAllocation);
 	}
 
@@ -220,7 +219,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		for (HardwareRequirements hardwareRequirements : this.getFlavors()) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
+					&& hardwareRequirements.getRam() >= computeOrder.getRam()
 					&& hardwareRequirements.getDisk() >= this.convertDiskSizeToMb(computeOrder.getDisk())) {
 				return hardwareRequirements;
 			}

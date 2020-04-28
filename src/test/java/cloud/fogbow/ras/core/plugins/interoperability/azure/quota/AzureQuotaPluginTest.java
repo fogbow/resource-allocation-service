@@ -264,7 +264,7 @@ public class AzureQuotaPluginTest extends TestUtils {
 
         Mockito.doReturn(expectedRam).when(this.plugin).getMemoryUsage(Mockito.eq(this.azure));
 
-        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedCores, expectedRam , expectedInstances);
+        ComputeAllocation expectedAllocation = new ComputeAllocation(expectedInstances, expectedCores, expectedRam);
 
         // exercise
         ComputeAllocation computeAllocation = this.plugin.getUsedComputeAllocation(computeUsageMap, this.azure);
@@ -515,7 +515,7 @@ public class AzureQuotaPluginTest extends TestUtils {
         int expectedNetworks = 1;
         int expectedPublicIps = 1;
 
-        ComputeAllocation computeAllocation = new ComputeAllocation(expectedCores, expectedRam, expectedInstances);
+        ComputeAllocation computeAllocation = new ComputeAllocation(expectedInstances, expectedCores, expectedRam);
         VolumeAllocation volumeAllocation = new VolumeAllocation(expectedVolumes, expectedStorage);
         NetworkAllocation networkAllocation = new NetworkAllocation(expectedNetworks);
         PublicIpAllocation publicIpAllocation = new PublicIpAllocation(expectedPublicIps);

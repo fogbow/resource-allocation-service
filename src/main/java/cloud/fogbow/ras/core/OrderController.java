@@ -293,7 +293,7 @@ public class OrderController {
                 disk += actualAllocation.getDisk();
             }
         }
-        return new ComputeAllocation(vCPU, ram, instances, disk);
+        return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
 	private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
@@ -394,7 +394,7 @@ public class OrderController {
         // we get those from the order allocation
         ComputeAllocation allocation = order.getActualAllocation();
         instance.setvCPU(allocation.getvCPU());
-        instance.setMemory(allocation.getRam());
+        instance.setRam(allocation.getRam());
         instance.setDisk(allocation.getDisk());
     }
 

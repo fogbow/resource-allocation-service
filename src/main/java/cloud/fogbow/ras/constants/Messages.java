@@ -16,7 +16,6 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INSTANCE_NULL_S = "There is no active instance with id: <%s>.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
-        public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
         public static final String INVALID_ONE_RESOURCE_S = "Invalid oneResource: %s.";
         public static final String INVALID_ONE_METHOD_S = "Invalid oneMethod: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
@@ -213,7 +212,6 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_JSON = "Unable to generate json.";
         public static final String UNABLE_TO_GET_ATTACHMENT_INSTANCE = "Unable to get attachment instance from json.";
         public static final String UNABLE_TO_GET_NETWORK = "Unable to get network information from json %s.";
-        public static final String UNABLE_TO_GET_SECURITY_GROUP = "Unable to get security group information from json %s.";
         public static final String UNABLE_TO_MARSHALL_IN_XML = "Unable to marshall in xml.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
         public static final String UNABLE_TO_UNMARSHALL_XML_S = "Unable to unmarshall xml: %s.";
@@ -225,10 +223,7 @@ public class Messages {
         public static final String INSTANCE_OPERATIONAL_LOST_MEMORY_FAILURE =
                 "The instanceid %s had an operational failure due to the memory lost. It might left trash in the cloud.";
         public static final String ERROR_WHILE_CREATING_AZURE_CLIENT = "Error while creating a new Azure client";
-        public static final String ERROR_ID_LIMIT_SIZE_EXCEEDED =
-                "The resource name exceeded %s characters of the limit";
         public static final String ERROR_DISK_PARAMETER_AZURE_POLICY = "The disk size must be greater than %sGB";
-        public static final String ERROR_MULTIPLE_NETWORKS_NOT_ALLOWED = "Multiple networks not allowed";
         public static final String ERROR_CREATE_VM_ASYNC_BEHAVIOUR = "Error while creating virtual machine asynchronously.";
         public static final String ERROR_DELETE_DISK_ASYNC_BEHAVIOUR = "Error while deleting disk asynchronously.";
         public static final String ERROR_DELETE_VM_ASYNC_BEHAVIOUR = "Error while deleting virtual machine asynchronously.";
