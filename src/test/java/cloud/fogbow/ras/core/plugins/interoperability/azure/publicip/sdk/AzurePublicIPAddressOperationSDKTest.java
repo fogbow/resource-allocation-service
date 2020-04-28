@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
+import org.apache.log4j.Level;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +16,6 @@ import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.network.PublicIPAddresses;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 
-import ch.qos.logback.classic.Level;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
