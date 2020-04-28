@@ -177,7 +177,7 @@ public class AzurePublicIPAddressOperationSDKTest {
     @Test
     public void testSubscribeDisassociateAndDeleteResourcesSuccessfully() {
         // set up
-        Completable completable = Completable.complete();
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
 
         Observable<NetworkInterface> observable = Observable.defer(() -> {
             NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
@@ -204,7 +204,7 @@ public class AzurePublicIPAddressOperationSDKTest {
     @Test
     public void testSubscribeDisassociateAndDeleteResourcesFail() {
         // set up
-        Completable completable = Completable.complete();
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
         Observable observable = AzureTestUtils.createSimpleObservableFail();
 
         // exercise
@@ -220,7 +220,7 @@ public class AzurePublicIPAddressOperationSDKTest {
     @Test
     public void testSubscribeDeleteDiskSuccessfully() {
         // set up
-        Completable completable = Completable.complete();
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
 
         // exercise
         this.operation.subscribeDeleteResources(completable);
@@ -234,7 +234,7 @@ public class AzurePublicIPAddressOperationSDKTest {
     @Test
     public void testSubscribeDeleteDiskFail() {
         // set up
-        Completable completable = Completable.error(new RuntimeException());
+        Completable completable = AzureTestUtils.createSimpleCompletableFail();
 
         // exercise
         this.operation.subscribeDeleteResources(completable);
