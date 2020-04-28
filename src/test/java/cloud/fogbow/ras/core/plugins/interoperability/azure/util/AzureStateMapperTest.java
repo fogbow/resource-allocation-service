@@ -221,4 +221,61 @@ public class AzureStateMapperTest {
         Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
     }
     
+    // test case: When calling the map method with a public IP resource type and
+    // creating state, it must verify than it returns this same instance state.
+    @Test
+    public void testMapWithPublicIpResourceTypeWhenStateIsCreating() {
+        // set up
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.CREATING_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.CREATING, instanceState);
+    }
+
+    // test case: When calling the map method with a public IP resource type and
+    // succeeded state, it must verify than it returns the ready instance state.
+    @Test
+    public void testMapWithPublicIpResourceTypeWhenStateIsSucceeded() {
+        // set up
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.SUCCEEDED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.READY, instanceState);
+    }
+
+    // test case: When calling the map method with a public IP resource type and failed
+    // state, it must verify than it returns the failed instance state.
+    @Test
+    public void testMapWithPublicIpResourceTypeWhenStateIsFailed() {
+        // set up
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.FAILED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
+    }
+
+    // test case: When calling the map method with a public IP resource type and a
+    // undefined state, it must verify than it returns the inconsistent instance
+    // state.
+    @Test
+    public void testMapWithPublicIpResourceTypeWhenStateIsUndefined() {
+        // set up
+        ResourceType resourceType = ResourceType.PUBLIC_IP;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureTestUtils.UNDEFINED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+    }
+
 }
