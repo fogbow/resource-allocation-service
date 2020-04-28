@@ -81,14 +81,6 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     @VisibleForTesting
-    PublicIPAddress doGetPublicIPAddress(Azure azure, String instanceId) {
-        PublicIPAddress publicIPAddress = azure.publicIPAddresses()
-                .getByResourceGroup(this.resourceGroupName, instanceId);
-
-        return publicIPAddress;
-    }
-
-    @VisibleForTesting
     Observable<NetworkInterface> setUpdateNetworkInterfaceBehaviour(Azure azure,
             String instanceId, Observable<NetworkInterface> observable) {
 
@@ -99,6 +91,14 @@ public class AzurePublicIPAddressOperationSDK {
         }).doOnCompleted(() -> {
             LOGGER.info(Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
         });
+    }
+
+    @VisibleForTesting
+    PublicIPAddress doGetPublicIPAddress(Azure azure, String instanceId) {
+        PublicIPAddress publicIPAddress = azure.publicIPAddresses()
+                .getByResourceGroup(this.resourceGroupName, instanceId);
+
+        return publicIPAddress;
     }
 
     @VisibleForTesting
