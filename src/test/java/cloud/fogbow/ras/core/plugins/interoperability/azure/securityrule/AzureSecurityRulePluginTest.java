@@ -1,14 +1,20 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
+import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.AzureNetworkSecurityGroupOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
@@ -18,7 +24,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceId
 import com.microsoft.azure.management.Azure;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -41,6 +49,9 @@ public class AzureSecurityRulePluginTest extends TestUtils {
     private Azure azure;
     private AzureUser azureUser;
     private AzureNetworkSecurityGroupOperationSDK operation;
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -166,6 +177,98 @@ public class AzureSecurityRulePluginTest extends TestUtils {
                 Mockito.eq(networkSecurityGroupId), Mockito.eq(securityRuleName), Mockito.eq(azureUser));
         Mockito.verify(mockedSecurityRuleIdContext, Mockito.times(TestUtils.RUN_ONCE)).getNetworkSecurityGroupName();
         Mockito.verify(mockedSecurityRuleIdContext, Mockito.times(TestUtils.RUN_ONCE)).getSecurityRuleName();
+    }
+
+    // test case: When calling the doGetSecurityRules method with mocked methods,
+    // it must verify if it creates all variable correct.
+    @Test
+    public void testDoGetSecurityRulesSuccessfully() throws FogbowException {
+        // set up
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        Order order = Mockito.mock(NetworkOrder.class);
+        Mockito.when(order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
+
+        String networkSecurityGroupName = "network-security-group-name";
+        Mockito.when(AzureGeneralUtil.defineResourceName(Mockito.eq(order.getInstanceId())))
+                .thenReturn(networkSecurityGroupName);
+
+        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+
+        Mockito.when(this.operation.getNetworkSecurityRules(Mockito.eq(networkSecurityGroupId), Mockito.eq(azureUser)))
+                .thenReturn(new ArrayList<>());
+
+        // exercise
+        this.plugin.doGetSecurityRules(order, azureUser);
+
+        // verify
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).getNetworkSecurityRules(
+                Mockito.eq(networkSecurityGroupId), Mockito.eq(azureUser));
+
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.defineResourceName(Mockito.eq(order.getInstanceId()));
+    }
+
+    // test case: When calling the doGetSecurityRules method with mocked methods
+    // and the order has a type different of network or public ip, it must throw a exception
+    @Test
+    public void testDoGetSecurityRulesInvalidResourceType() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(VolumeOrder.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
+
+        String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, order.getType());
+
+        // verify
+        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expectMessage(errorMsg);
+
+        // exercise
+        this.plugin.doGetSecurityRules(order, azureUser);
+    }
+
+    // test case: When calling the checkOrderType method with mocked methods
+    // and the order is a NetworkOrder it must pass without any error
+    @Test
+    public void testCheckOrderTypeSuccessfullyNetwork() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(NetworkOrder.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
+
+        // exercise
+        this.plugin.checkOrderType(order);
+    }
+
+    // test case: When calling the checkOrderType method with mocked methods
+    // and the order is a NetworkOrder it must pass without any error
+    @Test
+    public void testCheckOrderTypeSuccessfullyPublicIp() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(PublicIpOrder.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
+
+        // exercise
+        this.plugin.checkOrderType(order);
+    }
+
+    // test case: When calling the checkOrderType method with mocked methods
+    // and the order has a type different of network or public ip, it must throw a exception
+    @Test
+    public void testCheckOrderTypeInvalidResourceType() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(VolumeOrder.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
+
+        // verify
+        this.expectedException.expect(InvalidParameterException.class);
+        this.expectedException.expectMessage(Messages.Exception.INVALID_RESOURCE);
+
+        // exercise
+        this.plugin.checkOrderType(order);
     }
 
     private SecurityRule createSecurityRule() {
