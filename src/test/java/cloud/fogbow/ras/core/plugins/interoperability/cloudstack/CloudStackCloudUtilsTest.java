@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
-import ch.qos.logback.classic.Level;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -15,6 +14,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -394,8 +394,7 @@ public class CloudStackCloudUtilsTest {
         CloudStackCloudUtils.sleepThread();
 
         // verify
-        this.loggerTestChecking.assertEquals(
-                LoggerAssert.FIRST_POSITION, Level.WARN, Messages.Warn.SLEEP_THREAD_INTERRUPTED);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.SLEEP_THREAD_INTERRUPTED);
     }
 
     private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {

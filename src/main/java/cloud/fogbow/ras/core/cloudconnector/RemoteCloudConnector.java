@@ -4,20 +4,17 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.util.connectivity.FogbowGenericResponse;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import org.apache.log4j.Logger;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class RemoteCloudConnector implements CloudConnector {
@@ -75,10 +72,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+    public Quota getUserQuota(SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationProvider,
-                    this.cloudName, systemUser, resourceType);
+                    this.cloudName, systemUser);
             Quota quota = remoteGetUserQuotaRequest.send();
             return quota;
         } catch (Exception e) {
@@ -107,20 +104,6 @@ public class RemoteCloudConnector implements CloudConnector {
                     this.cloudName, imageId, systemUser);
             ImageInstance imageInstance = remoteGetImageRequest.send();
             return imageInstance;
-        } catch (Exception e) {
-            LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public FogbowGenericResponse genericRequest(String genericRequest, SystemUser systemUserToken)
-            throws FogbowException {
-        try {
-            RemoteGenericRequest remoteGenericRequest = new RemoteGenericRequest(this.destinationProvider, this.cloudName,
-                    genericRequest, systemUserToken);
-            FogbowGenericResponse fogbowGenericResponse = remoteGenericRequest.send();
-            return fogbowGenericResponse;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);

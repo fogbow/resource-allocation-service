@@ -35,7 +35,6 @@ public class ApiDocumentation {
         public static final String GET_OPERATION = "Lists all compute instances created by the user.";
         public static final String GET_BY_ID_OPERATION = "Lists a specific compute instance.";
         public static final String DELETE_OPERATION = "Deletes a specific compute instance.";
-        public static final String GET_QUOTA = "Gets the compute quota for the user on a particular provider.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
         public static final String ID = "The ID of the specific compute instance.";
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
@@ -123,7 +122,7 @@ public class ApiDocumentation {
         public static final String COMPUTE_NAME = "my compute";
         public static final String COMPUTE_NAME_NOTE = "(a friendly name to identify the compute)";
         public static final String VCPU_NOTE = "(the minimum number of vCPUs in the compute)";
-        public static final String MEMORY_NOTE = "(the minimum memory size of the compute in Mega bytes)";
+        public static final String RAM_NOTE = "(the minimum RAM size of the compute in Mega bytes)";
         public static final String DISK_NOTE = "(the minimum disk size of the compute in Giga bytes)";
         public static final String IMAGE_ID = "4489-82a0-622ee-461a-99a9-1e5d59076a98";
         public static final String IMAGE_ID_NOTE = "(the ID of the image to be used to create the compute)";
