@@ -51,11 +51,16 @@ public class AzureNetworkSecurityGroupOperationSDK {
     // TODO (chico) - Implement tests
     @VisibleForTesting
     int getPriority(NetworkSecurityGroup networkSecurityGroup) {
-        int priority = currentPriority;
+        int priority = getCurrentPriority();
         if (priority == UNKNOWN_PRIORITY_VALUE) {
             priority = getLastPriority(networkSecurityGroup);
         }
         return priority + 1;
+    }
+
+    @VisibleForTesting
+    int getCurrentPriority() {
+        return currentPriority;
     }
 
     // TODO (chico) - Finish implementation and Implement tests
