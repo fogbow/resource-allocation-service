@@ -27,7 +27,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
 
 
-    // TODO (chico) - Implement tests
     public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
             throws FogbowException {
 
@@ -49,7 +48,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
                 portTo, ruleName, securityRuleProtocol, direction, priority);
     }
 
-    // TODO (chico) - Implement tests
     @VisibleForTesting
     int getPriority(NetworkSecurityGroup networkSecurityGroup) {
         int priority = getCurrentPriority();
@@ -104,7 +102,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
         AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, securityRuleName);
     }
 
-    // TODO (chico) - Implement tests
     @VisibleForTesting
     int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
         try {
