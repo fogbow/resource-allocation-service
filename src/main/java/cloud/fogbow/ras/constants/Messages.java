@@ -102,7 +102,9 @@ public class Messages {
         public static final String END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous create public IP address.";
         public static final String END_DETACH_DISK_ASYNC_BEHAVIOUR = "End asynchronous detach disk.";
         public static final String END_DELETE_NIC_ASYNC_BEHAVIOUR = "End asynchronous delete network interface.";
+        public static final String END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous delete public IP address.";
         public static final String END_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous delete resources.";
+        public static final String END_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous disassociate resources.";
         public static final String END_UPDATE_NIC_ASYNC_BEHAVIOUR = "End asynchronous update network interface.";
         public static final String FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "First step: Public IP Address created and associated with the virtual machine.";
         public static final String FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "First step: Public IP address and network security group disassociated from network instance.";
@@ -153,7 +155,6 @@ public class Messages {
                 = "Second step on virtual network creation: Network created.";
         public static final String END_DELETE_VNET_ASYNC_BEHAVIOUR = "End asynchronous delete virtual network.";
         public static final String END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "End asynchronous delete security group.";
-        public static final String END_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous disassociate resources.";
     }
 
     public static class Error {
@@ -163,6 +164,7 @@ public class Messages {
         public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously.";
         public static final String ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while creating public IP address asynchronously.";
         public static final String ERROR_DELETE_NIC_ASYNC_BEHAVIOUR = "Error while deleting network interface asynchonously.";
+        public static final String ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while deleting public IP address asynchronously.";
         public static final String ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "Error while deleting resources asynchronously.";
         public static final String ERROR_DETACH_DISK_ASYNC_BEHAVIOUR = "Error while detaching disk asynchronously.";
         public static final String ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "Error while desassociating resources asynchronously.";
