@@ -68,25 +68,25 @@ public class AzurePublicIPAddressOperationSDK {
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associateNetworkSecurityGroupAsync(nic, creatable);
 
-        subscribeUpdateNetworkInterface(azure, instanceId, observable);
+        subscribeUpdateNetworkInterface(azure, instanceId, nic, observable);
     }
 
     @VisibleForTesting
     void subscribeUpdateNetworkInterface(Azure azure, String instanceId,
-            Observable<NetworkInterface> observable) {
+            NetworkInterface nic, Observable<NetworkInterface> observable) {
 
-        setUpdateNetworkInterfaceBehaviour(azure, instanceId, observable)
+        setUpdateNetworkInterfaceBehaviour(azure, instanceId, nic, observable)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
     @VisibleForTesting
     Observable<NetworkInterface> setUpdateNetworkInterfaceBehaviour(Azure azure,
-            String instanceId, Observable<NetworkInterface> observable) {
+            String instanceId, NetworkInterface nic, Observable<NetworkInterface> observable) {
 
         return observable.onErrorReturn(error -> {
             LOGGER.error(Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR, error);
-            doDeletePublicIPAddressAsync(azure, instanceId);
+            doDisassociateAndDeletePublicIPAddressAsync(azure, instanceId, nic);
             return null;
         }).doOnCompleted(() -> {
             LOGGER.info(Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
@@ -102,24 +102,54 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     @VisibleForTesting
-    void doDeletePublicIPAddressAsync(Azure azure, String instanceId) {
+    void doDisassociateAndDeletePublicIPAddressAsync(Azure azure,
+            String instanceId, NetworkInterface nic) {
+
         PublicIPAddress publicIPAddress = doGetPublicIPAddress(azure, instanceId);
         String resourceId = publicIPAddress.id();
+
+        Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
+                .disassociatePublicIPAddressAsync(nic);
+
         Completable completable = AzurePublicIPAddressSDK
                 .deletePublicIpAddressAsync(azure, resourceId);
 
-        subscribeDeletePublicIPAddress(completable);
+        subscribeDisassociateAndDeletePublicIPAddress(observable, completable);
     }
 
     @VisibleForTesting
-    void subscribeDeletePublicIPAddress(Completable completable) {
-        setDeletePublicIPAddress(completable)
+    void subscribeDisassociateAndDeletePublicIPAddress(
+            Observable<NetworkInterface> observable, Completable completable) {
+
+        setDisassociateAndDeletePublicIPAddress(observable, completable)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
     @VisibleForTesting
-    Completable setDeletePublicIPAddress(Completable completable) {
+    Observable<NetworkInterface> setDisassociateAndDeletePublicIPAddress(
+            Observable<NetworkInterface> observable, Completable completable) {
+
+        return observable.doOnNext(nic -> {
+            LOGGER.info(Messages.Info.FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+            subscribeDeletePublicIPAddressAsync(completable);
+        }).onErrorReturn(error -> {
+            LOGGER.error(Messages.Error.ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
+            return null;
+        }).doOnCompleted(() -> {
+            LOGGER.info(Messages.Info.END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+        });
+    }
+
+    @VisibleForTesting
+    void subscribeDeletePublicIPAddressAsync(Completable completable) {
+        setDeletePublicIPAddressBehaviour(completable)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+    }
+
+    @VisibleForTesting
+    Completable setDeletePublicIPAddressBehaviour(Completable completable) {
         return completable.doOnError(error -> {
             LOGGER.error(Messages.Error.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
         }).doOnCompleted(() -> {
