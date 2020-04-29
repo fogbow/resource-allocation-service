@@ -121,7 +121,7 @@ public class AzurePublicIPAddressOperationSDKTest {
                 Mockito.eq(networkInterface), Mockito.eq(creatable));
 
         Mockito.doNothing().when(this.operation).subscribeUpdateNetworkInterface(Mockito.eq(azure),
-                Mockito.eq(instanceId), Mockito.eq(observable));
+                Mockito.eq(instanceId), Mockito.eq(networkInterface), Mockito.eq(observable));
 
         // exercise
         this.operation.doAssociateNetworkSecurityGroupAsync(azure, instanceId, networkInterface);
@@ -137,7 +137,8 @@ public class AzurePublicIPAddressOperationSDKTest {
         AzurePublicIPAddressSDK.associateNetworkSecurityGroupAsync(Mockito.eq(networkInterface), Mockito.eq(creatable));
 
         Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
-                .subscribeUpdateNetworkInterface(Mockito.eq(azure), Mockito.eq(instanceId), Mockito.eq(observable));
+                .subscribeUpdateNetworkInterface(Mockito.eq(azure), Mockito.eq(instanceId), Mockito.eq(networkInterface),
+                Mockito.eq(observable));
     }
 
     // test case: When calling the subscribeUpdateNetworkInterface method and the
@@ -149,13 +150,13 @@ public class AzurePublicIPAddressOperationSDKTest {
         Azure azure = PowerMockito.mock(Azure.class);
         String instanceId = AzureGeneralUtil.defineInstanceId(AzureTestUtils.RESOURCE_NAME);
 
+        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
         Observable<NetworkInterface> observable = Observable.defer(() -> {
-            NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
             return Observable.just(networkInterface);
         });
 
         // exercise
-        this.operation.subscribeUpdateNetworkInterface(azure, instanceId, observable);
+        this.operation.subscribeUpdateNetworkInterface(azure, instanceId, networkInterface, observable);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
@@ -169,18 +170,21 @@ public class AzurePublicIPAddressOperationSDKTest {
         // set up
         Azure azure = PowerMockito.mock(Azure.class);
         String instanceId = AzureGeneralUtil.defineInstanceId(AzureTestUtils.RESOURCE_NAME);
+        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
         Observable observable = AzureTestUtils.createSimpleObservableFail();
 
-        Mockito.doNothing().when(this.operation).doDeletePublicIPAddressAsync(Mockito.eq(azure), Mockito.eq(instanceId));
+        Mockito.doNothing().when(this.operation).doDisassociateAndDeletePublicIPAddressAsync(Mockito.eq(azure),
+                Mockito.eq(instanceId), Mockito.eq(networkInterface));
 
         // exercise
-        this.operation.subscribeUpdateNetworkInterface(azure, instanceId, observable);
+        this.operation.subscribeUpdateNetworkInterface(azure, instanceId, networkInterface, observable);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR);
 
         Mockito.verify(this.operation, Mockito.timeout(TestUtils.RUN_ONCE))
-                .doDeletePublicIPAddressAsync(Mockito.eq(azure), Mockito.eq(instanceId));
+                .doDisassociateAndDeletePublicIPAddressAsync(Mockito.eq(azure), Mockito.eq(instanceId),
+                Mockito.eq(networkInterface));
     }
 
     // test case: When calling the doGetPublicIPAddress method, it must verify
@@ -207,14 +211,15 @@ public class AzurePublicIPAddressOperationSDKTest {
                 .getByResourceGroup(Mockito.eq(this.resourceGroupName), Mockito.eq(instanceId));
     }
 
-    // test case: When calling the doDeletePublicIPAddressAsync method, it must
-    // verify that is call was successful.
+    // test case: When calling the doDisassociateAndDeletePublicIPAddressAsync
+    // method, it must verify that is call was successful.
     @Test
-    public void testDoDeletePublicIPAddressAsyncSuccessfully() throws Exception {
+    public void testDoDisassociateAndDeletePublicIPAddressAsyncSuccessfully() throws Exception {
         // set up
         Azure azure = PowerMockito.mock(Azure.class);
         String instanceId = AzureGeneralUtil.defineInstanceId(AzureTestUtils.RESOURCE_NAME);
         String resourceId = AzureResourceIdBuilder.publicIpAddressId().build();
+        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
 
         PublicIPAddress publicIPAddress = Mockito.mock(PublicIPAddress.class);
         Mockito.when(publicIPAddress.id()).thenReturn(resourceId);
@@ -222,15 +227,19 @@ public class AzurePublicIPAddressOperationSDKTest {
         Mockito.doReturn(publicIPAddress).when(this.operation).doGetPublicIPAddress(Mockito.eq(azure),
                 Mockito.eq(instanceId));
 
-        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
+        Observable<NetworkInterface> observable = Mockito.mock(Observable.class);
         PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
+        PowerMockito.doReturn(observable).when(AzurePublicIPAddressSDK.class, "disassociatePublicIPAddressAsync",
+                Mockito.eq(networkInterface));
+
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
         PowerMockito.doReturn(completable).when(AzurePublicIPAddressSDK.class, "deletePublicIpAddressAsync",
                 Mockito.eq(azure), Mockito.eq(resourceId));
 
-        Mockito.doNothing().when(this.operation).subscribeDeletePublicIPAddress(completable);
+        Mockito.doNothing().when(this.operation).subscribeDisassociateAndDeletePublicIPAddress(observable, completable);
 
         // exercise
-        this.operation.doDeletePublicIPAddressAsync(azure, instanceId);
+        this.operation.doDisassociateAndDeletePublicIPAddressAsync(azure, instanceId, networkInterface);
 
         // verify
         Mockito.verify(publicIPAddress, Mockito.times(TestUtils.RUN_ONCE)).id();
@@ -238,37 +247,82 @@ public class AzurePublicIPAddressOperationSDKTest {
                 Mockito.eq(instanceId));
 
         PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzurePublicIPAddressSDK.disassociatePublicIPAddressAsync(Mockito.eq(networkInterface));
+
+        PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzurePublicIPAddressSDK.deletePublicIpAddressAsync(Mockito.eq(azure), Mockito.eq(resourceId));
 
-        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).subscribeDeletePublicIPAddress(
-                Mockito.eq(completable));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).subscribeDisassociateAndDeletePublicIPAddress(
+                Mockito.eq(observable), Mockito.eq(completable));
     }
 
-    // test case: When calling the subscribeDeletePublicIPAddress method
+    // test case: When calling the subscribeDisassociateAndDeletePublicIPAddress
+    // method and the observable executes without any error, it must verify than
+    // returns the right logs.
+    @Test
+    public void testSubscribeDisassociateAndDeletePublicIPAddressSuccessfully() {
+        // set up
+        Observable<NetworkInterface> observable = Observable.defer(() -> {
+            NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
+            return Observable.just(networkInterface);
+        });
+
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
+        Mockito.doNothing().when(this.operation).subscribeDeletePublicIPAddressAsync(Mockito.eq(completable));
+
+        // exercise
+        this.operation.subscribeDisassociateAndDeletePublicIPAddress(observable, completable);
+
+        // verify
+        this.loggerAssert
+                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+
+        Mockito.verify(this.operation, Mockito.timeout(TestUtils.RUN_ONCE))
+                .subscribeDeletePublicIPAddressAsync(Mockito.eq(completable));
+    }
+
+    // test case: When calling the subscribeDisassociateAndDeletePublicIPAddress
+    // method and the observable executes with an error, it must verify than returns
+    // the right logs.
+    @Test
+    public void testSubscribeDisassociateAndDeletePublicIPAddressFail() {
+        // set up
+        Observable observable = AzureTestUtils.createSimpleObservableFail();
+        Completable completable = AzureTestUtils.createSimpleCompletableFail();
+
+        // exercise
+        this.operation.subscribeDisassociateAndDeletePublicIPAddress(observable, completable);
+
+        // verify
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the subscribeDeletePublicIPAddressAsync method
     // and the observable executes without any error, it must verify than
     // returns the right logs.
     @Test
-    public void testSubscribeDeletePublicIPAddressSuccessfully() {
+    public void testSubscribeDeletePublicIPAddressAsyncSuccessfully() {
         // set up
         Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
 
         // exercise
-        this.operation.subscribeDeletePublicIPAddress(completable);
+        this.operation.subscribeDeletePublicIPAddressAsync(completable);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
     }
 
-    // test case: When calling the subscribeDeletePublicIPAddress method
-    // and the observable executes with an error, it must verify than returns
-    // the right logs.
+    // test case: When calling the subscribeDeletePublicIPAddressAsync
+    // method and the observable executes with an error, it must verify than
+    // returns the right logs.
     @Test
-    public void testSubscribeDeletePublicIPAddressFail() {
+    public void testSubscribeDeletePublicIPAddressAsyncFail() {
         // set up
         Completable completable = AzureTestUtils.createSimpleCompletableFail();
 
         // exercise
-        this.operation.subscribeDeletePublicIPAddress(completable);
+        this.operation.subscribeDeletePublicIPAddressAsync(completable);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
