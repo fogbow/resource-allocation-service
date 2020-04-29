@@ -103,10 +103,12 @@ public class Messages {
         public static final String END_DETACH_DISK_ASYNC_BEHAVIOUR = "End asynchronous detach disk.";
         public static final String END_DELETE_NIC_ASYNC_BEHAVIOUR = "End asynchronous delete network interface.";
         public static final String END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous delete public IP address.";
+        public static final String END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous disassociate public IP address.";
         public static final String END_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous delete resources.";
         public static final String END_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous disassociate resources.";
         public static final String END_UPDATE_NIC_ASYNC_BEHAVIOUR = "End asynchronous update network interface.";
         public static final String FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "First step: Public IP Address created and associated with the virtual machine.";
+        public static final String FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "First step: Public IP Address disassociated from network interface.";
         public static final String FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "First step: Public IP address and network security group disassociated from network instance.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
@@ -167,6 +169,7 @@ public class Messages {
         public static final String ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while deleting public IP address asynchronously.";
         public static final String ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR = "Error while deleting resources asynchronously.";
         public static final String ERROR_DETACH_DISK_ASYNC_BEHAVIOUR = "Error while detaching disk asynchronously.";
+        public static final String ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while detaching public IP address asynchronously.";
         public static final String ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "Error while desassociating resources asynchronously.";
         public static final String ERROR_MESSAGE = "Error message is: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
