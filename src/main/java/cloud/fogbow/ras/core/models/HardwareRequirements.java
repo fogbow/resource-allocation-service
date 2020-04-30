@@ -111,4 +111,14 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
 
         return ((cpu1 / cpu2) / VCPU_VALUE_RELEVANCE) + ((ram1 / ram2) / MEM_VALUE_RELEVANCE);
     }
+
+    public static class Opennebula extends HardwareRequirements {
+
+        private static final String UNUSED_VALUE = null;
+
+        public Opennebula(int cpu, int ram, int disk) {
+            super(UNUSED_VALUE, UNUSED_VALUE, cpu, ram, disk);
+        }
+
+    }
 }

@@ -9,6 +9,7 @@ public class AzureSchedulerManager {
     private static final int VIRTUAL_MACHINE_POOL_SIZE = 2;
     private static final int VOLUME_POOL_SIZE = 2;
     private static final int VIRTUAL_NETWORK_POOL_SIZE = 3;
+    private static final int PUBLIC_IP_ADDRESS_POOL_SIZE = 3;
 
     public static ExecutorService getAttachmentExecutor() {
         return Executors.newFixedThreadPool(ATTACHMENT_POOL_SIZE);
@@ -24,6 +25,10 @@ public class AzureSchedulerManager {
 
     public static ExecutorService getVirtualNetworkExecutor() {
         return Executors.newFixedThreadPool(VIRTUAL_NETWORK_POOL_SIZE);
+    }
+    
+    public static ExecutorService getPublicIPAddressExecutor() {
+        return Executors.newFixedThreadPool(PUBLIC_IP_ADDRESS_POOL_SIZE);
     }
     
 }

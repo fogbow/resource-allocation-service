@@ -115,4 +115,25 @@ public class AzureResourceIdBuilderTest {
         Assert.assertEquals(expected, networkId);
     }
 
+    // test case: When calling the publicIpAddressId constructor to build a public
+    // IP address resource ID, it must verify that it returns a valid public IP
+    // address ID.
+    @Test
+    public void testBuildPublicIpAddressIdSuccessfully() {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+
+        String expected = String.format(AzureResourceIdBuilder.PUBLIC_IP_ADDRESS_STRUCTURE,
+                this.azureUser.getSubscriptionId(), AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME, resourceName);
+
+        // exercise
+        String publicIpAddressId = AzureResourceIdBuilder.publicIpAddressId()
+                .withSubscriptionId(this.azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME).withResourceName(resourceName)
+                .build();
+
+        // verify
+        Assert.assertEquals(expected, publicIpAddressId);
+    }
+
 }

@@ -8,6 +8,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.AzureCompute
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.AzureVolumePlugin;
 
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.AzureNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.AzurePublicIpPlugin;
+
 import org.apache.log4j.Logger;
 
 public class AzureStateMapper {
@@ -18,6 +20,7 @@ public class AzureStateMapper {
     private static final String COMPUTE_PLUGIN = AzureComputePlugin.class.getSimpleName();
     private static final String VOLUME_PLUGIN = AzureVolumePlugin.class.getSimpleName();
     private static final String NETWORK_PLUGIN = AzureNetworkPlugin.class.getSimpleName();
+    private static final String PUBLIC_IP_PLUGIN = AzurePublicIpPlugin.class.getSimpleName();
     
     public static final String ATTACHED_STATE = "Attached";
     public static final String CREATING_STATE = "Creating";
@@ -71,6 +74,19 @@ public class AzureStateMapper {
                         return InstanceState.READY;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+                        return InstanceState.INCONSISTENT;
+                }
+            case PUBLIC_IP:
+                // cloud state values: [creating, succeeded]
+                switch (state) {
+                    case CREATING_STATE:
+                        return InstanceState.CREATING;
+                    case SUCCEEDED_STATE:
+                        return InstanceState.READY;
+                    case FAILED_STATE:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, PUBLIC_IP_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             default:
