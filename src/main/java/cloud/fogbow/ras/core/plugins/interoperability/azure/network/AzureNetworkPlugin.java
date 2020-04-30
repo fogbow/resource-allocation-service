@@ -16,7 +16,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -24,19 +23,18 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
+public class AzureNetworkPlugin extends AzureAsync implements NetworkPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
-    private final CreatingInstanceManager creatingInstanceManager;
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
 
     public AzureNetworkPlugin(String confFilePath) {
+        super(AzureNetworkPlugin.class);
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         String defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         String defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.azureVirtualNetworkOperationSDK = new AzureVirtualNetworkOperationSDK(defaultRegionName, defaultResourceGroupName);
-        this.creatingInstanceManager = CreatingInstanceManager.getSingleton();
     }
 
     @Override
@@ -67,7 +65,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
                 .tags(tags)
                 .checkAndBuild();
 
-        this.creatingInstanceManager.defineAsCreating(instanceId);
+        super.defineAsCreating(instanceId);
         this.azureVirtualNetworkOperationSDK
                 .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, defineAsCreatedInstanceCallback);
 
