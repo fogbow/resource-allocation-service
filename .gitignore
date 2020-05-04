@@ -1,3 +1,6 @@
+## ignore template
+.github/pull_request_template.md
+
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 
