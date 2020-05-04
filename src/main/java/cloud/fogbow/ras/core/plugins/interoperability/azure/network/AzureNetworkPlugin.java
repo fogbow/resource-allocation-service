@@ -23,14 +23,14 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureNetworkPlugin extends AzureAsync implements NetworkPlugin<AzureUser> {
+public class AzureNetworkPlugin extends AzurePluginAsync implements NetworkPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
 
     public AzureNetworkPlugin(String confFilePath) {
-        super(AzureNetworkPlugin.class);
+        super();
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         String defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         String defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
@@ -58,25 +58,17 @@ public class AzureNetworkPlugin extends AzureAsync implements NetworkPlugin<Azur
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
-        Runnable defineAsCreatedInstanceCallback = createDefineCreatedInstanceCallback(instanceId);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .cidr(cidr)
                 .tags(tags)
                 .checkAndBuild();
 
-        super.defineAsCreating(instanceId);
+        Runnable finishAsyncCreationCallback = this.startAsyncCreation(instanceId);
         this.azureVirtualNetworkOperationSDK
-                .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, defineAsCreatedInstanceCallback);
+                .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishAsyncCreationCallback);
 
         return instanceId;
-    }
-
-    @VisibleForTesting
-    Runnable createDefineCreatedInstanceCallback(String instanceId) {
-        return () -> {
-            creatingInstanceManager.defineAsCreated(instanceId);
-        };
     }
 
     @Override
@@ -84,7 +76,7 @@ public class AzureNetworkPlugin extends AzureAsync implements NetworkPlugin<Azur
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
-        if (this.creatingInstanceManager.isCreating(instanceId)) {
+        if (this.isCreatingAsync(instanceId)) {
             return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
         }
 

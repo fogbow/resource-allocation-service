@@ -44,16 +44,11 @@ public class AzureNetworkPluginTest {
     private AzureUser azureUser;
     private String defaultResourceGroupName;
     private String defaultRegionName;
-    private CreatingInstanceManager creatingInstanceManager;
     private AzureNetworkPlugin azureNetworkPlugin;
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperation;
 
     @Before
     public void setUp() {
-        this.creatingInstanceManager = Mockito.spy(CreatingInstanceManager.getSingleton());
-
-        PowerMockito.mockStatic(CreatingInstanceManager.class);
-        PowerMockito.when(CreatingInstanceManager.getSingleton()).thenReturn(creatingInstanceManager);
 
         String azureConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
@@ -133,7 +128,7 @@ public class AzureNetworkPluginTest {
 
         Runnable callback = Mockito.mock(Runnable.class);
         Mockito.doReturn(callback)
-                .when(this.azureNetworkPlugin).createDefineCreatedInstanceCallback(Mockito.eq(instanceIdExpected));
+                .when(this.azureNetworkPlugin).startAsyncCreation(Mockito.eq(instanceIdExpected));
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
@@ -141,8 +136,8 @@ public class AzureNetworkPluginTest {
         // verify
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser), Mockito.eq(callback));
-        Mockito.verify(this.creatingInstanceManager, Mockito.times(TestUtils.RUN_ONCE))
-                .defineAsCreating(Mockito.eq(instanceId));
+        Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
+                .startAsyncCreation(Mockito.eq(instanceId));
         Assert.assertEquals(instanceIdExpected, instanceId);
     }
 
@@ -237,7 +232,7 @@ public class AzureNetworkPluginTest {
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
 
-        Mockito.when(this.creatingInstanceManager.isCreating(Mockito.eq(instanceId))).thenReturn(true);
+        Mockito.when(this.azureNetworkPlugin.isCreatingAsync(Mockito.eq(instanceId))).thenReturn(true);
 
         // exercise
         NetworkInstance networkInstance = this.azureNetworkPlugin.getInstance(networkOrder, this.azureUser);
@@ -312,22 +307,6 @@ public class AzureNetworkPluginTest {
 
         // exercise
         this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
-    }
-
-    // test case: When calling the createDefineCreatedInstanceCallback method,
-    // it must verify if it calls the method with right parameters.
-    @Test
-    public void testCreateDefineCreatedInstanceCallbackSuccessfully() {
-        // set up
-        String instanceId = "instanceId";
-
-        // exercise
-        Runnable defineCreatedInstanceCallback = this.azureNetworkPlugin.createDefineCreatedInstanceCallback(instanceId);
-        defineCreatedInstanceCallback.run();
-
-        // verify
-        Mockito.verify(this.creatingInstanceManager, Mockito.times(TestUtils.RUN_ONCE))
-                .defineAsCreated(Mockito.eq(instanceId));
     }
 
 }
