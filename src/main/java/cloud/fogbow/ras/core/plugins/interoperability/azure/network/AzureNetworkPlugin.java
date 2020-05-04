@@ -11,6 +11,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzurePluginAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
@@ -112,6 +113,16 @@ public class AzureNetworkPlugin extends AzurePluginAsync implements NetworkPlugi
         String instanceId = networkOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
+    }
+
+    @Override
+    protected Runnable startAsyncCreation(String instanceId) {
+        return startAsyncCreation(instanceId);
+    }
+
+    @Override
+    protected boolean isCreatingAsync(String instanceId) {
+        return isCreatingAsync(instanceId);
     }
 
     @VisibleForTesting
