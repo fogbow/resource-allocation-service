@@ -15,9 +15,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AzureGeneralUtil.class, CreatingInstanceManager.class, CreatingInstanceManager.class})
+@PrepareForTest({AzureGeneralUtil.class, AsyncInstanceCreationManager.class, AsyncInstanceCreationManager.class})
 public class AzureNetworkPluginTest {
 
     @Rule
@@ -46,6 +46,7 @@ public class AzureNetworkPluginTest {
     private String defaultRegionName;
     private AzureNetworkPlugin azureNetworkPlugin;
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperation;
+    private AsyncInstanceCreationManager asyncInstanceCreationManager;
 
     @Before
     public void setUp() {
@@ -58,10 +59,12 @@ public class AzureNetworkPluginTest {
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.azureNetworkPlugin = Mockito.spy(new AzureNetworkPlugin(azureConfFilePath));
+        this.asyncInstanceCreationManager = Mockito.mock(AsyncInstanceCreationManager.class);
         AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK =
                 new AzureVirtualNetworkOperationSDK(this.defaultRegionName, this.defaultResourceGroupName);
         this.azureVirtualNetworkOperation = Mockito.spy(azureVirtualNetworkOperationSDK);
         this.azureNetworkPlugin.setAzureVirtualNetworkOperationSDK(this.azureVirtualNetworkOperation);
+        this.azureNetworkPlugin.setAsyncInstanceCreation(this.asyncInstanceCreationManager);
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
@@ -128,7 +131,7 @@ public class AzureNetworkPluginTest {
 
         Runnable callback = Mockito.mock(Runnable.class);
         Mockito.doReturn(callback)
-                .when(this.azureNetworkPlugin).startAsyncCreation(Mockito.eq(instanceIdExpected));
+                .when(this.asyncInstanceCreationManager).startCreation(Mockito.eq(instanceIdExpected));
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
@@ -136,8 +139,8 @@ public class AzureNetworkPluginTest {
         // verify
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser), Mockito.eq(callback));
-        Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
-                .startAsyncCreation(Mockito.eq(instanceId));
+        Mockito.verify(this.asyncInstanceCreationManager, Mockito.times(TestUtils.RUN_ONCE))
+                .startCreation(Mockito.eq(instanceId));
         Assert.assertEquals(instanceIdExpected, instanceId);
     }
 
@@ -232,7 +235,7 @@ public class AzureNetworkPluginTest {
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
 
-        Mockito.when(this.azureNetworkPlugin.isCreatingAsync(Mockito.eq(instanceId))).thenReturn(true);
+        Mockito.when(this.asyncInstanceCreationManager.isCreating(Mockito.eq(instanceId))).thenReturn(true);
 
         // exercise
         NetworkInstance networkInstance = this.azureNetworkPlugin.getInstance(networkOrder, this.azureUser);

@@ -11,10 +11,10 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.AzurePluginAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -24,11 +24,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureNetworkPlugin extends AzurePluginAsync implements NetworkPlugin<AzureUser> {
+public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
+    private AsyncInstanceCreationManager asyncInstanceCreation = new AsyncInstanceCreationManager(AzureNetworkPlugin.class);
 
     public AzureNetworkPlugin(String confFilePath) {
         super();
@@ -65,7 +66,7 @@ public class AzureNetworkPlugin extends AzurePluginAsync implements NetworkPlugi
                 .tags(tags)
                 .checkAndBuild();
 
-        Runnable finishAsyncCreationCallback = this.startAsyncCreation(instanceId);
+        Runnable finishAsyncCreationCallback = this.asyncInstanceCreation.startCreation(instanceId);
         this.azureVirtualNetworkOperationSDK
                 .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishAsyncCreationCallback);
 
@@ -77,7 +78,7 @@ public class AzureNetworkPlugin extends AzurePluginAsync implements NetworkPlugi
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
-        if (this.isCreatingAsync(instanceId)) {
+        if (this.asyncInstanceCreation.isCreating(instanceId)) {
             return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
         }
 
@@ -115,19 +116,13 @@ public class AzureNetworkPlugin extends AzurePluginAsync implements NetworkPlugi
         this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
     }
 
-    @Override
-    protected Runnable startAsyncCreation(String instanceId) {
-        return startAsyncCreation(instanceId);
-    }
-
-    @Override
-    protected boolean isCreatingAsync(String instanceId) {
-        return isCreatingAsync(instanceId);
-    }
-
     @VisibleForTesting
     void setAzureVirtualNetworkOperationSDK(AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK) {
         this.azureVirtualNetworkOperationSDK = azureVirtualNetworkOperationSDK;
     }
 
+    @VisibleForTesting
+    void setAsyncInstanceCreation(AsyncInstanceCreationManager asyncInstanceCreation) {
+        this.asyncInstanceCreation = asyncInstanceCreation;
+    }
 }
