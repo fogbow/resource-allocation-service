@@ -66,7 +66,9 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.generateResourceName();
-        String resourceGroupName = defineResourceGroupName(azure, resourceName);
+        String resourceGroupName = AzureGeneralUtil
+                .defineResourceGroupName(azure, this.defaultRegionName, resourceName, this.defaultResourceGroupName);
+
         int sizeInGB = volumeOrder.getVolumeSize();
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, volumeOrder.getName());
         
@@ -85,10 +87,11 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
-        String resourceGroupName = getResourceGroupName(azure, resourceName);
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         String subscriptionId = azureUser.getSubscriptionId();
         String resourceId = buildResourceId(subscriptionId, resourceGroupName, resourceName);
-        
         return doGetInstance(azure, resourceId);
     }
     
@@ -97,30 +100,25 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
-        String resourceGroupName = getResourceGroupName(azure, resourceName);
         
-        if (isDefaultResourceGroup(resourceGroupName)) {
-            String subscriptionId = azureUser.getSubscriptionId();
-            String resourceId = buildResourceId(subscriptionId, resourceGroupName, resourceName);
-            doDeleteInstance(azure, resourceId);
+        if (AzureResourceGroupUtil.existsResourceGroup(azure, resourceName)) {
+            doDeleteResourceGroup(azure, resourceName);
         } else {
-            doDeleteResourceGroup(azure, resourceGroupName);
+            String subscriptionId = azureUser.getSubscriptionId();
+            String resourceId = buildResourceId(subscriptionId, this.defaultResourceGroupName, resourceName);
+            doDeleteInstance(azure, resourceId);
         }
-    }
-
-    @VisibleForTesting
-    void doDeleteResourceGroup(Azure azure, String resourceGroupName) {
-        Completable completable = AzureResourceGroupUtil.deleteAsync(azure, resourceGroupName);
-        this.operation.subscribeDeleteDisk(completable);
-    }
-
-    boolean isDefaultResourceGroup(String resourceGroupName) {
-        return resourceGroupName.equals(this.defaultResourceGroupName) ? true : false;
     }
 
     @VisibleForTesting
     void doDeleteInstance(Azure azure, String resourceId) throws FogbowException {
         Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, resourceId);
+        this.operation.subscribeDeleteDisk(completable);
+    }
+
+    @VisibleForTesting
+    void doDeleteResourceGroup(Azure azure, String resourceGroupName) {
+        Completable completable = AzureResourceGroupUtil.deleteResourceGroupAsync(azure, resourceGroupName);
         this.operation.subscribeDeleteDisk(completable);
     }
 
@@ -154,13 +152,6 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
     }
     
     @VisibleForTesting
-    String getResourceGroupName(Azure azure, String resourceGroupName) {
-        return AzureResourceGroupUtil.exists(azure, resourceGroupName)
-                ? resourceGroupName
-                : this.defaultResourceGroupName;
-    }
-
-    @VisibleForTesting
     String doRequestInstance(VolumeOrder volumeOrder, Creatable<Disk> diskCreatable) {
         Observable<Indexable> observable = AzureVolumeSDK.buildCreateDiskObservable(diskCreatable);
         this.operation.subscribeCreateDisk(observable);
@@ -177,17 +168,6 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         }
     }
     
-    @VisibleForTesting
-    String defineResourceGroupName(Azure azure, String resourceName) {
-        String resourceGroupName = this.defaultResourceGroupName;
-        try {
-            resourceGroupName = AzureResourceGroupUtil.create(azure, this.defaultRegionName, resourceName);
-        } catch (Exception e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e));
-        }
-        return resourceGroupName;
-    }
-
     @VisibleForTesting
     void setOperation(AzureVolumeOperationSDK operation) {
         this.operation = operation;
