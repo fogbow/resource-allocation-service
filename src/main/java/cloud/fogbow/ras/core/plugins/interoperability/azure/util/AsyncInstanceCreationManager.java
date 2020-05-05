@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.*;
 
 /*
@@ -53,6 +55,11 @@ public class AsyncInstanceCreationManager {
     */
     private void defineAsCreated(String instanceId) {
         this.creating.get(this.pluginNameKey).remove(instanceId);
+    }
+
+    @VisibleForTesting
+    List<String> getList() {
+        return this.creating.get(this.pluginNameKey);
     }
 
 }
