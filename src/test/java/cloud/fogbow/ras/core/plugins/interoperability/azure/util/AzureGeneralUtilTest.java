@@ -21,7 +21,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.microsoft.azure.management.Azure;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Azure.class, AzureResourceGroupUtil.class })
+@PrepareForTest({ Azure.class, AzureResourceGroupOperationUtil.class })
 public class AzureGeneralUtilTest {
 
     private LoggerAssert loggerAssert;
@@ -83,8 +83,8 @@ public class AzureGeneralUtilTest {
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doReturn(resourceName).when(AzureResourceGroupUtil.class, "createResourceGroup",
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(resourceName).when(AzureResourceGroupOperationUtil.class, "createResourceGroup",
                 Mockito.eq(azure), Mockito.eq(regionName), Mockito.eq(resourceName));
 
         // exercise
@@ -92,8 +92,8 @@ public class AzureGeneralUtilTest {
                 .defineResourceGroupName(azure, regionName, resourceName, defaultResourceGroupName);
 
         // verify
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.createResourceGroup(Mockito.eq(azure), Mockito.eq(regionName),
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.createResourceGroup(Mockito.eq(azure), Mockito.eq(regionName),
                 Mockito.eq(resourceName));
 
         Assert.assertSame(resourceName, resourceGroupName);
@@ -111,8 +111,8 @@ public class AzureGeneralUtilTest {
         String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
         Exception exception =new QuotaExceededException(Messages.Exception.RESOURCE_GROUP_LIMIT_EXCEEDED);
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doThrow(exception).when(AzureResourceGroupUtil.class, "createResourceGroup",
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doThrow(exception).when(AzureResourceGroupOperationUtil.class, "createResourceGroup",
                 Mockito.eq(azure), Mockito.eq(regionName), Mockito.eq(resourceName));
 
         // exercise
@@ -120,8 +120,8 @@ public class AzureGeneralUtilTest {
                 .defineResourceGroupName(azure, regionName, resourceName, defaultResourceGroupName);
 
         // verify
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.createResourceGroup(Mockito.eq(azure), Mockito.eq(regionName),
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.createResourceGroup(Mockito.eq(azure), Mockito.eq(regionName),
                 Mockito.eq(resourceName));
 
         this.loggerAssert
@@ -141,16 +141,16 @@ public class AzureGeneralUtilTest {
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doReturn(true).when(AzureResourceGroupUtil.class, "existsResourceGroup", Mockito.eq(azure),
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(true).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup", Mockito.eq(azure),
                 Mockito.eq(resourceName));
 
         // exercise
         String result = AzureGeneralUtil.selectResourceGroupName(azure, resourceName, defaultResourceGroupName);
 
         // verify
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
 
         Assert.assertSame(resourceName, result);
     }
@@ -165,16 +165,16 @@ public class AzureGeneralUtilTest {
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doReturn(false).when(AzureResourceGroupUtil.class, "existsResourceGroup", Mockito.eq(azure),
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(false).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup", Mockito.eq(azure),
                 Mockito.eq(resourceName));
 
         // exercise
         String result = AzureGeneralUtil.selectResourceGroupName(azure, resourceName, defaultResourceGroupName);
 
         // verify
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
 
         Assert.assertEquals(defaultResourceGroupName, result);
     }

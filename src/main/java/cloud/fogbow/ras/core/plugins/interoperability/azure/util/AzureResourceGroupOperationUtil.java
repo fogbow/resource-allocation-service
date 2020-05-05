@@ -10,7 +10,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.AzureVolumePl
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.ResourceGroup;
 
-public class AzureResourceGroupUtil {
+public class AzureResourceGroupOperationUtil {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVolumePlugin.class);
 

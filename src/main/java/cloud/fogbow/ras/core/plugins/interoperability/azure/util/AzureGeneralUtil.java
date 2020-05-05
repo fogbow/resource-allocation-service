@@ -35,7 +35,7 @@ public interface AzureGeneralUtil {
     // return the default resource group name
     static String defineResourceGroupName(Azure azure, String regionName, String resourceName, String defaultResourceGroupName) {
         try {
-            return AzureResourceGroupUtil.createResourceGroup(azure, regionName, resourceName);
+            return AzureResourceGroupOperationUtil.createResourceGroup(azure, regionName, resourceName);
         } catch (QuotaExceededException e) {
             LOGGER.warn(String.format(Messages.Warn.RESOURCE_CREATION_FAILED_S, e));
         }
@@ -46,7 +46,7 @@ public interface AzureGeneralUtil {
     // Select the resource group name if exists a resource group with the resource name or
     // return the default resource group name
     static String selectResourceGroupName(Azure azure, String resourceName, String defaultResourceGroupName) {
-        return AzureResourceGroupUtil.existsResourceGroup(azure, resourceName) ? resourceName : defaultResourceGroupName;
+        return AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName) ? resourceName : defaultResourceGroupName;
     }
 
 }
