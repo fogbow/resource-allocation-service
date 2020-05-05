@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.ras.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,26 +10,7 @@ public class AsyncInstanceCreationManagerTest {
 
     @Before
     public void setUp() {
-        this.asyncInstanceCreationManagerPlugin = new AsyncInstanceCreationManager(PluginOne.class);
-    }
-
-    // test case: When calling the class constructor, it must verify if It must manager its own list.
-    @Test
-    public void testConstructorSuccessfully() {
-        // setup and exercise
-        AsyncInstanceCreationManager pluginOne = new AsyncInstanceCreationManager(PluginOne.class);
-        AsyncInstanceCreationManager pluginTwo = new AsyncInstanceCreationManager(PluginTwo.class);
-
-        // verify
-        Assert.assertTrue(pluginOne.getList().isEmpty());
-        Assert.assertTrue(pluginTwo.getList().isEmpty());
-
-        // exercise
-        pluginOne.startCreation(TestUtils.ANY_VALUE);
-
-        // verify
-        Assert.assertFalse(pluginOne.getList().isEmpty());
-        Assert.assertTrue(pluginTwo.getList().isEmpty());
+        this.asyncInstanceCreationManagerPlugin = new AsyncInstanceCreationManager();
     }
 
     // test case: When calling the startCreation method,
@@ -54,8 +34,5 @@ public class AsyncInstanceCreationManagerTest {
         // verify
         Assert.assertFalse(this.asyncInstanceCreationManagerPlugin.isCreating(instanceId));
     }
-
-    private class PluginOne {}
-    private class PluginTwo {}
 
 }

@@ -1,8 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
 This class helps to cope Plugin that it has asynchronous instances creation.
@@ -16,14 +15,7 @@ Note: This context helps to fix this issue:
  */
 public class AsyncInstanceCreationManager {
 
-    // It stores list of "Creating" instances related to each plugin.
-    private final static Map<String, List<String>> creating = new HashMap<>();
-    private final String pluginNameKey;
-
-    public AsyncInstanceCreationManager(Class plugin) {
-        this.pluginNameKey = plugin.getSimpleName();
-        this.creating.put(this.pluginNameKey, Collections.synchronizedList(new ArrayList<>()));
-    }
+    private final static List<String> creating = new ArrayList<>();
 
     /*
     It must be used soon before the plugin makes asynchronous creation operation in the cloud.
@@ -40,26 +32,21 @@ public class AsyncInstanceCreationManager {
     It must check if the instance is still creating by the asynchronous creation operation in the cloud.
     */
     public boolean isCreating(String instanceId) {
-        return this.creating.get(this.pluginNameKey).contains(instanceId);
+        return this.creating.contains(instanceId);
     }
 
     /*
     It must add the instanceId in "Creating" list when the resource is not created in the cloud.
      */
     private void defineAsCreating(String instanceId) {
-        this.creating.get(this.pluginNameKey).add(instanceId);
+        this.creating.add(instanceId);
     }
 
     /*
     It must remove the instanceId in "Creating" list when the resource is created in the cloud.
     */
     private void defineAsCreated(String instanceId) {
-        this.creating.get(this.pluginNameKey).remove(instanceId);
-    }
-
-    @VisibleForTesting
-    List<String> getList() {
-        return this.creating.get(this.pluginNameKey);
+        this.creating.remove(instanceId);
     }
 
 }

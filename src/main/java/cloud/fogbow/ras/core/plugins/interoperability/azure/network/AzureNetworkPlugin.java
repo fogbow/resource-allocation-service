@@ -11,6 +11,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
@@ -24,15 +25,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
+public class AzureNetworkPlugin extends AzureAsync implements NetworkPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
-    private AsyncInstanceCreationManager asyncInstanceCreation = new AsyncInstanceCreationManager(AzureNetworkPlugin.class);
 
     public AzureNetworkPlugin(String confFilePath) {
-        super();
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         String defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         String defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
@@ -121,8 +120,8 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         this.azureVirtualNetworkOperationSDK = azureVirtualNetworkOperationSDK;
     }
 
-    @VisibleForTesting
-    void setAsyncInstanceCreation(AsyncInstanceCreationManager asyncInstanceCreation) {
+    @Override
+    protected void setAsyncInstanceCreation(AsyncInstanceCreationManager asyncInstanceCreation) {
         this.asyncInstanceCreation = asyncInstanceCreation;
     }
 }
