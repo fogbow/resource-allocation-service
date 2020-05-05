@@ -27,7 +27,7 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
@@ -101,7 +101,7 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
         
-        if (AzureResourceGroupUtil.existsResourceGroup(azure, resourceName)) {
+        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
             doDeleteResourceGroup(azure, resourceName);
         } else {
             String subscriptionId = azureUser.getSubscriptionId();
@@ -118,7 +118,9 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
 
     @VisibleForTesting
     void doDeleteResourceGroup(Azure azure, String resourceGroupName) {
-        Completable completable = AzureResourceGroupUtil.deleteResourceGroupAsync(azure, resourceGroupName);
+        Completable completable = AzureResourceGroupOperationUtil
+                .deleteResourceGroupAsync(azure, resourceGroupName);
+
         this.operation.subscribeDeleteDisk(completable);
     }
 

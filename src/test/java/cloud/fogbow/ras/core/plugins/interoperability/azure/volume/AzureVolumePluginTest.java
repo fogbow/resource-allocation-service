@@ -36,7 +36,7 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
@@ -48,7 +48,7 @@ import rx.Observable;
     Azure.class,
     AzureClientCacheManager.class,
     AzureGeneralUtil.class,
-    AzureResourceGroupUtil.class,
+    AzureResourceGroupOperationUtil.class,
     AzureVolumeSDK.class
 })
 public class AzureVolumePluginTest {
@@ -262,8 +262,8 @@ public class AzureVolumePluginTest {
         PowerMockito.mockStatic(AzureGeneralUtil.class);
         PowerMockito.doReturn(resourceName).when(AzureGeneralUtil.class, "defineResourceName", Mockito.anyString());
         
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doReturn(false).when(AzureResourceGroupUtil.class, "existsResourceGroup", Mockito.eq(azure),
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(false).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup", Mockito.eq(azure),
                 Mockito.eq(resourceName));
 
         String resourceId = createResourceId();
@@ -287,8 +287,8 @@ public class AzureVolumePluginTest {
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureGeneralUtil.defineResourceName(Mockito.eq(volumeOrder.getInstanceId()));
         
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
 
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(subscriptionId),
@@ -311,8 +311,8 @@ public class AzureVolumePluginTest {
         PowerMockito.mockStatic(AzureGeneralUtil.class);
         PowerMockito.doReturn(resourceName).when(AzureGeneralUtil.class, "defineResourceName", Mockito.anyString());
 
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doReturn(true).when(AzureResourceGroupUtil.class, "existsResourceGroup", Mockito.eq(azure),
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(true).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup", Mockito.eq(azure),
                 Mockito.eq(resourceName));
 
         Mockito.doNothing().when(this.plugin).doDeleteResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
@@ -330,8 +330,8 @@ public class AzureVolumePluginTest {
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureGeneralUtil.defineResourceName(Mockito.eq(volumeOrder.getInstanceId()));
 
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourceGroup(Mockito.eq(azure),
                 Mockito.eq(resourceName));
@@ -346,8 +346,8 @@ public class AzureVolumePluginTest {
         String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
         Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
-        PowerMockito.mockStatic(AzureResourceGroupUtil.class);
-        PowerMockito.doReturn(completable).when(AzureResourceGroupUtil.class, "deleteResourceGroupAsync",
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(completable).when(AzureResourceGroupOperationUtil.class, "deleteResourceGroupAsync",
                 Mockito.eq(azure), Mockito.eq(resourceGroupName));
 
         Mockito.doNothing().when(this.operation).subscribeDeleteDisk(Mockito.eq(completable));
@@ -356,8 +356,8 @@ public class AzureVolumePluginTest {
         this.plugin.doDeleteResourceGroup(azure, resourceGroupName);
 
         // verify
-        PowerMockito.verifyStatic(AzureResourceGroupUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureResourceGroupUtil.deleteResourceGroupAsync(Mockito.eq(azure), Mockito.eq(resourceGroupName));
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(azure), Mockito.eq(resourceGroupName));
 
         Mockito.verify(this.operation).subscribeDeleteDisk(Mockito.eq(completable));
     }
