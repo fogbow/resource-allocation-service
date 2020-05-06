@@ -19,7 +19,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceId
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
