@@ -13,7 +13,7 @@ public class VolumeImage extends OpenNebulaMarshaller {
 	private String name;
     private String imagePersistent;
     private String imageType;
-    private String fileSystemType;
+    private String driver;
     private String diskType;
     private String devicePrefix;
     private long size;
@@ -45,13 +45,13 @@ public class VolumeImage extends OpenNebulaMarshaller {
         this.imageType = imageType;
     }
 
-    @XmlElement(name = FILE_SYSTEM_TYPE)
-    public String getFileSystemType() {
-        return fileSystemType;
+    @XmlElement(name = DRIVER)
+    public String getDriver() {
+        return driver;
     }
 
-    public void setFileSystemType(String fileSystemType) {
-        this.fileSystemType = fileSystemType;
+    public void setDriver(String driver) {
+        this.driver = driver;
     }
 
     @XmlElement(name = DISK_TYPE)

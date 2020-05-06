@@ -223,7 +223,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
             ram += vm.getMemory();
         }
 
-        return new ComputeAllocation(cores, ram, instances);
+        return new ComputeAllocation(instances, cores, ram);
     }
 
     @VisibleForTesting

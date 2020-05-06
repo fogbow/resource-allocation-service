@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import java.io.File;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -182,9 +183,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         order.setInstanceId(instanceId);
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
 
         PublicIpInstance instance = createPublicIpInstance();
@@ -243,9 +244,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
 
         // exercise
@@ -267,9 +268,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
         
         HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
@@ -306,13 +307,14 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
         String endpoint = COMPUTE_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + OpenStackConstants.NOVA_V2_API_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + cloudUser.getProjectId() 
-                + OpenStackCloudUtils.SERVERS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + order.getComputeId() 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
-                + OpenStackCloudUtils.ACTION;
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + OpenStackConstants.ACTION;
 
         String name = FAKE_SECURITY_GROUP_NAME;
         RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
@@ -344,13 +346,14 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         order.setInstanceId(instanceId);
         
         String endpoint = COMPUTE_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + OpenStackConstants.NOVA_V2_API_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + cloudUser.getProjectId()
-                + OpenStackCloudUtils.SERVERS
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + order.getComputeId()
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
-                + OpenStackCloudUtils.ACTION;
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + OpenStackConstants.ACTION;
         
         String name = FAKE_SECURITY_GROUP_NAME;
         RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
@@ -386,9 +389,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String securityGroupName = FAKE_SECURITY_GROUP_NAME;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUPS 
-                + OpenStackPublicIpPlugin.QUERY_NAME 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.QUERY_NAME
                 + securityGroupName;
 
         String json = FAKE_GET_SECURITY_GROUPS_FROM_JSON_RESPONSE;
@@ -424,9 +427,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String securityGroupName = FAKE_SECURITY_GROUP_NAME;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUPS 
-                + OpenStackPublicIpPlugin.QUERY_NAME 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.QUERY_NAME
                 + securityGroupName;
 
         String json = EMPTY_SECURITY_GROUP_FROM_JSON_RESPONSE;
@@ -455,7 +458,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         String json = TestUtils.JSON_MALFORMED;
         String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
-                OpenStackCloudUtils.SECURITY_GROUP_RESOURCE);
+                OpenStackConstants.SECURITY_GROUP_RESOURCE);
         try {
             // exercise
             this.plugin.doGetSecurityGroupsResponseFrom(json);
@@ -477,9 +480,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         order.setInstanceId(instanceId);
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
 
         String json = FAKE_PUBLIC_IP_FROM_JSON_RESPONSE;
@@ -509,7 +512,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         String json = TestUtils.JSON_MALFORMED;
         String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
-                OpenStackPublicIpPlugin.PUBLIC_IP_RESOURCE);
+                OpenStackConstants.PUBLIC_IP_RESOURCE);
         try {
             // exercise
             this.plugin.doGetFloatingIpResponseFrom(json);
@@ -534,13 +537,14 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
         
         String endpoint = COMPUTE_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + OpenStackConstants.NOVA_V2_API_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + cloudUser.getProjectId() 
-                + OpenStackCloudUtils.SERVERS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + order.getComputeId() 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
-                + OpenStackCloudUtils.ACTION;
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + OpenStackConstants.ACTION;
         
         String name = FAKE_SECURITY_GROUP_NAME;
         AddSecurityGroupToServerRequest request = new AddSecurityGroupToServerRequest.Builder()
@@ -576,13 +580,14 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         order.setInstanceId(instanceId);
 
         String endpoint = COMPUTE_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.COMPUTE_V2_API_ENDPOINT
+                + OpenStackConstants.NOVA_V2_API_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + cloudUser.getProjectId() 
-                + OpenStackCloudUtils.SERVERS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
+                + OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + order.getComputeId() 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
-                + OpenStackCloudUtils.ACTION;
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + OpenStackConstants.ACTION;
 
         AddSecurityGroupToServerRequest request = new AddSecurityGroupToServerRequest.Builder()
                 .name(FAKE_SECURITY_GROUP_NAME)
@@ -621,9 +626,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + securityGroupId;
 
         Mockito.doNothing().when(this.client).doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
@@ -647,9 +652,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR 
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + securityGroupId;
 
         HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
@@ -695,12 +700,12 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUP_RULES;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT;
 
         CreateSecurityGroupRuleRequest request = new CreateSecurityGroupRuleRequest.Builder()
-                .direction(OpenStackCloudUtils.INGRESS_DIRECTION)
-                .etherType(OpenStackPublicIpPlugin.IPV4_ETHER_TYPE)
+                .direction(OpenStackConstants.INGRESS_DIRECTION)
+                .etherType(OpenStackConstants.IPV4_ETHER_TYPE)
                 .securityGroupId(securityGroupId)
                 .build();
 
@@ -722,12 +727,12 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUP_RULES;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT;
 
         CreateSecurityGroupRuleRequest request = new CreateSecurityGroupRuleRequest.Builder()
-                .direction(OpenStackCloudUtils.INGRESS_DIRECTION)
-                .etherType(OpenStackPublicIpPlugin.IPV4_ETHER_TYPE)
+                .direction(OpenStackConstants.INGRESS_DIRECTION)
+                .etherType(OpenStackConstants.IPV4_ETHER_TYPE)
                 .securityGroupId(securityGroupId)
                 .build();
         
@@ -765,8 +770,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUPS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT;
 
         CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
                 .name(FAKE_SECURITY_GROUP_NAME)
@@ -808,8 +813,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         order.setInstanceId(instanceId);
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackCloudUtils.SECURITY_GROUPS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT;
 
         CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
                 .name(FAKE_SECURITY_GROUP_NAME)
@@ -843,7 +848,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         String json = TestUtils.JSON_MALFORMED;
         String expected = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
-                OpenStackCloudUtils.SECURITY_GROUP_RESOURCE);
+                OpenStackConstants.SECURITY_GROUP_RESOURCE);
         try {
             // exercise
             this.plugin.doCreateSecurityGroupResponseFrom(json);
@@ -862,8 +867,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
         
         String endpoint = NEUTRON_PREFIX_ENDPOINT
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT 
-                + OpenStackPublicIpPlugin.FLOATINGIPS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT;
         
         CreateFloatingIpRequest request = new CreateFloatingIpRequest.Builder()
                 .floatingNetworkId(FAKE_FLOATING_NETWORK_ID)
@@ -898,8 +903,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT;
 
         CreateFloatingIpRequest request = new CreateFloatingIpRequest.Builder()
                 .floatingNetworkId(FAKE_FLOATING_NETWORK_ID)
@@ -934,7 +939,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         String json = TestUtils.JSON_MALFORMED;
         String expected = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
-                OpenStackPublicIpPlugin.PUBLIC_IP_RESOURCE);
+                OpenStackConstants.PUBLIC_IP_RESOURCE);
         try {
             // exercise
             this.plugin.doCreateFloatingIpResponseFrom(json);
@@ -959,8 +964,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
 
         String endpointBase = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.PORTS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.PORTS_ENDPOINT;
 
         String defaultNetworkId = TestUtils.FAKE_NETWORK_ID;
         String endpoint = endpointBase + FAKE_NETWORK_PORTS_SUFIX_ENDPOINT;
@@ -1007,8 +1012,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
 
         String endpointBase = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.PORTS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.PORTS_ENDPOINT;
 
         String defaultNetworkId = TestUtils.FAKE_NETWORK_ID;
         String endpoint = endpointBase + FAKE_NETWORK_PORTS_SUFIX_ENDPOINT;
@@ -1041,7 +1046,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         String json = TestUtils.JSON_MALFORMED;
         String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
-                OpenStackCloudUtils.NETWORK_PORTS_RESOURCE);
+                OpenStackConstants.NETWORK_PORTS_RESOURCE);
         try {
             // exercise
             this.plugin.doGetNetworkPortsResponseFrom(json);
@@ -1060,9 +1065,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + TestUtils.FAKE_INSTANCE_ID;
 
         // exercise
@@ -1082,9 +1087,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.FLOATINGIPS 
-                + OpenStackCloudUtils.ENDPOINT_SEPARATOR
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.FLOATINGIPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
                 + TestUtils.FAKE_INSTANCE_ID;
 
         HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
@@ -1113,8 +1118,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String deviceId = TestUtils.FAKE_COMPUTE_ID;
         String networkId = TestUtils.FAKE_NETWORK_ID;
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
-                + OpenStackCloudUtils.NETWORK_V2_API_ENDPOINT
-                + OpenStackPublicIpPlugin.PORTS;
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.PORTS_ENDPOINT;
 
         String expected = endpoint + FAKE_NETWORK_PORTS_SUFIX_ENDPOINT;
 

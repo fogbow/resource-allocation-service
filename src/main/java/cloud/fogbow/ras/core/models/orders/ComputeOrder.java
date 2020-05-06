@@ -30,7 +30,7 @@ public class ComputeOrder extends Order<ComputeOrder> {
 
     // Memory attribute, must be set in MB.
     @Column
-    private int memory;
+    private int ram;
 
     // Disk attribute, must be set in GB.
     @Column
@@ -69,12 +69,12 @@ public class ComputeOrder extends Order<ComputeOrder> {
     }
 
     public ComputeOrder(String id, SystemUser systemUser, String requestingProvider, String providingProvider,
-                        String cloudName, String name, int vCPU, int memory, int disk, String imageId,
+                        String cloudName, String name, int vCPU, int ram, int disk, String imageId,
                         ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
         super(id, providingProvider, cloudName, systemUser, requestingProvider);
         this.name = name;
         this.vCPU = vCPU;
-        this.memory = memory;
+        this.ram = ram;
         this.disk = disk;
         this.imageId = imageId;
         this.userData = userData;
@@ -84,17 +84,17 @@ public class ComputeOrder extends Order<ComputeOrder> {
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(String providingProvider, String cloudName, String name, int vCPU, int memory, int disk,
+    public ComputeOrder(String providingProvider, String cloudName, String name, int vCPU, int ram, int disk,
                         String imageId, ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
-        this(null, null, providingProvider, cloudName, name, vCPU, memory, disk, imageId,
+        this(null, null, providingProvider, cloudName, name, vCPU, ram, disk, imageId,
                 userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
 
     public ComputeOrder(SystemUser systemUser, String requestingProvider, String providingProvider, String cloudName,
-                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData,
+                        String name, int vCPU, int ram, int disk, String imageId, ArrayList<UserData> userData,
                         String publicKey, List<String> networkOrderIds) {
-        this(UUID.randomUUID().toString(), systemUser, requestingProvider, providingProvider, cloudName, name, vCPU, memory,
+        this(UUID.randomUUID().toString(), systemUser, requestingProvider, providingProvider, cloudName, name, vCPU, ram,
                 disk, imageId, userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
@@ -119,8 +119,8 @@ public class ComputeOrder extends Order<ComputeOrder> {
         return vCPU;
     }
 
-    public int getMemory() {
-        return memory;
+    public int getRam() {
+        return ram;
     }
 
     public int getDisk() {

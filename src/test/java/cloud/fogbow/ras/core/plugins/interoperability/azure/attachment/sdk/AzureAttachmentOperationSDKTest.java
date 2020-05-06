@@ -1,15 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import com.microsoft.azure.management.compute.VirtualMachine;
-
-import ch.qos.logback.classic.Level;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import com.microsoft.azure.management.compute.VirtualMachine;
+import org.apache.log4j.Level;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
