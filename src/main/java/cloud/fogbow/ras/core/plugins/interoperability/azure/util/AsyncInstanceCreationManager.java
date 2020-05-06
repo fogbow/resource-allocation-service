@@ -9,9 +9,7 @@ This class helps to cope Plugin that it has asynchronous instances creation.
 Problem: It might generate resource trash in the cloud due to the fact that
 If the RAS shutdown this class will lost its data in memory.
 
-TODO(chico) - Create the issue in the GitHub
-Note: This context helps to fix this issue:
-
+Note: This context helps to fix this issue: https://github.com/fogbow/resource-allocation-service/issues/435
  */
 public class AsyncInstanceCreationManager {
 
