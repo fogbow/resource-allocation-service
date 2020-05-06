@@ -25,8 +25,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
     private static final int UNKNOWN_PRIORITY_VALUE = -1;
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
 
-
-    // TODO (chico) - Implement tests
     public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
             throws FogbowException {
 
@@ -48,7 +46,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
                 portTo, ruleName, securityRuleProtocol, direction, priority);
     }
 
-    // TODO (chico) - Implement tests
     @VisibleForTesting
     int getPriority(NetworkSecurityGroup networkSecurityGroup) {
         int priority = currentPriority;
@@ -58,7 +55,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
         return priority + 1;
     }
 
-    // TODO (chico) - Finish implementation and Implement tests
     public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupId, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
@@ -85,7 +81,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
                 }).collect(Collectors.toList());
     }
 
-    // TODO (chico) - Finish implementation and Implement tests
     public void deleteNetworkSecurityRule(String networkSecurityGroupId, String securityRuleName, AzureUser azureUser)
             throws FogbowException {
 
@@ -98,7 +93,6 @@ public class AzureNetworkSecurityGroupOperationSDK {
         AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, securityRuleName);
     }
 
-    // TODO (chico) - Implement tests
     private int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
         try {
             return networkSecurityGroup.securityRules().values().stream()
