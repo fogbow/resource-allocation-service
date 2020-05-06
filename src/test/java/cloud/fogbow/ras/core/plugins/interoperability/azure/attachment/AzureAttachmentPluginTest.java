@@ -575,6 +575,76 @@ public class AzureAttachmentPluginTest {
         }
     }
     
+    // test case: When calling the buildResourceId method, it must verify that
+    // is call was successful.
+    @Test
+    public void testBuildResourceIdSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(defaultResourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(resourceName), Mockito.eq(defaultResourceGroupName));
+
+        String expected = createResourceId();
+
+        // exercise
+        String resourceId = this.plugin.buildResourceId(azure, subscriptionId, resourceName);
+
+        // verify
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(resourceName),
+                Mockito.eq(defaultResourceGroupName));
+
+        Assert.assertEquals(expected, resourceId);
+    }
+
+    // test case: When calling the buildVirtualMachineId method, it must verify
+    // that is call was successful.
+    @Test
+    public void testBuildVirtualMachineIdSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(defaultResourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(resourceName), Mockito.eq(defaultResourceGroupName));
+
+        String expected = createVirtualMachineId();
+
+        // exercise
+        String resourceId = this.plugin.buildVirtualMachineId(azure, subscriptionId, resourceName);
+
+        // verify
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(resourceName),
+                Mockito.eq(defaultResourceGroupName));
+
+        Assert.assertEquals(expected, resourceId);
+    }
+
+    private String createVirtualMachineId() {
+        String virtualMachineIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+        return String.format(virtualMachineIdFormat,
+                AzureTestUtils.DEFAULT_SUBSCRIPTION_ID,
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
+                AzureTestUtils.RESOURCE_NAME);
+    }
+
+    private String createResourceId() {
+        String diskIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s";
+        return String.format(diskIdFormat,
+                AzureTestUtils.DEFAULT_SUBSCRIPTION_ID,
+                AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
+                AzureTestUtils.RESOURCE_NAME);
+    }
+
     private AttachmentInstance createAttachmentInstance(boolean attached) {
         return new AttachmentInstance(
                 "resource-id",
