@@ -36,6 +36,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.Azure
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import rx.Observable;
@@ -142,6 +143,14 @@ public class AzureAttachmentPluginTest {
         PowerMockito.mockStatic(AzureClientCacheManager.class);
         PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
 
+        String virtualMachineId = AzureResourceIdBuilder.virtualMachineId().build();
+        Mockito.doReturn(virtualMachineId).when(this.plugin).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
+
+        String diskId = AzureResourceIdBuilder.diskId().build();
+        Mockito.doReturn(diskId).when(this.plugin).buildResourceId(Mockito.eq(azure), Mockito.anyString(),
+                Mockito.anyString());
+
         String instanceId = "attachment-id";
         Mockito.doReturn(instanceId).when(this.plugin).doRequestInstance(Mockito.eq(azure), Mockito.anyString(),
                 Mockito.anyString());
@@ -157,10 +166,10 @@ public class AzureAttachmentPluginTest {
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_ONCE)).getVolumeId();
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-            .buildVirtualMachineId(Mockito.anyString(), Mockito.anyString());
+            .buildVirtualMachineId(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-            .buildResourceId(Mockito.anyString(), Mockito.anyString());
+            .buildResourceId(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
             .doRequestInstance(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
@@ -177,6 +186,10 @@ public class AzureAttachmentPluginTest {
         PowerMockito.mockStatic(AzureClientCacheManager.class);
         PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
 
+        String resourceId = AzureResourceIdBuilder.diskId().build();
+        Mockito.doReturn(resourceId).when(this.plugin).buildResourceId(Mockito.eq(azure), Mockito.anyString(),
+                Mockito.anyString());
+
         AttachmentInstance attachmentInstance = Mockito.mock(AttachmentInstance.class);
         Mockito.doReturn(attachmentInstance).when(this.plugin).doGetInstance(Mockito.eq(azure), Mockito.anyString());
 
@@ -189,8 +202,8 @@ public class AzureAttachmentPluginTest {
 
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_TWICE)).getInstanceId();
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.anyString(),
-                Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(azure),
                 Mockito.anyString());
@@ -207,6 +220,14 @@ public class AzureAttachmentPluginTest {
         PowerMockito.mockStatic(AzureClientCacheManager.class);
         PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
         
+        String virtualMachineId = AzureResourceIdBuilder.virtualMachineId().build();
+        Mockito.doReturn(virtualMachineId).when(this.plugin).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
+
+        String resourceId = AzureResourceIdBuilder.diskId().build();
+        Mockito.doReturn(resourceId).when(this.plugin).buildResourceId(Mockito.eq(azure), Mockito.anyString(),
+                Mockito.anyString());
+
         Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
         
         // exercise
@@ -219,8 +240,11 @@ public class AzureAttachmentPluginTest {
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_TWICE)).getInstanceId();
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_ONCE)).getComputeId();
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_TWICE)).buildResourceId(Mockito.anyString(),
-                Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(azure),
                 Mockito.anyString(), Mockito.anyString());
