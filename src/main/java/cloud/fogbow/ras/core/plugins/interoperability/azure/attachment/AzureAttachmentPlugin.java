@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment;
 
 import java.util.Properties;
 
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -32,7 +34,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMappe
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import rx.Observable;
 
-public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
+public class AzureAttachmentPlugin extends AzureAsync implements AttachmentPlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureAttachmentPlugin.class);
     
@@ -134,8 +136,10 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         Disk disk = doGetDiskSDK(azure, diskId);
         
         Observable<VirtualMachine> observable = AzureAttachmentSDK.attachDisk(virtualMachine, disk);
-        this.operation.subscribeAttachDiskFrom(observable);
-        return AzureGeneralUtil.defineInstanceId(disk.name());
+        String instanceId = AzureGeneralUtil.defineInstanceId(disk.name());
+        Runnable finishCreationCallback = this.asyncInstanceCreation.startCreation(instanceId);
+        this.operation.subscribeAttachDiskFrom(observable, finishCreationCallback);
+        return instanceId;
     }
 
     @VisibleForTesting
@@ -179,4 +183,8 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         this.operation = operation;
     }
 
+    @Override
+    protected void setAsyncInstanceCreation(AsyncInstanceCreationManager asyncInstanceCreation) {
+        this.asyncInstanceCreation = asyncInstanceCreation;
+    }
 }
