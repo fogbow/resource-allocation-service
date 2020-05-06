@@ -41,7 +41,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
 
-        String networkSecurityGroupName = AzureGeneralUtil.defineInstanceId(majorOrder.getInstanceId());
+        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
         String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
