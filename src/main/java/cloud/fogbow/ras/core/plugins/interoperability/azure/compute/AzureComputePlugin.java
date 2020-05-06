@@ -28,6 +28,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
@@ -73,7 +74,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         String name = computeOrder.getName();
         String regionName = this.defaultRegionName;
         String resourceGroupName = this.defaultResourceGroupName;
-        String resourceName = generateResourceName();
+        String resourceName = AzureGeneralUtil.generateResourceName();
         String virtualNetworkId = getVirtualNetworkId(computeOrder, azureUser);
         String imageId = computeOrder.getImageId();
         AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(imageId);
@@ -88,7 +89,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .regionName(regionName)
-                .resourceGroupName(resourceGroupName)
+                .resourceGroupName(resourceGroupName) // FIXME rename resourceGroupName to defaultResourceGroupName method
                 .resourceName(resourceName)
                 .virtualNetworkId(virtualNetworkId)
                 .azureGetImageRef(imageRef)
@@ -102,11 +103,6 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                 .checkAndBuild();
 
         return doRequestInstance(computeOrder, azureUser, azureCreateVirtualMachineRef, virtualMachineSize);
-    }
-
-    @VisibleForTesting
-    String generateResourceName() {
-        return SdkContext.randomResourceName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX, AzureConstants.MAXIMUM_RESOURCE_NAME_LENGTH);
     }
 
     @VisibleForTesting
@@ -159,13 +155,11 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
         String resourceName = computeOrder.getInstanceId();
-        String subscriptionId = azureUser.getSubscriptionId();
-        String instanceId = buildResourceId(subscriptionId, resourceName);
                 
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = this.azureVirtualMachineOperation
-                .doGetInstance(instanceId, azureUser);
+                .doGetInstance(azureUser, resourceName, this.defaultResourceGroupName);
         
-        return buildComputeInstance(azureGetVirtualMachineRef, azureUser);
+        return buildComputeInstance(azureGetVirtualMachineRef);
     }
 
     @VisibleForTesting
@@ -192,10 +186,9 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    ComputeInstance buildComputeInstance(AzureGetVirtualMachineRef azureGetVirtualMachineRef, AzureUser azureUser) {
-        String subscriptionId = azureUser.getSubscriptionId();
+    ComputeInstance buildComputeInstance(AzureGetVirtualMachineRef azureGetVirtualMachineRef) {
         String virtualMachineName = azureGetVirtualMachineRef.getName();
-        String id = buildResourceId(subscriptionId, virtualMachineName);
+        String id = AzureGeneralUtil.defineInstanceId(virtualMachineName);
         String cloudState = azureGetVirtualMachineRef.getCloudState();
         String name = azureGetVirtualMachineRef.getTags().get(AzureConstants.TAG_NAME);
         int vCPU = azureGetVirtualMachineRef.getvCPU();
@@ -212,9 +205,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
 
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
         String resourceName = computeOrder.getInstanceId();
-        String subscriptionId = azureUser.getSubscriptionId();
-        String instanceId = buildResourceId(subscriptionId, resourceName);
-        this.azureVirtualMachineOperation.doDeleteInstance(instanceId, azureUser);
+        this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName, this.defaultResourceGroupName);
     }
 
     @VisibleForTesting
