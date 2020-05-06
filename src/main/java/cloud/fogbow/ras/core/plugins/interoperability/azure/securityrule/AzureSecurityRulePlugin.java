@@ -40,7 +40,6 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-        checkOrderType(majorOrder);
 
         String networkSecurityGroupName = AzureGeneralUtil.defineInstanceId(majorOrder.getInstanceId());
         String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
@@ -114,16 +113,4 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                 throw new UnexpectedException(errorMsg);
         }
     }
-
-    @VisibleForTesting
-    void checkOrderType(Order majorOrder) throws FogbowException {
-        switch (majorOrder.getType()) {
-            case NETWORK:
-            case PUBLIC_IP:
-                return;
-            default:
-                throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
-        }
-    }
-
 }
