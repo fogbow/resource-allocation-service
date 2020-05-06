@@ -159,7 +159,7 @@ public class AzureNetworkPluginTest {
 
         FogbowException exceptionExpected = new FogbowException(TestUtils.ANY_VALUE);
         Mockito.doThrow(exceptionExpected)
-                .when(this.azureVirtualNetworkOperation).doCreateInstance(Mockito.any(), Mockito.any(), Mockito.any());
+                .when(this.azureNetworkPlugin).doCreateInstance(Mockito.any(), Mockito.any(), Mockito.any());
 
         // verify
         this.expectedException.expect(exceptionExpected.getClass());
@@ -167,6 +167,48 @@ public class AzureNetworkPluginTest {
 
         // exercise
         this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
+    }
+
+    // test case: When calling the doCreateInstance method,
+    // it must verify if It don't throw an exception.
+    @Test
+    public void testDoCreateInstanceSuccessfully() throws FogbowException {
+        // set up
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
+        Mockito.doNothing().when(this.azureVirtualNetworkOperation)
+                .doCreateInstance(Mockito.any(), Mockito.any(), Mockito.any());
+
+        try {
+            // exercise
+            this.azureNetworkPlugin.doCreateInstance(this.azureUser, azureCreateVirtualNetworkRef, doOnComplete);
+        } catch (Exception e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: When calling the doCreateInstance method and throws an exception,
+    // it must verify if It rethrow the exception and perform the doOnComplete.
+    @Test
+    public void testDoCreateInstanceFail() throws FogbowException {
+        // set up
+        AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
+        Mockito.doThrow(new FogbowException())
+                .when(this.azureVirtualNetworkOperation)
+                .doCreateInstance(Mockito.any(), Mockito.any(), Mockito.eq(doOnComplete));
+
+        try {
+            // exercise
+            this.azureNetworkPlugin.doCreateInstance(this.azureUser, azureCreateVirtualNetworkRef, doOnComplete);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+        }
     }
 
     // test case: When calling the buildNetworkInstance method,

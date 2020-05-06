@@ -280,7 +280,6 @@ public class AzureComputePluginTest {
         }
     }
 
-
     // test case: When calling the getVirtualMachineSizeName method,
     // it must verify if it calls the method with right parameters.
     @Test

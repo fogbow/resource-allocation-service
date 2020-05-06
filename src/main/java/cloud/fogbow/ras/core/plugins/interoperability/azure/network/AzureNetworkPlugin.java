@@ -66,10 +66,20 @@ public class AzureNetworkPlugin extends AzureAsync implements NetworkPlugin<Azur
                 .checkAndBuild();
 
         Runnable finishAsyncCreationCallback = this.asyncInstanceCreation.startCreation(instanceId);
-        this.azureVirtualNetworkOperationSDK
-                .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishAsyncCreationCallback);
+        doCreateInstance(azureUser, azureCreateVirtualNetworkRef, finishAsyncCreationCallback);
 
         return instanceId;
+    }
+
+    @VisibleForTesting
+    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Runnable finishAsyncCreationCallback) throws FogbowException {
+        try {
+            this.azureVirtualNetworkOperationSDK
+                    .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishAsyncCreationCallback);
+        } catch (Exception e) {
+            finishAsyncCreationCallback.run();
+            throw e;
+        }
     }
 
     @Override
