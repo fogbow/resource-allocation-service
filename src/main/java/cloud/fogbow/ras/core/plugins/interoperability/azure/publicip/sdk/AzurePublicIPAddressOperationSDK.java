@@ -141,8 +141,7 @@ public class AzurePublicIPAddressOperationSDK {
         });
     }
 
-    @VisibleForTesting
-    void subscribeDeletePublicIPAddressAsync(Completable completable) {
+    public void subscribeDeletePublicIPAddressAsync(Completable completable) {
         setDeletePublicIPAddressBehaviour(completable)
                 .subscribeOn(this.scheduler)
                 .subscribe();
