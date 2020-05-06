@@ -61,8 +61,10 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String virtualMachineId = buildVirtualMachineId(subscriptionId, attachmentOrder.getComputeId());
-        String diskId = buildResourceId(subscriptionId, attachmentOrder.getVolumeId());
+        String virtualMachineName = AzureGeneralUtil.defineResourceName(attachmentOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
+        String diskName = AzureGeneralUtil.defineResourceName(attachmentOrder.getVolumeId());
+        String diskId = buildResourceId(azure, subscriptionId, diskName);
         
         return doRequestInstance(azure, virtualMachineId, diskId);
     }
@@ -72,7 +74,8 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, attachmentOrder.getInstanceId());
+        String resourceName = AzureGeneralUtil.defineResourceName(attachmentOrder.getInstanceId());
+        String resourceId = buildResourceId(azure, subscriptionId, resourceName);
         
         return doGetInstance(azure, resourceId);
     }
@@ -82,8 +85,10 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, attachmentOrder.getInstanceId());
-        String virtualMachineId = buildResourceId(subscriptionId, attachmentOrder.getComputeId());
+        String virtualMachineName = AzureGeneralUtil.defineResourceName(attachmentOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
+        String resourceName = AzureGeneralUtil.defineResourceName(attachmentOrder.getInstanceId());
+        String resourceId = buildResourceId(azure, subscriptionId, resourceName);
         
         doDeleteInstance(azure, virtualMachineId, resourceId);
     }
@@ -153,10 +158,13 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    String buildResourceId(String subscriptionId, String resourceName) {
+    String buildResourceId(Azure azure, String subscriptionId, String resourceName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         String resourceId = AzureResourceIdBuilder.diskId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
         
@@ -164,11 +172,14 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    String buildVirtualMachineId(String subscriptionId, String computeId) {
+    String buildVirtualMachineId(Azure azure, String subscriptionId, String virtualMachineName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, virtualMachineName, this.defaultResourceGroupName);
+
         String virtualMachineId = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(computeId)
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(virtualMachineName)
                 .build();
 
         return virtualMachineId;
