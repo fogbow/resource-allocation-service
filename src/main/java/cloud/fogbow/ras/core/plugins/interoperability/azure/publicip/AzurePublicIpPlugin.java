@@ -29,6 +29,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import rx.Completable;
@@ -65,13 +66,17 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.generateResourceName();
+        String resourceGroupName = AzureGeneralUtil
+                .defineResourceGroupName(azure, this.defaultRegionName, resourceName, this.defaultResourceGroupName);
+
         String subscriptionId = azureUser.getSubscriptionId();
-        String virtualMachineId = buildVirtualMachineId(subscriptionId, publicIpOrder.getComputeId());
+        String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
         
         Creatable<PublicIPAddress> publicIPAddressCreatable = azure.publicIPAddresses()
                 .define(resourceName)
                 .withRegion(this.defaultRegionName)
-                .withExistingResourceGroup(this.defaultResourceGroupName)
+                .withExistingResourceGroup(resourceGroupName)
                 .withDynamicIP();
         
         return doRequestInstance(azure, virtualMachineId, publicIPAddressCreatable);
@@ -82,7 +87,8 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, publicIpOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, publicIpOrder.getInstanceId());
+        String resourceName = AzureGeneralUtil.defineResourceName(publicIpOrder.getInstanceId());
+        String resourceId = buildResourceId(azure, subscriptionId, resourceName);
         
         return doGetInstance(azure, resourceId);
     }
@@ -92,12 +98,24 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, publicIpOrder.getInstanceId());
-        String virtualMachineId = buildVirtualMachineId(subscriptionId, publicIpOrder.getComputeId());
+        String resourceName = AzureGeneralUtil.defineResourceName(publicIpOrder.getInstanceId());
         
-        doDeleteInstance(azure, resourceId, virtualMachineId);
+        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+            doDeleteResourceGroup(azure, resourceName);
+        } else {
+            String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+            String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
+            String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
+            doDeleteInstance(azure, resourceId, virtualMachineId);
+        }
     }
     
+    @VisibleForTesting
+    void doDeleteResourceGroup(Azure azure, String resourceGroupName) {
+        Completable completable = AzureResourceGroupOperationUtil.deleteResourceGroupAsync(azure, resourceGroupName);
+        this.operation.subscribeDeletePublicIPAddressAsync(completable);
+    }
+
     @VisibleForTesting
     void doDeleteInstance(Azure azure, String publicIPAddressId, String virtualMachineId) throws FogbowException {
         VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
@@ -169,10 +187,13 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    String buildResourceId(String subscriptionId, String resourceName) {
+    String buildResourceId(Azure azure, String subscriptionId, String resourceName) {
+        String resourceGroupName = AzureResourceGroupOperationUtil
+                .existsResourceGroup(azure, resourceName) ? resourceName : this.defaultResourceGroupName;
+
         String resourceIdUrl = AzureResourceIdBuilder.publicIpAddressId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
 
@@ -204,10 +225,13 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
     
     @VisibleForTesting
-    String buildVirtualMachineId(String subscriptionId, String resourceName) {
+    String buildVirtualMachineId(Azure azure, String subscriptionId, String resourceName) {
+        String resourceGroupName = AzureResourceGroupOperationUtil
+                .existsResourceGroup(azure, resourceName) ? resourceName : this.defaultResourceGroupName;
+
         String resourceIdUrl = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
 
