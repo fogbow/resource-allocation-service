@@ -215,7 +215,6 @@ public class AzureComputePluginTest {
                 .tags(tags)
                 .checkAndBuild();
 
-
         // exercise
         this.azureComputePlugin.requestInstance(computeOrder, this.azureUser);
 
@@ -241,6 +240,46 @@ public class AzureComputePluginTest {
         // exercise
         this.azureComputePlugin.requestInstance(computeOrder, this.azureUser);
     }
+
+    // test case: When calling the doCreateInstance method,
+    // it must verify if It don't throw an exception.
+    @Test
+    public void testDoCreateInstanceSuccessfully() {
+        // set up
+        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
+        try {
+            // exercise
+            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, doOnComplete);
+        } catch (Exception e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: When calling the doCreateInstance method and throws an exception,
+    // it must verify if It rethrow the exception and perform the doOnComplete.
+    @Test
+    public void testDoCreateInstanceFail() throws FogbowException {
+        // set up
+        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
+        Mockito.doThrow(new FogbowException())
+                .when(this.azureVirtualMachineOperation)
+                .doCreateInstance(Mockito.any(), Mockito.any(), Mockito.eq(doOnComplete));
+
+        try {
+            // exercise
+            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, doOnComplete);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+        }
+    }
+
 
     // test case: When calling the getVirtualMachineSizeName method,
     // it must verify if it calls the method with right parameters.
