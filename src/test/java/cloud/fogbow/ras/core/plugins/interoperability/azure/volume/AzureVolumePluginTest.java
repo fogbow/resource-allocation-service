@@ -1,27 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.volume;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.Disk;
-import com.microsoft.azure.management.compute.Disks;
-import com.microsoft.azure.management.compute.implementation.DiskInner;
-import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
-import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
-
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
@@ -39,8 +17,28 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUti
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.Disk;
+import com.microsoft.azure.management.compute.Disks;
+import com.microsoft.azure.management.compute.implementation.DiskInner;
+import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
+import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Completable;
 import rx.Observable;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Azure.class, AzureClientCacheManager.class, AzureGeneralUtil.class, AzureVolumeSDK.class })
@@ -199,6 +197,7 @@ public class AzureVolumePluginTest {
         PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
         
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
         PowerMockito.mockStatic(AzureGeneralUtil.class);
         PowerMockito.doReturn(resourceName).when(AzureGeneralUtil.class, "defineResourceName", Mockito.anyString());
         
@@ -210,7 +209,10 @@ public class AzureVolumePluginTest {
         Mockito.doReturn(volumeInstance).when(this.plugin).doGetInstance(Mockito.eq(azure), Mockito.eq(resourceId));
         
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
-        volumeOrder.setInstanceId(resourceName);
+        Mockito.when(volumeOrder.getInstanceId()).thenReturn(instanceId);
+
+        VolumeInstance volumeInstanceCreated = null;
+        Mockito.doReturn(volumeInstanceCreated).when(this.plugin).getCreatingInstance(Mockito.eq(instanceId));
         
         // exercise
         this.plugin.getInstance(volumeOrder, this.azureUser);
@@ -225,6 +227,25 @@ public class AzureVolumePluginTest {
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(subscriptionId), Mockito.eq(resourceName));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(azure), Mockito.eq(resourceId));
+    }
+
+    // test case: When calling the getInstance method with instance creating, it must verify that is call
+    // was successful.
+    @Test
+    public void testGetInstanceSuccessfullyWhenInstanceCreating() throws Exception {
+        // set up
+        String instanceId = AzureGeneralUtil.defineInstanceId(AzureTestUtils.RESOURCE_NAME);
+        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
+        Mockito.when(volumeOrder.getInstanceId()).thenReturn(instanceId);
+
+        VolumeInstance volumeInstanceCreating = Mockito.mock(VolumeInstance.class);
+        Mockito.doReturn(volumeInstanceCreating).when(this.plugin).getCreatingInstance(Mockito.eq(instanceId));
+
+        // exercise
+        VolumeInstance volumeInstance = this.plugin.getInstance(volumeOrder, this.azureUser);
+
+        // verify
+        Assert.assertEquals(volumeInstanceCreating, volumeInstance);
     }
 
     // test case: When calling the deleteInstance method, it must verify that is call
@@ -400,15 +421,19 @@ public class AzureVolumePluginTest {
     public void testDoRequestInstanceSuccessfully() throws Exception {
         // set up
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
         Creatable<Disk> diskCreatable = Mockito.mock(Creatable.class);
         Mockito.when(diskCreatable.name()).thenReturn(resourceName);
         
         Observable<Indexable> observable = Mockito.mock(Observable.class);
         PowerMockito.mockStatic(AzureVolumeSDK.class);
         PowerMockito.doReturn(observable).when(AzureVolumeSDK.class, "buildCreateDiskObservable", Mockito.any(Creatable.class));
-        
+
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        Mockito.doReturn(doOnComplete).when(this.plugin).startIntanceCreation(Mockito.eq(instanceId));
+
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
-        Mockito.doNothing().when(this.operation).subscribeCreateDisk(Mockito.eq(observable));
+        Mockito.doNothing().when(this.operation).subscribeCreateDisk(Mockito.eq(observable), Mockito.eq(doOnComplete));
         Mockito.doNothing().when(this.plugin).updateInstanceAllocation(Mockito.eq(volumeOrder));
         
         PowerMockito.mockStatic(AzureGeneralUtil.class);
@@ -421,7 +446,8 @@ public class AzureVolumePluginTest {
         PowerMockito.verifyStatic(AzureVolumeSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureVolumeSDK.buildCreateDiskObservable(Mockito.eq(diskCreatable));
         
-        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).subscribeCreateDisk(Mockito.eq(observable));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).subscribeCreateDisk(
+                Mockito.eq(observable), Mockito.eq(doOnComplete));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateInstanceAllocation(Mockito.eq(volumeOrder));
         
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
