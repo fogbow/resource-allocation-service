@@ -57,7 +57,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
         return priority + 1;
     }
 
-    public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupId, AzureUser azureUser) throws FogbowException {
+    public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupId, String networkSecurityGroupName, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
@@ -65,12 +65,12 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
         return networkSecurityGroup.securityRules().values().stream()
                 .filter(networkSecurityRule -> networkSecurityRule.name().startsWith(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX))
-                .map(networkSecurityRule -> buildSecurityRuleInstance(networkSecurityRule))
+                .map(networkSecurityRule -> buildSecurityRuleInstance(networkSecurityRule, networkSecurityGroupName))
                 .collect(Collectors.toList());
     }
 
     @VisibleForTesting
-    SecurityRuleInstance buildSecurityRuleInstance(NetworkSecurityRule networkSecurityRule) {
+    SecurityRuleInstance buildSecurityRuleInstance(NetworkSecurityRule networkSecurityRule, String networkSecurityGroupName) {
         String cidr = networkSecurityRule.sourceAddressPrefix();
         SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
         SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
@@ -82,7 +82,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
         SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
         SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
         SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
-        String instanceId = networkSecurityRule.name();
+        String ruleName = networkSecurityRule.name();
+        String instanceId = SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, ruleName);
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 

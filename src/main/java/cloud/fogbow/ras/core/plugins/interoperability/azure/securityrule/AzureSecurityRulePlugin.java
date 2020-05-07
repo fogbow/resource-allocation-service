@@ -80,7 +80,8 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                 .withResourceName(networkSecurityGroupName)
                 .build();
 
-        return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
+        return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId,
+                networkSecurityGroupName, azureUser);
     }
 
     @Override
