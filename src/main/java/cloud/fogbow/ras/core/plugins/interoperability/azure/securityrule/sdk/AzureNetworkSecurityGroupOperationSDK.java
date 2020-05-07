@@ -8,6 +8,7 @@ import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
@@ -81,7 +82,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
         SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
         SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
         SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
-        String instanceId = networkSecurityRule.inner().id();
+        String instanceId = networkSecurityRule.name();
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
