@@ -73,7 +73,14 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
 
-        return doGetSecurityRules(majorOrder, azureUser);
+        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
+        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+
+        return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
     }
 
     @Override
@@ -91,26 +98,5 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         String securityRuleName = securityRuleIdContext.getSecurityRuleName();
         this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(networkSecurityGroupId, securityRuleName, azureUser);
-    }
-
-    @VisibleForTesting
-    List<SecurityRuleInstance> doGetSecurityRules(Order majorOrder, AzureUser azureUser)
-            throws FogbowException {
-
-        switch (majorOrder.getType()) {
-            case NETWORK:
-                String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
-                String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                        .withSubscriptionId(azureUser.getSubscriptionId())
-                        .withResourceGroupName(this.defaultResourceGroupName)
-                        .withResourceName(networkSecurityGroupName)
-                        .build();
-
-                return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
-            case PUBLIC_IP:
-            default:
-                String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
-                throw new UnexpectedException(errorMsg);
-        }
     }
 }
