@@ -21,6 +21,7 @@ public class AsyncInstanceCreationManager {
     @return It is a callback that it must be used when the cloud finish asynchronous creation operation in the cloud;
     Suggestion: Use "finishCreationCallback" as attribute name.
        */
+    // TODO(chico) - Add log debug
     public Runnable startCreation(String instanceId) {
         defineAsCreating(instanceId);
         return () -> defineAsCreated(instanceId);
