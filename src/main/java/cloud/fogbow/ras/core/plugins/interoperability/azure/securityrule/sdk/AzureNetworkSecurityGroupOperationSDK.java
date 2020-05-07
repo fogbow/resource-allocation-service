@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCach
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.NetworkSecurityRule;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 
@@ -63,22 +64,25 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
         return networkSecurityGroup.securityRules().values().stream()
                 .filter(networkSecurityRule -> networkSecurityRule.name().startsWith(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX))
-                .map(networkSecurityRule -> {
-                    String cidr = networkSecurityRule.sourceAddressPrefix();
-                    SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
-                    SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
-                    String portRange = networkSecurityRule.destinationPortRange();
-                    AzureSecurityRuleUtil.Ports ports = AzureSecurityRuleUtil.getPorts(portRange);
-                    int portFrom = ports.getFrom();
-                    int portTo = ports.getTo();
-                    String ipAddress = AzureSecurityRuleUtil.getIpAddress(cidr);
-                    SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
-                    SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
-                    SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
-                    String instanceId = networkSecurityRule.inner().id();
+                .map(networkSecurityRule -> buildSecurityRuleInstance(networkSecurityRule))
+                .collect(Collectors.toList());
+    }
 
-                    return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
-                }).collect(Collectors.toList());
+    @VisibleForTesting
+    SecurityRuleInstance buildSecurityRuleInstance(NetworkSecurityRule networkSecurityRule) {
+        String cidr = networkSecurityRule.sourceAddressPrefix();
+        SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
+        SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+        String portRange = networkSecurityRule.destinationPortRange();
+        AzureSecurityRuleUtil.Ports ports = AzureSecurityRuleUtil.getPorts(portRange);
+        int portFrom = ports.getFrom();
+        int portTo = ports.getTo();
+        String ipAddress = AzureSecurityRuleUtil.getIpAddress(cidr);
+        SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
+        SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
+        SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
+        String instanceId = networkSecurityRule.inner().id();
+        return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
     public void deleteNetworkSecurityRule(String networkSecurityGroupId, String securityRuleName, AzureUser azureUser)
