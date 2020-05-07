@@ -188,8 +188,8 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
 
     @VisibleForTesting
     String buildResourceId(Azure azure, String subscriptionId, String resourceName) {
-        String resourceGroupName = AzureResourceGroupOperationUtil
-                .existsResourceGroup(azure, resourceName) ? resourceName : this.defaultResourceGroupName;
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
 
         String resourceIdUrl = AzureResourceIdBuilder.publicIpAddressId()
                 .withSubscriptionId(subscriptionId)
@@ -226,8 +226,8 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     
     @VisibleForTesting
     String buildVirtualMachineId(Azure azure, String subscriptionId, String resourceName) {
-        String resourceGroupName = AzureResourceGroupOperationUtil
-                .existsResourceGroup(azure, resourceName) ? resourceName : this.defaultResourceGroupName;
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
 
         String resourceIdUrl = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(subscriptionId)
