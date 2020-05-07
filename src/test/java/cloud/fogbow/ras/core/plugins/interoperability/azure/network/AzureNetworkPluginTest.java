@@ -5,7 +5,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
@@ -46,7 +45,6 @@ public class AzureNetworkPluginTest {
     private String defaultRegionName;
     private AzureNetworkPlugin azureNetworkPlugin;
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperation;
-    private AsyncInstanceCreationManager asyncInstanceCreationManager;
 
     @Before
     public void setUp() {
@@ -59,12 +57,10 @@ public class AzureNetworkPluginTest {
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.azureNetworkPlugin = Mockito.spy(new AzureNetworkPlugin(azureConfFilePath));
-        this.asyncInstanceCreationManager = Mockito.mock(AsyncInstanceCreationManager.class);
         AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK =
                 new AzureVirtualNetworkOperationSDK(this.defaultRegionName, this.defaultResourceGroupName);
         this.azureVirtualNetworkOperation = Mockito.spy(azureVirtualNetworkOperationSDK);
         this.azureNetworkPlugin.setAzureVirtualNetworkOperationSDK(this.azureVirtualNetworkOperation);
-        this.azureNetworkPlugin.setAsyncInstanceCreation(this.asyncInstanceCreationManager);
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
@@ -131,7 +127,7 @@ public class AzureNetworkPluginTest {
 
         Runnable callback = Mockito.mock(Runnable.class);
         Mockito.doReturn(callback)
-                .when(this.asyncInstanceCreationManager).startCreation(Mockito.eq(instanceIdExpected));
+                .when(this.azureNetworkPlugin).startIntanceCreation(Mockito.eq(instanceIdExpected));
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
@@ -139,8 +135,8 @@ public class AzureNetworkPluginTest {
         // verify
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser), Mockito.eq(callback));
-        Mockito.verify(this.asyncInstanceCreationManager, Mockito.times(TestUtils.RUN_ONCE))
-                .startCreation(Mockito.eq(instanceId));
+        Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
+                .startIntanceCreation(Mockito.eq(instanceId));
         Assert.assertEquals(instanceIdExpected, instanceId);
     }
 
@@ -268,23 +264,24 @@ public class AzureNetworkPluginTest {
         Assert.assertEquals(networkInstanceExpected, networkInstance);
     }
 
-    // test case: When calling the getInstance method with mocked methods and the instance is pending,
+    // test case: When calling the getInstance method with mocked methods and the instance is creating,
     // it must verify if it returns the right networkInstance with state creating.
     @Test
-    public void testGetInstanceWhenInstanceIsPending() throws FogbowException {
+    public void testGetInstanceSuccessfullyWhenInstanceIsCreating() throws FogbowException {
         // set up
         String instanceId = "instanceId";
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
         Mockito.when(networkOrder.getInstanceId()).thenReturn(instanceId);
 
-        Mockito.when(this.asyncInstanceCreationManager.isCreating(Mockito.eq(instanceId))).thenReturn(true);
+        NetworkInstance networkInstanceCreating = Mockito.mock(NetworkInstance.class);
+        Mockito.doReturn(networkInstanceCreating).when(this.azureNetworkPlugin)
+                .getCreatingInstance(Mockito.eq(instanceId));
 
         // exercise
         NetworkInstance networkInstance = this.azureNetworkPlugin.getInstance(networkOrder, this.azureUser);
 
         // verify
-        Assert.assertEquals(instanceId, networkInstance.getId());
-        Assert.assertEquals(InstanceState.CREATING.getValue(), networkInstance.getCloudState());
+        Assert.assertEquals(networkInstanceCreating, networkInstance);
     }
 
     // test case: When calling the getInstance method with mocked methods and throws an exception,

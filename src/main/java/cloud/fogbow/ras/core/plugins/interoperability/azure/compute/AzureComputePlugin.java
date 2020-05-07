@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureComputePlugin extends AzureAsync implements ComputePlugin<AzureUser> {
+public class AzureComputePlugin extends AzureAsync<ComputeInstance> implements ComputePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
     private static final int INSTANCES_LAUNCH_NUMBER = 1;
@@ -118,7 +118,7 @@ public class AzureComputePlugin extends AzureAsync implements ComputePlugin<Azur
             VirtualMachineSize virtualMachineSize) throws FogbowException {
 
         String instanceId = getInstanceId(azureCreateVirtualMachineRef);
-        Runnable finishCreationCallback = this.asyncInstanceCreation.startCreation(instanceId);
+        Runnable finishCreationCallback = this.startIntanceCreation(instanceId);
         doCreateInstance(azureUser, azureCreateVirtualMachineRef, finishCreationCallback);
         updateInstanceAllocation(computeOrder, virtualMachineSize);
         return instanceId;
@@ -162,16 +162,20 @@ public class AzureComputePlugin extends AzureAsync implements ComputePlugin<Azur
     }
 
     @Override
-    public ComputeInstance getInstance(ComputeOrder computeOrder, AzureUser azureUser)
-            throws FogbowException {
+    public ComputeInstance getInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
 
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
-        String resourceName = computeOrder.getInstanceId();
+        ComputeInstance creatingInstance = getCreatingInstance(instanceId);
+        if (creatingInstance != null) {
+            return creatingInstance;
+        }
+
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         String subscriptionId = azureUser.getSubscriptionId();
-        String instanceId = buildResourceId(subscriptionId, resourceName);
-                
+        String resourceId = buildResourceId(subscriptionId, resourceName);
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = this.azureVirtualMachineOperation
-                .doGetInstance(instanceId, azureUser);
+                .doGetInstance(resourceId, azureUser);
         
         return buildComputeInstance(azureGetVirtualMachineRef, azureUser);
     }
@@ -230,8 +234,4 @@ public class AzureComputePlugin extends AzureAsync implements ComputePlugin<Azur
         this.azureVirtualMachineOperation = azureVirtualMachineOperation;
     }
 
-    @Override
-    protected void setAsyncInstanceCreation(AsyncInstanceCreationManager asyncInstanceCreation) {
-        this.asyncInstanceCreation = asyncInstanceCreation;
-    }
 }

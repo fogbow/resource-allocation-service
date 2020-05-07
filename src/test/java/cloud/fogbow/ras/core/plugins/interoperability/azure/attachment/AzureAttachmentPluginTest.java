@@ -13,7 +13,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
@@ -50,7 +49,6 @@ import java.util.Optional;
 })
 public class AzureAttachmentPluginTest {
 
-    private AsyncInstanceCreationManager asyncInstanceCreationManager;
     private AzureAttachmentOperationSDK operation;
     private AzureAttachmentPlugin plugin;
     private AzureUser azureUser;
@@ -68,8 +66,6 @@ public class AzureAttachmentPluginTest {
         this.operation = Mockito.mock(AzureAttachmentOperationSDK.class);
         this.plugin = Mockito.spy(new AzureAttachmentPlugin(azureConfFilePath));
         this.plugin.setOperation(this.operation);
-        this.asyncInstanceCreationManager = Mockito.mock(AsyncInstanceCreationManager.class);
-        this.plugin.setAsyncInstanceCreation(asyncInstanceCreationManager);
         this.azureUser = AzureTestUtils.createAzureUser();
     }
 
@@ -148,6 +144,10 @@ public class AzureAttachmentPluginTest {
         Mockito.doReturn(instanceId).when(this.plugin).doRequestInstance(Mockito.eq(azure), Mockito.anyString(),
                 Mockito.anyString());
 
+        AttachmentInstance attachmentInstanceCreated = null;
+        Mockito.doReturn(attachmentInstanceCreated)
+                .when(this.plugin).getCreatingInstance(Mockito.eq(instanceId));
+
         // exercise
         this.plugin.requestInstance(attachmentOrder, this.azureUser);
 
@@ -168,12 +168,32 @@ public class AzureAttachmentPluginTest {
             .doRequestInstance(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: When calling the getInstance method with instance creating, it must verify that is
+    // call was successful.
+    @Test
+    public void testGetInstanceSuccessfullyWhenCreatingInstance() throws Exception {
+        // set up
+        AttachmentOrder attachmentOrder = mockAttachmentOrder();
+        String instanceId = attachmentOrder.getInstanceId();
+
+        AttachmentInstance attachmentInstanceCreating = Mockito.mock(AttachmentInstance.class);
+        Mockito.doReturn(attachmentInstanceCreating)
+                .when(this.plugin).getCreatingInstance(Mockito.eq(instanceId));
+
+        // exercise
+        AttachmentInstance creatingInstance = this.plugin.getInstance(attachmentOrder, this.azureUser);
+
+        // verify
+        Assert.assertEquals(attachmentInstanceCreating, creatingInstance);
+    }
+
     // test case: When calling the getInstance method, it must verify that is
     // call was successful.
     @Test
     public void testGetInstanceSuccessfully() throws Exception {
         // set up
         AttachmentOrder attachmentOrder = mockAttachmentOrder();
+        String instanceId = attachmentOrder.getInstanceId();
 
         Azure azure = PowerMockito.mock(Azure.class);
         PowerMockito.mockStatic(AzureClientCacheManager.class);
@@ -181,6 +201,10 @@ public class AzureAttachmentPluginTest {
 
         AttachmentInstance attachmentInstance = Mockito.mock(AttachmentInstance.class);
         Mockito.doReturn(attachmentInstance).when(this.plugin).doGetInstance(Mockito.eq(azure), Mockito.anyString());
+
+        AttachmentInstance attachmentInstanceCreated = null;
+        Mockito.doReturn(attachmentInstanceCreated).when(this.plugin)
+                .getCreatingInstance(Mockito.eq(instanceId));
 
         // exercise
         this.plugin.getInstance(attachmentOrder, this.azureUser);
@@ -433,8 +457,7 @@ public class AzureAttachmentPluginTest {
 
         String instanceId = "instance-id";
         Runnable doOnComplete = Mockito.mock(Runnable.class);
-        Mockito.when(this.asyncInstanceCreationManager.startCreation(Mockito.eq(instanceId)))
-                .thenReturn(doOnComplete);
+        Mockito.doReturn(doOnComplete).when(this.plugin).startIntanceCreation(Mockito.eq(instanceId));
 
         Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(doOnComplete));
 
