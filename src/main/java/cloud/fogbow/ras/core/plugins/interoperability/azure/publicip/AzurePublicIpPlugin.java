@@ -99,21 +99,26 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
         String resourceName = AzureGeneralUtil.defineResourceName(publicIpOrder.getInstanceId());
+        String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
         
         if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
-            doDeleteResourceGroup(azure, resourceName);
+            doDeleteResourceGroup(azure, resourceName, virtualMachineId);
         } else {
             String resourceId = buildResourceId(azure, subscriptionId, resourceName);
-            String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
-            String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
             doDeleteInstance(azure, resourceId, virtualMachineId);
         }
     }
     
     @VisibleForTesting
-    void doDeleteResourceGroup(Azure azure, String resourceGroupName) {
-        Completable completable = AzureResourceGroupOperationUtil.deleteResourceGroupAsync(azure, resourceGroupName);
-        this.operation.subscribeDeletePublicIPAddressAsync(completable);
+    void doDeleteResourceGroup(Azure azure, String resourceGroupName, String virtualMachineId)
+            throws FogbowException {
+
+        Observable observable = disassociateResourcesAsync(azure, virtualMachineId);
+        Completable completable = AzureResourceGroupOperationUtil
+                .deleteResourceGroupAsync(azure, resourceGroupName);
+
+        this.operation.subscribeDisassociateAndDeleteResources(observable, completable);
     }
 
     @VisibleForTesting
@@ -123,7 +128,7 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         NetworkSecurityGroup networkSecurityGroup = doGetNetworkSecurityGroupFrom(networkInterface);
         String networkSecurityGroupId = networkSecurityGroup.id();
 
-        Observable observable = doDisassociateResourcesAsync(networkInterface);
+        Observable observable = doDisassociateResourcesFrom(networkInterface);
         Completable completable = doDeleteResourcesAsync(azure, publicIPAddressId, networkSecurityGroupId);
         this.operation.subscribeDisassociateAndDeleteResources(observable, completable);
     }
@@ -140,7 +145,14 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    Observable doDisassociateResourcesAsync(NetworkInterface networkInterface) {
+    Observable disassociateResourcesAsync(Azure azure, String virtualMachineId) throws FogbowException {
+        VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
+        NetworkInterface networkInterface = doGetPrimaryNetworkInterfaceFrom(virtualMachine);
+        return doDisassociateResourcesFrom(networkInterface);
+    }
+
+    @VisibleForTesting
+    Observable doDisassociateResourcesFrom(NetworkInterface networkInterface) {
         Observable<NetworkInterface> disassociateNetworkSecurityGroup = AzurePublicIPAddressSDK
                 .disassociateNetworkSecurityGroupAsync(networkInterface);
 
@@ -210,11 +222,9 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associatePublicIPAddressAsync(networkInterface, publicIPAddressCreatable);
 
-        String resourceId = publicIPAddressCreatable.name();
-        String instanceId = AzureGeneralUtil.defineInstanceId(resourceId);
-        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable);
-
-        return instanceId;
+        String resourceName = publicIPAddressCreatable.name();
+        this.operation.subscribeAssociatePublicIPAddress(azure, resourceName, observable);
+        return AzureGeneralUtil.defineInstanceId(resourceName);
     }
 
     @VisibleForTesting
