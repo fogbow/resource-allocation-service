@@ -80,9 +80,8 @@ public class AzureSecurityRulePluginTest extends TestUtils {
         String expectedSecurityGroupName = "security-group-name";
 
         Mockito.when(order.getInstanceId()).thenReturn(majorOrderInstanceId);
-        Mockito.doNothing().when(this.plugin).checkOrderType(Mockito.eq(order));
 
-        Mockito.when(AzureGeneralUtil.defineInstanceId(Mockito.eq(majorOrderInstanceId)))
+        Mockito.when(AzureGeneralUtil.defineResourceName(Mockito.eq(majorOrderInstanceId)))
                 .thenReturn(expectedSecurityGroupName);
 
         String expectedSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
@@ -115,13 +114,11 @@ public class AzureSecurityRulePluginTest extends TestUtils {
         String instanceId = this.plugin.requestSecurityRule(securityRule, order, azureUser);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).checkOrderType(Mockito.eq(order));
-
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureGeneralUtil.generateResourceName();
 
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureGeneralUtil.defineInstanceId(Mockito.eq(majorOrderInstanceId));
+        AzureGeneralUtil.defineResourceName(Mockito.eq(majorOrderInstanceId));
 
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
@@ -130,19 +127,36 @@ public class AzureSecurityRulePluginTest extends TestUtils {
     // it must verify if it creates all variable correct.
     @Test
     public void testGetSecurityRules() throws FogbowException {
-        // set up
-        Order majorOrder = Mockito.mock(NetworkOrder.class);
-        List<SecurityRuleInstance> securityRuleInstanceList = new ArrayList<>();
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        Order order = Mockito.mock(NetworkOrder.class);
+        Mockito.when(order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
 
-        Mockito.doReturn(securityRuleInstanceList).when(this.plugin).doGetSecurityRules(Mockito.eq(majorOrder),
-                Mockito.eq(azureUser));
+        String networkSecurityGroupName = "network-security-group-name";
+        Mockito.when(AzureGeneralUtil.defineResourceName(Mockito.eq(order.getInstanceId())))
+                .thenReturn(networkSecurityGroupName);
+
+        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+
+        Mockito.when(this.operation.getNetworkSecurityRules(Mockito.eq(networkSecurityGroupId),
+                Mockito.eq(networkSecurityGroupName), Mockito.eq(azureUser)))
+                .thenReturn(new ArrayList<>());
 
         // exercise
-        this.plugin.getSecurityRules(majorOrder, azureUser);
+        this.plugin.getSecurityRules(order, azureUser);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetSecurityRules(Mockito.eq(majorOrder),
-                Mockito.eq(azureUser));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).getNetworkSecurityRules(
+                Mockito.eq(networkSecurityGroupId), Mockito.eq(networkSecurityGroupName), Mockito.eq(azureUser));
+
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.defineResourceName(Mockito.eq(order.getInstanceId()));
+
+        // verify
     }
 
     // test case: When calling the deleteSecurityRule method with mocked methods,
@@ -150,9 +164,9 @@ public class AzureSecurityRulePluginTest extends TestUtils {
     @Test
     public void testDeleteSecurityRuleNetwork() throws FogbowException {
         // set up
-        String securityRuleId = "security-rule-id";
-        String securityRuleName = "security-rule-name";
-        String networkSecurityGroupName = "network-security-group-name";
+        String securityRuleId = "networkSecurityGroupName_securityRuleName";
+        String securityRuleName = "securityRuleName";
+        String networkSecurityGroupName = "networkSecurityGroupName";
 
         SecurityRuleIdContext mockedSecurityRuleIdContext = Mockito.mock(SecurityRuleIdContext.class);
         Mockito.when(mockedSecurityRuleIdContext.getNetworkSecurityGroupName()).thenReturn(networkSecurityGroupName);
@@ -177,98 +191,6 @@ public class AzureSecurityRulePluginTest extends TestUtils {
                 Mockito.eq(networkSecurityGroupId), Mockito.eq(securityRuleName), Mockito.eq(azureUser));
         Mockito.verify(mockedSecurityRuleIdContext, Mockito.times(TestUtils.RUN_ONCE)).getNetworkSecurityGroupName();
         Mockito.verify(mockedSecurityRuleIdContext, Mockito.times(TestUtils.RUN_ONCE)).getSecurityRuleName();
-    }
-
-    // test case: When calling the doGetSecurityRules method with mocked methods,
-    // it must verify if it creates all variable correct.
-    @Test
-    public void testDoGetSecurityRulesSuccessfully() throws FogbowException {
-        // set up
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        Order order = Mockito.mock(NetworkOrder.class);
-        Mockito.when(order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
-        Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
-
-        String networkSecurityGroupName = "network-security-group-name";
-        Mockito.when(AzureGeneralUtil.defineResourceName(Mockito.eq(order.getInstanceId())))
-                .thenReturn(networkSecurityGroupName);
-
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME)
-                .withResourceName(networkSecurityGroupName)
-                .build();
-
-        Mockito.when(this.operation.getNetworkSecurityRules(Mockito.eq(networkSecurityGroupId), Mockito.eq(azureUser)))
-                .thenReturn(new ArrayList<>());
-
-        // exercise
-        this.plugin.doGetSecurityRules(order, azureUser);
-
-        // verify
-        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).getNetworkSecurityRules(
-                Mockito.eq(networkSecurityGroupId), Mockito.eq(azureUser));
-
-        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureGeneralUtil.defineResourceName(Mockito.eq(order.getInstanceId()));
-    }
-
-    // test case: When calling the doGetSecurityRules method with mocked methods
-    // and the order has a type different of network or public ip, it must throw a exception
-    @Test
-    public void testDoGetSecurityRulesInvalidResourceType() throws FogbowException {
-        // set up
-        Order order = Mockito.mock(VolumeOrder.class);
-        Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
-
-        String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, order.getType());
-
-        // verify
-        this.expectedException.expect(UnexpectedException.class);
-        this.expectedException.expectMessage(errorMsg);
-
-        // exercise
-        this.plugin.doGetSecurityRules(order, azureUser);
-    }
-
-    // test case: When calling the checkOrderType method with mocked methods
-    // and the order is a NetworkOrder it must pass without any error
-    @Test
-    public void testCheckOrderTypeSuccessfullyNetwork() throws FogbowException {
-        // set up
-        Order order = Mockito.mock(NetworkOrder.class);
-        Mockito.when(order.getType()).thenReturn(ResourceType.NETWORK);
-
-        // exercise
-        this.plugin.checkOrderType(order);
-    }
-
-    // test case: When calling the checkOrderType method with mocked methods
-    // and the order is a NetworkOrder it must pass without any error
-    @Test
-    public void testCheckOrderTypeSuccessfullyPublicIp() throws FogbowException {
-        // set up
-        Order order = Mockito.mock(PublicIpOrder.class);
-        Mockito.when(order.getType()).thenReturn(ResourceType.PUBLIC_IP);
-
-        // exercise
-        this.plugin.checkOrderType(order);
-    }
-
-    // test case: When calling the checkOrderType method with mocked methods
-    // and the order has a type different of network or public ip, it must throw a exception
-    @Test
-    public void testCheckOrderTypeInvalidResourceType() throws FogbowException {
-        // set up
-        Order order = Mockito.mock(VolumeOrder.class);
-        Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
-
-        // verify
-        this.expectedException.expect(InvalidParameterException.class);
-        this.expectedException.expectMessage(Messages.Exception.INVALID_RESOURCE);
-
-        // exercise
-        this.plugin.checkOrderType(order);
     }
 
     private SecurityRule createSecurityRule() {

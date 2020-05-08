@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.NetworkSecurityRule;
@@ -38,7 +39,8 @@ import java.util.Optional;
 @PrepareForTest({
         AzureClientCacheManager.class,
         AzureNetworkSecurityGroupSDK.class,
-        AzureSecurityRuleUtil.class
+        AzureSecurityRuleUtil.class,
+        SecurityRuleIdContext.class
 })
 public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
 
@@ -300,6 +302,61 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(Mockito.any(), Mockito.any());
     }
 
+    // test case: When buildSecurityRuleInstance is called with mocked methods,
+    // it must verify if it returns the right instance object
+    @Test
+    public void testBuildSecurityRuleInstanceSuccessfully() {
+        PowerMockito.mockStatic(SecurityRuleIdContext.class);
+        PowerMockito.mockStatic(AzureSecurityRuleUtil.class);
+
+        String ruleName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + "test-security-rule";
+        String networkSecurityGroupName = "network-security-group-name";
+        String cidr = TestUtils.DEFAULT_CIDR;
+        String instanceId = "instance-id";
+        int portFrom = DEFAULT_PORT_FROM;
+        int portTo = DEFAULT_PORT_TO;
+
+        SecurityRule.Direction direction = SecurityRule.Direction.IN;
+        SecurityRuleDirection securityRuleDirection = SecurityRuleDirection.INBOUND;
+
+        String portRange = "port-range";
+        AzureSecurityRuleUtil.Ports ports = Mockito.mock(AzureSecurityRuleUtil.Ports.class);
+        Mockito.when(ports.getFrom()).thenReturn(portFrom);
+        Mockito.when(ports.getTo()).thenReturn(portTo);
+
+        String ipAddress = "10.0.0.2";
+        SecurityRule.EtherType etherType = SecurityRule.EtherType.IPv4;
+
+        SecurityRuleProtocol securityRuleProtocol = SecurityRuleProtocol.TCP;
+        SecurityRule.Protocol protocol = SecurityRule.Protocol.ANY;
+
+        NetworkSecurityRule networkSecurityRule = Mockito.mock(NetworkSecurityRule.class);
+        Mockito.when(networkSecurityRule.name()).thenReturn(ruleName);
+        Mockito.when(networkSecurityRule.sourceAddressPrefix()).thenReturn(cidr);
+        Mockito.when(networkSecurityRule.direction()).thenReturn(securityRuleDirection);
+        Mockito.when(networkSecurityRule.destinationPortRange()).thenReturn(portRange);
+        Mockito.when(networkSecurityRule.protocol()).thenReturn(securityRuleProtocol);
+
+        Mockito.when(AzureSecurityRuleUtil.getFogbowDirection(Mockito.eq(securityRuleDirection))).thenReturn(direction);
+        Mockito.when(AzureSecurityRuleUtil.getPorts(Mockito.eq(portRange))).thenReturn(ports);
+        Mockito.when(AzureSecurityRuleUtil.getIpAddress(Mockito.eq(cidr))).thenReturn(ipAddress);
+        Mockito.when(AzureSecurityRuleUtil.inferEtherType(Mockito.eq(ipAddress))).thenReturn(etherType);
+        Mockito.when(AzureSecurityRuleUtil.getFogbowProtocol(Mockito.eq(securityRuleProtocol.toString()))).thenReturn(protocol);
+
+        Mockito.when(SecurityRuleIdContext.buildInstanceId(Mockito.eq(networkSecurityGroupName),
+                Mockito.eq(ruleName))).thenReturn(instanceId);
+
+        SecurityRuleInstance expectedInstance = new SecurityRuleInstance(instanceId, direction, portFrom, portTo,
+                cidr, etherType, protocol);
+
+        // exercise
+        SecurityRuleInstance actualInstance = this.operation.buildSecurityRuleInstance(networkSecurityRule,
+                networkSecurityGroupName);
+
+        // verify
+        Assert.assertEquals(expectedInstance, actualInstance);
+    }
+
     // test case: When calling getNetworkSecurityRules method with mocked methods,
     // it must verify if it returns the right list of instances
     @Test
@@ -311,6 +368,7 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         mockAzureClient();
 
         String ruleName = SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + "test-security-rule";
+        String networkSecurityGroupName = "network-security-group-name";
         String networkSecurityGroupId = "network-security-group-id";
         String cidr = TestUtils.DEFAULT_CIDR;
         int portFrom = DEFAULT_PORT_FROM;
@@ -336,17 +394,17 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
 
         NetworkSecurityRule networkSecurityRule = Mockito.mock(NetworkSecurityRule.class);
         Mockito.when(networkSecurityRule.name()).thenReturn(ruleName);
-        Mockito.when(networkSecurityRule.sourceAddressPrefix()).thenReturn(cidr);
-        Mockito.when(networkSecurityRule.direction()).thenReturn(securityRuleDirection);
-        Mockito.when(networkSecurityRule.destinationPortRange()).thenReturn(portRange);
-        Mockito.when(networkSecurityRule.protocol()).thenReturn(securityRuleProtocol);
-        Mockito.when(networkSecurityRule.inner()).thenReturn(securityRuleInner);
-
-        Mockito.when(AzureSecurityRuleUtil.getFogbowDirection(Mockito.eq(securityRuleDirection))).thenReturn(direction);
-        Mockito.when(AzureSecurityRuleUtil.getPorts(Mockito.eq(portRange))).thenReturn(ports);
-        Mockito.when(AzureSecurityRuleUtil.getIpAddress(Mockito.eq(cidr))).thenReturn(ipAddress);
-        Mockito.when(AzureSecurityRuleUtil.inferEtherType(Mockito.eq(ipAddress))).thenReturn(etherType);
-        Mockito.when(AzureSecurityRuleUtil.getFogbowProtocol(Mockito.eq(securityRuleProtocol.toString()))).thenReturn(protocol);
+//        Mockito.when(networkSecurityRule.sourceAddressPrefix()).thenReturn(cidr);
+//        Mockito.when(networkSecurityRule.direction()).thenReturn(securityRuleDirection);
+//        Mockito.when(networkSecurityRule.destinationPortRange()).thenReturn(portRange);
+//        Mockito.when(networkSecurityRule.protocol()).thenReturn(securityRuleProtocol);
+//        Mockito.when(networkSecurityRule.inner()).thenReturn(securityRuleInner);
+//
+//        Mockito.when(AzureSecurityRuleUtil.getFogbowDirection(Mockito.eq(securityRuleDirection))).thenReturn(direction);
+//        Mockito.when(AzureSecurityRuleUtil.getPorts(Mockito.eq(portRange))).thenReturn(ports);
+//        Mockito.when(AzureSecurityRuleUtil.getIpAddress(Mockito.eq(cidr))).thenReturn(ipAddress);
+//        Mockito.when(AzureSecurityRuleUtil.inferEtherType(Mockito.eq(ipAddress))).thenReturn(etherType);
+//        Mockito.when(AzureSecurityRuleUtil.getFogbowProtocol(Mockito.eq(securityRuleProtocol.toString()))).thenReturn(protocol);
 
         SecurityRuleInstance securityRuleInstance = new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
 
@@ -359,8 +417,12 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         Mockito.when(AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(Mockito.eq(azure),
                 Mockito.eq(networkSecurityGroupId))).thenReturn(optNetworkSecurityGroup);
 
+        Mockito.doReturn(securityRuleInstance).when(this.operation).buildSecurityRuleInstance(Mockito.eq(networkSecurityRule),
+                Mockito.eq(networkSecurityGroupName));
+
         // exercise
-        List<SecurityRuleInstance> networkSecurityRules = this.operation.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
+        List<SecurityRuleInstance> networkSecurityRules = this.operation.getNetworkSecurityRules(networkSecurityGroupId,
+                networkSecurityGroupName, azureUser);
 
         // verify
         PowerMockito.verifyStatic(AzureNetworkSecurityGroupSDK.class, Mockito.times(TestUtils.RUN_ONCE));
