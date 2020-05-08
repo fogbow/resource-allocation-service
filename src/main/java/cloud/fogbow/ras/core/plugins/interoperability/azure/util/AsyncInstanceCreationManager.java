@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import cloud.fogbow.ras.constants.Messages;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,8 @@ Note: This context helps to fix this issue: https://github.com/fogbow/resource-a
  */
 public class AsyncInstanceCreationManager {
 
+    private static final Logger LOGGER = Logger.getLogger(AsyncInstanceCreationManager.class);
+
     private final static List<String> creating = new ArrayList<>();
 
     /*
@@ -23,8 +28,12 @@ public class AsyncInstanceCreationManager {
        */
     // TODO(chico) - Add log debug
     public Runnable startCreation(String instanceId) {
+        LOGGER.debug(Messages.Info.START_ASYNC_INSTANCE_CREATION_S);
         defineAsCreating(instanceId);
-        return () -> defineAsCreated(instanceId);
+        return () -> {
+            defineAsCreated(instanceId);
+            LOGGER.debug(Messages.Info.END_ASYNC_INSTANCE_CREATION_S);
+        };
     }
 
     /*
