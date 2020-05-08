@@ -84,11 +84,11 @@ public class AzurePublicIPAddressOperationSDK {
 
     @VisibleForTesting
     Observable<NetworkInterface> setUpdateNetworkInterfaceBehaviour(Azure azure,
-            String instanceId, NetworkInterface nic, Observable<NetworkInterface> observable) {
+            String resourceName, NetworkInterface nic, Observable<NetworkInterface> observable) {
 
         return observable.onErrorReturn(error -> {
             LOGGER.error(Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR, error);
-            doDisassociateAndDeletePublicIPAddressAsync(azure, instanceId, nic);
+            doDisassociateAndDeletePublicIPAddressAsync(azure, resourceName, nic);
             return null;
         }).doOnCompleted(() -> {
             LOGGER.info(Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
