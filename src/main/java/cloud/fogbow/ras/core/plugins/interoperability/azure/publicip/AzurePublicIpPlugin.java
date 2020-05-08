@@ -33,7 +33,7 @@ import rx.Observable;
 
 import java.util.Properties;
 
-public class AzurePublicIpPlugin extends AzureAsync<PublicIpInstance> implements PublicIpPlugin<AzureUser> {
+public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsync<PublicIpInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzurePublicIpPlugin.class);
 
@@ -228,7 +228,7 @@ public class AzurePublicIpPlugin extends AzureAsync<PublicIpInstance> implements
     }
 
     @Override
-    protected PublicIpInstance buildCreatingInstance(String instanceId) {
+    public PublicIpInstance buildCreatingInstance(String instanceId) {
         return new PublicIpInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION);
     }
 }

@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureVolumePlugin extends AzureAsync<VolumeInstance> implements VolumePlugin<AzureUser>{
+public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<VolumeInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVolumePlugin.class);
     
@@ -166,7 +166,7 @@ public class AzureVolumePlugin extends AzureAsync<VolumeInstance> implements Vol
     }
 
     @Override
-    protected VolumeInstance buildCreatingInstance(String instanceId) {
+    public VolumeInstance buildCreatingInstance(String instanceId) {
         return new VolumeInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION, 0);
     }
 }

@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureNetworkPlugin extends AzureAsync<NetworkInstance> implements NetworkPlugin<AzureUser> {
+public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<NetworkInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
 
@@ -131,7 +131,7 @@ public class AzureNetworkPlugin extends AzureAsync<NetworkInstance> implements N
     }
 
     @Override
-    protected NetworkInstance buildCreatingInstance(String instanceId) {
+    public NetworkInstance buildCreatingInstance(String instanceId) {
         return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
     }
 }

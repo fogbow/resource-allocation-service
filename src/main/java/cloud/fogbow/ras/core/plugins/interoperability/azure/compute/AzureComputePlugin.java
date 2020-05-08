@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class AzureComputePlugin extends AzureAsync<ComputeInstance> implements ComputePlugin<AzureUser> {
+public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<ComputeInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
     private static final int INSTANCES_LAUNCH_NUMBER = 1;
@@ -232,7 +232,7 @@ public class AzureComputePlugin extends AzureAsync<ComputeInstance> implements C
     }
 
     @Override
-    protected ComputeInstance buildCreatingInstance(String instanceId) {
+    public ComputeInstance buildCreatingInstance(String instanceId) {
         return new ComputeInstance(instanceId, InstanceState.CREATING.getValue()
                 , AzureGeneralUtil.NO_INFORMATION, new ArrayList<>());
     }

@@ -31,7 +31,7 @@ import rx.Observable;
 
 import java.util.Properties;
 
-public class AzureAttachmentPlugin extends AzureAsync<AttachmentInstance> implements AttachmentPlugin<AzureUser> {
+public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, AzureAsync<AttachmentInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureAttachmentPlugin.class);
 
@@ -188,7 +188,7 @@ public class AzureAttachmentPlugin extends AzureAsync<AttachmentInstance> implem
     }
 
     @Override
-    protected AttachmentInstance buildCreatingInstance(String instanceId) {
+    public AttachmentInstance buildCreatingInstance(String instanceId) {
         return new AttachmentInstance(instanceId, InstanceState.CREATING.getValue(),
                 AzureGeneralUtil.NO_INFORMATION, AzureGeneralUtil.NO_INFORMATION, AzureGeneralUtil.NO_INFORMATION);
     }

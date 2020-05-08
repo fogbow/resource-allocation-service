@@ -4,14 +4,14 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCr
 
 import javax.annotation.Nullable;
 
-public abstract class AzureAsync<T> {
+public interface AzureAsync<T> {
 
-    private AsyncInstanceCreationManager asyncInstanceCreation = new AsyncInstanceCreationManager();
+    AsyncInstanceCreationManager asyncInstanceCreation = new AsyncInstanceCreationManager();
 
     /*
     It must be used in the requestInstance method context
      */
-    public Runnable startInstanceCreation(String instanceId) {
+    default Runnable startInstanceCreation(String instanceId) {
         return this.asyncInstanceCreation.startCreation(instanceId);
     }
 
@@ -19,7 +19,7 @@ public abstract class AzureAsync<T> {
     It must be used in the getInstance method context;
      */
     @Nullable
-    public T getCreatingInstance(String instanceId) {
+    default T getCreatingInstance(String instanceId) {
         if (this.asyncInstanceCreation.isCreating(instanceId)) {
             return buildCreatingInstance(instanceId);
         }
@@ -29,6 +29,6 @@ public abstract class AzureAsync<T> {
     /*
     It must return the OrderInstance with Creating state
      */
-    abstract protected T buildCreatingInstance(String instanceId);
+    T buildCreatingInstance(String instanceId);
 
 }
