@@ -16,6 +16,8 @@ public class AzureResourceIdBuilder {
     static final String NETWORK_SECURITY_GROUP_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkSecurityGroups/%s";
     @VisibleForTesting
     static final String NETWORK_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networks/%s";
+    @VisibleForTesting
+    static final String PUBLIC_IP_ADDRESS_STRUCTURE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s";
 
     public static AzureResourceIdConfigured virtualMachineId() {
         return new AzureResourceIdConfigured(VIRTUAL_MACHINE_STRUCTURE);
@@ -39,6 +41,10 @@ public class AzureResourceIdBuilder {
     
     public static AzureResourceIdConfigured networkId() {
         return new AzureResourceIdConfigured(NETWORK_STRUCTURE);
+    }
+    
+    public static AzureResourceIdConfigured publicIpAddressId() {
+        return new AzureResourceIdConfigured(PUBLIC_IP_ADDRESS_STRUCTURE);
     }
 
     public static class AzureResourceIdConfigured {

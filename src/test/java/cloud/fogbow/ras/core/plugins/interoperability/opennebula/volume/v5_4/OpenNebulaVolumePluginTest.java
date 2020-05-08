@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
 import cloud.fogbow.common.constants.OpenNebulaConstants;
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -376,7 +375,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 				+ "<IMAGE>\n"
 				+ "    <DEV_PREFIX>vd</DEV_PREFIX>\n"
 				+ "    <DISK_TYPE>BLOCK</DISK_TYPE>\n"
-				+ "    <FSTYPE>raw</FSTYPE>\n"
+				+ "    <DRIVER>raw</DRIVER>\n"
 				+ "    <PERSISTENT>YES</PERSISTENT>\n"
 				+ "    <TYPE>DATABLOCK</TYPE>\n"
 				+ "    <NAME>fake-order-name</NAME>\n"
@@ -397,7 +396,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		String name = order.getName();
 		String imagePersistent = PERSISTENT_DISK_CONFIRMATION;
 		String imageType = DATABLOCK_IMAGE_TYPE;
-		String fileSystemType = FILE_SYSTEM_TYPE_RAW;
+		String driver = DRIVER_RAW;
 		String diskType = BLOCK_DISK_TYPE;
 		String devicePrefix = DEFAULT_DATASTORE_DEVICE_PREFIX;
 		long size = Long.parseLong(DISK_VALUE_30GB);
@@ -407,7 +406,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 				.size(size)
 				.imagePersistent(imagePersistent)
 				.imageType(imageType)
-				.fileSystemType(fileSystemType)
+				.driver(driver)
 				.diskType(diskType)
 				.devicePrefix(devicePrefix)
 				.build();

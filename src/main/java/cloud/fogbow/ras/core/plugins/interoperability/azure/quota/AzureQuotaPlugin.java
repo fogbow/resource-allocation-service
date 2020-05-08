@@ -110,7 +110,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
         int cores = coreUsage == null ? NO_USAGE : coreUsage.currentValue();
         int ram = this.getMemoryUsage(azure);
 
-        return new ComputeAllocation(cores, ram, instances);
+        return new ComputeAllocation(instances, cores, ram);
     }
 
     @VisibleForTesting
@@ -160,7 +160,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
         int cores = coreUsage == null ? NO_USAGE : (int) coreUsage.limit();
         int ram = FogbowConstants.UNLIMITED_RESOURCE;
 
-        return new ComputeAllocation(cores, ram, instances);
+        return new ComputeAllocation(instances, cores, ram);
     }
 
     @VisibleForTesting

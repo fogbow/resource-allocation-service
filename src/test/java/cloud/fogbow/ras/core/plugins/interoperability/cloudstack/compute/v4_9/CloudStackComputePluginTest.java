@@ -22,7 +22,6 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
@@ -638,7 +637,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(idExpected, computeInstance.getId());
         Assert.assertEquals(nameExpected, computeInstance.getName());
         Assert.assertEquals(vCpuExpected, computeInstance.getvCPU());
-        Assert.assertEquals(memoryExpected, computeInstance.getMemory());
+        Assert.assertEquals(memoryExpected, computeInstance.getRam());
         Assert.assertEquals(diskExpected, computeInstance.getDisk());
         Assert.assertEquals(ipAddressExpected, computeInstance.getIpAddresses().get(0));
         Assert.assertEquals(networkDefaultExpected, computeInstance.getNetworks().get(0).getId());

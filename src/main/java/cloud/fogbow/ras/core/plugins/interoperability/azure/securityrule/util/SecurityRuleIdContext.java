@@ -7,7 +7,7 @@ public class SecurityRuleIdContext {
     private static final int NETWORK_SECURITY_GROUP_NAME_POSITION = 0;
     private static final int SECURITY_RULE_NAME_POSITION = 1;
     private static final int INSTANCE_ID_ARRAY_SIZE = 2;
-    private static final String SEPARATOR = "-";
+    private static final String SEPARATOR = "_";
 
     private String networkSecurityGroupName;
     private String securityRuleName;

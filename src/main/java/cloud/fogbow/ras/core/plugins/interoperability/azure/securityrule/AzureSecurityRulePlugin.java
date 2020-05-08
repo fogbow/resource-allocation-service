@@ -19,7 +19,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceId
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,9 +40,8 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-        checkOrderType(majorOrder);
 
-        String networkSecurityGroupName = AzureGeneralUtil.defineInstanceId(majorOrder.getInstanceId());
+        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
         String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
                 .withSubscriptionId(azureUser.getSubscriptionId())
                 .withResourceGroupName(this.defaultResourceGroupName)
@@ -75,7 +73,15 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
 
-        return doGetSecurityRules(majorOrder, azureUser);
+        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
+        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(azureUser.getSubscriptionId())
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+
+        return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId,
+                networkSecurityGroupName, azureUser);
     }
 
     @Override
@@ -98,38 +104,6 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     @VisibleForTesting
     SecurityRuleIdContext getSecurityRuleIdContext(String securityRuleId) {
         return new SecurityRuleIdContext(securityRuleId);
-    }
-
-    @VisibleForTesting
-    List<SecurityRuleInstance> doGetSecurityRules(Order majorOrder, AzureUser azureUser)
-            throws FogbowException {
-
-        switch (majorOrder.getType()) {
-            case NETWORK:
-                String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
-                String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                        .withSubscriptionId(azureUser.getSubscriptionId())
-                        .withResourceGroupName(this.defaultResourceGroupName)
-                        .withResourceName(networkSecurityGroupName)
-                        .build();
-
-                return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId, azureUser);
-            case PUBLIC_IP:
-            default:
-                String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
-                throw new UnexpectedException(errorMsg);
-        }
-    }
-
-    @VisibleForTesting
-    void checkOrderType(Order majorOrder) throws FogbowException {
-        switch (majorOrder.getType()) {
-            case NETWORK:
-            case PUBLIC_IP:
-                return;
-            default:
-                throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
-        }
     }
 
     @VisibleForTesting
